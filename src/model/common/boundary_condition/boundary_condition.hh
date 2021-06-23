@@ -62,9 +62,8 @@ public:
   /* Methods and accessors                                                    */
   /* ------------------------------------------------------------------------ */
 public:
-  // inline void initBoundaryCondition();
-  template <typename FunctorType>
   /// Apply the boundary conditions
+  template <typename FunctorType>
   inline void applyBC(const FunctorType & func);
 
   template <class FunctorType>

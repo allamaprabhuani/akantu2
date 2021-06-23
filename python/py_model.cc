@@ -61,7 +61,7 @@ void register_model(py::module & mod) {
            (NonLinearSolver & (ModelSolver::*)(const ID &)) &
                ModelSolver::getNonLinearSolver,
            py::arg("solver_id") = "", py::return_value_policy::reference)
-   
+
       .def("solveStep", [](ModelSolver & self) { self.solveStep(); })
       .def("solveStep", [](ModelSolver & self, const ID & solver_id) {
         self.solveStep(solver_id);
@@ -87,14 +87,19 @@ void register_model(py::module & mod) {
       .def("dump",
            py::overload_cast<const std::string &, Real, UInt>(&Model::dump))
       .def("initNewSolver", &Model::initNewSolver)
-      .def("getNewSolver", [](Model & self, const std::string id, const TimeStepSolverType & time,
-			      const NonLinearSolverType & type) {
-	     self.getNewSolver(id, time, type);
-	   }, py::return_value_policy::reference)
-      .def("setIntegrationScheme", [](Model & self, const std::string id, const std::string primal,
-				      const IntegrationSchemeType & scheme) {
-	     self.setIntegrationScheme(id, primal, scheme);
-	   })
+      .def(
+          "getNewSolver",
+          [](Model & self, const std::string id,
+             const TimeStepSolverType & time,
+             const NonLinearSolverType & type) {
+            self.getNewSolver(id, time, type);
+          },
+          py::return_value_policy::reference)
+      .def("setIntegrationScheme",
+           [](Model & self, const std::string id, const std::string primal,
+              const IntegrationSchemeType & scheme) {
+             self.setIntegrationScheme(id, primal, scheme);
+           })
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);

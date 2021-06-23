@@ -62,12 +62,11 @@ int main(int argc, char *argv[]) {
   auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
   contact.getContactDetector().setSurfaceSelector(surface_selector);
 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "fixed");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "fixed");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "loading");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "symmetry");
-  
-    
+  coupler.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "fixed");
+  coupler.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "fixed");
+  coupler.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "loading");
+  coupler.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "symmetry");
+
   coupler.setBaseName("contact-explicit-static");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("normals");
@@ -85,7 +84,7 @@ int main(int argc, char *argv[]) {
   for (auto _ [[gnu::unused]] : arange(max_steps)) {
 
     auto increment = 1e-4;
-    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading"); 
+    coupler.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading");
 
     coupler.solveStep();    
     coupler.dump();

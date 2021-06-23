@@ -56,6 +56,7 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/surface_selector.cc
 
   model/model_couplers/coupler_solid_contact.hh
+  model/model_couplers/coupler_solid_contact_tmpl.hh
   model/model_couplers/coupler_solid_contact.cc
   model/model_couplers/coupler_solid_cohesive_contact.hh
   model/model_couplers/coupler_solid_cohesive_contact.cc

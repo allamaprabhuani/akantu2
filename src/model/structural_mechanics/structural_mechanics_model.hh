@@ -193,9 +193,6 @@ public:
   /// set the value of the time step
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-
   /// get the StructuralMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement_rotation, Array<Real> &);
 

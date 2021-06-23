@@ -1,12 +1,12 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
-#include <contact_mechanics_model.hh>
 #include <contact_detector.hh>
-#include <surface_selector.hh>
+#include <contact_mechanics_model.hh>
 #include <geometry_utils.hh>
 #include <mesh_events.hh>
 #include <parsable.hh>
+#include <surface_selector.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
@@ -33,40 +33,44 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 void register_contact_mechanics_model(py::module & mod) {
-  py::class_<ContactDetector>(mod, "ContactDetector", py::multiple_inheritance())
-    .def(py::init<Mesh &, const ID &>(),
-	 py::arg("mesh"), py::arg("id") ="contact_detector")
-    .def(py::init<Mesh &, Array<Real>,  const ID &>(),
-	 py::arg("mesh"), py::arg("positions"),
-	 py::arg("id") = "contact_detector")
-    .def("setSurfaceSelector", &ContactDetector::setSurfaceSelector);
+  py::class_<ContactDetector>(mod, "ContactDetector",
+                              py::multiple_inheritance())
+      .def(py::init<Mesh &, const ID &>(), py::arg("mesh"),
+           py::arg("id") = "contact_detector")
+      .def(py::init<Mesh &, Array<Real>, const ID &>(), py::arg("mesh"),
+           py::arg("positions"), py::arg("id") = "contact_detector")
+      .def("setSurfaceSelector", &ContactDetector::setSurfaceSelector);
 
-  py::class_<SurfaceSelector, std::shared_ptr<SurfaceSelector>>(mod, "SurfaceSelector", py::multiple_inheritance())
-    .def(py::init<Mesh &>(),
-	 py::arg("mesh"));
+  py::class_<SurfaceSelector, std::shared_ptr<SurfaceSelector>>(
+      mod, "SurfaceSelector", py::multiple_inheritance())
+      .def(py::init<Mesh &>(), py::arg("mesh"));
 
-  py::class_<PhysicalSurfaceSelector, SurfaceSelector, std::shared_ptr<PhysicalSurfaceSelector>>(mod, "PhysicalSurfaceSelector")
-    .def(py::init<Mesh &>(),
-	 py::arg("mesh"));
+  py::class_<PhysicalSurfaceSelector, SurfaceSelector,
+             std::shared_ptr<PhysicalSurfaceSelector>>(
+      mod, "PhysicalSurfaceSelector")
+      .def(py::init<Mesh &>(), py::arg("mesh"));
 
-  py::class_<CohesiveSurfaceSelector, SurfaceSelector, std::shared_ptr<CohesiveSurfaceSelector>>(mod, "CohesiveSurfaceSelector")
-    .def(py::init<Mesh &>(),
-	 py::arg("mesh"));
-  
-  py::class_<AllSurfaceSelector, SurfaceSelector, std::shared_ptr<AllSurfaceSelector>>(mod, "AllSurfaceSelector")
-    .def(py::init<Mesh &>(),
-	 py::arg("mesh"));
-    
+  py::class_<CohesiveSurfaceSelector, SurfaceSelector,
+             std::shared_ptr<CohesiveSurfaceSelector>>(
+      mod, "CohesiveSurfaceSelector")
+      .def(py::init<Mesh &>(), py::arg("mesh"));
+
+  py::class_<AllSurfaceSelector, SurfaceSelector,
+             std::shared_ptr<AllSurfaceSelector>>(mod, "AllSurfaceSelector")
+      .def(py::init<Mesh &>(), py::arg("mesh"));
+
   py::class_<ContactMechanicsModelOptions>(mod, "ContactMechanicsModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("analysis_method") = _explicit_contact);
 
+  /* ------------------------------------------------------------------------ */
   py::class_<ContactMechanicsModel, Model>(mod, "ContactMechanicsModel",
                                            py::multiple_inheritance())
       .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
-	   const ModelType>(),
+                    const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
-           py::arg("id") = "contact_mechanics_model", py::arg("dof_manager") = nullptr,
+           py::arg("id") = "contact_mechanics_model",
+           py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_contact_mechanics_model)
       .def(
           "initFull",
@@ -74,7 +78,7 @@ void register_contact_mechanics_model(py::module & mod) {
              const ContactMechanicsModelOptions & options) {
             self.initFull(options);
           },
-          py::arg("_analysis_method") = ContactMechanicsModelOptions())
+          py::arg("options") = ContactMechanicsModelOptions())
       .def(
           "initFull",
           [](ContactMechanicsModel & self,
@@ -92,14 +96,7 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function_nocopy(getGaps)
       .def_function_nocopy(getNormals)
       .def_function_nocopy(getNodalArea)
-      .def_function_nocopy(getContactDetector)
-      .def("dump", py::overload_cast<>(&ContactMechanicsModel::dump))
-      .def("dump",
-           py::overload_cast<const std::string &>(&ContactMechanicsModel::dump))
-      .def("dump", py::overload_cast<const std::string &, UInt>(
-                       &ContactMechanicsModel::dump))
-      .def("dump", py::overload_cast<const std::string &, Real, UInt>(
-                       &ContactMechanicsModel::dump));
+      .def_function_nocopy(getContactDetector);
 
   py::class_<ContactElement>(mod, "ContactElement").def(py::init<>());
 

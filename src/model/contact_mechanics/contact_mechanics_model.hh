@@ -103,7 +103,7 @@ protected:
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /// callback for the solver, this is called at beginning of solve
   void beforeSolveStep() override;
@@ -160,6 +160,7 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
+#if defined(AKANTU_USE_IOHELPER)
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
@@ -174,17 +175,7 @@ public:
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
-  void dump() override;
-
-  virtual void dump(UInt step);
-
-  virtual void dump(Real time, UInt step);
-
-  virtual void dump(const std::string & dumper_name);
-
-  virtual void dump(const std::string & dumper_name, UInt step);
-
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+#endif
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -219,9 +210,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// get the ContactMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
 

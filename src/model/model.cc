@@ -43,8 +43,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 Model::Model(Mesh & mesh, const ModelType & type,
              std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID & id)
-    : ModelSolver(mesh, type, id, std::move(dof_manager)),
-      mesh(mesh),
+    : ModelSolver(mesh, type, id, std::move(dof_manager)), mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
                                                : dim),
       parser(getStaticParser()) {
@@ -103,6 +102,10 @@ void Model::initNewSolver(const AnalysisMethod & method) {
 
 /* -------------------------------------------------------------------------- */
 void Model::initFEEngineBoundary() {
+  if (not hasFEEngineBoundary()) {
+    return;
+  }
+
   FEEngine & fem_boundary = getFEEngineBoundary();
   fem_boundary.initShapeFunctions(_not_ghost);
   fem_boundary.initShapeFunctions(_ghost);
@@ -171,26 +174,21 @@ void Model::addDumpGroupFieldToDumper(const std::string & field_id,
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpField(const std::string & field_id) {
-
   this->addDumpFieldToDumper(mesh.getDefaultDumperName(), field_id);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::addDumpFieldVector(const std::string & field_id) {
-
   this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpFieldTensor(const std::string & field_id) {
-
   this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
-
 void Model::setBaseName(const std::string & field_id) {
-
   mesh.setBaseName(field_id);
 }
 /* -------------------------------------------------------------------------- */
@@ -280,7 +278,6 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       UInt spatial_dimension,
                                       ElementKind element_kind,
                                       bool padding_flag) {
-
 #ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
 
@@ -320,9 +317,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name) {
-  mesh.dump(dumper_name);
-}
+void Model::dump(const std::string & dumper_name) { mesh.dump(dumper_name); }
 
 /* -------------------------------------------------------------------------- */
 void Model::dump(const std::string & dumper_name, UInt step) {
@@ -330,8 +325,7 @@ void Model::dump(const std::string & dumper_name, UInt step) {
 }
 
 /* ------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name, Real time,
-                             UInt step) {
+void Model::dump(const std::string & dumper_name, Real time, UInt step) {
   mesh.dump(dumper_name, time, step);
 }
 

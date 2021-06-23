@@ -75,11 +75,7 @@ ContactMechanicsModel::ContactMechanicsModel(
 }
 
 /* -------------------------------------------------------------------------- */
-ContactMechanicsModel::~ContactMechanicsModel() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+ContactMechanicsModel::~ContactMechanicsModel() = default;
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initFullImpl(const ModelOptions & options) {
@@ -87,7 +83,7 @@ void ContactMechanicsModel::initFullImpl(const ModelOptions & options) {
   Model::initFullImpl(options);
 
   // initalize the resolutions
-  if (this->parser.getLastParsedFile() != "") {
+  if (not this->parser.getLastParsedFile().empty()) {
     this->instantiateResolutions();
     this->initResolutions();
   }
@@ -176,8 +172,9 @@ void ContactMechanicsModel::initResolutions() {
   AKANTU_DEBUG_ASSERT(resolutions.size() != 0,
                       "No resolutions to initialize !");
 
-  if (!are_resolutions_instantiated)
+  if (!are_resolutions_instantiated) {
     instantiateResolutions();
+  }
 
   // \TODO check if each resolution needs a initResolution() method
 }
@@ -247,7 +244,6 @@ void ContactMechanicsModel::initSolver(
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
-
   switch (method) {
   case _explicit_lumped_mass: {
     return std::make_tuple("explicit_lumped",
@@ -650,49 +646,7 @@ ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
   }
   return field;
 }
-
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldBool(const std::string &,
-                                            const std::string &, bool) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldReal(const std::string &,
-                                            const std::string &, bool) {
-  return nullptr;
-}
 #endif
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(const std::string & dumper_name) {
-  mesh.dump(dumper_name);
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(const std::string & dumper_name, UInt step) {
-  mesh.dump(dumper_name, step);
-}
-
-/* ------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(const std::string & dumper_name, Real time,
-                                 UInt step) {
-  mesh.dump(dumper_name, time, step);
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump() { mesh.dump(); }
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(UInt step) { mesh.dump(step); }
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(Real time, UInt step) {
-  mesh.dump(time, step);
-}
 
 /* -------------------------------------------------------------------------- */
 UInt ContactMechanicsModel::getNbData(

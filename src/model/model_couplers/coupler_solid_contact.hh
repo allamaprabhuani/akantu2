@@ -30,14 +30,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "boundary_condition.hh"
 #include "contact_mechanics_model.hh"
-#include "data_accessor.hh"
-#include "fe_engine.hh"
-#include "model.hh"
 #include "solid_mechanics_model.hh"
-#include "sparse_matrix.hh"
-#include "time_step_solver.hh"
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#include "solid_mechanics_model_cohesive.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_COUPLER_SOLID_CONTACT_HH__
@@ -47,35 +44,26 @@
 /* Coupling : Solid Mechanics / Contact Mechanics                           */
 /* ------------------------------------------------------------------------ */
 namespace akantu {
-template <ElementKind kind, class IntegrationOrderFunctor>
-class IntegratorGauss;
-template <ElementKind kind> class ShapeLagrange;
-class DOFManager;
-} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-
-namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-class CouplerSolidContact : public Model,
-                            public DataAccessor<Element>,
-                            public DataAccessor<UInt>,
-                            public BoundaryCondition<CouplerSolidContact> {
-
+template <class SolidMechanicsModelType>
+class CouplerSolidContactTemplate : public Model,
+                                    public DataAccessor<Element>,
+                                    public DataAccessor<UInt> {
+  static_assert(
+      std::is_base_of<SolidMechanicsModel, SolidMechanicsModelType>::value,
+      "SolidMechanicsModelType should be derived from SolidMechanicsModel");
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
-
-  using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
-
 public:
-  CouplerSolidContact(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-      const ID & id = "coupler_solid_contact", std::shared_ptr<DOFManager> dof_manager = nullptr,
-      const ModelType model_type = ModelType::_coupler_solid_contact);
+  CouplerSolidContactTemplate(
+      Mesh & mesh, UInt dim = _all_dimensions,
+      const ID & id = "coupler_solid_contact",
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      ModelType model_type = ModelType::_coupler_solid_contact);
 
-  ~CouplerSolidContact() override;
+  ~CouplerSolidContactTemplate() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -83,9 +71,6 @@ public:
 protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
-
-  /// initialize the modelType
-  void initModel() override;
 
   /// get some default values for derived classes
   std::tuple<ID, TimeStepSolverType>
@@ -100,6 +85,32 @@ public:
 
   /// assembles the contant internal forces
   virtual void assembleInternalForces();
+
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  template <class Model_ = SolidMechanicsModelType,
+            std::enable_if_t<std::is_same<
+                Model_, SolidMechanicsModelCohesive>::value> * = nullptr>
+  UInt checkCohesiveStress() {
+    return solid->checkCohesiveStress();
+  }
+#endif
+
+  template <typename FunctorType>
+  inline void applyBC(const FunctorType & func) {
+    solid->applyBC(func);
+  }
+
+  template <class FunctorType>
+  inline void applyBC(const FunctorType & func,
+                      const std::string & group_name) {
+    solid->applyBC(func, group_name);
+  }
+
+  template <class FunctorType>
+  inline void applyBC(const FunctorType & func,
+                      const ElementGroup & element_group) {
+    solid->applyBC(func, element_group);
+  }
 
 protected:
   /// callback for the solver, this adds f_{ext} - f_{int} to the residual
@@ -131,7 +142,8 @@ protected:
   void afterSolveStep(bool converged = true) override;
 
   /// callback for the model to instantiate the matricess when needed
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
+  void initSolver(TimeStepSolverType time_step_solver_type,
+                  NonLinearSolverType non_linear_solver_type) override;
 
   /* ------------------------------------------------------------------------ */
   /* Mass matrix for solid mechanics model                                    */
@@ -151,13 +163,11 @@ protected:
   void assembleMass(GhostType ghost_type);
 
 protected:
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   TimeStepSolverType getDefaultSolverType() const override;
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
 public:
   bool isDefaultSolverExplicit() { return method == _explicit_lumped_mass; }
@@ -165,67 +175,63 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
-  UInt getNbData(const Array<Element> &,
-                 const SynchronizationTag &) const override {
+  UInt getNbData(const Array<Element> & /*elements*/,
+                 const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer &, const Array<Element> &,
-                const SynchronizationTag &) const override {}
-  void unpackData(CommunicationBuffer &, const Array<Element> &,
-                  const SynchronizationTag &) override {}
+  void packData(CommunicationBuffer & /*buffer*/,
+                const Array<Element> & /*elements*/,
+                const SynchronizationTag & /*tag*/) const override {}
+  void unpackData(CommunicationBuffer & /*buffer*/,
+                  const Array<Element> & /*elements*/,
+                  const SynchronizationTag & /*tag*/) override {}
 
   // DataAccessor<UInt> nodes
-  UInt getNbData(const Array<UInt> &,
-                 const SynchronizationTag &) const override {
+  UInt getNbData(const Array<UInt> & /*nodes*/,
+                 const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer &, const Array<UInt> &,
-                const SynchronizationTag &) const override {}
-  void unpackData(CommunicationBuffer &, const Array<UInt> &,
-                  const SynchronizationTag &) override {}
+  void packData(CommunicationBuffer & /*buffer*/, const Array<UInt> & /*nodes*/,
+                const SynchronizationTag & /*tag*/) const override {}
+  void unpackData(CommunicationBuffer & /*buffer*/,
+                  const Array<UInt> & /*nodes*/,
+                  const SynchronizationTag & /*tag*/) override {}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  FEEngine & getFEEngineBoundary(const ID & name = "") override;
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
-  /// get the ContactMechanicsModel::displacement vector
-  AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
-
-  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent
-  /// if ContactMechanicsModel::setIncrementFlagOn has been called before
-  AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
-
-  /// get the ContactMechanicsModel::external_force vector (external forces)
-  AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
-
-  /// get the ContactMechanicsModel::force vector (external forces)
-  Array<Real> & getForce() {
-    AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
-                         "use getExternalForce instead");
-    return *external_force;
+  /// get the solid mechanics model
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  template <class Model_ = SolidMechanicsModelType,
+            std::enable_if_t<std::is_same<
+                Model_, SolidMechanicsModelCohesive>::value> * = nullptr>
+  SolidMechanicsModelCohesive & getSolidMechanicsModelCohesive() {
+    return *solid;
+  }
+#endif
+  template <class Model_ = SolidMechanicsModelType,
+            std::enable_if_t<
+                std::is_same<Model_, SolidMechanicsModel>::value> * = nullptr>
+  SolidMechanicsModelType & getSolidMechanicsModel() {
+    return *solid;
   }
 
-  /// get the solid mechanics model
-  AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
-
   /// get the contact mechanics model
-  AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &);
+  AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &)
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
+#if defined(AKANTU_USE_IOHELPER)
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
+
+  std::shared_ptr<dumpers::Field>
+  createNodalFieldUInt(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
@@ -238,41 +244,34 @@ public:
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
                        UInt spatial_dimension, ElementKind kind) override;
+#endif
 
-  virtual void dump(const std::string & dumper_name);
-
-  virtual void dump(const std::string & dumper_name, UInt step);
-
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  void dump(const std::string & dumper_name) override;
+  void dump(const std::string & dumper_name, UInt step) override;
+  void dump(const std::string & dumper_name, Real time, UInt step) override;
 
   void dump() override;
 
-  virtual void dump(UInt step);
-
-  virtual void dump(Real time, UInt step);
+  void dump(UInt step) override;
+  void dump(Real time, UInt step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 private:
   /// solid mechanics model
-  SolidMechanicsModel * solid{nullptr};
+  std::unique_ptr<SolidMechanicsModelType> solid;
 
   /// contact mechanics model
-  ContactMechanicsModel * contact{nullptr};
-
-  ///
-  Array<Real> * displacement{nullptr};
-
-  ///
-  Array<Real> * displacement_increment{nullptr};
-
-  /// external forces array
-  Array<Real> * external_force{nullptr};
+  std::unique_ptr<ContactMechanicsModel> contact;
 
   UInt step;
 };
 
+using CouplerSolidContact = CouplerSolidContactTemplate<SolidMechanicsModel>;
+
 } // namespace akantu
+
+#include "coupler_solid_contact_tmpl.hh"
 
 #endif /* __COUPLER_SOLID_CONTACT_HH__  */

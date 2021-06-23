@@ -192,8 +192,6 @@ public:
 public:
   AKANTU_GET_MACRO(Density, density, Real);
   AKANTU_GET_MACRO(Capacity, capacity, Real);
-  /// get the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// get the assembled heat flux

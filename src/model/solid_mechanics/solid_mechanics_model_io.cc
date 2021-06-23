@@ -92,8 +92,8 @@ SolidMechanicsModel::flattenInternal(const std::string & field_name,
 
   auto it = this->registered_internals.find(key);
   if (it == this->registered_internals.end()) {
-    auto internal = std::make_unique<ElementTypeMapArray<Real>>(
-        field_name, this->id);
+    auto internal =
+        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
 
     internal_flat = internal.get();
     this->registered_internals[key] = std::move(internal);
@@ -119,8 +119,7 @@ SolidMechanicsModel::flattenInternal(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::flattenAllRegisteredInternals(
-    ElementKind kind) {
+void SolidMechanicsModel::flattenAllRegisteredInternals(ElementKind kind) {
   ElementKind _kind;
   ID _id;
 
@@ -141,8 +140,7 @@ void SolidMechanicsModel::onDump() {
 #ifdef AKANTU_USE_IOHELPER
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension,
-    ElementKind kind) {
+    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
@@ -190,7 +188,7 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
 
       if (func) {
         field = dumpers::FieldComputeProxy::createFieldCompute(field,
-                                                              std::move(func));
+                                                               std::move(func));
       }
       // treat the paddings
       if (padding_flag) {
@@ -268,10 +266,8 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
 /* -------------------------------------------------------------------------- */
 #else
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-SolidMechanicsModel::createElementalField(const std::string &,
-                                          const std::string &, bool,
-                                          const UInt &, ElementKind) {
+std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
+    const std::string &, const std::string &, bool, const UInt &, ElementKind) {
   return nullptr;
 }
 /* --------------------------------------------------------------------------

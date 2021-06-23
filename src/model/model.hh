@@ -149,7 +149,7 @@ protected:
   virtual std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) = 0;
 
-  virtual void initModel() = 0;
+  virtual void initModel() {};
 
   virtual void initFEEngineBoundary();
 
@@ -210,6 +210,8 @@ public:
   /// return the fem boundary object associated with a provided name
   virtual FEEngine & getFEEngineBoundary(const ID & name = "");
 
+  inline bool hasFEEngineBoundary(const ID & name = "");
+
   /// register a fem object associated with name
   template <typename FEEngineClass>
   inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
@@ -230,6 +232,9 @@ public:
 
   /// Get the type of analysis method used
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
+
+  /// return the dimension of the system space
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack hexlper functions                                         */
