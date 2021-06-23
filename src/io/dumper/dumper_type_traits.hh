@@ -45,7 +45,7 @@ namespace dumpers {
     //! the field type (ElementTypeMap or ElementTypeMapFilter)
     using field_type = field;
     //! the type over which we iterate
-    using it_type = typename field_type::type;
+    using it_type = typename field_type::value_type;
     //! the type of array (Array<T> or ArrayFilter<T>)
     using array_type = typename field_type::array_type;
     //! the iterator over the array

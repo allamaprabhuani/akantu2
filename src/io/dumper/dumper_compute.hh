@@ -69,10 +69,13 @@ namespace dumpers {
     ComputeFunctor() = default;
     ~ComputeFunctor() override = default;
 
-    virtual return_type func(const input_type & /*d*/, Element /*global_index*/) {
+    virtual return_type func(const input_type & /*d*/,
+                             Element /*global_index*/) {
       AKANTU_TO_IMPLEMENT();
     }
-    virtual return_type func(const input_type & /*d*/) { AKANTU_TO_IMPLEMENT(); }
+    virtual return_type func(const input_type & /*d*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -107,12 +110,13 @@ namespace dumpers {
     using return_type = _return_type;
     using support_type = support_type_;
 
-  private:
     using sub_iterator = typename SubFieldCompute::iterator;
     using sub_types = typename SubFieldCompute::types;
     using sub_return_type = typename sub_types::return_type;
     using data_type = typename return_type::value_type;
     using functor_type = ComputeFunctor<sub_return_type, return_type>;
+
+    using types = TypeTraits<data_type, return_type, Array<data_type>>;
 
   public:
     class iterator {
@@ -128,6 +132,9 @@ namespace dumpers {
       }
 
       return_type operator*() { return func.func(*it); }
+
+      /// Do to IOHelper the needs it...
+      UInt element_type() { return this->it.element_type(); }
 
     protected:
       sub_iterator it;
@@ -265,7 +272,6 @@ namespace dumpers {
 
     void checkHomogeneity() override { this->homogeneous = true; };
 
-
     template <class T1 = data_type,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
@@ -328,6 +334,10 @@ namespace dumpers {
     template <typename T> std::shared_ptr<Field> connectToField(T * ptr) {
       if (aka::is_of_type<ComputeFunctorOutput<Vector<Real>>>(func)) {
         return this->connectToFunctor<Vector<Real>>(ptr);
+      }
+
+      if (aka::is_of_type<ComputeFunctorOutput<Vector<UInt>>>(func)) {
+        return this->connectToFunctor<Vector<UInt>>(ptr);
       }
 
       if (aka::is_of_type<ComputeFunctorOutput<Vector<UInt>>>(func)) {

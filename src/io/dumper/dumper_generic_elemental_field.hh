@@ -118,7 +118,7 @@ public:
   void registerToDumper(const std::string & id,
                         iohelper::Dumper & dumper) override {
     dumper.addElemDataField(id, *this);
-  };
+  }
 
   /// for connection to a FieldCompute
   inline std::shared_ptr<Field> connect(FieldComputeProxy & proxy) override {
@@ -129,7 +129,7 @@ public:
   inline std::unique_ptr<ComputeFunctorInterface>
   connect(HomogenizerProxy & proxy) override {
     return proxy.connectToField(this);
-  };
+  }
 
   virtual iterator begin() {
     /// type iterators on the elemental field
