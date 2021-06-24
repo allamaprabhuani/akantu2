@@ -262,12 +262,11 @@ public:
 
 public:
   void getAssociatedElements(const Array<UInt> & node_list,
-                             Array<Element> & elements);
+                             Array<Element> & elements) const;
 
   void getAssociatedElements(const UInt & node,
-                             Array<Element> & elements);
+                             Array<Element> & elements) const;
 
-  
 public:
   /// fills the nodes_to_elements for given dimension elements
   void fillNodesToElements(UInt dimension = _all_dimensions);

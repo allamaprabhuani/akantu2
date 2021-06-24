@@ -36,11 +36,11 @@
 #include "element_class.hh"
 #include "element_group.hh"
 #include "fe_engine.hh"
+#include "geometry_utils.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "parsable.hh"
 #include "surface_selector.hh"
-#include "geometry_utils.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
@@ -63,18 +63,17 @@ public:
   ContactDetector(Mesh &, Array<Real> positions,
                   const ID & id = "contact_detector");
 
-  ~ContactDetector() = default;
+  ~ContactDetector() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// performs all search steps
-  void search(Array<ContactElement> & contact_map,
-	      Array<Real> & gaps, Array<Real> & normals,
-	      Array<Real> & tangents,
-	      Array<Real> & projections);
-  
+  void search(Array<ContactElement> & elements, Array<Real> & gaps,
+              Array<Real> & normals, Array<Real> & tangents,
+              Array<Real> & projections);
+
   /// performs global spatial search to construct spatial grids
   void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
 
@@ -83,59 +82,64 @@ public:
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,
-			     Array<Real> & gaps, Array<Real> & normals,
-			     Array<Real> & tangents, 
-			     Array<Real> & projections);
+                             Array<Real> & gaps, Array<Real> & normals,
+                             Array<Real> & tangents, Array<Real> & projections);
 
-  
-private:  
+private:
   /// reads the input file to get contact detection options
-  void parseSection();
+  void parseSection(const ParserSection & section) override;
 
   /* ------------------------------------------------------------------------ */
   /* Inline Methods                                                           */
   /* ------------------------------------------------------------------------ */
 public:
   /// checks whether the natural projection is valid or not
-  inline bool checkValidityOfProjection(Vector<Real> &);
+  inline bool checkValidityOfProjection(Vector<Real> & projection) const;
 
   /// extracts the coordinates of an element
-  inline void coordinatesOfElement(const Element &, Matrix<Real> &);
+  inline void coordinatesOfElement(const Element & el,
+                                   Matrix<Real> & coords) const;
 
   /// computes the optimal cell size for grid
-  inline void computeCellSpacing(Vector<Real> &);
+  inline void computeCellSpacing(Vector<Real> & spacing) const;
 
   /// constructs a grid containing nodes lying within bounding box
-  inline void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
+  inline void constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
+                            const Array<UInt> & nodes_list) const;
 
   /// constructs the bounding box based on nodes list
-  inline void constructBoundingBox(BBox &, const Array<UInt> &);
+  inline void constructBoundingBox(BBox & bbox,
+                                   const Array<UInt> & nodes_list) const;
 
   /// computes the maximum in radius for a given mesh
   inline void computeMaximalDetectionDistance();
 
   /// constructs the connectivity for a contact element
-  inline Vector<UInt> constructConnectivity(UInt &, const Element &);
+  inline Vector<UInt> constructConnectivity(UInt & slave,
+                                            const Element & master) const;
 
   /// computes normal on an element
-  inline void computeNormalOnElement(const Element &, Vector<Real> &);
+  inline void computeNormalOnElement(const Element & element,
+                                     Vector<Real> & normal) const;
 
   /// extracts vectors which forms the plane of element
-  inline void vectorsAlongElement(const Element &, Matrix<Real> &);
+  inline void vectorsAlongElement(const Element & el,
+                                  Matrix<Real> & vectors) const;
 
   /// computes the gap between slave and its projection on master
   /// surface
-  inline Real computeGap(Vector<Real> &, Vector<Real> &);
+  inline Real computeGap(const Vector<Real> & slave,
+                         const Vector<Real> & master) const;
 
   /// filter boundary elements
-  inline void filterBoundaryElements(Array<Element> & elements,
-                                     Array<Element> & boundary_elements);
+  inline void filterBoundaryElements(const Array<Element> & elements,
+                                     Array<Element> & boundary_elements) const;
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  inline bool isValidSelfContact(const UInt &, const Real & , const Vector<Real> &);
+  inline bool isValidSelfContact(const UInt & slave_node, const Real & gap,
+                                 const Vector<Real> & normal) const;
 
-  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -154,7 +158,7 @@ public:
   /// returns the minimum detection distance
   AKANTU_GET_MACRO(MinimumDetectionDistance, min_dd, Real);
   AKANTU_SET_MACRO(MinimumDetectionDistance, min_dd, Real);
-  
+
   AKANTU_GET_MACRO_NOT_CONST(Positions, positions, Array<Real> &);
   AKANTU_SET_MACRO(Positions, positions, Array<Real>);
 

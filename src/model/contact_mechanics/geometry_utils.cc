@@ -104,7 +104,6 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 void GeometryUtils::normal(const Mesh & mesh, const Element & element,
                            Matrix<Real> & tangents, Vector<Real> & normal,
                            bool outward) {
-
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   // to ensure that normal is always outwards from master surface we
@@ -181,7 +180,6 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                    const Vector<Real> & normal,
                                    Vector<Real> & natural_coord,
                                    Matrix<Real> & tangents) {
-
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   const ElementType type = element.type;
@@ -320,23 +318,23 @@ UInt GeometryUtils::orthogonalProjection(
 
   UInt counter{0};
 
-  auto & contact_group = mesh.getElementGroup("contact_surface");
+  const auto & contact_group = mesh.getElementGroup("contact_surface");
 
-  for (auto & element : elements) {
+  for (const auto & element : elements) {
     // filter out elements which are not there in the element group
     // contact surface created by the surface selector and is stored
     // in the mesh or mesh_facet, if a element is not there it
     // returnas UInt(-1)
 
-    auto & elements_of_type = contact_group.getElements(element.type);
-    if (elements_of_type.find(element.element) == UInt(-1))
+    const auto & elements_of_type = contact_group.getElements(element.type);
+    if (elements_of_type.find(element.element) == UInt(-1)) {
       continue;
+    }
 
     nb_boundary_elements++;
 
     // find the natural coordinate corresponding to the minimum gap
     // between slave node and master element
-
 
     Vector<Real> master(spatial_dimension);
 
@@ -357,8 +355,9 @@ UInt GeometryUtils::orthogonalProjection(
     auto master_to_slave = slave - master;
     Real temp_gap = master_to_slave.norm();
 
-    if (temp_gap != 0)
+    if (temp_gap != 0) {
       master_to_slave /= temp_gap;
+    }
 
     // also the slave point should lie inside the master surface in
     // case of explicit or outside in case of implicit, one way to
@@ -385,8 +384,9 @@ UInt GeometryUtils::orthogonalProjection(
       normal = normal_ele;
     }
 
-    if (temp_gap == 0 or variation <= direction_tolerance)
+    if (temp_gap == 0 or variation <= direction_tolerance) {
       nb_same_sides++;
+    }
 
     counter++;
   }
@@ -394,8 +394,9 @@ UInt GeometryUtils::orthogonalProjection(
   // if point is not on the same side of all the boundary elements
   // than it is not consider even if the closet master element is
   // found
-  if (nb_same_sides != nb_boundary_elements)
+  if (nb_same_sides != nb_boundary_elements) {
     index = UInt(-1);
+  }
 
   return index;
 }
@@ -414,20 +415,20 @@ UInt GeometryUtils::orthogonalProjection(
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1;
 
-  auto & contact_group = mesh.getElementGroup("contact_surface");
+  const auto & contact_group = mesh.getElementGroup("contact_surface");
 
   for (auto && tuple : enumerate(elements)) {
-
     auto & counter = std::get<0>(tuple);
-    auto & element = std::get<1>(tuple);
+    const auto & element = std::get<1>(tuple);
     // filter out elements which are not there in the element group
     // contact surface created by the surface selector and is stored
     // in the mesh or mesh_facet, if a element is not there it
     // returnas UInt(-1)
 
-    auto & elements_of_type = contact_group.getElements(element.type);
-    if (elements_of_type.find(element.element) == UInt(-1))
+    const auto & elements_of_type = contact_group.getElements(element.type);
+    if (elements_of_type.find(element.element) == UInt(-1)) {
       continue;
+    }
 
     Vector<Real> master(spatial_dimension);
 
@@ -450,8 +451,9 @@ UInt GeometryUtils::orthogonalProjection(
     auto master_to_slave = slave - master;
     Real temp_gap = master_to_slave.norm();
 
-    if (temp_gap != 0)
+    if (temp_gap != 0) {
       master_to_slave /= temp_gap;
+    }
 
     // A alpha parameter is introduced which is 1 in case of explicit
     // and -1 in case of implicit, therefor the variation (dot product
@@ -509,9 +511,9 @@ void GeometryUtils::realProjection(const Mesh & mesh,
                                    const Vector<Real> & natural_coord,
                                    Vector<Real> & projection) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
-  const ElementType & type = element.type;
+  const auto & type = element.type;
 
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   auto shapes =
@@ -573,7 +575,7 @@ void GeometryUtils::naturalProjection(
                       nb_nodes_per_element);
 
   auto compute_double_gradient =
-      [&double_gradient, &d2nds2, &nodes_coord, surface_dimension,
+      [&d2nds2, &nodes_coord, surface_dimension,
        spatial_dimension](UInt & alpha, UInt & beta) {
         auto index = alpha * surface_dimension + beta;
         Vector<Real> d_alpha_beta(spatial_dimension);
@@ -592,7 +594,7 @@ void GeometryUtils::naturalProjection(
   // do interpolation
   auto update_f = [&f, &master_coords, &natural_projection, &nodes_coord,
                    &slave_coords, &gradient, surface_dimension,
-                   spatial_dimension, nb_nodes_per_element, type]() {
+                   spatial_dimension, type]() {
     // compute real coords on natural projection
     auto && shapes =
         ElementClassHelper<_ek_regular>::getN(natural_projection, type);
@@ -635,7 +637,8 @@ void GeometryUtils::naturalProjection(
     auto a = GeometryUtils::covariantMetricTensor(gradient);
 
     // computing second derivative at natural projection
-    d2nds2 = ElementClassHelper<_ek_regular>::getD2NDS2(natural_projection, type);
+    d2nds2 =
+        ElementClassHelper<_ek_regular>::getD2NDS2(natural_projection, type);
 
     // real coord - physical guess
     auto distance = slave_coords - master_coords;
@@ -659,7 +662,6 @@ void GeometryUtils::naturalProjection(
     projection_error = update_f();
     iterations++;
   }
-
 }
 
 /* -------------------------------------------------------------------------- */

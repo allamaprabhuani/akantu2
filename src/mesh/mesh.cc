@@ -521,7 +521,7 @@ void Mesh::distributeImpl(
 
 /* -------------------------------------------------------------------------- */
 void Mesh::getAssociatedElements(const Array<UInt> & node_list,
-                                 Array<Element> & elements) {
+                                 Array<Element> & elements) const {
   for (const auto & node : node_list) {
     for (const auto & element : *nodes_to_elements[node]) {
       elements.push_back(element);
@@ -531,9 +531,10 @@ void Mesh::getAssociatedElements(const Array<UInt> & node_list,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::getAssociatedElements(const UInt & node,
-                                 Array<Element> & elements) {
-  for (const auto & element : *nodes_to_elements[node])
+                                 Array<Element> & elements) const {
+  for (const auto & element : *nodes_to_elements[node]) {
     elements.push_back(element);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

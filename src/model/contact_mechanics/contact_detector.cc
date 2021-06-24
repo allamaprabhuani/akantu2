@@ -41,8 +41,8 @@ ContactDetector::ContactDetector(Mesh & mesh, const ID & id)
 /* -------------------------------------------------------------------------- */
 ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
                                  const ID & id)
-    : Parsable(ParserType::_contact_detector, id),
-      mesh(mesh), positions(0, mesh.getSpatialDimension()) {
+    : Parsable(ParserType::_contact_detector, id), mesh(mesh),
+      positions(0, mesh.getSpatialDimension()) {
 
   AKANTU_DEBUG_IN();
 
@@ -50,19 +50,17 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
 
   this->positions.copy(positions);
 
-  this->parseSection();
+  const Parser & parser = getStaticParser();
+  const ParserSection & section =
+      *(parser.getSubSections(ParserType::_contact_detector).first);
+
+  this->parseSection(section);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::parseSection() {
-
-  const Parser & parser = getStaticParser();
-
-  const ParserSection & section =
-      *(parser.getSubSections(ParserType::_contact_detector).first);
-
+void ContactDetector::parseSection(const ParserSection & section) {
   auto type = section.getParameterValue<std::string>("type");
 
   if (type == "implicit") {
@@ -85,8 +83,7 @@ void ContactDetector::search(Array<ContactElement> & elements,
                              Array<Real> & gaps, Array<Real> & normals,
                              Array<Real> & tangents,
                              Array<Real> & projections) {
-
-  UInt surface_dimension = spatial_dimension - 1;
+  auto surface_dimension = spatial_dimension - 1;
 
   this->mesh.fillNodesToElements(surface_dimension);
   this->computeMaximalDetectionDistance();
@@ -106,7 +103,6 @@ void ContactDetector::search(Array<ContactElement> & elements,
 /* -------------------------------------------------------------------------- */
 void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
                                    SpatialGrid<UInt> & master_grid) {
-
   auto & master_list = surface_selector->getMasterList();
   auto & slave_list = surface_selector->getSlaveList();
 
@@ -154,7 +150,6 @@ void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
 /* -------------------------------------------------------------------------- */
 void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
                                   SpatialGrid<UInt> & master_grid) {
-
   // local search
   // out of these array check each cell for closet node in that cell
   // and neighbouring cells find the actual orthogonally closet
@@ -173,8 +168,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
       bool pair_exists = false;
 
       Vector<Real> pos(spatial_dimension);
-      for (UInt s : arange(spatial_dimension))
+      for (UInt s : arange(spatial_dimension)) {
         pos(s) = this->positions(slave_node, s);
+      }
 
       Real closet_distance = std::numeric_limits<Real>::max();
       UInt closet_master_node;
@@ -185,16 +181,18 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
         for (auto && master_node : master_grid.getCell(neighbor_cell)) {
 
           /// check for self contact
-          if (slave_node == master_node)
+          if (slave_node == master_node) {
             continue;
+          }
 
           bool is_valid = true;
           Array<Element> elements;
           this->mesh.getAssociatedElements(slave_node, elements);
 
           for (auto & elem : elements) {
-            if (elem.kind() != _ek_regular)
+            if (elem.kind() != _ek_regular) {
               continue;
+            }
 
             Vector<UInt> connectivity =
                 const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
@@ -208,8 +206,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
           }
 
           Vector<Real> pos2(spatial_dimension);
-          for (UInt s : arange(spatial_dimension))
+          for (UInt s : arange(spatial_dimension)) {
             pos2(s) = this->positions(master_node, s);
+          }
 
           Real distance = pos.distance(pos2);
 
@@ -221,8 +220,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
         }
       }
 
-      if (pair_exists)
-        contact_pairs.push_back(std::make_pair(slave_node, closet_master_node));
+      if (pair_exists) {
+        contact_pairs.emplace_back(std::make_pair(slave_node, closet_master_node));
+      }
     }
   }
 }
@@ -231,7 +231,6 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 void ContactDetector::createContactElements(
     Array<ContactElement> & contact_elements, Array<Real> & gaps,
     Array<Real> & normals, Array<Real> & tangents, Array<Real> & projections) {
-
   auto surface_dimension = spatial_dimension - 1;
 
   Real alpha;
@@ -255,8 +254,9 @@ void ContactDetector::createContactElements(
     const auto & slave_node = pairs.first;
 
     Vector<Real> slave(spatial_dimension);
-    for (UInt s : arange(spatial_dimension))
+    for (UInt s : arange(spatial_dimension)) {
       slave(s) = this->positions(slave_node, s);
+    }
 
     const auto & master_node = pairs.second;
     Array<Element> elements;
@@ -289,5 +289,5 @@ void ContactDetector::createContactElements(
 
   contact_pairs.clear();
 }
-  
+
 } // namespace akantu
