@@ -102,16 +102,15 @@ void Model::initNewSolver(const AnalysisMethod & method) {
 
 /* -------------------------------------------------------------------------- */
 void Model::initFEEngineBoundary() {
-  if (not hasFEEngineBoundary()) {
-    return;
+  try {
+    FEEngine & fem_boundary = getFEEngineBoundary();
+    fem_boundary.initShapeFunctions(_not_ghost);
+    fem_boundary.initShapeFunctions(_ghost);
+
+    fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+    fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+  } catch (debug::Exception & /*e*/) {
   }
-
-  FEEngine & fem_boundary = getFEEngineBoundary();
-  fem_boundary.initShapeFunctions(_not_ghost);
-  fem_boundary.initShapeFunctions(_ghost);
-
-  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
-  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
