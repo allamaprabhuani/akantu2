@@ -436,21 +436,13 @@ inline void ElementClass<type, kind>::inverseMap(
   Matrix<Real> mreal_coords(real_coords.storage(), spatial_dimension, 1);
 
   // initial guess
-  //  Matrix<Real> natural_guess(natural_coords.storage(), dimension, 1);
   natural_coords.zero();
 
   // real space coordinates provided by initial guess
-  Matrix<Real> physical_guess(spatial_dimension /*changed from
-                          dimension */
-                              ,
-                              1);
+  Matrix<Real> physical_guess(spatial_dimension, 1);
 
   // objective function f = real_coords - physical_guess
-  Matrix<Real> f(spatial_dimension /*changed from dimension */, 1);
-
-  // dnds computed on the natural_guess
-  //  Matrix<Real> dnds(interpolation_element::nb_nodes_per_element,
-  //  spatial_dimension);
+  Matrix<Real> f(spatial_dimension, 1);
 
   // J Jacobian matrix computed on the natural_guess
   Matrix<Real> J(dimension, spatial_dimension);

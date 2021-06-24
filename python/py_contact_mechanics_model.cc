@@ -15,9 +15,6 @@ namespace py = pybind11;
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-#define def_deprecated(func_name, mesg)                                        \
-  def(func_name, [](py::args, py::kwargs) { AKANTU_ERROR(mesg); })
-
 #define def_function_nocopy(func_name)                                         \
   def(                                                                         \
       #func_name,                                                              \
@@ -30,8 +27,8 @@ namespace akantu {
   def(#func_name, [](ContactMechanicsModel & self) -> decltype(auto) {         \
     return self.func_name();                                                   \
   })
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 void register_contact_mechanics_model(py::module & mod) {
   py::class_<ContactDetector>(mod, "ContactDetector",
                               py::multiple_inheritance())
@@ -98,7 +95,10 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function_nocopy(getNodalArea)
       .def_function_nocopy(getContactDetector);
 
-  py::class_<ContactElement>(mod, "ContactElement").def(py::init<>());
+  py::class_<ContactElement>(mod, "ContactElement")
+      .def(py::init<>())
+      .def_readwrite("master", &ContactElement::master)
+      .def_readwrite("slave", &ContactElement::slave);
 
   py::class_<GeometryUtils>(mod, "GeometryUtils")
       .def_static(

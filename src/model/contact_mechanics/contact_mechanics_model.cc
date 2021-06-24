@@ -562,8 +562,6 @@ void ContactMechanicsModel::assembleMatrix(const ID & matrix_id) {
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleStiffnessMatrix() {
-  AKANTU_DEBUG_IN();
-
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
 
   if (!this->getDOFManager().hasMatrix("K")) {

@@ -109,7 +109,7 @@ protected:
   void beforeSolveStep() override;
 
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep(bool converted = true) override;
+  void afterSolveStep(bool converged = true) override;
 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
