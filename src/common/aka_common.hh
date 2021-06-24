@@ -423,9 +423,6 @@ enum class SynchronizationTag {
   _htm_phi,          ///< synchronization of the nodal level set value phi
   _htm_gradient_phi, ///< synchronization of the element gradient phi
 
-  _pfm_damage,
-  _pfm_gradient_damage,
-
   //--- Material non local ---
   _mnl_for_average, ///< synchronization of data to average in non local
                     /// material

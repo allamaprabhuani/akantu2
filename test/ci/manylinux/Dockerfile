@@ -6,7 +6,6 @@ RUN yum install -y xz
 RUN mkdir -p /root/.spack/linux/
 COPY compilers.yaml /root/.spack/linux/
 RUN spack/bin/spack install perl
-
 RUN /spack/bin/spack install boost
 RUN /spack/bin/spack install cmake
 RUN /spack/bin/spack install openblas

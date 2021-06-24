@@ -564,7 +564,8 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
                   Vector<Element>{subsubfacet, new_subsubfacet});
               elementsOfDimToElementsOfDim(dim - 1, dim - 1)
                   .push_back(subfacet_list);
-              elementsOfDimToElementsOfDim(dim, dim - 1).push_back(facet_list);
+              elementsOfDimToElementsOfDim(dim, dim - 1)
+                  .push_back(facet_list);
               elementsOfDimToElementsOfDim(dim + 1, dim - 1)
                   .push_back(element_list);
             }
@@ -822,7 +823,7 @@ void CohesiveElementInserterHelper::doublePointFacet() {
       auto nb_new_element = nb_new_facets(facet_type, ghost_type);
       auto & connectivities =
           mesh_accessor.getConnectivity(facet_type, ghost_type);
-      connectivities.resize(nb_new_element);
+      connectivities.resize(connectivities.size() + nb_new_element);
     }
   }
 

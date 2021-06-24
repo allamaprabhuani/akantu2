@@ -40,6 +40,7 @@ package_declare(core NOT_OPTIONAL
 package_declare_sources(core
   common/aka_array.cc
   common/aka_array.hh
+  common/aka_array_filter.hh
   common/aka_array_tmpl.hh
   common/aka_array_printer.hh
   common/aka_bbox.hh

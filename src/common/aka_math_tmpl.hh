@@ -644,7 +644,6 @@ namespace Math {
     return std::sqrt((s - a) * (s - b) * (s - c) / s);
   }
 
-
   /* ------------------------------------------------------------------------ */
   inline Real distance_3d(const Real * x, const Real * y) {
     return std::sqrt((y[0] - x[0]) * (y[0] - x[0]) +

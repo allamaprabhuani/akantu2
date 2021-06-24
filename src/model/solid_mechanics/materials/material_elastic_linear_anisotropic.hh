@@ -129,9 +129,6 @@ protected:
 
   bool symmetric;
 
-  /// viscous proportion
-  Real alpha;
-
   /// defines if the stiffness was computed
   bool was_stiffness_assembled;
 };

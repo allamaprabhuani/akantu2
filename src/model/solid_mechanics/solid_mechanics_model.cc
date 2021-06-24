@@ -74,7 +74,6 @@ SolidMechanicsModel::SolidMechanicsModel(
     : Model(mesh, model_type, std::move(dof_manager), dim, id),
       material_index("material index", id),
       material_local_numbering("material local numbering", id) {
-
   AKANTU_DEBUG_IN();
 
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
@@ -709,11 +708,12 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
+Real SolidMechanicsModel::getEnergy(const ID & energy_id,
+                                    const ID & group_id) {
   auto && group = mesh.getElementGroup(group_id);
   auto energy = 0.;
-  for (auto && type : group.elementTypes()) {
-    for (auto el : group.getElementsIterable(type)) {
+  for(auto && type : group.elementTypes()) {
+    for(auto el : group.getElementsIterable(type)) {
       energy += getEnergy(energy_id, el);
     }
   }
@@ -1051,8 +1051,8 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch (tag) {
   case SynchronizationTag::_material_id: {
-    packElementalDataHelper(material_index, buffer, elements, false,
-                            getFEEngine());
+    packElementalDataHelper(
+        material_index, buffer, elements, false, getFEEngine());
     break;
   }
   case SynchronizationTag::_smm_mass: {

@@ -212,12 +212,21 @@ The two objects must be used to define the solver type and apply
 boundary conditions.
 
 .. code-block:: c++
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
    solid.initFull(_analysis_method = _explicit_lumped_mass);
    phase.initFull(_analysis_method = _static);
 
  
 The whole proces of coupling the two models at a given time step is
+<<<<<<< HEAD
 made easy by the :cpp:`solve` function of coupler class.
+=======
+made easy by the :cpp:func:`solve <akantu::CouplerSolidPhaseField::solve>`
+function of coupler class.
+>>>>>>> master
 
 .. code-block:: c++
    

@@ -66,8 +66,8 @@ void register_mesh(py::module & mod) {
 
   py::class_<Mesh, GroupManager, Dumpable, MeshData>(mod, "Mesh",
                                                      py::multiple_inheritance())
-      .def(py::init<UInt, const ID &>(),
-           py::arg("spatial_dimension"), py::arg("id") = "mesh")
+      .def(py::init<UInt, const ID &>(), py::arg("spatial_dimension"),
+           py::arg("id") = "mesh")
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
       .def(
@@ -89,14 +89,15 @@ void register_mesh(py::module & mod) {
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("distribute", [](Mesh & self) { self.distribute(); })
       .def("fillNodesToElements", &Mesh::fillNodesToElements,
-	   py::arg("dimension") = _all_dimensions)
-      .def("getAssociatedElements", [](Mesh & self, const UInt & node, py::list l) {
-	  Array<Element> elements;
-	  self.getAssociatedElements(node, elements);
-	  for (auto && element : elements) {
-	    l.append(element);
-	  }
-	}) 
+           py::arg("dimension") = _all_dimensions)
+      .def("getAssociatedElements",
+           [](Mesh & self, const UInt & node, py::list list) {
+             Array<Element> elements;
+             self.getAssociatedElements(node, elements);
+             for (auto && element : elements) {
+               list.append(element);
+             }
+           })
       .def("makePeriodic",
            [](Mesh & self, const SpatialDirection & direction) {
              self.makePeriodic(direction);

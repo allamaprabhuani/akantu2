@@ -61,7 +61,6 @@ void register_model(py::module & mod) {
            (NonLinearSolver & (ModelSolver::*)(const ID &)) &
                ModelSolver::getNonLinearSolver,
            py::arg("solver_id") = "", py::return_value_policy::reference)
-
       .def("solveStep", [](ModelSolver & self) { self.solveStep(); })
       .def("solveStep", [](ModelSolver & self, const ID & solver_id) {
         self.solveStep(solver_id);

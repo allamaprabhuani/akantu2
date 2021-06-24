@@ -30,6 +30,3 @@
 #===============================================================================
 package_declare(model_couplers ADVANCED
   DESCRIPTION "Use Model Couplers package of Akantu")
-
-package_declare_sources(model_couplers
-  )

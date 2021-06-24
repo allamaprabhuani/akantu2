@@ -340,10 +340,6 @@ namespace dumpers {
         return this->connectToFunctor<Vector<UInt>>(ptr);
       }
 
-      if (aka::is_of_type<ComputeFunctorOutput<Vector<UInt>>>(func)) {
-        return this->connectToFunctor<Vector<UInt>>(ptr);
-      }
-
       if (aka::is_of_type<ComputeFunctorOutput<Matrix<UInt>>>(func)) {
         return this->connectToFunctor<Matrix<UInt>>(ptr);
       }

@@ -26,7 +26,6 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "aka_iterators.hh"
 #include "aka_types.hh"
 #include "communicator.hh"

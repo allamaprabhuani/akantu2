@@ -188,7 +188,7 @@ public:
 
 protected:
   template <typename T>
-void allocNodalField(std::unique_ptr<Array<T>> & array, UInt nb_component,
+  void allocNodalField(std::unique_ptr<Array<T>> & array, UInt nb_component,
                        const ID & name) const;
 
   /* ------------------------------------------------------------------------ */

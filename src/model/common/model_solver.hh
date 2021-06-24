@@ -57,7 +57,6 @@ class ModelSolver : public Parsable,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
               std::shared_ptr<DOFManager> dof_manager);

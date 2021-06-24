@@ -243,8 +243,6 @@ void SolidMechanicsModelCohesive::initMaterials() {
   /// find the first cohesive material
   UInt cohesive_index = UInt(-1);
 
-  
-  
   for (auto && material : enumerate(materials)) {
     if (dynamic_cast<MaterialCohesive *>(std::get<1>(material).get()) !=
         nullptr) {
@@ -271,16 +269,16 @@ void SolidMechanicsModelCohesive::initMaterials() {
       mesh_facets,
       [&](auto && element) {
         auto mat_index = (*material_selector)(element);
-	auto & mat = aka::as_type<MaterialCohesive>(*materials[mat_index]);
+        auto & mat = aka::as_type<MaterialCohesive>(*materials[mat_index]);
         facet_material(element) = mat_index;
         if (is_extrinsic) {
           mat.addFacet(element);
         }
       },
       _spatial_dimension = spatial_dimension - 1, _ghost_type = _not_ghost);
-  
+
   SolidMechanicsModel::initMaterials();
-  
+
   if (is_extrinsic) {
     this->initAutomaticInsertion();
   } else {
