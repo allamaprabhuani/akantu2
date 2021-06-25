@@ -239,7 +239,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
           tolerance *= norm_barycenter;
         }
 
-
         Vector<Real> barycenter_facet(spatial_dimension);
 
         auto range = enumerate(make_view(
@@ -543,7 +542,7 @@ void Mesh::fillNodesToElements(UInt dimension) {
 
   UInt nb_nodes = nodes->size();
   this->nodes_to_elements.resize(nb_nodes);
-    
+
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n]) {
       this->nodes_to_elements[n]->clear();
@@ -559,22 +558,20 @@ void Mesh::fillNodesToElements(UInt dimension) {
       e.type = type;
 
       UInt nb_element = this->getNbElement(type, ghost_type);
-      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
-          connectivities(type, ghost_type)
-              .begin(Mesh::getNbNodesPerElement(type));
+      auto connectivity = connectivities(type, ghost_type);
+      auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
       for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
         e.element = el;
         const Vector<UInt> & conn = *conn_it;
-        for (UInt n = 0; n < conn.size(); ++n) {
-          nodes_to_elements[conn(n)]->insert(e);
+        for (auto node : conn) {
+          nodes_to_elements[node]->insert(e);
         }
       }
     }
   }
 }
 
-  
 /* -------------------------------------------------------------------------- */
 std::tuple<UInt, UInt>
 Mesh::updateGlobalData(NewNodesEvent & nodes_event,

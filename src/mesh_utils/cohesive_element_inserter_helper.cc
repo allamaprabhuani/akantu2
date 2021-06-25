@@ -823,7 +823,7 @@ void CohesiveElementInserterHelper::doublePointFacet() {
       auto nb_new_element = nb_new_facets(facet_type, ghost_type);
       auto & connectivities =
           mesh_accessor.getConnectivity(facet_type, ghost_type);
-      connectivities.resize(connectivities.size() + nb_new_element);
+      connectivities.resize(nb_new_element);
     }
   }
 
