@@ -358,8 +358,8 @@ inline bool Material::isInternal<Real>(const ID & id,
                                        ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
-  return not (internal_array == internal_vectors_real.end() ||
-              internal_array->second->getElementKind() != element_kind);
+  return not(internal_array == internal_vectors_real.end() ||
+             internal_array->second->getElementKind() != element_kind);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -441,6 +441,102 @@ void Material::flattenInternal(const std::string & field_id,
     for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
       it_dst[std::get<0>(data)] = std::get<1>(data);
     }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const InternalField<T> &
+Material::getInternal([[gnu::unused]] const ID & int_id) const {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline InternalField<T> &
+Material::getInternal([[gnu::unused]] const ID & int_id) {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalField<Real> &
+Material::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalField<Real> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalField<UInt> &
+Material::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalField<UInt> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                                           GhostType ghost_type) const {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                                     GhostType ghost_type) {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
   }
 }
 
