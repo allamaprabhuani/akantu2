@@ -672,8 +672,8 @@ effective stiffness of a single Maxwell element multiplied by the matrix
 Time increment :math:`Δt` controls the rate dependency of the effective
 stiffness. By limit analysis, we find the limiting values of the effective
 stiffness which are equal to :math:`E_0` for infinitely slow loading (:math:`Δt`
-tending to 0) and :math:`E_0+ΣE_α` for infinitely fast (:math:`Δt` tending to
-infinity). At the end of each converged time step, the internal stress
+tending to infinity) and :math:`E_0+ΣE_α` for infinitely fast (:math:`Δt` tending to
+0). At the end of each converged time step, the internal stress
 :math:`σ_α(t)` is updated according to
 
 .. math::
