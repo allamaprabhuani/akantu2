@@ -512,7 +512,7 @@ public:
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
 
-  using type_iterator [[deprecated]] =
+  using type_iterator =
       ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;
