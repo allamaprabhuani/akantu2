@@ -415,8 +415,9 @@ class.
    coupler.addDumpField("stress");
 
    
-Finally to solve the two models :cpp:`solveStep` function of coupler
-class must be invoked.
+Finally to solve the two models :cpp:func:`solveStep
+<akantu::CouplerSolidContact::solveStep>` function of coupler class must be
+invoked.
 
 .. code-block:: c++
 
@@ -426,14 +427,14 @@ class must be invoked.
 Coupling with  :cpp:class:`SolidMechanicsModelCohesive <akantu::SolidMechanicsModelCohesive>`
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-To use the contact mechanics model with cohesive elements, one must
-use the
-:cpp:class:`CouplerSolidCohesiveContact<akantu::CouplerSolidCohesiveContact>`
-to coupler the
-:cpp:class:`ContactMechancisModel<akantu::ContactMechanicsModel>` with :cpp:class:`SolidMechanicsModelCohesive<akantu::SolidMechanicsModelCohesive>`. The
-initialization and invocation of the functions are similar to
-:cpp:class:`CouplerSolidContact<akantu::CouplerSolidContact>` except a
-few changes.
+To use the contact mechanics model with cohesive elements, one must use the
+:cpp:class:`CouplerSolidCohesiveContact<akantu::CouplerSolidCohesiveContact>` to
+coupler the :cpp:class:`ContactMechancisModel<akantu::ContactMechanicsModel>`
+with
+:cpp:class:`SolidMechanicsModelCohesive<akantu::SolidMechanicsModelCohesive>`.
+The initialization and invocation of the functions are similar to
+:cpp:class:`CouplerSolidContact<akantu::CouplerSolidContact>` except a few
+changes.
 
 .. code-block:: c++
 
