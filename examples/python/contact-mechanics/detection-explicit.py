@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import akantu as akantu
 import time
 

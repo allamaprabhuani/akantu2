@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 import akantu as aka
+
 
 max_steps = 20000
 max_displacement = 1e-2
@@ -10,7 +13,7 @@ spatial_dimension = 2
 aka.parseInput('compression.dat')
 
 mesh = aka.Mesh(spatial_dimension)
-mesh.read('compression_mesh.msh')
+mesh.read('compression.msh')
 
 coupler = aka.CouplerSolidContact(mesh)
 
