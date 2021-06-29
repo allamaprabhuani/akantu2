@@ -512,10 +512,15 @@ for the elastic case: ``E`` (Young’s modulus), ``nu`` (Poisson’s ratio).
 
 -----
 
+.. _sect-smm-cl-ve:
+
+Visco-Elastic
+`````````````
+
 .. _sect-smm-cl-sls:
 
-Visco-Elasticity
-''''''''''''''''
+Standard-Linear Solid
+'''''''''''''''''''''
 
 Keyword: **sls_deviatoric**
 
