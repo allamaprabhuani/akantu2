@@ -51,7 +51,9 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
   AKANTU_DEBUG_IN();
-  RandomGenerator<UInt>::seed(1);
+  // seed is fixed to the same value for all the processors
+  // It is done to generate same random internal fields
+  RandomGenerator<UInt>::seed(2);
 
   /// remove the corner nodes from the surface node groups:
   /// This most be done because corner nodes a not periodic

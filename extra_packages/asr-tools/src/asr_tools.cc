@@ -2363,7 +2363,9 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
       _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
 
   UInt nb_element = matrix_elements.getElements(facet_type).size();
-  std::mt19937 random_generator(0);
+
+  UInt seed = RandomGenerator<UInt>::seed();
+  std::mt19937 random_generator(seed);
   std::uniform_int_distribution<> dis(0, nb_element - 1);
 
   if (not nb_element) {
@@ -2461,7 +2463,8 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       _spatial_dimension = 0, _ghost_type = _not_ghost);
 
   UInt nb_nodes = matrix_nodes.size();
-  std::mt19937 random_generator(0);
+  UInt seed = RandomGenerator<UInt>::seed();
+  std::mt19937 random_generator(seed);
   std::uniform_int_distribution<> dis(0, nb_nodes - 1);
 
   if (not nb_nodes) {
@@ -2622,7 +2625,8 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
       _spatial_dimension = 0, _ghost_type = _not_ghost);
 
   UInt nb_nodes = matrix_nodes.size();
-  std::mt19937 random_generator(0);
+  UInt seed = RandomGenerator<UInt>::seed();
+  std::mt19937 random_generator(seed);
   std::uniform_int_distribution<> dis(0, nb_nodes - 1);
 
   UInt already_inserted = 0;

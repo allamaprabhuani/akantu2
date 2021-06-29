@@ -25,6 +25,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "aka_random_generator.hh"
 #include <aka_array.hh>
 #include <aka_iterators.hh>
 #include <boundary_condition_functor.hh>
@@ -608,7 +609,8 @@ public:
       }
 
       /// generate the gel pockets
-      std::mt19937 random_generator(0);
+      UInt seed = RandomGenerator<UInt>::seed();
+      std::mt19937 random_generator(seed);
       std::uniform_int_distribution<> dis(0, nb_element - 1);
 
       Vector<Real> center(dim);
@@ -658,12 +660,15 @@ public:
       }
 
       /// generate the gel pockets
-      srand(0.);
+      UInt seed = RandomGenerator<UInt>::seed();
+      std::mt19937 random_generator(seed);
+      std::uniform_int_distribution<> dis(0, nb_element - 1);
+
       Vector<Real> center(dim);
       std::set<int> checked_baries;
       while (nb_placed_gel_pockets != nb_gel_pockets) {
-        /// get a random bary center
-        UInt bary_id = rand() % nb_element;
+        // get a random bary center
+        auto bary_id = dis(random_generator);
         if (checked_baries.find(bary_id) != checked_baries.end())
           continue;
         checked_baries.insert(bary_id);
