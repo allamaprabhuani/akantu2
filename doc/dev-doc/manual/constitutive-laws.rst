@@ -537,6 +537,10 @@ Material description with input file:
      Plane_stress = false      # Plane stress simplification (bool, only 2D problems)
    ]
 
+Since this material inherits from :cpp:class:`MaterialElastic
+<akantu::MaterialElastic>` the parameter :math:`E` preceeds :math:`E_{\mathrm{inf}}`. So only :math:`E`
+and :math:`E_v` can be set, :math:`E_{\mathrm{inf}}` is deduced by :math:`E_{\mathrm{inf}} = E - E_{v}`.
+                
 -----
 
 Visco-elasticity is characterized by strain rate dependent behavior.
