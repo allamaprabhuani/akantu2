@@ -69,11 +69,6 @@ void MaterialReinforcement<Mat, dim>::initialize() {
   this->registerParam("pre_stress", pre_stress, _pat_parsable | _pat_modifiable,
                       "Uniform pre-stress");
 
-  // this->unregisterInternal(this->stress);
-
-  // Fool the AvgHomogenizingFunctor
-  // stress.initialize(dim * dim);
-
   // Reallocate the element filter
   this->element_filter.initialize(this->emodel.getInterfaceMesh(),
                                   _spatial_dimension = 1);

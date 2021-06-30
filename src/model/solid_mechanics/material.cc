@@ -24,12 +24,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -89,7 +89,8 @@ Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                                         *this, dim, fe_engine,
                                         this->element_filter),
       interpolation_points_matrices("interpolation points matrices", *this, dim,
-                                    fe_engine, this->element_filter) {
+                                    fe_engine, this->element_filter),
+      eigen_grad_u(dim, dim, 0.) {
 
   AKANTU_DEBUG_IN();
 
@@ -144,7 +145,7 @@ void Material::initMaterial() {
 
   this->resizeInternals();
 
-  auto dim = model.getSpatialDimension();
+  auto dim = spatial_dimension;
   for (const auto & type :
        element_filter.elementTypes(_element_kind = _ek_regular)) {
     for (auto & eigen_gradu : make_view(eigengradu(type), dim, dim)) {
