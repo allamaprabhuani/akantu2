@@ -36,7 +36,6 @@ package_declare(CGAL EXTERNAL
   DESCRIPTION "Add CGAL support in akantu"
   )
 
-package_is_activated(CGAL _is_activated)
 package_on_enabled_script(CGAL
   "
   set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE
