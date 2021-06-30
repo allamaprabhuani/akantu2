@@ -80,10 +80,4 @@ package_declare_sources(CGAL
   geometry/aabb_primitives/aabb_primitive.cc
   )
 
-package_declare_documentation(CGAL
-  "This package allows the use of CGAL's geometry algorithms in Akantu. Note that it needs a version of CGAL $\\geq$ 4.5 and needs activation of boost's system component."
-  ""
-  "CGAL checks with an assertion that the compilation flag \\shellcode{-frounding-math} is activated, which forbids the use of Valgrind on any code compilated with the package."
-  )
-
 package_set_package_system_dependency(CGAL deb-src "libcgal-dev >= 4.5")

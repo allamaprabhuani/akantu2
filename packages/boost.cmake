@@ -52,17 +52,6 @@ package_on_enabled_script(Boost
 endif()
 ")
 
-
-package_declare_documentation(Boost
-  "Akantu uses Boost header only for preprocessor and Spirit"
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install libboost"
-  "\\end{command}"
-  ""
-)
-
 package_set_package_system_dependency(Boost deb-src libboost-dev)
 
 # only build dependency

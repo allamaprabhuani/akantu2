@@ -39,12 +39,3 @@ package_declare_sources(heat_transfer
   model/heat_transfer/heat_transfer_model.hh
   model/heat_transfer/heat_transfer_model_inline_impl.hh
   )
-
-package_declare_documentation_files(heat_transfer
-  manual-heattransfermodel.tex
-  )
-
-package_declare_documentation(heat_transfer
-  "This package activates the heat transfer model within Akantu. "
-  "It has no additional dependencies."
-  )

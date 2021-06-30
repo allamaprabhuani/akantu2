@@ -57,11 +57,6 @@ package_declare_sources(dumpers
   io/dumper/dumper_variable.hh
   )
 
-package_declare_documentation(dumpers
-  "This package activates the IOHelper facilities withing Akantu. This is mandatory if you want to be able to output Paraview files"
-  "as well as any Dumper within Akantu."
-  )
-
 package_declare_extra_files_to_package(dumpers
   PROJECT
     third-party/cmake/iohelper.cmake

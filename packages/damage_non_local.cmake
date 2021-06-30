@@ -57,12 +57,3 @@ package_declare_material_infos(damage_non_local
   LIST AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
   INCLUDE material_non_local_includes.hh
   )
-
-package_declare_documentation_files(damage_non_local
-  manual-constitutive-laws-non_local.tex
-  manual-appendix-materials-non-local.tex)
-
-package_declare_documentation(damage_non_local
-"This package activates the non local damage feature of AKANTU"
-"")
-

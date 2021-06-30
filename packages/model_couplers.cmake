@@ -36,12 +36,3 @@ package_declare_sources(model_couplers
   model/model_couplers/coupler_solid_phasefield.hh
   model/model_couplers/coupler_solid_phasefield.cc
   )
-
-package_declare_documentation_files(model_couplers
-  #
-  )
-
-package_declare_documentation(model_couplers
-  "This package activates the modle couplers within Akantu. "
-  "It has no additional dependencies."
-  )

@@ -67,36 +67,6 @@ if(${_opt_name} AND _system)
   endif()
 endif()
 
-package_declare_documentation(Scotch
-  "This package enables the use the \\href{http://www.labri.fr/perso/pelegrin/scotch/}{Scotch}"
-  "library in order to perform a graph partitioning leading to the domain"
-  "decomposition used within \\akantu"
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install libscotch-dev"
-  "\\end{command}"
-  ""
-  "If you activate the advanced option AKANTU\\_USE\\_THIRD\\_PARTY\\_SCOTCH"
-  "the make system of akantu can automatically compile Scotch."
-  ""
-  "If the automated download fails due to a SSL access not supported by your"
-  "version of CMake please download the file"
-  "\\href{${SCOTCH_ARCHIVE}}{scotch\\_${SCOTCH_VERSION}\\_esmumps.tar.gz}"
-  "and then place it in the directory \\shellcode{<akantu source>/third-party}"
- )
-
-# if(SCOTCH_INCLUDE_DIR)
-#   file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
-#   string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
-#   if(_match)
-#     set(AKANTU_SCOTCH_NO_EXTERN ON)
-#     list(APPEND AKANTU_DEFINITIONS AKANTU_SCOTCH_NO_EXTERN)
-#   else()
-#     set(AKANTU_SCOTCH_NO_EXTERN OFF)
-#   endif()
-# endif()
-
 package_set_package_system_dependency(Scotch deb libscotch)
 package_set_package_system_dependency(Scotch deb-src libscotch-dev)
 

@@ -55,16 +55,6 @@ package_declare_extra_files_to_package(PETSc
   PROJECT cmake/Modules/FindPETSc.cmake
   )
 
-package_declare_documentation(PETSc
-  "This package enables PETSc as a solver in Akantu"
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install libpetsc3.4.2-dev"
-  "\\end{command}"
-  ""
-)
-
 package_get_option_name(PETSc _opt_name)
 if(${_opt_name})
   include(CheckTypeSize)

@@ -51,8 +51,3 @@ package_declare_material_infos(embedded
   INCLUDE material_embedded_includes.hh
   )
 
-package_declare_documentation(embedded
-"This package allows the use of the embedded model in solid mechanics. This package depends on the CGAL package."
-)
-
-#add_example(embedded             "Example on how to run embedded model simulation"     PACKAGE embedded)

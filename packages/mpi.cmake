@@ -156,19 +156,5 @@ mask_package_options(MPI)
 "
 )
 
-package_declare_documentation(MPI
-  "This is a meta package providing access to MPI."
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install libopenmpi-dev"
-  "\\end{command}"
-  ""
-  "Under Mac OS X the installation requires the following steps:"
-  "\\begin{command}"
-  "  > sudo port install mpich-devel"
-  "\\end{command}"
-  )
-
 package_set_package_system_dependency(MPI deb mpi-default-bin)
 package_set_package_system_dependency(MPI deb-src mpi-default-dev)

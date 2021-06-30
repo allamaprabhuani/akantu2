@@ -114,25 +114,3 @@ package_declare_material_infos(cohesive_element
   LIST AKANTU_COHESIVE_MATERIAL_LIST
   INCLUDE material_cohesive_includes.hh
   )
-
-
-package_declare_documentation_files(cohesive_element
-  manual-cohesive_elements.tex
-  manual-cohesive_elements_insertion.tex
-  manual-cohesive_laws.tex
-  manual-appendix-materials-cohesive.tex
-
-  figures/cohesive2d.pdf
-  figures/cohesive_exponential.pdf
-  figures/linear_cohesive_law.pdf
-  figures/bilinear_cohesive_law.pdf
-  )
-
-package_declare_documentation(cohesive_element
-  "This package activates the cohesive elements engine within Akantu."
-  "It depends on:"
-  "\\begin{itemize}"
-  "  \\item A fortran compiler."
-  "  \\item An implementation of BLAS/LAPACK."
-  "\\end{itemize}"
-  )

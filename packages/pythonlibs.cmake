@@ -49,13 +49,3 @@ if(AKANTU_PREFERRED_PYTHON_VERSION VERSION_GREATER 2.9)
   package_set_package_system_dependency(PythonLibsNew deb libpython3)
   package_set_package_system_dependency(PythonLibsNew deb-src libpython3-dev)
 endif()
-
-package_declare_documentation(PythonLibsNew
-  "This package is a dependency of the python interface"
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install libpython3-dev"
-  "\\end{command}"
-  ""
-)

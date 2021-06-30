@@ -35,14 +35,5 @@ package_declare(LAPACK EXTERNAL
   DESCRIPTION "Use LAPACK for arithmetic operations"
   EXTRA_PACKAGE_OPTIONS LANGUAGE Fortran)
 
-package_declare_documentation(LAPACK
-  "This package provides access to a LAPACK implementation."
-  ""
-  "Under Ubuntu (14.04 LTS), the installation can be performed using the following command:"
-  "\\begin{command}"
-  "  > sudo apt-get install libatlas-base-dev"
-  "\\end{command}"
-  )
-
 package_set_package_system_dependency(LAPACK deb liblapack3)
 package_set_package_system_dependency(LAPACK deb-src liblapack-dev)

@@ -47,11 +47,3 @@ package_declare_sources(phase_field
   model/phase_field/phase_field_model.hh
   model/phase_field/phase_field_model_inline_impl.cc
   )
-
-package_declare_documentation_files(phase_field
-  #
-  )
-
-package_declare_documentation(phase_field
-  "This package activates the phase field model within Akantu. "
-  )

@@ -75,15 +75,6 @@ if(BLAS_mkl_core_LIBRARY)
   set(AKANTU_USE_BLAS_MKL CACHE INTERNAL "" FORCE)
 endif()
 
-package_declare_documentation(BLAS
-  "This package provides access to a BLAS implementation."
-  ""
-  "Under Ubuntu (14.04 LTS), the installation can be performed using the following command:"
-  "\\begin{command}"
-  "  > sudo apt-get install libatlas-base-dev"
-  "\\end{command}"
-  )
-
 package_set_package_system_dependency(BLAS deb libblas3)
 package_set_package_system_dependency(BLAS deb-src libblas3)
 

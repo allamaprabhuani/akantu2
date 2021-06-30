@@ -44,10 +44,3 @@ set(AKANTU_PARALLEL_TESTS
   test_dof_synchronizer_communication
   test_solid_mechanics_model_reassign_material
   )
-
-package_declare_documentation_files(parallel
-  manual-parallel.tex
-  )
-
-package_declare_documentation(parallel
-  "This option activates the parallel features of AKANTU.")

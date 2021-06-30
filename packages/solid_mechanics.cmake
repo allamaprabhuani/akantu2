@@ -106,33 +106,6 @@ package_declare_material_infos(solid_mechanics
   INCLUDE material_core_includes.hh
   )
 
-package_declare_documentation_files(solid_mechanics
-  manual-solidmechanicsmodel.tex
-  manual-constitutive-laws.tex
-  manual-lumping.tex
-  manual-appendix-materials.tex
-
-  figures/dynamic_analysis.png
-  figures/explicit_dynamic.pdf
-  figures/explicit_dynamic.svg
-  figures/static.pdf
-  figures/static.svg
-  figures/hooke_law.pdf
-  figures/implicit_dynamic.pdf
-  figures/implicit_dynamic.svg
-  figures/problemDomain.pdf_tex
-  figures/problemDomain.pdf
-  figures/static_analysis.png
-  figures/stress_strain_el.pdf
-  figures/tangent.pdf
-  figures/tangent.svg
-
-  figures/stress_strain_neo.pdf
-  figures/visco_elastic_law.pdf
-  figures/isotropic_hardening_plasticity.pdf
-  figures/stress_strain_visco.pdf
-  )
-
 package_declare_extra_files_to_package(solid_mechanics
   SOURCES
     model/solid_mechanics/material_list.hh.in

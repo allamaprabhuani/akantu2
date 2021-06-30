@@ -77,16 +77,3 @@ package_declare_elements(structural_mechanics
   get_shapes_derivatives
   assemble_fields
   )
-
-package_declare_documentation_files(structural_mechanics
-  manual-structuralmechanicsmodel.tex
-  manual-structuralmechanicsmodel-elements.tex
-
-  figures/beam_example.pdf
-  figures/elements/bernoulli_2.pdf
-  figures/elements/bernoulli_2.svg
-  )
-
-package_declare_documentation(structural_mechanics
-  "This package activates the compilation for the Structural Mechanics engine of Akantu"
-  )
