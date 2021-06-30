@@ -66,6 +66,7 @@ if (_is_activated)
   list(APPEND PYAKANTU_SRCS
     py_solid_mechanics_model.cc
     py_material.cc
+    py_material_selector.cc
     )
 endif()
 
