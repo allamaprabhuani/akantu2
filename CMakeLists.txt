@@ -53,9 +53,6 @@ if(CMAKE_VERSION VERSION_GREATER 3.12)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(AKANTU_MAJOR_VERSION 4)
-set(AKANTU_MINOR_VERSION 0)
-set(AKANTU_PATCH_VERSION 0)
 set(AKANTU_COPYRIGHT "2010-2021, EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)")
 set(AKANTU_MAINTAINER "Nicolas Richart")
 set(AKANTU_HOMEPAGE_URL "https://akantu.ch")
@@ -105,7 +102,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #===============================================================================
 # Version Number
 #===============================================================================
-# AKANTU version number.  An even minor number corresponds to releases.
+# AKANTU version number.
 define_project_version()
 
 #===============================================================================
