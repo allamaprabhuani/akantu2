@@ -1,8 +1,37 @@
 Getting Started
 ===============
 
-Compiling ``Akantu``
+Building ``Akantu``
 --------------------
+
+Dependencies
+````````````
+
+In order to compile ``Akantu``  any compiler supporting fully C++14 should work
+In addition some libraries are required
+- CMake (>= 3.5.1)
+- Boost (preprocessor and Spirit)
+- zlib
+- blas/lapack
+
+For the python interface:
+- Python (>=3 is recommended)
+- pybind11 (if not present the build system will try to download it)
+
+To run parallel simulations:
+- MPI
+- Scotch
+
+To use the static or implicit dynamic solvers at least one of the following libraries is needed:
+- MUMPS (since this is usually compiled staticly you also need MUMPS dependencies)
+- PETSc
+
+To compile the tests and examples:
+- Gmsh
+- google-test (if not present the build system will try to download it)
+
+Configuring and compilation
+```````````````````````````
 
 ``Akantu`` is a `CMake <https://cmake.org/>`_ project, so to configure it, you can either
 follow the usual way::
@@ -16,6 +45,7 @@ follow the usual way::
   > make install
 
 All the ``Akantu`` options are documented in Appendix app:package-dependencies.
+
 
 Writing a ``main`` function
 ---------------------------
