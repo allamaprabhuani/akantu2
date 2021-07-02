@@ -48,7 +48,7 @@ inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
   UInt size = 0;
   if (tag == SynchronizationTag::_giu_global_conn) {
     size +=
-        Mesh::getNbNodesPerElementList(elements) * sizeof(UInt) + sizeof(int);
+        Mesh::getNbNodesPerElementList(elements) * (sizeof(UInt) + sizeof(Int)) + sizeof(int);
 #ifndef AKANTU_NDEBUG
     size += sizeof(NodeFlag) * Mesh::getNbNodesPerElementList(elements);
 #endif
@@ -66,7 +66,7 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
 
   int prank = mesh.getCommunicator().whoAmI();
 
-  auto & global_nodes_ids = mesh.getGlobalNodesIds();
+  const auto & global_nodes_ids = mesh.getGlobalNodesIds();
   buffer << prank;
 
   for (const auto & element : elements) {
@@ -81,9 +81,11 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
           (not this->reduce and not mesh.isPureGhostNode(node))) {
         index = global_nodes_ids(node);
       }
+      auto node_flag = mesh.getNodeFlag(node);
       buffer << index;
+      buffer << (mesh.isLocalOrMasterNode(node) ? prank : mesh.getNodePrank(node));
 #ifndef AKANTU_NDEBUG
-      buffer << mesh.getNodeFlag(node);
+      buffer << node_flag;
 #endif
     }
   }
@@ -111,7 +113,9 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
     /// loop on all connectivity nodes
     for (auto node : current_conn) {
       UInt index;
+      Int node_prank;
       buffer >> index;
+      buffer >> node_prank;
 #ifndef AKANTU_NDEBUG
       NodeFlag node_flag;
       buffer >> node_flag;
@@ -131,7 +135,16 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
                                 << proc << ", different from the one received "
                                 << gid << " " << index);
         gid = index;
-        mesh_accessor.setNodePrank(node, proc);
+#ifndef AKANTU_NDEBUG
+        auto current_proc = mesh.getNodePrank(node);
+        AKANTU_DEBUG_ASSERT(
+            current_proc == -1 or current_proc == node_prank,
+            "The node "
+                << index << " already has a prank: " << current_proc
+                << ", that is different from the one we are trying to set "
+            << node_prank << " " << node_flag);
+#endif
+        mesh_accessor.setNodePrank(node, node_prank);
       }
     }
   }
