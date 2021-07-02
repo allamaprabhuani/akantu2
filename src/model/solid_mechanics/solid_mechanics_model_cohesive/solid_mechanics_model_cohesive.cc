@@ -98,20 +98,19 @@ public:
       nb_new_nodes = global_ids_updater.updateGlobalIDs(new_nodes.size());
     }
 
-    Vector<UInt> nb_new_stuff = {nb_new_nodes, elements_event.getList().size()};
+    auto nb_new_elements = elements_event.getList().size();
     const auto & comm = mesh.getCommunicator();
-    comm.allReduce(nb_new_stuff, SynchronizerOperation::_sum);
+    comm.allReduce(nb_new_elements, SynchronizerOperation::_sum);
 
-    if (nb_new_stuff(1) > 0) {
+    if (nb_new_elements > 0) {
       mesh.sendEvent(elements_event);
     }
 
-    if (nb_new_stuff(0) > 0) {
+    if (nb_new_nodes > 0) {
       mesh.sendEvent(nodes_event);
-      // mesh.sendEvent(global_ids_updater.getChangedNodeEvent());
     }
 
-    return std::make_tuple(nb_new_stuff(0), nb_new_stuff(1));
+    return std::make_tuple(nb_new_nodes, nb_new_elements);
   }
 
 private:
