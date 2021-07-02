@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -113,22 +113,44 @@ void register_model(py::module & mod) {
       .def("setBaseNameToDumper", &Model::setBaseNameToDumper)
       .def("addDumpFieldVectorToDumper", &Model::addDumpFieldVectorToDumper)
       .def("addDumpFieldToDumper", &Model::addDumpFieldToDumper)
-      .def("dump", py::overload_cast<>(&Model::dump))
-      .def("dump", py::overload_cast<UInt>(&Model::dump))
-      .def("dump", py::overload_cast<Real, UInt>(&Model::dump))
-      .def("dump", py::overload_cast<const std::string &>(&Model::dump))
-      .def("dump", py::overload_cast<const std::string &, UInt>(&Model::dump))
-      .def("dump",
-           py::overload_cast<const std::string &, Real, UInt>(&Model::dump))
+       .def("dump", [](Model & self) { self.dump(); })
+      .def(
+          "dump", [](Model & self, UInt step) { self.dump(step); },
+          py::arg("step"))
+      .def(
+          "dump",
+          [](Model & self, Real time, UInt step) { self.dump(time, step); },
+          py::arg("time"), py::arg("step"))
+      .def(
+          "dump",
+          [](Model & self, const std::string & dumper) { self.dump(dumper); },
+          py::arg("dumper_name"))
+      .def(
+          "dump",
+          [](Model & self, const std::string & dumper, UInt step) {
+            self.dump(dumper, step);
+          },
+          py::arg("dumper_name"), py::arg("step"))
+      .def(
+          "dump",
+          [](Model & self, const std::string & dumper, Real time, UInt step) {
+            self.dump(dumper, time, step);
+          },
+          py::arg("dumper_name"), py::arg("time"), py::arg("step"))
       .def("initNewSolver", &Model::initNewSolver)
-      .def("getNewSolver", [](Model & self, const std::string id, const TimeStepSolverType & time,
-			      const NonLinearSolverType & type) {
-	     self.getNewSolver(id, time, type);
-	   }, py::return_value_policy::reference)
-      .def("setIntegrationScheme", [](Model & self, const std::string id, const std::string primal,
-				      const IntegrationSchemeType & scheme) {
-	     self.setIntegrationScheme(id, primal, scheme);
-	   })
+      .def(
+          "getNewSolver",
+          [](Model & self, const std::string id,
+             const TimeStepSolverType & time,
+             const NonLinearSolverType & type) {
+            self.getNewSolver(id, time, type);
+          },
+          py::return_value_policy::reference)
+      .def("setIntegrationScheme",
+           [](Model & self, const std::string id, const std::string primal,
+              const IntegrationSchemeType & scheme) {
+             self.setIntegrationScheme(id, primal, scheme);
+           })
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);
