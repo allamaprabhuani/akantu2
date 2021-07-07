@@ -73,7 +73,7 @@ More precisely, the heat transfer model contains 4 :cpp:class:`Arrays <akantu::A
 
 Only a single material can be specified on the domain. A material text file (*e.g.* material.dat) provides the material properties as follows:
 
-.. code-block::
+.. code-block:: python
 
   model heat_transfer_model [
     capacity = %\emph{XXX}%

@@ -26,7 +26,7 @@ the same dimensionality as the one specified by the mesh.
 
 .. note::
    Structural meshes are created and loaded
-   with ``_miot_gmsh_struct`` instead  of ``_miot_gmsh`` (cf. :ref:`loading mesh`)
+   with ``_miot_gmsh_struct`` instead  of ``_miot_gmsh`` (cf. :ref:`loading_mesh`)
 
    .. code-block:: c++
 
