@@ -4994,6 +4994,85 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
 
 template UInt ASRTools::insertLoopsOfStressedCohesives<2>(Real min_dot);
 template UInt ASRTools::insertLoopsOfStressedCohesives<3>(Real min_dot);
+
+/* ------------------------------------------------------------------- */
+
+template <UInt dim> UInt ASRTools::insertStressedCohesives() {
+  AKANTU_DEBUG_IN();
+
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  CohesiveElementInserter & inserter = coh_model.getElementInserter();
+
+  if (not coh_model.getIsExtrinsic()) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  coh_model.interpolateStress();
+
+  auto && mesh = coh_model.getMesh();
+  const Mesh & mesh_facets = coh_model.getMeshFacets();
+  UInt nb_new_elements(0);
+  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+  auto & check_facets = inserter.getCheckFacets(type_facet);
+  auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
+  std::map<UInt, UInt> facet_nbs_crack_nbs;
+  std::set<UInt> facet_nbs;
+
+  // compute effective stress in all cohesive material linear sequent.
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh =
+        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+
+    mat_coh->computeEffectiveStresses();
+
+    // loop on each facet of the material
+    auto && mat_facet_filter = mat_coh->getFacetFilter(type_facet);
+    for (auto && data : enumerate(mat_facet_filter)) {
+      auto facet_local_num = std::get<0>(data);
+      auto facet_global_num = std::get<1>(data);
+      if (check_facets(facet_global_num) == false)
+        continue;
+
+      // if (not mat_coh->isInternal<Real>("effective_stresses", _ek_regular))
+      //   continue;
+      auto & eff_stress_array =
+          mat.getInternal<Real>("effective_stresses")(type_facet);
+
+      // eff stress is always non-negative
+      auto eff_stress = eff_stress_array(facet_local_num);
+      if (eff_stress >= 1) {
+        auto ret = facet_nbs.emplace(facet_global_num);
+        if (ret.second) {
+          facet_nbs_crack_nbs[facet_global_num] = 0;
+        }
+      }
+    }
+    mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
+  }
+
+  // extend crack numbers array
+  for (auto && pair : facet_nbs_crack_nbs) {
+    auto && crack_nb = pair.second;
+    crack_numbers.push_back(crack_nb);
+  }
+
+  // insert the most stressed cohesive element
+  nb_new_elements = inserter.insertElements();
+
+  // communicate crack numbers
+  communicateCrackNumbers();
+
+  AKANTU_DEBUG_OUT();
+  return nb_new_elements;
+}
+
+template UInt ASRTools::insertStressedCohesives<2>();
+template UInt ASRTools::insertStressedCohesives<3>();
 // /* --------------------------------------------------------------- */
 // std::map<UInt, std::map<UInt, UInt>>
 // ASRTools::findCriticalFacetsOnContourByNodes(

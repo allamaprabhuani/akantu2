@@ -300,6 +300,9 @@ public:
   /// insert cohesives on closed loops of stressed facets
   template <UInt dim> UInt insertLoopsOfStressedCohesives(Real min_dot);
 
+  /// insert single cohesives based on effective stresses
+  template <UInt dim> UInt insertStressedCohesives();
+
   /// find critical facets by looping on contour nodes
   std::map<UInt, std::map<UInt, UInt>> findCriticalFacetsOnContourByNodes(
       const std::map<Element, Element> & contour_subfacets_coh_el,
