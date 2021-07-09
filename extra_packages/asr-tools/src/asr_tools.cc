@@ -6027,11 +6027,10 @@ template <UInt dim> UInt ASRTools::updateDeltaMax() {
       nb_updated_quads += mat_coh->updateDeltaMax(type, _not_ghost);
     }
   }
-#ifndef AKANTU_NDEBUG
+
   // summ all updated quads
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(nb_updated_quads, SynchronizerOperation::_sum);
-#endif
 
   AKANTU_DEBUG_OUT();
   return nb_updated_quads;
