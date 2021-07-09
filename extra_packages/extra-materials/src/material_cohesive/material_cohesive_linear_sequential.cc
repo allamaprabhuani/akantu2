@@ -1319,6 +1319,12 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
         nb_understressed++;
       }
 
+      // EXPERIMENTAL !!!!! FOR ESHELBY PROBLEM
+      if (new_sigma > sigma_limit) {
+        new_sigma = sigma_limit;
+        normal_traction_vec = normal * sigma_limit;
+      }
+
       Real new_delta;
       // set delta_c in function of G_c or a given delta_c value
       if (Math::are_float_equal(this->delta_c, 0.))
