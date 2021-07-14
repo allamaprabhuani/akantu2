@@ -6073,19 +6073,15 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(global_max_delta_max, SynchronizerOperation::_max);
 
-#ifndef AKANTU_NDEBUG
   comm.allReduce(global_nb_penetr_quads, SynchronizerOperation::_sum);
-#endif
 
   // find the critical coh between processors
   UInt coh_nb = critical_coh_el.element;
   if (proc_max_delta_max_excess != global_max_delta_max)
     coh_nb = 777;
 
-#ifndef AKANTU_NDEBUG
   comm.allReduce(coh_nb, SynchronizerOperation::_max);
   critical_coh_el.element = coh_nb;
-#endif
 
   AKANTU_DEBUG_OUT();
   return std::make_tuple(global_max_delta_max, critical_coh_el,
