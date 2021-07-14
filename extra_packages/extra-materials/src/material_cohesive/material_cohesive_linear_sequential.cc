@@ -49,6 +49,8 @@ MaterialCohesiveLinearSequential<spatial_dimension>::
       effective_stresses("effective_stresses", *this) {
   this->registerParam("delta_deviation", delta_deviation, 0., _pat_parsmod,
                       "Range within which quad points will be damaged");
+  this->registerParam("reductions", reductions, _pat_parsmod,
+                      "Maximum number of reductions within SLA");
 }
 /* ------------------------------------------------------------------ */
 template <UInt spatial_dimension>

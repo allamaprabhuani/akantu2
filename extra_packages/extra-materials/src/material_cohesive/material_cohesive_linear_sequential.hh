@@ -177,6 +177,9 @@ protected:
   /// defines deviation from the exact value of the most stressed element to be
   /// damaged by formula delta < (1 + delta_deviation) * delta_max
   Real delta_deviation{0};
+
+  /// number of maximum reductions within SLA
+  UInt reductions{10};
 };
 
 /* ------------------------------------------------------------------ */
