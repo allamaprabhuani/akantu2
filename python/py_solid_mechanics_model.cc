@@ -36,8 +36,8 @@ void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModel, Model>(mod, "SolidMechanicsModel",
                                          py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, 
-                    std::shared_ptr<DOFManager>, const ModelType>(),
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+                    const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model",
            py::arg("dof_manager") = nullptr,
@@ -104,7 +104,18 @@ void register_solid_mechanics_model(py::module & mod) {
                &SolidMechanicsModel::getMaterial),
            py::return_value_policy::reference)
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
-      .def("setMaterialSelector", &SolidMechanicsModel::setMaterialSelector)
+      // .def(
+      //     "setMaterialSelector",
+      //     [](SolidMechanicsModel & self, MaterialSelector &
+      //     material_selector) {
+      //       self.setMaterialSelector(material_selector.shared_from_this());
+      //     })
+      .def("setMaterialSelector",
+           [](SolidMechanicsModel & self,
+              std::shared_ptr<MaterialSelector> material_selector) {
+             std::cout << (*material_selector)(ElementNull) << std::endl;
+             self.setMaterialSelector(material_selector);
+           })
       .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector);
 }
 

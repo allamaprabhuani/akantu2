@@ -4,4 +4,4 @@ Bibliography
 ------------
 
 .. bibliography:: manual-bibliography.bib
-   :cited:
+   :all:

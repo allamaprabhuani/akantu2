@@ -75,14 +75,17 @@ int main(int argc, char * argv[]) {
                               {{"bbottom", "bbottom"}, "ig_cohesive"}};
 
   /// model initialization
-  auto material_selector =
+  auto cohesive_material_selector =
       std::make_shared<MaterialCohesiveRulesSelector>(model, rules);
-  auto && current_selector = model.getMaterialSelector();
-  material_selector->setFallback(current_selector);
-  current_selector.setFallback(
+  auto bulk_material_selector =
       std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
-                                                              model));
-  model.setMaterialSelector(material_selector);
+                                                              model);
+  auto && current_selector = model.getMaterialSelector();
+
+  cohesive_material_selector->setFallback(bulk_material_selector);
+  bulk_material_selector->setFallback(current_selector);
+
+  model.setMaterialSelector(cohesive_material_selector);
 
   model.initFull(_analysis_method = _explicit_lumped_mass,
                  _is_extrinsic = true);

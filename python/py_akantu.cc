@@ -17,6 +17,7 @@
 
 #if defined(AKANTU_SOLID_MECHANICS)
 #include "py_material.hh"
+#include "py_material_selector.hh"
 #include "py_solid_mechanics_model.hh"
 #endif
 

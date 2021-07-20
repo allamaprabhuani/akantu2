@@ -2,6 +2,7 @@
 #include "py_aka_array.hh"
 #include "py_aka_common.hh"
 /* -------------------------------------------------------------------------- */
+#include <element.hh>
 #include <fe_engine.hh>
 #include <integration_point.hh>
 /* -------------------------------------------------------------------------- */
@@ -16,7 +17,17 @@ namespace akantu {
 
 void register_fe_engine(py::module & mod) {
   py::class_<Element>(mod, "Element")
-    .def(py::init<ElementType, UInt, GhostType>());
+      .def(py::init([](ElementType type, UInt id) {
+        return new Element{type, id, _not_ghost};
+      }))
+      .def(py::init([](ElementType type, UInt id, GhostType ghost_type) {
+        return new Element{type, id, ghost_type};
+      }))
+      .def("__lt__",
+           [](Element & self, const Element & other) { return (self < other); })
+      .def("__repr__", [](Element & self) { return std::to_string(self); });
+
+  mod.attr("ElementNull") = ElementNull;
 
   py::class_<FEEngine>(mod, "FEEngine")
       .def(
@@ -29,8 +40,8 @@ void register_fe_engine(py::module & mod) {
       .def(
           "gradientOnIntegrationPoints",
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
-             UInt nb_degree_of_freedom, ElementType type,
-             GhostType ghost_type, const Array<UInt> * filter_elements) {
+             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
             if (filter_elements == nullptr) {
               // This is due to the ArrayProxy that looses the
               // empty_filter information
@@ -45,8 +56,8 @@ void register_fe_engine(py::module & mod) {
       .def(
           "interpolateOnIntegrationPoints",
           [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
-             UInt nb_degree_of_freedom, ElementType type,
-             GhostType ghost_type, const Array<UInt> * filter_elements) {
+             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
             if (filter_elements == nullptr) {
               // This is due to the ArrayProxy that looses the
               // empty_filter information
