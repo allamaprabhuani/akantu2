@@ -325,6 +325,7 @@ breathe_default_project = "Akantu"
 breathe_default_members = ('members', 'undoc-members')
 breathe_implementation_filename_extensions = ['.c', '.cc', '.cpp']
 breathe_show_enumvalue_initializer = True
+breathe_debug_trace_directives = True
 
 # -- Options for intersphinx extension ---------------------------------------
 

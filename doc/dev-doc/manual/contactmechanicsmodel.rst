@@ -449,9 +449,10 @@ While initializing the coupler, the nature of cohesive elements
    coupler.initFull( _analysis_method = _explicit_lumped_mass, _is_extrinsic=true);
 
    
-To ensure that cohesive elements break during an explicit insertion,
-one must call the function :cpp:`checkCohesiveStress()` after
-:cpp:`solveStep()`.
+To ensure that cohesive elements break during an explicit insertion, one must
+call the function :cpp:func:`checkCohesiveStress()
+<akantu::SolidMechanicsModelCohesive::checkCohesiveStress>` after
+:cpp:func:`solveStep() <akantu::SolidMechanicsModelCohesive::solveStep>`.
 
 .. code-block:: c++
 
