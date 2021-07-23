@@ -65,7 +65,9 @@ function(_get_version_from_git)
       RESULT_VARIABLE _res
       OUTPUT_VARIABLE _out_tag
       OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_VARIABLE _err_tag)
+      ERROR_VARIABLE _err_tag
+      ECHO_OUTPUT_VARIABLE
+      ECHO_ERROR_VARIABLE)
 
     if(NOT _res EQUAL 0)
       return()
@@ -85,7 +87,9 @@ function(_get_version_from_git)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       RESULT_VARIABLE _res
       OUTPUT_VARIABLE _out
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ECHO_OUTPUT_VARIABLE
+      ECHO_ERROR_VARIABLE)
 
     set(_version ${_tag_version} PARENT_SCOPE)
 
