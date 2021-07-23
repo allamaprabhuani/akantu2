@@ -473,8 +473,8 @@ public:
   // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
   //                                  material_local_numbering, UInt);
 
-  AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, *material_selector,
-                             MaterialSelector &);
+  AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, material_selector,
+                             std::shared_ptr<MaterialSelector>);
   void
   setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
     this->material_selector = std::move(material_selector);

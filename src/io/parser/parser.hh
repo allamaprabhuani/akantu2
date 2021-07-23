@@ -72,6 +72,31 @@ namespace akantu {
 AKANTU_CLASS_ENUM_DECLARE(ParserType, AKANTU_SECTION_TYPES)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(ParserType, AKANTU_SECTION_TYPES)
 AKANTU_CLASS_ENUM_INPUT_STREAM(ParserType, AKANTU_SECTION_TYPES)
+#else
+enum class ParserType {
+  cohesive_inserter,
+  contact,
+  embedded_interface,
+  friction,
+  global,
+  heat,
+  integration_scheme,
+  material,
+  phasefield,
+  mesh,
+  model,
+  model_solver,
+  neighborhood,
+  neighborhoods,
+  non_linear_solver,
+  non_local,
+  rules,
+  solver,
+  time_step_solver,
+  user,
+  weight_function,
+  not_defined
+};
 #endif
 
 /// Defines the possible search contexts/scopes (for parameter search)

@@ -51,6 +51,7 @@
 
 #if defined(AKANTU_SOLID_MECHANICS)
 #include "py_material.hh"
+#include "py_material_selector.hh"
 #include "py_solid_mechanics_model.hh"
 #endif
 
@@ -107,6 +108,7 @@ void register_all(pybind11::module & mod) {
 #if defined(AKANTU_SOLID_MECHANICS)
   register_solid_mechanics_model(mod);
   register_material(mod);
+  register_material_selector(mod);
 #endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)

@@ -49,7 +49,7 @@ class SolidMechanicsModel;
  * main class to assign same or different materials for different
  * elements
  */
-class MaterialSelector : public std::enable_shared_from_this<MaterialSelector> {
+class MaterialSelector {
 public:
   MaterialSelector() = default;
   virtual ~MaterialSelector() = default;
@@ -65,10 +65,6 @@ public:
   inline void
   setFallback(const std::shared_ptr<MaterialSelector> & fallback_selector) {
     this->fallback_selector = fallback_selector;
-  }
-
-  inline void setFallback(MaterialSelector & fallback_selector) {
-    this->fallback_selector = fallback_selector.shared_from_this();
   }
 
   inline std::shared_ptr<MaterialSelector> & getFallbackSelector() {
@@ -132,9 +128,7 @@ public:
     return data;
   }
 
-  inline UInt operator()(const Element & element) override {
-    return MaterialSelector::operator()(element);
-  }
+  inline UInt operator()(const Element & element) override;
 
 protected:
   /// list of element with the specified data (i.e. tag value)

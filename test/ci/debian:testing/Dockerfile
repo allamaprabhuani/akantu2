@@ -15,6 +15,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
     python3-sphinxcontrib.bibtex \
     python3-sphinx-rtd-theme \
     python3-breathe \
+    python3-git python3-jinja2 \
     doxygen graphviz \
     && rm -rf /var/lib/apt/lists/*
 

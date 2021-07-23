@@ -41,25 +41,32 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt ElementDataMaterialSelector<std::string>::
-operator()(const Element & element) {
+inline UInt
+ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
   try {
     std::string material_name = this->elementData(element);
     return model.getMaterialIndex(material_name);
-  } catch (...) {
+  } catch (std::exception & e) {
     return MaterialSelector::operator()(element);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt ElementDataMaterialSelector<UInt>::
-operator()(const Element & element) {
+inline UInt
+ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
     return MaterialSelector::operator()(element);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline UInt
+ElementDataMaterialSelector<T>::operator()(const Element & element) {
+  return MaterialSelector::operator()(element);
 }
 
 /* -------------------------------------------------------------------------- */

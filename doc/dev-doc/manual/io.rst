@@ -23,8 +23,8 @@ Akantu Parser
      auto & parser = getStaticParser();
 
 - :cpp:class:`ParserSection <akantu::ParserSection>`, branch of the tree,
-  contains map a of sub-sections (:cpp:enum:`SectionType
-  <akantu::SectionType>`, :cpp:class:`ParserSection <akantu::ParserSection>`)
+  contains map a of sub-sections (:cpp:enum:`ParserType
+  <akantu::ParserType>`, :cpp:class:`ParserSection <akantu::ParserSection>`)
   and a :cpp:class:`ParserSection * <akantu::ParserSection>` pointing to the
   parent section. The user section of the input file can directly be accessed
   by::
@@ -140,10 +140,9 @@ values of all the quadrature points.
 The list of fields depends on the models (for :cpp:class:`SolidMechanicsModel
 <akantu::SolidMechanicsModel>` see table :ref:`tab-io-smm-field-list`.
 
-.. container::
-   :name: tab-io-smm-field-list
+.. _tab-io-smm-field-list:
 
-   .. table:: List of dumpable fields for :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`.
+.. table:: List of dumpable fields for :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`.
 
       ====================== ================ =================
       key                    type             support
