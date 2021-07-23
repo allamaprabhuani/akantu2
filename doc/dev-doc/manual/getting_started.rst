@@ -49,8 +49,6 @@ follow the usual way::
   > make
   > make install
 
-All the ``Akantu`` options are documented in Appendix app:package-dependencies.
-
 
 Writing a ``main`` function
 ---------------------------
