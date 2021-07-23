@@ -107,6 +107,8 @@ public:
 
   bool canSplitResidual() override { return false; }
 
+  void afterSolveStep(bool converged) override;
+
   /// compute kinetic energy
   Real getKineticEnergy();
 

@@ -425,7 +425,7 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 
   switch (type) {
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_linear;
+    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
@@ -447,7 +447,6 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleInternalForce() {
-
   internal_force->zero();
   computeStresses();
 
@@ -481,7 +480,6 @@ void StructuralMechanicsModel::assembleInternalForce(ElementType type,
 
 /* -------------------------------------------------------------------------- */
 Real StructuralMechanicsModel::getKineticEnergy() {
-
   if (not this->getDOFManager().hasMatrix("M")) {
     return 0.;
   }
@@ -617,6 +615,13 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(
   computeForcesByLocalTractionArray(traction_local, type);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::afterSolveStep(bool converged) {
+  if (converged) {
+    assembleInternalForce();
+  }
 }
 
 } // namespace akantu
