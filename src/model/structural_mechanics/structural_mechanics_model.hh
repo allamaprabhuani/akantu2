@@ -24,12 +24,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -105,7 +105,7 @@ public:
 
   void assembleResidual(const ID & residual_part) override;
 
-  bool canSplitResidual() override { return false; }
+  bool canSplitResidual() override { return true; }
 
   void afterSolveStep(bool converged) override;
 
@@ -230,7 +230,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Set_ID, set_ID, UInt);
 
   /**
-   * \brief	This function adds the `StructuralMaterial` material to the list of
+   * \brief This function adds the `StructuralMaterial` material to the list of
    * materials managed by *this.
    *
    * It is important that this function might invalidate all references to
@@ -248,15 +248,15 @@ public:
   getMaterialByElement(const Element & element) const;
 
   /**
-   * \brief	Returns the ith material of *this.
-   * \param  i		The ith material
+   * \brief Returns the ith material of *this.
+   * \param i The ith material
    */
   const StructuralMaterial & getMaterial(UInt material_index) const;
 
   const StructuralMaterial & getMaterial(const ID & name) const;
 
   /**
-   * \brief	Returns the number of the different materials inside *this.
+   * \brief Returns the number of the different materials inside *this.
    */
   UInt getNbMaterials() const { return materials.size(); }
 
@@ -271,11 +271,6 @@ public:
   /// Compute Linear load function set in local axis
   void computeForcesByLocalTractionArray(const Array<Real> & tractions,
                                          ElementType type);
-
-  /// compute force vector from a function(x,y,momentum) that describe stresses
-  // template <ElementType type>
-  // void computeForcesFromFunction(BoundaryFunction in_function,
-  //                                BoundaryFunctionType function_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

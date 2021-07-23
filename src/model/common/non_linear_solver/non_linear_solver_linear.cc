@@ -71,6 +71,8 @@ void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
 
   if (solver_callback.canSplitResidual()) {
     solver_callback.assembleResidual("internal");
+  } else {
+    this->assembleResidual(solver_callback);
   }
 
   solver_callback.afterSolveStep(true);
