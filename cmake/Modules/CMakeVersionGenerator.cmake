@@ -156,13 +156,6 @@ function(_get_metadata_from_ci)
     return()
   endif()
 
-  execute_process(
-    COMMAND env
-    OUTPUT_VARIABLE _out
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ECHO_OUTPUT_VARIABLE)
-
-
   if(DEFINED ENV{CI_MERGE_REQUEST_ID})
     set(_ci_version_metadata "ci.mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
   elseif(DEFINED ENV{CI_COMMIT_SHORT_SHA})
