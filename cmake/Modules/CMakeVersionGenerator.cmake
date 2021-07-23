@@ -36,9 +36,45 @@ if(__DEFINE_PROJECT_VERSION__)
 endif()
 set(__DEFINE_PROJECT_VERSION__ TRUE)
 
+function(_match_semver _input_semver prefix)
+  set(_semver_regexp
+    "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(-([a-zA-Z0-9-]*))?(\\+(.*))?")
+
+  if(_input_semver MATCHES "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(-([a-zA-Z0-9-]*))?(\\+(.*))?")
+    set(${prefix}_version ${CMAKE_MATCH_1} PARENT_SCOPE)
+    if(CMAKE_MATCH_4)
+      set(${prefix}_version_prerelease "${CMAKE_MATCH_5}" PARENT_SCOPE)
+    endif()
+
+    if(CMAKE_MATCH_6)
+      set(${prefix}_version_metadata "${CMAKE_MATCH_7}" PARENT_SCOPE)
+    endif()
+
+  endif()
+endfunction()
+
 function(_get_version_from_git)
   find_package(Git)
   if(Git_FOUND)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} describe
+        --tags
+        --abbrev=0
+        --match v*
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_VARIABLE _out_tag
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_VARIABLE _err_tag)
+
+    if(NOT _res EQUAL 0)
+      return()
+    endif()
+
+    string(REGEX REPLACE "^v(.*)" "\\1" _tag "${_out_tag}")
+
+    _match_semver("${_tag}" _tag)
+
     execute_process(
       COMMAND ${GIT_EXECUTABLE} describe
         --tags
@@ -51,16 +87,24 @@ function(_get_version_from_git)
       OUTPUT_VARIABLE _out
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+    set(_version ${_tag_version} PARENT_SCOPE)
+
+    if(_tag_version_prerealease)
+      set(_version_prerelease ${_tag_version_prerealease} PARENT_SCOPE)
+    endif()
+
     # git describe to PEP404 version
     set(_version_regex
-      "^v([0-9.]+)(-([0-9]+)-g([0-9a-f]+)(-dirty)?)?$")
+      "^v${_tag}(-([0-9]+)-g([0-9a-f]+)(-dirty)?)?$")
 
     if(_out MATCHES ${_version_regex})
-      set(_version ${CMAKE_MATCH_1} PARENT_SCOPE)
-      if(CMAKE_MATCH_2)
-        set(_metadata "${CMAKE_MATCH_3}.${CMAKE_MATCH_4}")
+      if(CMAKE_MATCH_1)
+        if(_tag_version_metadata)
+          set(_metadata "${_tag_version_metadata}.")
+        endif()
+        set(_metadata "${_metadata}${CMAKE_MATCH_2}.${CMAKE_MATCH_3}")
       endif()
-      if(CMAKE_MATCH_5)
+      if(CMAKE_MATCH_4)
         set(_metadata "${_metadata}.dirty")
       endif()
     else()
@@ -74,11 +118,11 @@ function(_get_version_from_git)
       if(_out MATCHES "^([0-9a-f]+)(-dirty)?$")
         set(_metadata "${CMAKE_MATCH_1}")
         if(_res EQUAL 0)
-          set(_metadata "${_out_count}.${_version_metadata}")
+          set(_metadata "${_out_count}.${_metadata}")
         endif()
 
         if(CMAKE_MATCH_2)
-          set(_metadata "${_version_metadata}.dirty")
+          set(_metadata "${_metadata}.dirty")
         endif()
       endif()
     endif()
@@ -89,12 +133,7 @@ endfunction()
 function(_get_version_from_file)
   if(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     file(STRINGS ${PROJECT_SOURCE_DIR}/VERSION _file_version)
-    if(_file_version MATCHES "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(\\+(.*))?")
-      set(_version ${CMAKE_MATCH_1} PARENT_SCOPE)
-      if(CMAKE_MATCH_4)
-        set(_version_metadata ${CMAKE_MATCH_4} PARENT_SCOPE)
-      endif()
-    endif()
+    _match_semver(_file_version _file)
   endif()
 endfunction()
 
@@ -102,21 +141,41 @@ function(define_project_version)
   string(TOUPPER ${PROJECT_NAME} _project)
 
   _get_version_from_git()
+  if(_version_metadata)
+    set(_metadata_vcs ".${_version_metadata}")
+  endif()
+
 
   if(NOT _version)
     _get_version_from_file()
+
+    if(_file_version_metadata AND _metadata_vcs)
+      set(_version_metadata "${_version_metadata}${_metadata_vcs}")
+    endif()
+
+    if (_file_version)
+      set(_version ${_file_version})
+    endif()
+
+    if (_file_version_prerelease)
+      set(_version_prerelease ${_file_version_prerelease})
+    endif()
   endif()
 
   if(_version)
     set(${_project}_VERSION ${_version} PARENT_SCOPE)
+    if(_version_prerelease)
+      set(_version_prerelease "-${_version_prerelease}")
+    endif()
     if(_version_metadata)
-      set(${_project}_SEMVER "${_version}+${_version_metadata}" PARENT_SCOPE)
-      message(STATUS "${PROJECT_NAME} version: ${_version}+${_version_metadata}")
-    else()
-      message(STATUS "${PROJECT_NAME} version: ${_version}")
+      set(_version_metadata "+${_version_metadata}")
     endif()
 
-    if(_version MATCHES "([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?")
+    set(_semver "${_version}${_version_prerelease}${_version_metadata}")
+    set(${_project}_SEMVER "${_semver}" PARENT_SCOPE)
+    message(STATUS "${PROJECT_NAME} version: ${_semver}")
+
+    if(_version MATCHES "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?")
       set(_major_version ${CMAKE_MATCH_1})
       set(${_project}_MAJOR_VERSION ${_major_version} PARENT_SCOPE)
       if(CMAKE_MATCH_2)
