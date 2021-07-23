@@ -54,26 +54,29 @@ function(_match_semver _input_semver prefix)
 endfunction()
 
 function(_get_version_from_git)
+  if(NOT CMAKE_VERSION_GENERATOR_TAG_PREFIX)
+    set(CMAKE_VERSION_GENERATOR_TAG_PREFIX "av")
+  endif()
+
+
   find_package(Git)
   if(Git_FOUND)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} describe
         --tags
         --abbrev=0
-        --match v*
+        --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       RESULT_VARIABLE _res
       OUTPUT_VARIABLE _out_tag
       OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_VARIABLE _err_tag
-      ECHO_OUTPUT_VARIABLE
-      ECHO_ERROR_VARIABLE)
+      ERROR_VARIABLE _err_tag)
 
     if(NOT _res EQUAL 0)
       return()
     endif()
 
-    string(REGEX REPLACE "^v(.*)" "\\1" _tag "${_out_tag}")
+    string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
 
     _match_semver("${_tag}" _tag)
 
@@ -83,23 +86,21 @@ function(_get_version_from_git)
         --dirty
         --always
         --long
-        --match v*
+        --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       RESULT_VARIABLE _res
       OUTPUT_VARIABLE _out
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ECHO_OUTPUT_VARIABLE
-      ECHO_ERROR_VARIABLE)
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    set(_version ${_tag_version} PARENT_SCOPE)
+    set(_git_version ${_tag_version} PARENT_SCOPE)
 
     if(_tag_version_prerealease)
-      set(_version_prerelease ${_tag_version_prerealease} PARENT_SCOPE)
+      set(_git_version_prerelease ${_tag_version_prerealease} PARENT_SCOPE)
     endif()
 
     # git describe to PEP404 version
     set(_version_regex
-      "^v${_tag}(-([0-9]+)-g([0-9a-f]+)(-dirty)?)?$")
+      "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}${_tag}(-([0-9]+)-g([0-9a-f]+)(-dirty)?)?$")
 
     if(_out MATCHES ${_version_regex})
       if(CMAKE_MATCH_1)
@@ -130,14 +131,33 @@ function(_get_version_from_git)
         endif()
       endif()
     endif()
-    set(_version_metadata ${_metadata} PARENT_SCOPE)
+
+    set(_git_version_metadata ${_metadata} PARENT_SCOPE)
   endif()
 endfunction()
 
 function(_get_version_from_file)
   if(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     file(STRINGS ${PROJECT_SOURCE_DIR}/VERSION _file_version)
-    _match_semver(_file_version _file)
+    _match_semver("${_file_version}" "_file")
+    set(_file_version ${_file_version} PARENT_SCOPE)
+    if(_file_version_metadata)
+      set(_file_version_metadata ${_file_version_metadata} PARENT_SCOPE)
+    endif()
+
+    if(_file_version_prerelease)
+      set(_file_version_prerelease ${_file_version_prerelease} PARENT_SCOPE)
+    endif()
+  endif()
+endfunction()
+
+function(_get_metadata_from_ci)
+  if(NOT DEFINED ENV{CI})
+    return()
+  endif()
+
+  if(DEFINED ENV{CI_MERGE_REQUEST_ID})
+    set(_ci_version_metadata "ci.mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -145,26 +165,38 @@ function(define_project_version)
   string(TOUPPER ${PROJECT_NAME} _project)
 
   _get_version_from_git()
-  if(_version_metadata)
-    set(_metadata_vcs ".${_version_metadata}")
-  endif()
 
+  if(_git_version)
+    set(_git_version ${_file_version})
+    if(_version_metadata)
+      set(_version_metadata "${_git_version_metadata}")
+    endif()
 
-  if(NOT _version)
+    if (_git_version_prerelease)
+      set(_version_prerelease "${_git_version_prerelease}")
+    endif()
+  else()
+    # we can get metadata if and no version if not tag is properly defined
+    if(_git_version_metadata)
+      set(git_version_metadata ".${_git_version_metadata}")
+    endif()
+
     _get_version_from_file()
 
-    if(_file_version_metadata AND _metadata_vcs)
-      set(_version_metadata "${_version_metadata}${_metadata_vcs}")
+    if(_file_version_metadata)
+      set(_version_metadata "${_version_metadata}${_git_version_metadata}")
     endif()
 
     if (_file_version)
-      set(_version ${_file_version})
+      set(_version "${_file_version}")
     endif()
 
     if (_file_version_prerelease)
-      set(_version_prerelease ${_file_version_prerelease})
+      set(_version_prerelease "${_file_version_prerelease}")
     endif()
   endif()
+
+  _get_metadata_from_ci()
 
   if(_version)
     set(${_project}_VERSION ${_version} PARENT_SCOPE)
@@ -173,6 +205,9 @@ function(define_project_version)
     endif()
     if(_version_metadata)
       set(_version_metadata "+${_version_metadata}")
+      if(_ci_version_metadata)
+        set(_version_metadata "${_version_metadata}.${_ci_version_metadata}")
+      endif()
     endif()
 
     set(_semver "${_version}${_version_prerelease}${_version_metadata}")
