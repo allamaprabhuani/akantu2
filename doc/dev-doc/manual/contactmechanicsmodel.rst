@@ -238,12 +238,14 @@ optimization problem to a variational equality where constraints are
 imposed along the active part of contacting interface:
 
 .. math::
+
    \sum_{\alpha=1}^2
    \int_{\Omega_\alpha}\boldsymbol{\sigma}[\boldsymbol{u}_\alpha]:\boldsymbol{\epsilon}[\delta\boldsymbol{u}_\alpha]~d\Omega_\alpha
    = \sum_{\alpha=1}^2 \Big \{
    \int_{\Omega_\alpha}\boldsymbol{b}_\alpha.\delta\boldsymbol{u}_\alpha~d\Omega_\alpha +
    \int_{\Gamma^N_\alpha}\boldsymbol{T}_\alpha^D.\delta\boldsymbol{u}_\alpha~d\Gamma_\alpha\Big
-   \} + \int_{\Gamma^{C\star}_1
+   \} \\
+   + \int_{\Gamma^{C\star}_1
    }\boldsymbol{T}_1(\delta\boldsymbol{u}_1 -
    \delta\boldsymbol{u}_2)~d\Gamma^{C\star}_1
 
