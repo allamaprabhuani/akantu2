@@ -30,7 +30,7 @@
 #===============================================================================
 
 
-package_declare(extra_materials
+package_declare(extra_materials ADVANCED
   DESCRIPTION "Add the extra list of materials in Akantu"
   DEPENDS lapack)
 
@@ -98,7 +98,7 @@ package_declare_documentation(extra_materials
   "\\end{itemize}"
   )
 
-package_declare(extra_materials_non_local
+package_declare(extra_materials_non_local ADVANCED
   DESCRIPTION "Add the extra list of non local materials in Akantu"
   DEPENDS extra_materials damage_non_local)
 
@@ -123,4 +123,4 @@ package_declare_sources(extra_materials_non_local
 package_declare_material_infos(extra_materials_non_local
   LIST AKANTU_DAMAGE_NON_LOCAL_MATERIAL_EXTRA_LIST
   INCLUDE material_extra_includes.hh
-)
+  )

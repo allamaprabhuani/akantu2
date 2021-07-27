@@ -144,3 +144,12 @@ initializeNTNFriction(NTNBaseContact & contact,
 }
 
 } // namespace akantu
+
+namespace std {
+inline ostream & operator<<(ostream & stream,
+                            const tuple<bool, string, string> & _this) {
+  stream << "<" << get<0>(_this) << ", " << get<1>(_this) << ", "
+         << get<2>(_this) << ">";
+  return stream;
+}
+} // namespace std
