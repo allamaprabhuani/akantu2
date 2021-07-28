@@ -253,8 +253,8 @@ imposed along the active part of contacting interface:
 Thus, the resolution of contact problem in FEM requires two steps:
 finding the active set along the contacting interface and then
 imposing the contact constraints along the active set only. In the
-following section, we describe the contact detection strategies
-employed to find the active set.
+following section, we describe how to employ the contact detection strategies
+implemented within Akantu in order to find the active set and to compute contact forces.
 
 
 Using the Contact Mechanics Model
@@ -331,6 +331,11 @@ Once a surface selector is created it must be assigned to the
 Contact detection
 '''''''''''''''''
 
+The contact detection algorithm can receive the a few parameters. It is possible to 
+specify the master/slave surfaces with their string identifier. The geometrical projections
+are performed with iterations which can be controlled as a classical optimization problem.
+A typical detection configuration is given below: 
+
 .. code-block::
 
    contact_detector [
@@ -348,14 +353,18 @@ Contact detection
 Contact resolution
 ''''''''''''''''''
 
+The contact resolution defines the surface tractions due to contact 
+both for normal and tangential contact. A typical configuration for a 
+penalization formulation is as follows:
+
 .. code-block::
 
    contact_resolution penalty_linear [
      name = contact_top
-     mu = 0.0
-     epsilon_n = 4e5
-     epsilon_t = 1e5
-     is_master_deformable = false
+     mu = 0.0                      # friction coefficient
+     epsilon_n = 4e5               # normal penalization
+     epsilon_t = 1e5               # friction penalization
+     is_master_deformable = false  # when master is rigid => computational savings
    ]
 
 
