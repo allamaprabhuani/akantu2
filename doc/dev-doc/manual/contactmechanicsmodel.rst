@@ -61,12 +61,12 @@ position of point :math:`\boldsymbol{X}_1` at time :math:`t` ,
 point projection of :math:`\boldsymbol{r}` and :math:`\boldsymbol{n}`
 is the outward normal at :math:`\boldsymbol{\rho}` (see
 :numref:`fig-contactmechanicsmodel-schematic` b). To preclude the
-interpenetration, the *gap function*, :math:`g \geq 0` is shown in
+interpenetration, the *gap function* is constrained with :math:`g \geq 0`, as it is shown in
 \Cref{fig:body-contact}b. When the two bodies eventually come in
-contact, the gap ceases to exists :math:`i.e.~ g=0` which leads to the
+contact, the gap vanishes :math:`i.e.~ g=0` which leads to the
 development of tractions :math:`\boldsymbol{T}_\alpha` along the
 contact interface.  Thus, the boundary value problem can be formulated
-for the two bodies :math:`\Omega_\alpha` with contact constraint as an
+for the two bodies :math:`\Omega_\alpha` with contact constraints as an
 extra boundary condition:
 
 .. math::
