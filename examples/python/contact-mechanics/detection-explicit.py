@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-import akantu as akantu
+import akantu as aka
 import time
 
-spatial_dimension = 2
-akantu.parseInput('./materials/detection-explicit.dat')
 
-mesh = akantu.Mesh(spatial_dimension)
+spatial_dimension = 2
+aka.parseInput('./materials/detection-explicit.dat')
+
+mesh = aka.Mesh(spatial_dimension)
 mesh.read('./mesh/detection-explicit.msh')
 
-model = akantu.ContactMechanicsModel(mesh)
+model = aka.ContactMechanicsModel(mesh)
 
-model.initFull(akantu.ContactMechanicsModelOptions(akantu._explicit_lumped_mass))
-surface_selector = akantu.PhysicalSurfaceSelector(mesh)
+model.initFull(_analysis_method=aka._explicit_lumped_mass)
+surface_selector = aka.PhysicalSurfaceSelector(mesh)
 model.getContactDetector().setSurfaceSelector(surface_selector)
 
 
