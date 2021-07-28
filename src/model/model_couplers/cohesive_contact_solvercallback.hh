@@ -1,4 +1,3 @@
-
 /**
  * @file   cohesive_contact_solvercallback.hh
  *
@@ -51,27 +50,39 @@ public:
                                 ContactMechanicsModel &, AnalysisMethod &);
 
 public:
+
+  /// implementation of SolverCallback::assembleMatrix
   void assembleMatrix(const ID &) override;
 
+  /// implementation of SolverCallback::assembleResidual
   void assembleResidual() override;
 
+  /// implementation of SolverCallback::assembleLumpedMatrix
   void assembleLumpedMatrix(const ID &) override;
 
+  /// implementation of SolverCallback::getMatrixType
   MatrixType getMatrixType(const ID &) override;
 
+  /// implementation of SolverCallback::predictor
   void predictor() override;
 
+  /// implementation of SolverCallback::corrector
   void corrector() override;
 
+  /// implementation of SolverCallback::beforeSolveStep
   void beforeSolveStep() override;
 
+  /// implementation of SolverCallback::afterSolveStep
   void afterSolveStep(bool converged=true) override;
 
 private:
-  SolidMechanicsModelCohesive &solid;
+  /// model for the solid mechanics part of the coupling
+  SolidMechanicsModelCohesive & solid;
 
-  ContactMechanicsModel &contact;
+  /// model for the contact resoluion of the coupling
+  ContactMechanicsModel & contact;
 
+  /// Method of resolution for the coupling solver
   AnalysisMethod & method;
 };
 

@@ -42,7 +42,7 @@ bodies from the *reference* to actual configuration. During the
 motion, the bodies can potentially come in contact along
 :math:`\Gamma^C_\alpha` as shown in
 :numref:`fig-contactmechanicsmodel-schematic`, termed as *potential
-contact zone*. Upon contact, two physical conditions needs to be
+contact zone*. Upon contact, two physical conditions need to be
 satisfied :math:`(i)` the two surfaces :math:`\Gamma^C_\alpha` cannot
 interpenetrate at any time during motion :math:`(ii)` forces must be
 exerted by bodies along the :math:`\Gamma^C_\alpha` to resist the
@@ -57,11 +57,11 @@ between the two bodies:
    
 where :math:`\boldsymbol{r} \in \mathcal{M}[\Gamma^C_1]` is the
 position of point :math:`\boldsymbol{X}_1` at time :math:`t` ,
-:math:`\boldsymbol{\rho} \in \mathcal{M}[\Gamma^C_2]` is the closet
+:math:`\boldsymbol{\rho} \in \mathcal{M}[\Gamma^C_2]` is the closest
 point projection of :math:`\boldsymbol{r}` and :math:`\boldsymbol{n}`
 is the outward normal at :math:`\boldsymbol{\rho}` (see
 :numref:`fig-contactmechanicsmodel-schematic` b). To preclude the
-interpenetration, the *gap function*, :math:`g \geq 0` as shown in
+interpenetration, the *gap function*, :math:`g \geq 0` is shown in
 \Cref{fig:body-contact}b. When the two bodies eventually come in
 contact, the gap ceases to exists :math:`i.e.~ g=0` which leads to the
 development of tractions :math:`\boldsymbol{T}_\alpha` along the
@@ -116,7 +116,7 @@ $\Gamma^C_\alpha$ with a single integral over any one of the surfaces:
 
 
 The contact traction :math:`\boldsymbol{T}_1` can be decomposed into
-its normal and tangential component as:
+its normal and tangential components as:
 
 .. math::
    \boldsymbol{T}_\alpha = \boldsymbol{T}^n + \boldsymbol{T}^t
@@ -152,7 +152,7 @@ The tangential component of the contact traction is defined as :
 where :math:`\boldsymbol{\sigma}` is the Cauchy stress tensor and
 $\boldsymbol{n}$ is the outward normal at
 :math:`\boldsymbol{\rho}`. The direction of tangential traction,
-:math:`\boldsymbol{s}` is determined the relative sliding velocity
+:math:`\boldsymbol{s}` is determined by the relative sliding velocity
 :math:`\boldsymbol{v}_t` of the point :math:`\boldsymbol{r}` and its
 projection point :math:`\boldsymbol{\rho}` in contact and is given as:
 
@@ -165,7 +165,7 @@ projection point :math:`\boldsymbol{\rho}` in contact and is given as:
 According to the experimental observations of Amontons
 and~\cite{coulomb}, in presence of friction, the interface develops a
 frictional strength which governs the sliding between them and thus
-constrains the tangential contact. In Akantu implmenetation, we
+constrains the tangential contact. In Akantu implementation, we
 restrict to the classical non-associated Coulomb's friction
 law~\citep{coulomb} which is widely used in many physical and
 engineering applications. The Coulomb's friction law, as a first-order
@@ -306,7 +306,7 @@ passed as an argument::
   auto && surface_selector = std::make_shared<PhysicalSurface>(mesh);
 
 
-To defind contact between cohesive surfaces, an instance of
+To define contact between cohesive surfaces, an instance of
 :cpp:class:`CohesiveSurfaceSelector <akantu::CohesiveSurfaceSelector>`
 must be created. As the contact occurs between the cohesive facets,
 therefore the mesh facet object is passed as an argument::
@@ -444,7 +444,7 @@ changes.
 
    
 While initializing the coupler, the nature of cohesive elements
-(extrinsic/intrinsic) should needs to be passed.
+(extrinsic/intrinsic) should need to be passed.
 
 .. code-block:: c++
 

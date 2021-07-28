@@ -45,12 +45,6 @@ namespace akantu {
 using CouplerSolidCohesiveContact =
     CouplerSolidContactTemplate<SolidMechanicsModelCohesive>;
 
-// using MyFEEngineCohesiveType =
-//     FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>;
-// using MyFEEngineFacetType =
-//     FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
-//                      FacetsCohesiveIntegrationOrderFunctor>;
-
 } // namespace akantu
 
 #endif /* __COUPLER_SOLID_CONTACT_HH__  */
