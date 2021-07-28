@@ -514,6 +514,10 @@ inline void ElementClass<type, kind>::inverseMap(
     inverse_map_error = update_f();
     iterations++;
   }
+
+  if(iterations >= max_iterations) {
+    AKANTU_EXCEPTION("The solver in inverse map did not converge");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
