@@ -46,6 +46,9 @@ package_declare_sources(phase_field
   model/phase_field/phase_field_model.cc
   model/phase_field/phase_field_model.hh
   model/phase_field/phase_field_model_inline_impl.cc
+
+  model/model_couplers/coupler_solid_phasefield.hh
+  model/model_couplers/coupler_solid_phasefield.cc
   )
 
 package_declare_documentation_files(phase_field

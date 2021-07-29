@@ -207,6 +207,26 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  /**
+   * compute @f$ @f$
+   
+   **/
+  static inline void computeD2NDS2(const Matrix<Real> & natural_coord,
+				   Tensor3<Real> & d2nds2);
+
+  /**
+   * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
+   * second variation of
+   * shape functions along with
+   * variation of natural coordinates on a given point in natural
+   * coordinates
+   */
+  template <class vector_type, class matrix_type>
+  static inline void computeD2NDS2(const vector_type &, matrix_type &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
   static inline void computeSpecialJacobian(const Matrix<Real> & /*unused*/,
@@ -344,12 +364,14 @@ public:
   static inline void inverseMap(const Vector<Real> & real_coords,
                                 const Matrix<Real> & node_coords,
                                 Vector<Real> & natural_coords,
+                                UInt max_iterations = 100,
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
   static inline void inverseMap(const Matrix<Real> & real_coords,
                                 const Matrix<Real> & node_coords,
                                 Matrix<Real> & natural_coords,
+                                UInt max_iterations = 100,
                                 Real tolerance = 1e-10);
 
 public:

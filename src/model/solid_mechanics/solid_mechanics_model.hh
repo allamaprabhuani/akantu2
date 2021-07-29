@@ -84,6 +84,7 @@ protected:
 public:
   SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
+                      std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
@@ -116,7 +117,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// assembles the stiffness matrix,
-  virtual void assembleStiffnessMatrix();
+  virtual void assembleStiffnessMatrix(bool need_to_reassemble = false);
   /// assembles the internal forces in the array internal_forces
   virtual void assembleInternalForces();
 
@@ -340,9 +341,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// set the value of the time step
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
@@ -557,7 +555,7 @@ protected:
       std::map<std::pair<std::string, ElementKind>,
                std::unique_ptr<ElementTypeMapArray<Real>>>;
 
-  /// map a registered internals to be flattened for dump purposes
+  /// tells if the material are instantiated
   flatten_internal_map registered_internals;
 
   /// non local manager
@@ -567,6 +565,8 @@ protected:
   bool are_materials_instantiated{false};
 
   friend class Material;
+
+    template <class Model_> friend class CouplerSolidContactTemplate;
 };
 
 /* -------------------------------------------------------------------------- */

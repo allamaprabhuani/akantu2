@@ -50,22 +50,31 @@
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 
-//phasefield laws
+// phasefield laws
 #include "material_phasefield.hh"
 
 // small-deformation plasticity
 #include "material_linear_isotropic_hardening.hh"
 
+// Drucker-Prager plasticity
+#include "material_drucker_prager.hh"
+
+// von-mises plasticity with damage
+#include "material_von_mises_mazars.hh"
+
 #endif
 
-#define AKANTU_CORE_MATERIAL_LIST                                              \
-  ((2, (elastic, MaterialElastic)))((2, (neohookean, MaterialNeohookean)))(    \
-      (2, (elastic_orthotropic, MaterialElasticOrthotropic)))(                 \
-      (2, (elastic_anisotropic, MaterialElasticLinearAnisotropic)))(           \
-      (2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))(           \
-      (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
-      (2, (plastic_linear_isotropic_hardening,                                 \
-           MaterialLinearIsotropicHardening)))(                                \
-      (2, (phasefield, MaterialPhaseField)))					       
+#define AKANTU_CORE_MATERIAL_LIST                                       \
+    ((2, (elastic, MaterialElastic)))                                   \
+    ((2, (neohookean, MaterialNeohookean)))                             \
+    ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))            \
+    ((2, (elastic_anisotropic, MaterialElasticLinearAnisotropic)))      \
+    ((2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))      \
+    ((2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))      \
+    ((2, (plastic_linear_isotropic_hardening,                           \
+          MaterialLinearIsotropicHardening)))                           \
+    ((2, (plastic_drucker_prager, MaterialDruckerPrager)))              \
+    ((2, (plastic_mazars, MaterialVonMisesMazars)))                     \
+    ((2, (phasefield, MaterialPhaseField)))
 
 #endif /* AKANTU_MATERIAL_CORE_INCLUDES_HH_ */

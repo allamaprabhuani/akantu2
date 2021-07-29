@@ -103,6 +103,14 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
+inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
+    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+  d2nds2.zero();
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
     const Matrix<Real> & J, Real & jac) {
@@ -116,8 +124,7 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0).storage(), coord(1).storage(),
-                                      coord(2).storage());
+  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2)); 
 }
 
 /* -------------------------------------------------------------------------- */

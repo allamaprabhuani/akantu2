@@ -66,9 +66,6 @@ public:
 
   void setBaseName(const std::string & basename) override;
 
-private:
-  void registerNodeTypeField();
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

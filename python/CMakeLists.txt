@@ -85,6 +85,21 @@ if (_is_activated)
     )
 endif()
 
+
+package_is_activated(contact_mechanics _is_activated)
+if(_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_contact_mechanics_model.cc
+    )
+endif()
+
+package_is_activated(model_couplers _is_activated)
+if(_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_model_couplers.cc
+    )
+endif()
+
 package_is_activated(phase_field _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS
@@ -92,7 +107,6 @@ if (_is_activated)
     )
 endif()
 
-    
 package_is_activated(structural_mechanics _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS

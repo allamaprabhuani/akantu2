@@ -119,8 +119,8 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id)
-    : SolidMechanicsModel(mesh, dim, id,
+    Mesh & mesh, UInt dim, const ID & id, std::shared_ptr<DOFManager> dof_manager)
+    : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
       facet_material("facet_material", id) {
@@ -259,7 +259,6 @@ void SolidMechanicsModelCohesive::initMaterials() {
 
   // set the facet information in the material in case of dynamic insertion
   // to know what material to call for stress checks
-
   const Mesh & mesh_facets = inserter->getMeshFacets();
   facet_material.initialize(
       mesh_facets, _spatial_dimension = spatial_dimension - 1,
@@ -617,9 +616,17 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
     copy(*previous_displacement);
   }
 
+  // if (external_force)
+  //   copy(*external_force);
+  // if (internal_force)
+  //   copy(*internal_force);
+
   if (displacement_increment) {
     copy(*displacement_increment);
   }
+
+  copy(getDOFManager().getSolution("displacement"));
+  // this->assembleMassLumped();
 
   AKANTU_DEBUG_OUT();
 }

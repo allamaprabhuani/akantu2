@@ -262,12 +262,16 @@ public:
 
 public:
   void getAssociatedElements(const Array<UInt> & node_list,
-                             Array<Element> & elements);
+                             Array<Element> & elements) const;
 
+  void getAssociatedElements(const UInt & node,
+                             Array<Element> & elements) const;
+
+public:
+  /// fills the nodes_to_elements for given dimension elements
+  void fillNodesToElements(UInt dimension = _all_dimensions);
+  
 private:
-  /// fills the nodes_to_elements structure
-  void fillNodesToElements();
-
   /// update the global ids, nodes type, ...
   std::tuple<UInt, UInt> updateGlobalData(NewNodesEvent & nodes_event,
                                           NewElementsEvent & elements_event);
@@ -481,6 +485,9 @@ public:
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(ElementType type);
 
+  /// get the natural space dimension of a type of element
+  static inline UInt getNaturalSpaceDimension(const ElementType & type);
+  
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(ElementType type);
 

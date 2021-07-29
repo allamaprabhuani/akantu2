@@ -15,9 +15,7 @@ namespace py = pybind11;
 
 namespace akantu {
 
-__attribute__((visibility("default"))) void
-register_fe_engine(py::module & mod) {
-
+void register_fe_engine(py::module & mod) {
   py::class_<Element>(mod, "Element")
       .def(py::init([](ElementType type, UInt id) {
         return new Element{type, id, _not_ghost};

@@ -123,6 +123,11 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  /// return the minimum value
+  virtual inline Real min() {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   AKANTU_GET_MACRO(NbNonZero, nb_non_zero, UInt);
   UInt size() const { return size_; }
   AKANTU_GET_MACRO(MatrixType, matrix_type, const MatrixType &);

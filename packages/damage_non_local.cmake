@@ -28,7 +28,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 package_declare(damage_non_local
   DESCRIPTION "Package for Non-local damage constitutives laws Akantu"
   DEPENDS lapack)
@@ -39,7 +38,9 @@ package_declare_sources(damage_non_local
   model/solid_mechanics/materials/material_damage/material_marigo_non_local.hh
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.hh
-
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars_non_local.cc
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars_non_local.hh
+  
   model/solid_mechanics/materials/weight_functions/damaged_weight_function.hh
   model/solid_mechanics/materials/weight_functions/damaged_weight_function_inline_impl.hh
   model/solid_mechanics/materials/weight_functions/remove_damaged_weight_function.hh

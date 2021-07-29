@@ -161,6 +161,13 @@ public:
     upper_bounds.set(std::numeric_limits<Real>::lowest());
   }
 
+  /* -------------------------------------------------------------------------- */
+  inline void getCenter(Vector<Real> & center) {
+    center  = upper_bounds;
+    center += lower_bounds;
+    center /= 2.;
+  }
+
   /* ------------------------------------------------------------------------ */
   const Vector<Real> & getLowerBounds() const { return lower_bounds; }
   const Vector<Real> & getUpperBounds() const { return upper_bounds; }

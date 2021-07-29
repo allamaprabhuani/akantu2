@@ -233,6 +233,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {
     const Matrix<Real> & x = *x_it;
+
     if (filter_elements != empty_filter) {
       jacobians_it = jacobians_begin + filter_elements(elem);
     }

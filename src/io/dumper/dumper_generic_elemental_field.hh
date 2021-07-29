@@ -55,6 +55,7 @@ public:
   using array_iterator = typename types::array_iterator;
   using field_type_iterator = typename field_type::type_iterator;
   using iterator = iterator_type<types>;
+  using support_type = Element;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -87,9 +88,17 @@ public:
   }
 
   /// return the iohelper datatype to be dumped
-  iohelper::DataType getDataType() {
-    return iohelper::getDataType<data_type>();
-  }
+    template <class T1 = data_type,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = data_type,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<data_type>();
+    }
 
 protected:
   /// return the number of entries per element
@@ -109,7 +118,7 @@ public:
   void registerToDumper(const std::string & id,
                         iohelper::Dumper & dumper) override {
     dumper.addElemDataField(id, *this);
-  };
+  }
 
   /// for connection to a FieldCompute
   inline std::shared_ptr<Field> connect(FieldComputeProxy & proxy) override {
@@ -120,7 +129,7 @@ public:
   inline std::unique_ptr<ComputeFunctorInterface>
   connect(HomogenizerProxy & proxy) override {
     return proxy.connectToField(this);
-  };
+  }
 
   virtual iterator begin() {
     /// type iterators on the elemental field

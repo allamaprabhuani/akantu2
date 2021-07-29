@@ -290,7 +290,7 @@ template <typename T, typename SupportType>
 class ElementTypeMapArray
     : public ElementTypeMap<std::unique_ptr<Array<T>>, SupportType> {
 public:
-  using type = T;
+  using value_type = T;
   using array_type = Array<T>;
 
 protected:

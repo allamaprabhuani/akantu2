@@ -86,9 +86,15 @@ package_declare_sources(solid_mechanics
   model/solid_mechanics/materials/material_plastic/material_plastic.cc
   model/solid_mechanics/materials/material_plastic/material_plastic.hh
   model/solid_mechanics/materials/material_plastic/material_plastic_inline_impl.hh
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager.cc
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager.hh
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager_inline_impl.hh
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.cc
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.hh
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening_inline_impl.hh
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars.cc
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars.hh
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars_inline_impl.hh
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
   model/solid_mechanics/materials/material_viscoelastic/material_viscoelastic_maxwell.cc

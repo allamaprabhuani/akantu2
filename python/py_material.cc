@@ -2,6 +2,7 @@
 #include "py_aka_array.hh"
 #include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
+#include <material_selector.hh>
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <solid_mechanics_model_cohesive.hh>

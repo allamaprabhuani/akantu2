@@ -5,6 +5,7 @@ add_subdirectory(plate-hole)
 add_subdirectory(stiffness_matrix)
 add_subdirectory(structural_mechanics)
 add_subdirectory(fragmentation)
+add_subdirectory(contact-mechanics)
 
 package_add_files_to_package(
   examples/python/README.rst

@@ -78,7 +78,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
   SolidMechanicsModelCohesiveOptions(
       AnalysisMethod analysis_method = _explicit_lumped_mass,
       bool extrinsic = false)
-      : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
+    : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
 
   template <typename... pack>
   SolidMechanicsModelCohesiveOptions(use_named_args_t /*unused*/,
@@ -89,6 +89,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
   bool is_extrinsic{false};
 };
+  
 #endif
 
 #ifdef AKANTU_HEAT_TRANSFER
@@ -147,6 +148,51 @@ struct EmbeddedInterfaceModelOptions : SolidMechanicsModelOptions {
   /// Should consider reinforcements
   bool has_intersections;
 };
+#endif
+
+#ifdef AKANTU_CONTACT_MECHANICS
+/* -------------------------------------------------------------------------- */
+struct ContactMechanicsModelOptions : public ModelOptions {
+  explicit ContactMechanicsModelOptions(
+      AnalysisMethod analysis_method = _explicit_lumped_mass)
+      : ModelOptions(analysis_method) {}
+
+  template <typename... pack>
+  ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
+      : ContactMechanicsModelOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
+};
+#endif
+
+#ifdef AKANTU_MODEL_COUPLERS
+/* -------------------------------------------------------------------------- */
+struct CouplerSolidContactOptions : public ModelOptions {
+  explicit CouplerSolidContactOptions(
+      AnalysisMethod analysis_method = _explicit_lumped_mass)
+      : ModelOptions(analysis_method) {}
+
+  template <typename... pack>
+  CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
+      : CouplerSolidContactOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
+};
+
+/* -------------------------------------------------------------------------- */
+struct CouplerSolidCohesiveContactOptions : public ModelOptions {
+  CouplerSolidCohesiveContactOptions(
+      AnalysisMethod analysis_method = _explicit_lumped_mass,
+      bool extrinsic = false)
+      : ModelOptions(analysis_method), is_extrinsic(extrinsic)  {}
+
+  template<typename... pack>
+  CouplerSolidCohesiveContactOptions(use_named_args_t, pack &&... _pack)
+    : CouplerSolidCohesiveContactOptions(
+       OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
+       OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
+  
+  bool is_extrinsic{false};
+};
+  
 #endif
 
 } // namespace akantu

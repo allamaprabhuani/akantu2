@@ -47,6 +47,7 @@ namespace akantu {
 class SynchronizerRegistry;
 class Parser;
 class DumperIOHelper;
+class DOFManager;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +58,14 @@ class Model : public ModelSolver, public MeshEventHandler {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// Normal constructor where the DOFManager is created internally
   Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
+        const ID & id = "model");
+
+  /// Model constructor the the dof manager is created externally, for example
+  /// in a ModelCoupler
+  Model(Mesh & mesh, const ModelType & type,
+        std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
         const ID & id = "model");
 
   ~Model() override;
@@ -105,6 +113,22 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_CONTACT_MECHANICS
+    case ModelType::_contact_mechanics_model:
+      this->initFullImpl(ContactMechanicsModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
+#ifdef AKANTU_MODEL_COUPLERS
+    case ModelType::_coupler_solid_contact:
+      this->initFullImpl(CouplerSolidContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+    case ModelType::_coupler_solid_cohesive_contact:
+      this->initFullImpl(CouplerSolidCohesiveContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
     default:
       this->initFullImpl(ModelOptions{use_named_args,
                                       std::forward<decltype(_pack)>(_pack)...});
@@ -125,7 +149,7 @@ protected:
   virtual std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) = 0;
 
-  virtual void initModel() = 0;
+  virtual void initModel() {};
 
   virtual void initFEEngineBoundary();
 
@@ -186,6 +210,8 @@ public:
   /// return the fem boundary object associated with a provided name
   virtual FEEngine & getFEEngineBoundary(const ID & name = "");
 
+  inline bool hasFEEngineBoundary(const ID & name = "");
+
   /// register a fem object associated with name
   template <typename FEEngineClass>
   inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
@@ -206,6 +232,9 @@ public:
 
   /// Get the type of analysis method used
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
+
+  /// return the dimension of the system space
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack hexlper functions                                         */
@@ -293,12 +322,9 @@ public:
     return nullptr;
   }
 
-  virtual std::shared_ptr<dumpers::Field>
-  createElementalField(const std::string & /*field_name*/,
-                       const std::string & /*group_name*/,
-                       bool /*padding_flag*/,
-                       UInt /*spatial_dimension*/,
-                       ElementKind /*kind*/) {
+  virtual std::shared_ptr<dumpers::Field> createElementalField(
+      const std::string & /*field_name*/, const std::string & /*group_name*/,
+      bool /*padding_flag*/, UInt /*spatial_dimension*/, ElementKind /*kind*/) {
     return nullptr;
   }
 

@@ -28,7 +28,6 @@ namespace akantu {
     return self.func_name();                                                   \
   })
 /* -------------------------------------------------------------------------- */
-
 void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModelOptions>(mod, "SolidMechanicsModelOptions")
@@ -37,9 +36,11 @@ void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModel, Model>(mod, "SolidMechanicsModel",
                                          py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, const ModelType>(),
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+                    const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model",
+           py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_solid_mechanics_model)
       .def(
           "initFull",
@@ -112,7 +113,7 @@ void register_solid_mechanics_model(py::module & mod) {
       .def("setMaterialSelector",
            [](SolidMechanicsModel & self,
               std::shared_ptr<MaterialSelector> material_selector) {
-                 std::cout << (*material_selector)(ElementNull) << std::endl;
+             std::cout << (*material_selector)(ElementNull) << std::endl;
              self.setMaterialSelector(material_selector);
            })
       .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector);

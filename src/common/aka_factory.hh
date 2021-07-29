@@ -58,8 +58,8 @@ public:
   /* ------------------------------------------------------------------------ */
   bool registerAllocator(const T & id, const allocator_t & allocator) {
     if (allocators.find(id) != allocators.end()) {
-      AKANTU_EXCEPTION("The id "
-                       << " is already registered in the "
+      AKANTU_EXCEPTION("The id \"" << id 
+                       << "\" is already registered in the "
                        << debug::demangle(typeid(Base).name()) << " factory");
     }
     allocators[id] = allocator;
@@ -69,8 +69,8 @@ public:
   template <typename... AArgs>
   std::unique_ptr<Base> allocate(const T & id, AArgs &&... args) const {
     if (allocators.find(id) == allocators.end()) {
-      AKANTU_EXCEPTION("The id "
-                       << " is not registered in the "
+      AKANTU_EXCEPTION("The id \"" << id
+                       << "\" is not registered in the "
                        << debug::demangle(typeid(Base).name()) << " factory.");
     }
     return std::forward<std::unique_ptr<Base>>(
