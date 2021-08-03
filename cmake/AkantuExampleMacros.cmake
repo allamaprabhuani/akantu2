@@ -60,14 +60,14 @@ function(register_example example_name)
     if(_example_PARALLEL)
       set(_exe ${MPIEXEC})
       if(NOT _exe)
-	      set(_exe ${MPIEXEC_EXECUTABLE})
+        set(_exe ${MPIEXEC_EXECUTABLE})
       endif()
       set(_parallel_runner -p "${_exe} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG}" -N "2")
     endif()
     
     if(NOT _example_SCRIPT)
-	      add_test(NAME ${example_name}-test
-	        COMMAND ${AKANTU_DRIVER_SCRIPT}
+      add_test(NAME ${example_name}-test
+        COMMAND ${AKANTU_DRIVER_SCRIPT}
             ${_parallel_runner}
             -n "${example_name}-test"
             -w "${CMAKE_CURRENT_BINARY_DIR}"
@@ -75,16 +75,16 @@ function(register_example example_name)
     elseif(_example_SCRIPT)
       _add_file_to_copy(${example_name} "${_example_SCRIPT}")
       if(_example_PYTHON)
-	      add_test(NAME ${example_name}-test
-	        COMMAND ${AKANTU_DRIVER_SCRIPT}
+        add_test(NAME ${example_name}-test
+          COMMAND ${AKANTU_DRIVER_SCRIPT}
             ${_parallel_runner}
             -n "${example_name}-test"
             -E "${PROJECT_BINARY_DIR}/akantu_environement.sh"
             -w "${CMAKE_CURRENT_BINARY_DIR}"
             -e "${PYTHON_EXECUTABLE}" "${_example_SCRIPT}")
       else()
-      	add_test(NAME ${example_name}-test
-	        COMMAND ${AKANTU_DRIVER_SCRIPT}
+        add_test(NAME ${example_name}-test
+          COMMAND ${AKANTU_DRIVER_SCRIPT}
             ${_parallel_runner}
             -n "${example_name}-test"
             -w "${CMAKE_CURRENT_BINARY_DIR}"
@@ -115,7 +115,7 @@ function(add_example et_name desc)
 
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${et_name})
       message(FATAL_ERROR "The folder ${CMAKE_CURRENT_SOURCE_DIR}/${et_name} "
-	      "that you try to register as an example sub-folder, does not exists.")
+        "that you try to register as an example sub-folder, does not exists.")
     endif()
 
     cmake_parse_arguments(_manage_example
@@ -125,13 +125,15 @@ function(add_example et_name desc)
       ${ARGN}
       )
 
+    message("-- ${et_name}: ${ARGN}")
+
     if(_manage_example_PACKAGE)
       set(_act TRUE)
       foreach(_pkg ${_manage_example_PACKAGE})
-	      package_is_activated(${_pkg} _activated)
-	      if(NOT _activated)
+        package_is_activated(${_pkg} _activated)
+        if(NOT _activated)
           set(_act FALSE)
-	      endif()
+        endif()
       endforeach()
     else()
       message(SEND_ERROR "Examples should be associated to a package")
@@ -139,7 +141,7 @@ function(add_example et_name desc)
 
     if(_act)
       if(DEFINED _add_examples_pkg)
-	      set(_save_add_examples_pkg ${_add_examples_pkg})
+        set(_save_add_examples_pkg ${_add_examples_pkg})
       endif()
       list(GET _manage_example_PACKAGE 0 _pkg)
       set(_add_examples_pkg ${_pkg})
@@ -148,8 +150,8 @@ function(add_example et_name desc)
 
       unset(_add_examples_pkg)
       if(DEFINED _save_add_examples_pkg)
-	      set(_add_examples_pkg ${_save_add_examples_pkg})
-	      unset(_save_add_examples_pkg)
+        set(_add_examples_pkg ${_save_add_examples_pkg})
+        unset(_save_add_examples_pkg)
       endif()
     endif()
   endif()

@@ -36,8 +36,15 @@ add_subdirectory(dynamics)
 add_subdirectory(eigen_modes)
 add_subdirectory(plate-hole)
 add_subdirectory(stiffness_matrix)
-add_subdirectory(structural_mechanics)
-add_subdirectory(fragmentation)
+
+add_example(structural_mechanics "structural mechanics example in python"
+  PACKAGE structural_mechanics)
+add_example(fragmentation "example of fragmentation in python"
+  PACKAGE cohesive_element)
+add_example(phase-field "phase-field example in python"
+  PACKAGE phase_field)
+add_example(cohesive "cohesive element examples in python"
+  PACKAGE cohesive_element)
 
 package_add_files_to_package(
   examples/python/README.rst

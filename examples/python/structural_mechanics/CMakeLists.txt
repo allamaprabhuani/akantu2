@@ -28,8 +28,6 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 register_example(structural_mechanics.py
   SCRIPT structural_mechanics.py
   PYTHON
