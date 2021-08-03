@@ -226,6 +226,8 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
     does_j_need_update |= C.getRelease() != c_release;
   }
 
+  does_j_need_update |= this->dof_manager.hasBlockedDOFsChanged();
+
   if (!does_j_need_update) {
     AKANTU_DEBUG_OUT();
     return;

@@ -67,7 +67,12 @@ void PseudoTime::assembleJacobian(const SolutionType & /*type*/,
   SparseMatrix & J = this->dof_manager.getMatrix("J");
   const SparseMatrix & K = this->dof_manager.getMatrix("K");
 
-  if (K.getRelease() == k_release) {
+  bool does_j_need_update = false;
+  does_j_need_update |= K.getRelease() != k_release;
+  does_j_need_update |= this->dof_manager.hasBlockedDOFsChanged();
+
+  if (not does_j_need_update) {
+    AKANTU_DEBUG_OUT();
     return;
   }
 

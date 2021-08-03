@@ -51,8 +51,7 @@ DOFManager::DOFManager(const ID & id)
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(Mesh & mesh, const ID & id)
-    : id(id), mesh(&mesh),
-      dofs_flag(0, 1, std::string(id + ":dofs_type")),
+    : id(id), mesh(&mesh), dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
       communicator(mesh.getCommunicator()) {
   this->mesh->registerEventHandler(*this, _ehp_dof_manager);
@@ -131,8 +130,8 @@ void DOFManager::assembleElementalArrayLocalArray(
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
-    const ID & dof_id, const Array<Real> & elementary_vect,
-    ElementType type, GhostType ghost_type, Real scale_factor,
+    const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
+    GhostType ghost_type, Real scale_factor,
     const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -156,9 +155,8 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type,
-    GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -355,7 +353,9 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
         dofs_array.size() * dofs_array.getNbComponent();
     break;
   }
-  default: { AKANTU_EXCEPTION("This type of dofs is not handled yet."); }
+  default: {
+    AKANTU_EXCEPTION("This type of dofs is not handled yet.");
+  }
   }
 
   dof_data.local_nb_dofs = nb_local_dofs;
@@ -940,7 +940,7 @@ void DOFManager::updateGlobalBlockedDofs() {
       this->global_blocked_dofs_release;
 
   for (auto & pair : dofs) {
-    if (!this->hasBlockedDOFs(pair.first)) {
+    if (not this->hasBlockedDOFs(pair.first)) {
       continue;
     }
 
@@ -975,12 +975,7 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
   auto & J = this->getMatrix(matrix_id);
 
   if (this->jacobian_release == J.getRelease()) {
-    auto are_equal = this->global_blocked_dofs_release ==
-                     this->previous_global_blocked_dofs_release;
-    // std::equal(global_blocked_dofs.begin(), global_blocked_dofs.end(),
-    //           previous_global_blocked_dofs.begin());
-
-    if (not are_equal) {
+    if (this->hasBlockedDOFsChanged()) {
       J.applyBoundary();
     }
 
@@ -990,6 +985,8 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
   }
 
   this->jacobian_release = J.getRelease();
+  this->previous_global_blocked_dofs_release =
+          this->global_blocked_dofs_release;
 }
 
 /* -------------------------------------------------------------------------- */

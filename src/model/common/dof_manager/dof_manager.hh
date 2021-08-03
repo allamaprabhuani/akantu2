@@ -265,6 +265,12 @@ public:
   /// get the array of dof types (use only if you know what you do...)
   inline NodeFlag getDOFFlag(Int local_id) const;
 
+  /// defines if the boundary changed
+  bool hasBlockedDOFsChanged() {
+    return  this->global_blocked_dofs_release !=
+        this->previous_global_blocked_dofs_release;
+  }
+
   /// Global number of dofs
   AKANTU_GET_MACRO(SystemSize, this->system_size, UInt);
 
