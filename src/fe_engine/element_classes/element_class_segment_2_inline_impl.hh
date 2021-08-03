@@ -67,6 +67,15 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
   dnds(0, 1) = .5;
 }
 
+
+/* -------------------------------------------------------------------------- */
+template<>
+template <class vector_type, class matrix_type>
+inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
+    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+  d2nds2.zero();
+}
+
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
@@ -79,7 +88,9 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
-  return std::abs(coord(0, 0) - coord(0, 1));
+  Vector<Real> a(coord(0));
+  Vector<Real> b(coord(1));
+  return a.distance(b);
 }
 
 // /* --------------------------------------------------------------------------

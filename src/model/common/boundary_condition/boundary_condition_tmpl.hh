@@ -122,7 +122,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     const auto & mesh = model.getMesh();
     const auto & nodes_coords = mesh.getNodes();
     const auto & fem_boundary = model.getFEEngineBoundary();
-
+ 
     UInt dim = model.getSpatialDimension();
     UInt nb_degree_of_freedom = dual.getNbComponent();
 

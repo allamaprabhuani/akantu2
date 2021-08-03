@@ -76,7 +76,6 @@ void PseudoTime::assembleJacobian(const SolutionType & /*type*/,
   J.copyProfile(K);
   // J.zero();
   J.add(K);
-
   k_release = K.getRelease();
 }
 

@@ -40,7 +40,6 @@ namespace akantu {
 namespace dumpers {
   /* ------------------------------------------------------------------------ */
   template <class data, class ret, class field> struct TypeTraits {
-
     //! the stored data (real, int, uint, ...)
     using data_type = data;
     //! the type returned by the operator *
@@ -48,7 +47,7 @@ namespace dumpers {
     //! the field type (ElementTypeMap or ElementTypeMapFilter)
     using field_type = field;
     //! the type over which we iterate
-    using it_type = typename field_type::type;
+    using it_type = typename field_type::value_type;
     //! the type of array (Array<T> or ArrayFilter<T>)
     using array_type = typename field_type::array_type;
     //! the iterator over the array

@@ -57,8 +57,7 @@ inline Real FEEngine::getElementInradius(const Matrix<Real> & coord,
 }
 
 /* -------------------------------------------------------------------------- */
-inline InterpolationType
-FEEngine::getInterpolationType(ElementType type) {
+inline InterpolationType FEEngine::getInterpolationType(ElementType type) {
   return convertType<ElementType, InterpolationType>(type);
 }
 
@@ -77,9 +76,8 @@ inline ElementType FEEngine::getCohesiveElementType(ElementType type) {
   return ctype;
 }
 #else
-inline ElementType
-FEEngine::getCohesiveElementType(__attribute__((unused))
-                                 ElementType type_facet) {
+inline ElementType FEEngine::getCohesiveElementType(__attribute__((unused))
+                                                    ElementType type_facet) {
   return _not_defined;
 }
 #endif
@@ -90,8 +88,7 @@ FEEngine::getCohesiveElementType(__attribute__((unused))
 #include "igfem_helper.hh"
 namespace akantu {
 
-inline Vector<ElementType>
-FEEngine::getIGFEMElementTypes(ElementType type) {
+inline Vector<ElementType> FEEngine::getIGFEMElementTypes(ElementType type) {
 
 #define GET_IGFEM_ELEMENT_TYPES(type)                                          \
   return IGFEMHelper::getIGFEMElementTypes<type>();
@@ -148,8 +145,7 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
-                                   Array<T> & filtered_f,
-                                   ElementType type,
+                                   Array<T> & filtered_f, ElementType type,
                                    GhostType ghost_type,
                                    const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();

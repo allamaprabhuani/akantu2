@@ -15,6 +15,11 @@ release
 .idea
 __pycache__
 .mailmap
+paraview/*
+*.vtu
+*.pvd
+*.pvtu
+*.vtk
 compile_commands.json
 .clangd
 .iwyu.imp

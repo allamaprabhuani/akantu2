@@ -61,12 +61,20 @@ class ModelSolver : public Parsable,
   /* ------------------------------------------------------------------------ */
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
+  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
+              std::shared_ptr<DOFManager> dof_manager);
+
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
-  void initDOFManager();
+  std::shared_ptr<DOFManager> initDOFManager();
   /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ID & solver_type);
+  std::shared_ptr<DOFManager> initDOFManager(const ID & solver_type);
+
+protected:
+  /// initialize the dof manager based on the used chosen solver type
+  std::shared_ptr<DOFManager> initDOFManager(const ParserSection & section,
+                                             const ID & solver_type);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -82,7 +90,7 @@ public:
 
   
   /// solve a step using a given pre instantiated time step solver and
-  /// nondynamic linear solver
+  /// non linear solver
   virtual void solveStep(const ID & solver_id = "");
 
   /// solve a step using a given pre instantiated time step solver and
@@ -103,14 +111,11 @@ public:
                            IntegrationScheme::_not_defined);
 
   /// set an externally instantiated integration scheme
-  void setIntegrationScheme(const ID & solver_id, const ID & dof_id,
-                            IntegrationScheme & integration_scheme,
-                            IntegrationScheme::SolutionType solution_type =
-                                IntegrationScheme::_not_defined);
-
-protected:
-  /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ParserSection & section, const ID & solver_type);
+  void
+  setIntegrationScheme(const ID & solver_id, const ID & dof_id,
+                       std::unique_ptr<IntegrationScheme> & integration_scheme,
+                       IntegrationScheme::SolutionType solution_type =
+                           IntegrationScheme::_not_defined);
 
   /* ------------------------------------------------------------------------ */
   /* SolverCallback interface                                                 */
@@ -176,14 +181,14 @@ private:
 protected:
   ModelType model_type;
 
+  /// Underlying dof_manager (the brain...)
+  std::shared_ptr<DOFManager> dof_manager;
+
 private:
   ID parent_id;
 
   /// Underlying mesh
   Mesh & mesh;
-
-  /// Underlying dof_manager (the brain...)
-  std::unique_ptr<DOFManager> dof_manager;
 
   /// Default time step solver to use
   ID default_solver_id;

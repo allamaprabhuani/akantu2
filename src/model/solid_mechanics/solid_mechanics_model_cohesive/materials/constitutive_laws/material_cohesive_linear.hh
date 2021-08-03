@@ -84,7 +84,8 @@ protected:
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
-  void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
+  void computeTangentTraction(ElementType el_type,
+                              Array<Real> & tangent_matrix,
                               const Array<Real> & normal,
                               GhostType ghost_type) override;
 

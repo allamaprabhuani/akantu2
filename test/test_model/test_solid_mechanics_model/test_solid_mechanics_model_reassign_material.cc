@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_grid_dynamic.hh"
+#include "mesh_iterators.hh"
 #include "communicator.hh"
 #include "material.hh"
 #include "mesh_utils.hh"

@@ -238,6 +238,7 @@ public:
   using reference = typename parent::reference;
   using pointer_type = typename parent::pointer_type;
   using const_reference = typename parent::const_reference;
+  using array_type = Array<T>;
 
   ~Array() override;
 

@@ -69,12 +69,23 @@ public:
                             const IntegrationSchemeType & type,
                             IntegrationScheme::SolutionType solution_type =
                                 IntegrationScheme::_not_defined);
+  /// register an integration scheme for a given dof
+  void setIntegrationScheme(const ID & dof_id,
+                            std::unique_ptr<IntegrationScheme> & scheme,
+                            IntegrationScheme::SolutionType solution_type =
+                                IntegrationScheme::_not_defined);
 
 protected:
   /// register an integration scheme for a given dof
+  virtual std::unique_ptr<IntegrationScheme>
+  getIntegrationSchemeInternal(const ID & dof_id,
+                               const IntegrationSchemeType & type,
+                               IntegrationScheme::SolutionType solution_type =
+                                   IntegrationScheme::_not_defined) = 0;
+
   virtual void
   setIntegrationSchemeInternal(const ID & dof_id,
-                               const IntegrationSchemeType & type,
+                               std::unique_ptr<IntegrationScheme> & scheme,
                                IntegrationScheme::SolutionType solution_type =
                                    IntegrationScheme::_not_defined) = 0;
 

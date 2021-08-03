@@ -140,6 +140,13 @@ inline FEEngine & Model::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline bool Model::hasFEEngineBoundary(const ID & name) {
+  ID tmp_name = (name.empty()) ? default_fem : name;
+  auto it = fems_boundary.find(tmp_name);
+  return (it != fems_boundary.end());
+}
+
+/* -------------------------------------------------------------------------- */
 template <typename T>
 void Model::allocNodalField(std::unique_ptr<Array<T>> & array,
                             UInt nb_component, const ID & name) const {

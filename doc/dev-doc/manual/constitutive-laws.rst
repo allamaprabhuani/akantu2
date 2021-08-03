@@ -1,7 +1,5 @@
 .. _sect-smm-cl:
 
-
-
 Constitutive Laws
 -----------------
 

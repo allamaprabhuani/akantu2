@@ -70,9 +70,11 @@ namespace akantu {
  * @param id an id to identify the model
  * @param model_type this is an internal parameter for inheritance purposes
  */
-SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
-                                         const ModelType model_type)
-    : Model(mesh, model_type, dim, id),
+
+SolidMechanicsModel::SolidMechanicsModel(
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : Model(mesh, model_type, std::move(dof_manager), dim, id),
       material_index("material index", id),
       material_local_numbering("material local numbering", id) {
   AKANTU_DEBUG_IN();
@@ -87,8 +89,6 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
 #endif
 
   material_selector = std::make_shared<DefaultMaterialSelector>(material_index);
-
-  this->initDOFManager();
 
   this->registerDataAccessor(*this);
 
@@ -419,14 +419,12 @@ void SolidMechanicsModel::assembleInternalForces() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleStiffnessMatrix() {
+void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
 
   // Check if materials need to recompute the matrix
-  bool need_to_reassemble = false;
-
   for (auto & material : materials) {
     need_to_reassemble |= material->hasMatrixChanged("K");
   }

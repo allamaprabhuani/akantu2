@@ -214,6 +214,7 @@ DOFManagerDefault::getNewNonLinearSolver(const ID & id,
   case NonLinearSolverType::_newton_raphson:
     /* FALLTHRU */
     /* [[fallthrough]]; un-comment when compiler will get it */
+  case NonLinearSolverType::_newton_raphson_contact:
   case NonLinearSolverType::_newton_raphson_modified: {
     return this->registerNonLinearSolver<NonLinearSolverNewtonRaphson>(
         *this, id, type);

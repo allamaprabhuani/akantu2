@@ -431,7 +431,7 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
     const Vector<Real> & real_coords, const Matrix<Real> & node_coords,
-    Vector<Real> & natural_coords, Real tolerance) {
+    Vector<Real> & natural_coords, UInt max_iterations, Real tolerance) {
   UInt spatial_dimension = real_coords.size();
   UInt dimension = natural_coords.size();
 
@@ -439,41 +439,41 @@ inline void ElementClass<type, kind>::inverseMap(
   Matrix<Real> mreal_coords(real_coords.storage(), spatial_dimension, 1);
 
   // initial guess
-  //  Matrix<Real> natural_guess(natural_coords.storage(), dimension, 1);
   natural_coords.zero();
 
   // real space coordinates provided by initial guess
-  Matrix<Real> physical_guess(dimension, 1);
+  Matrix<Real> physical_guess(spatial_dimension, 1);
 
   // objective function f = real_coords - physical_guess
-  Matrix<Real> f(dimension, 1);
-
-  // dnds computed on the natural_guess
-  //  Matrix<Real> dnds(interpolation_element::nb_nodes_per_element,
-  //  spatial_dimension);
+  Matrix<Real> f(spatial_dimension, 1);
 
   // J Jacobian matrix computed on the natural_guess
-  Matrix<Real> J(spatial_dimension, dimension);
+  Matrix<Real> J(dimension, spatial_dimension);
+
+  // J^t
+  Matrix<Real> Jt(spatial_dimension, dimension);
 
   // G = J^t * J
-  Matrix<Real> G(spatial_dimension, spatial_dimension);
+  Matrix<Real> G(dimension, dimension);
 
   // Ginv = G^{-1}
-  Matrix<Real> Ginv(spatial_dimension, spatial_dimension);
+  Matrix<Real> Ginv(dimension, dimension);
 
   // J = Ginv * J^t
   Matrix<Real> F(spatial_dimension, dimension);
 
   // dxi = \xi_{k+1} - \xi in the iterative process
-  Matrix<Real> dxi(spatial_dimension, 1);
+  Matrix<Real> dxi(dimension, 1);
+
+  Matrix<Real> dxit(1, dimension);
 
   /* --------------------------- */
   /* init before iteration loop  */
   /* --------------------------- */
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
-                   &mreal_coords, dimension]() {
-    Vector<Real> physical_guess_v(physical_guess.storage(), dimension);
+                   &mreal_coords, spatial_dimension]() {
+    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension);
     interpolation_element::interpolateOnNaturalCoordinates(
         natural_coords, node_coords, physical_guess_v);
 
@@ -487,46 +487,52 @@ inline void ElementClass<type, kind>::inverseMap(
   };
 
   auto inverse_map_error = update_f();
-
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
-  while (tolerance < inverse_map_error) {
+  UInt iterations{0};
+  while (tolerance < inverse_map_error and iterations < max_iterations) {
     // compute J^t
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,
-                                                        node_coords, J);
+                                                        node_coords, Jt);
+    J = Jt.transpose();
 
     // compute G
-    G.mul<true, false>(J, J);
+    G.mul<false, true>(J, J);
 
     // inverse G
     Ginv.inverse(G);
 
     // compute F
-    F.mul<false, true>(Ginv, J);
+    F.mul<true, false>(J, Ginv);
 
     // compute increment
-    dxi.mul<false, false>(F, f);
+    dxit.mul<true, false>(f, F);
+
+    dxi = dxit.transpose();
 
     // update our guess
     natural_coords += Vector<Real>(dxi(0));
 
     inverse_map_error = update_f();
+    iterations++;
   }
-  //  memcpy(natural_coords.storage(), natural_guess.storage(), sizeof(Real) *
-  //  natural_coords.size());
+
+  if(iterations >= max_iterations) {
+    AKANTU_EXCEPTION("The solver in inverse map did not converge");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
     const Matrix<Real> & real_coords, const Matrix<Real> & node_coords,
-    Matrix<Real> & natural_coords, Real tolerance) {
+    Matrix<Real> & natural_coords, UInt max_iterations, Real tolerance) {
   UInt nb_points = real_coords.cols();
   for (UInt p = 0; p < nb_points; ++p) {
     Vector<Real> X(real_coords(p));
     Vector<Real> ncoord_p(natural_coords(p));
-    inverseMap(X, node_coords, ncoord_p, tolerance);
+    inverseMap(X, node_coords, ncoord_p, max_iterations, tolerance);
   }
 }
 

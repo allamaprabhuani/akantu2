@@ -36,15 +36,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 PhaseFieldExponential::PhaseFieldExponential(PhaseFieldModel & model,
-					      const ID & id)
-  : PhaseField(model, id) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_OUT();
-}
+                                             const ID & id)
+    : PhaseField(model, id) {}
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldExponential::updateInternalParameters() {
-
   PhaseField::updateInternalParameters();
 
   Matrix<Real> d(spatial_dimension, spatial_dimension);
@@ -54,26 +50,20 @@ void PhaseFieldExponential::updateInternalParameters() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
-						GhostType ghost_type) {
-
-  AKANTU_DEBUG_IN();
-
+                                                GhostType ghost_type) {
   for (auto && tuple : zip(this->phi(el_type, ghost_type),
-			   this->phi.previous(el_type, ghost_type),
-			   this->driving_force(el_type, ghost_type),
-			   this->damage_energy_density(el_type, ghost_type),
-			   make_view(this->strain(el_type, ghost_type),
-				     spatial_dimension, spatial_dimension))) {
-    computePhiOnQuad(std::get<4>(tuple), std::get<0>(tuple), std::get<1>(tuple));
+                           this->phi.previous(el_type, ghost_type),
+                           this->driving_force(el_type, ghost_type),
+                           this->damage_energy_density(el_type, ghost_type),
+                           make_view(this->strain(el_type, ghost_type),
+                                     spatial_dimension, spatial_dimension))) {
+    computePhiOnQuad(std::get<4>(tuple), std::get<0>(tuple),
+                     std::get<1>(tuple));
     computeDamageEnergyDensityOnQuad(std::get<0>(tuple), std::get<3>(tuple));
     computeDrivingForceOnQuad(std::get<0>(tuple), std::get<2>(tuple));
   }
-  
-  AKANTU_DEBUG_OUT();
 }
-
- 
 
 INSTANTIATE_PHASEFIELD(exponential, PhaseFieldExponential);
-  
-}
+
+} // namespace akantu

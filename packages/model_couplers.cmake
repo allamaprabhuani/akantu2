@@ -28,7 +28,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 package_declare(model_couplers ADVANCED
   DESCRIPTION "Use Model Couplers package of Akantu")
 

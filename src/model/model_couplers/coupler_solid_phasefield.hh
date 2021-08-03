@@ -226,9 +226,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// get the solid mechanics model
   AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
 

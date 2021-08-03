@@ -45,7 +45,8 @@ add_example(phase-field "phase-field example in python"
   PACKAGE phase_field)
 add_example(cohesive "cohesive element examples in python"
   PACKAGE cohesive_element)
-
+add_example(contact-mechanics "contact mechanics example in python"
+  PACKAGE contact_mechanics)
 package_add_files_to_package(
   examples/python/README.rst
   )

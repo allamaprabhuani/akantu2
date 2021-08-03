@@ -294,7 +294,7 @@ public:
       for (UInt i = 0; i < dimension; ++i) {
         Real posl = center(i) + cell_id.getID(i) * spacing(i);
         Real posu = posl + spacing(i);
-        if (posl < lower(i)) {
+        if (posl <= lower(i)) {
           lower(i) = posl;
         }
         if (posu > upper(i)) {
@@ -411,7 +411,11 @@ public:
   AKANTU_GET_MACRO(LowerBounds, lower, const Vector<Real> &);
   AKANTU_GET_MACRO(UpperBounds, upper, const Vector<Real> &);
   AKANTU_GET_MACRO(Spacing, spacing, const Vector<Real> &);
+  AKANTU_SET_MACRO(Spacing, spacing, Vector<Real> &);
+  AKANTU_GET_MACRO(Center, center, const Vector<Real> &);
+  AKANTU_SET_MACRO(Center, center, Vector<Real> &);
 
+  
 protected:
   UInt dimension;
 

@@ -85,7 +85,7 @@ GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename T2, bool filtered>
-                      class dump_type> ///< type of InternalMaterialField
+          class dump_type> ///< type of InternalMaterialField
 std::shared_ptr<dumpers::Field>
 GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
                                    const std::string & group_name,
@@ -114,6 +114,7 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
   if (field_ptr == nullptr) {
     return nullptr;
   }
+
   if (group_name != "all") {
     throw;
   }
@@ -139,7 +140,7 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalFilteredField(
     throw;
   }
 
-  using T = typename field_type::type;
+  using T = typename field_type::value_type;
   ElementGroup & group = this->getElementGroup(group_name);
   UInt dim = group.getDimension();
   if (dim != spatial_dimension) {

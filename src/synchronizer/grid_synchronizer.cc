@@ -483,5 +483,5 @@ template void GridSynchronizer::createGridSynchronizer<IntegrationPoint>(
 
 template void GridSynchronizer::createGridSynchronizer<Element>(
     const SpatialGrid<Element> & grid);
-
+  
 } // namespace akantu

@@ -39,13 +39,9 @@
 
 /* -------------------------------------------------------------------------- */
 #define DIRICHLET_SANITY_CHECK                                                 \
-  AKANTU_DEBUG_ASSERT(                                                         \
-      coord.size() <= flags.size(),                                            \
-      "The coordinates and flags vectors given to the boundary"                \
-          << " condition functor have different sizes!");                      \
-  AKANTU_DEBUG_ASSERT(                                                         \
-      primal.size() <= coord.size(),                                           \
-      "The primal vector and coordinates vector given"                         \
+  AKANTU_DEBUG_ASSERT(							\
+      primal.size() <= flags.size(),			\
+      "The primal vector and flags vectors given"                         \
           << " to the boundary condition functor have different sizes!");
 
 #define NEUMANN_SANITY_CHECK                                                   \
@@ -53,11 +49,7 @@
       coord.size() <= normals.size(),                                          \
       "The coordinates and normals vectors given to the"                       \
           << " boundary condition functor have different sizes!");             \
-  AKANTU_DEBUG_ASSERT(                                                         \
-      dual.size() <= coord.size(),                                             \
-      "The dual vector and coordinates vector given to"                        \
-          << " the boundary condition functor have different sizes!");
-
+  
 namespace akantu {
 namespace BC {
   /* ---------------------------------------------------------------------- */

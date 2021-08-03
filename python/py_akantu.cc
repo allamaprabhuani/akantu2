@@ -64,6 +64,11 @@
 #include "py_solid_mechanics_model_cohesive.hh"
 #endif
 
+#if defined(AKANTU_CONTACT_MECHANICS)
+#include "py_contact_mechanics_model.hh"
+#include "py_model_couplers.hh"
+#endif
+
 #if defined(AKANTU_PHASE_FIELD)
 #include "py_phase_field_model.hh"
 #endif
@@ -118,6 +123,11 @@ void register_all(pybind11::module & mod) {
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
   register_structural_mechanics_model(mod);
+#endif
+
+#if defined(AKANTU_CONTACT_MECHANICS)
+  register_contact_mechanics_model(mod);
+  register_model_couplers(mod);
 #endif
 
 #if defined(AKANTU_PHASE_FIELD)

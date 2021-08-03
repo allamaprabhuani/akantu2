@@ -50,6 +50,7 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
           dof_manager, "J", id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
+  this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson);
   this->supported_type.insert(NonLinearSolverType::_linear);
 
@@ -115,7 +116,9 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   }
 
   do {
-    if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson) {
+    if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
+        this->non_linear_solver_type ==
+            NonLinearSolverType::_newton_raphson_contact) {
       solver_callback.assembleMatrix("J");
     }
 
@@ -138,7 +141,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
         not this->converged) {
       this->assembleResidual(solver_callback);
     }
-    // this->dump();
 
     this->n_iter++;
     AKANTU_DEBUG_INFO(
@@ -146,7 +148,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
             << std::setw(std::log10(this->max_iterations)) << this->n_iter
             << ": error " << this->error << (this->converged ? " < " : " > ")
             << this->convergence_criteria);
-
   } while (not this->converged and this->n_iter <= this->max_iterations);
 
   // this makes sure that you have correct strains and stresses after the
@@ -156,7 +157,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   }
 
   this->converged =
-      this->converged  and not (this->n_iter > this->max_iterations);
+      this->converged and not(this->n_iter > this->max_iterations);
 
   solver_callback.afterSolveStep(this->converged);
 
@@ -170,7 +171,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
                              << this->n_iter << " iteration"
                              << (this->n_iter == 1 ? "" : "s") << "!");
   }
-
 }
 
 /* -------------------------------------------------------------------------- */
