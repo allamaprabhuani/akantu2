@@ -10,6 +10,8 @@ damping_interval = 10
 damping_ratio = 0.9
 
 spatial_dimension = 2
+
+
 aka.parseInput('compression.dat')
 
 mesh = aka.Mesh(spatial_dimension)

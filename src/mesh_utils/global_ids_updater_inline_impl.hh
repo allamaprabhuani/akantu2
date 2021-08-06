@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -47,8 +47,9 @@ inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
                                         const SynchronizationTag & tag) const {
   UInt size = 0;
   if (tag == SynchronizationTag::_giu_global_conn) {
-    size +=
-        Mesh::getNbNodesPerElementList(elements) * (sizeof(UInt) + sizeof(Int)) + sizeof(int);
+    size += Mesh::getNbNodesPerElementList(elements) *
+                (sizeof(UInt) + sizeof(Int)) +
+            sizeof(int);
 #ifndef AKANTU_NDEBUG
     size += sizeof(NodeFlag) * Mesh::getNbNodesPerElementList(elements);
 #endif
@@ -81,10 +82,11 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
           (not this->reduce and not mesh.isPureGhostNode(node))) {
         index = global_nodes_ids(node);
       }
-      auto node_flag = mesh.getNodeFlag(node);
       buffer << index;
-      buffer << (mesh.isLocalOrMasterNode(node) ? prank : mesh.getNodePrank(node));
+      buffer << (mesh.isLocalOrMasterNode(node) ? prank
+                                                : mesh.getNodePrank(node));
 #ifndef AKANTU_NDEBUG
+      auto node_flag = mesh.getNodeFlag(node);
       buffer << node_flag;
 #endif
     }
@@ -142,7 +144,7 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
             "The node "
                 << index << " already has a prank: " << current_proc
                 << ", that is different from the one we are trying to set "
-            << node_prank << " " << node_flag);
+                << node_prank << " " << node_flag);
 #endif
         mesh_accessor.setNodePrank(node, node_prank);
       }

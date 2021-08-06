@@ -42,7 +42,7 @@ def solve(material_file, mesh_file, traction):
     model.setBaseNameToDumper('cohesive elements', 'cohesive')
     model.addDumpFieldVectorToDumper('cohesive elements', 'displacement')
     model.addDumpFieldToDumper('cohesive elements', 'damage')
-    model.addDumpFieldVectorToDumper('cohesive elements', 'traction')
+    model.addDumpFieldVectorToDumper('cohesive elements', 'tractions')
     model.addDumpFieldVectorToDumper('cohesive elements', 'opening')
 
     # -------------------------------------------------------------------------

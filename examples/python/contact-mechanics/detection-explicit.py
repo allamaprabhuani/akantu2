@@ -3,12 +3,11 @@
 import akantu as aka
 import time
 
-
 spatial_dimension = 2
-aka.parseInput('./materials/detection-explicit.dat')
+aka.parseInput('detection-explicit.dat')
 
 mesh = aka.Mesh(spatial_dimension)
-mesh.read('./mesh/detection-explicit.msh')
+mesh.read('detection-explicit.msh')
 
 model = aka.ContactMechanicsModel(mesh)
 
@@ -16,12 +15,10 @@ model.initFull(_analysis_method=aka._explicit_lumped_mass)
 surface_selector = aka.PhysicalSurfaceSelector(mesh)
 model.getContactDetector().setSurfaceSelector(surface_selector)
 
-
 model.setBaseName("detection-explicit")
 model.addDumpFieldVector("normals")
 model.addDumpField("gaps")
 model.addDumpField("areas")
-
 
 start_time = time.time()
 model.search()

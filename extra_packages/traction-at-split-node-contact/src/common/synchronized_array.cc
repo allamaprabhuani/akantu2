@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -59,9 +59,9 @@ void SynchronizedArray<T>::syncElements(SyncChoice sync_choice) {
   AKANTU_DEBUG_IN();
 
   if (sync_choice == _deleted) {
-    std::vector<SynchronizedArrayBase *>::iterator it;
-    for (it = depending_arrays.begin(); it != depending_arrays.end(); ++it) {
-      UInt vec_size = (*it)->syncDeletedElements(this->deleted_elements);
+    for (auto && array : depending_arrays) {
+      auto vec_size [[gnu::unused]] =
+          array->syncDeletedElements(this->deleted_elements);
       AKANTU_DEBUG_ASSERT(vec_size == this->size_,
                           "Synchronized arrays do not have the same length"
                               << "(may be a double synchronization)");
@@ -70,9 +70,9 @@ void SynchronizedArray<T>::syncElements(SyncChoice sync_choice) {
   }
 
   else if (sync_choice == _added) {
-    std::vector<SynchronizedArrayBase *>::iterator it;
-    for (it = depending_arrays.begin(); it != depending_arrays.end(); ++it) {
-      UInt vec_size = (*it)->syncAddedElements(this->nb_added_elements);
+    for (auto && array : depending_arrays) {
+      auto vec_size [[gnu::unused]] =
+          array->syncAddedElements(this->nb_added_elements);
       AKANTU_DEBUG_ASSERT(vec_size == this->size_,
                           "Synchronized arrays do not have the same length"
                               << "(may be a double synchronization)");
@@ -93,10 +93,10 @@ UInt SynchronizedArray<T>::syncDeletedElements(
       nb_added_elements == 0 and deleted_elements.empty(),
       "Cannot sync with a SynchronizedArray if it has already been modified");
 
-  std::vector<UInt>::const_iterator it;
-  for (it = del_elements.begin(); it != del_elements.end(); ++it) {
-    erase(*it);
+  for (auto && el : del_elements) {
+    erase(el);
   }
+
   syncElements(_deleted);
 
   AKANTU_DEBUG_OUT();
@@ -167,7 +167,8 @@ void SynchronizedArray<T>::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void SynchronizedArray<T>::dumpRestartFile(const std::string & file_name) const {
+void SynchronizedArray<T>::dumpRestartFile(
+    const std::string & file_name) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(

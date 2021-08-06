@@ -125,8 +125,6 @@ function(add_example et_name desc)
       ${ARGN}
       )
 
-    message("-- ${et_name}: ${ARGN}")
-
     if(_manage_example_PACKAGE)
       set(_act TRUE)
       foreach(_pkg ${_manage_example_PACKAGE})

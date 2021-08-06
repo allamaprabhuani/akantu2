@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import numpy as np
-import py11_akantu as aka
+import akantu as aka
 
 
 aka.parseInput("material_static.dat")
@@ -19,7 +19,7 @@ phase = model.getPhaseFieldModel()
 solid.initFull(_analysis_method=aka._static)
 solver = solid.getNonLinearSolver('static')
 solver.set('max_iterations', 100)
-solver.set('threshold', 1e-8)
+solver.set('threshold', 1e-9)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
 
@@ -34,6 +34,7 @@ phase.getNewSolver("nonlinear_static", aka.TimeStepSolverType.static,
                    aka.NonLinearSolverType.newton_raphson)
 phase.setIntegrationScheme("nonlinear_static", "damage",
                            aka.IntegrationSchemeType.pseudo_time)
+
 solver = phase.getNonLinearSolver('nonlinear_static')
 solver.set('max_iterations', 100)
 solver.set('threshold', 1e-4)
@@ -64,7 +65,7 @@ blocked_dofs = blocked_dofs.reshape(nb_dofs)
 
 damage = phase.getDamage()
 
-tolerance = 1e-8
+tolerance = 1e-6
 
 steps = 1500
 increment = 1e-5

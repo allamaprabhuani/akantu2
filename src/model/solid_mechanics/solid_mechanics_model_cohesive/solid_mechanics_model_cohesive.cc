@@ -426,16 +426,6 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
                 .begin()[global_facet.element];
 
         el_q = quad_f;
-
-        // for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-        //   for (UInt s = 0; s < Model::spatial_dimension; ++s) {
-        //     el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet +
-        //                    f * nb_quad_per_facet + q,
-        //                s) = quad_f(global_facet * nb_quad_per_facet + q,
-        //                s);
-        //   }
-        // }
-        //}
       }
     }
   }
@@ -618,11 +608,6 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
     copy(*previous_displacement);
   }
 
-  // if (external_force)
-  //   copy(*external_force);
-  // if (internal_force)
-  //   copy(*internal_force);
-
   if (displacement_increment) {
     copy(*displacement_increment);
   }
@@ -674,21 +659,6 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
                                     2 * spatial_dimension * spatial_dimension,
                                 _spatial_dimension = spatial_dimension - 1);
 
-  // for (auto && ghost_type : ghost_types) {
-  //   for (const const auto & type :
-  //        mesh_facets.elementTypes(spatial_dimension - 1, ghost_type)) {
-  //     UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
-
-  //     UInt nb_quadrature_points = getFEEngine("FacetsFEEngine")
-  //                                     .getNbIntegrationPoints(type,
-  //                                     ghost_type);
-
-  //     UInt new_size = nb_facet * nb_quadrature_points;
-
-  //     facet_stress(type, ghost_type).resize(new_size);
-  //   }
-  // }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -706,6 +676,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
   } else if (dumper_name == "facets") {
     spatial_dimension = Model::spatial_dimension - 1;
   }
+
   SolidMechanicsModel::addDumpGroupFieldToDumper(dumper_name, field_id,
                                                  group_name, spatial_dimension,
                                                  _element_kind, padding_flag);

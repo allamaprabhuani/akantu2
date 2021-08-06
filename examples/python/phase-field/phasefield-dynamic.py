@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import py11_akantu as aka
-import subprocess
+import akantu as aka
+
 
 # reading material file
 aka.parseInput('material.dat')
