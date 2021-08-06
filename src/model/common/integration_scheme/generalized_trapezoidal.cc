@@ -172,7 +172,9 @@ void GeneralizedTrapezoidal::assembleJacobian(const SolutionType & type,
   bool does_j_need_update = false;
   does_j_need_update |= M.getRelease() != m_release;
   does_j_need_update |= K.getRelease() != k_release;
-  if (!does_j_need_update) {
+  does_j_need_update |= this->dof_manager.hasBlockedDOFsChanged();
+
+  if (not does_j_need_update) {
     AKANTU_DEBUG_OUT();
     return;
   }
