@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python
+# coding: utf-8
 """ phasefield-static.py: Static phase field example"""
 
 __author__ = "Mohit Pundir"
@@ -10,9 +11,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python
-# coding: utf-8
 
 import numpy as np
 import akantu as aka
@@ -88,7 +86,7 @@ for n in range(steps):
 
     solid.applyBC(aka.IncrementValue(increment, aka._y), 'top')
 
-    mask = blocked_dofs == False
+    mask = not blocked_dofs
 
     iiter = 0
     error_disp = 1

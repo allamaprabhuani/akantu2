@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ plate.py: Python example: plate with a hole breaking with cohesive elements"""
 
 __author__ = "Guillaume Anciaux"
@@ -10,8 +10,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python3
 import akantu as aka
 import numpy as np
 

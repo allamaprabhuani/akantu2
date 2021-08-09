@@ -95,7 +95,7 @@ class IssueFormatter:
                 '\n'.join(self.issue_dict['content']) +
                 '\n```'
             }
-        
+
         issue['fingerprint'] = hashlib.md5(
             '{file}:{line}:{column}:{type}'.format(**self.issue_dict).encode()
         ).hexdigest()

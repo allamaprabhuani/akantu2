@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """ eigen_modes.py: Examples computing Eigen modes"""
 
@@ -9,9 +10,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
-
-
-#!/usr/bin/env python
 
 import subprocess
 import argparse

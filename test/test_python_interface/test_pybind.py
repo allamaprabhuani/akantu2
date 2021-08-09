@@ -1,3 +1,4 @@
+#!/bin/env python
 
 """ test_pybind.py: Test the pybind interface"""
 
@@ -11,8 +12,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/bin/env python
 import pytest
 import numpy as np
 import akantu as aka
@@ -207,4 +206,3 @@ def test_heat_transfer():
 if __name__ == '__main__':
     import sys
     pytest.main(sys.argv)
-

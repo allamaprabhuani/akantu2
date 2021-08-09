@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding: utf-8
 
 """ phasefield-dynamic.py: Dynamic phasefield example in python"""
 
@@ -10,12 +12,7 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python
-# coding: utf-8
-
 import akantu as aka
-
 
 # reading material file
 aka.parseInput('material.dat')
@@ -37,7 +34,8 @@ solver.set('max_iterations', 100)
 solver.set('threshold', 1e-10)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.residual)
 
-# adding another solver dynamic/quasi-static resolution (explicit Newmark with lumped mass) 
+# adding another solver dynamic/quasi-static resolution (explicit Newmark with
+# lumped mass)
 solid.initNewSolver(aka._explicit_lumped_mass)
 
 # initializing the PhaseField Model with linear implicit solver for static resolution
@@ -68,7 +66,7 @@ solid.addDumpField('blocked_dofs')
 
 class FixedDamage (aka.DirichletFunctor):
     '''
-        Fix the damage to 0 
+        Fix the damage to 0
     '''
     def __init__(self, axis):
         super().__init__(axis)

@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ stiffness_matrix.py: Example showing how to access the stifness matrix in
 python"""
 
@@ -11,8 +11,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python3
 import akantu as aka
 
 

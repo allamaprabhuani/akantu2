@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ clang-tidy2code-quality.py: Conversion of clang-tidy output 2 code-quality"""
 
 __author__ = "Nicolas Richart"
@@ -10,8 +10,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python3
 import re
 import os
 import hashlib

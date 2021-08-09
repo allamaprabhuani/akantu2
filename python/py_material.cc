@@ -202,7 +202,9 @@ void register_material(py::module & mod) {
           [](Material & self) -> decltype(auto) {
             return self.getElementFilter();
           },
-          py::return_value_policy::reference);
+          py::return_value_policy::reference)
+      .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
+      .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
 
   register_material_classes<MaterialElastic<2>>(mod, "MaterialElastic2D");
   register_material_classes<MaterialElastic<3>>(mod, "MaterialElastic3D");

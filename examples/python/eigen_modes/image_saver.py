@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ image_saver.py: Helper to save images"""
 
 __author__ = "Guillaume Anciaux"
@@ -10,8 +10,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
 # -----------------------------------------------------------------------------

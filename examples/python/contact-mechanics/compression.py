@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ compression.py: Python contact mechanics example"""
 
 __author__ = "Mohit Pundir"
@@ -9,9 +9,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
-
-
-#!/usr/bin/env python3
 
 import akantu as aka
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding: utf-8
 
 """ structural_mechanics_dynamics.py: Dynamics structural mechanics example"""
 
@@ -10,18 +12,13 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python
-# coding: utf-8
-
-import akantu as aka
-import numpy
 import numpy as np
 try:
     import matplotlib.pyplot as plt
     has_matplotlib = True
 except ImportError:
     has_matplotlib = False
+import akantu as aka
 
 # ### Creating the Mesh
 # Create a mesh for the two dimensional case

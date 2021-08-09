@@ -12,31 +12,6 @@ __copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-""" patch_test_linear_solid_mechanics_fixture.py: solid mechanics model patch test
-in python"""
-
-__author__ = "Guillaume Anciaux"
-__credits__ = [
-    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
-__license__ = "LGPLv3"
-
-
-# ------------------------------------------------------------------------------
-__author__ = "Guillaume Anciaux"
-__copyright__ = "Copyright (C) 2016-2018, EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
-__credits__ = ["Guillaume Anciaux"]
-__license__ = "L-GPLv3"
-__maintainer__ = "Guillaume Anciaux"
-__email__ = "guillaume.anciaux@epfl.ch"
-# ------------------------------------------------------------------------------
-
 import patch_test_linear_fixture
 import numpy as np
 import akantu

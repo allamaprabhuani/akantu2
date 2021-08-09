@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# encoding: utf-8
 
 """ printers.py: gdb pretty printers"""
 
@@ -11,8 +13,6 @@ __copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" 
 __license__ = "LGPLv3"
 
 
-#!/usr/bin/env python3
-# encoding: utf-8
 #
 # Inspired from boost's pretty printers from
 # Rüdiger Sonderfeld <ruediger@c-plusplus.de>

@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """ plate.py: Plate with hole linear elastic example"""
 
 __author__ = "Guillaume Anciaux"
@@ -10,8 +10,6 @@ __copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-#!/usr/bin/env python3
 try:
     from mpi4py import MPI
     comm = MPI.COMM_WORLD

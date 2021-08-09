@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding: utf-8
 
 """ structural_mechanics_softening.py: Structural mechanics with softening"""
 
@@ -9,10 +11,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
-
-
-#!/usr/bin/env python
-# coding: utf-8
 
 # # Test of Structural Mechanics
 # In this test there is a beam consisting of three parts, all have the same materials.
