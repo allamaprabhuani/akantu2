@@ -86,7 +86,7 @@ for n in range(steps):
 
     solid.applyBC(aka.IncrementValue(increment, aka._y), 'top')
 
-    mask = not blocked_dofs
+    mask = blocked_dofs == False  # NOQA: E712
 
     iiter = 0
     error_disp = 1
