@@ -1,3 +1,16 @@
+
+""" phasefield-dynamic.py: Dynamic phasefield example in python"""
+
+__author__ = "Mohit Pundir"
+__credits__ = [
+    "Mohit Pundir <mohit.pundir@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 #!/usr/bin/env python
 # coding: utf-8
 
