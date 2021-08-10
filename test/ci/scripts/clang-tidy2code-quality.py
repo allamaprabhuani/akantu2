@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" clang-tidy2code-quality.py: Conversion of clang-tidy output 2 code-quality"""
+"""clang-tidy2code-quality.py: Conversion of clang-tidy output 2
+code-quality"""
 
 __author__ = "Nicolas Richart"
 __credits__ = [

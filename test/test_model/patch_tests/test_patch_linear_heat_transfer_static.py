@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-""" test_patch_linear_heat_transfer_static.py: heat transfer patch test in python"""
+"""test_patch_linear_heat_transfer_static.py: heat transfer patch test in
+python"""
 
 __author__ = "Nicolas Richart"
 __credits__ = [

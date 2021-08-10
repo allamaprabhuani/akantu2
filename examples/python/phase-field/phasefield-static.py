@@ -64,7 +64,6 @@ solid.addDumpField('stress')
 solid.addDumpField('damage')
 solid.addDumpField('blocked_dofs')
 
-
 nb_dofs = solid.getMesh().getNbNodes() * dim
 
 increment = solid.getIncrement()

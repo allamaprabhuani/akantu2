@@ -42,3 +42,17 @@ class TestPatchTestHTMLinear(patch_test_linear_fixture.TestPatchTestLinear):
 
         if method != akantu._static:
             self.model.setTimeStep(0.5 * self.model.getStableTimeStep())
+
+
+def run_test_generic(self_, method):
+    self_.initModel(method, "heat_transfer_input.dat")
+
+    coordinates = self_.mesh.getNodes()
+    temperature = self_.model.getTemperature()
+    #  set the position of all nodes to the static solution
+    self_.setLinearDOF(temperature, coordinates)
+
+    for s in range(0, 100):
+        self_.model.solveStep()
+
+    self_.checkAll()

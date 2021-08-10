@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-""" patch_test_linear_solid_mechanics_fixture.py: solid mechanics model patch test
-in python"""
+"""patch_test_linear_solid_mechanics_fixture.py: solid mechanics model patch
+test in python
+"""
 
 __author__ = "Guillaume Anciaux"
 __credits__ = [
@@ -19,7 +20,6 @@ import akantu
 
 # custom material (this patch test also checks for custom material features)
 class LocalElastic(akantu.Material):
-
     def __init__(self, model, _id):
         super().__init__(model, _id)
         super().registerParamReal('E',

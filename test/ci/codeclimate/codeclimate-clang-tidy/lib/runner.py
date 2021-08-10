@@ -1,5 +1,4 @@
-
-""" runner.py: runner for clang-tidy in codeclimate (inspired from cpp-check)"""
+"""runner.py: runner for clang-tidy in codeclimate (inspired from cpp-check)"""
 
 __author__ = "Nicolas Richart"
 __credits__ = [

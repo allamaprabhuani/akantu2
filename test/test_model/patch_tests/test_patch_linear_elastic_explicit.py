@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" test_patch_linear_elastic_explicit.py: linear elatic patch test in python"""
+"""test_patch_linear_elastic_explicit.py: linear elatic patch test in python"""
 
 __author__ = "Guillaume Anciaux"
 __credits__ = [

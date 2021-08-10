@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" plate.py: Python example: plate with a hole breaking with cohesive elements"""
+"""plate.py: Python example: plate with a hole breaking with cohesive
+elements"""
 
 __author__ = "Guillaume Anciaux"
 __credits__ = [

@@ -15,24 +15,14 @@ __license__ = "LGPLv3"
 import sys
 import akantu
 from patch_test_linear_heat_transfer_fixture import TestPatchTestHTMLinear
+from patch_test_linear_heat_transfer_fixture import run_test_generic
 
-
-def foo(self):
-    self.initModel(akantu._implicit_dynamic, "heat_transfer_input.dat")
-
-    coordinates = self.mesh.getNodes()
-    temperature = self.model.getTemperature()
-    #  set the position of all nodes to the static solution
-    self.setLinearDOF(temperature, coordinates)
-
-    for s in range(0, 100):
-        self.model.solveStep()
-
-    self.checkAll()
+def run_test(self_):
+    run_test_generic(self_, akantu._implicit_dynamic)
 
 
 def test():
-    TestPatchTestHTMLinear.TYPED_TEST(foo, "Explicit")
+    TestPatchTestHTMLinear.TYPED_TEST(run_test, "Explicit")
 
 
 if 'pytest' not in sys.modules:
