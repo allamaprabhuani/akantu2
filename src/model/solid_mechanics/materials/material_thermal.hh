@@ -64,11 +64,7 @@ public:
   /// local computation of thermal stress
   inline void computeStressOnQuad(Real & sigma, const Real & deltaT);
 
-  /// local computation of thermal stress
-  void computePotentialEnergy(ElementType el_type) override;
-
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

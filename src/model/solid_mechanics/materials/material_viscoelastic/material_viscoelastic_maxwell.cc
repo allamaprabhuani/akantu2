@@ -272,9 +272,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
-  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
-
   auto epot = this->potential_energy(el_type).begin();
   auto sigma_v_it = this->sigma_v(el_type).begin(
       spatial_dimension, spatial_dimension, this->Eta.size());
