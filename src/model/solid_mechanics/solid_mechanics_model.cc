@@ -686,13 +686,27 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
 
   std::set<ID> list_of_energies;
   for (auto && material : materials) {
-    for(auto && energy : material->getEnergyLists()) {
+    for (auto && energy : material->getEnergiesList()) {
       list_of_energies.insert(energy);
     }
   }
 
-  if(list_of_energies.find(energy_id) != list_of_energies.end()) {
+  if (list_of_energies.find(energy_id) != list_of_energies.end()) {
+    list_of_energies.insert("kinetic");
+    list_of_energies.insert("external work");
 
+    std::string str_list;
+    for (auto it = list_of_energies.begin(); it != list_of_energies.end();
+         ++it) {
+      if (it != list_of_energies.begin()) {
+        str_list += ", "
+      }
+      str_list += "\"" + *it + "\"";
+    }
+
+    AKANTU_EXCEPTION("The energy \""
+                     << energy_id << "\" does not exists, valid energies are ["
+                     << str_list << "]");
   }
 
   Real energy = 0.;
