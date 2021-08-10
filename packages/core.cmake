@@ -36,8 +36,15 @@ package_declare(core NOT_OPTIONAL
   FEATURES_PUBLIC cxx_strong_enums cxx_defaulted_functions
                   cxx_deleted_functions cxx_auto_type cxx_decltype_auto
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
-		   cxx_delegating_constructors
-  DEPENDS INTERFACE akantu_iterators Boost)
+                   cxx_delegating_constructors
+  DEPENDS INTERFACE akantu_iterators Boost
+  )
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  package_set_compile_flags(core "-Wall -Wextra -pedantic")
+else()
+  package_set_compile_flags(core "-Wall")
+endif()
 
 package_declare_sources(core
   common/aka_array.cc

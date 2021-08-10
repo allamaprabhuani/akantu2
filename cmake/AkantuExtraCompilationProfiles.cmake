@@ -29,6 +29,25 @@
 #
 #===============================================================================
 
+option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+mark_as_advanced(FORCE_COLORED_OUTPUT)
+if(FORCE_COLORED_OUTPUT)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_flags(cxx "-fcolor-diagnostics")
+  else()
+    add_flags(cxx "-fdiagnostics-color=always")
+  endif()
+endif()
+
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
+  CACHE STRING "Flags used by the compiler during release builds" FORCE)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
+    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
+    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+endif()
 
 #Profiling
 set(_profiling "-g -ggdb3 -pg -DNDEBUG -DAKANTU_NDEBUG -O2")
