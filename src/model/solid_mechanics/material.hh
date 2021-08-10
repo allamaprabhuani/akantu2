@@ -435,6 +435,12 @@ public:
 
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
+  /// tells if the material can compute energy energy_id
+  inline bool hasEnergy(const ID & energy_id);
+
+  /// get the lists of possible energies
+  inline decltype(auto) getEnergyLists() { return (list_of_energies); }
+
   /// return the potential energy for the subset of elements contained by the
   /// material
   Real getPotentialEnergy();
@@ -443,10 +449,9 @@ public:
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
-  virtual Real getEnergy(const std::string & type);
+  virtual Real getEnergy(const ID & energy_id);
   /// return the energy (identified by id) for the provided element
-  virtual Real getEnergy(const std::string & energy_id, ElementType type,
-                         UInt index);
+  virtual Real getEnergy(const ID & energy_id, ElementType type, UInt index);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
@@ -534,6 +539,9 @@ public:
 protected:
   bool isInit() const { return is_init; }
 
+  /// register the fact that material can compute a given energy
+  void registerEnergy(const ID & energy_id);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -613,6 +621,9 @@ protected:
 private:
   /// eigen_grad_u for the parser
   Matrix<Real> eigen_grad_u;
+
+  /// list of usable energy
+  std::set<ID> list_of_energies;
 };
 
 /// standard output stream operator

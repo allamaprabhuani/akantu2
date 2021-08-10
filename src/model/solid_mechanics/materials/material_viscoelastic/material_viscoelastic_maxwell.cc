@@ -60,6 +60,11 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
                       "Viscosity of a Maxwell element");
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
                       "Stiffness of a Maxwell element");
+
+  this->registerEnergy("dissipated");
+  this->registerEnergy("potential");
+  this->registerEnergy("work");
+
   this->update_variable_flag = true;
   this->use_previous_stress = true;
   this->use_previous_gradu = true;

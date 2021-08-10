@@ -673,7 +673,7 @@ Real SolidMechanicsModel::getExternalWork() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
+Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
   AKANTU_DEBUG_IN();
 
   if (energy_id == "kinetic") {
@@ -682,6 +682,17 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 
   if (energy_id == "external work") {
     return getExternalWork();
+  }
+
+  std::set<ID> list_of_energies;
+  for (auto && material : materials) {
+    for(auto && energy : material->getEnergyLists()) {
+      list_of_energies.insert(energy);
+    }
+  }
+
+  if(list_of_energies.find(energy_id) != list_of_energies.end()) {
+
   }
 
   Real energy = 0.;

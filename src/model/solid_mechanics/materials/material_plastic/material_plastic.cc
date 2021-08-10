@@ -47,9 +47,8 @@ MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
       inelastic_strain("inelastic_strain", *this),
       plastic_energy("plastic_energy", *this),
       d_plastic_energy("d_plastic_energy", *this) {
-  AKANTU_DEBUG_IN();
+  this->registerEnergy("plastic");
   this->initialize();
-  AKANTU_DEBUG_OUT();
 }
 
 template <UInt spatial_dimension>
@@ -78,6 +77,8 @@ void MaterialPlastic<spatial_dimension>::initialize() {
                       "Hardening  modulus");
   this->registerParam("sigma_y", sigma_y, Real(0.),
                       _pat_parsable | _pat_modifiable, "Yield stress");
+
+  this->registerEnergy("plastic");
 
   this->iso_hardening.initialize(1);
   this->iso_hardening.initializeHistory();

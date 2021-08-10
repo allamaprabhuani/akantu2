@@ -55,6 +55,9 @@ MaterialStandardLinearSolidDeviatoric<
   this->registerParam("Einf", E_inf, Real(1.), _pat_readable,
                       "Stiffness of the elastic element");
 
+  this->registerEnergy("dissipated");
+  this->registerEnergy("dissipated_sls_deviatoric");
+
   UInt stress_size = dim * dim;
 
   this->stress_dev.initialize(stress_size);

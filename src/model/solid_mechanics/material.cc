@@ -62,6 +62,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
   this->registerParam("eigen_grad_u", eigen_grad_u, _pat_parsable,
                       "EigenGradU");
 
+  this->registerEnergy("potential");
+
   /// for each connectivity types allocate the element filer array of the
   /// material
   element_filter.initialize(model.getMesh(),
@@ -788,12 +790,11 @@ Real Material::getPotentialEnergy(ElementType & type, UInt index) {
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getEnergy(const std::string & type) {
-  AKANTU_DEBUG_IN();
-  if (type == "potential") {
+Real Material::getEnergy(const ID & energy_id) {
+  if (energy_id == "potential") {
     return getPotentialEnergy();
   }
-  AKANTU_DEBUG_OUT();
+
   return 0.;
 }
 

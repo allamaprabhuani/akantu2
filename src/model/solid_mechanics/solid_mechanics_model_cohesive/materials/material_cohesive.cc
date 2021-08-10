@@ -68,20 +68,20 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->registerParam("delta_c", delta_c, Real(0.),
                       _pat_parsable | _pat_readable, "Critical displacement");
 
+
+  this->registerEnergy("reversible");
+  this->registerEnergy("dissipated");
+  this->registerEnergy("cohesive contact");
+
   this->element_filter.initialize(this->model->getMesh(),
                                   _spatial_dimension = spatial_dimension,
                                   _element_kind = _ek_cohesive);
-  // this->model->getMesh().initElementTypeMapArray(
-  //     this->element_filter, 1, spatial_dimension, false, _ek_cohesive);
 
   if (this->model->getIsExtrinsic()) {
     this->facet_filter.initialize(this->model->getMeshFacets(),
                                   _spatial_dimension = spatial_dimension - 1,
                                   _element_kind = _ek_regular);
   }
-  // this->model->getMeshFacets().initElementTypeMapArray(facet_filter, 1,
-  //                                                      spatial_dimension -
-  //                                                      1);
 
   this->reversible_energy.initialize(1);
   this->total_energy.initialize(1);

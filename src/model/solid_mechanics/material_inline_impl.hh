@@ -585,6 +585,16 @@ inline Array<T> & Material::getArray(const ID & vect_id, ElementType type,
   }
 }
 
+/* -------------------------------------------------------------------------- */
+inline bool Material::hasEnergy(const ID & energy_id) {
+  return list_of_energies.find(energy_id) != list_of_energies.end();
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Material::registerEnergy(const ID & energy_id) {
+  list_of_energies.insert(energy_id);
+}
+
 } // namespace akantu
 
 #endif /* AKANTU_MATERIAL_INLINE_IMPL_HH_ */
