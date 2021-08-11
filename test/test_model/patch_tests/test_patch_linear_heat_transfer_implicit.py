@@ -17,6 +17,7 @@ import akantu
 from patch_test_linear_heat_transfer_fixture import TestPatchTestHTMLinear
 from patch_test_linear_heat_transfer_fixture import run_test_generic
 
+
 def run_test(self_):
     run_test_generic(self_, akantu._implicit_dynamic)
 
