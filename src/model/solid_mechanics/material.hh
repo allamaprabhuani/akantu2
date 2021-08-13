@@ -439,7 +439,7 @@ public:
   inline bool hasEnergy(const ID & energy_id);
 
   /// get the list of possible energies
-  inline decltype(auto) getEnergiesList() { return (list_of_energies); }
+  inline decltype(auto) getEnergiesList() const { return (list_of_energies); }
 
   /// return the potential energy for the subset of elements contained by the
   /// material
