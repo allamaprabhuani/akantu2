@@ -699,7 +699,7 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
     for (auto it = list_of_energies.begin(); it != list_of_energies.end();
          ++it) {
       if (it != list_of_energies.begin()) {
-        str_list += ", "
+        str_list += ", ";
       }
       str_list += "\"" + *it + "\"";
     }
