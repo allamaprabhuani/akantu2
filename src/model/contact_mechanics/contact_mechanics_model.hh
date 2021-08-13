@@ -280,7 +280,7 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
 
   /// get the contact elements
-  inline Array<ContactElement> & getContactElements() {
+  inline const Array<ContactElement> & getContactElements() const {
     return contact_elements;
   }
 

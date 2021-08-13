@@ -39,3 +39,11 @@ model.dump()
 
 # by default the contact model creates a group named contact_surface
 contact_surface = mesh.getElementGroup("contact_surface")
+
+normals = model.getNormals()
+gaps = model.getGaps()
+contact_elements = list(model.getContactElements())
+
+print(normals)
+print(gaps.ravel())
+print(contact_elements)

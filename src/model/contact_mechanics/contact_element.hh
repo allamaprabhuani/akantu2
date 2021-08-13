@@ -43,20 +43,23 @@ namespace akantu {
 
 using SlaveType = UInt;
 using MasterType = Element;
-  
+
 class ContactElement {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/ Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   ContactElement() = default;
 
   ContactElement(const SlaveType & slave, const MasterType & master)
-    : slave(slave), master(master) {}
-  
+      : slave(slave), master(master) {}
+
   ~ContactElement() = default;
+
+  bool operator==(const ContactElement & other) const {
+    return slave == other.slave and master == other.master;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -66,18 +69,18 @@ public:
     auto nb_master_nodes = Mesh::getNbNodesPerElement(master.type);
     return nb_master_nodes + 1;
   }
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */ 
+  /* ------------------------------------------------------------------------ */
 public:
   /// slave node
   SlaveType slave;
-  
+
   /// master element/node
   MasterType master;
 };
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_CONTACT_ELEMENT_HH__ */
