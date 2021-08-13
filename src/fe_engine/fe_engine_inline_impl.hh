@@ -57,6 +57,22 @@ inline Real FEEngine::getElementInradius(const Matrix<Real> & coord,
 }
 
 /* -------------------------------------------------------------------------- */
+inline Real FEEngine::getElementInradius(const Element & element) const {
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto positions = make_view(mesh.getNodes(), spatial_dimension).begin();
+  auto connectivity = mesh.getConnectivities().get(element);
+
+  Matrix<Real> coords(spatial_dimension, connectivity.size());
+
+  for(auto && data : zip(connectivity, coords)) {
+    std::get<1>(data) = positions[std::get<0>(data)];
+  }
+
+  return getElementInradius(coords, element.type);
+}
+
+
+/* -------------------------------------------------------------------------- */
 inline InterpolationType FEEngine::getInterpolationType(ElementType type) {
   return convertType<ElementType, InterpolationType>(type);
 }

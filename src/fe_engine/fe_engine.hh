@@ -323,6 +323,8 @@ public:
   static inline Real getElementInradius(const Matrix<Real> & coord,
                                         ElementType type);
 
+  inline Real getElementInradius(const Element & element) const;
+
   /// get the normals on integration points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnIntegrationPoints,
                                          normals_on_integration_points, Real);
