@@ -691,7 +691,7 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
     }
   }
 
-  if (list_of_energies.find(energy_id) != list_of_energies.end()) {
+  if (list_of_energies.find(energy_id) == list_of_energies.end()) {
     list_of_energies.insert("kinetic");
     list_of_energies.insert("external work");
 
