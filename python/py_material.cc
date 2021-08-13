@@ -277,6 +277,9 @@ void register_material(py::module & mod) {
             return self.getElementFilter();
           },
           py::return_value_policy::reference)
+      .def("hasEnergy", &Material::hasEnergy)
+      .def("getEnergiesList", &Material::getEnergiesList,
+           py::return_value_policy::reference)
 
       /*
        * These functions override the `Parsable` interface.

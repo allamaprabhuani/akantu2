@@ -673,6 +673,20 @@ Real SolidMechanicsModel::getExternalWork() {
 }
 
 /* -------------------------------------------------------------------------- */
+std::set<ID> SolidMechanicsModel::getEnergiesList() const {
+  std::set<ID> list_of_energies;
+  for (auto && material : materials) {
+    for (auto && energy : material->getEnergiesList()) {
+      list_of_energies.insert(energy);
+    }
+  }
+
+  list_of_energies.insert("kinetic");
+  list_of_energies.insert("external work");
+  return list_of_energies;
+}
+
+/* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
   AKANTU_DEBUG_IN();
 
@@ -684,17 +698,9 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id) {
     return getExternalWork();
   }
 
-  std::set<ID> list_of_energies;
-  for (auto && material : materials) {
-    for (auto && energy : material->getEnergiesList()) {
-      list_of_energies.insert(energy);
-    }
-  }
+  const auto list_of_energies = getEnergiesList();
 
   if (list_of_energies.find(energy_id) == list_of_energies.end()) {
-    list_of_energies.insert("kinetic");
-    list_of_energies.insert("external work");
-
     std::string str_list;
     for (auto it = list_of_energies.begin(); it != list_of_energies.end();
          ++it) {

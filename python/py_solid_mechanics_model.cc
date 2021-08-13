@@ -117,6 +117,7 @@ void register_solid_mechanics_model(py::module & mod) {
             return self.getEnergy(energy_id, group_id);
           },
           py::arg("energy_id"), py::arg("group_id"))
+      .def("getEnergiesList", &SolidMechanicsModel::getEnergiesList)
 
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)

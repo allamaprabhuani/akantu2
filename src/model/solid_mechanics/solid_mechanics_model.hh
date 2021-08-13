@@ -463,6 +463,9 @@ public:
   /// Compute energy for an element group
   Real getEnergy(const ID & energy_id, const ID & group_id);
 
+  /// Return the available energy types
+  std::set<ID> getEnergiesList() const;
+
   AKANTU_GET_MACRO(MaterialByElement, material_index,
                    const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO(MaterialLocalNumbering, material_local_numbering,
