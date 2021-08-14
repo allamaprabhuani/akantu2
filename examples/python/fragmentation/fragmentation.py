@@ -156,7 +156,7 @@ for i in range(0, maxsteps):
     Ek = model.getEnergy("kinetic")
     Ed = model.getEnergy("dissipated")
     Er = model.getEnergy("reversible")
-    Ec = model.getEnergy("contact")
+    Ec = model.getEnergy("cohesive contact")
 
     E_pot.append(Ep)
     E_kin.append(Ek)
