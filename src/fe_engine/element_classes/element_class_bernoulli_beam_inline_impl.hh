@@ -32,6 +32,15 @@
  *
  */
 
+
+/**
+ * @verbatim
+   --x-----q1----|----q2-----x---> x
+    -1          0            1
+ @endverbatim
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_static_if.hh"
 #include "element_class_structural.hh"

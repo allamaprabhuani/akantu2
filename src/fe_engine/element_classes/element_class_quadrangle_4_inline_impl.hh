@@ -30,6 +30,43 @@
  *
  */
 
+/**
+ * @verbatim
+         \eta
+      ^
+ (-1,1)   |   (1,1)
+     x---------x
+     |    |    |
+     |    |    |
+   --|---------|----->  \xi
+     |    |    |
+     |    |    |
+     x---------x
+ (-1,-1)  |   (1,-1)
+ @endverbatim
+ *
+ * @f[
+ * \begin{array}{lll}
+ * N1 = (1 - \xi) (1 - \eta) / 4
+ *       & \frac{\partial N1}{\partial \xi}  = - (1 - \eta) / 4
+ *       & \frac{\partial N1}{\partial \eta} = - (1 - \xi) / 4 \\
+ * N2 = (1 + \xi) (1 - \eta) / 4 \\
+ *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta) / 4
+ *       & \frac{\partial N2}{\partial \eta} = - (1 + \xi) / 4 \\
+ * N3 = (1 + \xi) (1 + \eta) / 4 \\
+ *       & \frac{\partial N3}{\partial \xi}  = (1 + \eta) / 4
+ *       & \frac{\partial N3}{\partial \eta} = (1 + \xi) / 4 \\
+ * N4 = (1 - \xi) (1 + \eta) / 4
+ *       & \frac{\partial N4}{\partial \xi}  = - (1 + \eta) / 4
+ *       & \frac{\partial N4}{\partial \eta} = (1 - \xi) / 4 \\
+ * \end{array}
+ * @f]
+ *
+ * @f{eqnarray*}{
+ * \xi_{q0}  &=& 0 \qquad  \eta_{q0} = 0
+ * @f}
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

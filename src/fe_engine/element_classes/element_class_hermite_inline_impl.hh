@@ -32,6 +32,54 @@
  *
  */
 
+/**
+ * @verbatim
+   --x-----q1----|----q2-----x---> x
+    -1          0            1
+ @endverbatim
+ *
+ * @f[
+ *   \begin{array}{ll}
+ *     M_1(\xi) &= 1/4(\xi^{3}/-3\xi+2)\\
+ *     M_2(\xi) &= -1/4(\xi^{3}-3\xi-2)
+ *   \end{array}
+ *
+ *   \begin{array}{ll}
+ *     L_1(\xi) &= 1/4(\xi^{3}-\xi^{2}-\xi+1)\\
+ *     L_2(\xi) &= 1/4(\xi^{3}+\xi^{2}-\xi-1)
+ *   \end{array}
+ *
+ *   \begin{array}{ll}
+ *     M'_1(\xi) &= 3/4(\xi^{2}-1)\\
+ *     M'_2(\xi) &= -3/4(\xi^{2}-1)
+ *   \end{array}
+ *
+ *   \begin{array}{ll}
+ *     L'_1(\xi) &= 1/4(3\xi^{2}-2\xi-1)\\
+ *     L'_2(\xi) &= 1/4(3\xi^{2}+2\xi-1)
+ *   \end{array}
+ *@f]
+ *
+ *
+ *@f[
+ * \begin{array}{ll}
+ *   N'_1(\xi) &= -1/2\\
+ *   N'_2(\xi) &= 1/2
+ * \end{array}]
+ *
+ * \begin{array}{ll}
+ *   -M''_1(\xi) &= -3\xi/2\\
+ *   -M''_2(\xi) &= 3\xi/2\\
+ * \end{array}
+ *
+ * \begin{array}{ll}
+ *   -L''_1(\xi) &= -1/2a(3\xi/a-1)\\
+ *   -L''_2(\xi) &= -1/2a(3\xi/a+1)
+ * \end{array}
+ *@f]
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_static_if.hh"
 #include "element_class_structural.hh"

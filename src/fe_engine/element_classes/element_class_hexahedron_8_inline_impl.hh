@@ -31,6 +31,85 @@
  *
  */
 
+/**
+ * @verbatim
+                   \zeta
+                    ^
+         (-1,1,1)   |     (1,1,1)
+                7---|------6
+               /|   |     /|
+              / |   |    / |
+   (-1,-1,1) 4----------5  | (1,-1,1)
+             |  |   |   |  |
+             |  |   |   |  |
+             |  |   +---|-------> \xi
+             |  |  /    |  |
+   (-1,1,-1) |  3-/-----|--2 (1,1,-1)
+             | / /      | /
+             |/ /       |/
+             0-/--------1
+   (-1,-1,-1) /        (1,-1,-1)
+             /
+            \eta
+ @endverbatim
+ *
+ * \f[
+ * \begin{array}{llll}
+ * N1 = (1 - \xi) (1 - \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N1}{\partial \xi}  = - (1 - \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N1}{\partial \eta} = - (1 - \xi) (1 - \zeta) / 8
+ *       & \frac{\partial N1}{\partial \zeta} = - (1 - \xi) (1 - \eta) / 8 \\
+ * N2 = (1 + \xi) (1 - \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N2}{\partial \eta} = - (1 + \xi) (1 - \zeta) / 8
+ *       & \frac{\partial N2}{\partial \zeta} = - (1 + \xi) (1 - \eta) / 8 \\
+ * N3 = (1 + \xi) (1 + \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N3}{\partial \xi}  = (1 + \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N3}{\partial \eta} = (1 + \xi) (1 - \zeta) / 8
+ *       & \frac{\partial N3}{\partial \zeta} = - (1 + \xi) (1 + \eta) / 8 \\
+ * N4 = (1 - \xi) (1 + \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N4}{\partial \xi}  = - (1 + \eta) (1 - \zeta) / 8
+ *       & \frac{\partial N4}{\partial \eta} = (1 - \xi) (1 - \zeta) / 8
+ *       & \frac{\partial N4}{\partial \zeta} = - (1 - \xi) (1 + \eta) / 8 \\
+ * N5 = (1 - \xi) (1 - \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N5}{\partial \xi}  = - (1 - \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N5}{\partial \eta} = - (1 - \xi) (1 + \zeta) / 8
+ *       & \frac{\partial N5}{\partial \zeta} = (1 - \xi) (1 - \eta) / 8 \\
+ * N6 = (1 + \xi) (1 - \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N6}{\partial \xi}  = (1 - \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N6}{\partial \eta} = - (1 + \xi) (1 + \zeta) / 8
+ *       & \frac{\partial N6}{\partial \zeta} = (1 + \xi) (1 - \eta) / 8 \\
+ * N7 = (1 + \xi) (1 + \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N7}{\partial \xi}  = (1 + \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N7}{\partial \eta} = (1 + \xi) (1 + \zeta) / 8
+ *       & \frac{\partial N7}{\partial \zeta} = (1 + \xi) (1 + \eta) / 8 \\
+ * N8 = (1 - \xi) (1 + \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N8}{\partial \xi}  = - (1 + \eta) (1 + \zeta) / 8
+ *       & \frac{\partial N8}{\partial \eta} = (1 - \xi) (1 + \zeta) / 8
+ *       & \frac{\partial N8}{\partial \zeta} = (1 - \xi) (1 + \eta) / 8 \\
+ * \end{array}
+ * \f]
+ *
+ * @f{eqnarray*}{
+ * \xi_{q0}  &=& -1/\sqrt{3} \qquad  \eta_{q0} = -1/\sqrt{3} \qquad \zeta_{q0} =
+ -1/\sqrt{3} \\
+ * \xi_{q1}  &=&  1/\sqrt{3} \qquad  \eta_{q1} = -1/\sqrt{3} \qquad \zeta_{q1} =
+ -1/\sqrt{3} \\
+ * \xi_{q2}  &=&  1/\sqrt{3} \qquad  \eta_{q2} =  1/\sqrt{3} \qquad \zeta_{q2} =
+ -1/\sqrt{3} \\
+ * \xi_{q3}  &=& -1/\sqrt{3} \qquad  \eta_{q3} =  1/\sqrt{3} \qquad \zeta_{q3} =
+ -1/\sqrt{3} \\
+ * \xi_{q4}  &=& -1/\sqrt{3} \qquad  \eta_{q4} = -1/\sqrt{3} \qquad \zeta_{q4} =
+ 1/\sqrt{3} \\
+ * \xi_{q5}  &=&  1/\sqrt{3} \qquad  \eta_{q5} = -1/\sqrt{3} \qquad \zeta_{q5} =
+ 1/\sqrt{3} \\
+ * \xi_{q6}  &=&  1/\sqrt{3} \qquad  \eta_{q6} =  1/\sqrt{3} \qquad \zeta_{q6} =
+ 1/\sqrt{3} \\
+ * \xi_{q7}  &=& -1/\sqrt{3} \qquad  \eta_{q7} =  1/\sqrt{3} \qquad \zeta_{q7} =
+ 1/\sqrt{3} \\
+ * @f}
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

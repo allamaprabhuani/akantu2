@@ -29,6 +29,61 @@
  *
  */
 
+/**
+ * @verbatim
+              \eta
+               ^
+               |
+   (-1,1)    (0,1)   (1,1)
+       x-------x-------x
+       |       |       |
+       |       |       |
+       |       |       |
+ (-1,0)|       |       |(1,0)
+   ----x---------------X----->  \xi
+       |       |       |
+       |       |       |
+       |       |       |
+       |       |       |
+       x-------x-------x
+   (-1,-1)   (0,-1)  (1,-1)
+               |
+ @endverbatim
+ *
+ * @f[
+ * \begin{array}{lll}
+ * N1 = (1 - \xi) (1 - \eta)(- 1 - \xi - \eta) / 4
+ *       & \frac{\partial N1}{\partial \xi}  = (1 - \eta)(2 \xi + \eta) / 4
+ *       & \frac{\partial N1}{\partial \eta} = (1 - \xi)(\xi + 2 \eta) / 4 \\
+ * N2 = (1 + \xi) (1 - \eta)(- 1 + \xi - \eta) / 4 \\
+ *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta)(2 \xi - \eta) / 4
+ *       & \frac{\partial N2}{\partial \eta} = - (1 + \xi)(\xi - 2 \eta) / 4 \\
+ * N3 = (1 + \xi) (1 + \eta)(- 1 + \xi + \eta) / 4 \\
+ *       & \frac{\partial N3}{\partial \xi}  = (1 + \eta)(2 \xi + \eta) / 4
+ *       & \frac{\partial N3}{\partial \eta} = (1 + \xi)(\xi + 2 \eta) / 4 \\
+ * N4 = (1 - \xi) (1 + \eta)(- 1 - \xi + \eta) / 4
+ *       & \frac{\partial N4}{\partial \xi}  = (1 + \eta)(2 \xi - \eta) / 4
+ *       & \frac{\partial N4}{\partial \eta} = - (1 - \xi)(\xi - 2 \eta) / 4 \\
+ * N5 = (1 - \xi^2) (1 - \eta) / 2
+ *       & \frac{\partial N1}{\partial \xi}  = - \xi (1 - \eta)
+ *       & \frac{\partial N1}{\partial \eta} = - (1 - \xi^2) / 2  \\
+ * N6 = (1 + \xi) (1 - \eta^2) / 2 \\
+ *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta^2) / 2
+ *       & \frac{\partial N2}{\partial \eta} = - \eta (1 + \xi) \\
+ * N7 = (1 - \xi^2) (1 + \eta) / 2 \\
+ *       & \frac{\partial N3}{\partial \xi}  = - \xi (1 + \eta)
+ *       & \frac{\partial N3}{\partial \eta} = (1 - \xi^2) / 2 \\
+ * N8 = (1 - \xi) (1 - \eta^2) / 2
+ *       & \frac{\partial N4}{\partial \xi}  = - (1 - \eta^2) / 2
+ *       & \frac{\partial N4}{\partial \eta} = - \eta (1 - \xi) \\
+ * \end{array}
+ * @f]
+ *
+ * @f{eqnarray*}{
+ * \xi_{q0}  &=& 0 \qquad  \eta_{q0} = 0
+ * @f}
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

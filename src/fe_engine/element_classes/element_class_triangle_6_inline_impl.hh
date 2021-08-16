@@ -31,6 +31,67 @@
  *
  */
 
+/**
+ * @verbatim
+        \eta
+          ^
+          |
+          x 2
+          | `
+          |   `
+          |  .  `
+          |   q2  `
+        5 x          x 4
+          |           `
+          |             `
+          |  .q0     q1.  `
+          |                 `
+          x---------x---------x-----> \xi
+          0         3         1
+ @endverbatim
+ *
+ *
+ * @f[
+ * \begin{array}{ll}
+ *   \xi_{0}  = 0   &  \eta_{0} = 0   \\
+ *   \xi_{1}  = 1   &  \eta_{1} = 0   \\
+ *   \xi_{2}  = 0   &  \eta_{2} = 1   \\
+ *   \xi_{3}  = 1/2 &  \eta_{3} = 0   \\
+ *   \xi_{4}  = 1/2 &  \eta_{4} = 1/2 \\
+ *   \xi_{5}  = 0   &  \eta_{5} = 1/2
+ * \end{array}
+ * @f]
+ *
+ * @f[
+ * \begin{array}{lll}
+ * N1 = -(1 - \xi - \eta) (1 - 2 (1 - \xi - \eta))
+ *       & \frac{\partial N1}{\partial \xi}  = 1 - 4(1 - \xi - \eta)
+ *       & \frac{\partial N1}{\partial \eta} = 1 - 4(1 - \xi - \eta) \\
+ * N2 = - \xi (1 - 2 \xi)
+ *       & \frac{\partial N2}{\partial \xi}  = - 1 + 4 \xi
+ *       & \frac{\partial N2}{\partial \eta} = 0 \\
+ * N3 = - \eta (1 - 2 \eta)
+ *       & \frac{\partial N3}{\partial \xi}  = 0
+ *       & \frac{\partial N3}{\partial \eta} = - 1 + 4 \eta \\
+ * N4 = 4 \xi (1 - \xi - \eta)
+ *       & \frac{\partial N4}{\partial \xi}  = 4 (1 - 2 \xi - \eta)
+ *       & \frac{\partial N4}{\partial \eta} = - 4 \xi \\
+ * N5 = 4 \xi \eta
+ *       & \frac{\partial N5}{\partial \xi}  = 4 \eta
+ *       & \frac{\partial N5}{\partial \eta} = 4 \xi \\
+ * N6 = 4 \eta (1 - \xi - \eta)
+ *       & \frac{\partial N6}{\partial \xi}  = - 4 \eta
+ *       & \frac{\partial N6}{\partial \eta} = 4 (1 - \xi - 2 \eta)
+ * \end{array}
+ * @f]
+ *
+ * @f{eqnarray*}{
+ * \xi_{q0}  &=& 1/6 \qquad  \eta_{q0} = 1/6 \\
+ * \xi_{q1}  &=& 2/3 \qquad  \eta_{q1} = 1/6 \\
+ * \xi_{q2}  &=& 1/6 \qquad  \eta_{q2} = 2/3
+ * @f}
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */
