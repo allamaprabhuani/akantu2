@@ -145,7 +145,10 @@ void register_fe_engine(py::module & mod) {
           },
           py::arg("field_funct"), py::arg("matrix_id"), py::arg("dof_id"),
           py::arg("dof_manager"), py::arg("type"),
-          py::arg("ghost_type") = _not_ghost);
+          py::arg("ghost_type") = _not_ghost)
+      .def("getElementInradius", [](FEEngine & self, const Element & element) {
+        return self.getElementInradius(element);
+      });
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
