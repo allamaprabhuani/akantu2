@@ -1,29 +1,30 @@
 /**
- * @file contact_detector.cc
+ * @file   contact_detector.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Wed Sep 12 2018
- * @date last modification: Fri Sep 21 2018
+ * @date creation: Wed Dec 05 2018
+ * @date last modification: Thu Jun 24 2021
  *
  * @brief  Mother class for all detection algorithms
  *
+ *
  * @section LICENSE
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */

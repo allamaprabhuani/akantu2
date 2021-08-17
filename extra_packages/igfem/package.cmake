@@ -14,7 +14,7 @@
 #
 #===============================================================================
 
-package_declare(IGFEM
+package_declare(IGFEM ADVANCED
   DESCRIPTION "Use Interface-enriched generalized FEM"
   DEPENDS CGAL)
 

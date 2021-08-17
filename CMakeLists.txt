@@ -5,28 +5,28 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Mon Jun 14 2010
-# @date last modification: Fri Jan 22 2016
+# @date last modification: Sat Mar 13 2021
 #
 # @brief  main configuration file
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 # @section DESCRIPTION
 #-------------------------------------------------------------------------------
@@ -38,6 +38,7 @@
 #                \__,_|_|\_\__,_|_| |_|\__|\__,_|
 #
 #===============================================================================
+
 
 #===============================================================================
 # CMake Project
@@ -52,9 +53,6 @@ if(CMAKE_VERSION VERSION_GREATER 3.12)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(AKANTU_MAJOR_VERSION 4)
-set(AKANTU_MINOR_VERSION 0)
-set(AKANTU_PATCH_VERSION 0)
 set(AKANTU_COPYRIGHT "2010-2021, EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)")
 set(AKANTU_MAINTAINER "Nicolas Richart")
 set(AKANTU_HOMEPAGE_URL "https://akantu.ch")
@@ -104,42 +102,18 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #===============================================================================
 # Version Number
 #===============================================================================
-# AKANTU version number.  An even minor number corresponds to releases.
+# AKANTU version number.
 define_project_version()
 
 #===============================================================================
 # Options
 #===============================================================================
-# Debug
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
-  CACHE STRING "Flags used by the compiler during release builds" FORCE)
-
-#add_flags(cxx "-Wall -Wextra -pedantic -Werror")
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  add_flags(cxx "-Wall -Wextra -pedantic") # -Weffc++
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
-    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
-    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-
-  option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
-  mark_as_advanced(FORCE_COLORED_OUTPUT)
-  if(FORCE_COLORED_OUTPUT)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      add_flags(cxx "-fcolor-diagnostics")
-    else()
-      add_flags(cxx "-fdiagnostics-color=always")
-    endif()
-  endif()
-else()
-  add_flags(cxx "-Wall")
-endif()
-
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
 
 option(AKANTU_RUN_IN_DOCKER "Set the approriate flage tu run in docker" OFF)
-set(AKANTU_PREFERRED_PYTHON_VERSION 3 CACHE STRING "Preferred version for python related things")
+set(AKANTU_PREFERRED_PYTHON_VERSION 3
+  CACHE STRING "Preferred version for python related things")
 mark_as_advanced(AKANTU_PREFERRED_PYTHON_VERSION AKANTU_RUN_IN_DOCKER)
 
 include(AkantuExtraCompilationProfiles)

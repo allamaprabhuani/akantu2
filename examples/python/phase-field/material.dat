@@ -1,0 +1,16 @@
+material phasefield [
+    name = virtual
+    rho = 1180.    # density
+    E   = 3.09e9    # young's modulus
+    nu  = 0.35  # poisson's ratio
+    eta = 0.0
+    finite_deformation = false
+]
+
+phasefield exponential [
+  name = virtual
+  E = 3.09e9
+  nu = 0.35
+  gc = 300.
+  l0 = 0.1e-3
+]

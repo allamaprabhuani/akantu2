@@ -1,3 +1,54 @@
+#===============================================================================
+# @file   AkantuExtraCompilationProfiles.cmake
+#
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date creation: Fri Dec 02 2016
+# @date last modification: Wed Feb 03 2021
+#
+# @brief  Compilation profiles
+#
+#
+# @section LICENSE
+#
+# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
+#===============================================================================
+
+option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+mark_as_advanced(FORCE_COLORED_OUTPUT)
+if(FORCE_COLORED_OUTPUT)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_flags(cxx "-fcolor-diagnostics")
+  else()
+    add_flags(cxx "-fdiagnostics-color=always")
+  endif()
+endif()
+
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
+  CACHE STRING "Flags used by the compiler during release builds" FORCE)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
+    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
+    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+endif()
+
 #Profiling
 set(_profiling "-g -ggdb3 -pg -DNDEBUG -DAKANTU_NDEBUG -O2")
 set(CMAKE_CXX_FLAGS_PROFILING ${_profiling}
