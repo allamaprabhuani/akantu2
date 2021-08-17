@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+""" compression.py: Python contact mechanics example"""
+
+__author__ = "Mohit Pundir"
+__credits__ = [
+    "Mohit Pundir <mohit.pundir@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
 
 import akantu as aka
 
@@ -10,6 +20,8 @@ damping_interval = 10
 damping_ratio = 0.9
 
 spatial_dimension = 2
+
+
 aka.parseInput('compression.dat')
 
 mesh = aka.Mesh(spatial_dimension)

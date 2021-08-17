@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
-# ------------------------------------------------------------------------------
-__author__ = "Guillaume Anciaux"
-__copyright__ = "Copyright (C) 2016-2018, EPFL (Ecole Polytechnique Fédérale" \
+"""test_patch_linear_heat_transfer_static.py: heat transfer patch test in
+python"""
+
+__author__ = "Nicolas Richart"
+__credits__ = [
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
-__credits__ = ["Guillaume Anciaux"]
-__license__ = "L-GPLv3"
-__maintainer__ = "Guillaume Anciaux"
-__email__ = "guillaume.anciaux@epfl.ch"
-# ------------------------------------------------------------------------------
+__license__ = "LGPLv3"
 
+import sys
 from patch_test_linear_heat_transfer_fixture import TestPatchTestHTMLinear
 import akantu
-import sys
 
 
 def foo(self):

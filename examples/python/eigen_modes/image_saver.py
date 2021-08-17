@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+""" image_saver.py: Helper to save images"""
+
+__author__ = "Guillaume Anciaux"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 import numpy as np
 import matplotlib.pyplot as plt
 # -----------------------------------------------------------------------------

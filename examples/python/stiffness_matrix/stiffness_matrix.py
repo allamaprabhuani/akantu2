@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+""" stiffness_matrix.py: Example showing how to access the stifness matrix in
+python"""
+
+__author__ = "Guillaume Anciaux"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 import akantu as aka
 
 

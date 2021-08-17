@@ -31,7 +31,7 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 project(IOHelper)
 enable_language(CXX)
@@ -57,7 +57,7 @@ set(IOHELPER_MINOR_VERSION 1)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMakeVersionGenerator.cmake)
 
-define_project_version()
+#define_project_version()
 
 
 #==============================================================================

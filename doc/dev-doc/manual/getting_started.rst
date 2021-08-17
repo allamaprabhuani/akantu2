@@ -1,8 +1,42 @@
 Getting Started
 ===============
 
-Compiling ``Akantu``
+Building ``Akantu``
 --------------------
+
+Dependencies
+````````````
+
+In order to compile ``Akantu``  any compiler supporting fully C++14 should work
+In addition some libraries are required:
+
+ - CMake (>= 3.5.1)
+ - Boost (preprocessor and Spirit)
+ - zlib
+ - blas/lapack
+
+For the python interface:
+
+ - Python (>=3 is recommended)
+ - pybind11 (if not present the build system will try to download it)
+
+To run parallel simulations:
+
+ - MPI
+ - Scotch
+
+To use the static or implicit dynamic solvers at least one of the following libraries is needed:
+
+ - MUMPS (since this is usually compiled in static you also need MUMPS dependencies)
+ - PETSc
+
+To compile the tests and examples:
+
+ - Gmsh
+ - google-test (if not present the build system will try to download it)
+
+Configuring and compilation
+```````````````````````````
 
 ``Akantu`` is a `CMake <https://cmake.org/>`_ project, so to configure it, you can either
 follow the usual way::
@@ -15,7 +49,6 @@ follow the usual way::
   > make
   > make install
 
-All the ``Akantu`` options are documented in Appendix app:package-dependencies.
 
 Writing a ``main`` function
 ---------------------------
@@ -33,16 +66,16 @@ follows::
     using namespace akantu;
 
     int main(int argc, char *argv[]) {
-  initialize("input_file.dat", argc, argv);
+      initialize("input_file.dat", argc, argv);
 
-  // your code ...
+      // your code ...
 
     }
 
 The :cpp:func:`initialize <akantu::initialize>` function takes the text inpute
-file and the program parameters which can be parsed by ``Akantu`` in due form (see
-sect:parser). Obviously it is necessary to include all files needed in main. In
-this manual all provided code implies the usage of ``akantu`` as
+file and the program parameters which can be parsed by ``Akantu`` in due form
+(see sect:parser). Obviously it is necessary to include all files needed in
+main. In this manual all provided code implies the usage of ``akantu`` as
 namespace.
 
 Compiling your simulation

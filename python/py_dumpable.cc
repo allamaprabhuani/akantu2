@@ -1,3 +1,34 @@
+/**
+ * @file   py_dumpable.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date creation: Sun Jun 16 2019
+ * @date last modification: Thu Nov 12 2020
+ *
+ * @brief  pybind11 interface to Dumpers
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
@@ -57,18 +88,30 @@ void register_dumpable(py::module & mod) {
           },
           py::arg("dumper_name"), py::arg("field_id"), py::arg("field"))
 
-      .def("dump", py::overload_cast<>(&Dumpable::dump))
-      .def("dump", py::overload_cast<Real, UInt>(&Dumpable::dump),
-           py::arg("time"), py::arg("step"))
-      .def("dump", py::overload_cast<UInt>(&Dumpable::dump), py::arg("step"))
-      .def("dump",
-           py::overload_cast<const std::string &, UInt>(&Dumpable::dump),
-           py::arg("dumper_name"), py::arg("step"))
-      .def("dump",
-           py::overload_cast<const std::string &, Real, UInt>(&Dumpable::dump),
-           py::arg("dumper_name"), py::arg("time"), py::arg("step"))
-      .def("dump", py::overload_cast<const std::string &>(&Dumpable::dump),
-           py::arg("dumper_name"));
+      .def("dump", [](Dumpable & self) { self.dump(); })
+      .def(
+          "dump", [](Dumpable & self, UInt step) { self.dump(step); },
+          py::arg("step"))
+      .def(
+          "dump",
+          [](Dumpable & self, Real time, UInt step) { self.dump(time, step); },
+          py::arg("time"), py::arg("step"))
+      .def(
+          "dump",
+          [](Dumpable & self, const std::string & dumper) { self.dump(dumper); },
+          py::arg("dumper_name"))
+      .def(
+          "dump",
+          [](Dumpable & self, const std::string & dumper, UInt step) {
+            self.dump(dumper, step);
+          },
+          py::arg("dumper_name"), py::arg("step"))
+      .def(
+          "dump",
+          [](Dumpable & self, const std::string & dumper, Real time, UInt step) {
+            self.dump(dumper, time, step);
+          },
+          py::arg("dumper_name"), py::arg("time"), py::arg("step"));
 }
 
 /* -------------------------------------------------------------------------- */

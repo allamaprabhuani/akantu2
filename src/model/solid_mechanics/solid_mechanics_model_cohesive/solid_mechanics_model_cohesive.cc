@@ -7,28 +7,31 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue May 08 2012
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Solid mechanics model for cohesive elements
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "aka_iterators.hh"
@@ -95,20 +98,19 @@ public:
       nb_new_nodes = global_ids_updater.updateGlobalIDs(new_nodes.size());
     }
 
-    Vector<UInt> nb_new_stuff = {nb_new_nodes, elements_event.getList().size()};
+    auto nb_new_elements = elements_event.getList().size();
     const auto & comm = mesh.getCommunicator();
-    comm.allReduce(nb_new_stuff, SynchronizerOperation::_sum);
+    comm.allReduce(nb_new_elements, SynchronizerOperation::_sum);
 
-    if (nb_new_stuff(1) > 0) {
+    if (nb_new_elements > 0) {
       mesh.sendEvent(elements_event);
     }
 
-    if (nb_new_stuff(0) > 0) {
+    if (nb_new_nodes > 0) {
       mesh.sendEvent(nodes_event);
-      // mesh.sendEvent(global_ids_updater.getChangedNodeEvent());
     }
 
-    return std::make_tuple(nb_new_stuff(0), nb_new_stuff(1));
+    return std::make_tuple(nb_new_nodes, nb_new_elements);
   }
 
 private:
@@ -424,16 +426,6 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
                 .begin()[global_facet.element];
 
         el_q = quad_f;
-
-        // for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-        //   for (UInt s = 0; s < Model::spatial_dimension; ++s) {
-        //     el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet +
-        //                    f * nb_quad_per_facet + q,
-        //                s) = quad_f(global_facet * nb_quad_per_facet + q,
-        //                s);
-        //   }
-        // }
-        //}
       }
     }
   }
@@ -616,11 +608,6 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
     copy(*previous_displacement);
   }
 
-  // if (external_force)
-  //   copy(*external_force);
-  // if (internal_force)
-  //   copy(*internal_force);
-
   if (displacement_increment) {
     copy(*displacement_increment);
   }
@@ -672,21 +659,6 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
                                     2 * spatial_dimension * spatial_dimension,
                                 _spatial_dimension = spatial_dimension - 1);
 
-  // for (auto && ghost_type : ghost_types) {
-  //   for (const const auto & type :
-  //        mesh_facets.elementTypes(spatial_dimension - 1, ghost_type)) {
-  //     UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
-
-  //     UInt nb_quadrature_points = getFEEngine("FacetsFEEngine")
-  //                                     .getNbIntegrationPoints(type,
-  //                                     ghost_type);
-
-  //     UInt new_size = nb_facet * nb_quadrature_points;
-
-  //     facet_stress(type, ghost_type).resize(new_size);
-  //   }
-  // }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -704,6 +676,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
   } else if (dumper_name == "facets") {
     spatial_dimension = Model::spatial_dimension - 1;
   }
+
   SolidMechanicsModel::addDumpGroupFieldToDumper(dumper_name, field_id,
                                                  group_name, spatial_dimension,
                                                  _element_kind, padding_flag);

@@ -8,25 +8,27 @@
  * @author Damien Spielmann <damien.spielmann@epfl.ch>
  *
  * @date creation: Fri Jul 15 2011
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Mon Mar 15 2021
  *
  * @brief  Model implementation for Structural Mechanics elements
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -423,7 +425,7 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 
   switch (type) {
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_linear;
+    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
@@ -445,7 +447,6 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleInternalForce() {
-
   internal_force->zero();
   computeStresses();
 
@@ -479,7 +480,6 @@ void StructuralMechanicsModel::assembleInternalForce(ElementType type,
 
 /* -------------------------------------------------------------------------- */
 Real StructuralMechanicsModel::getKineticEnergy() {
-
   if (not this->getDOFManager().hasMatrix("M")) {
     return 0.;
   }
@@ -615,6 +615,13 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(
   computeForcesByLocalTractionArray(traction_local, type);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::afterSolveStep(bool converged) {
+  if (converged) {
+    assembleInternalForce();
+  }
 }
 
 } // namespace akantu
