@@ -1,7 +1,6 @@
 stages:
   - configure
   - build
-  - check-warnings
   - test
   - deploy
 
@@ -72,15 +71,15 @@ docker build:ubuntu-lts:
 .build:
   stage: build
   script:
-    - cmake --build build/src > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/python > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/test/ > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/examples > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
+    - cmake --build build/src > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/python > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/test/ > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/examples > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
   artifacts:
     when: on_success
     paths:
       - build/
-      - ${output}-err.log
+      - build-${output}-err.log
       - compile_commands.json
     expire_in: 10h
 
@@ -112,19 +111,6 @@ docker build:ubuntu-lts:
         - build/juint.xml
       cobertura:
         - build/coverage.xml
-
-.analyze_build:
-  stage: check-warnings
-  script:
-    - if [[ $(cat ${output}-err.log | grep warning -i) ]]; then
-    -    cat ${output}-err.log;
-    -    exit 1;
-    - fi
-  allow_failure: true
-  artifacts:
-    when: on_failure
-    paths:
-      - "$output-err.log"
 
 # ------------------------------------------------------------------------------
 .cache_build:
@@ -214,8 +200,6 @@ configure:debian_testing_gcc:
     - .debian_testing_gcc
     - .build_coverage
     - .configure
-  cache:
-    policy: pull-push
 
 build:debian_testing_gcc:
   extends:
@@ -233,22 +217,12 @@ test:debian_testing_gcc:
     - job: build:debian_testing_gcc
       artifacts: true
 
-analyze_build:debian_testing_gcc:
-  extends:
-    - .debian_testing_gcc
-    - .analyze_build
-  needs:
-    - job: build:debian_testing_gcc
-      artifacts: true
-
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
   extends:
     - .build_coverage
     - .debian_testing_clang
     - .configure
-  cache:
-    policy: pull-push
 
 build:debian_testing_clang:
   extends:
@@ -266,22 +240,12 @@ test:debian_testing_clang:
     - job: build:debian_testing_clang
       artifacts: true
 
-analyze_build:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
-    - .analyze_build
-  needs:
-    - job: build:debian_testing_clang
-      artifacts: true
-
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
     - .configure
-  cache:
-    policy: pull-push
 
 build:ubuntu_lts_gcc:
   extends:
@@ -289,14 +253,6 @@ build:ubuntu_lts_gcc:
     - .build
   needs:
     - job: configure:ubuntu_lts_gcc
-      artifacts: true
-
-analyze_build:ubuntu_lts_gcc:
-  extends:
-    - .ubuntu_lts_gcc
-    - .analyze_build
-  needs:
-    - job: build:ubuntu_lts_gcc
       artifacts: true
 
 test:ubuntu_lts_gcc:
@@ -318,7 +274,7 @@ code_quality:
   artifacts:
     paths: [gl-code-quality-report.json]
 
-lint:
+clang_tidy:
   stage: test
   extends:
     - .debian_testing_clang
@@ -338,6 +294,33 @@ lint:
   artifacts:
     reports:
       codequality: clang-tidy-report.json
+  rules:
+    - if: '$CODE_QUALITY_DISABLED'
+      when: never
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+compilation_warnings:
+  stage: test
+  image: python:latest
+  script:
+    - pip install warning-parser
+    - pip install termcolor
+    - ls build-*-err.log
+    - test/ci/scripts/warnings2code-quality.py build-*-err.log
+  needs:
+    - job: build:debian_testing_clang
+      artifacts: true
+    - job: build:debian_testing_gcc
+      artifacts: true
+    - job: build:ubuntu_lts_gcc
+      artifacts: true
+  allow_failure: true
+  artifacts:
+    paths:
+      - warnings-report.json
+  artifacts:
+    reports:
+      codequality: warnings-report.json
   rules:
     - if: '$CODE_QUALITY_DISABLED'
       when: never
