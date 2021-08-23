@@ -133,7 +133,7 @@ class ClangTidy2CodeQuality:
             match = self.ISSUE_PARSE.match(line)
             if match:
                 if len(issue) != 0:
-                    self._print_issue(issue)
+                    self._add_issue(issue)
                 issue = match.groupdict()
             elif issue:
                 if 'content' in issue:
