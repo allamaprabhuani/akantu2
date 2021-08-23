@@ -86,7 +86,7 @@ class ClangTidy2CodeQuality:
         '''run clang tidy and generage a code quality report'''
         print_debug(f'[clang-tidy] command: {self._command}')
         self._generate_issues(self._command)
-        print(json.dumps(self._issues.values()))
+        print(json.dumps(list(self._issues.values())))
 
     @property
     def command(self):

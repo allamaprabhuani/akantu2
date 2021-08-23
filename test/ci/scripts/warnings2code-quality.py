@@ -66,6 +66,8 @@ class Warnings2CodeQuality:
             warnings = warn.get_warnings(_file, compiler)
             self._add_issues(warnings)
 
+        print(json.dumps(list(self._issues.values())))
+
     @property
     def list_files(self):
         '''get the list of files to analyse'''
@@ -91,6 +93,7 @@ class Warnings2CodeQuality:
             if issue_['fingerprint'] in self._issues:
                 continue
 
+            print_debug(f'{issue_}')
             self._issues[issue_['fingerprint']] = issue_
 
     def _format_issue(self, warning):
@@ -119,10 +122,10 @@ class Warnings2CodeQuality:
 
         issue['fingerprint'] = hashlib.md5(
             '{file}:{line}:{column}:{type}'.format(
-                {'file': warning.get_filepath(),
-                 'line': warning.get_line(),
-                 'column': warning.get_column(),
-                 'type': warning.get_category()}).encode()
+                file=warning.get_filepath(),
+                line=warning.get_line(),
+                column=warning.get_column(),
+                type=warning.get_category()).encode()
         ).hexdigest()
 
         issue['categories'], issue['severity'] = self._get_classifiaction(warning)
