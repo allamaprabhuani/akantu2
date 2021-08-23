@@ -224,7 +224,7 @@ build:debian_testing_gcc:
     - .build
   needs:
     - job: configure:debian_testing_gcc
-      artifact: true
+      artifacts: true
 
 test:debian_testing_gcc:
   extends:
@@ -233,7 +233,7 @@ test:debian_testing_gcc:
     - .tests
   needs:
     - job: build:debian_testing_gcc
-      artifact: true
+      artifacts: true
 
 analyze_build:debian_testing_gcc:
   extends:
@@ -241,7 +241,7 @@ analyze_build:debian_testing_gcc:
     - .analyze_build
   needs:
     - job: build:debian_testing_gcc
-      artifact: true
+      artifacts: true
 
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
@@ -259,7 +259,7 @@ build:debian_testing_clang:
     - .build
   needs:
     - job: configure:debian_testing_clang
-      artifact: true
+      artifacts: true
 
 test:debian_testing_clang:
   extends:
@@ -268,7 +268,7 @@ test:debian_testing_clang:
     - .tests
   needs:
     - job: build:debian_testing_clang
-      artifact: true
+      artifacts: true
 
 analyze_build:debian_testing_clang:
   extends:
@@ -277,7 +277,7 @@ analyze_build:debian_testing_clang:
     - .analyze_build
   needs:
     - job: build:debian_testing_clang
-      artifact: true
+      artifacts: true
 
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc:
@@ -295,7 +295,7 @@ build:ubuntu_lts_gcc:
     - .build
   needs:
     - job: configure:ubuntu_lts_gcc
-      artifact: true
+      artifacts: true
 
 analyze_build:ubuntu_lts_gcc:
   extends:
@@ -304,7 +304,7 @@ analyze_build:ubuntu_lts_gcc:
     - .analyze_build
   needs:
     - job: build:ubuntu_lts_gcc
-      artifact: true
+      artifacts: true
 
 test:ubuntu_lts_gcc:
   extends:
@@ -313,7 +313,7 @@ test:ubuntu_lts_gcc:
     - .tests
   needs:
     - job: build:ubuntu_lts_gcc
-      artifact: true
+      artifacts: true
 
 # ------------------------------------------------------------------------------
 include:
@@ -322,7 +322,7 @@ include:
 code_quality:
   needs:
     - job: build:debian_testing_clang
-      artifact: true
+      artifacts: true
   artifacts:
     paths: [gl-code-quality-report.json]
 
@@ -338,7 +338,7 @@ lint:
             ${CI_PROJECT_DIR}/examples > clang-tidy-report.json
   needs:
     - job: build:debian_testing_clang
-      artifact: true
+      artifacts: true
   allow_failure: true
   artifacts:
     paths:
@@ -364,7 +364,7 @@ pages:
     - mv doc/dev-doc/html ../public
   needs:
     - job: build:debian_testing_gcc
-      artifact: true
+      artifacts: true
   artifacts:
     paths:
       - public
