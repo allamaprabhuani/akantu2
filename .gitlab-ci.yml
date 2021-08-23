@@ -167,20 +167,20 @@ docker build:ubuntu-lts:
     FC: gfortran
     GCOV_EXECUTABLE: llvm-cov gcov
 
-.coverage:
+.build_coverage:
   variables:
-    BUILD_TYPE: Coverage
-    TEST_EXAMPLE: FALSE
+    TEST_EXAMPLES: 'FALSE'
+    BUILD_TYPE: 'Coverage'
 
-.release:
+.build_release:
   variables:
-    BUILD_TYPE: Release
-    TEST_EXAMPLE: TRUE
+    TEST_EXAMPLES: 'TRUE'
+    BUILD_TYPE: 'Release'
 
-.valgrind:
+.build_valgrind:
   variables:
-    BUILD_TYPE: Valgrind
-    TEST_EXAMPLE: FALSE
+    TEST_EXAMPLES: 'FALSE'
+    BUILD_TYPE: 'Valgrind'
 
 # ------------------------------------------------------------------------------
 .debian_testing_gcc:
@@ -212,7 +212,7 @@ docker build:ubuntu-lts:
 configure:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
-    - .coverage
+    - .build_coverage
     - .configure
   cache:
     policy: pull-push
@@ -220,7 +220,6 @@ configure:debian_testing_gcc:
 build:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
-    - .coverage
     - .build
   needs:
     - job: configure:debian_testing_gcc
@@ -229,7 +228,6 @@ build:debian_testing_gcc:
 test:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
-    - .coverage
     - .tests
   needs:
     - job: build:debian_testing_gcc
@@ -246,8 +244,8 @@ analyze_build:debian_testing_gcc:
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
   extends:
+    - .build_coverage
     - .debian_testing_clang
-    - .coverage
     - .configure
   cache:
     policy: pull-push
@@ -255,7 +253,6 @@ configure:debian_testing_clang:
 build:debian_testing_clang:
   extends:
     - .debian_testing_clang
-    - .coverage
     - .build
   needs:
     - job: configure:debian_testing_clang
@@ -264,7 +261,6 @@ build:debian_testing_clang:
 test:debian_testing_clang:
   extends:
     - .debian_testing_clang
-    - .coverage
     - .tests
   needs:
     - job: build:debian_testing_clang
@@ -273,7 +269,6 @@ test:debian_testing_clang:
 analyze_build:debian_testing_clang:
   extends:
     - .debian_testing_clang
-    - .coverage
     - .analyze_build
   needs:
     - job: build:debian_testing_clang
@@ -283,7 +278,7 @@ analyze_build:debian_testing_clang:
 configure:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
-    - .release
+    - .build_release
     - .configure
   cache:
     policy: pull-push
@@ -291,7 +286,6 @@ configure:ubuntu_lts_gcc:
 build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
-    - .release
     - .build
   needs:
     - job: configure:ubuntu_lts_gcc
@@ -300,7 +294,6 @@ build:ubuntu_lts_gcc:
 analyze_build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
-    - .release
     - .analyze_build
   needs:
     - job: build:ubuntu_lts_gcc
@@ -309,7 +302,6 @@ analyze_build:ubuntu_lts_gcc:
 test:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
-    - .release
     - .tests
   needs:
     - job: build:ubuntu_lts_gcc
