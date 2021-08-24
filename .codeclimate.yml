@@ -23,7 +23,7 @@ plugins:
       - "test/test_fe_engine/py_engine/py_engine.py"
   cppcheck:
     enabled: true
-    project: compile_commands.json
+    project: build/compile_commands.json
     language: c++
     check: warning, style, performance
     stds: [c++14]

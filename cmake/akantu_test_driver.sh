@@ -37,7 +37,7 @@ full_redirect() {
     serr="-${nproc}${serr}"
   fi
   echo "Run $*"
-  ( ("$@" | tee "${name}${sout}") 3>&1 1>&2 2>&3 | tee "${name}${serr}") 3>&1 1>&2 2>&3
+  ( ($* | tee "${name}${sout}") 3>&1 1>&2 2>&3 | tee "${name}${serr}") 3>&1 1>&2 2>&3
 
   lastout="${name}${sout}"
 }
@@ -50,7 +50,7 @@ reference=
 working_dir=
 envi=
 parallel_processes="2"
-valgrind=
+valgrind=""
 
 while :
 do
@@ -141,7 +141,7 @@ fi
 
 if [ -n "${postprocess_script}" ]; then
   echo "Executing the test ${name} post-processing"
-  full_redirect 0 "${name}_pp" "${valgrind}" "./${postprocess_script}"
+  full_redirect 0 "${name}_pp" "./${postprocess_script}"
 fi
 
 if [ -n "${reference}" ]; then

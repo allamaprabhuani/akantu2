@@ -89,9 +89,6 @@ docker build:ubuntu-lts:
   stage: test
   script:
     - cd build
-    - ls
-    - ls test/test_common
-    - pwd
     - ctest -T test --output-on-failure --no-compress-output --timeout 1800
   after_script:
     - cd build
@@ -284,7 +281,7 @@ clang_tidy:
     - .debian_testing_clang
   script:
     - test/ci/scripts/clang-tidy2code-quality.py
-            -p ${CI_PROJECT_DIR}/
+            -p ${CI_PROJECT_DIR}/build
             ${CI_PROJECT_DIR}/src
             ${CI_PROJECT_DIR}/test
             ${CI_PROJECT_DIR}/examples > clang-tidy-report.json
