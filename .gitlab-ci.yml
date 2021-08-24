@@ -81,6 +81,8 @@ docker build:ubuntu-lts:
       - build/
       - build-${output}-err.log
       - compile_commands.json
+    exclude:
+      - build/**/*.o
     expire_in: 10h
 
 .tests:
@@ -204,41 +206,41 @@ configure:debian_testing_gcc:
 build:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
+    - .build_coverage
     - .build
   needs:
     - job: configure:debian_testing_gcc
-      artifacts: true
 
 test:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
+    - .build_coverage
     - .tests
   needs:
     - job: build:debian_testing_gcc
-      artifacts: true
 
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
   extends:
-    - .build_coverage
     - .debian_testing_clang
+    - .build_coverage
     - .configure
 
 build:debian_testing_clang:
   extends:
     - .debian_testing_clang
+    - .build_coverage
     - .build
   needs:
     - job: configure:debian_testing_clang
-      artifacts: true
 
 test:debian_testing_clang:
   extends:
     - .debian_testing_clang
+    - .build_coverage
     - .tests
   needs:
     - job: build:debian_testing_clang
-      artifacts: true
 
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc:
@@ -250,18 +252,18 @@ configure:ubuntu_lts_gcc:
 build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
+    - .build_release
     - .build
   needs:
     - job: configure:ubuntu_lts_gcc
-      artifacts: true
 
 test:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
+    - .build_release
     - .tests
   needs:
     - job: build:ubuntu_lts_gcc
-      artifacts: true
 
 # ------------------------------------------------------------------------------
 include:
@@ -270,7 +272,6 @@ include:
 code_quality:
   needs:
     - job: build:debian_testing_clang
-      artifacts: true
   artifacts:
     paths: [gl-code-quality-report.json]
 
@@ -286,7 +287,6 @@ clang_tidy:
             ${CI_PROJECT_DIR}/examples > clang-tidy-report.json
   needs:
     - job: build:debian_testing_clang
-      artifacts: true
   allow_failure: true
   artifacts:
     paths:
@@ -309,11 +309,8 @@ compilation_warnings:
     - test/ci/scripts/warnings2code-quality.py build-*-err.log
   needs:
     - job: build:debian_testing_clang
-      artifacts: true
     - job: build:debian_testing_gcc
-      artifacts: true
     - job: build:ubuntu_lts_gcc
-      artifacts: true
   allow_failure: true
   artifacts:
     paths:
@@ -325,7 +322,6 @@ compilation_warnings:
     - if: '$CODE_QUALITY_DISABLED'
       when: never
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
 
 # ------------------------------------------------------------------------------
 pages:
@@ -339,7 +335,6 @@ pages:
     - mv doc/dev-doc/html ../public
   needs:
     - job: build:debian_testing_gcc
-      artifacts: true
   artifacts:
     paths:
       - public
