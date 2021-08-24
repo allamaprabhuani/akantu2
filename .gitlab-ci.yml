@@ -89,6 +89,9 @@ docker build:ubuntu-lts:
   stage: test
   script:
     - cd build
+    - ls
+    - ls test_common
+    - pwd
     - ctest -T test --output-on-failure --no-compress-output --timeout 1800
   after_script:
     - cd build
