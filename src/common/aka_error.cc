@@ -219,9 +219,10 @@ std::string demangle(const char * symbol) {
   void printBacktrace(const std::vector<std::string> & backtrace) {
     auto w = size_t(std::floor(std::log10(double(backtrace.size()))) + 1);
     std::cerr << "BACKTRACE :  " << backtrace.size() << " stack frames.\n";
-    for (auto && data : enumerate(backtrace))
+    for (auto && data : enumerate(backtrace)) {
       std::cerr << "  [" << std::setw(w) << (std::get<0>(data) + 1) << "] "
                 << std::get<1>(data) << "\n";
+    }
     std::cerr << "END BACKTRACE" << std::endl;
   }
 

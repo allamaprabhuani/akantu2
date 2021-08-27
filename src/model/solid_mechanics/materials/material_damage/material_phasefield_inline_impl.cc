@@ -74,10 +74,10 @@ inline void MaterialPhaseField<spatial_dimension>::computeStressOnQuad(
   
   for (UInt i=0; i < spatial_dimension; i++) {
     for (UInt j=0; j < spatial_dimension; j++) {
-      sigma_plus(i, j)  = (i==j) * lambda * trace_plus
-	+ 2 * mu * strain_plus(i, j);
-      sigma_minus(i, j) = (i==j) * lambda * trace_minus
-	+ 2 * mu * strain_minus(i, j);
+      sigma_plus(i, j) = static_cast<double>(i == j) * lambda * trace_plus +
+                         2 * mu * strain_plus(i, j);
+      sigma_minus(i, j) = static_cast<double>(i == j) * lambda * trace_minus +
+                          2 * mu * strain_minus(i, j);
     }
   }     
 

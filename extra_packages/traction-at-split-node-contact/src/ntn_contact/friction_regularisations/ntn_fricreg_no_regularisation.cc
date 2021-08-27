@@ -81,11 +81,11 @@ void NTNFricRegNoRegularisation::computeFrictionalContactPressure() {
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n))
+    if (!is_in_contact(n)) {
       this->frictional_contact_pressure(n) = 0.;
 
     // node pair is in contact
-    else {
+    } else {
       // compute frictional contact pressure
       const Vector<Real> & pres = it[n];
       this->frictional_contact_pressure(n) = pres.norm();
@@ -133,8 +133,9 @@ void NTNFricRegNoRegularisation::printself(std::ostream & stream,
                                            int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricRegNoRegularisation [" << std::endl;
   NTNBaseFriction::printself(stream, ++indent);

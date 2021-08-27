@@ -187,7 +187,7 @@ void NTNBaseContact::findBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseContact::addSplitNode(UInt node, UInt) {
+void NTNBaseContact::addSplitNode(UInt node, UInt /*unused*/) {
   AKANTU_DEBUG_IN();
 
   UInt dim = this->model.getSpatialDimension();
@@ -310,7 +310,7 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
   const Mesh & mesh = this->model.getMesh();
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
       UInt nb_elements = mesh.getNbElement(type, ghost_type);
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
       const Array<UInt> & connectivity = mesh.getConnectivity(type, ghost_type);
@@ -321,7 +321,7 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
       boundary_fem.integrate(shapes, area, nb_nodes_per_element, type,
                              ghost_type);
 
-      if (this->contact_surfaces.size() == 0) {
+      if (this->contact_surfaces.empty()) {
         AKANTU_DEBUG_WARNING(
             "No surfaces in ntn base contact."
             << " You have to define the lumped boundary by yourself.");
@@ -360,7 +360,7 @@ void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
 
   Array<bool> blocked_dofs_bool(blocked_dofs.size());
   for (auto && data : zip(blocked_dofs, blocked_dofs_bool)) {
-    std::get<1>(data) = std::get<0>(data);
+    std::get<1>(data) = (std::get<0>(data) != 0);
   }
 
   // pre-compute the acceleration
@@ -430,8 +430,9 @@ void NTNBaseContact::computeContactPressure() {
       }
       this->is_in_contact(n) = true;
     } else {
-      for (UInt d = 0; d < dim; ++d)
+      for (UInt d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) = 0.;
+      }
       this->is_in_contact(n) = false;
     }
   }
@@ -471,8 +472,9 @@ Int NTNBaseContact::getNodeIndex(UInt node) const {
 void NTNBaseContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNBaseContact [" << std::endl;
   stream << space << " + id            : " << id << std::endl;

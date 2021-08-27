@@ -71,7 +71,9 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
   }
 
   for(auto & el : elements_event.getList()) {
-    if(el.kind() != _ek_cohesive) continue;
+    if (el.kind() != _ek_cohesive) {
+      continue;
+    }
     ++nb_new_cohesive_elements(el.type, el.ghost_type);
   }
 

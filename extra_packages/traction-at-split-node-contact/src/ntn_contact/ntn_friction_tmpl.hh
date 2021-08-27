@@ -50,7 +50,7 @@ template <template <class> class FrictionLaw, class Regularisation>
 void NTNFriction<FrictionLaw, Regularisation>::applyFrictionTraction() {
   AKANTU_DEBUG_IN();
 
-  NTNContact & ntn_contact = dynamic_cast<NTNContact &>(this->contact);
+  auto & ntn_contact = dynamic_cast<NTNContact &>(this->contact);
   SolidMechanicsModel & model = ntn_contact.getModel();
   Array<Real> & residual = model.getInternalForce();
   UInt dim = model.getSpatialDimension();
@@ -84,8 +84,9 @@ void NTNFriction<FrictionLaw, Regularisation>::printself(std::ostream & stream,
                                                          int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFriction [" << std::endl;
   FrictionLaw<Regularisation>::printself(stream, ++indent);

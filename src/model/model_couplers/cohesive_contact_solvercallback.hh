@@ -47,22 +47,23 @@ namespace akantu{
 class CohesiveContactSolverCallback : public SolverCallback {
 
 public:
-  CohesiveContactSolverCallback(SolidMechanicsModelCohesive &,
-                                ContactMechanicsModel &, AnalysisMethod &);
+  CohesiveContactSolverCallback(SolidMechanicsModelCohesive & /*solid*/,
+                                ContactMechanicsModel & /*contact*/,
+                                AnalysisMethod & /*method*/);
 
 public:
 
   /// implementation of SolverCallback::assembleMatrix
-  void assembleMatrix(const ID &) override;
+  void assembleMatrix(const ID & /*matrix_id*/) override;
 
   /// implementation of SolverCallback::assembleResidual
   void assembleResidual() override;
 
   /// implementation of SolverCallback::assembleLumpedMatrix
-  void assembleLumpedMatrix(const ID &) override;
+  void assembleLumpedMatrix(const ID & /*matrix_id*/) override;
 
   /// implementation of SolverCallback::getMatrixType
-  MatrixType getMatrixType(const ID &) override;
+  MatrixType getMatrixType(const ID & /*unused*/) override;
 
   /// implementation of SolverCallback::predictor
   void predictor() override;

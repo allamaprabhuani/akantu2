@@ -52,7 +52,7 @@ public:
 
   // computes normal at given covariant basis
   static void normal(const Mesh & mesh, const Element & element,
-                     Matrix<Real> & covariant_basis, Vector<Real> & normal,
+                     Matrix<Real> & tangents, Vector<Real> & normal,
                      bool outward = true);
 
   /// computes the orthogonal projection on a set of elements and
@@ -100,7 +100,7 @@ public:
   static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
                              const Element & element,
                              Vector<Real> & natural_coord,
-                             Matrix<Real> & basis);
+                             Matrix<Real> & tangents);
 
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
@@ -108,7 +108,7 @@ public:
                              const Element & element,
                              const Vector<Real> & normal,
                              Vector<Real> & natural_coord,
-                             Matrix<Real> & basis);
+                             Matrix<Real> & tangents);
 
   // computes the curvature on projection
   static void curvature(const Mesh & mesh, const Array<Real> & positions,
@@ -121,15 +121,18 @@ public:
                                  Matrix<Real> & contravariant);
 
   /// computes metric tesnor with covariant components
-  static Matrix<Real> covariantMetricTensor(const Matrix<Real> &);
+  static Matrix<Real>
+  covariantMetricTensor(const Matrix<Real> & /*covariant_bases*/);
 
   /// computes metric tensor with contravariant components
-  static Matrix<Real> contravariantMetricTensor(const Matrix<Real> &);
+  static Matrix<Real>
+  contravariantMetricTensor(const Matrix<Real> & /*covariant_bases*/);
 
   // computes curvature tensor with convariant components
-  static Matrix<Real>
-  covariantCurvatureTensor(const Mesh &, const Array<Real> &, const Element &,
-                           const Vector<Real> &, const Vector<Real> &);
+  static Matrix<Real> covariantCurvatureTensor(
+      const Mesh & /*mesh*/, const Array<Real> & /*positions*/,
+      const Element & /*element*/, const Vector<Real> & /*natural_coord*/,
+      const Vector<Real> & /*normal*/);
 
   /// checks if the element is truly a boundary element or not
   inline static bool isBoundaryElement(const Mesh & mesh,

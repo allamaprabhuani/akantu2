@@ -67,7 +67,7 @@ class NTNBaseFriction : public Parsable, public Dumpable {
   /* ------------------------------------------------------------------------ */
 public:
   NTNBaseFriction(NTNBaseContact & contact, const ID & id = "friction");
-  virtual ~NTNBaseFriction() = default;
+  ~NTNBaseFriction() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -102,7 +102,7 @@ public:
   virtual UInt getNbStickingNodes() const;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
@@ -112,8 +112,8 @@ protected:
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

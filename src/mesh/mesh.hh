@@ -403,7 +403,8 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline VectorProxy<Element> getSubelementToElementNC(const Element & element);
+  inline VectorProxy<Element>
+  getSubelementToElementNC(const Element & element) const;
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);

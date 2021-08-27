@@ -85,8 +85,8 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
 void Resolution::assembleInternalForces() {
   AKANTU_DEBUG_IN();
 
-  for (auto & element : model.getContactElements()) {
-     
+  for (const auto & element : model.getContactElements()) {
+
     auto nb_nodes  = element.getNbNodes();
            
     Vector<Real> local_fn(nb_nodes * spatial_dimension);
@@ -152,8 +152,8 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
   auto & global_stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-  
-  for (auto & element : model.getContactElements()) {
+
+  for (const auto & element : model.getContactElements()) {
 
     auto nb_nodes  = element.getNbNodes();
 

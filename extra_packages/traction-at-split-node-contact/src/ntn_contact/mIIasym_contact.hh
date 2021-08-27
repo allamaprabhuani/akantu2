@@ -54,7 +54,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// update the impedance matrix
-  virtual void updateImpedance();
+  void updateImpedance() override;
 
   /// compute contact pressure -> do nothing because can only compute it in
   /// equilibrium

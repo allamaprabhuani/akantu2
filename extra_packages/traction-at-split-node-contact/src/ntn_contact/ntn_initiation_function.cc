@@ -130,7 +130,7 @@ namespace {
     return true;
   }
 
-  static bool _ = registerFrictionLaws();
+  bool _ = registerFrictionLaws();
 } // namespace
 
 /* -------------------------------------------------------------------------- */

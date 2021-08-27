@@ -49,18 +49,18 @@ public:
   NTNFricLawLinearSlipWeakeningNoHealing(
       NTNBaseContact & contact,
       const ID & id = "linear_slip_weakening_no_healing");
-  virtual ~NTNFricLawLinearSlipWeakeningNoHealing(){};
+  ~NTNFricLawLinearSlipWeakeningNoHealing() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// computes the friction coefficient as a function of slip
-  virtual void computeFrictionCoefficient();
+  void computeFrictionCoefficient() override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */

@@ -52,8 +52,9 @@ void dumpArray(const Array<Real> & array, const std::string & fname) {
   Array<Real>::const_iterator<Vector<Real>> tend = array.end(nb_component);
   for (; tit != tend; ++tit) {
     for (UInt c = 0; c < nb_component; ++c) {
-      if (c != 0)
+      if (c != 0) {
         outFile << " ";
+      }
       outFile << (*tit)(c);
     }
     outFile << std::endl;

@@ -715,14 +715,14 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
     }
 
     for (auto ghost_type : ghost_types) {
-      for (auto & type : mesh.elementTypes(sp, ghost_type)) {
+      for (const auto & type : mesh.elementTypes(sp, ghost_type)) {
         auto & subelement_to_element =
             mesh_accessor.getSubelementToElement(type, ghost_type);
         subelement_to_element.resize(mesh.getNbElement(type, ghost_type));
         subelement_to_element.set(ElementNull);
       }
 
-      for (auto & type : mesh.elementTypes(sp - 1, ghost_type)) {
+      for (const auto & type : mesh.elementTypes(sp - 1, ghost_type)) {
         auto & element_to_subelement =
             mesh_accessor.getElementToSubelement(type, ghost_type);
         element_to_subelement.resize(mesh.getNbElement(type, ghost_type));

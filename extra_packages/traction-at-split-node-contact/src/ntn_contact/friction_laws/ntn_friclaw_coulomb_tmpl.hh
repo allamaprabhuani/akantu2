@@ -65,11 +65,11 @@ void NTNFricLawCoulomb<Regularisation>::computeFrictionalStrength() {
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n))
+    if (!is_in_contact(n)) {
       strength(n) = 0.;
 
     // node pair is in contact
-    else {
+    } else {
       // compute frictional strength
       strength(n) = this->mu(n) * pressure(n);
     }
@@ -123,8 +123,9 @@ void NTNFricLawCoulomb<Regularisation>::printself(std::ostream & stream,
                                                   int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricLawCoulomb [" << std::endl;
   Regularisation::printself(stream, ++indent);

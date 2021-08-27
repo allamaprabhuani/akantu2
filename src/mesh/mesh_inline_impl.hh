@@ -264,7 +264,7 @@ Mesh::getSubelementToElement(const Element & element) const {
 
 /* -------------------------------------------------------------------------- */
 inline VectorProxy<Element>
-Mesh::getSubelementToElementNC(const Element & element) {
+Mesh::getSubelementToElementNC(const Element & element) const {
   return this->getSubelementToElement().get(element);
 }
 

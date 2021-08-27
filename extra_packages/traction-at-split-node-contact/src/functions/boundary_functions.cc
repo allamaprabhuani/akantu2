@@ -48,7 +48,7 @@ Real integrateResidual(const std::string & sub_boundary_name,
   const Array<Real> & residual = model.getInternalForce();
 
   const ElementGroup & boundary = mesh.getElementGroup(sub_boundary_name);
-  for (auto & node : boundary.getNodeGroup().getNodes()) {
+  for (const auto & node : boundary.getNodeGroup().getNodes()) {
     bool is_local_node = mesh.isLocalOrMasterNode(node);
     if (is_local_node) {
       int_res += residual(node, dir);

@@ -59,9 +59,9 @@ class ContactDetector : public Parsable {
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactDetector(Mesh &, const ID & id = "contact_detector");
+  ContactDetector(Mesh & /*mesh*/, const ID & id = "contact_detector");
 
-  ContactDetector(Mesh &, Array<Real> positions,
+  ContactDetector(Mesh & /*mesh*/, Array<Real> positions,
                   const ID & id = "contact_detector");
 
   ~ContactDetector() override = default;
@@ -76,10 +76,12 @@ public:
               Array<Real> & projections);
 
   /// performs global spatial search to construct spatial grids
-  void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+  void globalSearch(SpatialGrid<UInt> & /*slave_grid*/,
+                    SpatialGrid<UInt> & /*master_grid*/);
 
   ///  performs local search to find closet master node to a slave node
-  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+  void localSearch(SpatialGrid<UInt> & /*slave_grid*/,
+                   SpatialGrid<UInt> & /*master_grid*/);
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,

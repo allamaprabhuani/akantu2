@@ -76,7 +76,7 @@ public:
   virtual void initParallel();
 
   /// add split node
-  virtual void addSplitNode(UInt node, UInt = 0);
+  virtual void addSplitNode(UInt node, UInt /*unused*/ = 0);
 
   /// update normals, lumped boundary, and impedance
   virtual void updateInternalData();

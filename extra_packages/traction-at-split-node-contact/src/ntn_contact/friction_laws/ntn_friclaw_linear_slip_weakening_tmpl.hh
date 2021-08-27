@@ -146,8 +146,9 @@ void NTNFricLawLinearSlipWeakening<Regularisation>::printself(
     std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricLawLinearSlipWeakening [" << std::endl;
   NTNFricLawCoulomb<Regularisation>::printself(stream, ++indent);

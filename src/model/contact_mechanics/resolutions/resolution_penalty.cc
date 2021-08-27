@@ -56,7 +56,7 @@ void ResolutionPenalty::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real ResolutionPenalty::computeNormalTraction(Real & gap) {
+Real ResolutionPenalty::computeNormalTraction(Real & gap) const {
   return epsilon_n * macaulay(gap);
 }
 
@@ -95,8 +95,9 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
 void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
                                                Vector<Real> & force) {
 
-  if (mu == 0)
+  if (mu == 0) {
     return;
+  }
 
   force.zero();
 
@@ -117,12 +118,14 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   // need a better way to check if new node added is not presnt in the
   // previous master elemets
   auto & previous_master_elements = model.getPreviousMasterElements();
-  if (element.slave >= previous_master_elements.size())
+  if (element.slave >= previous_master_elements.size()) {
     return;
+  }
 
   auto & previous_element = previous_master_elements[element.slave];
-  if (previous_element.type == _not_defined)
+  if (previous_element.type == _not_defined) {
     return;
+  }
 
   // compute tangential traction using return map algorithm
   auto & tangential_tractions = model.getTangentialTractions();

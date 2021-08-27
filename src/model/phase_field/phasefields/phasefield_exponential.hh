@@ -50,13 +50,17 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 protected:
-  void computePhiOnQuad(const Matrix<Real> &, Real &, Real &);
+  void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
+                        Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
-  void computeDrivingForce(const ElementType &, GhostType) override;
+  void computeDrivingForce(const ElementType & /*el_type*/,
+                           GhostType /*ghost_type*/) override;
 
-  inline void computeDrivingForceOnQuad(const Real &, Real &);
+  inline void computeDrivingForceOnQuad(const Real & /*phi_quad*/,
+                                        Real & /*driving_force_quad*/);
 
-  inline void computeDamageEnergyDensityOnQuad(const Real &, Real &);
+  inline void computeDamageEnergyDensityOnQuad(const Real & /*phi_quad*/,
+                                               Real & /*dam_energy_quad*/);
 
 public:
   void updateInternalParameters() override;
@@ -118,16 +122,17 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 
   for (UInt i = 0; i < spatial_dimension; i++) {
     for (UInt j = 0; j < spatial_dimension; j++) {
-      sigma_plus(i, j) =
-          (i == j) * lambda * trace_plus + 2 * mu * strain_plus(i, j);
-      sigma_minus(i, j) =
-          (i == j) * lambda * trace_minus + 2 * mu * strain_minus(i, j);
+      sigma_plus(i, j) = static_cast<double>(i == j) * lambda * trace_plus +
+                         2 * mu * strain_plus(i, j);
+      sigma_minus(i, j) = static_cast<double>(i == j) * lambda * trace_minus +
+                          2 * mu * strain_minus(i, j);
     }
   }
 
   phi_quad = 0.5 * sigma_plus.doubleDot(strain_quad);
-  if (phi_quad < phi_hist_quad)
+  if (phi_quad < phi_hist_quad) {
     phi_quad = phi_hist_quad;
+  }
 }
 
 } // namespace akantu

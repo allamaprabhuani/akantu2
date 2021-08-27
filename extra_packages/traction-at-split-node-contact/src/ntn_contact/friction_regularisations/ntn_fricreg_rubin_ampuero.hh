@@ -47,27 +47,28 @@ class NTNFricRegRubinAmpuero : public NTNFricRegNoRegularisation {
 public:
   NTNFricRegRubinAmpuero(NTNBaseContact & contact,
                          const ID & id = "rubin_ampuero");
-  virtual ~NTNFricRegRubinAmpuero(){};
+  ~NTNFricRegRubinAmpuero() override = default;
+  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
-  virtual void dumpRestart(const std::string & file_name) const;
-  virtual void readRestart(const std::string & file_name);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
+  void dumpRestart(const std::string & file_name) const override;
+  void readRestart(const std::string & file_name) override;
 
-  virtual void setToSteadyState();
+  void setToSteadyState() override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,7 +76,7 @@ public:
 public:
 protected:
   /// get the contact pressure (the norm: scalar value)
-  virtual const SynchronizedArray<Real> & internalGetContactPressure();
+  const SynchronizedArray<Real> & internalGetContactPressure() override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

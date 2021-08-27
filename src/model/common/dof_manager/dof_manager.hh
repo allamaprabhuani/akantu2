@@ -268,7 +268,7 @@ public:
   inline NodeFlag getDOFFlag(Int local_id) const;
 
   /// defines if the boundary changed
-  bool hasBlockedDOFsChanged() {
+  bool hasBlockedDOFsChanged() const {
     return  this->global_blocked_dofs_release !=
         this->previous_global_blocked_dofs_release;
   }

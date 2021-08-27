@@ -57,9 +57,10 @@ template <typename T> inline void SynchronizedArray<T>::erase(UInt i) {
                       "Cannot erase element if SynchronizedArray"
                           << " is already modified without synchronization");
 
-  for (UInt j = 0; j < this->nb_component; ++j)
+  for (UInt j = 0; j < this->nb_component; ++j) {
     this->values[i * this->nb_component + j] =
         this->values[(this->size_ - 1) * this->nb_component + j];
+  }
   this->size_--;
 
   this->deleted_elements.push_back(i);

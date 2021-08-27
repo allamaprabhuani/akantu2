@@ -50,7 +50,7 @@ class ParameterReader {
   /* ------------------------------------------------------------------------ */
 public:
   ParameterReader();
-  virtual ~ParameterReader(){};
+  virtual ~ParameterReader() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

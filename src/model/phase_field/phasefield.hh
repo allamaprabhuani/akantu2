@@ -202,7 +202,7 @@ public:
   template <typename T>
   void flattenInternal(const std::string & field_id,
                        ElementTypeMapArray<T> & internal_flat,
-                       const GhostType ghost_type = _not_ghost,
+                       GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
   /* ------------------------------------------------------------------------ */

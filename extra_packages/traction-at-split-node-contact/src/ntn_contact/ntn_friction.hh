@@ -50,17 +50,18 @@ class NTNFriction : public FrictionLaw<Regularisation> {
   /* ------------------------------------------------------------------------ */
 public:
   NTNFriction(NTNBaseContact & contact, const ID & id = "friction");
-  virtual ~NTNFriction(){};
+  ~NTNFriction() override = default;
+  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// apply the friction force
-  virtual void applyFrictionTraction();
+  void applyFrictionTraction() override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /* ------------------------------------------------------------------------ */

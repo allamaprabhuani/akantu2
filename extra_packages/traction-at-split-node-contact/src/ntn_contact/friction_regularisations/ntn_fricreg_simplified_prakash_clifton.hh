@@ -48,31 +48,31 @@ class NTNFricRegSimplifiedPrakashClifton : public NTNFricRegNoRegularisation {
 public:
   NTNFricRegSimplifiedPrakashClifton(
       NTNBaseContact & contact, const ID & id = "simplified_prakash_clifton");
-  virtual ~NTNFricRegSimplifiedPrakashClifton(){};
+  ~NTNFricRegSimplifiedPrakashClifton() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
-  virtual void dumpRestart(const std::string & file_name) const;
-  virtual void readRestart(const std::string & file_name);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
+  void dumpRestart(const std::string & file_name) const override;
+  void readRestart(const std::string & file_name) override;
 
-  virtual void setToSteadyState();
+  void setToSteadyState() override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
-  virtual void computeFrictionalStrength();
+  void computeFrictionalStrength() override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -80,7 +80,7 @@ public:
 public:
 protected:
   /// get the frictional strength array
-  virtual SynchronizedArray<Real> & internalGetFrictionalStrength() {
+  SynchronizedArray<Real> & internalGetFrictionalStrength() override {
     return this->spc_internal;
   };
 

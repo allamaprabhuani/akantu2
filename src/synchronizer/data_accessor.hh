@@ -298,12 +298,13 @@ public:
   /* ------------------------------------------------------------------------ */
   UInt getNbData(const Array<Element> & elements,
                  const SynchronizationTag & tag) const override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return 0;
+    }
 
     Int size = 0;
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       size += sizeof(T) * data_type.getNbComponent();
     }
@@ -314,10 +315,11 @@ public:
   /* ------------------------------------------------------------------------ */
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return;
+    }
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       for (auto c : arange(data_type.getNbComponent())) {
         const auto & data_per_element = data_type(el.element, c);
@@ -329,10 +331,11 @@ public:
   /* ------------------------------------------------------------------------ */
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return;
+    }
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       for (auto c : arange(data_type.getNbComponent())) {
         auto & data_per_element = data_type(el.element, c);

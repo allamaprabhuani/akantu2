@@ -57,8 +57,9 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
   coord[2] = z;
 
   UInt dim = this->model.getSpatialDimension();
-  for (UInt d = 0; d < dim; ++d)
+  for (UInt d = 0; d < dim; ++d) {
     this->reference_point(d) = coord[d];
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -74,8 +75,9 @@ void NTRFContact::setNormal(Real x, Real y, Real z) {
   coord[1] = y;
   coord[2] = z;
 
-  for (UInt d = 0; d < dim; ++d)
+  for (UInt d = 0; d < dim; ++d) {
     this->normal(d) = coord[d];
+  }
 
   this->normal.normalize();
 
@@ -270,8 +272,9 @@ void NTRFContact::computeRelativeNormalField(
 void NTRFContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTRFContact [" << std::endl;
   NTNBaseContact::printself(stream, indent);

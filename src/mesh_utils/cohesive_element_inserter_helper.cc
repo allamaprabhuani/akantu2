@@ -519,7 +519,7 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
   MeshAccessor mesh_accessor(mesh_facets);
 
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
-  auto & subfacets_to_facets = mesh_facets.getSubelementToElement();
+  const auto & subfacets_to_facets = mesh_facets.getSubelementToElement();
   auto & elements_to_facets = mesh_accessor.getElementToSubelement();
 
   /// loop on every facet
@@ -555,11 +555,11 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
             std::vector<Element> subfacet_list;
 
             /// check if subsubfacet is to be doubled
-            if (findElementsAroundSubfacet(
+            if (!findElementsAroundSubfacet(
                     starting_element, current_facet, subsubfacet_connectivity,
-                    element_list, facet_list, &subfacet_list) == false and
-                removeElementsInVector(
-                    subfacet_list, elements_to_facets(subsubfacet)) == false) {
+                    element_list, facet_list, &subfacet_list) and
+                !removeElementsInVector(subfacet_list,
+                                        elements_to_facets(subsubfacet))) {
               Element new_subsubfacet{
                   subsubfacet.type,
                   nb_new_facets(subsubfacet.type, subsubfacet.ghost_type)++,
@@ -582,11 +582,11 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
               mesh_facets.getConnectivity(subfacet);
 
           /// check if subfacet is to be doubled
-          if (findElementsAroundSubfacet(starting_element, current_facet,
-                                         subfacet_connectivity, element_list,
-                                         facet_list) == false and
-              removeElementsInVector(facet_list,
-                                     elements_to_facets(subfacet)) == false) {
+          if (!findElementsAroundSubfacet(starting_element, current_facet,
+                                          subfacet_connectivity, element_list,
+                                          facet_list) and
+              !removeElementsInVector(facet_list,
+                                      elements_to_facets(subfacet))) {
             Element new_subfacet{
                 subfacet.type,
                 nb_new_facets(subfacet.type, subfacet.ghost_type)++,
@@ -651,7 +651,7 @@ bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
         mesh_facets.getSubelementToElement(current_element);
 
     // for every facet of the element
-    for (auto & current_facet : facets_to_element) {
+    for (const auto & current_facet : facets_to_element) {
       if (current_facet == ElementNull) {
         continue;
       }
@@ -703,7 +703,7 @@ bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
         opposing = 1;
       }
 
-      auto & opposing_element = elements_to_facet[opposing];
+      const auto & opposing_element = elements_to_facet[opposing];
 
       /// skip null elements since they are on a boundary
       if (opposing_element == ElementNull) {

@@ -112,9 +112,10 @@ void ContactMechanicsModel::instantiateResolutions() {
     this->registerNewResolution(section);
   }
 
-  if (resolutions.empty())
+  if (resolutions.empty()) {
     AKANTU_EXCEPTION("No contact resolutions where instantiated for the model"
                      << getID());
+  }
   are_resolutions_instantiated = true;
 }
 
@@ -200,7 +201,8 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initSolver(
-    TimeStepSolverType /*time_step_solver_type*/, NonLinearSolverType) {
+    TimeStepSolverType /*time_step_solver_type*/,
+    NonLinearSolverType /*unused*/) {
 
   // for alloc type of solvers
   this->allocNodalField(this->displacement, spatial_dimension, "displacement");
@@ -376,7 +378,7 @@ void ContactMechanicsModel::search() {
   // model to work by default the gap value from detector is negative
   std::for_each((*gaps).begin(), (*gaps).end(), [](Real & gap) { gap *= -1.; });
 
-  if (contact_elements.size() != 0) {
+  if (!contact_elements.empty()) {
     this->computeNodalAreas();
   }
 }
@@ -481,8 +483,9 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
         quad_point.num_point = q;
         auto ddot = inside_to_outside.dot(*normals_iter);
         Vector<Real> normal(*normals_iter);
-        if (ddot < 0)
+        if (ddot < 0) {
           normal *= -1.0;
+        }
 
         (*dual_iter)
             .mul<false>(Matrix<Real>::eye(spatial_dimension, 1), normal);
@@ -533,7 +536,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + resolutions [" << std::endl;
-  for (auto & resolution : resolutions) {
+  for (const auto & resolution : resolutions) {
     resolution->printself(stream, indent + 1);
   }
   stream << space << AKANTU_INDENT << "]" << std::endl;
@@ -543,8 +546,9 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
-  if (matrix_id == "K")
+  if (matrix_id == "K") {
     return _symmetric;
+  }
 
   return _mt_not_defined;
 }
@@ -593,8 +597,9 @@ void ContactMechanicsModel::afterSolveStep(bool converged) {
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldBool(const std::string &,
-                                            const std::string &, bool) {
+ContactMechanicsModel::createNodalFieldBool(const std::string & /*unused*/,
+                                            const std::string & /*unused*/,
+                                            bool /*unused*/) {
   return nullptr;
 }
 

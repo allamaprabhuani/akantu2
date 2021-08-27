@@ -71,9 +71,9 @@ class CouplerSolidPhaseField
 
 public:
   CouplerSolidPhaseField(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+      Mesh & mesh, UInt dim = _all_dimensions,
       const ID & id = "coupler_solid_phasefield",
-      const ModelType model_type = ModelType::_coupler_solid_phasefield);
+      ModelType model_type = ModelType::_coupler_solid_phasefield);
 
   ~CouplerSolidPhaseField() override;
 
@@ -104,7 +104,7 @@ public:
 public:
   /// computes damage on quad points for solid mechanics model from
   /// damage array from phasefield model
-  void computeDamageOnQuadPoints(const GhostType &);
+  void computeDamageOnQuadPoints(const GhostType & /*ghost_type*/);
 
   /// computes strain on quadrature points for phasefield model from
   /// displacement gradient from solid mechanics model
@@ -118,8 +118,8 @@ private:
   void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
 
   /// test the convergence criteria
-  bool checkConvergence(Array<Real> &, Array<Real> &, Array<Real> &,
-                        Array<Real> &);
+  bool checkConvergence(Array<Real> & /*u_new*/, Array<Real> & /*u_old*/,
+                        Array<Real> & /*d_new*/, Array<Real> & /*d_old*/);
 
 protected:
   /// callback for the solver, this adds f_{ext} - f_{int} to the residual
@@ -139,8 +139,9 @@ protected:
   void assembleLumpedMatrix(const ID & matrix_id) override;
 
   /// callback for the model to instantiate the matricess when needed
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
-  
+  void initSolver(TimeStepSolverType /*time_step_solver_type*/,
+                  NonLinearSolverType /*non_linear_solver_type*/) override;
+
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
 
@@ -193,16 +194,18 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
-  
-  UInt getNbData(const Array<Element> &,
-                 const SynchronizationTag &) const override {
+
+  UInt getNbData(const Array<Element> & /*elements*/,
+                 const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer &, const Array<Element> &,
-                const SynchronizationTag &) const override {}
-  void unpackData(CommunicationBuffer &, const Array<Element> &,
-  const SynchronizationTag &) override {}
-  
+  void packData(CommunicationBuffer & /*buffer*/,
+                const Array<Element> & /*element*/,
+                const SynchronizationTag & /*tag*/) const override {}
+  void unpackData(CommunicationBuffer & /*buffer*/,
+                  const Array<Element> & /*element*/,
+                  const SynchronizationTag & /*tag*/) override {}
+
   UInt getNbData(__attribute__((unused)) const Array<UInt> & indexes,
                  __attribute__((unused)) const SynchronizationTag & tag) const override {
     return 0;
@@ -253,17 +256,17 @@ public:
                        UInt spatial_dimension,
                        ElementKind kind) override;
 
-  virtual void dump(const std::string & dumper_name) override;
+  void dump(const std::string & dumper_name) override;
 
-  virtual void dump(const std::string & dumper_name, UInt step) override;
+  void dump(const std::string & dumper_name, UInt step) override;
 
-  virtual void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Real time, UInt step) override;
 
   void dump() override;
 
-  virtual void dump(UInt step) override;
+  void dump(UInt step) override;
 
-  virtual void dump(Real time, UInt step) override;
+  void dump(Real time, UInt step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */

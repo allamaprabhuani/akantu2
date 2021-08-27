@@ -118,7 +118,7 @@ struct PhaseFieldModelOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  PhaseFieldModelOptions(use_named_args_t, pack &&... _pack)
+  PhaseFieldModelOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : PhaseFieldModelOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -162,7 +162,7 @@ struct ContactMechanicsModelOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
+  ContactMechanicsModelOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : ContactMechanicsModelOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -176,7 +176,7 @@ struct CouplerSolidContactOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
+  CouplerSolidContactOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : CouplerSolidContactOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -188,12 +188,13 @@ struct CouplerSolidCohesiveContactOptions : public ModelOptions {
       bool extrinsic = false)
       : ModelOptions(analysis_method), is_extrinsic(extrinsic)  {}
 
-  template<typename... pack>
-  CouplerSolidCohesiveContactOptions(use_named_args_t, pack &&... _pack)
-    : CouplerSolidCohesiveContactOptions(
-       OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
-       OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
-  
+  template <typename... pack>
+  CouplerSolidCohesiveContactOptions(use_named_args_t /*unused*/,
+                                     pack &&... _pack)
+      : CouplerSolidCohesiveContactOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
+            OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
+
   bool is_extrinsic{false};
 };
   

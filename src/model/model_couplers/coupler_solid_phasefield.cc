@@ -80,7 +80,7 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
 }
 
 /* -------------------------------------------------------------------------- */
-CouplerSolidPhaseField::~CouplerSolidPhaseField() {}
+CouplerSolidPhaseField::~CouplerSolidPhaseField() = default;
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::initFullImpl(const ModelOptions & options) {
@@ -268,8 +268,9 @@ void CouplerSolidPhaseField::corrector() {
 /* -------------------------------------------------------------------------- */
 MatrixType CouplerSolidPhaseField::getMatrixType(const ID & matrix_id) {
 
-  if (matrix_id == "K")
+  if (matrix_id == "K") {
     return _symmetric;
+  }
   if (matrix_id == "M") {
     return _symmetric;
   }
@@ -383,38 +384,38 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(
 	case 1: {
 	  auto & mat = static_cast<MaterialPhaseField<1> &>(material);
 	  auto & damage = mat.getDamage();
-	  for (auto & type :
-		 mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-	    auto & damage_on_qpoints_vect = damage(type, ghost_type);
+      for (const auto & type :
+           mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
+        auto & damage_on_qpoints_vect = damage(type, ghost_type);
 	    fem.interpolateOnIntegrationPoints(phase->getDamage(), damage_on_qpoints_vect,
 					       1, type, ghost_type);
-	  }
-	  break;
+      }
+      break;
 	}
 
 	case 2: {
 	  auto & mat = static_cast<MaterialPhaseField<2> &>(material);
 	  auto & damage = mat.getDamage();
 
-	  for (auto & type :
-		 mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-	    auto & damage_on_qpoints_vect = damage(type, ghost_type);
+      for (const auto & type :
+           mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
+        auto & damage_on_qpoints_vect = damage(type, ghost_type);
 	    fem.interpolateOnIntegrationPoints(phase->getDamage(), damage_on_qpoints_vect,
 					       1, type, ghost_type);
-	  }
-	  break;
+      }
+      break;
 	}
 	default:
 	  auto & mat = static_cast<MaterialPhaseField<3> &>(material);
 	  auto & damage = mat.getDamage();
 
-	  for (auto & type :
-		 mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-	    auto & damage_on_qpoints_vect = damage(type, ghost_type);
+      for (const auto & type :
+           mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
+        auto & damage_on_qpoints_vect = damage(type, ghost_type);
 	    fem.interpolateOnIntegrationPoints(phase->getDamage(), damage_on_qpoints_vect,
 					       1, type, ghost_type);
-	  }
-	  break;
+      }
+      break;
 	}
       }
     }
@@ -447,21 +448,21 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
       if(phasefield.getName() == material.getName()){
       
 	auto & strain_on_qpoints = phasefield.getStrain();
-	auto & gradu_on_qpoints  = material.getGradU();
-      
-	for (auto & type: mesh.elementTypes(spatial_dimension, ghost_type)) {
-	  auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
-	  auto & gradu_on_qpoints_vect  = gradu_on_qpoints(type, ghost_type);
-	  for (auto && values:
+    const auto & gradu_on_qpoints = material.getGradU();
+
+    for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+      auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
+      const auto & gradu_on_qpoints_vect = gradu_on_qpoints(type, ghost_type);
+      for (auto && values:
 		 zip(make_view(strain_on_qpoints_vect, spatial_dimension, spatial_dimension),
 	       make_view(gradu_on_qpoints_vect,  spatial_dimension, spatial_dimension))) {
 	    auto & strain = std::get<0>(values);
-	    auto & grad_u =  std::get<1>(values);
-	    gradUToEpsilon(grad_u, strain);
+        const auto & grad_u = std::get<1>(values);
+        gradUToEpsilon(grad_u, strain);
 	  }
-	}
+    }
 
-	break;
+    break;
       }
       
     }
@@ -486,8 +487,9 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id, const ID & phase_
 void CouplerSolidPhaseField::gradUToEpsilon(const Matrix<Real> & grad_u,
                                             Matrix<Real> & epsilon) {
   for (UInt i = 0; i < Model::spatial_dimension; ++i) {
-    for (UInt j = 0; j < Model::spatial_dimension; ++j)
+    for (UInt j = 0; j < Model::spatial_dimension; ++j) {
       epsilon(i, j) = 0.5 * (grad_u(i, j) + grad_u(j, i));
+    }
   }
 }
 
@@ -528,12 +530,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   Real error = std::max(norm, norm2);
 
   Real tolerance = 1e-8;
-  if (error < tolerance) {
-
-    return true;
-  }
-
-  return false;
+  return error < tolerance;
 }
 
   

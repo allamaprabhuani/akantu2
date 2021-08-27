@@ -89,14 +89,18 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// computes the force vector due to normal traction
-  virtual void computeNormalForce(__attribute__((unused)) const ContactElement &,
-				  __attribute__((unused)) Vector<Real> &) {
+  virtual void computeNormalForce(__attribute__((unused))
+                                  const ContactElement & /*unused*/,
+                                  __attribute__((unused))
+                                  Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the tangential force vector due to frictional traction
-  virtual void computeTangentialForce(__attribute__((unused)) const ContactElement &,
-				      __attribute__((unused)) Vector<Real> &) {
+  virtual void computeTangentialForce(__attribute__((unused))
+                                      const ContactElement & /*unused*/,
+                                      __attribute__((unused))
+                                      Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -105,18 +109,21 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the normal moduli due to normal traction
-  virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
-				   __attribute__((unused)) Matrix<Real> & ) {
+  virtual void computeNormalModuli(__attribute__((unused))
+                                   const ContactElement & /*unused*/,
+                                   __attribute__((unused))
+                                   Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli due to tangential traction
-  virtual void computeTangentialModuli(__attribute__((unused)) const ContactElement &,
-				       __attribute__((unused)) Matrix<Real> & ) {
+  virtual void computeTangentialModuli(__attribute__((unused))
+                                       const ContactElement & /*unused*/,
+                                       __attribute__((unused))
+                                       Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */ 
@@ -132,10 +139,14 @@ private:
   void assembleInternalForces();
 
   /// assemble the local array to global array for a contact element
-  void assembleLocalToGlobalArray(const ContactElement & , Vector<Real> & , Array<Real> & );
+  void assembleLocalToGlobalArray(const ContactElement & /*element*/,
+                                  Vector<Real> & /*local*/,
+                                  Array<Real> & /*global*/);
 
   /// assemble the local stiffness to global stiffness for a contact element
-  void assembleLocalToGlobalMatrix(const ContactElement &, const Matrix<Real> &, SparseMatrix &);
+  void assembleLocalToGlobalMatrix(const ContactElement & /*element*/,
+                                   const Matrix<Real> & /*local*/,
+                                   SparseMatrix & /*global*/);
 
 public:
   virtual void beforeSolveStep();

@@ -57,7 +57,7 @@ namespace akantu {
 class SurfaceSelector : public MeshEventHandler, public Parsable {
 public:
   SurfaceSelector(Mesh & mesh);
-  virtual ~SurfaceSelector() = default;
+  ~SurfaceSelector() override = default;
 
 public:
   virtual Array<UInt> & getMasterList() {  AKANTU_TO_IMPLEMENT();}

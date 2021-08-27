@@ -116,7 +116,7 @@ void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
   Model::initFullImpl(options);
 
   // initialize the phasefields
-  if (this->parser.getLastParsedFile() != "") {
+  if (!this->parser.getLastParsedFile().empty()) {
     this->instantiatePhaseFields();
     this->initPhaseFields();
   }
@@ -195,9 +195,10 @@ void PhaseFieldModel::instantiatePhaseFields() {
     this->registerNewPhaseField(section);
   }
 
-  if (phasefields.empty())
+  if (phasefields.empty()) {
     AKANTU_EXCEPTION("No phasefields where instantiated for the model"
                      << getID());
+  }
   are_phasefields_instantiated = true;
 }
 
@@ -205,8 +206,9 @@ void PhaseFieldModel::instantiatePhaseFields() {
 void PhaseFieldModel::initPhaseFields() {
   AKANTU_DEBUG_ASSERT(phasefields.size() != 0, "No phasefield to initialize !");
 
-  if (!are_phasefields_instantiated)
+  if (!are_phasefields_instantiated) {
     instantiatePhaseFields();
+  }
 
   this->assignPhaseFieldToElements();
 
@@ -268,7 +270,7 @@ void PhaseFieldModel::corrector() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                 NonLinearSolverType) {
+                                 NonLinearSolverType /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->damage, 1, "damage");
@@ -358,8 +360,9 @@ void PhaseFieldModel::beforeSolveStep() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::afterSolveStep(bool converged) {
-  if (not converged)
+  if (not converged) {
     return;
+  }
 
   for (auto && values : zip(*damage, *previous_damage)) {
     auto & dam = std::get<0>(values);
@@ -537,7 +540,8 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
 
 std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
-                                      const std::string & group_name, bool) {
+                                      const std::string & group_name,
+                                      bool /*unused*/) {
 
   std::map<std::string, Array<bool> *> uint_nodal_fields;
   uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
@@ -551,7 +555,8 @@ PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
-                                      const std::string & group_name, bool) {
+                                      const std::string & group_name,
+                                      bool /*unused*/) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["damage"] = damage.get();
@@ -565,10 +570,9 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createElementalField(const std::string & field_name,
-                                      const std::string & group_name, bool,
-                                      UInt, ElementKind element_kind) {
+std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
+    const std::string & field_name, const std::string & group_name,
+    bool /*unused*/, UInt /*unused*/, ElementKind element_kind) {
 
   if (field_name == "partitions") {
     return mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
@@ -606,9 +610,7 @@ PhaseFieldModel::createNodalFieldBool(const std::string &, const std::string &,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "Phase Field Model [" << std::endl;
   stream << space << " + id                : " << id << std::endl;

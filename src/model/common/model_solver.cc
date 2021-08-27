@@ -114,9 +114,8 @@ std::shared_ptr<DOFManager> ModelSolver::initDOFManager() {
   if (not is_empty) {
     solver_type = section.getOption(solver_type);
     return this->initDOFManager(section, solver_type);
-  } else {
-    return this->initDOFManager(solver_type);
   }
+  return this->initDOFManager(solver_type);
 }
 
 /* -------------------------------------------------------------------------- */

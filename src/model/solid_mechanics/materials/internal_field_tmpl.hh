@@ -109,9 +109,10 @@ void InternalFieldTmpl<Material, T>::initialize(UInt nb_component) {
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::initializeHistory() {
-  if (!previous_values)
-    previous_values =
-      std::make_unique<InternalFieldTmpl<Material, T>>("previous_" + this->getID(), *this);
+  if (!previous_values) {
+    previous_values = std::make_unique<InternalFieldTmpl<Material, T>>(
+        "previous_" + this->getID(), *this);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

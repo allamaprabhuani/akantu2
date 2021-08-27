@@ -602,7 +602,7 @@ public:
         with_nb_nodes_per_element(with_nb_nodes_per_element), filter(filter) {}
 
   decltype(auto) elementTypes() const {
-    if (filter) {
+    if (filter != nullptr) {
       return filter->elementTypes(this->spatial_dimension, this->ghost_type,
                                   this->element_kind);
     }
@@ -612,7 +612,7 @@ public:
 
   virtual UInt size(ElementType type) const {
     if (with_nb_element) {
-      if (filter) {
+      if (filter != nullptr) {
         return (*filter)(type, this->ghost_type).size();
       }
       return mesh.getNbElement(type, this->ghost_type);

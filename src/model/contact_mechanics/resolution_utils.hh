@@ -52,10 +52,9 @@ public:
   /// computes the shape function matric for the contact element (@f$A
   /// @f$) where row is equal to spatial dimension and cols is equal
   /// to spatial dimension times number of nodes in contact element
-  static void computeShapeFunctionMatric(const ContactElement &,
-					 const Vector<Real> &,
-					 Matrix<Real> &);
-
+  static void computeShapeFunctionMatric(const ContactElement & /*element*/,
+                                         const Vector<Real> & /*projection*/,
+                                         Matrix<Real> & /*shape_matric*/);
 };
 
 } // namespace akantu

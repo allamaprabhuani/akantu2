@@ -97,10 +97,8 @@ inline bool PhaseField::isInternal<Real>(const ID & id,
                                        const ElementKind & element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
-  if (internal_array == internal_vectors_real.end() ||
-      internal_array->second->getElementKind() != element_kind)
-    return false;
-  return true;
+  return !(internal_array == internal_vectors_real.end() ||
+           internal_array->second->getElementKind() != element_kind);
 }
 
 

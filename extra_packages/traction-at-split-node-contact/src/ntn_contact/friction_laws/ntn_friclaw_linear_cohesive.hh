@@ -48,34 +48,35 @@ class NTNFricLawLinearCohesive : public Regularisation {
 public:
   NTNFricLawLinearCohesive(NTNBaseContact & contact,
                            const ID & id = "linear_cohesive");
-  virtual ~NTNFricLawLinearCohesive(){};
+  ~NTNFricLawLinearCohesive() override = default;
+  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// register synchronizedarrays for sync
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
 
   /// dump restart file
-  virtual void dumpRestart(const std::string & file_name) const;
+  void dumpRestart(const std::string & file_name) const override;
 
   /// read restart file
-  virtual void readRestart(const std::string & file_name);
+  void readRestart(const std::string & file_name) override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
-  virtual void computeFrictionalStrength();
+  void computeFrictionalStrength() override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

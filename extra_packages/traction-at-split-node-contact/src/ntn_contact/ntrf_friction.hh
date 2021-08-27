@@ -49,14 +49,14 @@ class NTRFFriction : public FrictionLaw<Regularisation> {
   /* ------------------------------------------------------------------------ */
 public:
   NTRFFriction(NTNBaseContact & contact, const ID & id = "friction");
-  virtual ~NTRFFriction(){};
+  ~NTRFFriction() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */

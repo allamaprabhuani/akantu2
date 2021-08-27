@@ -39,7 +39,7 @@ namespace akantu {
 CohesiveContactSolverCallback::CohesiveContactSolverCallback(
     SolidMechanicsModelCohesive & solid, ContactMechanicsModel & contact,
     AnalysisMethod & method)
-    : SolverCallback(), solid(solid), contact(contact), method(method) {}
+    : solid(solid), contact(contact), method(method) {}
 
 void CohesiveContactSolverCallback::assembleMatrix(const ID & matrix_id) {
 
