@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""clang-tidy2code-quality.py: Conversion of clang-tidy output 2
+"""clang_tidy2code_quality.py: Conversion of clang-tidy output 2
 code-quality"""
 
 __author__ = "Nicolas Richart"
@@ -17,16 +17,25 @@ import hashlib
 import json
 import sys
 import subprocess
+import argparse
+import copy
 try:
     from termcolor import colored
 except ImportError:
-    def colored(text, color):
+    def colored(text, color):  # pylint: disable=unused-argument
+        """fallback function for termcolor.colored"""
         return text
 
 
 def print_debug(message):
-    '''helper finction to print debug messages'''
+    '''helper function to print debug messages'''
     print(f'Debug: {colored(message, "red")}',
+          file=sys.stderr, flush=True)
+
+
+def print_info(message):
+    '''helper function to print info messages'''
+    print(f'Info: {colored(message, "blue")}',
           file=sys.stderr, flush=True)
 
 
@@ -48,7 +57,7 @@ class ClangTidy2CodeQuality:
         )
     ''', re.VERBOSE)
 
-    ISSUE_PARSE = re.compile(r'(?P<file>.*\.(cc|hh)):(?P<line>[0-9]+):(?P<column>[0-9]+): (warning|error): (?P<detail>.*) \[(?P<type>.*)\]')  # noqa
+    ISSUE_PARSE = re.compile(r'(?P<file>.*\.(cc|hh)):(?P<line>[0-9]+):(?P<column>[0-9]+): (warning|error): (?P<detail>.*) \[(?P<type>.*)\]')  # NOQA pylint: disable=line-too-long
 
     CLASSIFICATIONS = {
         'bugprone': {
@@ -77,21 +86,51 @@ class ClangTidy2CodeQuality:
         },
     }
 
-    def __init__(self):
+    def __init__(self, compiledb_path, clang_tidy='clang-tidy', excludes=None,
+                 arguments=None):
         self._issues = {}
-        self._command = ['run-clang-tidy']
-        self._command.extend(sys.argv[1:])
+        self._command = [clang_tidy, '-p', compiledb_path]
+        if arguments is None:
+            arguments = []
+        if excludes is None:
+            excludes = []
+
+        self._command.extend(arguments)
+
+        self._files = []
+
+        self._exlclude_patterns = []
+        for exclude in excludes:
+            self._exlclude_patterns.append(re.compile(exclude))
+
+        with open(os.path.join(compiledb_path,
+                               'compile_commands.json'), 'r') as compiledb_fh:
+            compiledb = json.load(compiledb_fh)
+            for entry in compiledb:
+                filename = os.path.relpath(entry['file'])
+                need_exclude = self._need_exclude(filename)
+                if need_exclude:
+                    print_debug(f'[clang-tidy] exluding file: {filename}')
+                    continue
+                print_info(f'[clang-tidy] adding file: {filename}')
+                self._files.append(filename)
 
     def run(self):
         '''run clang tidy and generage a code quality report'''
-        print_debug(f'[clang-tidy] command: {self._command}')
-        self._generate_issues(self._command)
+        self._generate_issues()
         print(json.dumps(list(self._issues.values())))
 
     @property
     def command(self):
         '''get the command that is run'''
         return self._command
+
+    def _need_exclude(self, filename):
+        need_exclude = False
+        for pattern in self._exlclude_patterns:
+            match = pattern.search(filename)
+            need_exclude |= bool(match)
+        return need_exclude
 
     def _get_classifiaction(self, type_):
         categories = ['Bug Risk']
@@ -111,13 +150,14 @@ class ClangTidy2CodeQuality:
         return (categories, severity)
 
     def _run_command(self, command):
+        print_info(f'''[clang-tidy] command: {' '.join(command)}''')
         popen = subprocess.Popen(command,
                                  stdout=subprocess.PIPE,
+                                 stderr=subprocess.DEVNULL,
                                  universal_newlines=True)
 
         for stdout_line in iter(popen.stdout.readline, ""):
             clean_line = self.ANSI_ESCAPE.sub('', stdout_line).rstrip()
-            print_debug(clean_line)
             yield clean_line
 
         popen.stdout.close()
@@ -127,32 +167,43 @@ class ClangTidy2CodeQuality:
             print_debug(
                 f"[clang-tidy] {command} ReturnCode {return_code}")
 
-    def _generate_issues(self, command):
+    def _generate_issues(self):
         issue = {}
-        for line in self._run_command(command):
-            match = self.ISSUE_PARSE.match(line)
-            if match:
-                if len(issue) != 0:
-                    self._add_issue(issue)
-                issue = match.groupdict()
-            elif issue:
-                if 'content' in issue:
-                    issue['content'].append(line)
-                else:
-                    issue['content'] = [line]
-        self._add_issue(issue)
+        for filename in self._files:
+            command = copy.copy(self._command)
+            command.append(filename)
+            for line in self._run_command(command):
+                match = self.ISSUE_PARSE.match(line)
+                if match:
+                    if len(issue) != 0:
+                        self._add_issue(issue)
+                    issue = match.groupdict()
+                    print_debug(f'[clang-tidy] new issue: {line}')
+                elif issue:
+                    if 'content' in issue:
+                        issue['content'].append(line)
+                        print_debug(f'[clang-tidy] more extra content: {line}')
+                    else:
+                        issue['content'] = [line]
+                        print_debug(f'[clang-tidy] extra content: {line}')
+            self._add_issue(issue)
 
     def _add_issue(self, issue):
-        issue_ = self._format_issue(issue)
-
-        if issue_['fingerprint'] in self._issues:
+        if 'file' not in issue:
             return
 
-        self._issues[issue_['fingerprint']] = issue_
+        issue['file'] = os.path.relpath(issue['file'])
+        if self._need_exclude(issue['file']):
+            return
+
+        formated_issue = self._format_issue(issue)
+
+        if formated_issue['fingerprint'] in self._issues:
+            return
+
+        self._issues[formated_issue['fingerprint']] = formated_issue
 
     def _format_issue(self, issue_dict):
-        issue_dict['file'] = os.path.relpath(issue_dict['file'])
-
         issue = {
             'type': 'issue',
             'check_name': issue_dict['type'],
@@ -193,5 +244,17 @@ class ClangTidy2CodeQuality:
         return issue
 
 
-formater = ClangTidy2CodeQuality()
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--compiledb-path', '-p',
+                    help='path to compile_commands.json', required=True)
+parser.add_argument('--exclude', '-x', action='append',
+                    help='path to exclude')
+parser.add_argument('--clang-tidy', '-c', default='clang-tidy',
+                    help='clang-tidy binary to use')
+
+args, extra_args = parser.parse_known_args()
+formater = ClangTidy2CodeQuality(args.compiledb_path,
+                                 clang_tidy=args.clang_tidy,
+                                 excludes=args.exclude,
+                                 arguments=extra_args)
 formater.run()
