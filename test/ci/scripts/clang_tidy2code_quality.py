@@ -109,13 +109,21 @@ class ClangTidy2CodeQuality:
             self._exclude_patterns.append(re.compile(exclude))
 
         if file_list is None:
-            file_list = []
-            with open(os.path.join(compiledb_path,
-                                   'compile_commands.json'), 'r') as compiledb_fh:
-                compiledb = json.load(compiledb_fh)
-                for entry in compiledb:
-                    file_list.append(entry['file'])
+            file_list = self._get_files_from_compile_db(compiledb_path)
 
+        self._define_file_list(file_list)
+
+    def _get_files_from_compile_db(self, compiledb_path):  # pylint: disable=no-self-use
+        file_list = []
+        with open(os.path.join(
+                compiledb_path,
+                'compile_commands.json'), 'r') as compiledb_fh:
+            compiledb = json.load(compiledb_fh)
+            for entry in compiledb:
+                file_list.append(entry['file'])
+        return file_list
+
+    def _define_file_list(self, file_list):
         for filename in file_list:
             filename = os.path.relpath(filename)
             need_exclude = self._need_exclude(filename)
@@ -257,7 +265,8 @@ class ClangTidy2CodeQuality:
         ).hexdigest()
 
         type_ = issue_dict['type'].split('-')[0]
-        issue['categories'], issue['severity'] = self._get_classifiaction(type_)
+        issue['categories'], issue['severity'] = \
+            self._get_classifiaction(type_)
 
         return issue
 
