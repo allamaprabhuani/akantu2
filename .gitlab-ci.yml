@@ -117,10 +117,10 @@ docker build:ubuntu-lts:
 # ------------------------------------------------------------------------------
 .cache_build:
   variables:
-    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/build
+    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/
     CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
-    CCACHE_NOHASHDIR: 1
-    CCACHE_COMPILERCHECK: content
+    #CCACHE_NOHASHDIR: 1
+    #CCACHE_COMPILERCHECK: content
   cache:
     key: ${output}
     policy: pull-push
@@ -285,7 +285,7 @@ clang_tidy:
     -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
     -   FILE_LIST_ARG='-f file_list'
     - fi
-    - test/ci/scripts/clang-tidy2code-quality.py
+    - test/ci/scripts/clang_tidy2code_quality.py
             -p ${CI_PROJECT_DIR}/build
             -x third-party
             -x test
