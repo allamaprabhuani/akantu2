@@ -86,8 +86,11 @@ class ClangTidy2CodeQuality:
         },
     }
 
-    def __init__(self, compiledb_path, clang_tidy='clang-tidy', excludes=None,
-                 arguments=None):
+    def __init__(self, compiledb_path, clang_tidy='clang-tidy', **kwargs):
+        arguments = kwargs.pop('arguments', None)
+        excludes = kwargs.pop('excludes', None)
+        file_list = kwargs.pop('file_list', None)
+
         self._issues = {}
         self._command = [clang_tidy, '-p', compiledb_path]
         if arguments is None:
@@ -95,25 +98,32 @@ class ClangTidy2CodeQuality:
         if excludes is None:
             excludes = []
 
+        self._extensions = [re.compile(r'\.cc$'), re.compile(r'\.hh$')]
+
         self._command.extend(arguments)
 
         self._files = []
 
-        self._exlclude_patterns = []
+        self._exclude_patterns = []
         for exclude in excludes:
-            self._exlclude_patterns.append(re.compile(exclude))
+            self._exclude_patterns.append(re.compile(exclude))
 
-        with open(os.path.join(compiledb_path,
-                               'compile_commands.json'), 'r') as compiledb_fh:
-            compiledb = json.load(compiledb_fh)
-            for entry in compiledb:
-                filename = os.path.relpath(entry['file'])
-                need_exclude = self._need_exclude(filename)
-                if need_exclude:
-                    print_debug(f'[clang-tidy] exluding file: {filename}')
-                    continue
-                print_info(f'[clang-tidy] adding file: {filename}')
-                self._files.append(filename)
+        if file_list is None:
+            file_list = []
+            with open(os.path.join(compiledb_path,
+                                   'compile_commands.json'), 'r') as compiledb_fh:
+                compiledb = json.load(compiledb_fh)
+                for entry in compiledb:
+                    file_list.append(entry['file'])
+
+        for filename in file_list:
+            filename = os.path.relpath(filename)
+            need_exclude = self._need_exclude(filename)
+            if need_exclude:
+                print_debug(f'[clang-tidy] exluding file: {filename}')
+                continue
+            print_info(f'[clang-tidy] adding file: {filename}')
+            self._files.append(filename)
 
     def run(self):
         '''run clang tidy and generage a code quality report'''
@@ -127,9 +137,17 @@ class ClangTidy2CodeQuality:
 
     def _need_exclude(self, filename):
         need_exclude = False
-        for pattern in self._exlclude_patterns:
+        for pattern in self._exclude_patterns:
             match = pattern.search(filename)
             need_exclude |= bool(match)
+
+        match_extension = False
+        for extension in self._extensions:
+            match = extension.search(filename)
+            match_extension |= bool(match)
+
+        need_exclude |= not match_extension
+
         return need_exclude
 
     def _get_classifiaction(self, type_):
@@ -251,10 +269,19 @@ parser.add_argument('--exclude', '-x', action='append',
                     help='path to exclude')
 parser.add_argument('--clang-tidy', '-c', default='clang-tidy',
                     help='clang-tidy binary to use')
-
+parser.add_argument('--file-list', '-f',
+                    help='A file containing the list of files to check')
 args, extra_args = parser.parse_known_args()
+
+files = None  # pylint: disable=invalid-name
+if args.file_list is not None:
+    with open(args.file_list, 'r') as fh:
+        files = fh.readlines()
+        files = [file_.rstrip() for file_ in files]
+
 formater = ClangTidy2CodeQuality(args.compiledb_path,
                                  clang_tidy=args.clang_tidy,
+                                 file_list=files,
                                  excludes=args.exclude,
                                  arguments=extra_args)
 formater.run()

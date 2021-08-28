@@ -280,8 +280,18 @@ clang_tidy:
   extends:
     - .debian_testing_clang
   script:
+    - if [ 'x${CI_MERGE_REQUEST_ID}' != 'x' ]; then
+    -   git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
+    -   FILE_LIST_ARG='-f file_list'
+    - fi
     - test/ci/scripts/clang-tidy2code-quality.py
             -p ${CI_PROJECT_DIR}/build
+            -x third-party
+            -x test
+            -x examples
+            -x extra-packages
+            ${FILE_LIST_ARG}
             ${CI_PROJECT_DIR}/src
             ${CI_PROJECT_DIR}/test
             ${CI_PROJECT_DIR}/examples > clang-tidy-report.json
