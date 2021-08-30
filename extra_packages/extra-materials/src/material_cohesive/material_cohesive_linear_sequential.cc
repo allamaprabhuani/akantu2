@@ -1322,10 +1322,10 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
       }
 
       // EXPERIMENTAL !!!!! FOR ESHELBY PROBLEM
-      if (new_sigma > sigma_limit) {
-        new_sigma = sigma_limit;
-        normal_traction_vec = normal * sigma_limit;
-      }
+      // if (new_sigma > sigma_limit) {
+      //   new_sigma = sigma_limit;
+      //   normal_traction_vec = normal * sigma_limit;
+      // }
 
       Real new_delta;
       // set delta_c in function of G_c or a given delta_c value
