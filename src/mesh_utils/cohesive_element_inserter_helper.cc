@@ -132,14 +132,16 @@ CohesiveElementInserterHelper::CohesiveElementInserterHelper(
     auto & elements_to_facets = elements_to_subelements(type_facet, gt_facet);
 
     auto & elements_to_facet = elements_to_facets(facet_to_double.element);
-    if (elements_to_facet[1].type == _not_defined
-#if defined(AKANTU_COHESIVE_ELEMENT)
-        || elements_to_facet[1].kind() == _ek_cohesive
-#endif
-    ) {
+    if (elements_to_facet[1].type == _not_defined) {
       AKANTU_DEBUG_WARNING("attempt to double a facet on the boundary");
       continue;
     }
+#if defined(AKANTU_COHESIVE_ELEMENT)
+    if (elements_to_facet[1].kind() == _ek_cohesive) {
+      AKANTU_DEBUG_WARNING("attempt to double a facet connected to a cohesive");
+      continue;
+    }
+#endif
 
     auto new_facet = nb_new_facets(type_facet, gt_facet)++;
 
@@ -175,7 +177,8 @@ CohesiveElementInserterHelper::CohesiveElementInserterHelper(
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline auto
 CohesiveElementInserterHelper::hasElement(const Vector<UInt> & nodes_element,
                                           const Vector<UInt> & nodes) -> bool {
@@ -191,7 +194,8 @@ CohesiveElementInserterHelper::hasElement(const Vector<UInt> & nodes_element,
   return (it.first == nodes.end());
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline auto CohesiveElementInserterHelper::removeElementsInVector(
     const std::vector<Element> & elem_to_remove,
     std::vector<Element> & elem_list) -> bool {
@@ -220,7 +224,8 @@ inline auto CohesiveElementInserterHelper::removeElementsInVector(
   return deletions == 0;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::updateElementalConnectivity(
     Mesh & mesh, UInt old_node, UInt new_node,
     const std::vector<Element> & element_list,
@@ -276,7 +281,8 @@ void CohesiveElementInserterHelper::updateElementalConnectivity(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::updateSubelementToElement(UInt dim,
                                                               bool facet_mode) {
   auto & facets_to_double = *facets_to_double_by_dim[dim];
@@ -304,7 +310,8 @@ void CohesiveElementInserterHelper::updateSubelementToElement(UInt dim,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::updateElementToSubelement(UInt dim,
                                                               bool facet_mode) {
   auto & facets_to_double = *facets_to_double_by_dim[dim];
@@ -323,7 +330,8 @@ void CohesiveElementInserterHelper::updateElementToSubelement(UInt dim,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::updateQuadraticSegments(UInt dim) {
   AKANTU_DEBUG_IN();
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -395,7 +403,8 @@ void CohesiveElementInserterHelper::updateQuadraticSegments(UInt dim) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 UInt CohesiveElementInserterHelper::insertCohesiveElement() {
   auto nb_new_facets = insertFacetsOnly();
   if (nb_new_facets == 0) {
@@ -406,7 +415,8 @@ UInt CohesiveElementInserterHelper::insertCohesiveElement() {
   return nb_new_facets;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 UInt CohesiveElementInserterHelper::insertFacetsOnly() {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
@@ -435,7 +445,8 @@ UInt CohesiveElementInserterHelper::insertFacetsOnly() {
   return facets_to_double_by_dim[spatial_dimension - 1]->size();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim> void CohesiveElementInserterHelper::doubleFacets() {
   AKANTU_DEBUG_IN();
   NewElementsEvent new_facets;
@@ -506,7 +517,8 @@ template <UInt dim> void CohesiveElementInserterHelper::doubleFacets() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
   AKANTU_DEBUG_IN();
 
@@ -599,7 +611,8 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::doubleNodes(
     const std::vector<UInt> & old_nodes) {
   auto & position = mesh.getNodes();
@@ -624,7 +637,8 @@ void CohesiveElementInserterHelper::doubleNodes(
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
     const Element & starting_element, const Element & end_facet,
     const Vector<UInt> & subfacet_connectivity,
@@ -730,7 +744,8 @@ bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
   return facet_matched;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::updateCohesiveData() {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -802,7 +817,8 @@ void CohesiveElementInserterHelper::updateCohesiveData() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void CohesiveElementInserterHelper::doublePointFacet() {
   UInt spatial_dimension = mesh.getSpatialDimension();
   if (spatial_dimension != 1) {
@@ -849,7 +865,8 @@ void CohesiveElementInserterHelper::doublePointFacet() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt spatial_dimension>
 void CohesiveElementInserterHelper::doubleSubfacet() {
   if (spatial_dimension == 1) {
