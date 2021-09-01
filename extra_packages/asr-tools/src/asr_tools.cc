@@ -6076,12 +6076,24 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
   comm.allReduce(global_nb_penetr_quads, SynchronizerOperation::_sum);
 
   // find the critical coh between processors
-  UInt coh_nb = critical_coh_el.element;
-  if (proc_max_delta_max_excess != global_max_delta_max)
-    coh_nb = 777;
-
-  comm.allReduce(coh_nb, SynchronizerOperation::_max);
-  critical_coh_el.element = coh_nb;
+  if (global_max_delta_max) {
+    UInt coh_nb = critical_coh_el.element;
+    if (proc_max_delta_max_excess != global_max_delta_max) {
+      coh_nb = 0;
+    }
+    comm.allReduce(coh_nb, SynchronizerOperation::_max);
+    critical_coh_el.element = coh_nb;
+  }
+  // TODO: send crit coh from 1 proc to the rest and receive
+  // if (proc_max_delta_max_excess == global_max_delta_max) {
+  //   for (auto p : arange(nb_proc)) {
+  //     if (p != prank) {
+  //       comm.send(critical_coh_el, p, Tag::genTag(prank, 0, Tag::_crit_coh));
+  //     }
+  //   }
+  // } else {
+  //   comm.receive(critical_coh_el, p, Tag::genTag(prank, 0, Tag::_crit_coh));
+  // }
 
   AKANTU_DEBUG_OUT();
   return std::make_tuple(global_max_delta_max, critical_coh_el,
