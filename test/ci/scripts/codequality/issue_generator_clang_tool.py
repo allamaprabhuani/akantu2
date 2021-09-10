@@ -25,15 +25,14 @@ class ClangToolIssueGenerator(IssueGenerator):
         )
     ''', re.VERBOSE)
 
-    def __init__(self, issues_list, tool, **kwargs):
+    def __init__(self, tool, **kwargs):
         self._tool = tool
         opts = copy.copy(kwargs)
-        super().__init__(issues_list, **kwargs)
+        super().__init__(**kwargs)
 
         compiledb_path = opts.pop('compiledb_path')
         arguments = opts.pop('arguments', None)
         clang_tool = opts.pop('clang_tool_executable', tool)
-        file_list = opts.pop('file_list', None)
 
         self._command = [clang_tool]
 
@@ -42,10 +41,8 @@ class ClangToolIssueGenerator(IssueGenerator):
         if arguments is not None:
             self._command.extend(arguments)
 
-        if file_list is None:
-            file_list = self._get_files_from_compile_db(compiledb_path)
-
-        self._define_file_list(file_list)
+        if len(self._files) == 0 and compiledb_path:
+            self._get_files_from_compile_db(compiledb_path)
 
     def _get_files_from_compile_db(self, compiledb_path):  # pylint: disable=no-self-use
         file_list = []
@@ -55,17 +52,8 @@ class ClangToolIssueGenerator(IssueGenerator):
             compiledb = json.load(compiledb_fh)
             for entry in compiledb:
                 file_list.append(entry['file'])
-        return file_list
-
-    def _define_file_list(self, file_list):
-        for filename in file_list:
-            filename = os.path.relpath(filename)
-            need_exclude = self._issues._need_exclude(filename)
-            if need_exclude:
-                print_debug(f'[{self._tool}] exluding file: {filename}')
-                continue
-            print_info(f'[{self._tool}] adding file: {filename}')
-            self._files.append(filename)
+        self._files = file_list
+        self._filter_file_list()
 
     def _run_command(self, command):
         print_info(f'''[{self._tool}] command: {' '.join(command)}''')

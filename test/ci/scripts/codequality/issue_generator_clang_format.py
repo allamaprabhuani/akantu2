@@ -12,10 +12,10 @@ import subprocess
 class ClangFormatIssueGenerator(ClangToolIssueGenerator):
     """issue generator for clang format"""
 
-    def __init__(self, issues_list, **kwargs):
+    def __init__(self, **kwargs):
         kwargs['clang_tool_executable'] = kwargs.pop('clang_format_executable',
                                                      'clang-format')
-        super().__init__(issues_list, 'clang-format', **kwargs)
+        super().__init__('clang-format', **kwargs)
 
     def _get_classifiaction(self, issue):
         return (['Style'], 'info')
@@ -48,4 +48,4 @@ class ClangFormatIssueGenerator(ClangToolIssueGenerator):
                         'column': 1,
                         'end_line': i2,
                     }
-                    self._issues.add_issue(self._format_issue(issue))
+                    self.add_issue(issue)

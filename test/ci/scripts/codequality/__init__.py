@@ -21,19 +21,17 @@ def print_info(message):
 from .issue_generator_clang_tidy import ClangTidyIssueGenerator
 from .issue_generator_clang_format import ClangFormatIssueGenerator
 from .issue_generator_warnings import WarningsIssueGenerator
-from .issue_list import IssueList
 
 def run(cmd, **kwargs):
     import json
-    issue_list = IssueList(**kwargs)
 
     if cmd == 'clang_tidy':
-        tool = ClangTidyIssueGenerator(issue_list, **kwargs)
+        tool = ClangTidyIssueGenerator(**kwargs)
     elif cmd == 'clang_format':
-        tool = ClangFormatIssueGenerator(issue_list, **kwargs)
+        tool = ClangFormatIssueGenerator(**kwargs)
     elif cmd == 'warnings':
-        tool = WarningsIssueGenerator(issue_list, **kwargs)
+        tool = WarningsIssueGenerator(**kwargs)
 
     tool.generate_issues()
 
-    print(json.dumps(issue_list.issues))
+    print(json.dumps(tool.issues))

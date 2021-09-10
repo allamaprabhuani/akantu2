@@ -36,19 +36,20 @@ class WarningsIssueGenerator(IssueGenerator):
         },
     }
 
-    def __init__(self, issue_list, **kwargs):
-        super().__init__(issue_list, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         files = kwargs.pop('files')
         compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
 
+        self._input_files = []
         for _file in files:
             match = compiler_re.search(_file)
             if match:
-                self._files.append(_file)
+                self._input_files.append(_file)
 
     def generate_issues(self):
         '''parse warning files'''
-        for _file in self._files:
+        for _file in self._input_files:
             compiler = match.group(1)
             warnings = warn.get_warnings(_file, compiler)
 
@@ -61,7 +62,7 @@ class WarningsIssueGenerator(IssueGenerator):
                 'raw': warning,
             }
 
-            self._issues.add_issue(self._format_issue(issue))
+            self.add_issue(issue)
 
     def _get_classifiaction(self, warning):
         categories = ['Clarity']

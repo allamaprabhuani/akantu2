@@ -275,7 +275,7 @@ code_quality:
   artifacts:
     paths: [gl-code-quality-report.json]
 
-clang_tidy:
+clang_tools:
   stage: test
   extends:
     - .debian_testing_clang
@@ -288,21 +288,27 @@ clang_tidy:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
-            clang_tidy
-            -p ${CI_PROJECT_DIR}/build
             ${FILE_LIST_ARG}
-            ${CI_PROJECT_DIR}/src
-            ${CI_PROJECT_DIR}/test
-            ${CI_PROJECT_DIR}/examples > clang-tidy-report.json
+            clang_tidy
+            -p ${CI_PROJECT_DIR}/build > clang-tidy-report.json
+    - test/ci/scripts/cq
+            -x third-party
+            -x extra-packages
+            clang_format
+            -p ${CI_PROJECT_DIR}/build > clang-format-report.json
+
   needs:
     - job: build:debian_testing_clang
   allow_failure: true
   artifacts:
     paths:
       - clang-tidy-report.json
+      - clang-format-report.json
   artifacts:
     reports:
-      codequality: clang-tidy-report.json
+      codequality:
+        - clang-tidy-report.json
+        - clang-format-report.json
   rules:
     - if: '$CODE_QUALITY_DISABLED'
       when: never

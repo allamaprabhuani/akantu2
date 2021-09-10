@@ -1,16 +1,78 @@
 #!/usr/bin/env python3
 
-from . import print_debug
+from . import print_debug, print_info
 import hashlib
 import os
+import re
+import copy
 
 
 class IssueGenerator:
     """Interface for the issue generators"""
 
-    def __init__(self, issue_list, **kwargs):
-        self._issues = issue_list
-        self._files = []
+    def __init__(self, **kwargs):
+        self._files = kwargs.pop('file_list', [])
+
+        excludes = kwargs.pop('excludes', None)
+        if excludes is None:
+            excludes = []
+
+        extensions = kwargs.pop('extensions', None)
+        if extensions is None:
+            extensions = ['.cc', '.hh']
+
+        self._extensions = [
+            re.compile(r"\{}$".format(extension)) for extension in extensions
+        ]
+
+        self._exclude_patterns = [
+            re.compile(exclude) for exclude in excludes
+        ]
+
+        self._issues = {}
+        self._filter_file_list()
+
+    def _filter_file_list(self):
+        file_list = copy.copy(self._files)
+        for filename in file_list:
+            filename = os.path.relpath(filename)
+            need_exclude = self._need_exclude(filename)
+            if need_exclude:
+                print_debug(f'[{self._tool}] exluding file: {filename}')
+                continue
+            print_info(f'[{self._tool}] adding file: {filename}')
+            self._files.append(filename)
+
+    def _need_exclude(self, filename):
+        need_exclude = False
+        for pattern in self._exclude_patterns:
+            match = pattern.search(filename)
+            need_exclude |= bool(match)
+
+        match_extension = False
+        for extension in self._extensions:
+            match = extension.search(filename)
+            match_extension |= bool(match)
+
+        need_exclude |= not match_extension
+
+    def add_issue(self, unfmt_issue):
+        """add an issue to the list if not already present"""
+        issue = self._format_issue(unfmt_issue)
+
+        filepath = issue['location']['path']
+        if self._need_exclude(filepath):
+            return
+
+        if issue['fingerprint'] in self._issues:
+            return
+
+        self._issues[issue['fingerprint']] = issue
+
+    @property
+    def issues(self):
+        """get the list of registered issues"""
+        return list(self._issues.values())
 
     def _format_issue(self, unfmt_issue):
         filepath = os.path.relpath(unfmt_issue['file'])

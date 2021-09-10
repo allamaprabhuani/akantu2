@@ -54,10 +54,10 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
         },
     }
 
-    def __init__(self, issues_list, **kwargs):
+    def __init__(self, **kwargs):
         kwargs['clang_tool_executable'] = kwargs.pop('clang_tidy_executable',
                                                      'clang-tidy')
-        super().__init__(issues_list, 'clang-tidy',
+        super().__init__('clang-tidy',
                          need_compiledb=True, **kwargs)
 
     def _get_classifiaction(self, issue):
@@ -88,7 +88,7 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                 match = self.ISSUE_PARSE.match(line)
                 if match:
                     if len(issue) != 0:
-                        self._issues.add_issue(self._format_issue(issue))
+                        self.add_issue(issue)
                     issue = match.groupdict()
                     print_debug(f'[clang-tidy] new issue: {line}')
                 elif issue:
@@ -99,4 +99,4 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                         issue['content'] = [line]
                         print_debug(f'[clang-tidy] extra content: {line}')
 
-            self._issues.add_issue(self._format_issue(issue))
+            self.add_issue(issue)
