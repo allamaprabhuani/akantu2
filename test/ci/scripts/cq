@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+
+import click
+import codequality
+
+@click.group()
+@click.option('-x', '--exclude', default=[], multiple=True)
+@click.option('-e', '--extensions', default='.cc, .hh')
+@click.pass_context
+def cq(ctx, exclude, extensions):
+    ctx.obj['excludes'] = exclude
+    ctx.obj['extensions'] = [ext.strip() for ext in extensions.split(',')]
+
+@cq.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.option('-p', '--compiledb-path', default='.')
+@click.option('-c', '--clang-tidy-executable', default='clang-tidy')
+@click.option('-f', '--file-list', default=None, multiple=True)
+@click.argument('clang_tidy_args', nargs=-1, type=click.UNPROCESSED)
+@click.pass_context
+def clang_tidy(ctx, compiledb_path, clang_tidy_executable,
+               file_list, clang_tidy_args):
+    codequality.run('clang_tidy',
+                    compiledb_path=compiledb_path,
+                    clang_tidy_executable=clang_tidy_executable,
+                    arguments=clang_tidy_args,
+                    file_list=file_list,
+                    **ctx.obj)
+
+@cq.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.option('-p', '--compiledb-path', default='.')
+@click.option('-c', '--clang-format-executable', default='clang-format')
+@click.option('-f', '--file-list', default=None, multiple=True)
+@click.argument('clang_format_args', nargs=-1, type=click.UNPROCESSED)
+@click.pass_context
+def clang_format(ctx, compiledb_path, clang_format_executable,
+               file_list, clang_format_args):
+    codequality.run('clang_format',
+                    compiledb_path=compiledb_path,
+                    clang_format_executable=clang_format_executable,
+                    arguments=clang_format_args,
+                    file_list=file_list,
+                    **ctx.obj)
+
+@cq.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.argument('files', nargs=-1, type=click.UNPROCESSED)
+@click.pass_context
+def warnings(ctx, files):
+    codequality.run('warnings',
+                    files=files,
+                    **ctx.obj)
+
+if __name__ == '__main__':
+    cq(obj={})

@@ -285,12 +285,11 @@ clang_tidy:
     -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
     -   FILE_LIST_ARG='-f file_list'
     - fi
-    - test/ci/scripts/clang_tidy2code_quality.py
-            -p ${CI_PROJECT_DIR}/build
+    - test/ci/scripts/cq
             -x third-party
-            -x test
-            -x examples
             -x extra-packages
+            clang_tidy
+            -p ${CI_PROJECT_DIR}/build
             ${FILE_LIST_ARG}
             ${CI_PROJECT_DIR}/src
             ${CI_PROJECT_DIR}/test
@@ -316,8 +315,11 @@ compilation_warnings:
     - pip install warning-parser
     - pip install termcolor
     - ls build-*-err.log
-    - test/ci/scripts/warnings2code-quality.py
-           build-*-err.log > warnings-report.json
+    - test/ci/scripts/cq
+            -x third-party
+            -x extra-packages
+            warnings
+            build-*-err.log > warnings-report.json
   needs:
     - job: build:debian_testing_clang
     - job: build:debian_testing_gcc
