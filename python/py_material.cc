@@ -40,7 +40,7 @@
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <solid_mechanics_model_cohesive.hh>
 #endif
-#include <material_elastic.cc>
+#include <material_elastic.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
