@@ -21,7 +21,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
 
 # for ci
 RUN apt-get -qq update && apt-get -qq -y install \
-    gmsh python3-pytest \
+    gmsh python3-pytest python3-click python3-termcolor\
     ccache clang-format python3-flake8 clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
