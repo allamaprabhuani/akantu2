@@ -34,6 +34,7 @@ class IssueGenerator:
 
     def _filter_file_list(self):
         file_list = copy.copy(self._files)
+        self._files = []
         for filename in file_list:
             filename = os.path.relpath(filename)
             need_exclude = self._need_exclude(filename)
@@ -55,6 +56,7 @@ class IssueGenerator:
             match_extension |= bool(match)
 
         need_exclude |= not match_extension
+        return need_exclude
 
     def add_issue(self, unfmt_issue):
         """add an issue to the list if not already present"""
