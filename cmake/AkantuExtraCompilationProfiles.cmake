@@ -86,11 +86,11 @@ endfunction()
 
 # Profiling
 declare_compilation_profile(PROFILING
-  COMPILER "-g -ggdb3 -pg -DNDEBUG -DAKANTU_NDEBUG -O2")
+  COMPILER "-g -ggdb3 -pg -DNDEBUG -DAKANTU_NDEBUG -O3")
 
 # Valgrind
 declare_compilation_profile(VALGRIND
-  COMPILER "-g -ggdb3 -pg -DNDEBUG -DAKANTU_NDEBUG -O2")
+  COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -O3")
 
 # Coverage
 declare_compilation_profile(COVERAGE

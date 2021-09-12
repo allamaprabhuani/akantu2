@@ -581,8 +581,8 @@ function(register_test test_name)
     list(APPEND _arguments -r "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
   endif()
 
-  if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRIND_EXECUTABLE)
-    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE}")
+  if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
+    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
   string(REPLACE ";" " " _command "${_arguments}")

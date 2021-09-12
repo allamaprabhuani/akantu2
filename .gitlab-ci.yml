@@ -122,7 +122,7 @@ docker build:ubuntu-lts:
     #CCACHE_NOHASHDIR: 1
     #CCACHE_COMPILERCHECK: content
   cache:
-    key: ${output}
+    key: ${output}_${BUILD_TYPE}
     policy: pull-push
     paths:
       - .ccache/
@@ -218,6 +218,29 @@ test:debian_testing_gcc:
     - .tests
   needs:
     - job: build:debian_testing_gcc
+
+# ------------------------------------------------------------------------------
+configure:debian_testing_gcc_valgrind:
+  extends:
+    - .debian_testing_gcc
+    - .build_valgrind
+    - .configure
+
+build:debian_testing_gcc_valgrind:
+  extends:
+    - .debian_testing_gcc
+    - .build_valgrind
+    - .build
+  needs:
+    - job: configure:debian_testing_gcc_valgrind
+
+test:debian_testing_gcc_valgrind:
+  extends:
+    - .debian_testing_gcc
+    - .build_valgrind
+    - .tests
+  needs:
+    - job: build:debian_testing_gcc_valgrind
 
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
