@@ -21,7 +21,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
     gcovr binutils \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install warning_parser
+RUN pip3 install warning_parser
 
 COPY .openmpi /root/.openmpi
 
