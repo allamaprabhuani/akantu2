@@ -582,7 +582,7 @@ function(register_test test_name)
   endif()
 
   if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
-    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
+    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
   string(REPLACE ";" " " _command "${_arguments}")
