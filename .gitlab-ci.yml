@@ -312,12 +312,12 @@ clang_tools:
             -x third-party
             -x extra-packages
             ${FILE_LIST_ARG}
-            clang_tidy
+            clang-tidy
             -p ${CI_PROJECT_DIR}/build > clang-tidy-report.json
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
-            clang_format
+            clang-format
             -p ${CI_PROJECT_DIR}/build > clang-format-report.json
 
   needs:
