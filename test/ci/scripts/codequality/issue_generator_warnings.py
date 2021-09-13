@@ -50,19 +50,24 @@ class WarningsIssueGenerator(IssueGenerator):
     def generate_issues(self):
         '''parse warning files'''
         for _file in self._input_files:
-            compiler = match.group(1)
+            match = compiler_re.search(_file)
+            if match:
+                compiler = match.group(1)
+            else:
+                print_info(f"Skipped {_file}, could not determine compiler")
+                continue
             warnings = warn.get_warnings(_file, compiler)
+            for warning in warnings:
+                issue = {
+                    'name': warning.get_category(),
+                    'description': warning.get_message(),
+                    'file': warning.get_filepath(),
+                    'line': warning.get_line(),
+                    'column': warning.get_column(),
+                    'raw': warning,
+                }
 
-            issue = {
-                'name': warning.get_category(),
-                'description': warning.get_message(),
-                'file': warning.get_filepath(),
-                'line': warning.get_line(),
-                'column': warning.get_column(),
-                'raw': warning,
-            }
-
-            self.add_issue(issue)
+                self.add_issue(issue)
 
     def _get_classifiaction(self, warning):
         categories = ['Clarity']
