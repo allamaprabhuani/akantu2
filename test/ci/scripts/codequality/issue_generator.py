@@ -101,7 +101,6 @@ class IssueGenerator:
             },
         }
 
-
         if 'end_line' in unfmt_issue:
             issue['location']['positions']['end'] = {
                 "line": unfmt_issue['end_line'],

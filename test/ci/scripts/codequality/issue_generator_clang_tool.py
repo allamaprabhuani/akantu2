@@ -44,7 +44,7 @@ class ClangToolIssueGenerator(IssueGenerator):
         if len(self._files) == 0 and compiledb_path:
             self._get_files_from_compile_db(compiledb_path)
 
-    def _get_files_from_compile_db(self, compiledb_path):  # pylint: disable=no-self-use
+    def _get_files_from_compile_db(self, compiledb_path):
         file_list = []
         with open(os.path.join(
                 compiledb_path,

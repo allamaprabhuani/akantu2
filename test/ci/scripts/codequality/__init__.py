@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
-import sys
+import json as _cq_json
+import sys as _cq_sys
 try:
-    from termcolor import colored
+    from termcolor import colored as _cq_colored
 except ImportError:
-    def colored(text, color):  # pylint: disable=unused-argument
+    def _cq_colored(text, color):  # pylint: disable=unused-argument
         """fallback function for termcolor.colored"""
         return text
-
-def print_debug(message):
-    '''helper function to print debug messages'''
-    print(f'Debug: {colored(message, "red")}',
-          file=sys.stderr, flush=True)
-
-
-def print_info(message):
-    '''helper function to print info messages'''
-    print(f'Info: {colored(message, "blue")}',
-          file=sys.stderr, flush=True)
-
 from .issue_generator_clang_tidy import ClangTidyIssueGenerator
 from .issue_generator_clang_format import ClangFormatIssueGenerator
 from .issue_generator_warnings import WarningsIssueGenerator
 
-def run(cmd, **kwargs):
-    import json
 
+def print_debug(message):
+    '''helper function to print debug messages'''
+    print(f'Debug: {_cq_colored(message, "red")}',
+          file=_cq_sys.stderr, flush=True)
+
+def print_info(message):
+    '''helper function to print info messages'''
+    print(f'Info: {_cq_colored(message, "blue")}',
+          file=_cq_sys.stderr, flush=True)
+
+def run(cmd, **kwargs):
     if cmd == 'clang_tidy':
         tool = ClangTidyIssueGenerator(**kwargs)
     elif cmd == 'clang_format':
@@ -34,4 +32,4 @@ def run(cmd, **kwargs):
 
     tool.generate_issues()
 
-    print(json.dumps(tool.issues))
+    print(_cq_json.dumps(tool.issues))

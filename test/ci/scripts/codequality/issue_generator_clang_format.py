@@ -39,7 +39,10 @@ class ClangFormatIssueGenerator(ClangToolIssueGenerator):
             s = difflib.SequenceMatcher(None, unformated_file, formated_file)
             for tag, i1, i2, j1, j2 in s.get_opcodes():
                 if tag != 'equal':
-                    diff = list(difflib.unified_diff(unformated_file[i1:i2], formated_file[j1:j2]))
+                    diff = list(
+                        difflib.unified_diff(
+                            unformated_file[i1:i2],
+                            formated_file[j1:j2]))
                     issue = {
                         'name': tag,
                         'description': ''.join(diff[3:]),
