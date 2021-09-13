@@ -7,10 +7,6 @@ except ImportError:
     def _cq_colored(text, color):  # pylint: disable=unused-argument
         """fallback function for termcolor.colored"""
         return text
-from .issue_generator_clang_tidy import ClangTidyIssueGenerator
-from .issue_generator_clang_format import ClangFormatIssueGenerator
-from .issue_generator_warnings import WarningsIssueGenerator
-
 
 def print_debug(message):
     '''helper function to print debug messages'''
@@ -23,6 +19,10 @@ def print_info(message):
           file=_cq_sys.stderr, flush=True)
 
 def run(cmd, **kwargs):
+    from .issue_generator_clang_tidy import ClangTidyIssueGenerator  # NOQA
+    from .issue_generator_clang_format import ClangFormatIssueGenerator  # NOQA
+    from .issue_generator_warnings import WarningsIssueGenerator  # NOQA
+
     if cmd == 'clang_tidy':
         tool = ClangTidyIssueGenerator(**kwargs)
     elif cmd == 'clang_format':
