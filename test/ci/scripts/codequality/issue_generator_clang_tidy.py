@@ -98,5 +98,5 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                     else:
                         issue['content'] = [line]
                         print_debug(f'[clang-tidy] extra content: {line}')
-
-            self.add_issue(issue)
+            if len(issue) != 0:
+                self.add_issue(issue)
