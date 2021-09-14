@@ -57,7 +57,7 @@ class WarningsIssueGenerator(IssueGenerator):
             warnings = warn.get_warnings(_file, compiler)
             for warning in warnings:
                 issue = {
-                    'name': warning.get_category(),
+                    'name': f'warning:{compiler}-{warning.get_category()}',
                     'description': warning.get_message(),
                     'file': warning.get_filepath(),
                     'line': warning.get_line(),

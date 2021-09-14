@@ -81,7 +81,8 @@ class IssueGenerator:
         issue = {
             'type': 'issue',
             'check_name': unfmt_issue['name'],
-            'description': unfmt_issue['description'],
+            'description': (f"[{unfmt_issue['name']}]" + \
+                            "{unfmt_issue['description']}"),
             'location': {
                 "path": filepath,
                 "lines": {

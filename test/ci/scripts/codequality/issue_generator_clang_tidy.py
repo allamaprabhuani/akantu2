@@ -61,7 +61,7 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                          need_compiledb=True, **kwargs)
 
     def _get_classifiaction(self, issue):
-        type_ = issue['name']
+        type_ = issue['type']
         categories = ['Bug Risk']
         severity = 'blocker'
 
@@ -90,6 +90,9 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                     if len(issue) != 0:
                         self.add_issue(issue)
                     issue = match.groupdict()
+                    issue['type'] = issue['name']
+                    issue['name'] = f"clang-tidy:{issue['name']}"
+
                     print_debug(f'[clang-tidy] new issue: {line}')
                 elif issue:
                     if 'content' in issue:

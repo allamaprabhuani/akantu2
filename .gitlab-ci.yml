@@ -368,6 +368,8 @@ cq:clang_tidy:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
+            -x pybind11
+            -x test
             ${FILE_LIST_ARG}
             clang-tidy
             -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
@@ -397,8 +399,6 @@ cq:compilation_warnings:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
-            -x pybind11
-            -x test
             warnings
             build-*-err.log > gl-warnings-report.json
   needs:
