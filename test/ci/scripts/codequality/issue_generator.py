@@ -39,9 +39,9 @@ class IssueGenerator:
             filename = os.path.relpath(filename)
             need_exclude = self._need_exclude(filename)
             if need_exclude:
-                print_debug(f'[{self._tool}] exluding file: {filename}')
+                print_debug(f'exluding file: {filename}')
                 continue
-            print_info(f'[{self._tool}] adding file: {filename}')
+            print_info(f'adding file: {filename}')
             self._files.append(filename)
 
     def _need_exclude(self, filename):

@@ -329,9 +329,7 @@ clang_tools:
       - clang-format-report.json
   artifacts:
     reports:
-      codequality:
-        - clang-tidy-report.json
-        - clang-format-report.json
+      codequality: [clang-tidy-report.json, clang-format-report.json]
   rules:
     - if: '$CODE_QUALITY_DISABLED'
       when: never

@@ -40,23 +40,20 @@ class WarningsIssueGenerator(IssueGenerator):
         super().__init__(**kwargs)
         files = kwargs.pop('files')
 
-        self._input_files = []
+        self._input_files = {}
+        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
+
         for _file in files:
             match = compiler_re.search(_file)
             if match:
-                self._input_files.append(_file)
+                self._input_files[match.group(1)] = _file
+            else:
+                print_info(f"Skipped {_file}, could not determine compiler")
 
     def generate_issues(self):
         '''parse warning files'''
-        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
 
-        for _file in self._input_files:
-            match = compiler_re.search(_file)
-            if match:
-                compiler = match.group(1)
-            else:
-                print_info(f"Skipped {_file}, could not determine compiler")
-                continue
+        for compiler, _file in self._input_files.items():
             warnings = warn.get_warnings(_file, compiler)
             for warning in warnings:
                 issue = {
