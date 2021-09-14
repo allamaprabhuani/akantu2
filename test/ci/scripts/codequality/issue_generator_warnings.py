@@ -39,7 +39,6 @@ class WarningsIssueGenerator(IssueGenerator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         files = kwargs.pop('files')
-        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
 
         self._input_files = []
         for _file in files:
@@ -49,6 +48,8 @@ class WarningsIssueGenerator(IssueGenerator):
 
     def generate_issues(self):
         '''parse warning files'''
+        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
+
         for _file in self._input_files:
             match = compiler_re.search(_file)
             if match:
