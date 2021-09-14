@@ -91,7 +91,7 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                         self.add_issue(issue)
                     issue = match.groupdict()
                     issue['type'] = issue['name']
-                    issue['name'] = f"clang-tidy:{issue['name']}"
+                    issue['name'] = f'''clang-tidy:{issue['name']}'''
 
                     print_debug(f'[clang-tidy] new issue: {line}')
                 elif issue:

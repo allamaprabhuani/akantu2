@@ -44,7 +44,7 @@ class ClangFormatIssueGenerator(ClangToolIssueGenerator):
                             unformated_file[i1:i2],
                             formated_file[j1:j2]))
                     issue = {
-                        'name': f'clang-format:{tag}',
+                        'name': f'''clang-format:{tag}''',
                         'description': ''.join(diff[3:]),
                         'file': filename,
                         'line': i1,
