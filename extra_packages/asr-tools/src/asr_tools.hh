@@ -79,12 +79,10 @@ public:
   void applyLoadedBC(const Vector<Real> & traction, const ID & element_group,
                      bool multi_axial);
 
-  /// This function computes the average displacement along one side of the
-  /// sample,
-  /// caused by the expansion of gel pockets
-  Real computeAverageDisplacement(SpatialDirection direction);
+  /// This function computes the average strain along one side
+  Real computeAverageStrain(SpatialDirection direction);
 
-  /// This function computes a compoment of average volumetric strain tensor,
+  /// Computes a compoment of average volumetric strain tensor,
   /// i.e. eps_macro_xx or eps_macro_yy or eps_macro_zz
   Real computeVolumetricExpansion(SpatialDirection direction);
 
@@ -383,7 +381,7 @@ public:
 
   /// sets all facets within specified material to not be considered for
   /// insertion
-  void preventCohesiveInsertionInMaterial(std::string facet_mat_name);
+  Real preventCohesiveInsertionInMaterial(std::string facet_mat_name);
 
   /// set update stiffness in all linear sequential cohesives
   template <UInt dim> void setUpdateStiffness(bool update_stiffness);

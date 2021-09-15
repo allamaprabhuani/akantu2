@@ -286,10 +286,10 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
   }
 }
 
-/* -------------------------------------------------------------------------- */
-Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
+/* ------------------------------------------------------------------- */
+Real ASRTools::computeAverageStrain(SpatialDirection direction) {
 
-  Real av_displ = 0;
+  Real av_displ{0};
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
@@ -297,9 +297,13 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   Real right = upperBounds(0);
   Real left = lowerBounds(0);
   Real top = upperBounds(1);
+  Real bottom = lowerBounds(1);
   Real front;
+  Real back;
+  Real length{0};
   if (dim == 3) {
     front = upperBounds(2);
+    back = lowerBounds(2);
   }
   Real eps = std::abs((right - left) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
@@ -307,6 +311,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   UInt nb_nodes = 0;
 
   if (direction == _x) {
+    length = std::abs(right - left);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if (std::abs(pos(i, 0) - right) < eps && mesh.isLocalOrMasterNode(i)) {
         av_displ += disp(i, 0);
@@ -316,6 +321,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   }
 
   else if (direction == _y) {
+    length = std::abs(top - bottom);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if (std::abs(pos(i, 1) - top) < eps && mesh.isLocalOrMasterNode(i)) {
         av_displ += disp(i, 1);
@@ -325,6 +331,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   } else if ((direction == _z) && (model.getSpatialDimension() == 3)) {
     AKANTU_DEBUG_ASSERT(model.getSpatialDimension() == 3,
                         "no z-direction in 2D problem");
+    length = std::abs(front - back);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if (std::abs(pos(i, 2) - front) < eps && mesh.isLocalOrMasterNode(i)) {
         av_displ += disp(i, 2);
@@ -342,7 +349,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
     comm.allReduce(nb_nodes, SynchronizerOperation::_sum);
   }
 
-  return av_displ / nb_nodes;
+  return av_displ / nb_nodes / length;
 }
 
 /* --------------------------------------------------------------------------
@@ -746,10 +753,10 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   const auto dim = mesh.getSpatialDimension();
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_strain_x = computeVolumetricExpansion(_x);
-  Real av_strain_y = computeVolumetricExpansion(_y);
-  Real av_displ_x = computeAverageDisplacement(_x);
-  Real av_displ_y = computeAverageDisplacement(_y);
+  Real av_tens_strain_x = computeVolumetricExpansion(_x);
+  Real av_tens_strain_y = computeVolumetricExpansion(_y);
+  Real av_lin_strain_x = computeAverageStrain(_x);
+  Real av_lin_strain_y = computeAverageStrain(_y);
   Real damage_agg, damage_paste, crack_agg, crack_paste;
   computeDamageRatioPerMaterial(damage_agg, "aggregate");
   computeDamageRatioPerMaterial(damage_paste, "paste");
@@ -762,21 +769,22 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << av_strain_x << "," << av_strain_y << "," << av_displ_x
-                  << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << "," << crack_agg << "," << crack_paste
-                  << std::endl;
+      file_output << av_tens_strain_x << "," << av_tens_strain_y << ","
+                  << av_lin_strain_x << "," << av_lin_strain_y << ","
+                  << damage_agg << "," << damage_paste << "," << crack_agg
+                  << "," << crack_paste << std::endl;
   }
 
   else {
-    Real av_displ_z = computeAverageDisplacement(_z);
-    Real av_strain_z = computeVolumetricExpansion(_z);
+    Real av_lin_strain_z = computeAverageStrain(_z);
+    Real av_tens_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << av_strain_x << "," << av_strain_y << "," << av_strain_z
-                  << "," << av_displ_x << "," << av_displ_y << "," << av_displ_z
-                  << "," << damage_agg << "," << damage_paste << ","
-                  << crack_agg << "," << crack_paste << std::endl;
+      file_output << av_tens_strain_x << "," << av_tens_strain_y << ","
+                  << av_tens_strain_z << "," << av_lin_strain_x << ","
+                  << av_lin_strain_y << "," << av_lin_strain_z << ","
+                  << damage_agg << "," << damage_paste << "," << crack_agg
+                  << "," << crack_paste << std::endl;
   }
 }
 
@@ -789,10 +797,10 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_strain_x = computeVolumetricExpansion(_x);
-  Real av_strain_y = computeVolumetricExpansion(_y);
-  Real av_displ_x = computeAverageDisplacement(_x);
-  Real av_displ_y = computeAverageDisplacement(_y);
+  Real av_tens_strain_x = computeVolumetricExpansion(_x);
+  Real av_tens_strain_y = computeVolumetricExpansion(_y);
+  Real av_lin_strain_x = computeAverageStrain(_x);
+  Real av_lin_strain_y = computeAverageStrain(_y);
   Real damage_agg, damage_paste, crack_agg, crack_paste;
   computeDamageRatioPerMaterial(damage_agg, "aggregate");
   computeDamageRatioPerMaterial(damage_paste, "paste");
@@ -805,26 +813,25 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << "," << crack_agg << "," << crack_paste
-                  << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_lin_strain_x << "," << av_lin_strain_y << ","
+                  << damage_agg << "," << damage_paste << "," << crack_agg
+                  << "," << crack_paste << std::endl;
   }
 
   else {
-    Real av_displ_z = computeAverageDisplacement(_z);
-    Real av_strain_z = computeVolumetricExpansion(_z);
+    Real av_lin_strain_z = computeAverageStrain(_z);
+    Real av_tens_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_strain_z << "," << av_displ_x << "," << av_displ_y
-                  << "," << av_displ_z << "," << damage_agg << ","
-                  << damage_paste << "," << crack_agg << "," << crack_paste
-                  << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_tens_strain_z << "," << av_lin_strain_x << ","
+                  << av_lin_strain_y << "," << av_lin_strain_z << ","
+                  << damage_agg << "," << damage_paste << "," << crack_agg
+                  << "," << crack_paste << std::endl;
   }
 }
-/* --------------------------------------------------------------------------
- */
+/* ----------------------------------------------------------------- */
 void ASRTools::computeAveragePropertiesCohesiveModel(
     std::ofstream & file_output, Real time) {
   const auto & mesh = model.getMesh();
@@ -832,10 +839,10 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_strain_x = computeVolumetricExpansion(_x);
-  Real av_strain_y = computeVolumetricExpansion(_y);
-  Real av_displ_x = computeAverageDisplacement(_x);
-  Real av_displ_y = computeAverageDisplacement(_y);
+  Real av_tens_strain_x = computeVolumetricExpansion(_x);
+  Real av_tens_strain_y = computeVolumetricExpansion(_y);
+  Real av_lin_strain_x = computeAverageStrain(_x);
+  Real av_lin_strain_y = computeAverageStrain(_y);
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
@@ -843,18 +850,19 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_displ_x << "," << av_displ_y << "," << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_lin_strain_x << "," << av_lin_strain_y << ","
+                  << std::endl;
   }
 
   else {
-    Real av_displ_z = computeAverageDisplacement(_z);
-    Real av_strain_z = computeVolumetricExpansion(_z);
+    Real av_lin_strain_z = computeAverageStrain(_z);
+    Real av_tens_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_strain_z << "," << av_displ_x << "," << av_displ_y
-                  << "," << av_displ_z << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_tens_strain_z << "," << av_lin_strain_x << ","
+                  << av_lin_strain_y << "," << av_lin_strain_z << std::endl;
   }
 }
 /* --------------------------------------------------------------------------
@@ -866,10 +874,10 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_strain_x = computeVolumetricExpansion(_x);
-  Real av_strain_y = computeVolumetricExpansion(_y);
-  Real av_displ_x = computeAverageDisplacement(_x);
-  Real av_displ_y = computeAverageDisplacement(_y);
+  Real av_tens_strain_x = computeVolumetricExpansion(_x);
+  Real av_tens_strain_y = computeVolumetricExpansion(_y);
+  Real av_lin_strain_x = computeAverageStrain(_x);
+  Real av_lin_strain_y = computeAverageStrain(_y);
   Real crack_agg = averageScalarField("crack_volume_ratio_agg");
   Real crack_paste = averageScalarField("crack_volume_ratio_paste");
 
@@ -879,20 +887,20 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_displ_x << "," << av_displ_y << "," << crack_agg << ","
-                  << crack_paste << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_lin_strain_x << "," << av_lin_strain_y << ","
+                  << crack_agg << "," << crack_paste << std::endl;
   }
 
   else {
-    Real av_displ_z = computeAverageDisplacement(_z);
-    Real av_strain_z = computeVolumetricExpansion(_z);
+    Real av_lin_strain_z = computeAverageStrain(_z);
+    Real av_tens_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_strain_z << "," << av_displ_x << "," << av_displ_y
-                  << "," << av_displ_z << "," << crack_agg << "," << crack_paste
-                  << std::endl;
+      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
+                  << "," << av_tens_strain_z << "," << av_lin_strain_x << ","
+                  << av_lin_strain_y << "," << av_lin_strain_z << ","
+                  << crack_agg << "," << crack_paste << std::endl;
   }
 }
 
@@ -6094,7 +6102,7 @@ template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<2>();
 template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<3>();
 
 /* ------------------------------------------------------------------ */
-void ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
+Real ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -6107,13 +6115,18 @@ void ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
   AKANTU_DEBUG_ASSERT(mat_coh != nullptr, "Chosen material is not cohesive");
 
   auto && facets = mat_coh->getFacetFilter();
-
+  UInt facets_excluded{0};
   for (const auto & el_type : facets.elementTypes(dim - 1, gt, _ek_regular)) {
     auto && element_ids = facets(el_type, gt);
     for (auto && el_id : element_ids) {
       inserter.getCheckFacets(el_type, gt)(el_id) = false;
+      facets_excluded++;
     }
   }
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(facets_excluded, SynchronizerOperation::_sum);
+  return facets_excluded;
 }
 
 /* ------------------------------------------------------------------- */
