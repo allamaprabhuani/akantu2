@@ -341,7 +341,7 @@ public:
   void outputCrackData(std::ofstream & file_output, Real time);
 
   /// computes crack area and volume per material and ASR volume
-  std::tuple<Real, Real, Real> computeCrackData(const ID & material_name);
+  std::tuple<Real, Real> computeCrackData(const ID & material_name);
 
   /// computes normal openings between asr central nodes and outputs them
   void outputCrackOpenings(std::ofstream & file_output, Real time);

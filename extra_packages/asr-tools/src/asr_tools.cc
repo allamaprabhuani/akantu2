@@ -5588,31 +5588,30 @@ void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
   auto data_mor = computeCrackData("mor-mor");
   auto area_agg = std::get<0>(data_agg);
   auto vol_agg = std::get<1>(data_agg);
-  auto asr_vol_agg = std::get<2>(data_agg);
+  // auto asr_vol_agg = std::get<2>(data_agg);
   auto area_agg_mor = std::get<0>(data_agg_mor);
   auto vol_agg_mor = std::get<1>(data_agg_mor);
-  auto asr_vol_agg_mor = std::get<2>(data_agg_mor);
+  // auto asr_vol_agg_mor = std::get<2>(data_agg_mor);
   auto area_mor = std::get<0>(data_mor);
   auto vol_mor = std::get<1>(data_mor);
-  auto asr_vol_mor = std::get<2>(data_mor);
+  // auto asr_vol_mor = std::get<2>(data_mor);
   Real total_area = area_agg + area_agg_mor + area_mor;
   Real total_volume = vol_agg + vol_agg_mor + vol_mor;
-  Real asr_volume = asr_vol_agg + asr_vol_agg_mor + asr_vol_mor;
+  // Real asr_volume = asr_vol_agg + asr_vol_agg_mor + asr_vol_mor;
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
 
   if (prank == 0) {
-    file_output << time << "," << asr_volume << "," << area_agg << ","
-                << area_agg_mor << "," << area_mor << "," << vol_agg << ","
-                << vol_agg_mor << "," << vol_mor << "," << total_area << ","
-                << total_volume << std::endl;
+    file_output << time << "," << area_agg << "," << area_agg_mor << ","
+                << area_mor << "," << vol_agg << "," << vol_agg_mor << ","
+                << vol_mor << "," << total_area << "," << total_volume
+                << std::endl;
   }
 }
 
 /* --------------------------------------------------------------- */
-std::tuple<Real, Real, Real>
-ASRTools::computeCrackData(const ID & material_name) {
+std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   GhostType gt = _not_ghost;
@@ -5627,7 +5626,7 @@ ASRTools::computeCrackData(const ID & material_name) {
   const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
   Real crack_volume{0};
   Real crack_area{0};
-  Real ASR_volume{0};
+  // Real ASR_volume{0};
 
   // Loop over the cohesive element types
   for (auto & element_type : filter_map.elementTypes(dim, gt, _ek_cohesive)) {
@@ -5659,8 +5658,9 @@ ASRTools::computeCrackData(const ID & material_name) {
       *normal_eigen_opening_norm_it = eig_opening.dot(*normal_it);
     }
 
-    ASR_volume += fe_engine.integrate(normal_eigen_opening_norm, element_type,
-                                      gt, filter);
+    // ASR_volume += fe_engine.integrate(normal_eigen_opening_norm,
+    // element_type,
+    //                                   gt, filter);
 
     crack_volume +=
         fe_engine.integrate(real_normal_opening_norm, element_type, gt, filter);
@@ -5670,12 +5670,12 @@ ASRTools::computeCrackData(const ID & material_name) {
     crack_area += fe_engine.integrate(area, element_type, gt, filter);
   }
 
-  // auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getWorldCommunicator();
   // comm.allReduce(ASR_volume, SynchronizerOperation::_sum);
-  // comm.allReduce(crack_volume, SynchronizerOperation::_sum);
-  // comm.allReduce(crack_area, SynchronizerOperation::_sum);
+  comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  comm.allReduce(crack_area, SynchronizerOperation::_sum);
 
-  return std::make_tuple(crack_area, crack_volume, ASR_volume);
+  return std::make_tuple(crack_area, crack_volume);
 }
 /* --------------------------------------------------------------- */
 void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
@@ -6084,16 +6084,6 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
     comm.allReduce(coh_nb, SynchronizerOperation::_max);
     critical_coh_el.element = coh_nb;
   }
-  // TODO: send crit coh from 1 proc to the rest and receive
-  // if (proc_max_delta_max_excess == global_max_delta_max) {
-  //   for (auto p : arange(nb_proc)) {
-  //     if (p != prank) {
-  //       comm.send(critical_coh_el, p, Tag::genTag(prank, 0, Tag::_crit_coh));
-  //     }
-  //   }
-  // } else {
-  //   comm.receive(critical_coh_el, p, Tag::genTag(prank, 0, Tag::_crit_coh));
-  // }
 
   AKANTU_DEBUG_OUT();
   return std::make_tuple(global_max_delta_max, critical_coh_el,
