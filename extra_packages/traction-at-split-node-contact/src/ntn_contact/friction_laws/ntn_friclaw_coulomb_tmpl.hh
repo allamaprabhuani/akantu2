@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -38,8 +38,7 @@ namespace akantu {
 template <class Regularisation>
 NTNFricLawCoulomb<Regularisation>::NTNFricLawCoulomb(NTNBaseContact & contact,
                                                      const ID & id)
-    : Regularisation(contact, id),
-      mu(0, 1, 0., id + ":mu", 0., "mu") {
+    : Regularisation(contact, id), mu(0, 1, 0., id + ":mu", 0., "mu") {
   AKANTU_DEBUG_IN();
 
   Regularisation::registerSynchronizedArray(this->mu);
@@ -68,7 +67,7 @@ void NTNFricLawCoulomb<Regularisation>::computeFrictionalStrength() {
     if (!is_in_contact(n)) {
       strength(n) = 0.;
 
-    // node pair is in contact
+      // node pair is in contact
     } else {
       // compute frictional strength
       strength(n) = this->mu(n) * pressure(n);

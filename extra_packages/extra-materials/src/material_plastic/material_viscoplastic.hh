@@ -54,8 +54,7 @@ public:
                              GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
 protected:

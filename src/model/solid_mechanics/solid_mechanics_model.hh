@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -215,7 +215,6 @@ public:
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
-  
 protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
@@ -568,7 +567,7 @@ protected:
 
   friend class Material;
 
-    template <class Model_> friend class CouplerSolidContactTemplate;
+  template <class Model_> friend class CouplerSolidContactTemplate;
 };
 
 /* -------------------------------------------------------------------------- */

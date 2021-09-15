@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -60,8 +60,8 @@ public:
   ~SurfaceSelector() override = default;
 
 public:
-  virtual Array<UInt> & getMasterList() {  AKANTU_TO_IMPLEMENT();}
-  virtual Array<UInt> & getSlaveList() {  AKANTU_TO_IMPLEMENT();}
+  virtual Array<UInt> & getMasterList() { AKANTU_TO_IMPLEMENT(); }
+  virtual Array<UInt> & getSlaveList() { AKANTU_TO_IMPLEMENT(); }
 
 protected:
   Mesh & mesh;
@@ -69,7 +69,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 /**
- * class that selects contact surface from physical names 
+ * class that selects contact surface from physical names
  */
 class PhysicalSurfaceSelector : public SurfaceSelector {
 public:
@@ -95,8 +95,8 @@ public:
 
 protected:
   void onElementsAdded(const Array<Element> & element_list,
-		       const NewElementsEvent & event) override;
-  
+                       const NewElementsEvent & event) override;
+
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
 
@@ -117,14 +117,14 @@ protected:
  * class that selects contact surface from both cohesive elements and
  * physical names
  */
-class AllSurfaceSelector : public SurfaceSelector { 
+class AllSurfaceSelector : public SurfaceSelector {
 public:
   AllSurfaceSelector(Mesh & mesh);
 
 protected:
   void onElementsAdded(const Array<Element> & element_list,
-		       const NewElementsEvent & event) override;
-  
+                       const NewElementsEvent & event) override;
+
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
 

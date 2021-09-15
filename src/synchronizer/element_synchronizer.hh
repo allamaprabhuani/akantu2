@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -106,8 +106,7 @@ protected:
   template <typename T>
   void fillTagBufferTemplated(const MeshData & mesh_data,
                               DynamicCommunicationBuffer * buffers,
-                              const std::string & tag_name,
-                              ElementType el_type,
+                              const std::string & tag_name, ElementType el_type,
                               const Array<UInt> & partition_num,
                               const CSR<UInt> & ghost_partition);
 
@@ -119,22 +118,19 @@ protected:
 
   /// function that handels the MeshData to be split (root side)
   static void synchronizeTagsSend(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags,
-                                  ElementType type,
+                                  Mesh & mesh, UInt nb_tags, ElementType type,
                                   const Array<UInt> & partition_num,
                                   const CSR<UInt> & ghost_partition,
                                   UInt nb_local_element, UInt nb_ghost_element);
 
   /// function that handles the MeshData to be split (other nodes)
   static void synchronizeTagsRecv(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags,
-                                  ElementType type,
+                                  Mesh & mesh, UInt nb_tags, ElementType type,
                                   UInt nb_local_element, UInt nb_ghost_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh,
-                                       ElementType type,
+                                       UInt root, Mesh & mesh, ElementType type,
                                        const Array<UInt> & partition_num,
                                        const CSR<UInt> & ghost_partition,
                                        UInt nb_element);

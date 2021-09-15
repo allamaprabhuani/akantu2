@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -67,9 +67,7 @@ public:
 public:
   /// set the matrix to 0
   void zero() override;
-  void set(Real /*val*/) override {
-    AKANTU_TO_IMPLEMENT();
-  }
+  void set(Real /*val*/) override { AKANTU_TO_IMPLEMENT(); }
   void clearProfile() override;
 
   /// add a non-zero element to the profile

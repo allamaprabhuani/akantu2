@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -71,8 +71,9 @@ protected:
                                    IntegrationScheme::_not_defined) override;
 
   void setIntegrationSchemeInternal(
-    const ID & dof_id, std::unique_ptr<IntegrationScheme> & integration_scheme,
-    IntegrationScheme::SolutionType solution_type) override;
+      const ID & dof_id,
+      std::unique_ptr<IntegrationScheme> & integration_scheme,
+      IntegrationScheme::SolutionType solution_type) override;
 
 public:
   bool hasIntegrationScheme(const ID & dof_id) const override;
@@ -96,9 +97,7 @@ public:
   void solveStep(SolverCallback & solver_callback) override;
 
 private:
-
-  template<class Func>
-  void for_each_integrator(Func && function) {
+  template <class Func> void for_each_integrator(Func && function) {
     for (auto & pair : this->integration_schemes) {
       const auto & dof_id = pair.first;
       auto & integration_scheme = pair.second;

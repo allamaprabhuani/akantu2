@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -205,7 +205,6 @@ public:
 };
 /* -------------------------------------------------------------------------- */
 
-
 /* -------------------------------------------------------------------------- */
 template <class Entity, template <class> class Op, class T>
 class ReduceDataAccessor : public virtual DataAccessor<Entity> {
@@ -273,7 +272,6 @@ protected:
   Op<Vector<T>> oper;
 };
 
-
 /* -------------------------------------------------------------------------- */
 template <class T>
 using SimpleUIntDataAccessor = ReduceDataAccessor<UInt, IdentityOperation, T>;
@@ -286,7 +284,7 @@ class SimpleElementDataAccessor : public virtual DataAccessor<Element> {
   /* ------------------------------------------------------------------------ */
 public:
   SimpleElementDataAccessor(ElementTypeMapArray<T> & data,
-                          const SynchronizationTag & tag)
+                            const SynchronizationTag & tag)
       : data(data), tag(tag) {}
 
   ~SimpleElementDataAccessor() override = default;

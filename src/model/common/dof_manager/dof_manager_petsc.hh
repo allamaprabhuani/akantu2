@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -103,8 +103,7 @@ public:
   void assembleElementalMatricesToMatrix(
       const ID & /*matrix_id*/, const ID & /*dof_id*/,
       const Array<Real> & /*elementary_mat*/, ElementType /*type*/,
-      GhostType /*ghost_type*/,
-      const MatrixType & /*elemental_matrix_type*/,
+      GhostType /*ghost_type*/, const MatrixType & /*elemental_matrix_type*/,
       const Array<UInt> & /*filter_elements*/) override;
 
   void assembleMatMulVectToArray(const ID & /*dof_id*/, const ID & /*A_id*/,

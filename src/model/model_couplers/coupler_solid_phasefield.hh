@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -153,14 +153,15 @@ protected:
 
   /// callback for the solver, this is called at end of solve
   void afterSolveStep(bool converged = true) override;
-  
+
   /// solve the coupled model
-  //void solveStep(const ID & solver_id = "") override;
+  // void solveStep(const ID & solver_id = "") override;
 
   /// solve a step using a given pre instantiated time step solver and
   /// non linear solver with a user defined callback instead of the
   /// model itself /!\ This can mess up everything
-  //void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
+  // void solveStep(SolverCallback & callback, const ID & solver_id = "")
+  // override;
 
   /* ------------------------------------------------------------------------ */
   /* Mass matrix for solid mechanics model                                    */
@@ -207,18 +208,20 @@ public:
                   const SynchronizationTag & /*tag*/) override {}
 
   UInt getNbData(__attribute__((unused)) const Array<UInt> & indexes,
-                 __attribute__((unused)) const SynchronizationTag & tag) const override {
+                 __attribute__((unused))
+                 const SynchronizationTag & tag) const override {
     return 0;
   }
 
   void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-		__attribute__((unused)) const Array<UInt> & dofs,
-                __attribute__((unused)) const SynchronizationTag & tag) const override{}
+                __attribute__((unused)) const Array<UInt> & dofs,
+                __attribute__((unused))
+                const SynchronizationTag & tag) const override {}
 
   void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-		  __attribute__((unused)) const Array<UInt> & dofs,
-                  __attribute__((unused)) const SynchronizationTag & tag) override {}
-  
+                  __attribute__((unused)) const Array<UInt> & dofs,
+                  __attribute__((unused))
+                  const SynchronizationTag & tag) override {}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -253,8 +256,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension,
-                       ElementKind kind) override;
+                       UInt spatial_dimension, ElementKind kind) override;
 
   void dump(const std::string & dumper_name) override;
 
