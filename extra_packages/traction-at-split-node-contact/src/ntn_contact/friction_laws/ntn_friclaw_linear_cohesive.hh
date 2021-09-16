@@ -49,7 +49,6 @@ public:
   NTNFricLawLinearCohesive(NTNBaseContact & contact,
                            const ID & id = "linear_cohesive");
   ~NTNFricLawLinearCohesive() override = default;
-  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

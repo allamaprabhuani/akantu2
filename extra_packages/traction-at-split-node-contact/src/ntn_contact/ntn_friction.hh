@@ -51,7 +51,6 @@ class NTNFriction : public FrictionLaw<Regularisation> {
 public:
   NTNFriction(NTNBaseContact & contact, const ID & id = "friction");
   ~NTNFriction() override = default;
-  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

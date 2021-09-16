@@ -48,7 +48,6 @@ public:
   NTNFricRegRubinAmpuero(NTNBaseContact & contact,
                          const ID & id = "rubin_ampuero");
   ~NTNFricRegRubinAmpuero() override = default;
-  ;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
