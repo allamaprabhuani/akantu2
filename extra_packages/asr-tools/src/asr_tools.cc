@@ -839,8 +839,6 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_tens_strain_x = computeVolumetricExpansion(_x);
-  Real av_tens_strain_y = computeVolumetricExpansion(_y);
   Real av_lin_strain_x = computeAverageStrain(_x);
   Real av_lin_strain_y = computeAverageStrain(_y);
 
@@ -850,19 +848,16 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
-                  << "," << av_lin_strain_x << "," << av_lin_strain_y << ","
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << std::endl;
   }
 
   else {
     Real av_lin_strain_z = computeAverageStrain(_z);
-    Real av_tens_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << time << "," << av_tens_strain_x << "," << av_tens_strain_y
-                  << "," << av_tens_strain_z << "," << av_lin_strain_x << ","
-                  << av_lin_strain_y << "," << av_lin_strain_z << std::endl;
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
+                  << av_strain_z << std::endl;
   }
 }
 /* --------------------------------------------------------------------------
