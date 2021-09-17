@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -151,9 +151,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       auto & scheme = this->getCommunications().createSendScheme(p);
       std::stringstream sstr;
       sstr << "element_per_proc_" << p;
-      element_per_proc.emplace(
-          std::piecewise_construct, std::forward_as_tuple(p),
-          std::forward_as_tuple(sstr.str(), id));
+      element_per_proc.emplace(std::piecewise_construct,
+                               std::forward_as_tuple(p),
+                               std::forward_as_tuple(sstr.str(), id));
 
       ElementTypeMapArray<UInt> & elempproc = element_per_proc[p];
 
@@ -483,5 +483,5 @@ template void GridSynchronizer::createGridSynchronizer<IntegrationPoint>(
 
 template void GridSynchronizer::createGridSynchronizer<Element>(
     const SpatialGrid<Element> & grid);
-  
+
 } // namespace akantu

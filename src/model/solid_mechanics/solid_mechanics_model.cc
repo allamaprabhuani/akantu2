@@ -26,12 +26,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -711,12 +711,11 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const ID & energy_id,
-                                    const ID & group_id) {
+Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
   auto && group = mesh.getElementGroup(group_id);
   auto energy = 0.;
-  for(auto && type : group.elementTypes()) {
-    for(auto el : group.getElementsIterable(type)) {
+  for (auto && type : group.elementTypes()) {
+    for (auto el : group.getElementsIterable(type)) {
       energy += getEnergy(energy_id, el);
     }
   }
@@ -1054,8 +1053,8 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch (tag) {
   case SynchronizationTag::_material_id: {
-    packElementalDataHelper(
-        material_index, buffer, elements, false, getFEEngine());
+    packElementalDataHelper(material_index, buffer, elements, false,
+                            getFEEngine());
     break;
   }
   case SynchronizationTag::_smm_mass: {

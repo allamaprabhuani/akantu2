@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -49,7 +49,8 @@ namespace akantu {
   def(func_name, [](py::args, py::kwargs) { AKANTU_ERROR(mesg); })
 
 #define def_function_nocopy(func_name)                                         \
-  def(#func_name,                                                              \
+  def(                                                                         \
+      #func_name,                                                              \
       [](HeatTransferModel & self) -> decltype(auto) {                         \
         return self.func_name();                                               \
       },                                                                       \
@@ -68,21 +69,23 @@ void register_heat_transfer_model(py::module & mod) {
 
   py::class_<HeatTransferModel, Model>(mod, "HeatTransferModel",
                                        py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &>(),
-           py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
+      .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
+           py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "heat_transfer_model")
-      .def("initFull",
-           [](HeatTransferModel & self,
-              const HeatTransferModelOptions & options) {
-             self.initFull(options);
-           },
-           py::arg("_analysis_method") = HeatTransferModelOptions())
-      .def("initFull",
-           [](HeatTransferModel & self,
-              const AnalysisMethod & _analysis_method) {
-             self.initFull(HeatTransferModelOptions(_analysis_method));
-           },
-           py::arg("_analysis_method"))
+      .def(
+          "initFull",
+          [](HeatTransferModel & self,
+             const HeatTransferModelOptions & options) {
+            self.initFull(options);
+          },
+          py::arg("_analysis_method") = HeatTransferModelOptions())
+      .def(
+          "initFull",
+          [](HeatTransferModel & self,
+             const AnalysisMethod & _analysis_method) {
+            self.initFull(HeatTransferModelOptions(_analysis_method));
+          },
+          py::arg("_analysis_method"))
       .def("setTimeStep", &HeatTransferModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
       .def_function(getStableTimeStep)

@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -568,8 +568,7 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
                   Vector<Element>{subsubfacet, new_subsubfacet});
               elementsOfDimToElementsOfDim(dim - 1, dim - 1)
                   .push_back(subfacet_list);
-              elementsOfDimToElementsOfDim(dim, dim - 1)
-                  .push_back(facet_list);
+              elementsOfDimToElementsOfDim(dim, dim - 1).push_back(facet_list);
               elementsOfDimToElementsOfDim(dim + 1, dim - 1)
                   .push_back(element_list);
             }

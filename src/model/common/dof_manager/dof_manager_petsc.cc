@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -88,10 +88,7 @@ DOFManagerPETSc::DOFDataPETSc::DOFDataPETSc(const ID & dof_id)
     : DOFData(dof_id) {}
 
 /* -------------------------------------------------------------------------- */
-DOFManagerPETSc::DOFManagerPETSc(const ID & id)
-    : DOFManager(id) {
-  init();
-}
+DOFManagerPETSc::DOFManagerPETSc(const ID & id) : DOFManager(id) { init(); }
 
 /* -------------------------------------------------------------------------- */
 DOFManagerPETSc::DOFManagerPETSc(Mesh & mesh, const ID & id)
@@ -137,7 +134,7 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
   std::tie(nb_dofs, nb_pure_local_dofs, std::ignore) = ret;
 
   auto && vector = std::make_unique<SolverVectorPETSc>(*this, id + ":solution");
-  auto *x = vector->getVec();
+  auto * x = vector->getVec();
   PETSc_call(VecGetLocalToGlobalMapping, x, &is_ltog_map);
 
   // redoing the indexes based on the petsc numbering
@@ -297,8 +294,7 @@ const SolverVectorPETSc & DOFManagerPETSc::getResidual() const {
 /* -------------------------------------------------------------------------- */
 static bool dof_manager_is_registered [[gnu::unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
-        "petsc",
-        [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
+        "petsc", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerPETSc>(mesh, id);
         });
 

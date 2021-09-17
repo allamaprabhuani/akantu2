@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -39,7 +39,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Resolution::Resolution(ContactMechanicsModel & model, const ID & id)
-  : Parsable(ParserType::_contact_resolution, id), id(id),
+    : Parsable(ParserType::_contact_resolution, id), id(id),
       fem(model.getFEEngine()), model(model) {
 
   AKANTU_DEBUG_IN();
@@ -87,14 +87,14 @@ void Resolution::assembleInternalForces() {
 
   for (const auto & element : model.getContactElements()) {
 
-    auto nb_nodes  = element.getNbNodes();
-           
+    auto nb_nodes = element.getNbNodes();
+
     Vector<Real> local_fn(nb_nodes * spatial_dimension);
     computeNormalForce(element, local_fn);
 
-    Vector<Real> local_ft(nb_nodes * spatial_dimension); 
+    Vector<Real> local_ft(nb_nodes * spatial_dimension);
     computeTangentialForce(element, local_ft);
- 
+
     Vector<Real> local_fc(nb_nodes * spatial_dimension);
     local_fc = local_fn + local_ft;
 
@@ -108,11 +108,12 @@ void Resolution::assembleInternalForces() {
 
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
-					    Vector<Real> & local, Array<Real> & global) {
+                                            Vector<Real> & local,
+                                            Array<Real> & global) {
 
   auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn =
-    const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
+        const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
     Vector<UInt> elem_conn(master_conn.size() + 1);
 
     elem_conn[0] = slave;
@@ -126,26 +127,26 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
   auto & surface_selector = model.getContactDetector().getSurfaceSelector();
   auto & slave_list = surface_selector.getSlaveList();
   auto & master_list = surface_selector.getMasterList();
-  
+
   auto connectivity = get_connectivity(element.slave, element.master);
-  
-  UInt nb_dofs  = global.getNbComponent();
+
+  UInt nb_dofs = global.getNbComponent();
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
-  Real alpha = is_master_deformable ? 0.5: 1.;
-      
-  for (UInt i : arange(nb_nodes)) { 
+  Real alpha = is_master_deformable ? 0.5 : 1.;
+
+  for (UInt i : arange(nb_nodes)) {
     UInt n = connectivity[i];
 
     auto slave_result = std::find(slave_list.begin(), slave_list.end(), n);
     auto master_result = std::find(master_list.begin(), master_list.end(), n);
-    
+
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
-      global[offset_node] += alpha*local[i * nb_dofs + j];
+      global[offset_node] += alpha * local[i * nb_dofs + j];
     }
   }
 }
-  
+
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
@@ -155,13 +156,15 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
   for (const auto & element : model.getContactElements()) {
 
-    auto nb_nodes  = element.getNbNodes();
+    auto nb_nodes = element.getNbNodes();
 
-    Matrix<Real> local_kn(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
+    Matrix<Real> local_kn(nb_nodes * spatial_dimension,
+                          nb_nodes * spatial_dimension);
     computeNormalModuli(element, local_kn);
     assembleLocalToGlobalMatrix(element, local_kn, global_stiffness);
 
-    Matrix<Real> local_kt(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
+    Matrix<Real> local_kt(nb_nodes * spatial_dimension,
+                          nb_nodes * spatial_dimension);
     computeTangentialModuli(element, local_kt);
     assembleLocalToGlobalMatrix(element, local_kt, global_stiffness);
   }
@@ -169,14 +172,14 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
-					     const Matrix<Real> & local, SparseMatrix & global) {
+                                             const Matrix<Real> & local,
+                                             SparseMatrix & global) {
 
   auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn =
-    const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
+        const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
     Vector<UInt> elem_conn(master_conn.size() + 1);
 
     elem_conn[0] = slave;
@@ -189,18 +192,18 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
 
   auto connectivity = get_connectivity(element.slave, element.master);
 
-  auto nb_dofs  = spatial_dimension;
+  auto nb_dofs = spatial_dimension;
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
   UInt total_nb_dofs = nb_dofs * nb_nodes;
-  
-  std::vector<UInt> equations;     
+
+  std::vector<UInt> equations;
   for (UInt i : arange(connectivity.size())) {
     UInt conn = connectivity[i];
     for (UInt j : arange(nb_dofs)) {
       equations.push_back(conn * nb_dofs + j);
     }
   }
-  
+
   for (UInt i : arange(total_nb_dofs)) {
     UInt row = equations[i];
     for (UInt j : arange(total_nb_dofs)) {
@@ -210,13 +213,10 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
   }
 }
 
-
-
 /* -------------------------------------------------------------------------- */
 void Resolution::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
 void Resolution::afterSolveStep(__attribute__((unused)) bool converged) {}
-  
 
 } // namespace akantu

@@ -139,14 +139,12 @@ void register_solid_mechanics_model(py::module & mod) {
           [](SolidMechanicsModel & self, UInt material_id) -> decltype(auto) {
             return self.getMaterial(material_id);
           },
-          py::arg("material_id"),
-          py::return_value_policy::reference)
+          py::arg("material_id"), py::return_value_policy::reference)
       .def(
           "getMaterial",
           [](SolidMechanicsModel & self, const ID & material_name)
-          -> decltype(auto) { return self.getMaterial(material_name); },
-          py::arg("material_name"),
-          py::return_value_policy::reference)
+              -> decltype(auto) { return self.getMaterial(material_name); },
+          py::arg("material_name"), py::return_value_policy::reference)
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
       // .def(
       //     "setMaterialSelector",

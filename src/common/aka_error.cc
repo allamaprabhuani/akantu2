@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -68,11 +68,12 @@ namespace debug {
 
   // static void printBacktraceAndExit(int) { std::terminate(); }
 
-  // /* ------------------------------------------------------------------------ */
-  // void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit); }
+  // /* ------------------------------------------------------------------------
+  // */ void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit);
+  // }
 
   /* ------------------------------------------------------------------------ */
-std::string demangle(const char * symbol) {
+  std::string demangle(const char * symbol) {
     int status;
     std::string result;
     char * demangled_name;
@@ -176,7 +177,7 @@ std::string demangle(const char * symbol) {
 #if defined(READLINK_COMMAND)
         std::string location_cmd =
             std::string(BOOST_PP_STRINGIZE(READLINK_COMMAND)) +
-            std::string(" -f ") + location;
+                        std::string(" -f ") + location;
         location = exec(location_cmd);
 #endif
         std::string call =
@@ -192,8 +193,10 @@ std::string demangle(const char * symbol) {
         auto it = addr_map.find(location);
         if (it != addr_map.end()) {
           std::stringstream syscom;
-          syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND) << " 0x" << std::hex
-                 << (addr - it->second) << " -i -e " << location;
+          syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND)
+                                       << " 0x" << std::hex
+                                       << (addr - it->second) << " -i -e "
+                                       << location;
           std::string line = exec(syscom.str());
           trace += " (" + line + ")";
         } else {
@@ -230,7 +233,7 @@ std::string demangle(const char * symbol) {
   namespace {
     void terminate_handler() {
       auto eptr = std::current_exception();
-      auto *t = abi::__cxa_current_exception_type();
+      auto * t = abi::__cxa_current_exception_type();
       auto name = (t != nullptr) ? demangle(t->name()) : std::string("unknown");
       try {
         if (eptr) {
@@ -270,7 +273,7 @@ std::string demangle(const char * symbol) {
     file_open = false;
     print_backtrace = false;
 
-    //initSignalHandler();
+    // initSignalHandler();
     std::set_terminate(terminate_handler);
   }
 

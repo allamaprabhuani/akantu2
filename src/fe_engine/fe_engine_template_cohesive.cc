@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -44,8 +44,7 @@ namespace akantu {
 template <>
 Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    integrate(const Array<Real> & f, ElementType type,
-              GhostType ghost_type,
+    integrate(const Array<Real> & f, ElementType type, GhostType ghost_type,
               const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -83,8 +82,7 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, Array<Real> & intf,
-              UInt nb_degree_of_freedom, ElementType type,
-              GhostType ghost_type,
+              UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
               const Array<UInt> & filter_elements) const {
 
 #ifndef AKANTU_NDEBUG

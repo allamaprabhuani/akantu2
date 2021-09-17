@@ -18,20 +18,20 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "structural_mechanics_model.hh"
 #include "mesh_accessor.hh"
+#include "structural_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 /* -------------------------------------------------------------------------- */
@@ -109,7 +109,7 @@ int main(int argc, char * argv[]) {
   forces(0, 1) = -q * L / 2.;
   forces(0, 2) = -q * L * L / 12.;
   forces(1, 1) = -q * L / 2.;
-  forces(1, 2) =  q * L * L / 12.;
+  forces(1, 2) = q * L * L / 12.;
   forces(2, 2) = M;
   forces(2, 0) = mat2.E * mat2.A / 18;
 

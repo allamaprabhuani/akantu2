@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -65,12 +65,13 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
 
   ElementTypeMap<Int> nb_new_cohesive_elements;
   for (auto ghost_type : ghost_types) {
-    for(auto cohesive_type : mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)){
+    for (auto cohesive_type :
+         mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
       nb_new_cohesive_elements(cohesive_type, ghost_type) = 0;
     }
   }
 
-  for(auto & el : elements_event.getList()) {
+  for (auto & el : elements_event.getList()) {
     if (el.kind() != _ek_cohesive) {
       continue;
     }
@@ -82,31 +83,31 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
   const auto & cfacet_synchronizer = facet_synchronizer;
 
   // update the cohesive element synchronizer
-  cohesive_synchronizer->updateSchemes([&](auto && scheme, auto && proc,
-                                           auto && direction) {
-    auto & facet_scheme =
-        cfacet_synchronizer.getCommunications().getScheme(proc, direction);
+  cohesive_synchronizer->updateSchemes(
+      [&](auto && scheme, auto && proc, auto && direction) {
+        auto & facet_scheme =
+            cfacet_synchronizer.getCommunications().getScheme(proc, direction);
 
-    for (auto && facet : facet_scheme) {
-      const auto & cohesive_element = const_cast<const Mesh &>(mesh_facets)
-                                          .getElementToSubelement(facet)[1];
+        for (auto && facet : facet_scheme) {
+          const auto & cohesive_element = const_cast<const Mesh &>(mesh_facets)
+                                              .getElementToSubelement(facet)[1];
 
-      if (cohesive_element == ElementNull or
-          cohesive_element.kind() != _ek_cohesive) {
-        continue;
-      }
+          if (cohesive_element == ElementNull or
+              cohesive_element.kind() != _ek_cohesive) {
+            continue;
+          }
 
-      auto && cohesive_type = FEEngine::getCohesiveElementType(facet.type);
-      auto old_nb_cohesive_elements =
-          mesh.getNbElement(cohesive_type, facet.ghost_type);
-      old_nb_cohesive_elements -=
-          nb_new_cohesive_elements(cohesive_type, facet.ghost_type);
+          auto && cohesive_type = FEEngine::getCohesiveElementType(facet.type);
+          auto old_nb_cohesive_elements =
+              mesh.getNbElement(cohesive_type, facet.ghost_type);
+          old_nb_cohesive_elements -=
+              nb_new_cohesive_elements(cohesive_type, facet.ghost_type);
 
-      if (cohesive_element.element >= old_nb_cohesive_elements) {
-        scheme.push_back(cohesive_element);
-      }
-    }
-  });
+          if (cohesive_element.element >= old_nb_cohesive_elements) {
+            scheme.push_back(cohesive_element);
+          }
+        }
+      });
 
   if (not facet_stress_synchronizer) {
     return;
