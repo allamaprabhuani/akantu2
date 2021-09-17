@@ -839,8 +839,8 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_lin_strain_x = computeAverageStrain(_x);
-  Real av_lin_strain_y = computeAverageStrain(_y);
+  Real av_strain_x = computeAverageStrain(_x);
+  Real av_strain_y = computeAverageStrain(_y);
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
@@ -853,7 +853,7 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
   }
 
   else {
-    Real av_lin_strain_z = computeAverageStrain(_z);
+    Real av_strain_z = computeAverageStrain(_z);
 
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
