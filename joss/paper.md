@@ -50,7 +50,7 @@ affiliations:
     index: 5
 
 date: 21 Septembre 2021
-bibliography: paper.bibtex
+bibliography: paper.bib
 ---
 
 # Summary
