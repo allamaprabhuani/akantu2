@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -59,9 +59,9 @@ class ContactDetector : public Parsable {
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactDetector(Mesh &, const ID & id = "contact_detector");
+  ContactDetector(Mesh & /*mesh*/, const ID & id = "contact_detector");
 
-  ContactDetector(Mesh &, Array<Real> positions,
+  ContactDetector(Mesh & /*mesh*/, Array<Real> positions,
                   const ID & id = "contact_detector");
 
   ~ContactDetector() override = default;
@@ -76,10 +76,12 @@ public:
               Array<Real> & projections);
 
   /// performs global spatial search to construct spatial grids
-  void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+  void globalSearch(SpatialGrid<UInt> & /*slave_grid*/,
+                    SpatialGrid<UInt> & /*master_grid*/);
 
   ///  performs local search to find closet master node to a slave node
-  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+  void localSearch(SpatialGrid<UInt> & /*slave_grid*/,
+                   SpatialGrid<UInt> & /*master_grid*/);
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,

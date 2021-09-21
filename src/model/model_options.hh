@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -82,7 +82,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
   SolidMechanicsModelCohesiveOptions(
       AnalysisMethod analysis_method = _explicit_lumped_mass,
       bool extrinsic = false)
-    : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
+      : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
 
   template <typename... pack>
   SolidMechanicsModelCohesiveOptions(use_named_args_t /*unused*/,
@@ -93,7 +93,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
   bool is_extrinsic{false};
 };
-  
+
 #endif
 
 #ifdef AKANTU_HEAT_TRANSFER
@@ -118,7 +118,7 @@ struct PhaseFieldModelOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  PhaseFieldModelOptions(use_named_args_t, pack &&... _pack)
+  PhaseFieldModelOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : PhaseFieldModelOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -162,7 +162,7 @@ struct ContactMechanicsModelOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
+  ContactMechanicsModelOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : ContactMechanicsModelOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -176,7 +176,7 @@ struct CouplerSolidContactOptions : public ModelOptions {
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
-  CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
+  CouplerSolidContactOptions(use_named_args_t /*unused*/, pack &&... _pack)
       : CouplerSolidContactOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
@@ -186,17 +186,18 @@ struct CouplerSolidCohesiveContactOptions : public ModelOptions {
   CouplerSolidCohesiveContactOptions(
       AnalysisMethod analysis_method = _explicit_lumped_mass,
       bool extrinsic = false)
-      : ModelOptions(analysis_method), is_extrinsic(extrinsic)  {}
+      : ModelOptions(analysis_method), is_extrinsic(extrinsic) {}
 
-  template<typename... pack>
-  CouplerSolidCohesiveContactOptions(use_named_args_t, pack &&... _pack)
-    : CouplerSolidCohesiveContactOptions(
-       OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
-       OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
-  
+  template <typename... pack>
+  CouplerSolidCohesiveContactOptions(use_named_args_t /*unused*/,
+                                     pack &&... _pack)
+      : CouplerSolidCohesiveContactOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
+            OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
+
   bool is_extrinsic{false};
 };
-  
+
 #endif
 
 } // namespace akantu

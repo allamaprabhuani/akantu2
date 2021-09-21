@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -74,8 +74,9 @@ inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
 inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
   std::map<std::string, UInt>::const_iterator it =
       materials_names_to_id.find(name);
-  if(it == materials_names_to_id.end()) {
-    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named " << name);
+  if (it == materials_names_to_id.end()) {
+    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named "
+                                         << name);
   }
 
   return *materials[it->second];
@@ -86,9 +87,10 @@ inline UInt
 SolidMechanicsModel::getMaterialIndex(const std::string & name) const {
   auto it = materials_names_to_id.find(name);
   if (it == materials_names_to_id.end()) {
-    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named " << name);
+    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named "
+                                         << name);
   }
-  
+
   return it->second;
 }
 
@@ -96,8 +98,9 @@ SolidMechanicsModel::getMaterialIndex(const std::string & name) const {
 inline const Material &
 SolidMechanicsModel::getMaterial(const std::string & name) const {
   auto it = materials_names_to_id.find(name);
-  if(it == materials_names_to_id.end()) {
-    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named " << name);
+  if (it == materials_names_to_id.end()) {
+    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named "
+                                         << name);
   }
   return *materials[it->second];
 }

@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -35,15 +35,14 @@
 
 namespace akantu {
 
- /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <UInt dim, template <UInt> class Parent>
 MaterialVonMisesMazars<dim, Parent>::MaterialVonMisesMazars(
     SolidMechanicsModel & model, const ID & id)
-  : MaterialDamage<dim, Parent>(model, id), K0("K0", *this),
+    : MaterialDamage<dim, Parent>(model, id), K0("K0", *this),
       damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
-  
   this->registerParam("K0", K0, _pat_parsable, "K0");
   this->registerParam("At", At, Real(0.8), _pat_parsable, "At");
   this->registerParam("Ac", Ac, Real(1.4), _pat_parsable, "Ac");
@@ -53,10 +52,8 @@ MaterialVonMisesMazars<dim, Parent>::MaterialVonMisesMazars(
 
   this->K0.initialize(1);
 
-  
   AKANTU_DEBUG_OUT();
 }
-
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class Parent>
@@ -91,7 +88,7 @@ void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
       this->iso_hardening.previous(el_type, ghost_type).begin();
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  
+
   //
   // Finite Deformations
   //
@@ -114,16 +111,15 @@ void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
     this->template gradUToE<spatial_dimension>(grad_u, green_strain);
     Matrix<Real> previous_green_strain(spatial_dimension, spatial_dimension);
     this->template gradUToE<spatial_dimension>(previous_grad_u,
-                                                         previous_green_strain);
+                                               previous_green_strain);
     Matrix<Real> F_tensor(spatial_dimension, spatial_dimension);
     this->template gradUToF<spatial_dimension>(grad_u, F_tensor);
 
     MaterialLinearIsotropicHardening<spatial_dimension>::computeStressOnQuad(
-			 green_strain, previous_green_strain, sigma,
-			 previous_sigma, inelastic_strain_tensor,
-                        previous_inelastic_strain_tensor, *iso_hardening_it,
-                        *previous_iso_hardening_it, *sigma_th_it,
-                        *previous_sigma_th_it, F_tensor);
+        green_strain, previous_green_strain, sigma, previous_sigma,
+        inelastic_strain_tensor, previous_inelastic_strain_tensor,
+        *iso_hardening_it, *previous_iso_hardening_it, *sigma_th_it,
+        *previous_sigma_th_it, F_tensor);
 
     ++sigma_th_it;
     ++inelastic_strain_it;
@@ -144,7 +140,7 @@ void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
     Real Ehat = 0;
-    
+
     auto & inelastic_strain_tensor = *inelastic_strain_it;
     auto & previous_inelastic_strain_tensor = *previous_inelastic_strain_it;
     auto & previous_grad_u = *previous_gradu_it;
@@ -153,16 +149,15 @@ void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
     MaterialLinearIsotropicHardening<spatial_dimension>::computeStressOnQuad(
         grad_u, previous_grad_u, sigma, previous_sigma, inelastic_strain_tensor,
         previous_inelastic_strain_tensor, *iso_hardening_it,
-	*previous_iso_hardening_it, *sigma_th_it, *previous_sigma_th_it);
+        *previous_iso_hardening_it, *sigma_th_it, *previous_sigma_th_it);
 
     Matrix<Real> grad_u_elastic(grad_u);
     grad_u_elastic -= inelastic_strain_tensor;
-    
-    
+
     computeStressOnQuad(grad_u_elastic, sigma, *dam, Ehat);
 
     ++dam;
-    
+
     ++sigma_th_it;
     ++inelastic_strain_it;
     ++iso_hardening_it;
@@ -176,11 +171,10 @@ void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
   }
 
   AKANTU_DEBUG_OUT();
-
 }
 
 /* -------------------------------------------------------------------------- */
 
 INSTANTIATE_MATERIAL(plastic_mazars, MaterialVonMisesMazars);
 
-}
+} // namespace akantu

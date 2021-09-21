@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -67,7 +67,7 @@ public:
   std::tuple<UInt, UInt>
   updateData(NewNodesEvent & nodes_event,
              NewElementsEvent & elements_event) override {
-    auto *cohesive_nodes_event =
+    auto * cohesive_nodes_event =
         dynamic_cast<CohesiveNewNodesEvent *>(&nodes_event);
     if (cohesive_nodes_event == nullptr) {
       return std::make_tuple(nodes_event.getList().size(),
@@ -121,7 +121,8 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id, std::shared_ptr<DOFManager> dof_manager)
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager)
     : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
@@ -388,7 +389,8 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   //                              Model::spatial_dimension);
 
   for (auto elem_gt : ghost_types) {
-    for (const auto & type : mesh.elementTypes(Model::spatial_dimension, elem_gt)) {
+    for (const auto & type :
+         mesh.elementTypes(Model::spatial_dimension, elem_gt)) {
       UInt nb_element = mesh.getNbElement(type, elem_gt);
       if (nb_element == 0) {
         continue;

@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -46,10 +46,11 @@ NonLocalManager::NonLocalManager(Model & model,
                                  NonLocalManagerCallback & callback,
                                  const ID & id)
     : Parsable(ParserType::_neighborhoods, id),
-      spatial_dimension(model.getMesh().getSpatialDimension()), id(id), model(model),
+      spatial_dimension(model.getMesh().getSpatialDimension()), id(id),
+      model(model),
       integration_points_positions("integration_points_positions", id),
-      volumes("volumes", id), compute_stress_calls(0),
-      dummy_registry(nullptr), dummy_grid(nullptr) {
+      volumes("volumes", id), compute_stress_calls(0), dummy_registry(nullptr),
+      dummy_grid(nullptr) {
   /// parse the neighborhood information from the input file
   const Parser & parser = getStaticParser();
 

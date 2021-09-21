@@ -98,7 +98,9 @@ void register_dumpable(py::module & mod) {
           py::arg("time"), py::arg("step"))
       .def(
           "dump",
-          [](Dumpable & self, const std::string & dumper) { self.dump(dumper); },
+          [](Dumpable & self, const std::string & dumper) {
+            self.dump(dumper);
+          },
           py::arg("dumper_name"))
       .def(
           "dump",
@@ -108,9 +110,8 @@ void register_dumpable(py::module & mod) {
           py::arg("dumper_name"), py::arg("step"))
       .def(
           "dump",
-          [](Dumpable & self, const std::string & dumper, Real time, UInt step) {
-            self.dump(dumper, time, step);
-          },
+          [](Dumpable & self, const std::string & dumper, Real time,
+             UInt step) { self.dump(dumper, time, step); },
           py::arg("dumper_name"), py::arg("time"), py::arg("step"));
 }
 

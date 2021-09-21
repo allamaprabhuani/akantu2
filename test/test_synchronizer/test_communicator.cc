@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -96,13 +96,14 @@ TEST(Communicator, ReceiveAny) {
         }
       }
 
-      c.receiveAnyNumber<int>(reqs,
-                              [&](auto && proc, auto && msg) {
-                                EXPECT_EQ(msg[0], sends[proc - 1] + 100 * proc);
-                                EXPECT_LE(proc, sends[proc - 1]);
-                                --nb_recvs;
-                              },
-                              tag);
+      c.receiveAnyNumber<int>(
+          reqs,
+          [&](auto && proc, auto && msg) {
+            EXPECT_EQ(msg[0], sends[proc - 1] + 100 * proc);
+            EXPECT_LE(proc, sends[proc - 1]);
+            --nb_recvs;
+          },
+          tag);
       EXPECT_EQ(nb_recvs, 0);
     } else {
       std::vector<int> recv(size - 1);
@@ -125,13 +126,14 @@ TEST(Communicator, ReceiveAny) {
       }
 
       bool has_recv = false;
-      c.receiveAnyNumber<int>(reqs,
-                              [&](auto && proc, auto && msg) {
-                                EXPECT_EQ(msg[0], recv[rank - 1]);
-                                EXPECT_EQ(proc, 0);
-                                has_recv = true;
-                              },
-                              tag);
+      c.receiveAnyNumber<int>(
+          reqs,
+          [&](auto && proc, auto && msg) {
+            EXPECT_EQ(msg[0], recv[rank - 1]);
+            EXPECT_EQ(proc, 0);
+            has_recv = true;
+          },
+          tag);
 
       bool should_recv = (recv[rank - 1] > 5);
       EXPECT_EQ(has_recv, should_recv);

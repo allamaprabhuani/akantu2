@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -75,8 +75,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  virtual void
-  initShapeFunctions(GhostType ghost_type = _not_ghost) = 0;
+  virtual void initShapeFunctions(GhostType ghost_type = _not_ghost) = 0;
 
   /// extract the nodal values and store them per element
   template <typename T>
@@ -117,8 +116,7 @@ public:
       const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
-  virtual Real integrate(const Vector<Real> & f, ElementType type,
-                         UInt index,
+  virtual Real integrate(const Vector<Real> & f, ElementType type, UInt index,
                          GhostType ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
@@ -130,14 +128,13 @@ public:
                          GhostType ghost_type = _not_ghost) const = 0;
 
   /// get the precomputed shapes
-  const virtual Array<Real> &
-  getShapes(ElementType type, GhostType ghost_type = _not_ghost,
-            UInt id = 0) const = 0;
+  const virtual Array<Real> & getShapes(ElementType type,
+                                        GhostType ghost_type = _not_ghost,
+                                        UInt id = 0) const = 0;
 
   /// get the derivatives of shapes
   const virtual Array<Real> &
-  getShapesDerivatives(ElementType type,
-                       GhostType ghost_type = _not_ghost,
+  getShapesDerivatives(ElementType type, GhostType ghost_type = _not_ghost,
                        UInt id = 0) const = 0;
 
   /// get integration points
@@ -151,9 +148,8 @@ public:
   /// Compute the gradient nablauq on the integration points of an element type
   /// from nodal values u
   virtual void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq,
-      UInt nb_degree_of_freedom, ElementType type,
-      GhostType ghost_type = _not_ghost,
+      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      ElementType type, GhostType ghost_type = _not_ghost,
       const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// Interpolate a nodal field u at the integration points of an element type
@@ -171,32 +167,28 @@ public:
 
   /// pre multiplies a tensor by the shapes derivaties
   virtual void
-  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
-             ElementType type,
+  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// left and right  multiplies a tensor by the shapes derivaties
   virtual void
   computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
-              ElementType type,
-              GhostType ghost_type = _not_ghost,
+              ElementType type, GhostType ghost_type = _not_ghost,
               const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// left multiples a vector by the shape functions
   virtual void
-  computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
-             ElementType type,
+  computeNtb(const Array<Real> & bs, Array<Real> & Ntbs, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// left and right  multiplies a tensor by the shapes
   virtual void
-  computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
-              ElementType type, GhostType ghost_type = _not_ghost,
+  computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
+              GhostType ghost_type = _not_ghost,
               const Array<UInt> & filter_elements = empty_filter) const = 0;
 
-  
   /// Compute the interpolation point position in the global coordinates for
   /// many element types
   virtual void computeIntegrationPointsCoordinates(
@@ -246,16 +238,14 @@ public:
                            const Element & element) const = 0;
 
   /// compute the shape on a provided point
-  virtual void
-  computeShapes(const Vector<Real> & real_coords, UInt elem,
-                ElementType type, Vector<Real> & shapes,
-                GhostType ghost_type = _not_ghost) const = 0;
+  virtual void computeShapes(const Vector<Real> & real_coords, UInt elem,
+                             ElementType type, Vector<Real> & shapes,
+                             GhostType ghost_type = _not_ghost) const = 0;
 
   /// compute the shape derivatives on a provided point
   virtual void
   computeShapeDerivatives(const Vector<Real> & real_coords, UInt element,
-                          ElementType type,
-                          Matrix<Real> & shape_derivatives,
+                          ElementType type, Matrix<Real> & shape_derivatives,
                           GhostType ghost_type = _not_ghost) const = 0;
 
   /// assembles the lumped version of @f[ \int N^t rho N @f]
@@ -275,21 +265,20 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// pre-compute normals on integration points
-  virtual void computeNormalsOnIntegrationPoints(
-      GhostType ghost_type = _not_ghost) = 0;
+  virtual void
+  computeNormalsOnIntegrationPoints(GhostType ghost_type = _not_ghost) = 0;
 
   /// pre-compute normals on integration points
-  virtual void computeNormalsOnIntegrationPoints(
-      const Array<Real> & /*field*/,
-      GhostType /*ghost_type*/ = _not_ghost) {
+  virtual void
+  computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
+                                    GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// pre-compute normals on integration points
   virtual void computeNormalsOnIntegrationPoints(
       const Array<Real> & /*field*/, Array<Real> & /*normal*/,
-      ElementType /*type*/,
-      GhostType /*ghost_type*/ = _not_ghost) const {
+      ElementType /*type*/, GhostType /*ghost_type*/ = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -330,16 +319,13 @@ public:
                                          normals_on_integration_points, Real);
 
   /// get cohesive element type for a given facet type
-  static inline ElementType
-  getCohesiveElementType(ElementType type_facet);
+  static inline ElementType getCohesiveElementType(ElementType type_facet);
 
   /// get igfem element type for a given regular type
-  static inline Vector<ElementType>
-  getIGFEMElementTypes(ElementType type);
+  static inline Vector<ElementType> getIGFEMElementTypes(ElementType type);
 
   /// get the interpolation element associated to an element type
-  static inline InterpolationType
-  getInterpolationType(ElementType el_type);
+  static inline InterpolationType getInterpolationType(ElementType el_type);
 
   /// get the shape function class (probably useless: see getShapeFunction in
   /// fe_engine_template.hh)

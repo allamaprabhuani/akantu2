@@ -1,7 +1,6 @@
 stages:
   - configure
   - build
-  - check-warnings
   - test
   - deploy
 
@@ -57,10 +56,10 @@ docker build:ubuntu-lts:
             -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
             -DAKANTU_EXAMPLES:BOOL=TRUE
             -DAKANTU_BUILD_ALL_EXAMPLES:BOOL=TRUE
-            -DAKANTU_TEST_EXAMPLES:BOOL=TRUE
             -DAKANTU_TESTS:BOOL=TRUE
             -DAKANTU_RUN_IN_DOCKER:BOOL=TRUE
-            -DCMAKE_BUILD_TYPE:STRING=Coverage ..
+            -DAKANTU_TEST_EXAMPLES:BOOL=${TEST_EXAMPLES}
+            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
      - cp compile_commmands.json ..
   artifacts:
     when: on_success
@@ -72,35 +71,38 @@ docker build:ubuntu-lts:
 .build:
   stage: build
   script:
-    - cmake --build build/src > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/python > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/test/ > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
-    - cmake --build build/examples > >(tee -a ${output}-out.log) 2> >(tee -a ${output}-err.log >&2)
+    - cmake --build build/src > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/python > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/test/ > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/examples > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
   artifacts:
     when: on_success
     paths:
       - build/
-      #- ${output}-out.log
-      - ${output}-err.log
+      - build-${output}-err.log
       - compile_commands.json
+    exclude:
+      - build/**/*.o
     expire_in: 10h
 
 .tests:
   stage: test
   script:
     - cd build
-    - ctest -T test --no-compress-output --timeout 1800
+    - ctest -T test --output-on-failure --no-compress-output --timeout 1800
   after_script:
     - cd build
     - tag=$(head -n 1 < Testing/TAG)
     - if [ -e Testing/${tag}/Test.xml ]; then
     -   xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
     - fi
-    - gcovr --xml
-            --gcov-executable "${GCOV_EXECUTABLE}"
-            --output coverage.xml
-            --object-directory ${CI_PROJECT_DIR}/build
-            --root ${CI_PROJECT_DIR}  -s || true
+    - if [ ${CMAKE_BUILD_TYPE} = "Coverage" ]; then
+    -   gcovr --xml
+              --gcov-executable "${GCOV_EXECUTABLE}"
+              --output coverage.xml
+              --object-directory ${CI_PROJECT_DIR}/build
+              --root ${CI_PROJECT_DIR}  -s || true
+    - fi
   artifacts:
     when: always
     paths:
@@ -112,28 +114,15 @@ docker build:ubuntu-lts:
       cobertura:
         - build/coverage.xml
 
-.analyse_build:
-  stage: check-warnings
-  script:
-    - if [[ $(cat ${output}-err.log | grep warning -i) ]]; then
-    -    cat ${output}-err.log;
-    -    exit 1;
-    - fi
-  allow_failure: true
-  artifacts:
-    when: on_failure
-    paths:
-      - "$output-err.log"
-
 # ------------------------------------------------------------------------------
 .cache_build:
   variables:
-    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/build
+    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/
     CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
-    CCACHE_NOHASHDIR: 1
-    CCACHE_COMPILERCHECK: content
+    #CCACHE_NOHASHDIR: 1
+    #CCACHE_COMPILERCHECK: content
   cache:
-    key: ${output}
+    key: ${output}_${BUILD_TYPE}
     policy: pull-push
     paths:
       - .ccache/
@@ -166,6 +155,21 @@ docker build:ubuntu-lts:
     FC: gfortran
     GCOV_EXECUTABLE: llvm-cov gcov
 
+.build_coverage:
+  variables:
+    TEST_EXAMPLES: 'FALSE'
+    BUILD_TYPE: 'Coverage'
+
+.build_release:
+  variables:
+    TEST_EXAMPLES: 'TRUE'
+    BUILD_TYPE: 'Release'
+
+.build_valgrind:
+  variables:
+    TEST_EXAMPLES: 'FALSE'
+    BUILD_TYPE: 'Valgrind'
+
 # ------------------------------------------------------------------------------
 .debian_testing_gcc:
   variables:
@@ -196,91 +200,96 @@ docker build:ubuntu-lts:
 configure:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
+    - .build_coverage
     - .configure
-  cache:
-    policy: pull-push
 
 build:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
+    - .build_coverage
     - .build
-  dependencies:
-    - configure:debian_testing_gcc
+  needs:
+    - job: configure:debian_testing_gcc
 
 test:debian_testing_gcc:
   extends:
     - .debian_testing_gcc
+    - .build_coverage
     - .tests
-  dependencies:
-    - build:debian_testing_gcc
+  needs:
+    - job: build:debian_testing_gcc
 
-analyse_build:debian_testing_gcc:
+# ------------------------------------------------------------------------------
+configure:debian_testing_gcc_valgrind:
   extends:
     - .debian_testing_gcc
-    - .analyse_build
-  dependencies:
-    - build:debian_testing_gcc
+    - .build_valgrind
+    - .configure
+
+build:debian_testing_gcc_valgrind:
+  extends:
+    - .debian_testing_gcc
+    - .build_valgrind
+    - .build
+  needs:
+    - job: configure:debian_testing_gcc_valgrind
+
+test:debian_testing_gcc_valgrind:
+  extends:
+    - .debian_testing_gcc
+    - .build_valgrind
+    - .tests
+  needs:
+    - job: build:debian_testing_gcc_valgrind
 
 # ------------------------------------------------------------------------------
 configure:debian_testing_clang:
   extends:
     - .debian_testing_clang
+    - .build_coverage
     - .configure
-  cache:
-    policy: pull-push
 
 build:debian_testing_clang:
   extends:
     - .debian_testing_clang
+    - .build_coverage
     - .build
-  dependencies:
-    - configure:debian_testing_clang
+  needs:
+    - job: configure:debian_testing_clang
 
 test:debian_testing_clang:
   extends:
     - .debian_testing_clang
+    - .build_coverage
     - .tests
-  dependencies:
-    - build:debian_testing_clang
-
-analyse_build:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
-    - .analyse_build
-  dependencies:
-    - build:debian_testing_clang
+  needs:
+    - job: build:debian_testing_clang
 
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
+    - .build_release
     - .configure
-  cache:
-    policy: pull-push
 
 build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
+    - .build_release
     - .build
-  dependencies:
-    - configure:ubuntu_lts_gcc
-
-analyse_build:ubuntu_lts_gcc:
-  extends:
-    - .ubuntu_lts_gcc
-    - .analyse_build
-  dependencies:
-    - build:ubuntu_lts_gcc
+  needs:
+    - job: configure:ubuntu_lts_gcc
 
 test:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
+    - .build_release
     - .tests
-  dependencies:
-    - build:ubuntu_lts_gcc
+  needs:
+    - job: build:ubuntu_lts_gcc
 
 # ------------------------------------------------------------------------------
-code_quality:
+cq:code_quality:
   stage: test
   image: docker:19.03.12
   allow_failure: true
@@ -288,25 +297,28 @@ code_quality:
     - docker:19.03.12-dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    CODECLIMATE_DEV: 1
-    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.85.22"
+    DOCKER_TLS_CERTDIR: ""
+    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.85.24"
   needs: []
   script:
     - export SOURCE_CODE=$PWD
+    - |
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
     - | # this is required to avoid undesirable reset of Docker image ENV variables being set on build stage
       function propagate_env_vars() {
         CURRENT_ENV=$(printenv)
+
         for VAR_NAME; do
           echo $CURRENT_ENV | grep "${VAR_NAME}=" > /dev/null && echo "--env $VAR_NAME "
         done
       }
     - docker pull --quiet "$CODE_QUALITY_IMAGE"
     - |
-    - docker build  -t codeclimate/codeclimate-clang-tidy test/ci/codeclimate/codeclimate-clang-tidy
-    - |
-      docker run \
+      docker run --rm \
         $(propagate_env_vars \
           SOURCE_CODE \
           TIMEOUT_SECONDS \
@@ -315,6 +327,7 @@ code_quality:
           REPORT_STDOUT \
           REPORT_FORMAT \
           ENGINE_MEMORY_LIMIT_BYTES \
+          CODECLIMATE_PREFIX \
         ) \
         --volume "$PWD":/code \
         --volume /var/run/docker.sock:/var/run/docker.sock \
@@ -322,15 +335,97 @@ code_quality:
   artifacts:
     paths:
       - gl-code-quality-report.json
-    reports:
-      codequality: gl-code-quality-report.json
     expire_in: 1 week
-  dependencies: []
+  needs:
+    - job: build:debian_testing_clang
   rules:
     - if: '$CODE_QUALITY_DISABLED'
       when: never
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
+.clang_tools:
+  stage: test
+  extends:
+    - .debian_testing_clang
+  before_script:
+    - if [ 'x${CI_MERGE_REQUEST_ID}' != 'x' ]; then
+    -   git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
+    -   FILE_LIST_ARG='-f file_list'
+    - fi
+  needs:
+    - job: build:debian_testing_clang
+  allow_failure: true
+  rules:
+    - if: '$CODE_QUALITY_DISABLED'
+      when: never
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+cq:clang_tidy:
+  extends:
+    - .clang_tools
+  script:
+    - test/ci/scripts/cq
+            -x third-party
+            -x extra-packages
+            -x pybind11
+            -x test
+            ${FILE_LIST_ARG}
+            clang-tidy
+            -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
+  artifacts:
+    paths:
+      - gl-clang-tidy-report.json
+
+cq:clang_format:
+  extends:
+    - .clang_tools
+  script:
+    - test/ci/scripts/cq
+            -x third-party
+            -x extra-packages
+            clang-format
+            -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
+  artifacts:
+    paths:
+      - gl-clang-format-report.json
+
+cq:compilation_warnings:
+  stage: test
+  image: python:latest
+  script:
+    - pip install warning-parser termcolor Click
+    - ls build-*-err.log
+    - test/ci/scripts/cq
+            -x third-party
+            -x extra-packages
+            warnings
+            build-*-err.log > gl-warnings-report.json
+  needs:
+    - job: build:debian_testing_clang
+    - job: build:debian_testing_gcc
+    - job: build:ubuntu_lts_gcc
+  artifacts:
+    paths:
+      - gl-warnings-report.json
+
+cq:merge_code_quality:
+  stage: deploy
+  extends:
+    - .debian_testing_clang
+  script:
+    - jq -Ms '[.[][]]' gl-*-report.json | tee gl-codequality.json | jq -C
+  needs:
+    - job: cq:code_quality
+    - job: cq:clang_tidy
+    - job: cq:clang_format
+    - job: cq:compilation_warnings
+  artifacts:
+    paths:
+      - gl-codequality.json
+  artifacts:
+    reports:
+      codequality: [gl-codequality.json]
 # ------------------------------------------------------------------------------
 pages:
   stage: deploy
@@ -341,8 +436,8 @@ pages:
     - cmake -DAKANTU_DOCUMENTATION=ON ..
     - cmake --build . -t sphinx-doc
     - mv doc/dev-doc/html ../public
-  dependencies:
-    - build:debian_testing_gcc
+  needs:
+    - job: build:debian_testing_gcc
   artifacts:
     paths:
       - public

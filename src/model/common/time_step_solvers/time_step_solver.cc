@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -43,9 +43,9 @@ TimeStepSolver::TimeStepSolver(DOFManager & dof_manager,
                                const TimeStepSolverType & type,
                                NonLinearSolver & non_linear_solver,
                                SolverCallback & solver_callback, const ID & id)
-    : SolverCallback(dof_manager), id(id),
-      _dof_manager(dof_manager), type(type), time_step(0.),
-      solver_callback(&solver_callback), non_linear_solver(non_linear_solver) {
+    : SolverCallback(dof_manager), id(id), _dof_manager(dof_manager),
+      type(type), time_step(0.), solver_callback(&solver_callback),
+      non_linear_solver(non_linear_solver) {
   this->registerSubRegistry("non_linear_solver", non_linear_solver);
 }
 

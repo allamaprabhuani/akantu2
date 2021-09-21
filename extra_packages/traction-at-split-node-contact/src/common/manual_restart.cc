@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -52,8 +52,9 @@ void dumpArray(const Array<Real> & array, const std::string & fname) {
   Array<Real>::const_iterator<Vector<Real>> tend = array.end(nb_component);
   for (; tit != tend; ++tit) {
     for (UInt c = 0; c < nb_component; ++c) {
-      if (c != 0)
+      if (c != 0) {
         outFile << " ";
+      }
       outFile << (*tit)(c);
     }
     outFile << std::endl;

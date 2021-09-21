@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -65,8 +65,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SparseSolverMumps::SparseSolverMumps(DOFManagerDefault & dof_manager,
                                      const ID & matrix_id, const ID & id)
-    : SparseSolver(dof_manager, matrix_id, id),
-      dof_manager(dof_manager), master_rhs_solution(0, 1) {
+    : SparseSolver(dof_manager, matrix_id, id), dof_manager(dof_manager),
+      master_rhs_solution(0, 1) {
   AKANTU_DEBUG_IN();
 
   this->prank = communicator.whoAmI();

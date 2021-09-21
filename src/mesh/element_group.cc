@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -55,9 +55,8 @@ namespace akantu {
 ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
                            NodeGroup & node_group, UInt dimension,
                            const std::string & id)
-    : mesh(mesh), name(group_name),
-      elements("elements", id), node_group(node_group),
-      dimension(dimension) {
+    : mesh(mesh), name(group_name), elements("elements", id),
+      node_group(node_group), dimension(dimension) {
   AKANTU_DEBUG_IN();
 
 #if defined(AKANTU_USE_IOHELPER)
@@ -74,9 +73,7 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
 ElementGroup::ElementGroup(const ElementGroup & /*other*/) = default;
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::clear() {
-  elements.free();
-}
+void ElementGroup::clear() { elements.free(); }
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::clear(ElementType type, GhostType ghost_type) {
