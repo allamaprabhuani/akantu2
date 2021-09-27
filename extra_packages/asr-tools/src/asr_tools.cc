@@ -5665,12 +5665,12 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
     // element_type,
     //                                   gt, filter);
 
-    crack_volume +=
+    crack_volume =
         fe_engine.integrate(real_normal_opening_norm, element_type, gt, filter);
 
     Array<Real> area(
         filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
-    crack_area += fe_engine.integrate(area, element_type, gt, filter);
+    crack_area = fe_engine.integrate(area, element_type, gt, filter);
   }
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
@@ -5680,6 +5680,80 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
 
   return std::make_tuple(crack_area, crack_volume);
 }
+
+/* --------------------------------------------------------------- */
+void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
+  const Communicator & comm = Communicator::getWorldCommunicator();
+  UInt prank = comm.whoAmI();
+  // shift crack numbers by the number of cracks on lower processors
+  UInt tot_nb_cracks{asr_central_node_pairs.size()};
+  comm.allReduce(tot_nb_cracks, SynchronizerOperation::_sum);
+  Array<Real> crack_volumes(tot_nb_cracks, 1, 0.);
+
+  const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+
+  for (auto coh_type : mesh.elementTypes(dim, gt, _ek_cohesive)) {
+    auto & crack_numbers = mesh.getData<UInt>("crack_numbers", coh_type, gt);
+    for (auto && mat : model.getMaterials()) {
+      auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+      if (mat_coh == nullptr)
+        continue;
+
+      const auto & filter_map = mat_coh->getElementFilter();
+      if (!filter_map.exists(coh_type, gt))
+        continue;
+
+      const Array<UInt> & filter = mat_coh->getElementFilter(coh_type, gt);
+      if (filter.size() == 0)
+        continue;
+
+      /// compute normal norm of real opening = opening + eigen opening
+      auto opening_it = mat_coh->getOpening(coh_type, gt).begin(dim);
+      auto eigen_opening = mat_coh->getEigenOpening(coh_type, gt);
+      auto eigen_opening_it = eigen_opening.begin(dim);
+      Array<Real> normal_eigen_opening_norm(
+          filter.size() * fe_engine.getNbIntegrationPoints(coh_type));
+      auto normal_eigen_opening_norm_it = normal_eigen_opening_norm.begin();
+      Array<Real> real_normal_opening_norm(
+          filter.size() * fe_engine.getNbIntegrationPoints(coh_type));
+      Array<Real> open_volume(filter.size());
+      auto real_normal_opening_norm_it = real_normal_opening_norm.begin();
+      auto normal_it = mat_coh->getNormals(coh_type, gt).begin(dim);
+      auto normal_end = mat_coh->getNormals(coh_type, gt).end(dim);
+      /// loop on each quadrature point
+      for (; normal_it != normal_end;
+           ++opening_it, ++eigen_opening_it, ++normal_it,
+           ++real_normal_opening_norm_it, ++normal_eigen_opening_norm_it) {
+        auto real_opening = *opening_it + *eigen_opening_it;
+        *real_normal_opening_norm_it = real_opening.dot(*normal_it);
+        Vector<Real> eig_opening(*eigen_opening_it);
+        *normal_eigen_opening_norm_it = eig_opening.dot(*normal_it);
+      }
+
+      fe_engine.integrate(real_normal_opening_norm, open_volume, 1, coh_type,
+                          gt, filter);
+      // distribute individual crack volumes per crack number
+      for (UInt i : arange(filter.size())) {
+        auto coh_el = filter(i);
+        auto crack_nb = crack_numbers(coh_el);
+        crack_volumes(crack_nb) += open_volume(i);
+      }
+    }
+  }
+  comm.allReduce(crack_volumes, SynchronizerOperation::_sum);
+  // output into a file
+  if (prank == 0) {
+    file_output << time;
+    for (auto && single_vol : crack_volumes) {
+      file_output << "," << single_vol;
+    }
+    file_output << std::endl;
+  }
+}
+
 /* --------------------------------------------------------------- */
 void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
   const Communicator & comm = Communicator::getWorldCommunicator();
