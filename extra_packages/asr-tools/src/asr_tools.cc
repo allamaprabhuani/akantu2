@@ -2158,7 +2158,7 @@ void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
 
 /* ------------------------------------------------------------------- */
 template <UInt dim>
-void ASRTools::insertPreCracks(const UInt & nb_insertions,
+UInt ASRTools::insertPreCracks(const UInt & nb_insertions,
                                std::string facet_mat_name) {
   AKANTU_DEBUG_IN();
 
@@ -2167,19 +2167,21 @@ void ASRTools::insertPreCracks(const UInt & nb_insertions,
 
   /// pick central facets and neighbors
   auto inserted = insertCohesiveLoops<dim>(nb_insertions, facet_mat_name);
-
+  auto totally_inserted{inserted};
   auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(inserted, SynchronizerOperation::_sum);
-  AKANTU_DEBUG_ASSERT(inserted, "No ASR sites were inserted across the domain");
+  comm.allReduce(totally_inserted, SynchronizerOperation::_sum);
+  AKANTU_DEBUG_ASSERT(totally_inserted,
+                      "No ASR sites were inserted across the domain");
 
   communicateCrackNumbers();
 
   AKANTU_DEBUG_OUT();
+  return inserted;
 }
 
-template void ASRTools::insertPreCracks<2>(const UInt & nb_insertions,
+template UInt ASRTools::insertPreCracks<2>(const UInt & nb_insertions,
                                            std::string mat_name);
-template void ASRTools::insertPreCracks<3>(const UInt & nb_insertions,
+template UInt ASRTools::insertPreCracks<3>(const UInt & nb_insertions,
                                            std::string mat_name);
 /* -------------------------------------------------------------------------
  */
@@ -5573,6 +5575,39 @@ void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
   for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
     auto && node_pair = std::get<0>(data);
     auto && normals_pair = std::get<1>(data);
+    auto node1 = node_pair.first;
+    auto node2 = node_pair.second;
+    auto normal1 = normals_pair.first;
+    auto normal2 = normals_pair.second;
+    Vector<Real> force1 = it_force[node1];
+    Vector<Real> force2 = it_force[node2];
+    force1 = normal1 * force_norm / 2.;
+    force2 = normal2 * force_norm / 2.;
+  }
+}
+/* --------------------------------------------------------------- */
+void ASRTools::applyPointForceDelayed(Real loading_rate,
+                                      const Array<Real> starting_times,
+                                      Real time, Real multiplier) {
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & forces = model.getExternalForce();
+  auto & pos = mesh.getNodes();
+  auto it_force = make_view(forces, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+  AKANTU_DEBUG_ASSERT(starting_times.size() == asr_central_node_pairs.size(),
+                      "Number of starting loading times does not correspond to "
+                      "the number of node pairs");
+
+  for (auto && data :
+       zip(asr_central_node_pairs, asr_normals_pairs, starting_times)) {
+    auto && node_pair = std::get<0>(data);
+    auto && normals_pair = std::get<1>(data);
+    auto && starting_time = std::get<2>(data);
+    // skip if the crack should not be loaded YET
+    if (time < starting_time)
+      continue;
+    Real force_norm = loading_rate * (time - starting_time) * multiplier;
     auto node1 = node_pair.first;
     auto node2 = node_pair.second;
     auto normal1 = normals_pair.first;

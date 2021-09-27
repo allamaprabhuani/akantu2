@@ -176,9 +176,9 @@ public:
   void insertASRCohesiveLoops3D(const UInt & nb_insertions,
                                 std::string facet_mat_name, Real gap_ratio);
 
-  /// no facets are added into the mesh
+  /// insert pre cracks and output number of successful insertions
   template <UInt dim>
-  void insertPreCracks(const UInt & nb_insertions, std::string facet_mat_name);
+  UInt insertPreCracks(const UInt & nb_insertions, std::string facet_mat_name);
 
   /// insert block of cohesive elements based on the coord of the central
   void insertASRCohesivesByCoords(const Matrix<Real> & positions,
@@ -332,9 +332,12 @@ public:
   void
   applyEigenOpeningToInitialCrack(Real gel_volume_ratio,
                                   const Array<Array<Element>> & ASR_facets);
-
+  /// apply pairs of equal opposite forces at the central nodes of pre-cracks
   void applyPointForceToAsrCentralNodes(Real force_norm);
 
+  /// apply forces as before but with certain delay defined per crack
+  void applyPointForceDelayed(Real loading_rate, const Array<Real> st_times,
+                              Real time, Real multiplier);
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
 
