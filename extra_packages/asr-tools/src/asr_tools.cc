@@ -5619,6 +5619,136 @@ void ASRTools::applyPointForceDelayed(Real loading_rate,
   }
 }
 /* --------------------------------------------------------------- */
+void ASRTools::applyPointForceDistributed(Real radius, Real F) {
+  AKANTU_DEBUG_ASSERT(radius != 0, "ASR pocket radius could not be equal to 0");
+  auto && mesh = model.getMesh();
+  auto & mesh_facets = mesh.getMeshFacets();
+  auto dim = mesh.getSpatialDimension();
+  auto gt = _not_ghost;
+  auto & forces = model.getExternalForce();
+  auto & pos = mesh.getNodes();
+  auto it_force = make_view(forces, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+
+  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+    std::map<std::pair<UInt, UInt>, std::pair<Real, bool>>
+        loaded_nodes_distance_swap;
+    auto central_node_pair = std::get<0>(data);
+    auto normals_pair = std::get<1>(data);
+    if (central_node_pair.first < central_node_pair.second) {
+      loaded_nodes_distance_swap[central_node_pair] = std::make_pair(0., false);
+    } else {
+      auto copy = central_node_pair;
+      central_node_pair.first = copy.second;
+      central_node_pair.second = copy.first;
+      loaded_nodes_distance_swap[central_node_pair] = std::make_pair(0., true);
+    }
+    auto central_node = central_node_pair.first;
+    Vector<Real> sphere_center = it_pos[central_node];
+
+    // search for cohesives falling into the sphere
+    for (auto coh_type : mesh.elementTypes(dim, gt, _ek_cohesive)) {
+      auto && coh_conn = mesh.getConnectivity(coh_type, gt);
+      auto nb_coh_nodes = coh_conn.getNbComponent();
+      auto coh_conn_it = coh_conn.begin(coh_conn.getNbComponent());
+      UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                  .getNbIntegrationPoints(coh_type);
+
+      for (auto && mat : model.getMaterials()) {
+        if (not aka::is_of_type<MaterialCohesive>(mat))
+          continue;
+
+        const auto & filter_map = mat.getElementFilter();
+        if (!filter_map.exists(coh_type, gt))
+          continue;
+
+        const Array<UInt> & filter = mat.getElementFilter(coh_type, gt);
+        if (filter.size() == 0)
+          continue;
+
+        auto && damage = mat.getInternal<Real>("damage")(coh_type, gt);
+
+        for (auto && data : enumerate(filter)) {
+          auto local_coh_nb = std::get<0>(data);
+          auto coh_el_nb = std::get<1>(data);
+          if (damage(local_coh_nb * nb_quad_cohesive) <= 0.1)
+            continue;
+          Element coh_el{coh_type, coh_el_nb, gt};
+          auto coh_facet = mesh_facets.getSubelementToElement(coh_el)(0);
+          Vector<Real> coh_bary(dim);
+          mesh_facets.getBarycenter(coh_facet, coh_bary);
+          auto distance = sphere_center.distance(coh_bary);
+          // quickly discard if cohesive is further from the center
+          if (distance >= radius)
+            continue;
+          // otherwise check nodes
+          auto coh_nodes = coh_conn_it[coh_el_nb];
+          std::map<UInt, UInt> counts;
+
+          for (auto i : coh_nodes)
+            ++counts[i];
+          auto nb_duplicated_nodes =
+              std::count_if(counts.begin(), counts.end(),
+                            [](auto const & p) { return p.second == 1; });
+          // discard cohesives with not all nodes opened
+          if (nb_duplicated_nodes != nb_coh_nodes)
+            continue;
+
+          // otherwise add all node pairs into the set
+          for (UInt i : arange(nb_coh_nodes / 2)) {
+            Vector<Real> node_coord = it_pos[coh_nodes(i)];
+            auto distance = sphere_center.distance(node_coord);
+            // exclude nodes falling outside the sphere
+            if (distance <= radius) {
+              auto swapped = false;
+              std::pair<UInt, UInt> nodes_pair;
+              if (coh_nodes(i) < coh_nodes(i + nb_coh_nodes / 2)) {
+                nodes_pair = std::make_pair(coh_nodes(i),
+                                            coh_nodes(i + nb_coh_nodes / 2));
+              } else {
+                nodes_pair = std::make_pair(coh_nodes(i + nb_coh_nodes / 2),
+                                            coh_nodes(i));
+                swapped = true;
+              }
+              if (loaded_nodes_distance_swap.find(nodes_pair) ==
+                  loaded_nodes_distance_swap.end()) {
+                loaded_nodes_distance_swap[nodes_pair] =
+                    std::make_pair(distance, swapped);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // compute central loading
+    Real denominator{0};
+    for (auto && pair : loaded_nodes_distance_swap) {
+      denominator += 1 - pair.second.first / radius;
+    }
+    auto central_load = F / 2 / denominator;
+
+    // distribute loading between all the node pairs
+    auto normal1 = normals_pair.first;
+    auto normal2 = normals_pair.second;
+
+    for (auto && pair : loaded_nodes_distance_swap) {
+      auto node_pair = pair.first;
+      auto distance = pair.second.first;
+      auto node1 = node_pair.first;
+      auto node2 = node_pair.second;
+      auto swapped = pair.second.second;
+      Vector<Real> force1 = it_force[node1];
+      Vector<Real> force2 = it_force[node2];
+      Real corrected_load = central_load;
+      if (swapped)
+        corrected_load *= -1;
+      force1 = normal1 * corrected_load * (1 - distance / radius);
+      force2 = normal2 * corrected_load * (1 - distance / radius);
+    }
+  }
+}
+/* --------------------------------------------------------------- */
 void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 
   auto data_agg = computeCrackData("agg-agg");
