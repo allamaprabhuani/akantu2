@@ -5631,17 +5631,19 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
   auto it_pos = make_view(pos, dim).begin();
 
   for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
-    std::map<std::pair<UInt, UInt>, std::pair<Real, bool>>
-        loaded_nodes_distance_swap;
+    std::map<std::pair<UInt, UInt>, std::pair<Real, Vector<Real>>>
+        loaded_nodes_distance_normal;
     auto central_node_pair = std::get<0>(data);
     auto normals_pair = std::get<1>(data);
     if (central_node_pair.first < central_node_pair.second) {
-      loaded_nodes_distance_swap[central_node_pair] = std::make_pair(0., false);
+      loaded_nodes_distance_normal[central_node_pair] =
+          std::make_pair(0., normals_pair.first);
     } else {
       auto copy = central_node_pair;
       central_node_pair.first = copy.second;
       central_node_pair.second = copy.first;
-      loaded_nodes_distance_swap[central_node_pair] = std::make_pair(0., true);
+      loaded_nodes_distance_normal[central_node_pair] =
+          std::make_pair(0., normals_pair.second);
     }
     auto central_node = central_node_pair.first;
     Vector<Real> sphere_center = it_pos[central_node];
@@ -5655,7 +5657,9 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
                                   .getNbIntegrationPoints(coh_type);
 
       for (auto && mat : model.getMaterials()) {
-        if (not aka::is_of_type<MaterialCohesive>(mat))
+        auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+
+        if (mat_coh == nullptr)
           continue;
 
         const auto & filter_map = mat.getElementFilter();
@@ -5667,6 +5671,8 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
           continue;
 
         auto && damage = mat.getInternal<Real>("damage")(coh_type, gt);
+        auto && coh_normals = mat_coh->getNormals(coh_type, gt);
+        auto coh_norm_it = coh_normals.begin(dim);
 
         for (auto && data : enumerate(filter)) {
           auto local_coh_nb = std::get<0>(data);
@@ -5700,20 +5706,23 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
             auto distance = sphere_center.distance(node_coord);
             // exclude nodes falling outside the sphere
             if (distance <= radius) {
-              auto swapped = false;
+              Vector<Real> coh_normal =
+                  coh_norm_it[local_coh_nb * nb_quad_cohesive];
               std::pair<UInt, UInt> nodes_pair;
+              Vector<Real> corr_normal(dim);
               if (coh_nodes(i) < coh_nodes(i + nb_coh_nodes / 2)) {
                 nodes_pair = std::make_pair(coh_nodes(i),
                                             coh_nodes(i + nb_coh_nodes / 2));
+                corr_normal = coh_normal;
               } else {
                 nodes_pair = std::make_pair(coh_nodes(i + nb_coh_nodes / 2),
                                             coh_nodes(i));
-                swapped = true;
+                corr_normal = -1. * coh_normal;
               }
-              if (loaded_nodes_distance_swap.find(nodes_pair) ==
-                  loaded_nodes_distance_swap.end()) {
-                loaded_nodes_distance_swap[nodes_pair] =
-                    std::make_pair(distance, swapped);
+              if (loaded_nodes_distance_normal.find(nodes_pair) ==
+                  loaded_nodes_distance_normal.end()) {
+                loaded_nodes_distance_normal[nodes_pair] =
+                    std::make_pair(distance, corr_normal);
               }
             }
           }
@@ -5723,28 +5732,22 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
 
     // compute central loading
     Real denominator{0};
-    for (auto && pair : loaded_nodes_distance_swap) {
+    for (auto && pair : loaded_nodes_distance_normal) {
       denominator += 1 - pair.second.first / radius;
     }
     auto central_load = F / 2 / denominator;
 
     // distribute loading between all the node pairs
-    auto normal1 = normals_pair.first;
-    auto normal2 = normals_pair.second;
-
-    for (auto && pair : loaded_nodes_distance_swap) {
+    for (auto && pair : loaded_nodes_distance_normal) {
       auto node_pair = pair.first;
       auto distance = pair.second.first;
+      auto normal = pair.second.second;
       auto node1 = node_pair.first;
       auto node2 = node_pair.second;
-      auto swapped = pair.second.second;
       Vector<Real> force1 = it_force[node1];
       Vector<Real> force2 = it_force[node2];
-      Real corrected_load = central_load;
-      if (swapped)
-        corrected_load *= -1;
-      force1 = normal1 * corrected_load * (1 - distance / radius);
-      force2 = normal2 * corrected_load * (1 - distance / radius);
+      force1 = normal * central_load * (1 - distance / radius);
+      force2 = -1. * normal * central_load * (1 - distance / radius);
     }
   }
 }
