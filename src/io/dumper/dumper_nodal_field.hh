@@ -127,7 +127,8 @@ namespace dumpers {
     }
 
     inline iterator end() {
-      return iterator(field.storage(), field.getNbComponent(), n, stride,
+      return iterator(field.storage() + field.getNbComponent() * field.size(),
+                      field.getNbComponent(), n, stride,
                       filter == nullptr ? nullptr
                                         : filter->storage() + filter->size());
     }
