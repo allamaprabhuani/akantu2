@@ -96,7 +96,7 @@ docker build:ubuntu-lts:
     - if [ -e Testing/${tag}/Test.xml ]; then
     -   xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
     - fi
-    - if [ ${CMAKE_BUILD_TYPE} = "Coverage" ]; then
+    - if [ "${BUILD_TYPE}" = "Coverage" ]; then
     -   gcovr --xml
               --gcov-executable "${GCOV_EXECUTABLE}"
               --output coverage.xml
@@ -216,6 +216,7 @@ test:debian_testing_gcc:
     - .debian_testing_gcc
     - .build_coverage
     - .tests
+  coverage: '^lines: (\d+\.\d+\%)'
   needs:
     - job: build:debian_testing_gcc
 
@@ -262,6 +263,7 @@ test:debian_testing_clang:
     - .debian_testing_clang
     - .build_coverage
     - .tests
+  coverage: '^lines: (\d+\.\d+\%)'
   needs:
     - job: build:debian_testing_clang
 
