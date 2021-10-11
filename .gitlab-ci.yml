@@ -216,7 +216,7 @@ test:debian_testing_gcc:
     - .debian_testing_gcc
     - .build_coverage
     - .tests
-  coverage: /^lines: (\d+\.\d+\%)/
+  coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
     - job: build:debian_testing_gcc
 
@@ -263,7 +263,7 @@ test:debian_testing_clang:
     - .debian_testing_clang
     - .build_coverage
     - .tests
-  coverage: '^lines: (\d+\.\d+\%)'
+  coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
     - job: build:debian_testing_clang
 
