@@ -53,7 +53,7 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2,
 
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_3d_6, _gt_cohesive_3d_6,
                                      _itp_lagrange_triangle_3, _ek_cohesive, 3,
-                                     _git_triangle, 2);
+                                     _git_triangle, 1);
 
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_3d_12, _gt_cohesive_3d_12,
                                      _itp_lagrange_triangle_6, _ek_cohesive, 3,
