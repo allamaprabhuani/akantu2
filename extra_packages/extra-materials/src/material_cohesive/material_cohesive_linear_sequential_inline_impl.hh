@@ -219,7 +219,7 @@ inline bool MaterialCohesiveLinearSequential<dim>::updateDeltaMaxOnQuad(
   delta = std::sqrt(delta);
 
   /// update maximum displacement and damage
-  if (std::abs((delta_max - delta) / delta_max) < this->delta_deviation) {
+  if (delta / delta_max > 1 - this->delta_deviation) {
     delta_max += delta_c / this->reductions;
     delta_max = std::min(delta_max, delta_c);
     delta_max_increased = true;
