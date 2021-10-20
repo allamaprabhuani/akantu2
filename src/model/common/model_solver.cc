@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -57,9 +57,8 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
-    : Parsable(ParserType::_model, id), model_type(type),
-      parent_id(id), mesh(mesh) {
-}
+    : Parsable(ParserType::_model, id), model_type(type), parent_id(id),
+      mesh(mesh) {}
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
@@ -114,9 +113,8 @@ std::shared_ptr<DOFManager> ModelSolver::initDOFManager() {
   if (not is_empty) {
     solver_type = section.getOption(solver_type);
     return this->initDOFManager(section, solver_type);
-  } else {
-    return this->initDOFManager(solver_type);
   }
+  return this->initDOFManager(solver_type);
 }
 
 /* -------------------------------------------------------------------------- */

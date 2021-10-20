@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -56,8 +56,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-GroupManager::GroupManager(Mesh & mesh, const ID & id)
-    : id(id), mesh(mesh) {
+GroupManager::GroupManager(Mesh & mesh, const ID & id) : id(id), mesh(mesh) {
 
   AKANTU_DEBUG_OUT();
 }
@@ -84,8 +83,7 @@ NodeGroup & GroupManager::createNodeGroup(const std::string & group_name,
   std::stringstream sstr;
   sstr << this->id << ":" << group_name << "_node_group";
 
-  auto && ptr =
-      std::make_unique<NodeGroup>(group_name, mesh, sstr.str());
+  auto && ptr = std::make_unique<NodeGroup>(group_name, mesh, sstr.str());
 
   auto & node_group = *ptr;
 
@@ -197,9 +195,9 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
         "Trying to create a element group that already exists:" << group_name);
   }
 
-  auto && ptr = std::make_unique<ElementGroup>(
-      group_name, mesh, node_group, dimension,
-      id + ":" + group_name + "_element_group");
+  auto && ptr =
+      std::make_unique<ElementGroup>(group_name, mesh, node_group, dimension,
+                                     id + ":" + group_name + "_element_group");
 
   auto & element_group = *ptr;
   element_groups[group_name] = std::move(ptr);
@@ -797,9 +795,10 @@ UInt GroupManager::getNbElementGroups(UInt dimension) const {
     return element_groups.size();
   }
 
-  return std::count_if(
-      element_groups.begin(), element_groups.end(),
-      [dimension](auto && eg) { return eg.second->getDimension() == dimension; });
+  return std::count_if(element_groups.begin(), element_groups.end(),
+                       [dimension](auto && eg) {
+                         return eg.second->getDimension() == dimension;
+                       });
 }
 
 /* -------------------------------------------------------------------------- */

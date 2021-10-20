@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -145,7 +145,8 @@ REGISTER_TYPED_TEST_SUITE_P(TestGaussIntegrationFixture, ArbitraryOrder);
 using TestTypes = gtest_list_t<
     tuple_split_t<50, cross_product_t<TestElementTypes, TestDegreeTypes>>>;
 
-INSTANTIATE_TYPED_TEST_SUITE_P(Split1, TestGaussIntegrationFixture, TestTypes, );
+INSTANTIATE_TYPED_TEST_SUITE_P(Split1, TestGaussIntegrationFixture,
+                               TestTypes, );
 
 using TestTypesTail = gtest_list_t<
     tuple_split_tail_t<50, cross_product_t<TestElementTypes, TestDegreeTypes>>>;

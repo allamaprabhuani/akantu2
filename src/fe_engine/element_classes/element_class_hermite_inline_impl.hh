@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -115,7 +115,8 @@ namespace {
       auto M1 = 1. / 4. * (2. - 3. * xi + xi3);
       auto M2 = 1. / 4. * (2. + 3. * xi - xi3);
       auto L1 = a / 4. * (1 - xi - xi2 + xi3);
-      auto L2 = a / 4. * (-1 - xi + xi2 + xi3);;
+      auto L2 = a / 4. * (-1 - xi + xi2 + xi3);
+      ;
 
 #if 1 // Version where we also interpolate the rotations
       // Derivatives (with respect to x) of previous functions interpolating
@@ -153,7 +154,7 @@ namespace {
 
       //    v1  t1  v2  t2
       B = {{M1, L1, M2, L2}}; // computing curvature : {chi} = [B]{d}
-      B /= a; // to account for first order deriv w/r to x
+      B /= a;                 // to account for first order deriv w/r to x
     }
   } // namespace details
 } // namespace

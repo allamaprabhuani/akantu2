@@ -335,8 +335,7 @@ void SolidMechanicsModelIGFEM::onDump() {
 
 dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, const UInt & spatial_dimension,
-    ElementKind kind) {
+    bool padding_flag, const UInt & spatial_dimension, ElementKind kind) {
 
   dumpers::Field * field = NULL;
 
@@ -373,10 +372,10 @@ dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
             this->getInternalDataPerElem(field_name_copy, kind);
         ElementTypeMapArray<Real> & internal_flat =
             this->flattenInternal(field_name_copy, kind);
-        field =
-            mesh.createElementalField<Real, dumpers::IGFEMInternalMaterialField>(
-                internal_flat, group_name, spatial_dimension, kind,
-                nb_data_per_elem);
+        field = mesh.createElementalField<Real,
+                                          dumpers::IGFEMInternalMaterialField>(
+            internal_flat, group_name, spatial_dimension, kind,
+            nb_data_per_elem);
         if (field_name == "strain") {
           dumpers::ComputeStrain<false> * foo =
               new dumpers::ComputeStrain<false>(*this);
@@ -456,8 +455,7 @@ SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, const UInt & spatial_dimension,
-    ElementKind kind) {
+    bool padding_flag, const UInt & spatial_dimension, ElementKind kind) {
   return NULL;
 }
 

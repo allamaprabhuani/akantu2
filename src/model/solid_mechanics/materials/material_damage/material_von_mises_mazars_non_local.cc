@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -37,8 +37,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-MaterialVonMisesMazarsNonLocal<spatial_dimension>::MaterialVonMisesMazarsNonLocal(
-    SolidMechanicsModel & model, const ID & id)
+MaterialVonMisesMazarsNonLocal<spatial_dimension>::
+    MaterialVonMisesMazarsNonLocal(SolidMechanicsModel & model, const ID & id)
     : MaterialNonLocalParent(model, id), Ehat("epsilon_equ", *this),
       non_local_variable("mazars_non_local", *this) {
   AKANTU_DEBUG_IN();
@@ -56,7 +56,8 @@ MaterialVonMisesMazarsNonLocal<spatial_dimension>::MaterialVonMisesMazarsNonLoca
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialVonMisesMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
+void MaterialVonMisesMazarsNonLocal<
+    spatial_dimension>::registerNonLocalVariables() {
   ID local;
   if (this->damage_in_compute_stress) {
     local = this->damage.getName();
@@ -82,8 +83,8 @@ void MaterialVonMisesMazarsNonLocal<spatial_dimension>::computeStress(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  MaterialVonMisesMazars<spatial_dimension>::computeStressOnQuad(grad_u, sigma, *damage,
-                                                         *epsilon_equ);
+  MaterialVonMisesMazars<spatial_dimension>::computeStressOnQuad(
+      grad_u, sigma, *damage, *epsilon_equ);
   ++damage;
   ++epsilon_equ;
 
@@ -118,6 +119,7 @@ void MaterialVonMisesMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
   AKANTU_DEBUG_OUT();
 }
 
-INSTANTIATE_MATERIAL(von_mises_mazars_non_local, MaterialVonMisesMazarsNonLocal);
+INSTANTIATE_MATERIAL(von_mises_mazars_non_local,
+                     MaterialVonMisesMazarsNonLocal);
 
 } // namespace akantu

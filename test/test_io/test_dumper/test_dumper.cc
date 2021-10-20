@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -123,7 +123,8 @@ int main(int argc, char * argv[]) {
   Real pot_energy = 1.2345567891;
   Vector<Real> gforces(2, 1.);
   txtdumper.registerVariable(
-      "potential_energy", std::make_shared<dumpers::Variable<Real>>(pot_energy));
+      "potential_energy",
+      std::make_shared<dumpers::Variable<Real>>(pot_energy));
   txtdumper.registerVariable(
       "global_forces",
       std::make_shared<dumpers::Variable<Vector<Real>>>(gforces));

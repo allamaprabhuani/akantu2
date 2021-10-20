@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -213,10 +213,10 @@ public:
 
   /**
    * compute @f$ @f$
-   
+
    **/
   static inline void computeD2NDS2(const Matrix<Real> & natural_coord,
-				   Tensor3<Real> & d2nds2);
+                                   Tensor3<Real> & d2nds2);
 
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
@@ -226,10 +226,10 @@ public:
    * coordinates
    */
   template <class vector_type, class matrix_type>
-  static inline void computeD2NDS2(const vector_type &, matrix_type &) {
+  static inline void computeD2NDS2(const vector_type & /*unused*/,
+                                   matrix_type & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
-
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension

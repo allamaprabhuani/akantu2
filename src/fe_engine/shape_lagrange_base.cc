@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -56,8 +56,7 @@ namespace shape_lagrange {
       static void call(const S & /*unused*/, const Array<Real> & /*unused*/,
                        const Matrix<Real> & /*unused*/,
                        Array<Real> & /*unused*/, ElementType /*unused*/,
-                       GhostType /*unused*/,
-                       const Array<UInt> & /*unused*/) {
+                       GhostType /*unused*/, const Array<UInt> & /*unused*/) {
         AKANTU_TO_IMPLEMENT();
       }
     };
@@ -68,8 +67,8 @@ namespace shape_lagrange {
     template <class S>                                                         \
     static void call(const S & _this, const Array<Real> & nodes,               \
                      const Matrix<Real> & integration_points,                  \
-                     Array<Real> & shapes, ElementType type,           \
-                     GhostType ghost_type,                             \
+                     Array<Real> & shapes, ElementType type,                   \
+                     GhostType ghost_type,                                     \
                      const Array<UInt> & filter_elements) {                    \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
     }                                                                          \
@@ -85,8 +84,8 @@ namespace shape_lagrange {
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shapes, ElementType type,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    Array<Real> & shapes, ElementType type, GhostType ghost_type,
+    const Array<UInt> & filter_elements) const {
 
   auto kind = Mesh::getKind(type);
 
@@ -143,7 +142,7 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
       auto size_of_shapesd = this->getShapeDerivativesSize(type);
       this->shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
     }
-   
+
     computeShapeDerivativesOnIntegrationPoints(
         nodes, natural_coords, shapes_derivatives(itp_type, ghost_type), type,
         ghost_type, elements);

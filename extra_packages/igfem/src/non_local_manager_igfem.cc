@@ -46,7 +46,7 @@ NonLocalManagerIGFEM::NonLocalManagerIGFEM(SolidMechanicsModelIGFEM & model,
 }
 
 /* -------------------------------------------------------------------------- */
-NonLocalManagerIGFEM::~NonLocalManagerIGFEM() =default;
+NonLocalManagerIGFEM::~NonLocalManagerIGFEM() = default;
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManagerIGFEM::init() {

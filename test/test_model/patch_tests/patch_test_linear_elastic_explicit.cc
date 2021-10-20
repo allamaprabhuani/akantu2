@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -67,12 +67,12 @@ TYPED_TEST(TestPatchTestSMMLinear, Explicit) {
   this->model->addDumpFieldVector("displacement");
   this->model->dump();
 #endif
-
 }
 
 /* -------------------------------------------------------------------------- */
 TYPED_TEST(TestPatchTestSMMLinear, ExplicitFiniteDeformation) {
-  std::string filename = "material_check_stress_plane_stress_finite_deformation.dat";
+  std::string filename =
+      "material_check_stress_plane_stress_finite_deformation.dat";
   if (this->plane_strain) {
     filename = "material_check_stress_plane_strain_finite_deformation.dat";
   } else {

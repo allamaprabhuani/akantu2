@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -112,19 +112,18 @@ public:
   getElementalDataArray(const ID & data_name, ElementType elem_type,
                         GhostType ghost_type = _not_ghost) const;
   template <typename T>
-  Array<T> & getElementalDataArray(const ID & data_name,
-                                   ElementType elem_type,
+  Array<T> & getElementalDataArray(const ID & data_name, ElementType elem_type,
                                    GhostType ghost_type = _not_ghost);
 
   /// Get an elemental data array, if it does not exist: allocate it
   template <typename T>
-  Array<T> & getElementalDataArrayAlloc(
-      const ID & data_name, ElementType elem_type,
-      GhostType ghost_type = _not_ghost, UInt nb_component = 1);
+  Array<T> & getElementalDataArrayAlloc(const ID & data_name,
+                                        ElementType elem_type,
+                                        GhostType ghost_type = _not_ghost,
+                                        UInt nb_component = 1);
 
   template <typename T>
-  inline UInt getNbComponentTemplated(const ID & name,
-                                      ElementType el_type,
+  inline UInt getNbComponentTemplated(const ID & name, ElementType el_type,
                                       GhostType ghost_type) const;
   inline UInt getNbComponent(const ID & name, ElementType el_type,
                              GhostType ghost_type = _not_ghost) const;

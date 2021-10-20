@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -37,8 +37,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class T>
-inline typename CircularArray<T>::reference CircularArray<T>::
-operator()(UInt i, UInt j) {
+inline typename CircularArray<T>::reference
+CircularArray<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -56,8 +56,8 @@ operator()(UInt i, UInt j) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline typename CircularArray<T>::const_reference CircularArray<T>::
-operator()(UInt i, UInt j) const {
+inline typename CircularArray<T>::const_reference
+CircularArray<T>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -100,4 +100,4 @@ void CircularArray<T>::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
-}
+} // namespace akantu

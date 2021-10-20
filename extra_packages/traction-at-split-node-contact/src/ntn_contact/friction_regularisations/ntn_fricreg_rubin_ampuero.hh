@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -47,27 +47,27 @@ class NTNFricRegRubinAmpuero : public NTNFricRegNoRegularisation {
 public:
   NTNFricRegRubinAmpuero(NTNBaseContact & contact,
                          const ID & id = "rubin_ampuero");
-  virtual ~NTNFricRegRubinAmpuero(){};
+  ~NTNFricRegRubinAmpuero() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
-  virtual void dumpRestart(const std::string & file_name) const;
-  virtual void readRestart(const std::string & file_name);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
+  void dumpRestart(const std::string & file_name) const override;
+  void readRestart(const std::string & file_name) override;
 
-  virtual void setToSteadyState();
+  void setToSteadyState() override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,7 +75,7 @@ public:
 public:
 protected:
   /// get the contact pressure (the norm: scalar value)
-  virtual const SynchronizedArray<Real> & internalGetContactPressure();
+  const SynchronizedArray<Real> & internalGetContactPressure() override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

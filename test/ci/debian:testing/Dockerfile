@@ -21,11 +21,13 @@ RUN apt-get -qq update && apt-get -qq -y install \
 
 # for ci
 RUN apt-get -qq update && apt-get -qq -y install \
-    gmsh python3-pytest \
-    ccache clang-format python3-flake8 clang-tidy \
+    gmsh python3-pytest python3-click python3-termcolor \
+    ccache clang-format python3-flake8 python3-pip clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install warning_parser
 
 COPY .openmpi /root/.openmpi
 

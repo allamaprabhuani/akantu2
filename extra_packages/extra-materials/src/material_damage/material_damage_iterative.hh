@@ -52,8 +52,8 @@ public:
   /// update internal field damage
   virtual UInt updateDamage();
 
-  UInt updateDamage(UInt quad_index, Real eq_stress,
-                    ElementType el_type, GhostType ghost_type);
+  UInt updateDamage(UInt quad_index, Real eq_stress, ElementType el_type,
+                    GhostType ghost_type);
 
   /// update energies after damage has been updated
   void updateEnergiesAfterDamage(ElementType el_type) override;
@@ -72,7 +72,7 @@ public:
 protected:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
-                             GhostType ghost_type = _not_ghost) override;
+                     GhostType ghost_type = _not_ghost) override;
 
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
 

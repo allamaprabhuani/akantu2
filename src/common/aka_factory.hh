@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -61,9 +61,9 @@ public:
   /* ------------------------------------------------------------------------ */
   bool registerAllocator(const T & id, const allocator_t & allocator) {
     if (allocators.find(id) != allocators.end()) {
-      AKANTU_EXCEPTION("The id \"" << id 
-                       << "\" is already registered in the "
-                       << debug::demangle(typeid(Base).name()) << " factory");
+      AKANTU_EXCEPTION("The id \"" << id << "\" is already registered in the "
+                                   << debug::demangle(typeid(Base).name())
+                                   << " factory");
     }
     allocators[id] = allocator;
     return true;
@@ -72,9 +72,9 @@ public:
   template <typename... AArgs>
   std::unique_ptr<Base> allocate(const T & id, AArgs &&... args) const {
     if (allocators.find(id) == allocators.end()) {
-      AKANTU_EXCEPTION("The id \"" << id
-                       << "\" is not registered in the "
-                       << debug::demangle(typeid(Base).name()) << " factory.");
+      AKANTU_EXCEPTION("The id \"" << id << "\" is not registered in the "
+                                   << debug::demangle(typeid(Base).name())
+                                   << " factory.");
     }
     return std::forward<std::unique_ptr<Base>>(
         allocators.at(id)(std::forward<AArgs>(args)...));

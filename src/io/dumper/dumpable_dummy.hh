@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -82,24 +82,23 @@ public:
   void addDumpMeshToDumper(const std::string & dumper_name, const Mesh & mesh,
                            UInt spatial_dimension = _all_dimensions,
                            GhostType ghost_type = _not_ghost,
-                           ElementKind element_kind = _ek_not_defined) {
-  }
+                           ElementKind element_kind = _ek_not_defined) {}
 
   void addDumpFilteredMesh(const Mesh & mesh,
                            const ElementTypeMapArray<UInt> & elements_filter,
                            const Array<UInt> & nodes_filter,
                            UInt spatial_dimension = _all_dimensions,
                            GhostType ghost_type = _not_ghost,
-                           ElementKind element_kind = _ek_not_defined) {
-  }
+                           ElementKind element_kind = _ek_not_defined) {}
 
-  void addDumpFilteredMeshToDumper(
-      const std::string & dumper_name, const Mesh & mesh,
-      const ElementTypeMapArray<UInt> & elements_filter,
-      const Array<UInt> & nodes_filter,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined) {}
+  void
+  addDumpFilteredMeshToDumper(const std::string & dumper_name,
+                              const Mesh & mesh,
+                              const ElementTypeMapArray<UInt> & elements_filter,
+                              const Array<UInt> & nodes_filter,
+                              UInt spatial_dimension = _all_dimensions,
+                              GhostType ghost_type = _not_ghost,
+                              ElementKind element_kind = _ek_not_defined) {}
 
   virtual void addDumpField(const std::string & field_id) {
     AKANTU_TO_IMPLEMENT();
@@ -137,22 +136,22 @@ public:
   }
 
   template <typename T>
-  void
-  addDumpFieldExternal(const std::string & field_id,
-                       const ElementTypeMapArray<T> & field,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined) {
+  void addDumpFieldExternal(const std::string & field_id,
+                            const ElementTypeMapArray<T> & field,
+                            UInt spatial_dimension = _all_dimensions,
+                            GhostType ghost_type = _not_ghost,
+                            ElementKind element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
   template <typename T>
-  void addDumpFieldExternalToDumper(
-      const std::string & dumper_name, const std::string & field_id,
-      const ElementTypeMapArray<T> & field,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined) {
+  void
+  addDumpFieldExternalToDumper(const std::string & dumper_name,
+                               const std::string & field_id,
+                               const ElementTypeMapArray<T> & field,
+                               UInt spatial_dimension = _all_dimensions,
+                               GhostType ghost_type = _not_ghost,
+                               ElementKind element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }

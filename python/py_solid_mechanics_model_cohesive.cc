@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -71,8 +71,8 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
 
   py::class_<SolidMechanicsModelCohesive, SolidMechanicsModel>(
       mod, "SolidMechanicsModelCohesive")
-      .def(py::init<Mesh &, UInt, const ID &>(),
-           py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
+      .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
+           py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model")
       .def(
           "initFull",
@@ -89,7 +89,7 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
            &SolidMechanicsModelCohesive::getElementInserter,
            py::return_value_policy::reference)
       .def("updateAutomaticInsertion",
-       &SolidMechanicsModelCohesive::updateAutomaticInsertion);
+           &SolidMechanicsModelCohesive::updateAutomaticInsertion);
 }
 
 } // namespace akantu

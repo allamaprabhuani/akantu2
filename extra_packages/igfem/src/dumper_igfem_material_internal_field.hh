@@ -19,33 +19,38 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-/* -------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------
+   */
 
-template <typename T, bool filtered = false>
-class IGFEMInternalMaterialField
-    : public IGFEMGenericElementalField<SingleType<T, Vector, filtered>,
-                                        igfem_quadrature_point_iterator> {
+  template <typename T, bool filtered = false>
+  class IGFEMInternalMaterialField
+      : public IGFEMGenericElementalField<SingleType<T, Vector, filtered>,
+                                          igfem_quadrature_point_iterator> {
 
-  /* ------------------------------------------------------------------------ */
-  /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------
+     */
+    /* Typedefs */
+    /* ------------------------------------------------------------------------
+     */
 
-public:
-  typedef SingleType<T, Vector, filtered> types;
-  typedef IGFEMGenericElementalField<types, igfem_quadrature_point_iterator>
-      parent;
-  typedef typename types::field_type field_type;
+  public:
+    typedef SingleType<T, Vector, filtered> types;
+    typedef IGFEMGenericElementalField<types, igfem_quadrature_point_iterator>
+        parent;
+    typedef typename types::field_type field_type;
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------
+     */
+    /* Constructors/Destructors */
+    /* ------------------------------------------------------------------------
+     */
 
-  IGFEMInternalMaterialField(const field_type & field,
-                             UInt spatial_dimension = _all_dimensions,
-                             GhostType ghost_type = _not_ghost,
-                             ElementKind kind = _ek_igfem)
-      : parent(field, spatial_dimension, ghost_type, kind) {}
-};
+    IGFEMInternalMaterialField(const field_type & field,
+                               UInt spatial_dimension = _all_dimensions,
+                               GhostType ghost_type = _not_ghost,
+                               ElementKind kind = _ek_igfem)
+        : parent(field, spatial_dimension, ghost_type, kind) {}
+  };
 
 } // namespace dumpers
 } // namespace akantu

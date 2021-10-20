@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -62,8 +62,7 @@ int main(int argc, char * argv[]) {
 
   for (UInt ft = 0; ft < types_facet.size(); ++ft) {
     ElementType type_facet = types_facet(ft);
-    auto && el_to_subel3 =
-        mesh_facets.getElementToSubelement(type_facet);
+    auto && el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
 
     std::cout << "ElementToSubelement3" << std::endl;
     for (UInt i = 0; i < el_to_subel3.size(); ++i) {
@@ -105,8 +104,7 @@ int main(int argc, char * argv[]) {
   /* Subelement to Element testing                                            */
   /* ------------------------------------------------------------------------ */
 
-  auto && subel_to_el3 =
-      mesh_facets.getSubelementToElement(type);
+  auto && subel_to_el3 = mesh_facets.getSubelementToElement(type);
 
   std::cout << " " << std::endl;
   std::cout << "SubelementToElement3" << std::endl;
@@ -121,8 +119,7 @@ int main(int argc, char * argv[]) {
 
   for (UInt ft = 0; ft < types_facet.size(); ++ft) {
     ElementType type_facet = types_facet(ft);
-    auto && subel_to_el2 =
-        mesh_facets.getSubelementToElement(type_facet);
+    auto && subel_to_el2 = mesh_facets.getSubelementToElement(type_facet);
 
     std::cout << "SubelementToElement2" << std::endl;
     for (UInt i = 0; i < subel_to_el2.size(); ++i) {
