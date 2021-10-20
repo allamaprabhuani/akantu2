@@ -60,7 +60,10 @@ docker build:ubuntu-lts:
             -DAKANTU_RUN_IN_DOCKER:BOOL=TRUE
             -DAKANTU_TEST_EXAMPLES:BOOL=${TEST_EXAMPLES}
             -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
-    - cp compile_commmands.json ..
+    
+    - if [ -e compile_commands.json ]; then
+    -   cp compile_commands.json ..
+    - fi
   artifacts:
     when: on_success
     paths:
