@@ -52,15 +52,6 @@ follow the usual way::
 Using the python interface
 --------------------------
 
-Dependencies
-````````````
-First you need to install the following dependencies::
-
-  > pip install numpy scipy
-
-Install and import the package
-``````````````````````````````
-
 You can install ``Akantu`` using pip::
 
   > pip install akantu
