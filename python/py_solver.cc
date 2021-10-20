@@ -36,6 +36,7 @@
 #include <model.hh>
 #include <non_linear_solver.hh>
 #include <sparse_matrix_aij.hh>
+#include <terms_to_assemble.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -79,6 +80,15 @@ void register_solvers(py::module & mod) {
       .def("getA", &SparseMatrixAIJ::getA);
 
   py::class_<SolverVector>(mod, "SolverVector");
+
+  py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
+      .def(py::self += Real())
+      .def_property_readonly("i", &TermsToAssemble::TermToAssemble::i)
+      .def_property_readonly("j", &TermsToAssemble::TermToAssemble::j);
+
+  py::class_<TermsToAssemble>(mod, "TermsToAssemble")
+      .def("__call__",
+           [](TermsToAssemble & self, UInt i, UInt j) { return self(i, j); });
 }
 
 } // namespace akantu

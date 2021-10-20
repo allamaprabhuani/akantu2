@@ -50,7 +50,7 @@ public:
 
   class TermToAssemble {
   public:
-    TermToAssemble(UInt i, UInt j) : _i(i), _j(j), val(0.) {}
+    TermToAssemble(UInt i, UInt j) : _i(i), _j(j) {}
     inline TermToAssemble & operator=(Real val) {
       this->val = val;
       return *this;
@@ -65,7 +65,7 @@ public:
 
   private:
     UInt _i, _j;
-    Real val;
+    Real val{0.};
   };
 
   /* ------------------------------------------------------------------------ */
