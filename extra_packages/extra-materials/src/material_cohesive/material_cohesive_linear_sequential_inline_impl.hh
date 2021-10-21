@@ -120,6 +120,84 @@ inline void MaterialCohesiveLinearSequential<dim>::computeTractionOnQuad(
     traction *= sigma_c / delta_max * (1. - damage);
   }
 }
+/* ------------------------------------------------------------------- */
+template <UInt dim>
+inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
+    Vector<Real> & traction, Vector<Real> & opening,
+    const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
+    const Vector<Real> & insertion_stress, const Real & sigma_c,
+    Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
+    Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
+    bool & penetration, Vector<Real> & contact_traction,
+    Vector<Real> & contact_opening) {
+
+  /// compute normal and tangential opening vectors
+  normal_opening_norm = opening.dot(normal);
+  normal_opening = normal;
+  normal_opening *= normal_opening_norm;
+
+  tangential_opening = opening;
+  tangential_opening -= normal_opening;
+  tangential_opening_norm = tangential_opening.norm();
+
+  /**
+   * compute effective opening displacement
+   * @f$ \delta = \sqrt{
+   * \frac{\beta^2}{\kappa^2} \Delta_t^2 + \Delta_n^2 } @f$
+   */
+  Real delta =
+      tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
+
+  damage = std::min(delta_max / delta_c, Real(1.));
+  penetration = normal_opening_norm / delta_c < -Math::getTolerance();
+  // penetration = normal_opening_norm < 0.;
+  if (Math::are_float_equal(damage, 1.)) {
+    penetration = false;
+  }
+
+  if (penetration) {
+    /// use penalty coefficient in case of penetration
+    contact_traction = normal_opening;
+    contact_traction *= sigma_c / delta_max * (1. - damage);
+    contact_opening = normal_opening;
+
+    /// don't consider penetration contribution for delta
+    opening = tangential_opening;
+    normal_opening.zero();
+  } else {
+    delta += normal_opening_norm * normal_opening_norm;
+    contact_traction.zero();
+    contact_opening.zero();
+  }
+
+  delta = std::sqrt(delta);
+
+  /**
+   * Compute traction @f$ \mathbf{T} = \left(
+   * \frac{\beta^2}{\kappa} \Delta_t \mathbf{t} + \Delta_n
+   * \mathbf{n} \right) \frac{\sigma_c}{\delta} \left( 1-
+   * \frac{\delta}{\delta_c} \right)@f$
+   */
+
+  if (Math::are_float_equal(damage, 1.)) {
+    traction.zero();
+  } else if (Math::are_float_equal(damage, 0.)) {
+    if (penetration) {
+      traction.zero();
+    } else {
+      traction = insertion_stress;
+    }
+  } else {
+    traction = tangential_opening;
+    traction *= this->beta2_kappa;
+    traction += normal_opening;
+
+    AKANTU_DEBUG_ASSERT(delta_max != 0.,
+                        "Division by zero, tolerance might be too low");
+
+    traction *= sigma_c / delta_max * (1. - damage);
+  }
+}
 /*-------------------------------------------------------------------*/
 template <UInt dim>
 inline void MaterialCohesiveLinearSequential<dim>::computeTangentTractionOnQuad(
@@ -184,6 +262,43 @@ inline void MaterialCohesiveLinearSequential<dim>::computeTangentTractionOnQuad(
   Matrix<Real> prov_t = prov.transpose();
   if (not penetration)
     tangent += prov_t;
+}
+
+/*-------------------------------------------------------------------*/
+template <UInt dim>
+inline void MaterialCohesiveLinearSequential<dim>::computeSecantTractionOnQuad(
+    Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
+    const Real & sigma_c, const Vector<Real> & normal, const Real & damage,
+    const Real & prev_damage) {
+
+  Real t = 0;
+
+  Matrix<Real> n_outer_n(dim, dim);
+  n_outer_n.outerProduct(normal, normal);
+
+  if (delta_max < Math::getTolerance()) {
+    delta_max = delta_c / 100.;
+  }
+
+  if (delta_max <= delta_c) {
+    Real tmax = sigma_c * (1 - delta_max / delta_c);
+    t = tmax / delta_max;
+  } else {
+    t = 0.;
+  }
+
+  /// computation of the derivative of the constitutive law (dT/ddelta)
+  Matrix<Real> I(dim, dim);
+  I.eye(this->beta2_kappa);
+
+  Matrix<Real> nn(n_outer_n);
+  nn *= (1. - this->beta2_kappa);
+  nn += I;
+  nn *= t;
+
+  Matrix<Real> prov = nn;
+  Matrix<Real> prov_t = prov.transpose();
+  tangent = prov_t;
 }
 
 /* ------------------------------------------------------------------- */

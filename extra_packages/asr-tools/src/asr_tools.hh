@@ -336,8 +336,9 @@ public:
   void applyPointForceToAsrCentralNodes(Real force_norm);
 
   /// apply forces as before but with certain delay defined per crack
-  void applyPointForceDelayed(Real loading_rate, const Array<Real> st_times,
-                              Real time, Real multiplier);
+  void applyPointForceDelayed(Real loading_rate,
+                              const Array<Real> loading_times, Real time,
+                              Real multiplier = 1.);
   /// apply forces within an expanding sphere
   void applyPointForceDistributed(Real radius, Real F);
 

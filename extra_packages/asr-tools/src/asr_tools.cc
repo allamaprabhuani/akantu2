@@ -5587,7 +5587,7 @@ void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
 }
 /* --------------------------------------------------------------- */
 void ASRTools::applyPointForceDelayed(Real loading_rate,
-                                      const Array<Real> starting_times,
+                                      const Array<Real> loading_times,
                                       Real time, Real multiplier) {
   auto && mesh = model.getMesh();
   auto dim = mesh.getSpatialDimension();
@@ -5595,19 +5595,19 @@ void ASRTools::applyPointForceDelayed(Real loading_rate,
   auto & pos = mesh.getNodes();
   auto it_force = make_view(forces, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
-  AKANTU_DEBUG_ASSERT(starting_times.size() == asr_central_node_pairs.size(),
+  AKANTU_DEBUG_ASSERT(loading_times.size() == asr_central_node_pairs.size(),
                       "Number of starting loading times does not correspond to "
                       "the number of node pairs");
 
   for (auto && data :
-       zip(asr_central_node_pairs, asr_normals_pairs, starting_times)) {
+       zip(asr_central_node_pairs, asr_normals_pairs, loading_times)) {
     auto && node_pair = std::get<0>(data);
     auto && normals_pair = std::get<1>(data);
-    auto && starting_time = std::get<2>(data);
+    auto && loading_time = std::get<2>(data);
     // skip if the crack should not be loaded YET
-    if (time < starting_time)
+    if (time < loading_time)
       continue;
-    Real force_norm = loading_rate * (time - starting_time) * multiplier;
+    Real force_norm = loading_rate * (time - loading_time) * multiplier;
     auto node1 = node_pair.first;
     auto node2 = node_pair.second;
     auto normal1 = normals_pair.first;

@@ -62,6 +62,8 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::initMaterial() {
   scalar_tractions.initialize(1);
   normal_tractions.initialize(spatial_dimension);
   effective_stresses.initialize(1);
+  this->damage.initializeHistory();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -107,9 +109,6 @@ template <UInt spatial_dimension>
 void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
     const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
-                              .getNbIntegrationPoints(el_type);
-
   /// define iterators
   auto traction_it =
       this->tractions(el_type, ghost_type).begin(spatial_dimension);
@@ -132,7 +131,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
   auto damage_it = this->damage(el_type, ghost_type).begin();
   auto insertion_stress_it =
       this->insertion_stress(el_type, ghost_type).begin(spatial_dimension);
-  auto && element_filter = this->element_filter(el_type, ghost_type);
 
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
@@ -148,13 +146,19 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
             ++contact_opening_it, ++normal_opening_norm_it,
             ++tangential_opening_norm_it, ++i) {
     bool penetration{false};
-    UInt el_nb = floor(i / nb_quad_cohesive);
-    __attribute__((unused)) auto critical_coh_el = element_filter(el_nb);
-    this->computeTractionOnQuad(
-        *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
-        *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
-        *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
-        penetration, *contact_traction_it, *contact_opening_it);
+    if (this->contact_after_breaking) {
+      this->computeTractionOnQuad(
+          *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
+          *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
+          *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
+          penetration, *contact_traction_it, *contact_opening_it);
+    } else {
+      this->computeSimpleTractionOnQuad(
+          *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
+          *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
+          *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
+          penetration, *contact_traction_it, *contact_opening_it);
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -168,9 +172,6 @@ void MaterialCohesiveLinearSequential<
                                                const Array<Real> & normal,
                                                GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
-                              .getNbIntegrationPoints(el_type);
-
   /// define iterators
   auto tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
 
@@ -190,17 +191,21 @@ void MaterialCohesiveLinearSequential<
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
   auto damage_it = this->damage(el_type, ghost_type).begin();
-  auto && element_filter = this->element_filter(el_type, ghost_type);
+  auto prev_damage_it = this->damage.previous(el_type, ghost_type).begin();
 
   for (UInt i = 0; tangent_it != tangent_end; ++tangent_it, ++normal_it,
             ++delta_max_it, ++sigma_c_it, ++delta_c_it, ++damage_it,
-            ++normal_opening_norm_it, ++tangential_opening_norm_it, ++i) {
-    UInt el_nb = floor(i / nb_quad_cohesive);
-    __attribute__((unused)) auto critical_coh_el = element_filter(el_nb);
-
-    this->computeTangentTractionOnQuad(
-        *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *normal_it,
-        *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it);
+            ++prev_damage_it, ++normal_opening_norm_it,
+            ++tangential_opening_norm_it, ++i) {
+    if (this->contact_after_breaking) {
+      this->computeTangentTractionOnQuad(
+          *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *normal_it,
+          *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it);
+    } else {
+      this->computeSecantTractionOnQuad(*tangent_it, *delta_max_it, *delta_c_it,
+                                        *sigma_c_it, *normal_it, *damage_it,
+                                        *prev_damage_it);
+    }
   }
 
   AKANTU_DEBUG_OUT();

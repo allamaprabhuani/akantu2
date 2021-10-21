@@ -128,12 +128,31 @@ protected:
       bool & penetration, Vector<Real> & contact_traction,
       Vector<Real> & contact_opening);
 
+  /// compute traction with penalty = tensile stiffness
+  inline void computeSimpleTractionOnQuad(
+      Vector<Real> & traction, Vector<Real> & opening,
+      const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
+      const Vector<Real> & insertion_stress, const Real & sigma_c,
+      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
+      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
+      bool & penetration, Vector<Real> & contact_traction,
+      Vector<Real> & contact_opening);
+
   /// compute the stiffness dependent only on previous delta max (SLA)
   inline void computeTangentTractionOnQuad(
       Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
       const Real & sigma_c, const Vector<Real> & normal,
       const Real & normal_opening_norm, const Real & tangential_opening_norm,
       const Real & damage);
+
+  /// compute the stiffness dependent only on previous delta max both for
+  /// tension and compression (SLA)
+  inline void
+  computeSecantTractionOnQuad(Matrix<Real> & tangent, Real & delta_max,
+                              const Real & delta_c, const Real & sigma_c,
+                              const Vector<Real> & normal,
+
+                              const Real & damage, const Real & prev_damage);
 
   inline bool updateDeltaMaxOnQuad(const Real & normal_opening_norm,
                                    const Real & tangential_opening_norm,
