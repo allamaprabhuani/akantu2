@@ -165,7 +165,24 @@ protected:
                                           const Real & delta_c,
                                           bool & penetration);
 
-  bool hasStiffnessMatrixChanged() override { return (update_stiffness); }
+  bool hasStiffnessMatrixChanged() override {
+    UInt nb_element = 0;
+    for (auto gt : ghost_types) {
+      for (auto type : this->element_filter.elementTypes(spatial_dimension, gt,
+                                                         _ek_cohesive)) {
+        auto && elem_filter = this->element_filter(type, gt);
+        nb_element += elem_filter.size();
+      }
+    }
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(nb_element, SynchronizerOperation::_sum);
+    if (nb_element == 0) {
+      return false;
+    } else {
+      comm.allReduce(update_stiffness, SynchronizerOperation::_lor);
+      return (update_stiffness);
+    }
+  }
 
   /* ---------------------------------------------------------------- */
   /* Accessors                                                        */

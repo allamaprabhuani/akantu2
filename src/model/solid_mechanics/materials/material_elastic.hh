@@ -80,8 +80,7 @@ public:
                      GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
   /// compute the elastic potential energy
@@ -114,13 +113,23 @@ protected:
                                                   Real & epot);
 
   bool hasStiffnessMatrixChanged() override {
-    return (not was_stiffness_assembled);
+    UInt nb_element = 0;
+    for (auto gt : ghost_types) {
+      for (auto type : this->element_filter.elementTypes(spatial_dimension, gt,
+                                                         _ek_regular)) {
+        auto && elem_filter = this->element_filter(type, gt);
+        nb_element += elem_filter.size();
+      }
+    }
+    if (nb_element == 0) {
+      return false;
+    } else {
+      return (not was_stiffness_assembled);
+    }
   }
 
-  MatrixType getTangentType() override {
-    return _symmetric;
-  }
-  
+  MatrixType getTangentType() override { return _symmetric; }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

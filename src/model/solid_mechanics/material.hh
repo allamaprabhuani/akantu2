@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "aka_voigthelper.hh"
+#include "communicator.hh"
 #include "data_accessor.hh"
 #include "integration_point.hh"
 #include "parsable.hh"
@@ -106,8 +107,7 @@ protected:
   /* Function that materials can/should reimplement                           */
   /* ------------------------------------------------------------------------ */
 protected:
-  void computeGradU(ElementType type,
-                    GhostType ghost_type = _not_ghost);
+  void computeGradU(ElementType type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law
   virtual void computeStress(ElementType /* el_type */,
@@ -516,7 +516,23 @@ public:
   }
 
   /// specify if the matrix need to be recomputed for this material
-  virtual bool hasStiffnessMatrixChanged() { return true; }
+  virtual bool hasStiffnessMatrixChanged() {
+    UInt nb_element = 0;
+    for (auto gt : ghost_types) {
+      for (auto type :
+           this->element_filter.elementTypes(spatial_dimension, gt)) {
+        auto && elem_filter = this->element_filter(type, gt);
+        nb_element += elem_filter.size();
+      }
+    }
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(nb_element, SynchronizerOperation::_sum);
+    if (nb_element == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 
   /// specify the type of matrix, if not overloaded the material is not valid
   /// for static or implicit computations

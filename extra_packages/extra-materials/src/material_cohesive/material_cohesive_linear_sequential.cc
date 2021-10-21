@@ -208,6 +208,8 @@ void MaterialCohesiveLinearSequential<
     }
   }
 
+  setUpdateStiffness(false);
+
   AKANTU_DEBUG_OUT();
 }
 /* ------------------------------------------------------------------- */
@@ -1370,6 +1372,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
       trac_old(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);
     }
   }
+  setUpdateStiffness(true);
   AKANTU_DEBUG_OUT();
 }
 
