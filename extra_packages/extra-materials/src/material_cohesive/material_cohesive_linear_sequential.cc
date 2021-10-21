@@ -155,7 +155,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
     } else {
       this->computeSimpleTractionOnQuad(
           *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
-          *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
+          *sigma_c_it, normal_opening, tangential_opening,
           *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
           penetration, *contact_traction_it, *contact_opening_it);
     }

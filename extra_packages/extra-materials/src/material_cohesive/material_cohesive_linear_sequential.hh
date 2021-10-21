@@ -132,11 +132,10 @@ protected:
   inline void computeSimpleTractionOnQuad(
       Vector<Real> & traction, Vector<Real> & opening,
       const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-      const Vector<Real> & insertion_stress, const Real & sigma_c,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_traction,
-      Vector<Real> & contact_opening);
+      const Real & sigma_c, Vector<Real> & normal_opening,
+      Vector<Real> & tangential_opening, Real & normal_opening_norm,
+      Real & tangential_opening_norm, Real & damage, bool & penetration,
+      Vector<Real> & contact_traction, Vector<Real> & contact_opening);
 
   /// compute the stiffness dependent only on previous delta max (SLA)
   inline void computeTangentTractionOnQuad(

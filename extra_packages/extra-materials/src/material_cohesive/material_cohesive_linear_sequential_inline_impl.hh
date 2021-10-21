@@ -125,11 +125,10 @@ template <UInt dim>
 inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
     Vector<Real> & traction, Vector<Real> & opening,
     const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-    const Vector<Real> & insertion_stress, const Real & sigma_c,
-    Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-    Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-    bool & penetration, Vector<Real> & contact_traction,
-    Vector<Real> & contact_opening) {
+    const Real & sigma_c, Vector<Real> & normal_opening,
+    Vector<Real> & tangential_opening, Real & normal_opening_norm,
+    Real & tangential_opening_norm, Real & damage, bool & penetration,
+    Vector<Real> & contact_traction, Vector<Real> & contact_opening) {
 
   /// compute normal and tangential opening vectors
   normal_opening_norm = opening.dot(normal);
@@ -147,13 +146,9 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
    */
   Real delta =
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
-
+  // for newly inserted cohesives delta_max = delta_c / 100
   damage = std::min(delta_max / delta_c, Real(1.));
-  penetration = normal_opening_norm / delta_c < -Math::getTolerance();
-  // penetration = normal_opening_norm < 0.;
-  if (Math::are_float_equal(damage, 1.)) {
-    penetration = false;
-  }
+  penetration = normal_opening_norm < 0.;
 
   if (penetration) {
     /// use penalty coefficient in case of penetration
@@ -172,21 +167,9 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
 
   delta = std::sqrt(delta);
 
-  /**
-   * Compute traction @f$ \mathbf{T} = \left(
-   * \frac{\beta^2}{\kappa} \Delta_t \mathbf{t} + \Delta_n
-   * \mathbf{n} \right) \frac{\sigma_c}{\delta} \left( 1-
-   * \frac{\delta}{\delta_c} \right)@f$
-   */
-
   if (Math::are_float_equal(damage, 1.)) {
     traction.zero();
-  } else if (Math::are_float_equal(damage, 0.)) {
-    if (penetration) {
-      traction.zero();
-    } else {
-      traction = insertion_stress;
-    }
+    contact_traction.zero();
   } else {
     traction = tangential_opening;
     traction *= this->beta2_kappa;
@@ -271,7 +254,7 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSecantTractionOnQuad(
     const Real & sigma_c, const Vector<Real> & normal, const Real & damage,
     const Real & prev_damage) {
 
-  Real t = 0;
+  Real t{0};
 
   Matrix<Real> n_outer_n(dim, dim);
   n_outer_n.outerProduct(normal, normal);
