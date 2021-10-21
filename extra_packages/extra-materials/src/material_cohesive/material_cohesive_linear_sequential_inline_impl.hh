@@ -130,7 +130,7 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
     Real & tangential_opening_norm, Real & damage, bool & penetration,
     Vector<Real> & contact_traction, Vector<Real> & contact_opening) {
 
-  /// compute normal and tangential opening vectors
+  // compute normal and tangential opening vectors
   normal_opening_norm = opening.dot(normal);
   normal_opening = normal;
   normal_opening *= normal_opening_norm;
@@ -144,28 +144,11 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
    * @f$ \delta = \sqrt{
    * \frac{\beta^2}{\kappa^2} \Delta_t^2 + \Delta_n^2 } @f$
    */
-  Real delta =
-      tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
   // for newly inserted cohesives delta_max = delta_c / 100
   damage = std::min(delta_max / delta_c, Real(1.));
-  penetration = normal_opening_norm < 0.;
 
-  if (penetration) {
-    /// use penalty coefficient in case of penetration
-    contact_traction = normal_opening;
-    contact_traction *= sigma_c / delta_max * (1. - damage);
-    contact_opening = normal_opening;
-
-    /// don't consider penetration contribution for delta
-    opening = tangential_opening;
-    normal_opening.zero();
-  } else {
-    delta += normal_opening_norm * normal_opening_norm;
-    contact_traction.zero();
-    contact_opening.zero();
-  }
-
-  delta = std::sqrt(delta);
+  contact_traction.zero();
+  contact_opening.zero();
 
   if (Math::are_float_equal(damage, 1.)) {
     traction.zero();
