@@ -65,7 +65,8 @@ inline Real FEEngine::getElementInradius(const Element & element) const {
   Matrix<Real> coords(spatial_dimension, connectivity.size());
 
   for (auto && data : zip(connectivity, coords)) {
-    std::get<1>(data) = positions[std::get<0>(data)];
+    Vector<Real>(std::get<1>(data)) =
+        Vector<Real>(positions[std::get<0>(data)]);
   }
 
   return getElementInradius(coords, element.type);

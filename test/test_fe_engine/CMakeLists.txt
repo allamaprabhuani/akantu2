@@ -49,19 +49,24 @@ endfunction()
 #===============================================================================
 macro(register_mesh_types package)
   package_get_element_types(${package} _types)
-
   foreach(_type ${_types})
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
       list(APPEND _meshes ${_type}.msh)
     else()
       if(NOT ${_type} STREQUAL _point_1)
-	message("The mesh ${_type}.msh is missing, the fe_engine test cannot be activated without it")
+        message("The mesh ${_type}.msh is missing, the fe_engine test cannot be activated without it")
       endif()
+    endif()
+
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.csv)
+      list(APPEND _csvs ${_type}.csv)
     endif()
   endforeach()
 endmacro(register_mesh_types)
 
 set(_meshes)
+set(_csvs)
+
 register_mesh_types(core)
 
 package_is_activated(structural_mechanics has_structural_mechanics)
@@ -99,6 +104,7 @@ register_gtest_sources(
   SOURCES test_fe_engine_precomputation.cc
   PACKAGE core python_interface
   INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/python
+  FILES_TO_COPY
   )
 
 register_gtest_sources(
@@ -106,6 +112,10 @@ register_gtest_sources(
   PACKAGE structural_mechanics
 )
 
+register_gtest_sources(
+  SOURCES test_fe_engine_inradius.cc
+  PACKAGE core
+  )
 
 register_gtest_sources(
   SOURCES test_fe_engine_gauss_integration.cc
@@ -128,4 +138,5 @@ register_gtest_sources(
   )
 
 register_gtest_test(test_fe_engine
-  FILES_TO_COPY ${_meshes})
+  FILES_TO_COPY ${_meshes} ${_csvs}
+  )
