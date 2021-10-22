@@ -89,8 +89,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* management callbacks                                                     */
   /* ------------------------------------------------------------------------ */
-  virtual void beforeSolveStep(){};
-  virtual void afterSolveStep(bool /*converged*/ = true){};
+  virtual void beforeSolveStep() {}
+  virtual void afterSolveStep(bool /*converged*/ = true) {}
+
+  DOFManager & getSCDOFManager() { return *sc_dof_manager; }
 
 protected:
   /// DOFManager prefixed to avoid collision in multiple inheritance cases

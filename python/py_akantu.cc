@@ -38,6 +38,7 @@
 #include "py_aka_common.hh"
 #include "py_aka_error.hh"
 #include "py_boundary_conditions.hh"
+#include "py_dof_manager.hh"
 #include "py_fe_engine.hh"
 #include "py_group_manager.hh"
 #include "py_mesh.hh"
@@ -103,6 +104,8 @@ void register_all(pybind11::module & mod) {
   register_mesh(mod);
 
   register_fe_engine(mod);
+
+  register_dof_manager(mod);
 
   register_boundary_conditions(mod);
   register_model(mod);

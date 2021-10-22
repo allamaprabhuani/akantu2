@@ -38,8 +38,8 @@
 /* -------------------------------------------------------------------------- */
 #include <model.hh>
 #include <non_linear_solver.hh>
-#include <sparse_matrix_aij.hh>
 #include <solver_callback.hh>
+#include <sparse_matrix_aij.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -52,8 +52,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void register_model(py::module & mod) {
-  py::class_<ModelSolver, Parsable>(mod, "ModelSolver",
-                                    py::multiple_inheritance())
+  py::class_<ModelSolver, SolverCallback, Parsable>(mod, "ModelSolver",
+                                                    py::multiple_inheritance())
       .def("getNonLinearSolver",
            (NonLinearSolver & (ModelSolver::*)(const ID &)) &
                ModelSolver::getNonLinearSolver,

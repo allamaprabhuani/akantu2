@@ -19,6 +19,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_dof_manager.hh"
 #include "py_akantu_pybind11_compatibility.hh"
+#include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <dof_manager.hh>
 #include <non_linear_solver.hh>
@@ -35,6 +36,7 @@ namespace akantu {
 
 namespace {
   class PySolverCallback : public SolverCallback {
+  public:
     using SolverCallback::SolverCallback;
 
     /// get the type of matrix needed
@@ -60,7 +62,7 @@ namespace {
     /// callback to assemble the residual (rhs)
     void assembleResidual() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, assembleResidual);
+      PYBIND11_OVERRIDE_PURE(void, SolverCallback, assembleResidual);
     }
 
     /* ---------------------------------------------------------------------- */
@@ -78,6 +80,11 @@ namespace {
       PYBIND11_OVERRIDE(void, SolverCallback, corrector);
     }
 
+    void beforeSolveStep() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, beforeSolveStep);
+    }
+
     void afterSolveStep(bool converged) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, SolverCallback, afterSolveStep, converged);
@@ -86,7 +93,7 @@ namespace {
 } // namespace
 
 /* -------------------------------------------------------------------------- */
-void register_dof_manger(py::module & mod) {
+void register_dof_manager(py::module & mod) {
   py::class_<DOFManager>(mod, "DOFManager")
       .def("getMatrix", &DOFManager::getMatrix,
            py::return_value_policy::reference)
@@ -135,6 +142,7 @@ void register_dof_manger(py::module & mod) {
               const SolveConvergenceCriteria & val) { self.set(id, val); });
 
   py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")
+      .def(py::init_alias<DOFManager&>())
       .def("getMatrixType", &SolverCallback::getMatrixType)
       .def("assembleMatrix", &SolverCallback::assembleMatrix)
       .def("assembleLumpedMatrix", &SolverCallback::assembleLumpedMatrix)
@@ -142,7 +150,10 @@ void register_dof_manger(py::module & mod) {
            [](SolverCallback & self) { self.assembleResidual(); })
       .def("predictor", &SolverCallback::predictor)
       .def("corrector", &SolverCallback::corrector)
-      .def("afterSolveStep", &SolverCallback::afterSolveStep);
+      .def("beforeSolveStep", &SolverCallback::beforeSolveStep)
+      .def("afterSolveStep", &SolverCallback::afterSolveStep)
+      .def_property_readonly("dof_manager", &SolverCallback::getSCDOFManager,
+                             py::return_value_policy::reference);
 }
 
 } // namespace akantu
