@@ -51,6 +51,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::
                       "Range within which quad points will be damaged");
   this->registerParam("reductions", reductions, _pat_parsmod,
                       "Maximum number of reductions within SLA");
+  this->registerParam("update_stiffness_on_damage", update_stiffness_on_damage,
+                      _pat_parsmod,
+                      "Flag for updating element stiffness on damage");
 }
 /* ------------------------------------------------------------------ */
 template <UInt spatial_dimension>
@@ -208,6 +211,8 @@ void MaterialCohesiveLinearSequential<
     }
   }
 
+  // control over stiffness update between iterations
+  // if (not this->contact_after_breaking)
   setUpdateStiffness(false);
 
   AKANTU_DEBUG_OUT();
@@ -217,9 +222,6 @@ template <UInt spatial_dimension>
 UInt MaterialCohesiveLinearSequential<spatial_dimension>::updateDeltaMax(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
-                              .getNbIntegrationPoints(el_type);
-
   /// define iterators
   auto normal_opening_norm_it =
       this->normal_opening_norm(el_type, ghost_type).begin();
@@ -231,7 +233,6 @@ UInt MaterialCohesiveLinearSequential<spatial_dimension>::updateDeltaMax(
   auto delta_max_it = this->delta_max(el_type, ghost_type).begin();
   auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
   auto damage_it = this->damage(el_type, ghost_type).begin();
-  auto && element_filter = this->element_filter(el_type, ghost_type);
 
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
@@ -241,14 +242,15 @@ UInt MaterialCohesiveLinearSequential<spatial_dimension>::updateDeltaMax(
   for (UInt i = 0; normal_opening_norm_it != normal_opening_norm_end;
        ++normal_opening_norm_it, ++tangential_opening_norm_it, ++damage_it,
             ++delta_max_it, ++delta_c_it, ++i) {
-    UInt el_nb = floor(i / nb_quad_cohesive);
-    __attribute__((unused)) auto critical_coh_el = element_filter(el_nb);
     auto delta_max_increased = this->updateDeltaMaxOnQuad(
         *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
         *delta_max_it, *delta_c_it);
     if (delta_max_increased)
       nb_updated_quads++;
   }
+
+  if (nb_updated_quads and this->update_stiffness_on_damage)
+    setUpdateStiffness(true);
 
   AKANTU_DEBUG_OUT();
   return nb_updated_quads;
@@ -1372,7 +1374,10 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
       trac_old(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);
     }
   }
+
+  // always update stiffness if new elements are added
   setUpdateStiffness(true);
+
   AKANTU_DEBUG_OUT();
 }
 

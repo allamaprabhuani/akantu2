@@ -206,7 +206,7 @@ protected:
   /// normal stresses normalized by the stress limit
   FacetInternalField<Real> effective_stresses;
 
-  /// bool to fix stiffness if not converging due to stiffness jumps
+  /// internal variable to indicate to solver if stiffness has to be reassembled
   bool update_stiffness{true};
 
   /// defines deviation from the exact value of the most stressed element to be
@@ -215,6 +215,9 @@ protected:
 
   /// number of maximum reductions within SLA
   UInt reductions{10};
+
+  /// flag to update stiffness of an element if damaged
+  bool update_stiffness_on_damage{true};
 };
 
 /* ------------------------------------------------------------------ */
