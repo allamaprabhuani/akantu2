@@ -54,6 +54,33 @@ bibliography: paper.bib
 ---
 
 # Summary
+Complex, nonlinear and transient phenomena are at the heart of modern research
+in mechanics of materials. For example, the buildup and release of elastic
+energy at geological fault is what causes earthquakes, and the intricate details
+of the slip zone, the propagation of slip fronts and waves radiated through the
+various geological media are still active areas of research [cite kammer etc].
+Similarly, understanding fracture in heterogeneous materials such as concrete,
+masonry or ceramics necessitates the modeling of interaction of crack fronts
+with complex materials [cite okan, mohadeseh, aurelia etc], the representation
+of residual shear stresses in the contact of newly-formed crack surfaces [cite
+shenghan, mohit etc], and the accurate characterization of transient dynamics
+[cite marco etc] and material structure evolution [cite aurelia, emil].
+
+The finite-element method is now ubiquitous in virtually all areas of solid
+mechanics. With meticulous care on code architecture and performance, we show
+with our finite-element library Akantu that it can handle the requirements
+mentioned above for state-of-the-art research in mechanics of materials. Akantu
+is designed from the ground up for high-performance, highly distributed
+computations, while retaining the necessary flexibility to handle:
+
+- crack propagation with cohesive elements
+- non-local damage models
+- plastic and viscoplastic constitutive laws
+- large deformations
+- contact constraints (including friction)
+- structural elements (beams and shells)
+- one-dimensional elements embeded in a three-dimensional mesh (e.g.
+  reinforcements in concrete)
 
 # Statement of need
 
@@ -81,6 +108,7 @@ The following publications have been made possible with ``Akantu``:
 - @zhang_numerical_2018
 - @zhang_numerical_2019
 - @gallyamov_multi-scale_2020
+- @milanese_mechanistic_2020
 - @albertini_three-dimensional_2021
 - @brun_hybrid_2021
 - @rezakhani_meso-scale_2021
