@@ -107,6 +107,7 @@ The following publications have been made possible with ``Akantu``:
 - @yilmaz_influence_2018
 - @zhang_numerical_2018
 - @zhang_numerical_2019
+- @frerot_fourier_2019
 - @gallyamov_multi-scale_2020
 - @milanese_mechanistic_2020
 - @albertini_three-dimensional_2021
