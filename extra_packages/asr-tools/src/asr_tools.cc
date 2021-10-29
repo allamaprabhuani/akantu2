@@ -5647,6 +5647,11 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
     }
     auto central_node = central_node_pair.first;
     Vector<Real> sphere_center = it_pos[central_node];
+    // normal opening of central nodes
+    Vector<Real> central_opening = it_pos[central_node_pair.first];
+    central_opening -= Vector<Real>(it_pos[central_node_pair.second]);
+    auto normal_centr_open_norm = central_opening.dot(normals_pair.first);
+    normal_centr_open_norm = std::abs(normal_centr_open_norm);
 
     // search for cohesives falling into the sphere
     for (auto coh_type : mesh.elementTypes(dim, gt, _ek_cohesive)) {
@@ -5673,11 +5678,18 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
         auto && damage = mat.getInternal<Real>("damage")(coh_type, gt);
         auto && coh_normals = mat_coh->getNormals(coh_type, gt);
         auto coh_norm_it = coh_normals.begin(dim);
+        auto && normal_opening_norm =
+            mat_coh->getInternal<Real>("normal_opening_norm")(coh_type, gt);
 
         for (auto && data : enumerate(filter)) {
           auto local_coh_nb = std::get<0>(data);
           auto coh_el_nb = std::get<1>(data);
-          if (damage(local_coh_nb * nb_quad_cohesive) <= 0.1)
+          // consider only fully broken elements
+          if (damage(local_coh_nb * nb_quad_cohesive) < 1.)
+            continue;
+          // consider only elements with big opening
+          if (normal_opening_norm(local_coh_nb * nb_quad_cohesive) <
+              0.4 * normal_centr_open_norm)
             continue;
           Element coh_el{coh_type, coh_el_nb, gt};
           auto coh_facet = mesh_facets.getSubelementToElement(coh_el)(0);
