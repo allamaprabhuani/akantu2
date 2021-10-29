@@ -220,13 +220,13 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(TemperatureRate, temperature_rate);
 
   /// get the energy denominated by thermal
-  Real getEnergy(const std::string & energy_id, const ElementType & type,
+  Real getEnergy(const std::string & energy_id, ElementType type,
                  Idx index);
   /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id);
 
   /// get the thermal energy for a given element
-  Real getThermalEnergy(const ElementType & type, Idx index);
+  Real getThermalEnergy(ElementType type, Idx index);
   /// get the thermal energy for a given element
   Real getThermalEnergy();
 

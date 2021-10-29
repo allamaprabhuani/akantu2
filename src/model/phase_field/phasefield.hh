@@ -115,8 +115,8 @@ public:
   virtual void savePreviousState();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(const ElementType & type, UInt element,
-                         const GhostType & ghost_type);
+  inline UInt addElement(ElementType type, UInt element,
+                         GhostType ghost_type);
   inline UInt addElement(const Element & element);
 
   /// function to print the contain of the class
@@ -131,7 +131,7 @@ protected:
   virtual void updateInternalParameters();
 
   // constitutive law for driving force
-  virtual void computeDrivingForce(const ElementType & /* el_type */,
+  virtual void computeDrivingForce(ElementType /* el_type */,
                                    GhostType /* ghost_type */ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -194,7 +194,7 @@ public:
   template <typename T> InternalPhaseField<T> & getInternal(const ID & id);
 
   template <typename T>
-  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  inline bool isInternal(const ID & id, ElementKind element_kind) const;
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;

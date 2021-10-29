@@ -78,20 +78,20 @@ public:
   template <ElementType type, class ReduceFunction>
   void extractNodalToElementField(
       const Array<Real> & nodal_f, Array<Real> & elemental_f,
-      const GhostType & ghost_type = _not_ghost,
+      GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, const GhostType & ghost_type,
+      Array<Real> & shape_derivatives, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, const ElementType & type,
-      const GhostType & ghost_type,
+      Array<Real> & shape_derivatives, ElementType type,
+      GhostType ghost_type,
       const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
@@ -151,7 +151,7 @@ public:
   /// multiply a field by shape functions
   template <ElementType type>
   void computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-                  const GhostType & /*ghost_type*/,
+                  GhostType /*ghost_type*/,
                   const Array<Idx> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }

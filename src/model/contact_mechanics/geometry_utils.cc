@@ -256,7 +256,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  const ElementType & type = element.type;
+  ElementType type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
@@ -284,7 +284,7 @@ void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
                               const Vector<Real> & natural_coord,
                               Matrix<Real> & curvature) {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  const ElementType & type = element.type;
+  ElementType type = element.type;
 
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
@@ -488,7 +488,7 @@ void GeometryUtils::realProjection(const Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  const ElementType & type = element.type;
+  ElementType type = element.type;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
@@ -540,7 +540,7 @@ void GeometryUtils::naturalProjection(
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1;
 
-  const ElementType & type = element.type;
+  ElementType type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
@@ -697,7 +697,7 @@ Matrix<Real> GeometryUtils::covariantCurvatureTensor(
   UInt spatial_dimension = mesh.getSpatialDimension();
   auto surface_dimension = spatial_dimension - 1;
 
-  const ElementType & type = element.type;
+  ElementType type = element.type;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
 

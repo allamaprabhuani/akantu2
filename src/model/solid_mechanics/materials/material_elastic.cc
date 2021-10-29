@@ -136,7 +136,7 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialElastic<dim>::computeTangentModuli(const ElementType & el_type,
+void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
                                                 Array<Real> & tangent_matrix,
                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();

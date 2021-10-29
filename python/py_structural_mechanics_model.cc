@@ -109,7 +109,7 @@ void register_structural_mechanics_model(pybind11::module & mod) {
            py::arg("time_step"), py::arg("solver_id") = "")
       .def(
           "getElementMaterial",
-          [](StructuralMechanicsModel & self, const ElementType & type,
+          [](StructuralMechanicsModel & self, ElementType type,
              GhostType ghost_type) -> decltype(auto) {
             return self.getElementMaterial(type, ghost_type);
           },

@@ -58,7 +58,7 @@ ShapeFunctions::getShapesDerivatives(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int ShapeFunctions::getShapeSize(const ElementType & type) {
+inline Int ShapeFunctions::getShapeSize(ElementType type) {
   AKANTU_DEBUG_IN();
 
   Int shape_size = 0;
@@ -73,7 +73,7 @@ inline Int ShapeFunctions::getShapeSize(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
+inline Int ShapeFunctions::getShapeDerivativesSize(ElementType type) {
   AKANTU_DEBUG_IN();
 
   Int shape_derivatives_size = 0;
@@ -91,7 +91,7 @@ inline Int ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class D1>
 void ShapeFunctions::setIntegrationPointsByType(
-    const Eigen::MatrixBase<D1> & points, const GhostType & ghost_type) {
+    const Eigen::MatrixBase<D1> & points, GhostType ghost_type) {
   if (not this->integration_points.exists(type, ghost_type))
     this->integration_points(type, ghost_type) = points;
 }
@@ -211,7 +211,7 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
     const Array<Real> & field,
     const Array<Real> & interpolation_points_coordinates_matrices,
     const Array<Real> & quad_points_coordinates_inv_matrices,
-    ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+    ElementTypeMapArray<Real> & result, GhostType ghost_type,
     const Array<Int> & element_filter) const {
   AKANTU_DEBUG_IN();
 
@@ -280,7 +280,7 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
-    const Array<Real> & u_el, Array<Real> & uq, const GhostType & ghost_type,
+    const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
     const Array<Real> & shapes, const Array<Int> & filter_elements) const {
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto nb_nodes_per_element = ElementClass<type>::getShapeSize();
@@ -318,7 +318,7 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
 template <ElementType type>
 void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
     const Array<Real> & u_el, Array<Real> & out_nablauq,
-    const GhostType & ghost_type, const Array<Real> & shapes_derivatives,
+    GhostType ghost_type, const Array<Real> & shapes_derivatives,
     const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 

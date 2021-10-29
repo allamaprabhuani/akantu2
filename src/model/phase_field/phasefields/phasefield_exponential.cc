@@ -50,7 +50,7 @@ void PhaseFieldExponential::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
+void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
                                                 GhostType ghost_type) {
   for (auto && tuple : zip(this->phi(el_type, ghost_type),
                            this->phi.previous(el_type, ghost_type),

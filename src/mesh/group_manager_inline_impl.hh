@@ -46,7 +46,7 @@ namespace akantu {
 template <typename T, template <bool> class dump_type>
 std::shared_ptr<dumper::Field> GroupManager::createElementalField(
     const ElementTypeMapArray<T> & field, const std::string & group_name,
-    Int spatial_dimension, const ElementKind & kind,
+    Int spatial_dimension, ElementKind kind,
     ElementTypeMap<Int> nb_data_per_elem) {
 
   const auto * field_ptr = &field;
@@ -66,7 +66,7 @@ template <typename T, class ret_type,
           template <class, class, bool> class dump_type>
 std::shared_ptr<dumper::Field> GroupManager::createElementalField(
     const ElementTypeMapArray<T> & field, const std::string & group_name,
-    Int spatial_dimension, const ElementKind & kind,
+    Int spatial_dimension, ElementKind kind,
     ElementTypeMap<Int> nb_data_per_elem) {
 
   const auto * field_ptr = &field;
@@ -86,7 +86,7 @@ template <typename T, template <typename T2, bool filtered>
                       class dump_type> ///< type of InternalMaterialField
 std::shared_ptr<dumper::Field> GroupManager::createElementalField(
     const ElementTypeMapArray<T> & field, const std::string & group_name,
-    Int spatial_dimension, const ElementKind & kind,
+    Int spatial_dimension, ElementKind kind,
     ElementTypeMap<Int> nb_data_per_elem) {
   const auto * field_ptr = &field;
 
@@ -105,7 +105,7 @@ std::shared_ptr<dumper::Field> GroupManager::createElementalField(
 template <typename dump_type, typename field_type>
 std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
     const field_type & field, const std::string & group_name,
-    Int spatial_dimension, const ElementKind & kind,
+    Int spatial_dimension, ElementKind kind,
     const ElementTypeMap<Int> & nb_data_per_elem) {
   const field_type * field_ptr = &field;
   if (field_ptr == nullptr) {
@@ -126,7 +126,7 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
 template <typename dump_type, typename field_type>
 std::shared_ptr<dumpers::Field> GroupManager::createElementalFilteredField(
     const field_type & field, const std::string & group_name,
-    Int spatial_dimension, const ElementKind & kind,
+    Int spatial_dimension, ElementKind kind,
     ElementTypeMap<Int> nb_data_per_elem) {
 
   const auto * field_ptr = &field;

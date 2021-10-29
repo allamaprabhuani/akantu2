@@ -98,25 +98,25 @@ public:
   /// integrate f for all elements of type "type"
   void
   integrate(const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
-            const ElementType & type, const GhostType & ghost_type = _not_ghost,
+            ElementType type, GhostType ghost_type = _not_ghost,
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate a scalar value on all elements of type "type"
   Real
-  integrate(const Array<Real> & f, const ElementType & type,
-            const GhostType & ghost_type = _not_ghost,
+  integrate(const Array<Real> & f, ElementType type,
+            GhostType ghost_type = _not_ghost,
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> & f, const ElementType & type,
+  Real integrate(const Ref<const VectorXr> & f, ElementType type,
                  Int index,
-                 const GhostType & ghost_type = _not_ghost) const override;
+                 GhostType ghost_type = _not_ghost) const override;
 
   /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
   void integrateOnIntegrationPoints(
       const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
-      const ElementType & type, const GhostType & ghost_type = _not_ghost,
+      ElementType type, GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
 private:
@@ -144,18 +144,18 @@ public:
 
   /// get the number of integration points
   Int getNbIntegrationPoints(
-      const ElementType & type,
-      const GhostType & ghost_type = _not_ghost) const override;
+      ElementType type,
+      GhostType ghost_type = _not_ghost) const override;
 
   /// get shapes precomputed
-  const Array<Real> & getShapes(const ElementType & type,
-                                const GhostType & ghost_type = _not_ghost,
+  const Array<Real> & getShapes(ElementType type,
+                                GhostType ghost_type = _not_ghost,
                                 Int id = 0) const override;
 
   /// get the derivatives of shapes
   const Array<Real> &
-  getShapesDerivatives(const ElementType & type,
-                       const GhostType & ghost_type = _not_ghost,
+  getShapesDerivatives(ElementType type,
+                       GhostType ghost_type = _not_ghost,
                        Int id = 0) const override;
 
   /// get integration points
@@ -170,14 +170,14 @@ public:
   /// compute the gradient of a nodal field on the integration points
   void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq,
-      const Int nb_degree_of_freedom, const ElementType & type,
-      const GhostType & ghost_type = _not_ghost,
+      const Int nb_degree_of_freedom, ElementType type,
+      GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// interpolate a nodal field on the integration points
   void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, Int nb_degree_of_freedom,
-      const ElementType & type, const GhostType & ghost_type = _not_ghost,
+      ElementType type, GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// interpolate a nodal field on the integration points given a
@@ -190,18 +190,18 @@ public:
   /// pre multiplies a tensor by the shapes derivaties
   void
   computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
-             const ElementType & type, const GhostType & ghost_type,
+             ElementType type, GhostType ghost_type,
              const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// left and right  multiplies a tensor by the shapes derivaties
   void
   computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
-              const ElementType & type, const GhostType & ghost_type,
+              ElementType type, GhostType ghost_type,
               const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// left multiples a vector by the shape functions
   void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
-                  const ElementType & type, const GhostType & ghost_type,
+                  ElementType type, GhostType ghost_type,
                   const Array<Idx> & filter_elements) const override;
 
   /// compute the position of integration points given by an element_type_map
@@ -213,8 +213,8 @@ public:
 
   /// compute the position of integration points from nodes position
   inline void computeIntegrationPointsCoordinates(
-      Array<Real> & quadrature_points_coordinates, const ElementType & type,
-      const GhostType & ghost_type = _not_ghost,
+      Array<Real> & quadrature_points_coordinates, ElementType type,
+      GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// interpolate field at given position (interpolation_points) from given
@@ -247,26 +247,26 @@ public:
 
   /// find natural coords from real coords provided an element
   void inverseMap(const Vector<Real> & real_coords, Int element,
-                  const ElementType & type, Vector<Real> & natural_coords,
-                  const GhostType & ghost_type = _not_ghost) const;
+                  ElementType type, Vector<Real> & natural_coords,
+                  GhostType ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false
   /// otherwise
   inline bool contains(const Vector<Real> & real_coords, Int element,
-                       const ElementType & type,
-                       const GhostType & ghost_type = _not_ghost) const;
+                       ElementType type,
+                       GhostType ghost_type = _not_ghost) const;
 
   /// compute the shape on a provided point
   inline void
   computeShapes(const Ref<const VectorXr> & real_coords, Int element,
-                const ElementType & type, Ref<VectorXr> shapes,
-                const GhostType & ghost_type = _not_ghost) const override;
+                ElementType type, Ref<VectorXr> shapes,
+                GhostType ghost_type = _not_ghost) const override;
 
   /// compute the shape derivatives on a provided point
   inline void computeShapeDerivatives(
       const Ref<const VectorXr> & real__coords, Int element,
-      const ElementType & type, Ref<MatrixXr> shape_derivatives,
-      const GhostType & ghost_type = _not_ghost) const override;
+      ElementType type, Ref<MatrixXr> shape_derivatives,
+      GhostType ghost_type = _not_ghost) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
@@ -278,20 +278,20 @@ public:
   computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                     GhostType ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
-      const GhostType & ghost_type = _not_ghost) override;
+      GhostType ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
       const Array<Real> & field,
-      const GhostType & ghost_type = _not_ghost) override;
+      GhostType ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
-      const Array<Real> & field, Array<Real> & normal, const ElementType & type,
-      const GhostType & ghost_type = _not_ghost) const override;
+      const Array<Real> & field, Array<Real> & normal, ElementType type,
+      GhostType ghost_type = _not_ghost) const override;
 
   template <ElementType type, ElementKind kind_ = kind,
             std::enable_if_t<kind_ != _ek_regular> * = nullptr>
   void
   computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
                                     Array<Real> & /*normal*/,
-                                    const GhostType & /*ghost_type*/) const {
+                                    GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -300,7 +300,7 @@ public:
       std::enable_if_t<kind_ == _ek_regular and type != _point_1> * = nullptr>
   void computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                          Array<Real> & normal,
-                                         const GhostType & ghost_type) const;
+                                         GhostType ghost_type) const;
 
 private:
   // To avoid a weird full specialization of a method in a non specalized class

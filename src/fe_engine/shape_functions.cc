@@ -50,7 +50,7 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
     const Array<Real> & quadrature_points_coordinates,
-    const GhostType & ghost_type, const Array<Idx> & element_filter) const {
+    GhostType ghost_type, const Array<Idx> & element_filter) const {
 
   AKANTU_DEBUG_IN();
 
@@ -194,7 +194,7 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
     const ElementTypeMapArray<Real> & field,
     const ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-    ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+    ElementTypeMapArray<Real> & result, GhostType ghost_type,
     const ElementTypeMapArray<Idx> * element_filter) const {
 
   AKANTU_DEBUG_IN();

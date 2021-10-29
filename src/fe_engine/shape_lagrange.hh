@@ -68,13 +68,13 @@ public:
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, const GhostType & ghost_type,
+      Array<Real> & shape_derivatives, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, const ElementType & type,
-      const GhostType & ghost_type,
+      Array<Real> & shape_derivatives, ElementType type,
+      GhostType ghost_type,
       const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
@@ -159,18 +159,18 @@ public:
   /// otherwise
   template <ElementType type>
   bool contains(const Ref<const VectorXr> & real_coords, Idx elem,
-                const GhostType & ghost_type) const;
+                GhostType ghost_type) const;
 
   /// compute the shape on a provided point
   template <ElementType type>
   void computeShapes(const Ref<const VectorXr> & real_coords, Idx elem,
-                     Ref<VectorXr> shapes, const GhostType & ghost_type) const;
+                     Ref<VectorXr> shapes, GhostType ghost_type) const;
 
   /// compute the shape derivatives on a provided point
   template <ElementType type>
   void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords,
                                Idx elem, Tensor3Base<Real> & shapes,
-                               const GhostType & ghost_type) const;
+                               GhostType ghost_type) const;
 
 protected:
   /// compute the shape derivatives on integration points for a given element

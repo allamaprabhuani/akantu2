@@ -89,7 +89,8 @@ int main(int argc, char * argv[]) {
   auto && elements = mesh.createElementGroup("diplacement");
   Vector<Real> barycenter(spatial_dimension);
 
-  for_each_element(mesh,
+  for_each_element(
+      mesh,
                    [&](auto && el) {
                      mesh.getBarycenter(el, barycenter);
                      if (barycenter(_x) > -0.25)

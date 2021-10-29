@@ -14,6 +14,7 @@ Execute the test in the good configuration according to the options given
     -p MPI_WRAPPER    Executes the test for multiple parallel configuration
     -s SCRIPT_FILE    Script to execute after the execution of the test to
                       postprocess the results
+    -v VALGRIND_PATH  Running the test using valgrind
     -r REFERENCE_FILE Reference file to compare with if the name of the file
                       contains a <nb_proc> this will be used for the different
                       configuration when -p is given
@@ -31,7 +32,7 @@ full_redirect() {
 
     local sout=".lastout"
     local serr=".lasterr"
-    if [ ${nproc} -ne 0 ]; then
+  if [ "${nproc}" -ne 0 ]; then
        sout="-${nproc}${sout}"
        serr="-${nproc}${serr}"
     fi
@@ -50,6 +51,7 @@ working_dir=
 envi=
 parallel_processes="2"
 
+valgrind=""
 
 while :
 do
@@ -90,6 +92,10 @@ do
       working_dir="$2"
       shift 2
       ;;
+    -v)
+      valgrind="$2"
+      shift 2
+      ;;
     --) # End of all options
       shift
       break
@@ -105,41 +111,40 @@ do
   esac
 done
 
-_args=$@
+_args=$*
 
 if [ -n "${envi}" ]; then
-    source ${envi}
+  source "${envi}"
 fi
 
-if [ -z "${name}" -o -z "${executable}" ]; then
+if [ -z "${name}" ] || [ -z "${executable}" ]; then
     echo "Missing executable or name"
     show_help
     exit 1
 fi
 
 if [ -n "${working_dir}" ]; then
-    current_directory=$PWD
     echo "Entering directory ${working_dir}"
     cd "${working_dir}"
 fi
 
 if [ -z "${parallel}" ]; then
     echo "Executing the test ${name}"
-    full_redirect 0 ${name} "${executable} ${_args}"
+  full_redirect 0 "${name}" "${valgrind} ${executable} ${_args}"
 else
   #for i in ${parallel_processes}; do
   i=${parallel_processes}
   echo "Executing the test ${name} for ${i} procs"
-  full_redirect $i ${name}_$i "${parallel}  ${i} ${executable} ${_args}"
+  full_redirect "$i" "${name}"_"$i" "${parallel} ${i} ${valgrind} ${executable} ${_args}"
   #done
 fi
 
 if [ -n "${postprocess_script}" ]; then
   echo "Executing the test ${name} post-processing"
-  full_redirect 0 ${name}_pp ./${postprocess_script}
+  full_redirect 0 "${name}_pp" "./${postprocess_script}"
 fi
 
 if [ -n "${reference}" ]; then
    echo "Comparing last generated output to the reference file"
-   diff -w ${lastout} ${reference}
+  diff -w "${lastout}" "${reference}"
 fi

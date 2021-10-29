@@ -44,7 +44,7 @@ template <class InType, class OutType> auto convertType(const InType &) {
 
 template <>
 constexpr inline auto
-convertType<ElementType, InterpolationType>(const ElementType & type) {
+convertType<ElementType, InterpolationType>(ElementType type) {
   auto itp_type = _itp_not_defined;
 #define GET_ITP(type) itp_type = ElementClassProperty<type>::interpolation_type;
 

@@ -72,7 +72,7 @@ public:
   weightedAverageOnNeighbours(const ElementTypeMapReal & to_accumulate,
                               ElementTypeMapReal & accumulated,
                               Int nb_degree_of_freedom,
-                              const GhostType & ghost_type2) const = 0;
+                              GhostType ghost_type2) const = 0;
 
   /// update the weights for the non-local averaging
   virtual void updateWeights() = 0;

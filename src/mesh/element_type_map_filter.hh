@@ -76,8 +76,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline const ArrayFilter<T>
-  operator()(const SupportType & type,
-             const GhostType & ghost_type = _not_ghost) const {
+  operator()(SupportType type,
+             GhostType ghost_type = _not_ghost) const {
     if (filter.exists(type, ghost_type)) {
       Int nb_comp = 1;
       if (nb_data_per_elem.exists(type, ghost_type)) {

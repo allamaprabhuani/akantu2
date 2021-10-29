@@ -86,7 +86,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shapes, const GhostType & ghost_type,
+    Array<Real> & shapes, GhostType ghost_type,
     const Array<Int> & filter_elements) const {
 
   auto nb_points = integration_points.cols();
@@ -334,7 +334,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_dof,
-    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_dof,
@@ -383,7 +383,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::gradientOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_nablauq, UInt nb_dof,
-    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto itp_type = FEEngine::getInterpolationType(type);

@@ -7,7 +7,8 @@
  * @date creation: Sun Oct 19 2014
  * @date last modification: Tue Jan 19 2021
  *
- * @brief  Cohesive element examples in extrinsic with 2 different bulk materials
+ * @brief  Cohesive element examples in extrinsic with 2 different bulk
+ * materials
  *
  *
  * @section LICENSE

@@ -53,8 +53,8 @@ DumperText::DumperText(const std::string & basename,
 
 /* -------------------------------------------------------------------------- */
 void DumperText::registerMesh(const Mesh & mesh, Int /*spatial_dimension*/,
-                              const GhostType & /*ghost_type*/,
-                              const ElementKind & /*element_kind*/) {
+                              GhostType /*ghost_type*/,
+                              ElementKind /*element_kind*/) {
   registerField("position",
                 std::make_shared<dumpers::NodalField<Real>>(mesh.getNodes()));
   // in parallel we need node type

@@ -46,8 +46,8 @@ const UInt spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 void applyDisplacement(SolidMechanicsModel &, Real &);
-void computeStrainOnQuadPoints(SolidMechanicsModel &, PhaseFieldModel &, const GhostType &);
-void computeDamageOnQuadPoints(SolidMechanicsModel &, PhaseFieldModel &, const GhostType &);
+void computeStrainOnQuadPoints(SolidMechanicsModel &, PhaseFieldModel &, GhostType);
+void computeDamageOnQuadPoints(SolidMechanicsModel &, PhaseFieldModel &, GhostType);
 void gradUToEpsilon(const Matrix<Real> &, Matrix<Real> &);
 /* -------------------------------------------------------------------------- */
 
@@ -167,7 +167,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
 
 /* -------------------------------------------------------------------------- */
 void computeStrainOnQuadPoints(SolidMechanicsModel & solid, PhaseFieldModel & phase,
-			       const GhostType & ghost_type) {
+			       GhostType ghost_type) {
 
   auto & mesh = solid.getMesh();
 
@@ -211,7 +211,7 @@ void computeStrainOnQuadPoints(SolidMechanicsModel & solid, PhaseFieldModel & ph
 
 /* -------------------------------------------------------------------------- */
 void computeDamageOnQuadPoints(SolidMechanicsModel & solid, PhaseFieldModel & phase,
-			       const GhostType & ghost_type) {
+			       GhostType ghost_type) {
   
   auto & fem  = phase.getFEEngine();
   auto & mesh = phase.getMesh();

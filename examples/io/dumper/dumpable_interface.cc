@@ -112,7 +112,8 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
 
   // Create dumper for the complete mesh and register it as default dumper.
-  auto && dumper = std::make_shared<DumperParaview>("train", "./paraview/dumpable", false);
+  auto && dumper =
+      std::make_shared<DumperParaview>("train", "./paraview/dumpable", false);
   mesh.registerExternalDumper(dumper, "train", true);
   mesh.addDumpMesh(mesh);
 

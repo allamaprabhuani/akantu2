@@ -215,8 +215,8 @@ public:
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// add an element to the local mesh filter
-  inline auto addElement(const ElementType & type, Int element,
-                         const GhostType & ghost_type);
+  inline auto addElement(ElementType type, Int element,
+                         GhostType ghost_type);
   inline auto addElement(const Element & element);
 
   /// add many elements at once
@@ -271,8 +271,8 @@ protected:
   virtual void resizeInternals();
 
   template <Int dim>
-  decltype(auto) getArguments(const ElementType & el_type,
-                              const GhostType & ghost_type) {
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type) {
     if (not finite_deformation) {
       return zip(tuple::get<"sigma"_h>() =
                      make_view<dim, dim>(this->stress(el_type, ghost_type)),
@@ -297,19 +297,19 @@ protected:
   template <Int dim> void assembleInternalForces(GhostType ghost_type);
 
   template <Int dim>
-  void computeAllStressesFromTangentModuli(const ElementType & type,
+  void computeAllStressesFromTangentModuli(ElementType type,
                                            GhostType ghost_type);
 
   template <Int dim>
-  void assembleStiffnessMatrix(const ElementType & type, GhostType ghost_type);
+  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
 
   /// assembling in finite deformation
   template <Int dim>
-  void assembleStiffnessMatrixNL(const ElementType & type,
+  void assembleStiffnessMatrixNL(ElementType type,
                                  GhostType ghost_type);
 
   template <Int dim>
-  void assembleStiffnessMatrixL2(const ElementType & type,
+  void assembleStiffnessMatrixL2(ElementType type,
                                  GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
@@ -485,7 +485,7 @@ public:
   Real getPotentialEnergy(const Element & element);
 
   [[gnu::deprecated("Use the interface with an Element")]] Real
-  getPotentialEnergy(const ElementType & type, Int index);
+  getPotentialEnergy(ElementType type, Int index);
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
@@ -495,7 +495,7 @@ public:
                          const Element & element);
 
   [[gnu::deprecated("Use the interface with an Element")]] virtual Real
-  getEnergy(const std::string & energy_id, const ElementType & type,
+  getEnergy(const std::string & energy_id, ElementType type,
             Idx index) final {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }
@@ -529,7 +529,7 @@ public:
 
   template <typename T>
   ElementTypeMap<Int>
-  getInternalDataPerElem(const ID & id, const ElementKind & element_kind) const;
+  getInternalDataPerElem(const ID & id, ElementKind element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }

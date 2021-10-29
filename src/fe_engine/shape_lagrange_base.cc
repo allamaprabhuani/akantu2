@@ -54,7 +54,7 @@ namespace shape_lagrange {
     template <ElementKind kind> struct Helper {
       template <class S>
       static void call(const S &, const Array<Real> &, const Matrix<Real> &,
-                       Array<Real> &, const ElementType &, const GhostType &,
+                       Array<Real> &, ElementType, GhostType,
                        const Array<Idx> &) {
         AKANTU_TO_IMPLEMENT();
       }
@@ -66,8 +66,8 @@ namespace shape_lagrange {
     template <class S>                                                         \
     static void call(const S & _this, const Array<Real> & nodes,               \
                      const Matrix<Real> & integration_points,                  \
-                     Array<Real> & shapes, const ElementType & type,           \
-                     const GhostType & ghost_type,                             \
+                     Array<Real> & shapes, ElementType type,           \
+                     GhostType ghost_type,                             \
                      const Array<Idx> & filter_elements) {                    \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
     }                                                                          \
@@ -83,8 +83,8 @@ namespace shape_lagrange {
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shapes, const ElementType & type,
-    const GhostType & ghost_type, const Array<Idx> & filter_elements) const {
+    Array<Real> & shapes, ElementType type,
+    GhostType ghost_type, const Array<Idx> & filter_elements) const {
 
   auto kind = Mesh::getKind(type);
 

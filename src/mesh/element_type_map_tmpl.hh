@@ -52,7 +52,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 inline std::string
-ElementTypeMap<Stored, SupportType>::printType(const SupportType & type,
+ElementTypeMap<Stored, SupportType>::printType(SupportType type,
                                                GhostType ghost_type) {
   std::stringstream sstr;
   sstr << "(" << ghost_type << ":" << type << ")";
@@ -62,7 +62,7 @@ ElementTypeMap<Stored, SupportType>::printType(const SupportType & type,
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 inline bool
-ElementTypeMap<Stored, SupportType>::exists(const SupportType & type,
+ElementTypeMap<Stored, SupportType>::exists(SupportType type,
                                             GhostType ghost_type) const {
   return this->getData(ghost_type).find(type) !=
          this->getData(ghost_type).end();
@@ -71,7 +71,7 @@ ElementTypeMap<Stored, SupportType>::exists(const SupportType & type,
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 inline const Stored &
-ElementTypeMap<Stored, SupportType>::operator()(const SupportType & type,
+ElementTypeMap<Stored, SupportType>::operator()(SupportType type,
                                                 GhostType ghost_type) const {
   auto it = this->getData(ghost_type).find(type);
 
@@ -88,7 +88,7 @@ ElementTypeMap<Stored, SupportType>::operator()(const SupportType & type,
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 inline Stored &
-ElementTypeMap<Stored, SupportType>::operator()(const SupportType & type,
+ElementTypeMap<Stored, SupportType>::operator()(SupportType type,
                                                 GhostType ghost_type) {
   return this->getData(ghost_type)[type];
 }
@@ -97,7 +97,7 @@ ElementTypeMap<Stored, SupportType>::operator()(const SupportType & type,
 template <class Stored, typename SupportType>
 template <typename U>
 inline Stored & ElementTypeMap<Stored, SupportType>::operator()(
-    U && insertee, const SupportType & type, GhostType ghost_type) {
+    U && insertee, SupportType type, GhostType ghost_type) {
   auto it = this->getData(ghost_type).find(type);
 
   if (it != this->getData(ghost_type).end()) {
@@ -194,8 +194,8 @@ ElementTypeMapArray<T, SupportType>::ElementTypeMapArray(
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
-    Int size, Int nb_component, const SupportType & type,
-    const GhostType & ghost_type, const T & default_value) {
+    Int size, Int nb_component, SupportType type,
+    GhostType ghost_type, const T & default_value) {
   std::string ghost_id;
   if (ghost_type == _ghost)
     ghost_id = ":ghost";
@@ -223,7 +223,7 @@ inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
 template <typename T, typename SupportType>
 inline void
 ElementTypeMapArray<T, SupportType>::alloc(Int size, Int nb_component,
-                                           const SupportType & type,
+                                           SupportType type,
                                            const T & default_value) {
   this->alloc(size, nb_component, type, _not_ghost, default_value);
   this->alloc(size, nb_component, type, _ghost, default_value);
@@ -284,7 +284,7 @@ inline void ElementTypeMapArray<T, SupportType>::set(const ST & value) {
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline const Array<T> &
-ElementTypeMapArray<T, SupportType>::operator()(const SupportType & type,
+ElementTypeMapArray<T, SupportType>::operator()(SupportType type,
                                                 GhostType ghost_type) const {
   auto it = this->getData(ghost_type).find(type);
 
@@ -301,7 +301,7 @@ ElementTypeMapArray<T, SupportType>::operator()(const SupportType & type,
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline Array<T> &
-ElementTypeMapArray<T, SupportType>::operator()(const SupportType & type,
+ElementTypeMapArray<T, SupportType>::operator()(SupportType type,
                                                 GhostType ghost_type) {
   auto it = this->getData(ghost_type).find(type);
 
@@ -319,7 +319,7 @@ ElementTypeMapArray<T, SupportType>::operator()(const SupportType & type,
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline void ElementTypeMapArray<T, SupportType>::setArray(
-    const SupportType & type, GhostType ghost_type, const Array<T> & vect) {
+    SupportType type, GhostType ghost_type, const Array<T> & vect) {
   auto it = this->getData(ghost_type).find(type);
 
   if (AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end() &&
@@ -549,14 +549,14 @@ protected:
 public:
   ElementTypeMapArrayInitializer(
       const CompFunc & comp_func, Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined)
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined)
       : comp_func(comp_func), spatial_dimension(spatial_dimension),
         ghost_type(ghost_type), element_kind(element_kind) {}
 
   GhostType ghostType() const { return ghost_type; }
 
-  virtual Int nbComponent(const ElementType & type) const {
+  virtual Int nbComponent(ElementType type) const {
     return comp_func(type, ghostType());
   }
 
@@ -584,7 +584,7 @@ public:
       const ElementTypeMapArray<Idx> * filter = nullptr)
       : MeshElementTypeMapArrayInitializer(
             mesh,
-            [nb_component](const ElementType &, const GhostType &) -> Int {
+            [nb_component](ElementType, GhostType) -> Int {
               return nb_component;
             },
             spatial_dimension, ghost_type, element_kind, with_nb_element,
@@ -647,17 +647,17 @@ public:
   FEEngineElementTypeMapArrayInitializer(
       const FEEngine & fe_engine, Int nb_component = 1,
       Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined);
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   FEEngineElementTypeMapArrayInitializer(
       const FEEngine & fe_engine,
       const ElementTypeMapArrayInitializer::CompFunc & nb_component,
       Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined);
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
-  Int size(const ElementType & type) const override;
+  Int size(ElementType type) const override;
 
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<Real, ElementType>::ElementTypesIteratorHelper;

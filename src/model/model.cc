@@ -277,7 +277,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       const std::string & field_id,
                                       const std::string & group_name,
                                       Int spatial_dimension,
-                                      const ElementKind & element_kind,
+                                      ElementKind element_kind,
                                       bool padding_flag) {
 #ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;

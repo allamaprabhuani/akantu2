@@ -91,8 +91,8 @@ template <typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const ElementTypeMapArray<T> & field,
                                            Int spatial_dimension,
-                                           const GhostType & ghost_type,
-                                           const ElementKind & element_kind) {
+                                           GhostType ghost_type,
+                                           ElementKind element_kind) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field,
                                      spatial_dimension, ghost_type,
                                      element_kind);
@@ -103,7 +103,7 @@ template <typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(
     const std::string & dumper_name, const std::string & field_id,
     const ElementTypeMapArray<T> & field, Int spatial_dimension,
-    const GhostType & ghost_type, const ElementKind & element_kind) {
+    GhostType ghost_type, ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field_cont;
 #if defined(AKANTU_IGFEM)

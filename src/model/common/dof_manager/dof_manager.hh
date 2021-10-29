@@ -69,7 +69,7 @@ public:
 public:
   /// register an array of degree of freedom
   virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                            const DOFSupportType & support_type);
+                            DOFSupportType support_type);
 
   /// the dof as an implied type of _dst_nodal and is defined only on a subset
   /// of nodes
@@ -132,8 +132,8 @@ public:
    */
   virtual void assembleElementalArrayToLumpedMatrix(
       const ID & dof_id, const Array<Real> & elementary_vect,
-      const ID & lumped_mtx, const ElementType & type,
-      const GhostType & ghost_type, Real scale_factor = 1.,
+      const ID & lumped_mtx, ElementType type,
+      GhostType ghost_type, Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**

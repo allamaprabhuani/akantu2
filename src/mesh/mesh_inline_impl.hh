@@ -46,7 +46,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getKind(const ElementType & type) {
+inline constexpr auto Mesh::getKind(ElementType type) {
   ElementKind kind = _ek_not_defined;
 #define GET_KIND(type) kind = ElementClass<type>::getKind()
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_KIND);
@@ -60,7 +60,7 @@ inline constexpr auto Element::kind() const -> ElementKind {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
   Int n_facet = 0;
 #define GET_NB_FACET(type) n_facet = ElementClass<type>::getNbFacetsPerElement()
 
@@ -71,7 +71,7 @@ inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type,
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type,
                                                   Idx t) {
   Int n_facet = 0;
 #define GET_NB_FACET(type)                                                     \
@@ -214,8 +214,8 @@ inline auto Mesh::getNodesGlobalIdsPointer() -> Array<Idx> & {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getConnectivityPointer(const ElementType & type,
-                                         const GhostType & ghost_type)
+inline auto Mesh::getConnectivityPointer(ElementType type,
+                                         GhostType ghost_type)
     -> Array<Idx> & {
   if (connectivities.exists(type, ghost_type)) {
     return connectivities(type, ghost_type);
@@ -320,8 +320,8 @@ Mesh::getSubelementToElementNC(const Element & element) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline decltype(auto)
-Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
-                     const GhostType & ghost_type, Int nb_component,
+Mesh::getDataPointer(const ID & data_name, ElementType el_type,
+                     GhostType ghost_type, Int nb_component,
                      bool size_to_nb_element, bool resize_with_parent) {
   Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
       data_name, el_type, ghost_type, nb_component);
@@ -340,8 +340,8 @@ Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline Array<T> &
-Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
-                     const GhostType & ghost_type, Int nb_component,
+Mesh::getDataPointer(const ID & data_name, ElementType el_type,
+                     GhostType ghost_type, Int nb_component,
                      bool size_to_nb_element, bool resize_with_parent,
                      const T & defaul_) {
   Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
@@ -436,7 +436,7 @@ inline UInt Mesh::getNbNodesPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getP1ElementType(const ElementType & type) {
+inline constexpr auto Mesh::getP1ElementType(ElementType type) {
   ElementType p1_type = _not_defined;
 #define GET_P1_TYPE(type) p1_type = ElementClass<type>::getP1ElementType()
 
@@ -466,7 +466,7 @@ inline constexpr auto Mesh::getSpatialDimension(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNaturalSpaceDimension(const ElementType & type) {
+inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) {
   Int natural_dimension = 0;
 #define GET_NATURAL_DIMENSION(type)                                            \
   natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
@@ -487,7 +487,7 @@ inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getFacetType(const ElementType & type, Idx t) {
+inline constexpr auto Mesh::getFacetType(ElementType type, Idx t) {
 #define GET_FACET_TYPE(type) return ElementClass<type>::getFacetType(t);
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_NO_DEFAULT(GET_FACET_TYPE);

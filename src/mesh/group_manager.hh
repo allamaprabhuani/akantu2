@@ -236,7 +236,7 @@ public:
   template <typename T, template <bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      Int spatial_dimension, const ElementKind & kind,
+      Int spatial_dimension, ElementKind kind,
       ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
@@ -245,7 +245,7 @@ public:
             template <class, template <class> class, bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      Int spatial_dimension, const ElementKind & kind,
+      Int spatial_dimension, ElementKind kind,
       ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
@@ -256,7 +256,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const ElementTypeMapArray<T> & field,
                        const std::string & group_name, Int spatial_dimension,
-                       const ElementKind & kind,
+                       ElementKind kind,
                        ElementTypeMap<Int> nb_data_per_elem);
 
   template <typename type, bool flag, template <class, bool> class ftype>
@@ -282,7 +282,7 @@ protected:
   template <class dump_type, typename field_type>
   inline std::shared_ptr<dumpers::Field>
   createElementalField(const field_type & field, const std::string & group_name,
-                       Int spatial_dimension, const ElementKind & kind,
+                       Int spatial_dimension, ElementKind kind,
                        const ElementTypeMap<Int> & nb_data_per_elem);
 
   /// register an elemental field to the given group name
@@ -290,7 +290,7 @@ protected:
   inline std::shared_ptr<dumpers::Field>
   createElementalFilteredField(const field_type & field,
                                const std::string & group_name,
-                               Int spatial_dimension, const ElementKind & kind,
+                               Int spatial_dimension, ElementKind kind,
                                ElementTypeMap<Int> nb_data_per_elem);
 
   /* ------------------------------------------------------------------------ */

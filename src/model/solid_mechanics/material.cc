@@ -421,7 +421,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void Material::assembleStiffnessMatrix(const ElementType & type,
+void Material::assembleStiffnessMatrix(ElementType type,
                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -479,7 +479,7 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void Material::assembleStiffnessMatrixNL(const ElementType & type,
+void Material::assembleStiffnessMatrixNL(ElementType type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -541,7 +541,7 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void Material::assembleStiffnessMatrixL2(const ElementType & type,
+void Material::assembleStiffnessMatrixL2(ElementType type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -716,7 +716,7 @@ Real Material::getPotentialEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getPotentialEnergy(const ElementType & type, Int index) {
+Real Material::getPotentialEnergy(ElementType type, Int index) {
   return getPotentialEnergy({type, index, _not_ghost});
 }
 

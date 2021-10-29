@@ -49,8 +49,8 @@ inline void ElementGroup::add(const Element & el, bool add_nodes,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::add(const ElementType & type, Idx element,
-                              const GhostType & ghost_type, bool add_nodes,
+inline void ElementGroup::add(ElementType type, Idx element,
+                              GhostType ghost_type, bool add_nodes,
                               bool check_for_duplicate) {
   addElement(type, element, ghost_type);
 
@@ -77,9 +77,9 @@ inline void ElementGroup::removeNode(Idx node_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::addElement(const ElementType & elem_type,
+inline void ElementGroup::addElement(ElementType elem_type,
                                      Idx elem_id,
-                                     const GhostType & ghost_type) {
+                                     GhostType ghost_type) {
   if (!(elements.exists(elem_type, ghost_type))) {
     elements.alloc(0, 1, elem_type, ghost_type);
   }
@@ -94,15 +94,15 @@ inline Int ElementGroup::getNbNodes() const { return node_group.size(); }
 
 /* -------------------------------------------------------------------------- */
 inline auto
-ElementGroup::firstType(Int dim, const GhostType & ghost_type,
-                        const ElementKind & kind) const {
+ElementGroup::firstType(Int dim, GhostType ghost_type,
+                        ElementKind kind) const {
   return elements.elementTypes(dim, ghost_type, kind).begin();
 }
 
 /* -------------------------------------------------------------------------- */
 inline auto
-ElementGroup::lastType(Int dim, const GhostType & ghost_type,
-                       const ElementKind & kind) const {
+ElementGroup::lastType(Int dim, GhostType ghost_type,
+                       ElementKind kind) const {
   return elements.elementTypes(dim, ghost_type, kind).end();
 }
 
@@ -126,8 +126,8 @@ ElementGroup::end(ElementType type, GhostType ghost_type) const {
 
 /* -------------------------------------------------------------------------- */
 inline const Array<Idx> &
-ElementGroup::getElements(const ElementType & type,
-                          const GhostType & ghost_type) const {
+ElementGroup::getElements(ElementType type,
+                          GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type);
   }

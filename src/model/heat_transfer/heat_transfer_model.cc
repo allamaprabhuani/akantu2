@@ -604,7 +604,7 @@ void HeatTransferModel::getThermalEnergy(iterator Eth, t_iterator T_it,
 }
 
 /* -------------------------------------------------------------------------- */
-auto HeatTransferModel::getThermalEnergy(const ElementType & type, Idx index)
+auto HeatTransferModel::getThermalEnergy(ElementType type, Idx index)
     -> Real {
   AKANTU_DEBUG_IN();
 
@@ -667,7 +667,7 @@ auto HeatTransferModel::getEnergy(const std::string & id) -> Real {
 
 /* -------------------------------------------------------------------------- */
 auto HeatTransferModel::getEnergy(const std::string & id,
-                                  const ElementType & type, Int index) -> Real {
+                                  ElementType type, Int index) -> Real {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
@@ -723,7 +723,7 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldReal(
 std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool /*padding_flag*/, const Int & /*spatial_dimension*/,
-    const ElementKind & element_kind) {
+    ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field;
 

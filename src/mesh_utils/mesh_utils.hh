@@ -61,8 +61,8 @@ public:
   /// the connected elements of a given ElementType
   static void
   buildNode2ElementsElementTypeMap(const Mesh & mesh, CSR<Idx> & node_to_elem,
-                                   const ElementType & type,
-                                   const GhostType & ghost_type = _not_ghost);
+                                   ElementType type,
+                                   GhostType ghost_type = _not_ghost);
 
   /// build the facets elements on the boundaries of a mesh
   static void buildFacets(Mesh & mesh);

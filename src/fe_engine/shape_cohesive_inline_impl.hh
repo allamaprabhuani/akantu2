@@ -64,7 +64,7 @@ inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
 template <ElementType type>
 void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> &, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, const GhostType & ghost_type,
+    Array<Real> & shape_derivatives, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -99,8 +99,8 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
 inline void
 ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, const ElementType & type,
-    const GhostType & ghost_type, const Array<Idx> & filter_elements) const {
+    Array<Real> & shape_derivatives, ElementType type,
+    GhostType ghost_type, const Array<Idx> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -153,7 +153,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(
     const Array<Real> & nodal_f, Array<Real> & elemental_f,
-    const GhostType & ghost_type, const Array<Idx> & filter_elements) const {
+    GhostType ghost_type, const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes_per_itp_element =

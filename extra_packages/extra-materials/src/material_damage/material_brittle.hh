@@ -51,7 +51,8 @@ public:
   void updateInternalParameters() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost) override;
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
 protected:
   /// constitutive law for a given quadrature point

@@ -44,8 +44,8 @@ namespace akantu {
 template <>
 Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    integrate(const Array<Real> & f, const ElementType & type,
-              const GhostType & ghost_type,
+    integrate(const Array<Real> & f, ElementType type,
+              GhostType ghost_type,
               const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -83,8 +83,8 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, Array<Real> & intf,
-              Int nb_degree_of_freedom, const ElementType & type,
-              const GhostType & ghost_type,
+              Int nb_degree_of_freedom, ElementType type,
+              GhostType ghost_type,
               const Array<Idx> & filter_elements) const {
 
 #ifndef AKANTU_NDEBUG
@@ -125,7 +125,7 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     gradientOnIntegrationPoints(const Array<Real> &, Array<Real> &, Int,
-                                const ElementType &, const GhostType &,
+                                ElementType, GhostType,
                                 const Array<Idx> &) const {
   AKANTU_TO_IMPLEMENT();
 }

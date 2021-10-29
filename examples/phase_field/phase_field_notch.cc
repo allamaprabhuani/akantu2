@@ -62,8 +62,9 @@ int main(int argc, char *argv[]){
   auto & phase = coupler.getPhaseFieldModel();
 
   model.initFull(_analysis_method = _static);
-  auto && mat_selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
-      "physical_names", model);
+  auto && mat_selector =
+      std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
+                                                              model);
   model.setMaterialSelector(mat_selector);
 
   auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
@@ -99,9 +100,8 @@ int main(int argc, char *argv[]){
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
       std::cout << "\r[" << wheel[(s / 10) % 4] << "] " << std::setw(5) << s
-                << "/" << nbSteps << " (" << std::setprecision(2)
-                << std::fixed << std::setw(8)
-                << millisecond(time_per_step).count()
+                << "/" << nbSteps << " (" << std::setprecision(2) << std::fixed
+                << std::setw(8) << millisecond(time_per_step).count()
                 << "ms/step - elapsed: " << std::setw(8)
                 << second(elapsed).count() << "s - ETA: " << std::setw(8)
                 << second((nbSteps - s) * time_per_step).count() << "s)"

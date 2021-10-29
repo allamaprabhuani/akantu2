@@ -43,7 +43,7 @@ void ResolutionUtils::computeShapeFunctionMatric(
 
   shape_matric.zero();
 
-  const ElementType & type = element.master.type;
+  ElementType type = element.master.type;
 
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;

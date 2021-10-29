@@ -94,15 +94,15 @@ public:
   /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh,
                             Int spatial_dimension = _all_dimensions,
-                            const GhostType & ghost_type = _not_ghost,
-                            const ElementKind & element_kind = _ek_not_defined);
+                            GhostType ghost_type = _not_ghost,
+                            ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
   virtual void registerFilteredMesh(
       const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
       const Array<Idx> & nodes_filter, Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined);
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id,

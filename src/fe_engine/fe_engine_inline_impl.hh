@@ -45,7 +45,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline constexpr Real FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
-                                         const ElementType & type) {
+                                         ElementType type) {
   Real inradius = 0.;
 #define GET_INRADIUS(type) inradius = ElementClass<type>::getInradius(coord);
 
@@ -80,7 +80,7 @@ inline constexpr auto FEEngine::getInterpolationType(ElementType type) {
 /// @todo rewrite this function in order to get the cohesive element
 /// type directly from the facet
 #if defined(AKANTU_COHESIVE_ELEMENT)
-inline constexpr auto FEEngine::getCohesiveElementType(const ElementType & type) {
+inline constexpr auto FEEngine::getCohesiveElementType(ElementType type) {
 #define GET_COHESIVE_TYPE(type)                                                \
   return CohesiveFacetProperty<type>::cohesive_type;
 
@@ -91,7 +91,7 @@ inline constexpr auto FEEngine::getCohesiveElementType(const ElementType & type)
 #else
 inline constexpr ElementType
 FEEngine::getCohesiveElementType(__attribute__((unused))
-                                 const ElementType & type_facet) {
+                                 ElementType type_facet) {
   return _not_defined;
 }
 #endif

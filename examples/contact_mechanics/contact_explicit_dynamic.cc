@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
   
   time_step = solid.getStableTimeStep();
   time_step *= time_factor;
-  std::cout << "Time Step = " << time_step << "s (" << time_step
-            << "s)" << std::endl;
+  std::cout << "Time Step = " << time_step << "s (" << time_step << "s)"
+            << std::endl;
   coupler.setTimeStep(time_step);
 
   coupler.setBaseName("contact-explicit-dynamic");
@@ -105,8 +105,7 @@ int main(int argc, char *argv[]) {
     coupler.solveStep();
 
     // damping velocities only along the contacting zone    
-    for(auto && tuple : zip(gaps,
-			    make_view(velocity, spatial_dimension))){
+    for (auto && tuple : zip(gaps, make_view(velocity, spatial_dimension))) {
       auto & gap = std::get<0>(tuple);
       auto & vel = std::get<1>(tuple);
       if(gap > 0) {
@@ -120,8 +119,8 @@ int main(int argc, char *argv[]) {
       Real epot = solid.getEnergy("potential");
       Real ekin = solid.getEnergy("kinetic");
 
-      std::cerr << i << "," << i * increment << "," << epot << "," << ekin << ","
-		<< epot + ekin << "," << std::endl;
+      std::cerr << i << "," << i * increment << "," << epot << "," << ekin
+                << "," << epot + ekin << "," << std::endl;
     }
 
     if (i % 1000 == 0) {

@@ -104,11 +104,11 @@ public:
 public:
   /// computes damage on quad points for solid mechanics model from
   /// damage array from phasefield model
-  void computeDamageOnQuadPoints(const GhostType &);
+  void computeDamageOnQuadPoints(GhostType);
 
   /// computes strain on quadrature points for phasefield model from
   /// displacement gradient from solid mechanics model
-  void computeStrainOnQuadPoints(const GhostType & ghost_type);
+  void computeStrainOnQuadPoints(GhostType ghost_type);
 
   /// solve the coupled model
   void solve(const ID & solid_solver_id = "", const ID & phase_solver_id = "");

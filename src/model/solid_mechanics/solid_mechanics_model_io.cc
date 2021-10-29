@@ -143,7 +143,7 @@ void SolidMechanicsModel::onDump() {
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const Int & spatial_dimension,
-    const ElementKind & kind) {
+    ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 

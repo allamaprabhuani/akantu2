@@ -173,26 +173,26 @@ public:
   }
 
   /// get the array for a given type of the element_filter
-  decltype(auto) getFilter(const ElementType & type,
-                           const GhostType & ghost_type = _not_ghost) const {
+  decltype(auto) getFilter(ElementType type,
+                           GhostType ghost_type = _not_ghost) const {
     return (this->element_filter(type, ghost_type));
   }
 
   /// get the Array corresponding to the type en ghost_type specified
-  virtual auto operator()(const ElementType & type,
-                          const GhostType & ghost_type = _not_ghost)
+  virtual auto operator()(ElementType type,
+                          GhostType ghost_type = _not_ghost)
       -> Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual auto operator()(const ElementType & type,
-                          const GhostType & ghost_type = _not_ghost) const
+  virtual auto operator()(ElementType type,
+                          GhostType ghost_type = _not_ghost) const
       -> const Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual auto previous(const ElementType & type,
-                        const GhostType & ghost_type = _not_ghost)
+  virtual auto previous(ElementType type,
+                        GhostType ghost_type = _not_ghost)
       -> Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
@@ -200,8 +200,8 @@ public:
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual auto previous(const ElementType & type,
-                        const GhostType & ghost_type = _not_ghost) const
+  virtual auto previous(ElementType type,
+                        GhostType ghost_type = _not_ghost) const
       -> const Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "

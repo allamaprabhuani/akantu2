@@ -84,24 +84,24 @@ public:
   ElementTypeMap();
   ~ElementTypeMap() override;
 
-  inline static auto printType(const SupportType & type,
-                               const GhostType & ghost_type) -> std::string;
+  inline static auto printType(SupportType type,
+                               GhostType ghost_type) -> std::string;
 
   /*! Tests whether a type is present in the object
    *  @param type the type to check for
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return true if the type is present. */
-  inline auto exists(const SupportType & type,
-                     const GhostType & ghost_type = _not_ghost) const -> bool;
+  inline auto exists(SupportType type,
+                     GhostType ghost_type = _not_ghost) const -> bool;
 
   /*! get the stored data corresponding to a type
    *  @param type the type to check for
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return stored data corresponding to type. */
-  inline auto operator()(const SupportType & type,
-                         const GhostType & ghost_type = _not_ghost) const
+  inline auto operator()(SupportType type,
+                         GhostType ghost_type = _not_ghost) const
       -> const Stored &;
 
   /*! get the stored data corresponding to a type
@@ -109,8 +109,8 @@ public:
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return stored data corresponding to type. */
-  inline auto operator()(const SupportType & type,
-                         const GhostType & ghost_type = _not_ghost) -> Stored &;
+  inline auto operator()(SupportType type,
+                         GhostType ghost_type = _not_ghost) -> Stored &;
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
    *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
@@ -121,8 +121,8 @@ public:
    *         elements is searched
    *  @return stored data corresponding to type. */
   template <typename U>
-  inline auto operator()(U && insertee, const SupportType & type,
-                         const GhostType & ghost_type = _not_ghost) -> Stored &;
+  inline auto operator()(U && insertee, SupportType type,
+                         GhostType ghost_type = _not_ghost) -> Stored &;
 
 public:
   /// print helper
@@ -141,7 +141,7 @@ public:
   public:
     using value_type = const SupportType;
     using pointer = const SupportType *;
-    using reference = const SupportType &;
+    using reference = SupportType;
 
   protected:
     using DataMapIterator =
@@ -327,15 +327,15 @@ public:
    *         ghost_data map
    *  @param default_value the default value to use to fill the array
    *  @return a reference to the allocated array */
-  inline auto alloc(Int size, Int nb_component, const SupportType & type,
-                          const GhostType & ghost_type,
+  inline auto alloc(Int size, Int nb_component, SupportType type,
+                          GhostType ghost_type,
                           const T & default_value = T()) -> Array<T> &;
 
   /*! allocate memory for a new array in both the data and the ghost_data map
    *  @param size number of tuples of the new array
    *  @param nb_component tuple size
    *  @param type the type under which the array is indexed in the map*/
-  inline void alloc(Int size, Int nb_component, const SupportType & type,
+  inline void alloc(Int size, Int nb_component, SupportType type,
                     const T & default_value = T());
 
   /* get a reference to the array of certain type
@@ -343,8 +343,8 @@ public:
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a reference to the array */
   inline auto
-  operator()(const SupportType & type,
-             const GhostType & ghost_type = _not_ghost) const -> const Array<T> &;
+  operator()(SupportType type,
+             GhostType ghost_type = _not_ghost) const -> const Array<T> &;
 
   /// access the data of an element, this combine the map and array accessor
   inline auto operator()(const Element & element, Int component = 0) const -> const T &;
@@ -360,8 +360,8 @@ public:
    * @param type data filed under type is returned
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a const reference to the array */
-  inline auto operator()(const SupportType & type,
-                               const GhostType & ghost_type = _not_ghost) -> Array<T> &;
+  inline auto operator()(SupportType type,
+                               GhostType ghost_type = _not_ghost) -> Array<T> &;
 
   /*! insert data of a new type (not yet present) into the map.
    *  @param type type of data (if this type is already present in the map,
@@ -370,7 +370,7 @@ public:
    *         elements is searched
    *  @param vect the vector to include into the map
    *  @return stored data corresponding to type. */
-  inline void setArray(const SupportType & type, GhostType ghost_type,
+  inline void setArray(SupportType type, GhostType ghost_type,
                        const Array<T> & vect);
   /*! frees all memory related to the data*/
   inline void free();
@@ -463,8 +463,8 @@ public:
   void isNodal(bool is_nodal) { this->is_nodal = is_nodal; }
 
 private:
-  auto sizeImpl(Int spatial_dimension, const GhostType & ghost_type,
-               const ElementKind & kind) const -> Int;
+  auto sizeImpl(Int spatial_dimension, GhostType ghost_type,
+               ElementKind kind) const -> Int;
 
 private:
   ID id;

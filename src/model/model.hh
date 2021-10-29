@@ -287,7 +287,7 @@ public:
                                          const std::string & field_id,
                                          const std::string & group_name,
                                          Int spatial_dimension,
-                                         const ElementKind & element_kind,
+                                         ElementKind element_kind,
                                          bool padding_flag);
 
   virtual void removeDumpGroupField(const std::string & field_id,

@@ -228,7 +228,7 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
 template <class WeightFunction>
 void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
     const ElementTypeMapReal & to_accumulate, ElementTypeMapReal & accumulated,
-    Int nb_degree_of_freedom, const GhostType & ghost_type2) const {
+    Int nb_degree_of_freedom, GhostType ghost_type2) const {
 
   auto it = non_local_variables.find(accumulated.getName());
   // do averaging only for variables registered in the neighborhood

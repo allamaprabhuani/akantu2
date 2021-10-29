@@ -100,7 +100,7 @@ public:
     return Element{*tit, array_it.getCurrentIndex(), _not_ghost};
   }
 
-  Int getNbDataPerElem(const ElementType & type) const {
+  Int getNbDataPerElem(ElementType type) const {
     if (!nb_data_per_elem.exists(type, ghost_type)) {
       return field(type, ghost_type).getNbComponent();
     }

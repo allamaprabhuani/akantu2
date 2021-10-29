@@ -67,7 +67,7 @@ template <ElementType type>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
     const Array<Real> &, Int, SparseMatrix &, Array<Real> *,
-    ElementTypeMapArray<Real> &, const GhostType &) const {
+    ElementTypeMapArray<Real> &, GhostType) const {
   AKANTU_TO_IMPLEMENT();
 }
 

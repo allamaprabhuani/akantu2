@@ -39,8 +39,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::addElement(const ElementType & type, UInt element,
-				   const GhostType & ghost_type) {
+inline UInt PhaseField::addElement(ElementType type, UInt element,
+				   GhostType ghost_type) {
   Array<UInt> & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
@@ -88,13 +88,13 @@ inline void PhaseField::unregisterInternal<bool>(InternalPhaseField<bool> & vect
 template <typename T>
 inline bool PhaseField::isInternal(__attribute__((unused)) const ID & id,
                                  __attribute__((unused))
-                                 const ElementKind & element_kind) const {
+                                 ElementKind element_kind) const {
   AKANTU_TO_IMPLEMENT();
 }
 
 template <>
 inline bool PhaseField::isInternal<Real>(const ID & id,
-                                       const ElementKind & element_kind) const {
+                                       ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
   if (internal_array == internal_vectors_real.end() ||

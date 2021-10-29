@@ -71,12 +71,12 @@ public:
   template <ElementType type>
   inline void integrateOnElement(const Array<Real> & f, Real * intf,
                                  Int nb_degree_of_freedom, const Idx elem,
-                                 const GhostType & ghost_type) const;
+                                 GhostType ghost_type) const;
 
   /// integrate f for all elements of type "type"
   template <ElementType type>
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
-                 Int nb_degree_of_freedom, const GhostType & ghost_type,
+                 Int nb_degree_of_freedom, GhostType ghost_type,
                  const Array<Idx> & filter_elements) const;
 
   /// integrate scalar field in_f
@@ -88,17 +88,17 @@ public:
   /// w_q @f$)
   template <ElementType type>
   Real integrate(const Vector<Real> & in_f, Idx index,
-                 const GhostType & ghost_type) const;
+                 GhostType ghost_type) const;
 
   /// integrate scalar field in_f
   template <ElementType type>
-  Real integrate(const Array<Real> & in_f, const GhostType & ghost_type,
+  Real integrate(const Array<Real> & in_f, GhostType ghost_type,
                  const Array<Idx> & filter_elements) const;
 
   /// integrate a field without using the pre-computed values
   template <ElementType type, Int polynomial_degree>
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
-                 Int nb_degree_of_freedom, const GhostType & ghost_type) const;
+                 Int nb_degree_of_freedom, GhostType ghost_type) const;
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
@@ -106,16 +106,16 @@ public:
   void integrateOnIntegrationPoints(const Array<Real> & in_f,
                                     Array<Real> & intf,
                                     Int nb_degree_of_freedom,
-                                    const GhostType & ghost_type,
+                                    GhostType ghost_type,
                                     const Array<Idx> & filter_elements) const;
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
-  const decltype(auto) getIntegrationPoints(const GhostType & ghost_type) const;
+  const decltype(auto) getIntegrationPoints(GhostType ghost_type) const;
 
   /// return number of quadrature points
   template <ElementType type>
-  Int getNbIntegrationPoints(const GhostType & ghost_type) const;
+  Int getNbIntegrationPoints(GhostType ghost_type) const;
 
   template <ElementType type, Int n> Matrix<Real> getIntegrationPoints() const;
   template <ElementType type, Int n> Vector<Real> getIntegrationWeights() const;
@@ -127,13 +127,13 @@ protected:
   template <ElementType type>
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
-      Array<Real> & jacobians, const GhostType & ghost_type,
+      Array<Real> & jacobians, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
-      Array<Real> & jacobians, const ElementType & type,
-      const GhostType & ghost_type,
+      Array<Real> & jacobians, ElementType type,
+      GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   /// precompute jacobians on elements of type "type"
@@ -182,7 +182,7 @@ public:
 
   template <ElementType type>
   void onElementsAddedByType(const Array<Idx> & new_elements,
-                             const GhostType & ghost_type);
+                             GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

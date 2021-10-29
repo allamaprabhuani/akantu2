@@ -69,22 +69,22 @@ public:
 
   /// register a mesh to the default dumper
   void addDumpMesh(const Mesh & mesh, Int spatial_dimension = _all_dimensions,
-                   const GhostType & ghost_type = _not_ghost,
-                   const ElementKind & element_kind = _ek_not_defined);
+                   GhostType ghost_type = _not_ghost,
+                   ElementKind element_kind = _ek_not_defined);
 
   /// register a mesh to the default identified by its name
   void addDumpMeshToDumper(const std::string & dumper_name, const Mesh & mesh,
                            Int spatial_dimension = _all_dimensions,
-                           const GhostType & ghost_type = _not_ghost,
-                           const ElementKind & element_kind = _ek_not_defined);
+                           GhostType ghost_type = _not_ghost,
+                           ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered mesh as the default dumper
   void addDumpFilteredMesh(const Mesh & mesh,
                            const ElementTypeMapArray<Idx> & elements_filter,
                            const Array<Idx> & nodes_filter,
                            Int spatial_dimension = _all_dimensions,
-                           const GhostType & ghost_type = _not_ghost,
-                           const ElementKind & element_kind = _ek_not_defined);
+                           GhostType ghost_type = _not_ghost,
+                           ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered mesh and provides a name
   void addDumpFilteredMeshToDumper(
@@ -92,8 +92,8 @@ public:
       const ElementTypeMapArray<Idx> & elements_filter,
       const Array<Idx> & nodes_filter,
       Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined);
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   /// to implement
   virtual void addDumpField(const std::string & field_id);
@@ -120,15 +120,15 @@ public:
   addDumpFieldExternal(const std::string & field_id,
                        const ElementTypeMapArray<T> & field,
                        Int spatial_dimension = _all_dimensions,
-                       const GhostType & ghost_type = _not_ghost,
-                       const ElementKind & element_kind = _ek_not_defined);
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined);
   template <typename T>
   inline void addDumpFieldExternalToDumper(
       const std::string & dumper_name, const std::string & field_id,
       const ElementTypeMapArray<T> & field,
       Int spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined);
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   void removeDumpField(const std::string & field_id);
   void removeDumpFieldFromDumper(const std::string & dumper_name,

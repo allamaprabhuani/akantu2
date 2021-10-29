@@ -145,7 +145,7 @@ public:
   virtual void assembleInternalForces();
 
   // compute the internal forces
-  void assembleInternalForces(const GhostType & ghost_type);
+  void assembleInternalForces(GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Methods for dynamic                                                      */

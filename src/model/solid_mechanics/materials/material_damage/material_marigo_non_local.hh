@@ -77,8 +77,8 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-  decltype(auto) getArguments(const ElementType & el_type,
-                              const GhostType & ghost_type) {
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type) {
     return zip_replace<"Y"_h>(
         parent::getArguments(el_type, ghost_type),
         make_view(this->Ynl(el_type, ghost_type)));

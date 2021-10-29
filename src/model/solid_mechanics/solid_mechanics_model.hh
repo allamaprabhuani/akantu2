@@ -224,7 +224,7 @@ protected:
   Real getKineticEnergy();
 
   [[gnu::deprecated("Use the interface with an Element")]] Real
-  getKineticEnergy(const ElementType & type, Idx index) {
+  getKineticEnergy(ElementType type, Idx index) {
     return getKineticEnergy({type, index, _not_ghost});
   }
 
@@ -313,7 +313,7 @@ public:
   //! give the amount of data per element
   virtual ElementTypeMap<Int>
   getInternalDataPerElem(const std::string & field_name,
-                         const ElementKind & kind);
+                         ElementKind kind);
 
   //! flatten a given material internal field
   ElementTypeMapArray<Real> &
@@ -335,8 +335,8 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       const Int & spatial_dimension,
-                       const ElementKind & kind) override;
+                       Int spatial_dimension,
+                       ElementKind kind) override;
 
   void dump(const std::string & dumper_name) override;
   void dump(const std::string & dumper_name, Int step) override;
@@ -456,7 +456,7 @@ public:
   Real getEnergy(const std::string & energy_id, const Element & element);
 
   [[gnu::deprecated("Use the interface with an Element")]] Real
-  getEnergy(const std::string & energy_id, const ElementType & type,
+  getEnergy(const std::string & energy_id, ElementType type,
             Int index) {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }

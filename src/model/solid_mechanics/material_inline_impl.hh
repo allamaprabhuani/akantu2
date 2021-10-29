@@ -47,8 +47,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline auto Material::addElement(const ElementType & type, Int element,
-                                 const GhostType & ghost_type) {
+inline auto Material::addElement(ElementType type, Int element,
+                                 GhostType ghost_type) {
   auto & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;

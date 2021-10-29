@@ -223,7 +223,7 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
+    ElementType el_type, Array<Real> & tangent_matrix,
     const Array<Real> &, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

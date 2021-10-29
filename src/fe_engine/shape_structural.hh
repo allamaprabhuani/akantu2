@@ -117,14 +117,14 @@ public:
   template <ElementType type>
   void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
-      const GhostType & ghost_type = _not_ghost,
+      GhostType ghost_type = _not_ghost,
       const Array<Int> & filter_elements = empty_filter) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>
   void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
-      const GhostType & ghost_type = _not_ghost,
+      GhostType ghost_type = _not_ghost,
       const Array<Int> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
@@ -185,7 +185,7 @@ public:
   template <ElementType type>
   void
   computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-             const GhostType & /*ghost_type*/,
+             GhostType /*ghost_type*/,
              const Array<Int> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }

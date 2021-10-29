@@ -345,7 +345,7 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
+  ElementType type = element.master.type;
   auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
@@ -488,7 +488,7 @@ void ResolutionPenaltyQuadratic::computeStickModuli(
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
+  ElementType type = element.master.type;
   auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
@@ -653,7 +653,7 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
+  ElementType type = element.master.type;
   auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();

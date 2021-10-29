@@ -113,7 +113,7 @@ void MaterialDamage<dim, Parent>::updateEnergies(ElementType el_type) {
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 void MaterialDamage<dim, Parent>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
+    ElementType el_type, Array<Real> & tangent_matrix,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);

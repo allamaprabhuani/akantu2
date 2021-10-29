@@ -102,8 +102,8 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
                                                  CSR<Idx> & node_to_elem,
-                                                 const ElementType & type,
-                                                 const GhostType & ghost_type) {
+                                                 ElementType type,
+                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   auto nb_nodes = mesh.getNbNodes();
 

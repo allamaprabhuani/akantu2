@@ -42,7 +42,7 @@ namespace akantu {
 template <ElementType type>
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> &, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shapes, const GhostType & ghost_type,
+    Array<Real> & shapes, GhostType ghost_type,
     const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 

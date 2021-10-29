@@ -142,8 +142,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template <Int spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<Real>::const_matrix_iterator C_it =

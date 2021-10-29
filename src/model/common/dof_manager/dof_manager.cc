@@ -75,7 +75,7 @@ std::vector<ID> DOFManager::getDOFIDs() const {
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayLocalArray(
     const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-    const ElementType & type, const GhostType & ghost_type, Real scale_factor,
+    ElementType type, GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -132,7 +132,7 @@ void DOFManager::assembleElementalArrayLocalArray(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ElementType & type, const GhostType & ghost_type, Real scale_factor,
+    ElementType type, GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -156,8 +156,8 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, const ElementType & type,
-    const GhostType & ghost_type, Real scale_factor,
+    const ID & lumped_mtx, ElementType type,
+    GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -291,7 +291,7 @@ auto DOFManager::getNewDOFDataInternal(const ID & dof_id) -> DOFData & {
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                              const DOFSupportType & support_type) {
+                              DOFSupportType support_type) {
   auto & dofs_storage = this->getNewDOFDataInternal(dof_id);
   dofs_storage.support_type = support_type;
 

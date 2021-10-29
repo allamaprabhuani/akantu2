@@ -569,7 +569,7 @@ namespace {
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
   inline auto get##name(const support & el_type,                               \
-                        const GhostType & ghost_type = _not_ghost)             \
+                        GhostType ghost_type = _not_ghost)             \
       con -> con Array<type> & {                                               \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT

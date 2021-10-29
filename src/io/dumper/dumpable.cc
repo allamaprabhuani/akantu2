@@ -59,8 +59,8 @@ void Dumpable::registerExternalDumper(std::shared_ptr<DumperIOHelper> dumper,
 
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
-                           const GhostType & ghost_type,
-                           const ElementKind & element_kind) {
+                           GhostType ghost_type,
+                           ElementKind element_kind) {
 
   this->addDumpMeshToDumper(this->default_dumper, mesh, spatial_dimension,
                             ghost_type, element_kind);
@@ -69,8 +69,8 @@ void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
                                    const Mesh & mesh, Int spatial_dimension,
-                                   const GhostType & ghost_type,
-                                   const ElementKind & element_kind) {
+                                   GhostType ghost_type,
+                                   ElementKind element_kind) {
 
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerMesh(mesh, spatial_dimension, ghost_type, element_kind);
@@ -80,7 +80,7 @@ void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
 void Dumpable::addDumpFilteredMesh(
     const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
     const Array<Idx> & nodes_filter, Int spatial_dimension,
-    const GhostType & ghost_type, const ElementKind & element_kind) {
+    GhostType ghost_type, ElementKind element_kind) {
   this->addDumpFilteredMeshToDumper(this->default_dumper, mesh, elements_filter,
                                     nodes_filter, spatial_dimension, ghost_type,
                                     element_kind);
@@ -91,7 +91,7 @@ void Dumpable::addDumpFilteredMeshToDumper(
     const std::string & dumper_name, const Mesh & mesh,
     const ElementTypeMapArray<Idx> & elements_filter,
     const Array<Idx> & nodes_filter, Int spatial_dimension,
-    const GhostType & ghost_type, const ElementKind & element_kind) {
+    GhostType ghost_type, ElementKind element_kind) {
 
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerFilteredMesh(mesh, elements_filter, nodes_filter,

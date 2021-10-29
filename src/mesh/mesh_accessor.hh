@@ -128,8 +128,8 @@ public:
   }
 
   inline decltype(auto)
-  getElementToSubelementNC(const ElementType & type,
-                           const GhostType & ghost_type = _not_ghost) {
+  getElementToSubelementNC(ElementType type,
+                           GhostType ghost_type = _not_ghost) {
     return this->_mesh.getElementToSubelementNC(type, ghost_type);
   }
 
@@ -141,8 +141,8 @@ public:
   }
 
   inline decltype(auto)
-  getSubelementToElementNC(const ElementType & type,
-                           const GhostType & ghost_type = _not_ghost) {
+  getSubelementToElementNC(ElementType type,
+                           GhostType ghost_type = _not_ghost) {
     return this->_mesh.getSubelementToElementNC(type, ghost_type);
   }
 
@@ -170,8 +170,8 @@ public:
 
   template <typename T>
   inline auto &
-  getData(const std::string & data_name, const ElementType & el_type,
-          const GhostType & ghost_type = _not_ghost, Int nb_component = 1,
+  getData(const std::string & data_name, ElementType el_type,
+          GhostType ghost_type = _not_ghost, Int nb_component = 1,
           bool size_to_nb_element = true, bool resize_with_parent = false) {
     return this->_mesh.getDataPointer<T>(data_name, el_type, ghost_type,
                                          nb_component, size_to_nb_element,

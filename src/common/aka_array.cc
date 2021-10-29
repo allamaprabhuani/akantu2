@@ -59,7 +59,7 @@ template <> Idx Array<Real>::find(const Real & elem) const {
 /* -------------------------------------------------------------------------- */
 template <>
 Array<ElementType> &
-Array<ElementType>::operator*=(const ElementType &/*alpha*/) {
+Array<ElementType>::operator*=(ElementType/*alpha*/) {
   AKANTU_TO_IMPLEMENT();
   return *this;
 }

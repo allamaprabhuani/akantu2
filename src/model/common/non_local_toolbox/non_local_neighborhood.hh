@@ -74,7 +74,7 @@ public:
   weightedAverageOnNeighbours(const ElementTypeMapReal & to_accumulate,
                               ElementTypeMapReal & accumulated,
                               Int nb_degree_of_freedom,
-                              const GhostType & ghost_type2) const override;
+                              GhostType ghost_type2) const override;
 
   /// update the weights based on the weight function
   void updateWeights() override;

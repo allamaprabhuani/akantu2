@@ -358,7 +358,7 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 
 /* ------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::computeDamageOnQuadPoints(
-    const GhostType & ghost_type) {
+    GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
@@ -425,7 +425,7 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(
 
 /* ------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::computeStrainOnQuadPoints(
-    const GhostType & ghost_type) {
+    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   

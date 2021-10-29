@@ -52,7 +52,7 @@ public:
 protected:
   void computePhiOnQuad(const Matrix<Real> &, Real &, Real &);
 
-  void computeDrivingForce(const ElementType &, GhostType) override;
+  void computeDrivingForce(ElementType, GhostType) override;
 
   inline void computeDrivingForceOnQuad(const Real &, Real &);
 

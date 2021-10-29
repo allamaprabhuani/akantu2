@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -76,14 +76,12 @@ public:
   using type_iterator = ElementList::type_iterator;
 
   [[deprecated("Use elementTypes instead")]] inline auto
-  firstType(Int dim = _all_dimensions,
-            const GhostType & ghost_type = _not_ghost,
-            const ElementKind & kind = _ek_regular) const;
+  firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+            ElementKind kind = _ek_regular) const;
 
   [[deprecated("Use elementTypes instead")]] inline auto
-  lastType(Int dim = _all_dimensions,
-           const GhostType & ghost_type = _not_ghost,
-           const ElementKind & kind = _ek_regular) const;
+  lastType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+           ElementKind kind = _ek_regular) const;
 
   template <typename... pack>
   inline decltype(auto) elementTypes(pack &&... _pack) const {
@@ -118,9 +116,9 @@ public:
 
   /// \todo fix the default for add_nodes : make it coherent with the other
   /// method
-  inline void add(const ElementType & type, Idx element,
-                  const GhostType & ghost_type = _not_ghost,
-                  bool add_nodes = true, bool check_for_duplicate = true);
+  inline void add(ElementType type, Idx element,
+                  GhostType ghost_type = _not_ghost, bool add_nodes = true,
+                  bool check_for_duplicate = true);
 
   inline void addNode(Idx node_id, bool check_for_duplicate = true);
 
@@ -139,8 +137,8 @@ public:
   void addDimension(Int dimension);
 
 private:
-  inline void addElement(const ElementType & elem_type, Idx elem_id,
-                         const GhostType & ghost_type);
+  inline void addElement(ElementType elem_type, Idx elem_id,
+                         GhostType ghost_type);
 
   friend class GroupManager;
 
@@ -148,9 +146,8 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  const Array<Idx> &
-  getElements(const ElementType & type,
-              const GhostType & ghost_type = _not_ghost) const;
+  const Array<Idx> & getElements(ElementType type,
+                                 GhostType ghost_type = _not_ghost) const;
   AKANTU_GET_MACRO_AUTO(Elements, elements);
   AKANTU_GET_MACRO_AUTO_NOT_CONST(Elements, elements);
 
@@ -188,7 +185,7 @@ private:
   NodeGroup & node_group;
 
   /// group dimension
-    Int dimension{_all_dimensions};
+  Int dimension{_all_dimensions};
 
   /// empty arry for the iterator to work when an element type not present
   Array<Idx> empty_elements;

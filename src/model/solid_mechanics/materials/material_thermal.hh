@@ -65,8 +65,8 @@ public:
   inline void computeStressOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
-  decltype(auto) getArguments(const ElementType & el_type,
-                              const GhostType & ghost_type) {
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type) {
     return zip_append(
         Material::getArguments<dim>(el_type, ghost_type),
         tuple::get<"delta_T"_h>() =

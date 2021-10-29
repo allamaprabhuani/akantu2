@@ -47,7 +47,7 @@ namespace fe_engine {
       template <class Functor>
       void fillField(const Functor & field_funct, Array<Real> & field,
                      Int nb_element, Int nb_integration_points,
-                     const ElementType & type, const GhostType & ghost_type) {
+                     ElementType type, GhostType ghost_type) {
         auto nb_degree_of_freedom = field.getNbComponent();
         field.resize(nb_integration_points * nb_element);
 

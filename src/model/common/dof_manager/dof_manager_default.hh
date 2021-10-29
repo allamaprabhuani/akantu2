@@ -83,8 +83,8 @@ public:
    **/
   void assembleElementalMatricesToMatrix(
       const ID & matrix_id, const ID & dof_id,
-      const Array<Real> & elementary_mat, const ElementType & type,
-      const GhostType & ghost_type, const MatrixType & elemental_matrix_type,
+      const Array<Real> & elementary_mat, ElementType type,
+      GhostType ghost_type, const MatrixType & elemental_matrix_type,
       const Array<Int> & filter_elements) override;
 
   void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,

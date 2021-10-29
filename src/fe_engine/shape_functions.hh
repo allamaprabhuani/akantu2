@@ -67,7 +67,7 @@ public:
   /// set the integration points for a given element
   template <ElementType type, class D1>
   void setIntegrationPointsByType(const Eigen::MatrixBase<D1> & integration_points,
-                                  const GhostType & ghost_type);
+                                  GhostType ghost_type);
 
   /// Build pre-computed matrices for interpolation of field form integration
   /// points at other given positions (interpolation_points)
@@ -87,7 +87,7 @@ public:
       const ElementTypeMapArray<Real> &
           interpolation_points_coordinates_matrices,
       const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-      ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+      ElementTypeMapArray<Real> & result, GhostType ghost_type,
       const ElementTypeMapArray<Idx> * element_filter) const;
 
 protected:
@@ -102,7 +102,7 @@ protected:
   template <ElementType type>
   void gradientElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & out_nablauq,
-      const GhostType & ghost_type, const Array<Real> & shapes_derivatives,
+      GhostType ghost_type, const Array<Real> & shapes_derivatives,
       const Array<Idx> & filter_elements) const;
 
 protected:
@@ -112,7 +112,7 @@ protected:
       const Array<Real> & field,
       const Array<Real> & interpolation_points_coordinates_matrices,
       const Array<Real> & quad_points_coordinates_inv_matrices,
-      ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+      ElementTypeMapArray<Real> & result, GhostType ghost_type,
       const Array<Idx> & element_filter) const;
 
   /// Interpolate field at given position from given values of this field at
@@ -125,7 +125,7 @@ protected:
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
       const Array<Real> & quadrature_points_coordinates,
-      const GhostType & ghost_type, const Array<Idx> & element_filter) const;
+      GhostType ghost_type, const Array<Idx> & element_filter) const;
 
   /// build matrix for the interpolation of field form integration points
   template <ElementType type, typename D1, typename D2>
@@ -159,10 +159,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the size of the shapes returned by the element class
-  static inline Int getShapeSize(const ElementType & type);
+  static inline Int getShapeSize(ElementType type);
 
   /// get the size of the shapes derivatives returned by the element class
-  static inline Int getShapeDerivativesSize(const ElementType & type);
+  static inline Int getShapeDerivativesSize(ElementType type);
 
   inline const Matrix<Real> &
   getIntegrationPoints(ElementType type,
