@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -45,9 +45,8 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager),
-      solver(std::make_unique<SparseSolverMumps>(
-          dof_manager, "J", id + ":sparse_solver")) {
+      dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
+                                    dof_manager, "J", id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);

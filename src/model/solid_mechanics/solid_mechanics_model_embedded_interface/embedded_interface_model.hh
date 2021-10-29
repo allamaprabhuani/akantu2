@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -73,7 +73,8 @@ public:
    *
    * @param mesh main mesh (concrete)
    * @param primitive_mesh mesh of the embedded reinforcement
-   * @param spatial_dimension the spatial dimension to be considered by this model
+   * @param spatial_dimension the spatial dimension to be considered by this
+   * model
    * @param id the id of the model
    */
   EmbeddedInterfaceModel(Mesh & mesh, Mesh & primitive_mesh,

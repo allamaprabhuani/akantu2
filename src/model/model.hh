@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -108,7 +108,7 @@ public:
       this->initFullImpl(PhaseFieldModelOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
-#endif      
+#endif
 #ifdef AKANTU_EMBEDDED
     case ModelType::_embedded_model:
       this->initFullImpl(EmbeddedInterfaceModelOptions{
@@ -151,7 +151,7 @@ protected:
   virtual std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) = 0;
 
-  virtual void initModel() {};
+  virtual void initModel(){};
 
   virtual void initFEEngineBoundary();
 
@@ -239,7 +239,7 @@ public:
   AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
-  /* Pack and unpack hexlper functions                                         */
+  /* Pack and unpack hexlper functions */
   /* ------------------------------------------------------------------------ */
 public:
   inline UInt getNbIntegrationPoints(const Array<Element> & elements,
@@ -333,7 +333,6 @@ public:
   void setDirectory(const std::string & directory);
   void setDirectoryToDumper(const std::string & dumper_name,
                             const std::string & directory);
-
 
   /* ------------------------------------------------------------------------ */
   virtual void dump(const std::string & dumper_name);

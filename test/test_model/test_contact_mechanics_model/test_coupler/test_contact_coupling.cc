@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -35,14 +35,14 @@
 
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
 
   const UInt spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("coupling.msh");
-  
+
   CouplerSolidContact coupler(mesh);
 
   auto & solid = coupler.getSolidMechanicsModel();
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
-  
+
   coupler.initFull(_analysis_method = _implicit_contact);
 
   coupler.setBaseName("coupling");
@@ -66,12 +66,10 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("internal_force");
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
-  
+
   coupler.solveStep();
 
   contact.dump();
 
-  
   return 0;
 }
-

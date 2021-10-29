@@ -116,8 +116,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix,

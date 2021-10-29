@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -38,8 +38,7 @@ namespace akantu {
 template <class Regularisation>
 NTNFricLawLinearCohesive<Regularisation>::NTNFricLawLinearCohesive(
     NTNBaseContact & contact, const ID & id)
-    : Regularisation(contact, id),
-      G_c(0, 1, 0., id + ":G_c", 0., "G_c"),
+    : Regularisation(contact, id), G_c(0, 1, 0., id + ":G_c", 0., "G_c"),
       tau_c(0, 1, 0., id + ":tau_c", 0., "tau_c"),
       tau_r(0, 1, 0., id + ":tau_r", 0., "tau_r") {
   AKANTU_DEBUG_IN();
@@ -74,11 +73,11 @@ void NTNFricLawLinearCohesive<Regularisation>::computeFrictionalStrength() {
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n))
+    if (!is_in_contact(n)) {
       strength(n) = 0.;
 
-    // node pair is in contact
-    else {
+      // node pair is in contact
+    } else {
       if (this->G_c(n) == 0.) {
         // strength(n) = 0.;
         strength(n) = this->tau_r(n);
@@ -146,8 +145,9 @@ void NTNFricLawLinearCohesive<Regularisation>::printself(std::ostream & stream,
                                                          int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricLawLinearCohesive [" << std::endl;
   Regularisation::printself(stream, ++indent);

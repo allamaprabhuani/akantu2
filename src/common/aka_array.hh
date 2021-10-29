@@ -7,9 +7,9 @@
  * @date creation: Fri Jun 18 2010
  * @date last modification: Sun Nov 22 2020
  *
- * @brief  Array container for Akantu This container differs from the std::vector
- * from the fact it as 2 dimensions a main dimension and the size stored per
- * entries
+ * @brief  Array container for Akantu This container differs from the
+ * std::vector from the fact it as 2 dimensions a main dimension and the size
+ * stored per entries
  *
  *
  * @section LICENSE
@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -44,7 +44,6 @@
 #ifndef AKANTU_ARRAY_HH_
 #define AKANTU_ARRAY_HH_
 
-
 namespace akantu {
 
 /// class that afford to store vectors in static memory
@@ -54,7 +53,7 @@ class ArrayBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit ArrayBase(const ID &id = "") : id(id) {}
+  explicit ArrayBase(const ID & id = "") : id(id) {}
   ArrayBase(const ArrayBase & other, const ID & id = "") {
     this->id = (id.empty()) ? other.id : id;
   }
@@ -150,7 +149,7 @@ public:
   using const_reference = const value_type &;
 
 public:
-   ~ArrayDataLayer() override = default;
+  ~ArrayDataLayer() override = default;
 
   /// Allocation of a new vector
   explicit ArrayDataLayer(UInt size = 0, UInt nb_component = 1,
@@ -264,7 +263,7 @@ public:
   Array(Array && other) noexcept = default;
 
   // move assign
-  Array & operator=(Array && other)  noexcept = default;
+  Array & operator=(Array && other) noexcept = default;
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */

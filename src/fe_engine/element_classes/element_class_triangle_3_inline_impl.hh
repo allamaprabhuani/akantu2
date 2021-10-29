@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -131,7 +131,7 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2)); 
+  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2));
 }
 
 /* -------------------------------------------------------------------------- */

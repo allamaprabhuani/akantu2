@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -42,8 +42,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma,
-    Real sigma_th) const {
+    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real sigma_th) const {
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
@@ -51,7 +50,8 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) = Math::kronecker(i, j) * lambda * trace +
-          mu * (grad_u(i, j) + grad_u(j, i)) + Math::kronecker(i, j) * sigma_th;
+                    mu * (grad_u(i, j) + grad_u(j, i)) +
+                    Math::kronecker(i, j) * sigma_th;
     }
   }
 }

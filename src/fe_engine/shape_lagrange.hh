@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -61,8 +61,7 @@ public:
   /// initialization function for structural elements not yet implemented
   inline void initShapeFunctions(const Array<Real> & nodes,
                                  const Matrix<Real> & integration_points,
-                                 ElementType type,
-                                 GhostType ghost_type);
+                                 ElementType type, GhostType ghost_type);
 
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
@@ -73,8 +72,7 @@ public:
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type,
-      GhostType ghost_type,
+      Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
       const Array<UInt> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
@@ -86,9 +84,8 @@ public:
   /// pre compute all shape derivatives on the element integration points from
   /// natural coordinates
   template <ElementType type>
-  void
-  precomputeShapeDerivativesOnIntegrationPoints(const Array<Real> & nodes,
-                                                GhostType ghost_type);
+  void precomputeShapeDerivativesOnIntegrationPoints(const Array<Real> & nodes,
+                                                     GhostType ghost_type);
 
   /// interpolate nodal values on the integration points
   template <ElementType type>
@@ -107,8 +104,7 @@ public:
   template <ElementType type>
   void interpolate(const Vector<Real> & real_coords, UInt elem,
                    const Matrix<Real> & nodal_values,
-                   Vector<Real> & interpolated,
-                   GhostType ghost_type) const;
+                   Vector<Real> & interpolated, GhostType ghost_type) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>

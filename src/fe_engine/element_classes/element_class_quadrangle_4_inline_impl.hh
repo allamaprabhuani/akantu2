@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -121,21 +121,21 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
+template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
     const vector_type & /*c*/, matrix_type & d2nds2) {
   d2nds2.zero();
 
-  d2nds2(1, 0) = 1./4.;
-  d2nds2(1, 1) = -1./4.;
-  d2nds2(1, 2) = 1./4.;
-  d2nds2(1, 3) = -1./4.;
+  d2nds2(1, 0) = 1. / 4.;
+  d2nds2(1, 1) = -1. / 4.;
+  d2nds2(1, 2) = 1. / 4.;
+  d2nds2(1, 3) = -1. / 4.;
 
-  d2nds2(2, 0) = 1./4.;
-  d2nds2(2, 1) = -1./4.;
-  d2nds2(2, 2) = 1./4.;
-  d2nds2(2, 3) = -1./4.;
+  d2nds2(2, 0) = 1. / 4.;
+  d2nds2(2, 1) = -1. / 4.;
+  d2nds2(2, 2) = 1. / 4.;
+  d2nds2(2, 3) = -1. / 4.;
 }
 
 /* -------------------------------------------------------------------------- */

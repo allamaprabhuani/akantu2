@@ -87,8 +87,7 @@ struct IGFEMHelper {
   }
 
   /// get the nb of quads for one sub element type
-  static UInt getNbQuadraturePoints(ElementType type,
-                                    const UInt sub_element) {
+  static UInt getNbQuadraturePoints(ElementType type, const UInt sub_element) {
     UInt nb_quad_points = 0;
 #define GET_NB_QUADS(type)                                                     \
   switch (sub_element) {                                                       \

@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -154,13 +154,14 @@ public:
   /* ------------------------------------------------------------------------ */
   /// Add parameter to the params map
   template <typename T>
-  void registerParam(const std::string & name, T & variable, ParameterAccessType type,
+  void registerParam(const std::string & name, T & variable,
+                     ParameterAccessType type,
                      const std::string & description = "");
 
   /// Add parameter to the params map (with default value)
   template <typename T>
-  void registerParam(const std::string &name, T & variable, const T & default_value,
-                     ParameterAccessType type,
+  void registerParam(const std::string & name, T & variable,
+                     const T & default_value, ParameterAccessType type,
                      const std::string & description = "");
 
   /*------------------------------------------------------------------------- */

@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -67,7 +67,7 @@ class NTNBaseFriction : public Parsable, public Dumpable {
   /* ------------------------------------------------------------------------ */
 public:
   NTNBaseFriction(NTNBaseContact & contact, const ID & id = "friction");
-  virtual ~NTNBaseFriction() = default;
+  ~NTNBaseFriction() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -102,7 +102,7 @@ public:
   virtual UInt getNbStickingNodes() const;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
@@ -112,8 +112,8 @@ protected:
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

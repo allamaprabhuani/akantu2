@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -64,10 +64,10 @@ class ContactMechanicsModel : public Model,
 
 public:
   ContactMechanicsModel(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+      Mesh & mesh, UInt dim = _all_dimensions,
       const ID & id = "contact_mechanics_model",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
-      const ModelType model_type = ModelType::_contact_mechanics_model);
+      ModelType model_type = ModelType::_contact_mechanics_model);
 
   ~ContactMechanicsModel() override;
 
@@ -79,7 +79,8 @@ protected:
   void initFullImpl(const ModelOptions & options) override;
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
+  void initSolver(TimeStepSolverType /*unused*/,
+                  NonLinearSolverType /*unused*/) override;
 
   /// initialize all internal arrays for resolutions
   void initResolutions();

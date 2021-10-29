@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -54,7 +54,7 @@ public:
   Array<Entity> & getList() { return list; }
 
   std::string origin() const { return origin_; }
-  
+
 protected:
   Array<Entity> list;
 
@@ -89,7 +89,8 @@ private:
 /// akantu::MeshEvent related to new elements in the mesh
 class NewElementsEvent : public MeshEvent<Element> {
 public:
-  NewElementsEvent(const std::string & origin = "") : MeshEvent<Element>(origin) {}
+  NewElementsEvent(const std::string & origin = "")
+      : MeshEvent<Element>(origin) {}
   ~NewElementsEvent() override = default;
 };
 
@@ -126,7 +127,8 @@ protected:
 class ChangedElementsEvent : public RemovedElementsEvent {
 public:
   inline ChangedElementsEvent(
-      const Mesh & mesh, const ID & new_numbering_id = "changed_event:new_numbering",
+      const Mesh & mesh,
+      const ID & new_numbering_id = "changed_event:new_numbering",
       const std::string & origin = "")
       : RemovedElementsEvent(mesh, new_numbering_id, origin) {}
 

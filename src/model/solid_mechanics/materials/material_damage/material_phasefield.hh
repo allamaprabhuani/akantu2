@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -58,10 +58,8 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
-  
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
 protected:
@@ -72,7 +70,6 @@ protected:
   /// compute the tangent stiffness matrix for a given quadrature point
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
 
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -81,9 +78,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   Real eta;
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -92,6 +87,6 @@ protected:
 
 #include "material_phasefield_inline_impl.cc"
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_MATERIAL_PHASEFIELD_HH__ */

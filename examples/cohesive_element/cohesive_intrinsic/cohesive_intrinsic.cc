@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -89,13 +89,14 @@ int main(int argc, char * argv[]) {
   auto && elements = mesh.createElementGroup("diplacement");
   Vector<Real> barycenter(spatial_dimension);
 
-  for_each_element(mesh,
-                   [&](auto && el) {
-                     mesh.getBarycenter(el, barycenter);
-                     if (barycenter(_x) > -0.25)
-                       elements.add(el, true);
-                   },
-                   _element_kind = _ek_regular);
+  for_each_element(
+      mesh,
+      [&](auto && el) {
+        mesh.getBarycenter(el, barycenter);
+        if (barycenter(_x) > -0.25)
+          elements.add(el, true);
+      },
+      _element_kind = _ek_regular);
 
   Real increment = 0.01;
 

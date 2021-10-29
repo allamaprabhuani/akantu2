@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -70,7 +70,6 @@ private:
 
 template <typename param_> class TestCMMDFixture : public ::testing::Test {
 public:
-
   static constexpr ElementType type_1 = std::tuple_element_t<1, param_>::value;
   static constexpr ElementType type_2 = std::tuple_element_t<2, param_>::value;
 
@@ -91,7 +90,7 @@ public:
   void createModel() {
     solid = std::make_unique<SolidmechanicsModel>(*mesh);
     solid->initFull(_analysis_method = this->analysis_method);
-    
+
     contact = std::make_unique<ContactMechanicsModel>(*mesh);
     contact->initFull(_analysis_method = this->detection_type);
     auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(*mesh);
@@ -124,7 +123,7 @@ public:
 
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
                  ":" + std::to_string(type_2));
-    
+
     if (this->dim > 1)
       this->model->applyBC(BC::Dirichlet::FlagOnly(_y), "sides");
     if (this->dim > 2)
@@ -133,7 +132,6 @@ public:
     Real E = mat_el.get("E");
     Real nu = mat_el.get("nu");
 
-    
     Matrix<Real> strain;
     if (dim == 1) {
       strain = {{1.}};
@@ -143,7 +141,7 @@ public:
     } else if (dim == 3) {
       strain = {{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
     }
-        
+
     this->setInitialCondition((1 - 1e-5) * strain);
     this->steps(1e-2 * strain);
 
@@ -156,7 +154,7 @@ public:
 
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
                  ":" + std::to_string(type_2));
-    
+
     if (this->dim > 1)
       this->model->applyBC(BC::Dirichlet::FlagOnly(_y), "sides");
     if (this->dim > 2)
@@ -165,7 +163,6 @@ public:
     Real E = mat_el.get("E");
     Real nu = mat_el.get("nu");
 
-    
     Matrix<Real> strain;
     if (dim == 1) {
       strain = {{-1.}};
@@ -175,51 +172,40 @@ public:
     } else if (dim == 3) {
       strain = {{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
     }
-        
+
     this->setInitialCondition((1 - 1e-5) * strain);
     this->steps(1e-2 * strain);
 
     this->contact->search();
-
   }
 
-  bool checkGap() {
+  bool checkGap() {}
 
-  }
+  bool checkNormal() {}
 
-  bool checkNormal() {
-
-  }
-
-  bool checkCovariantBasis() {
-
-  }
-
-  
+  bool checkCovariantBasis() {}
 
 protected:
   std::unique_ptr<Mesh> mesh;
   std::unique_ptr<SolidMechanicsModel> solid;
   std::unique_ptr<ContactMechanicsModel> contact;
 
-  std::string mesh_name{std::to_string(detection_type) + std::to_string(type_1) +
-                        (type_1 == type_2 ? "" : std::to_string(type_2)) +
-                        ".msh"};
-  
+  std::string mesh_name{
+      std::to_string(detection_type) + std::to_string(type_1) +
+      (type_1 == type_2 ? "" : std::to_string(type_2)) + ".msh"};
+
   AnalysisMethod analysis_method;
   DetectionType detection_type;
 };
 
 /* -------------------------------------------------------------------------- */
 
-
 using element_types = gtest_list_t<std::tuple<
-  std::tuple<_element_type_segment_2, _element_type_segement_2>,
-  std::tuple< _element_type_triangle_3, _element_type_triangle_3>,
-  std::tuple<_element_type_triangle_3, _element_type_quadrangle_4>,
-  std::tuple<_element_type_quadrangle_4, _element_type_quadrange_4>,
-  std::tuple<_element_type_tetrahedron_6, _element_type_tetrahedron_6> >>;
-
+    std::tuple<_element_type_segment_2, _element_type_segement_2>,
+    std::tuple<_element_type_triangle_3, _element_type_triangle_3>,
+    std::tuple<_element_type_triangle_3, _element_type_quadrangle_4>,
+    std::tuple<_element_type_quadrangle_4, _element_type_quadrange_4>,
+    std::tuple<_element_type_tetrahedron_6, _element_type_tetrahedron_6>>>;
 
 TYPED_TEST_SUITE(TestCMMDFixture, detection_types)
 

@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -132,14 +132,15 @@ void EmbeddedInterfaceModel::assignMaterialToElements(
       new InterfaceMeshDataMaterialSelector<std::string>("physical_names",
                                                          *this);
 
-  for_each_element(getInterfaceMesh(),
-                   [&](auto && element) {
-                     auto mat_index = (*interface_material_selector)(element);
-                     // material_index(element) = mat_index;
-                     materials[mat_index]->addElement(element);
-                     // this->material_local_numbering(element) = index;
-                   },
-                   _element_filter = filter, _spatial_dimension = 1);
+  for_each_element(
+      getInterfaceMesh(),
+      [&](auto && element) {
+        auto mat_index = (*interface_material_selector)(element);
+        // material_index(element) = mat_index;
+        materials[mat_index]->addElement(element);
+        // this->material_local_numbering(element) = index;
+      },
+      _element_filter = filter, _spatial_dimension = 1);
 
   SolidMechanicsModel::assignMaterialToElements(filter);
 }

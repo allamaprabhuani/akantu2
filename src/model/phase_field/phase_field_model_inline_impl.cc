@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -72,7 +72,8 @@ inline PhaseField & PhaseFieldModel::getPhaseField(const std::string & name) {
   std::map<std::string, UInt>::const_iterator it =
       phasefields_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != phasefields_names_to_id.end(),
-                      "The model " << id << " has no phasefield named " << name);
+                      "The model " << id << " has no phasefield named "
+                                   << name);
   return *phasefields[it->second];
 }
 
@@ -81,7 +82,8 @@ inline UInt
 PhaseFieldModel::getPhaseFieldIndex(const std::string & name) const {
   auto it = phasefields_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != phasefields_names_to_id.end(),
-                      "The model " << id << " has no phasefield named " << name);
+                      "The model " << id << " has no phasefield named "
+                                   << name);
   return it->second;
 }
 
@@ -90,7 +92,8 @@ inline const PhaseField &
 PhaseFieldModel::getPhaseField(const std::string & name) const {
   auto it = phasefields_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != phasefields_names_to_id.end(),
-                      "The model " << id << " has no phasefield named " << name);
+                      "The model " << id << " has no phasefield named "
+                                   << name);
   return *phasefields[it->second];
 }
 

@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -45,8 +45,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NodeGroup::NodeGroup(const std::string & name, const Mesh & mesh,
                      const std::string & id)
-    : name(name),
-      node_group(0, 1, std::string(id + ":nodes")) {
+    : name(name), node_group(0, 1, std::string(id + ":nodes")) {
 #if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_" + name, name, true);
   auto field = std::make_shared<dumpers::NodalField<Real, true>>(

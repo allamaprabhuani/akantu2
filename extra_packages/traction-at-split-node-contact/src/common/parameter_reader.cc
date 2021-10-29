@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -42,9 +42,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ParameterReader::ParameterReader()
-    : data_types(), element_type_data(), string_data(), int_data(), uint_data(),
-      real_data(), bool_data() {
+ParameterReader::ParameterReader() {
   AKANTU_DEBUG_IN();
 
   // setup of types of element
@@ -95,10 +93,12 @@ void ParameterReader::readInputFile(std::string file_name) {
     // take out comments
     size_t found_comment;
     found_comment = line.find_first_of(comment_char);
-    if (found_comment != std::string::npos)
+    if (found_comment != std::string::npos) {
       clean_line = line.substr(0, found_comment);
-    if (clean_line.empty())
+    }
+    if (clean_line.empty()) {
       continue;
+    }
 
     std::stringstream sstr(clean_line);
 
@@ -126,8 +126,9 @@ void ParameterReader::readInputFile(std::string file_name) {
     }
 
     // get equal
-    if (equal.empty())
+    if (equal.empty()) {
       sstr >> equal;
+    }
     if (equal.length() != 1) {
       value = equal.substr(1, std::string::npos);
       equal = equal[0];
@@ -139,8 +140,9 @@ void ParameterReader::readInputFile(std::string file_name) {
     }
 
     // get value
-    if (value.empty())
+    if (value.empty()) {
       sstr >> value;
+    }
 
     // no value
     if (value.empty()) {
@@ -151,18 +153,18 @@ void ParameterReader::readInputFile(std::string file_name) {
 
     // put value in map
     std::stringstream convert(value);
-    if (type.compare("elementtype") == 0) {
+    if (type == "elementtype") {
       std::map<std::string, akantu::ElementType>::const_iterator it;
       it = this->_input_to_akantu_element_types.find(value);
-      if (it != this->_input_to_akantu_element_types.end())
+      if (it != this->_input_to_akantu_element_types.end()) {
         this->element_type_data.insert(std::make_pair(keyword, it->second));
-      else {
+      } else {
         std::cerr << " *** WARNING *** ElementType " << value
                   << " does not exist. Ignore line: ";
         std::cerr << clean_line << std::endl;
         continue;
       }
-    } else if (type.compare("string") == 0) {
+    } else if (type == "string") {
       this->string_data.insert(std::make_pair(keyword, value));
     }
     /*
@@ -174,26 +176,26 @@ void ParameterReader::readInputFile(std::string file_name) {
       this->uint_data.insert(std::make_pair(keyword,surf));
     }
     */
-    else if (type.compare("int") == 0) {
+    else if (type == "int") {
       Int i;
       convert >> i;
       this->int_data.insert(std::make_pair(keyword, i));
-    } else if (type.compare("uint") == 0) {
+    } else if (type == "uint") {
       UInt i;
       convert >> i;
       this->uint_data.insert(std::make_pair(keyword, i));
-    } else if (type.compare("real") == 0) {
+    } else if (type == "real") {
       Real r;
       convert >> r;
       this->real_data.insert(std::make_pair(keyword, r));
-    } else if (type.compare("bool") == 0) {
+    } else if (type == "bool") {
       std::transform(value.begin(), value.end(), value.begin(), ::tolower);
       bool b;
-      if (value.compare("true") == 0)
+      if (value == "true") {
         b = true;
-      else if (value.compare("false") == 0)
+      } else if (value == "false") {
         b = false;
-      else {
+      } else {
         std::cerr << " *** WARNING *** boolean cannot be " << value
                   << ". Ignore line: ";
         std::cerr << clean_line << std::endl;
@@ -220,11 +222,9 @@ void ParameterReader::writeInputFile(std::string file_name) const {
   outfile.open(file_name.c_str());
 
   // element type
-  for (std::map<std::string, akantu::ElementType>::const_iterator it =
-           element_type_data.begin();
-       it != element_type_data.end(); ++it) {
-    for (std::map<std::string, ElementType>::const_iterator et =
-             _input_to_akantu_element_types.begin();
+  for (auto it = element_type_data.begin(); it != element_type_data.end();
+       ++it) {
+    for (auto et = _input_to_akantu_element_types.begin();
          et != _input_to_akantu_element_types.end(); ++et) {
       if (it->second == et->second) {
         outfile << "ElementType " << it->first << " = " << et->first
@@ -235,10 +235,9 @@ void ParameterReader::writeInputFile(std::string file_name) const {
   }
 
   // string
-  for (std::map<std::string, std::string>::const_iterator it =
-           string_data.begin();
-       it != string_data.end(); ++it)
+  for (auto it = string_data.begin(); it != string_data.end(); ++it) {
     outfile << "string " << it->first << " = " << it->second << std::endl;
+  }
 
   // Surface
   /*
@@ -248,28 +247,26 @@ void ParameterReader::writeInputFile(std::string file_name) const {
     outfile << "Surface " << it->first << " = " << it->second << std::endl;
   */
   // Int
-  for (std::map<std::string, akantu::Int>::const_iterator it = int_data.begin();
-       it != int_data.end(); ++it)
+  for (auto it = int_data.begin(); it != int_data.end(); ++it) {
     outfile << "Int " << it->first << " = " << it->second << std::endl;
+  }
 
   // UInt
-  for (std::map<std::string, akantu::UInt>::const_iterator it =
-           uint_data.begin();
-       it != uint_data.end(); ++it)
+  for (auto it = uint_data.begin(); it != uint_data.end(); ++it) {
     outfile << "UInt " << it->first << " = " << it->second << std::endl;
+  }
 
   // Real
-  for (std::map<std::string, akantu::Real>::const_iterator it =
-           real_data.begin();
-       it != real_data.end(); ++it)
+  for (auto it = real_data.begin(); it != real_data.end(); ++it) {
     outfile << "Real " << it->first << " = " << it->second << std::endl;
+  }
 
   // Bool
-  for (std::map<std::string, bool>::const_iterator it = bool_data.begin();
-       it != bool_data.end(); ++it) {
+  for (auto it = bool_data.begin(); it != bool_data.end(); ++it) {
     std::string b = "false";
-    if (it->second)
+    if (it->second) {
       b = "true";
+    }
     outfile << "bool " << it->first << " = " << b << std::endl;
   }
 
@@ -290,8 +287,9 @@ akantu::UInt ParameterReader::get<akantu::UInt>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -309,8 +307,9 @@ ParameterReader::get<akantu::ElementType>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -327,8 +326,9 @@ std::string ParameterReader::get<std::string>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -365,8 +365,9 @@ akantu::Int ParameterReader::get<akantu::Int>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -383,8 +384,9 @@ akantu::Real ParameterReader::get<akantu::Real>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -400,8 +402,9 @@ template <> bool ParameterReader::get<bool>(std::string key) const {
     exit(EXIT_FAILURE);
   }
 
-  else
+  else {
     return it->second;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -436,8 +439,9 @@ void ParameterReader::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
 
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "ParameterReader [" << std::endl;
   /*

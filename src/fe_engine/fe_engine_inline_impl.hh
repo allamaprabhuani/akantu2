@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -64,13 +64,13 @@ inline Real FEEngine::getElementInradius(const Element & element) const {
 
   Matrix<Real> coords(spatial_dimension, connectivity.size());
 
-  for(auto && data : zip(connectivity, coords)) {
-    std::get<1>(data) = positions[std::get<0>(data)];
+  for (auto && data : zip(connectivity, coords)) {
+    Vector<Real>(std::get<1>(data)) =
+        Vector<Real>(positions[std::get<0>(data)]);
   }
 
   return getElementInradius(coords, element.type);
 }
-
 
 /* -------------------------------------------------------------------------- */
 inline InterpolationType FEEngine::getInterpolationType(ElementType type) {

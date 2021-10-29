@@ -60,7 +60,8 @@ public:
   void initMaterial() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost) override;
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
   /// compute the potential energy for all elements
   void computePotentialEnergy(ElementType el_type) override;

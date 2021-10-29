@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -96,9 +96,9 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
   dnds(0, 0) = -0.5 * c(1);
   dnds(0, 1) = -0.5 * c(2);
   dnds(0, 2) = -0.5 * (1 - c(1) - c(2));
-  dnds(0, 3) =  0.5 * c(1);
-  dnds(0, 4) =  0.5 * c(2);
-  dnds(0, 5) =  0.5 * (1 - c(1) - c(2));
+  dnds(0, 3) = 0.5 * c(1);
+  dnds(0, 4) = 0.5 * c(2);
+  dnds(0, 5) = 0.5 * (1 - c(1) - c(2));
 
   dnds(1, 0) = 0.5 * (1 - c(0));
   dnds(1, 1) = 0.0;
