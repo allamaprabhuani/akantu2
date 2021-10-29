@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -575,19 +575,19 @@ void GeometryUtils::naturalProjection(
   Matrix<Real> d2nds2(surface_dimension * surface_dimension,
                       nb_nodes_per_element);
 
-  auto compute_double_gradient =
-      [&d2nds2, &nodes_coord, surface_dimension,
-       spatial_dimension](UInt & alpha, UInt & beta) {
-        auto index = alpha * surface_dimension + beta;
-        Vector<Real> d_alpha_beta(spatial_dimension);
+  auto compute_double_gradient = [&d2nds2, &nodes_coord, surface_dimension,
+                                  spatial_dimension](UInt & alpha,
+                                                     UInt & beta) {
+    auto index = alpha * surface_dimension + beta;
+    Vector<Real> d_alpha_beta(spatial_dimension);
 
-        auto d2nds2_transpose = d2nds2.transpose();
-        Vector<Real> d2nds2_alpha_beta(d2nds2_transpose(index));
+    auto d2nds2_transpose = d2nds2.transpose();
+    Vector<Real> d2nds2_alpha_beta(d2nds2_transpose(index));
 
-        d_alpha_beta.mul<false>(nodes_coord, d2nds2_alpha_beta);
+    d_alpha_beta.mul<false>(nodes_coord, d2nds2_alpha_beta);
 
-        return d_alpha_beta;
-      };
+    return d_alpha_beta;
+  };
 
   /* --------------------------- */
   /* init before iteration loop  */

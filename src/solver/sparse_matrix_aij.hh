@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -121,7 +121,6 @@ public:
   /// accessor to get the minimum value of A_{ij}
   inline Real min() override;
 
-
 protected:
   void addMeTo(SparseMatrix & B, Real alpha) const override;
 
@@ -154,7 +153,7 @@ public:
   AKANTU_GET_MACRO_AUTO(ProfileRelease, profile_release);
   AKANTU_GET_MACRO_AUTO(ValueRelease, value_release);
   UInt getRelease() const override { return value_release; }
-  
+
 protected:
   using KeyCOO = std::pair<Idx, Idx>;
   using coordinate_list_map = std::unordered_map<KeyCOO, Idx>;

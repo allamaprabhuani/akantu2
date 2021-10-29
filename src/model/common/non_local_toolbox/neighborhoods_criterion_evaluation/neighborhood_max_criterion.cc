@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -41,8 +41,7 @@ NeighborhoodMaxCriterion::NeighborhoodMaxCriterion(
     Model & model, const ElementTypeMapReal & quad_coordinates,
     const ID & criterion_id, const ID & id)
     : NeighborhoodBase(model, quad_coordinates, id),
-      Parsable(ParserType::_non_local, id),
-      is_highest("is_highest", id),
+      Parsable(ParserType::_non_local, id), is_highest("is_highest", id),
       criterion(criterion_id, id) {
 
   AKANTU_DEBUG_IN();

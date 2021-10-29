@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -88,8 +88,9 @@ void ResolutionPenaltyQuadratic::computeNormalForce(
 void ResolutionPenaltyQuadratic::computeTangentialForce(
     const ContactElement & element, Vector<Real> & force) {
 
-  if (mu == 0)
+  if (mu == 0) {
     return;
+  }
 
   force.zero();
 
@@ -110,12 +111,14 @@ void ResolutionPenaltyQuadratic::computeTangentialForce(
   // need a better way to check if new node added is not presnt in the
   // previous master elemets
   auto & previous_master_elements = model.getPreviousMasterElements();
-  if (element.slave >= previous_master_elements.size())
+  if (element.slave >= previous_master_elements.size()) {
     return;
+  }
 
   auto & previous_element = previous_master_elements[element.slave];
-  if (previous_element.type == _not_defined)
+  if (previous_element.type == _not_defined) {
     return;
+  }
 
   // compute tangential traction using return map algorithm
   auto & tangential_tractions = model.getTangentialTractions();
@@ -183,7 +186,7 @@ void ResolutionPenaltyQuadratic::computeTangentialTraction(
   auto & state = contact_state.begin()[element.slave];
 
   Real p_n = computeNormalTraction(gap);
-  bool stick = (traction_trial_norm <= mu * p_n) ? true : false;
+  bool stick = traction_trial_norm <= mu * p_n;
 
   if (stick) {
     state = ContactState::_stick;

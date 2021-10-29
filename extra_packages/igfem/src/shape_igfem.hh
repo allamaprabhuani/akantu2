@@ -37,13 +37,12 @@ public:
                                  const Matrix<Real> & integration_points,
                                  const Matrix<Real> & integration_points_1,
                                  const Matrix<Real> & integration_points_2,
-                                 ElementType type,
-                                 GhostType ghost_type);
+                                 ElementType type, GhostType ghost_type);
 
-  inline void
-  interpolateEnrichmentsAllTypes(const Array<Real> & src, Array<Real> & dst,
-                                 ElementType type,
-                                 GhostType ghost_type) const;
+  inline void interpolateEnrichmentsAllTypes(const Array<Real> & src,
+                                             Array<Real> & dst,
+                                             ElementType type,
+                                             GhostType ghost_type) const;
 
   template <ElementType type>
   inline void precomputeShapesOnEnrichedNodes(const Array<Real> & nodes,
@@ -76,8 +75,7 @@ public:
   template <ElementType type>
   void interpolate(const Vector<Real> & real_coords, UInt elem,
                    const Matrix<Real> & nodal_values,
-                   Vector<Real> & interpolated,
-                   GhostType ghost_type) const;
+                   Vector<Real> & interpolated, GhostType ghost_type) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>
@@ -150,9 +148,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get a the shapes vector
-  inline const Array<Real> &
-  getShapes(ElementType el_type,
-            GhostType ghost_type = _not_ghost) const;
+  inline const Array<Real> & getShapes(ElementType el_type,
+                                       GhostType ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
   inline const Array<Real> &

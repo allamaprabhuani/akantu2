@@ -72,7 +72,7 @@ public:
 protected:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
-                             GhostType ghost_type = _not_ghost) override;
+                     GhostType ghost_type = _not_ghost) override;
 
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
 

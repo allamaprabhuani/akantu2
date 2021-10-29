@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -66,17 +66,16 @@
 
 #endif
 
-#define AKANTU_CORE_MATERIAL_LIST                                       \
-    ((2, (elastic, MaterialElastic)))                                   \
-    ((2, (neohookean, MaterialNeohookean)))                             \
-    ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))            \
-    ((2, (elastic_anisotropic, MaterialElasticLinearAnisotropic)))      \
-    ((2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))      \
-    ((2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))      \
-    ((2, (plastic_linear_isotropic_hardening,                           \
-          MaterialLinearIsotropicHardening)))                           \
-    ((2, (plastic_drucker_prager, MaterialDruckerPrager)))              \
-    ((2, (plastic_mazars, MaterialVonMisesMazars)))                     \
-    ((2, (phasefield, MaterialPhaseField)))
+#define AKANTU_CORE_MATERIAL_LIST                                              \
+  ((2, (elastic, MaterialElastic)))((2, (neohookean, MaterialNeohookean)))(    \
+      (2, (elastic_orthotropic, MaterialElasticOrthotropic)))(                 \
+      (2, (elastic_anisotropic, MaterialElasticLinearAnisotropic)))(           \
+      (2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))(           \
+      (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
+      (2, (plastic_linear_isotropic_hardening,                                 \
+           MaterialLinearIsotropicHardening)))(                                \
+      (2, (plastic_drucker_prager, MaterialDruckerPrager)))(                   \
+      (2, (plastic_mazars, MaterialVonMisesMazars)))(                          \
+      (2, (phasefield, MaterialPhaseField)))
 
 #endif /* AKANTU_MATERIAL_CORE_INCLUDES_HH_ */

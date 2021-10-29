@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -69,8 +69,33 @@ template <typename... Ts> struct gtest_list<std::tuple<Ts...>> {
 template <typename... T> using gtest_list_t = typename gtest_list<T...>::type;
 
 /* -------------------------------------------------------------------------- */
-//template <typename... T> struct tuple_concat {};
+// template <typename... T> struct tuple_concat {};
 
+template <typename... Ts> struct tuple_concat {
+  using type = decltype(std::tuple_cat(std::declval<Ts>()...));
+};
+
+template <typename... T>
+using tuple_concat_t = typename tuple_concat<T...>::type;
+
+/* -------------------------------------------------------------------------- */
+template <template <typename> class Pred, typename... Ts>
+struct tuple_filter {};
+
+template <template <typename> class Pred, typename T>
+struct tuple_filter<Pred, std::tuple<T>> {
+  using type = std::conditional_t<Pred<T>::value, std::tuple<T>, std::tuple<>>;
+};
+
+template <template <typename> class Pred, typename T, typename... Ts>
+struct tuple_filter<Pred, std::tuple<T, Ts...>> {
+  using type =
+      tuple_concat_t<typename tuple_filter<Pred, std::tuple<T>>::type,
+                     typename tuple_filter<Pred, std::tuple<Ts...>>::type>;
+};
+
+template <template <typename> class Pred, typename... Ts>
+using tuple_filter_t = typename tuple_filter<Pred, Ts...>::type;
 
 /* -------------------------------------------------------------------------- */
 template <size_t N, typename... Ts> struct tuple_split {};

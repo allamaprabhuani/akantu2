@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -49,11 +49,9 @@ class MeshPartitionMeshData : public MeshPartition {
   /* ------------------------------------------------------------------------ */
 public:
   MeshPartitionMeshData(Mesh & mesh, Int spatial_dimension,
-                        const ID & id = "MeshPartitionerMeshData"
-                        );
+                        const ID & id = "MeshPartitionerMeshData");
 
-  MeshPartitionMeshData(Mesh & mesh,
-                        const ElementTypeMapArray<UInt> & mapping,
+  MeshPartitionMeshData(Mesh & mesh, const ElementTypeMapArray<UInt> & mapping,
                         Int spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData");
 
@@ -63,9 +61,10 @@ public:
 public:
   void partitionate(
       Int nb_part,
-      const std::function<Int(const Element &, const Element &)> &edge_load_func =
-          [](auto && /*unused*/, auto && /*unused*/) { return 1; },
-      const std::function<Int(const Element &)> &vertex_load_func =
+      const std::function<Int(const Element &, const Element &)> &
+          edge_load_func =
+              [](auto && /*unused*/, auto && /*unused*/) { return 1; },
+      const std::function<Int(const Element &)> & vertex_load_func =
           [](auto && /*unused*/) { return 1; }) override;
 
   void reorder() override;

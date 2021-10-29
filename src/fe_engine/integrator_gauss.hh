@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -64,8 +64,7 @@ public:
                       GhostType ghost_type);
 
   template <ElementType type>
-  inline void initIntegrator(const Array<Real> & nodes,
-                             GhostType ghost_type);
+  inline void initIntegrator(const Array<Real> & nodes, GhostType ghost_type);
 
   /// integrate f on the element "elem" of type "type"
   template <ElementType type>
@@ -153,8 +152,7 @@ protected:
   void computeQuadraturePoints(GhostType ghost_type);
 
   /// check that the jacobians are not negative
-  template <ElementType type>
-  void checkJacobians(GhostType ghost_type) const;
+  template <ElementType type> void checkJacobians(GhostType ghost_type) const;
 
   /// internal integrate partially around a quadrature point (@f$ intf_q = f_q *
   /// J_q *

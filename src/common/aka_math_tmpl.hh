@@ -29,12 +29,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -489,42 +489,150 @@ namespace akantu {
 //   delete[] work;
 // }
 
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-// inline Real Math::matrixDoubleDot22(Real * A, Real * B) {
-//   Real d;
-//   d = A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3];
-//   return d;
-// }
+  /* ------------------------------------------------------------------------ */
+  inline void inv3(const Real * mat, Real * inv) {
+    Real det_mat = det3(mat);
 
-// /* -------------------------------------------------------------------------- */
-// inline Real Math::matrixDoubleDot33(Real * A, Real * B) {
-//   Real d;
-//   d = A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] +
-//       A[5] * B[5] + A[6] * B[6] + A[7] * B[7] + A[8] * B[8];
-//   return d;
-// }
+    inv[0] = (mat[4] * mat[8] - mat[7] * mat[5]) / det_mat;
+    inv[1] = (mat[2] * mat[7] - mat[8] * mat[1]) / det_mat;
+    inv[2] = (mat[1] * mat[5] - mat[4] * mat[2]) / det_mat;
+    inv[3] = (mat[5] * mat[6] - mat[8] * mat[3]) / det_mat;
+    inv[4] = (mat[0] * mat[8] - mat[6] * mat[2]) / det_mat;
+    inv[5] = (mat[2] * mat[3] - mat[5] * mat[0]) / det_mat;
+    inv[6] = (mat[3] * mat[7] - mat[6] * mat[4]) / det_mat;
+    inv[7] = (mat[1] * mat[6] - mat[7] * mat[0]) / det_mat;
+    inv[8] = (mat[0] * mat[4] - mat[3] * mat[1]) / det_mat;
+  }
 
-// /* -------------------------------------------------------------------------- */
-// inline Real Math::matrixDoubleDot(UInt n, Real * A, Real * B) {
-//   Real d = 0.;
-//   for (UInt i = 0; i < n; ++i) {
-//     for (UInt j = 0; j < n; ++j) {
-//       d += A[i * n + j] * B[i * n + j];
-//     }
-//   }
-//   return d;
-// }
+  /* ------------------------------------------------------------------------ */
+  template <UInt n> inline void inv(const Real * A, Real * Ainv) {
+    if (n == 1) {
+      *Ainv = 1. / *A;
+    } else if (n == 2) {
+      inv2(A, Ainv);
+    } else if (n == 3) {
+      inv3(A, Ainv);
+    } else {
+      inv(n, A, Ainv);
+    }
+  }
 
-// /* -------------------------------------------------------------------------- */
-// inline Real Math::vectorDot2(const Real * v1, const Real * v2) {
-//   return (v1[0] * v2[0] + v1[1] * v2[1]);
-// }
+  /* ------------------------------------------------------------------------ */
+  template <typename T> inline void inv(UInt n, const T * A, T * invA) {
+    int N = n;
+    int info;
+    auto * ipiv = new int[N + 1];
+    int lwork = N * N;
+    auto * work = new T[lwork];
 
-// /* -------------------------------------------------------------------------- */
-// inline Real Math::vectorDot3(const Real * v1, const Real * v2) {
-//   return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
-// }
+    std::copy(A, A + n * n, invA);
+
+    aka_getrf(&N, &N, invA, &N, ipiv, &info);
+    if (info > 0) {
+      AKANTU_ERROR("Singular matrix - cannot factorize it (info: " << info
+                                                                   << " )");
+    }
+
+    aka_getri(&N, invA, &N, ipiv, work, &lwork, &info);
+    if (info != 0) {
+      AKANTU_ERROR("Cannot invert the matrix (info: " << info << " )");
+    }
+
+    delete[] ipiv;
+    delete[] work;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <typename T>
+  inline void solve(UInt n, const T * A, T * x, const T * b) {
+    int N = n;
+    int info;
+    auto * ipiv = new int[N];
+    auto * lu_A = new T[N * N];
+
+    std::copy(A, A + N * N, lu_A);
+
+    aka_getrf(&N, &N, lu_A, &N, ipiv, &info);
+    if (info > 0) {
+      AKANTU_ERROR("Singular matrix - cannot factorize it (info: " << info
+                                                                   << " )");
+    }
+
+    char trans = 'N';
+    int nrhs = 1;
+
+    std::copy(b, b + N, x);
+
+    aka_getrs(&trans, &N, &nrhs, lu_A, &N, ipiv, x, &N, &info);
+    if (info != 0) {
+      AKANTU_ERROR("Cannot solve the system (info: " << info << " )");
+    }
+
+    delete[] ipiv;
+    delete[] lu_A;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------ */
+  inline Real
+  matrixDoubleDot22(Real * A, // NOLINT(readability-non-const-parameter)
+                    Real * B  // NOLINT(readability-non-const-parameter)
+  ) {
+    Real d;
+    d = A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3];
+    return d;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real
+  matrixDoubleDot33(Real * A, // NOLINT(readability-non-const-parameter)
+                    Real * B  // NOLINT(readability-non-const-parameter)
+  ) {
+    Real d;
+    d = A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] +
+        A[5] * B[5] + A[6] * B[6] + A[7] * B[7] + A[8] * B[8];
+    return d;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real
+  matrixDoubleDot(UInt n,
+                  Real * A, // NOLINT(readability-non-const-parameter)
+                  Real * B  // NOLINT(readability-non-const-parameter)
+  ) {
+    Real d = 0.;
+    for (UInt i = 0; i < n; ++i) {
+      for (UInt j = 0; j < n; ++j) {
+        d += A[i * n + j] * B[i * n + j];
+      }
+    }
+    return d;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline void vectorProduct3(const Real * v1, const Real * v2, Real * res) {
+    res[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    res[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real vectorDot2(const Real * v1, const Real * v2) {
+    return (v1[0] * v2[0] + v1[1] * v2[1]);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real vectorDot3(const Real * v1, const Real * v2) {
+    return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real distance_2d(const Real * x, const Real * y) {
+    return std::sqrt((y[0] - x[0]) * (y[0] - x[0]) +
+                     (y[1] - x[1]) * (y[1] - x[1]));
+  }
+
+  /* ------------------------------------------------------------------------ */
   inline Real triangle_inradius(const Vector<Real> & coord1,
                                 const Vector<Real> & coord2,
                                 const Vector<Real> & coord3) {

@@ -37,7 +37,6 @@
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
 
-
 namespace iohelper {
 
 enum LammpsAtomStyle { atomic, bond }; // please extend ad libidum
@@ -60,15 +59,13 @@ public:
   void dump(const std::string & current_name = std::string(),
             UInt count = UInt(-1)) override;
   void dumpHead(Real * bounds = nullptr);
-  template<typename T>
-  void visitField(T & visited);
+  template <typename T> void visitField(T & visited);
 
   void dumpFinalize();
   //! set mode for file creation : TEXT, BASE64, COMPRESSED
   void setMode(int mode) override { Dumper::setMode(mode); }
   void dumpAdd(int grain_id = 1);
-  void setEmbeddedValue(__attribute__((unused)) const std::string & name,
-                        __attribute__((unused)) int value) {}
+  void setEmbeddedValue(const std::string & /*name*/, int /*value*/) {}
 
 protected:
   template <typename Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
@@ -148,7 +145,7 @@ void DumperLammps<atomic>::visitField(T & visited) {
 }
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace iohelper
 
 /* -------------------------------------------------------------------------- */
 #include "field_inline_impl.hh"

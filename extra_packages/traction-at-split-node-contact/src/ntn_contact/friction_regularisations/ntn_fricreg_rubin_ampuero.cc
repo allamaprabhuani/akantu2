@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -70,12 +70,12 @@ NTNFricRegRubinAmpuero::internalGetContactPressure() {
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n))
+    if (!is_in_contact(n)) {
       this->frictional_contact_pressure(n) = 0.;
 
-    // if t_star is too small compute like Coulomb friction (without
-    // regularization)
-    else if (Math::are_float_equal(this->t_star(n), 0.)) {
+      // if t_star is too small compute like Coulomb friction (without
+      // regularization)
+    } else if (Math::are_float_equal(this->t_star(n), 0.)) {
       const Vector<Real> & pres = it[n];
       this->frictional_contact_pressure(n) = pres.norm();
     }
@@ -141,8 +141,9 @@ void NTNFricRegRubinAmpuero::printself(std::ostream & stream,
                                        int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricRegRubinAmpuero [" << std::endl;
   NTNFricRegNoRegularisation::printself(stream, ++indent);

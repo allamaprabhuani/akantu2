@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -75,8 +75,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  virtual void
-  initShapeFunctions(GhostType ghost_type = _not_ghost) = 0;
+  virtual void initShapeFunctions(GhostType ghost_type = _not_ghost) = 0;
 
   /// extract the nodal values and store them per element
   template <typename T>
@@ -176,8 +175,7 @@ public:
 
   /// pre multiplies a tensor by the shapes derivaties
   virtual void
-  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
-             ElementType type,
+  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) const = 0;
 
@@ -190,18 +188,16 @@ public:
 
   /// left multiples a vector by the shape functions
   virtual void
-  computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
-             ElementType type,
+  computeNtb(const Array<Real> & bs, Array<Real> & Ntbs, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// left and right  multiplies a tensor by the shapes
   virtual void
-  computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
-              ElementType type, GhostType ghost_type = _not_ghost,
+  computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
+              GhostType ghost_type = _not_ghost,
               const Array<UInt> & filter_elements = empty_filter) const = 0;
 
-  
   /// Compute the interpolation point position in the global coordinates for
   /// many element types
   virtual void computeIntegrationPointsCoordinates(
@@ -280,21 +276,20 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// pre-compute normals on integration points
-  virtual void computeNormalsOnIntegrationPoints(
-      GhostType ghost_type = _not_ghost) = 0;
+  virtual void
+  computeNormalsOnIntegrationPoints(GhostType ghost_type = _not_ghost) = 0;
 
   /// pre-compute normals on integration points
-  virtual void computeNormalsOnIntegrationPoints(
-      const Array<Real> & /*field*/,
-      GhostType /*ghost_type*/ = _not_ghost) {
+  virtual void
+  computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
+                                    GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// pre-compute normals on integration points
   virtual void computeNormalsOnIntegrationPoints(
       const Array<Real> & /*field*/, Array<Real> & /*normal*/,
-      ElementType /*type*/,
-      GhostType /*ghost_type*/ = _not_ghost) const {
+      ElementType /*type*/, GhostType /*ghost_type*/ = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -339,8 +334,7 @@ public:
   getCohesiveElementType(ElementType type_facet);
 
   /// get igfem element type for a given regular type
-  static inline Vector<ElementType>
-  getIGFEMElementTypes(ElementType type);
+  static inline Vector<ElementType> getIGFEMElementTypes(ElementType type);
 
   /// get the interpolation element associated to an element type
   static inline constexpr auto

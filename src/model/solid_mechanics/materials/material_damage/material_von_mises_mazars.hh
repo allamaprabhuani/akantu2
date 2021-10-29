@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -32,8 +32,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_voigthelper.hh"
-#include "material_linear_isotropic_hardening.hh"
 #include "material_damage.hh"
+#include "material_linear_isotropic_hardening.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_VONMISES_MAZARS_HH__
@@ -42,7 +42,7 @@
 namespace akantu {
 
 template <UInt spatial_dimension,
-	  template <UInt> class Parent = MaterialLinearIsotropicHardening>
+          template <UInt> class Parent = MaterialLinearIsotropicHardening>
 class MaterialVonMisesMazars
     : public MaterialDamage<spatial_dimension, Parent> {
 
@@ -50,11 +50,10 @@ class MaterialVonMisesMazars
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialVonMisesMazars(SolidMechanicsModel & model,
-			 const ID & id = "");
+  MaterialVonMisesMazars(SolidMechanicsModel & model, const ID & id = "");
   MaterialVonMisesMazars(SolidMechanicsModel & model, UInt dim,
-			 const Mesh & mesh, FEEngine & fe_engine,
-			 const ID & id = "");
+                         const Mesh & mesh, FEEngine & fe_engine,
+                         const ID & id = "");
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -78,7 +77,6 @@ protected:
                                   const Vector<Real> & epsilon_princ,
                                   Real & dam);
 
-  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -103,14 +101,10 @@ protected:
   /// specify the variable to average false = ehat, true = damage (only valid
   /// for non local version)
   bool damage_in_compute_stress;
-
 };
 
 } // namespace akantu
 
-
 #include "material_von_mises_mazars_inline_impl.hh"
 
-
 #endif /* __AKANTU_MATERIAL_VONMISES_MAZARS_HH__ */
-

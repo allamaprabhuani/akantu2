@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -47,7 +47,8 @@ class FEEngine;
  * class for the internal fields of materials
  * to store values for each quadrature
  */
-  template <class Material, typename T> class InternalFieldTmpl : public ElementTypeMapArray<T> {
+template <class Material, typename T>
+class InternalFieldTmpl : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -65,8 +66,10 @@ public:
 
   InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
 
+  InternalFieldTmpl(const ID & id,
+                    const InternalFieldTmpl<Material, T> & other);
 
-  auto operator=(const InternalField &) -> InternalField = delete;
+  auto operator=(const InternalFieldTmpl &) -> InternalFieldTmpl = delete;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -113,8 +116,6 @@ public:
 
   virtual auto getFEEngine() const -> const FEEngine & { return *fem; }
 
-  /// AKANTU_GET_MACRO(FEEngine, *fem, FEEngine &);
-
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
   void internalInitialize(Int nb_component);
@@ -126,38 +127,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  // using type_iterator = typename ElementTypeMapArray<T>::type_iterator;
-  // using filter_type_iterator =
-  //     typename ElementTypeMapArray<UInt>::type_iterator;
-
-  // /// get the type iterator on all types contained in the internal field
-  // type_iterator firstType(GhostType ghost_type = _not_ghost) const {
-  //   return ElementTypeMapArray<T>::firstType(this->spatial_dimension,
-  //                                            ghost_type, this->element_kind);
-  // }
-
-  // /// get the type iterator on the last type contained in the internal field
-  // type_iterator lastType(GhostType ghost_type = _not_ghost) const {
-  //   return ElementTypeMapArray<T>::lastType(this->spatial_dimension,
-  //   ghost_type,
-  //                                           this->element_kind);
-  // }
-
-  // /// get the type iterator on all types contained in the internal field
-  // filter_type_iterator
-  // filterFirstType(GhostType ghost_type = _not_ghost) const {
-  //   return this->element_filter.firstType(this->spatial_dimension,
-  //   ghost_type,
-  //                                         this->element_kind);
-  // }
-
-  // /// get the type iterator on the last type contained in the internal field
-  // filter_type_iterator
-  // filterLastType(GhostType ghost_type = _not_ghost) const {
-  //   return this->element_filter.lastType(this->spatial_dimension, ghost_type,
-  //                                        this->element_kind);
-  // }
-
   /// get filter types for range loop
   decltype(auto) elementTypes(GhostType ghost_type = _not_ghost) const {
     return ElementTypeMapArray<T>::elementTypes(
@@ -268,7 +237,6 @@ protected:
   std::unique_ptr<InternalFieldTmpl<Material, T>> previous_values;
 };
 
-  
 /// standard output stream operator
 template <typename T>
 inline auto operator<<(std::ostream & stream, const InternalFieldTmp<T> & _this)
@@ -277,8 +245,7 @@ inline auto operator<<(std::ostream & stream, const InternalFieldTmp<T> & _this)
   return stream;
 }
 
-template<typename T>  
-using InternalField = InternalFieldTmpl<Material, T>;  
+template <typename T> using InternalField = InternalFieldTmpl<Material, T>;
 
 } // namespace akantu
 

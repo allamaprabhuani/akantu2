@@ -25,21 +25,21 @@ EOF
 }
 
 full_redirect() {
-    local nproc=$1
-    shift
-    local name=$1
-    shift
+  local nproc=$1
+  shift
+  local name=$1
+  shift
 
-    local sout=".lastout"
-    local serr=".lasterr"
+  local sout=".lastout"
+  local serr=".lasterr"
   if [ "${nproc}" -ne 0 ]; then
-       sout="-${nproc}${sout}"
-       serr="-${nproc}${serr}"
-    fi
-    echo "Run $*"
-    (($* | tee "${name}${sout}") 3>&1 1>&2 2>&3 | tee "${name}${serr}") 3>&1 1>&2 2>&3
+    sout="-${nproc}${sout}"
+    serr="-${nproc}${serr}"
+  fi
+  echo "Run $*"
+  ( ($* | tee "${name}${sout}") 3>&1 1>&2 2>&3 | tee "${name}${serr}") 3>&1 1>&2 2>&3
 
-    lastout="${name}${sout}"
+  lastout="${name}${sout}"
 }
 
 name=
@@ -50,7 +50,6 @@ reference=
 working_dir=
 envi=
 parallel_processes="2"
-
 valgrind=""
 
 while :
@@ -118,18 +117,19 @@ if [ -n "${envi}" ]; then
 fi
 
 if [ -z "${name}" ] || [ -z "${executable}" ]; then
-    echo "Missing executable or name"
-    show_help
-    exit 1
+  echo "Missing executable or name"
+  show_help
+  exit 1
 fi
 
 if [ -n "${working_dir}" ]; then
-    echo "Entering directory ${working_dir}"
-    cd "${working_dir}"
+#    current_directory=$PWD
+  echo "Entering directory ${working_dir}"
+  cd "${working_dir}"
 fi
 
 if [ -z "${parallel}" ]; then
-    echo "Executing the test ${name}"
+  echo "Executing the test ${name}"
   full_redirect 0 "${name}" "${valgrind} ${executable} ${_args}"
 else
   #for i in ${parallel_processes}; do
@@ -145,6 +145,6 @@ if [ -n "${postprocess_script}" ]; then
 fi
 
 if [ -n "${reference}" ]; then
-   echo "Comparing last generated output to the reference file"
+  echo "Comparing last generated output to the reference file"
   diff -w "${lastout}" "${reference}"
 fi

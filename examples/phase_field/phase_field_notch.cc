@@ -18,26 +18,26 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
+#include "coupler_solid_phasefield.hh"
 #include "non_linear_solver.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
-#include "coupler_solid_phasefield.hh"
 /* -------------------------------------------------------------------------- */
-#include <iostream>
-#include <fstream>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -49,8 +49,8 @@ const UInt spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]){
-  
+int main(int argc, char * argv[]) {
+
   initialize("material_notch.dat", argc, argv);
 
   // create mesh
@@ -68,14 +68,14 @@ int main(int argc, char *argv[]){
   model.setMaterialSelector(mat_selector);
 
   auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
-       "physical_names", phase);
+      "physical_names", phase);
   phase.setPhaseFieldSelector(selector);
 
   phase.initFull(_analysis_method = _static);
 
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "bottom");
-  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left"); 
-  
+  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
+
   model.setBaseName("phase_notch");
   model.addDumpField("stress");
   model.addDumpField("grad_u");
@@ -85,17 +85,16 @@ int main(int argc, char *argv[]){
 
   UInt nbSteps = 1500;
   Real increment = 1e-5;
-  
-  auto start_time = clk::now();
 
+  auto start_time = clk::now();
 
   for (UInt s = 1; s < nbSteps; ++s) {
 
     if (s >= 500) {
       increment = 1.e-6;
     }
-   
-    if (s % 10 == 0 ) {
+
+    if (s % 10 == 0) {
       constexpr char wheel[] = "/-\\|";
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
@@ -108,15 +107,13 @@ int main(int argc, char *argv[]){
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
-      
+
     coupler.solve();
 
-    if ( s % 100 == 0) { 
+    if (s % 100 == 0) {
       model.dump();
     }
-    
   }
-
 
   finalize();
   return EXIT_SUCCESS;

@@ -19,50 +19,48 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
+#include "contact_mechanics_model.hh"
 #include "mesh_iterators.hh"
 #include "non_linear_solver.hh"
-#include "contact_mechanics_model.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
-
 
 #ifndef __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
 #define __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
 
-namespace akantu{
-
+namespace akantu {
 
 class CohesiveContactSolverCallback : public SolverCallback {
 
 public:
-  CohesiveContactSolverCallback(SolidMechanicsModelCohesive &,
-                                ContactMechanicsModel &, AnalysisMethod &);
+  CohesiveContactSolverCallback(SolidMechanicsModelCohesive & /*solid*/,
+                                ContactMechanicsModel & /*contact*/,
+                                AnalysisMethod & /*method*/);
 
 public:
-
   /// implementation of SolverCallback::assembleMatrix
-  void assembleMatrix(const ID &) override;
+  void assembleMatrix(const ID & /*matrix_id*/) override;
 
   /// implementation of SolverCallback::assembleResidual
   void assembleResidual() override;
 
   /// implementation of SolverCallback::assembleLumpedMatrix
-  void assembleLumpedMatrix(const ID &) override;
+  void assembleLumpedMatrix(const ID & /*matrix_id*/) override;
 
   /// implementation of SolverCallback::getMatrixType
-  MatrixType getMatrixType(const ID &) override;
+  MatrixType getMatrixType(const ID & /*unused*/) override;
 
   /// implementation of SolverCallback::predictor
   void predictor() override;
@@ -74,7 +72,7 @@ public:
   void beforeSolveStep() override;
 
   /// implementation of SolverCallback::afterSolveStep
-  void afterSolveStep(bool converged=true) override;
+  void afterSolveStep(bool converged = true) override;
 
 private:
   /// model for the solid mechanics part of the coupling
@@ -87,6 +85,6 @@ private:
   AnalysisMethod & method;
 };
 
-}
-  
+} // namespace akantu
+
 #endif

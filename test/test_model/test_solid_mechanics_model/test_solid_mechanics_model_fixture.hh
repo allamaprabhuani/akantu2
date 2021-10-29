@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -31,9 +31,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
+#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
 #include "test_gtest_utils.hh"
-#include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <vector>
@@ -56,7 +56,8 @@ public:
     auto prank = Communicator::getStaticCommunicator().whoAmI();
     if (prank == 0) {
       this->mesh->read(this->mesh_file);
-      if(spatial_dimension > 1 and mesh->getNbElement(spatial_dimension - 1) == 0) {
+      if (spatial_dimension > 1 and
+          mesh->getNbElement(spatial_dimension - 1) == 0) {
         MeshUtils::buildFacets(*this->mesh);
       }
     }

@@ -30,10 +30,8 @@ namespace akantu {
   checkJacobians<type>(ghost_type);
 
 template <class IOF>
-inline void
-IntegratorGauss<_ek_igfem, IOF>::initIntegrator(const Array<Real> & nodes,
-                                                ElementType type,
-                                                GhostType ghost_type) {
+inline void IntegratorGauss<_ek_igfem, IOF>::initIntegrator(
+    const Array<Real> & nodes, ElementType type, GhostType ghost_type) {
   AKANTU_BOOST_IGFEM_ELEMENT_SWITCH(INIT_INTEGRATOR);
 }
 
@@ -42,8 +40,8 @@ IntegratorGauss<_ek_igfem, IOF>::initIntegrator(const Array<Real> & nodes,
 /* -------------------------------------------------------------------------- */
 template <class IOF>
 template <ElementType type>
-inline UInt IntegratorGauss<_ek_igfem, IOF>::getNbIntegrationPoints(
-    GhostType) const {
+inline UInt
+IntegratorGauss<_ek_igfem, IOF>::getNbIntegrationPoints(GhostType) const {
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;
   const ElementType sub_type_2 = ElementClassProperty<type>::sub_element_type_2;
   UInt nb_quad_points_sub_1 =
@@ -128,8 +126,8 @@ IntegratorGauss<_ek_igfem, IOF>::getIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <class IOF>
 template <ElementType type>
-inline void IntegratorGauss<_ek_igfem, IOF>::computeQuadraturePoints(
-    GhostType ghost_type) {
+inline void
+IntegratorGauss<_ek_igfem, IOF>::computeQuadraturePoints(GhostType ghost_type) {
   /// typedef for the two subelement_types and the parent element type
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;
   const ElementType sub_type_2 = ElementClassProperty<type>::sub_element_type_2;
@@ -176,8 +174,8 @@ IntegratorGauss<_ek_igfem, IOF>::computeJacobianOnQuadPointsByElement(
 
 /* -------------------------------------------------------------------------- */
 template <class IOF>
-inline IntegratorGauss<_ek_igfem, IOF>::IntegratorGauss(
-    const Mesh & mesh, const ID & id)
+inline IntegratorGauss<_ek_igfem, IOF>::IntegratorGauss(const Mesh & mesh,
+                                                        const ID & id)
     : Integrator(mesh, id) {
   AKANTU_DEBUG_IN();
 
@@ -187,8 +185,8 @@ inline IntegratorGauss<_ek_igfem, IOF>::IntegratorGauss(
 /* -------------------------------------------------------------------------- */
 template <class IOF>
 template <ElementType type>
-inline void IntegratorGauss<_ek_igfem, IOF>::checkJacobians(
-    GhostType ghost_type) const {
+inline void
+IntegratorGauss<_ek_igfem, IOF>::checkJacobians(GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
   /// typedef for the two subelement_types and the parent element type
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;

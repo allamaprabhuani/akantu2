@@ -113,7 +113,7 @@ void register_model(py::module & mod) {
       .def("setBaseNameToDumper", &Model::setBaseNameToDumper)
       .def("addDumpFieldVectorToDumper", &Model::addDumpFieldVectorToDumper)
       .def("addDumpFieldToDumper", &Model::addDumpFieldToDumper)
-       .def("dump", [](Model & self) { self.dump(); })
+      .def("dump", [](Model & self) { self.dump(); })
       .def(
           "dump", [](Model & self, UInt step) { self.dump(step); },
           py::arg("step"))

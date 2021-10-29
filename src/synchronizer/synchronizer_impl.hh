@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -129,10 +129,9 @@ public:
   /// scatter data from the predefined root process (slave version)
   template <typename T> void scatter(Array<T> & scattered);
 
-  template <typename T>
-  void synchronizeArray(Array<T> & array) const;
+  template <typename T> void synchronizeArray(Array<T> & array) const;
 
-    /// Uses the synchronizer to perform a reduction on the vector
+  /// Uses the synchronizer to perform a reduction on the vector
   template <template <class> class Op, typename T>
   void reduceSynchronizeArray(Array<T> & array) const;
 
@@ -155,18 +154,14 @@ protected:
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual Int canScatterSize() {
-     AKANTU_TO_IMPLEMENT();
-  }
-  virtual Int gatheredSize() {
-     AKANTU_TO_IMPLEMENT();
-  }
+  virtual Int canScatterSize() { AKANTU_TO_IMPLEMENT(); }
+  virtual Int gatheredSize() { AKANTU_TO_IMPLEMENT(); }
 
 public:
   /* ------------------------------------------------------------------------ */
   virtual Int sanityCheckDataSize(const Array<Entity> & elements,
-                                   const SynchronizationTag & tag,
-                                   bool is_comm_desc = true) const;
+                                  const SynchronizationTag & tag,
+                                  bool is_comm_desc = true) const;
   virtual void
   packSanityCheckData(CommunicationDescriptor<Entity> & comm_desc) const;
   virtual void

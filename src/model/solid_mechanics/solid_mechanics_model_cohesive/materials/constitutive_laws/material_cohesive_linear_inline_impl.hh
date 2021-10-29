@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -113,8 +113,7 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
   penetration = normal_opening_norm / delta_c < -Math::getTolerance();
 
   // penetration = normal_opening_norm < 0.;
-  if (not this->contact_after_breaking and
-      Math::are_float_equal(damage, 1.)) {
+  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
 
@@ -193,8 +192,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
   penetration = normal_opening_norm < 0.0;
-  if (not this->contact_after_breaking and
-      Math::are_float_equal(damage, 1.)) {
+  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
 
@@ -258,4 +256,4 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#endif //AKANTU_MATERIAL_COHESIVE_LINEAR_INLINE_IMPL_HH_
+#endif // AKANTU_MATERIAL_COHESIVE_LINEAR_INLINE_IMPL_HH_

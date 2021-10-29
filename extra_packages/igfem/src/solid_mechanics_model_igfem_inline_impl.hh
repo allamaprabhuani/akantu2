@@ -31,8 +31,8 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModelIGFEM::getSubElementBarycenter(
-    UInt element, UInt sub_element, ElementType type,
-    Vector<Real> & barycenter, GhostType ghost_type) const {
+    UInt element, UInt sub_element, ElementType type, Vector<Real> & barycenter,
+    GhostType ghost_type) const {
   UInt * conn_val = this->mesh.getConnectivity(type, ghost_type).data();
   UInt nb_sub_element_nodes =
       IGFEMHelper::getNbNodesPerSubElement(type, sub_element);

@@ -19,20 +19,20 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "shape_lagrange_base.hh"
 #include "mesh_iterators.hh"
+#include "shape_lagrange_base.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -53,9 +53,11 @@ namespace shape_lagrange {
   namespace details {
     template <ElementKind kind> struct Helper {
       template <class S>
-      static void call(const S &, const Array<Real> &, const Matrix<Real> &,
-                       Array<Real> &, ElementType, GhostType,
-                       const Array<Idx> &) {
+      static void call(const S & /*_this*/, const Array<Real> & /*nodes*/,
+                       const Matrix<Real> & /*integration_points*/,
+                       Array<Real> & /*shapes*/, ElementType /*type*/,
+                       GhostType /*ghost_type*/,
+                       const Array<Idx> & /*filter_elements*/) {
         AKANTU_TO_IMPLEMENT();
       }
     };
@@ -66,9 +68,9 @@ namespace shape_lagrange {
     template <class S>                                                         \
     static void call(const S & _this, const Array<Real> & nodes,               \
                      const Matrix<Real> & integration_points,                  \
-                     Array<Real> & shapes, ElementType type,           \
-                     GhostType ghost_type,                             \
-                     const Array<Idx> & filter_elements) {                    \
+                     Array<Real> & shapes, ElementType type,                   \
+                     GhostType ghost_type,                                     \
+                     const Array<Idx> & filter_elements) {                     \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
     }                                                                          \
   };
@@ -83,8 +85,8 @@ namespace shape_lagrange {
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shapes, ElementType type,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    Array<Real> & shapes, ElementType type, GhostType ghost_type,
+    const Array<Idx> & filter_elements) const {
 
   auto kind = Mesh::getKind(type);
 
@@ -141,7 +143,7 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
       auto size_of_shapesd = this->getShapeDerivativesSize(type);
       this->shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
     }
-   
+
     computeShapeDerivativesOnIntegrationPoints(
         nodes, natural_coords, shapes_derivatives(itp_type, ghost_type), type,
         ghost_type, elements);

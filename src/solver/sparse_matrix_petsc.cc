@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -274,7 +274,8 @@ void SparseMatrixPETSc::addLocal(const Vector<Int> & rows,
 /* -------------------------------------------------------------------------- */
 void SparseMatrixPETSc::addValues(const Vector<Int> & rows,
                                   const Vector<Int> & cols,
-                                  const Matrix<Real> & values, MatrixType values_type) {
+                                  const Matrix<Real> & values,
+                                  MatrixType values_type) {
   if (values_type == _unsymmetric and matrix_type == _symmetric) {
     PETSc_call(MatSetOption, mat, MAT_SYMMETRIC, PETSC_FALSE);
     PETSc_call(MatSetOption, mat, MAT_STRUCTURALLY_SYMMETRIC, PETSC_FALSE);

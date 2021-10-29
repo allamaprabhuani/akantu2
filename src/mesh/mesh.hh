@@ -403,7 +403,7 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline decltype(auto) getSubelementToElementNC(const Element & element);
+  inline decltype(auto) getSubelementToElementNC(const Element & element) const;
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
@@ -488,6 +488,9 @@ public:
 
   /// get spatial dimension of a type of element
   static inline constexpr auto getSpatialDimension(ElementType type);
+
+  /// get the natural space dimension of a type of element
+  static inline UInt getNaturalSpaceDimension(const ElementType & type);
 
   /// get number of facets of a given element type
   static inline constexpr auto getNbFacetsPerElement(ElementType type);

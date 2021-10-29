@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -264,7 +264,7 @@ void NTNContact::updateNormals() {
   const Mesh & mesh = this->model.getMesh();
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
       // compute the normals
       Array<Real> quad_normals(0, dim);
       boundary_fem.computeNormalsOnIntegrationPoints(cur_pos, quad_normals,
@@ -303,10 +303,11 @@ void NTNContact::updateNormals() {
 
   Real * master_normals = this->normals.data();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    if (dim == 2)
+    if (dim == 2) {
       Math::normalize2(&(master_normals[n * dim]));
-    else if (dim == 3)
+    } else if (dim == 3) {
       Math::normalize3(&(master_normals[n * dim]));
+    }
   }
 
   // // normalize normals
@@ -493,8 +494,9 @@ Int NTNContact::getNodeIndex(UInt node) const {
 void NTNContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNContact [" << std::endl;
   NTNBaseContact::printself(stream, indent);

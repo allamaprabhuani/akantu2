@@ -40,6 +40,7 @@ if(FORCE_COLORED_OUTPUT)
 endif()
 
 
+
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
   CACHE STRING "Flags used by the compiler during release builds" FORCE)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -51,7 +52,7 @@ endif()
 
 function(declare_compilation_profile name)
   include(CMakeParseArguments)
-#Profiling
+
   cmake_parse_arguments(_args
     "" "COMPILER;LINKER;DOC" "" ${ARGN})
 

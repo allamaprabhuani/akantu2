@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -286,7 +286,6 @@ enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 /// @enum Type of contact detection
 enum DetectionType { _explicit, _implicit };
 
-
 #if !defined(DOXYGEN)
 // clang-format off
 #define AKANTU_CONTACT_STATE                      \
@@ -294,12 +293,9 @@ enum DetectionType { _explicit, _implicit };
   (stick)                                         \
   (slip)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(ContactState,
-                          AKANTU_CONTACT_STATE)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState,
-                                AKANTU_CONTACT_STATE)
-AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState,
-                               AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_DECLARE(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
 #else
 /// @enum no contact or stick or slip state
 enum class ContactState {

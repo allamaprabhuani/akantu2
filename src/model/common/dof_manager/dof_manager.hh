@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -269,9 +269,9 @@ public:
   inline NodeFlag getDOFFlag(Idx local_id) const;
 
   /// defines if the boundary changed
-  bool hasBlockedDOFsChanged() {
-    return  this->global_blocked_dofs_release !=
-        this->previous_global_blocked_dofs_release;
+  bool hasBlockedDOFsChanged() const {
+    return this->global_blocked_dofs_release !=
+           this->previous_global_blocked_dofs_release;
   }
 
   /// Global number of dofs
@@ -382,8 +382,8 @@ protected:
   NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
                                             const NonLinearSolverType & type) {
     ID non_linear_solver_id = this->id + ":nls:" + id;
-    std::unique_ptr<NonLinearSolver> nls = std::make_unique<NLSType>(
-        dm, type, non_linear_solver_id);
+    std::unique_ptr<NonLinearSolver> nls =
+        std::make_unique<NLSType>(dm, type, non_linear_solver_id);
     return this->registerNonLinearSolver(non_linear_solver_id, nls);
   }
 
@@ -393,9 +393,8 @@ protected:
                                           NonLinearSolver & non_linear_solver,
                                           SolverCallback & solver_callback) {
     ID time_step_solver_id = this->id + ":tss:" + id;
-    std::unique_ptr<TimeStepSolver> tss =
-        std::make_unique<TSSType>(dm, type, non_linear_solver, solver_callback,
-                                  time_step_solver_id);
+    std::unique_ptr<TimeStepSolver> tss = std::make_unique<TSSType>(
+        dm, type, non_linear_solver, solver_callback, time_step_solver_id);
     return this->registerTimeStepSolver(time_step_solver_id, tss);
   }
 
@@ -712,10 +711,8 @@ private:
   friend class DOFManagerTester;
 };
 
-using DefaultDOFManagerFactory =
-    Factory<DOFManager, ID, const ID &>;
-using DOFManagerFactory =
-    Factory<DOFManager, ID, Mesh &, const ID &>;
+using DefaultDOFManagerFactory = Factory<DOFManager, ID, const ID &>;
+using DOFManagerFactory = Factory<DOFManager, ID, Mesh &, const ID &>;
 
 } // namespace akantu
 

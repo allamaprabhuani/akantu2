@@ -56,8 +56,8 @@ public:
   /// update internal field damage
   virtual UInt updateDamage();
 
-  UInt updateDamage(UInt quad_index, const Real eq_stress,
-                    ElementType el_type, GhostType ghost_type);
+  UInt updateDamage(UInt quad_index, const Real eq_stress, ElementType el_type,
+                    GhostType ghost_type);
 
   /// update energies after damage has been updated
   //  virtual void updateEnergiesAfterDamage(ElementType el_type, GhostType

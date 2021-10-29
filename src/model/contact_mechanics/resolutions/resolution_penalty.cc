@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -56,7 +56,7 @@ void ResolutionPenalty::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real ResolutionPenalty::computeNormalTraction(Real & gap) {
+Real ResolutionPenalty::computeNormalTraction(Real & gap) const {
   return epsilon_n * macaulay(gap);
 }
 
@@ -95,8 +95,9 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
 void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
                                                Vector<Real> & force) {
 
-  if (mu == 0)
+  if (mu == 0) {
     return;
+  }
 
   force.zero();
 
@@ -117,12 +118,14 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   // need a better way to check if new node added is not presnt in the
   // previous master elemets
   auto & previous_master_elements = model.getPreviousMasterElements();
-  if (element.slave >= previous_master_elements.size())
+  if (element.slave >= previous_master_elements.size()) {
     return;
+  }
 
   auto & previous_element = previous_master_elements[element.slave];
-  if (previous_element.type == _not_defined)
+  if (previous_element.type == _not_defined) {
     return;
+  }
 
   // compute tangential traction using return map algorithm
   auto & tangential_tractions = model.getTangentialTractions();
@@ -833,7 +836,8 @@ void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
 void ResolutionPenalty::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::afterSolveStep(__attribute__((unused)) bool converged) {}
+void ResolutionPenalty::afterSolveStep(__attribute__((unused)) bool converged) {
+}
 
 INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenalty);
 

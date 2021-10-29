@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -39,8 +39,8 @@ namespace akantu {
 ShapeFunctions::ShapeFunctions(const Mesh & mesh, UInt spatial_dimension,
                                const ID & id)
     : shapes("shapes_generic", id),
-      shapes_derivatives("shapes_derivatives_generic", id),
-      mesh(mesh), _spatial_dimension(spatial_dimension) {}
+      shapes_derivatives("shapes_derivatives_generic", id), mesh(mesh),
+      _spatial_dimension(spatial_dimension) {}
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>

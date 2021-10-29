@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -40,7 +40,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ShapeFunctions  {
+class ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -164,9 +164,8 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline Int getShapeDerivativesSize(ElementType type);
 
-  inline const Matrix<Real> &
-  getIntegrationPoints(ElementType type,
-                       GhostType ghost_type) const {
+  inline const Matrix<Real> & getIntegrationPoints(ElementType type,
+                                                   GhostType ghost_type) const {
     return integration_points(type, ghost_type);
   }
 
@@ -175,9 +174,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get a the shapes vector
-  inline const Array<Real> &
-  getShapes(ElementType el_type,
-            GhostType ghost_type = _not_ghost) const;
+  inline const Array<Real> & getShapes(ElementType el_type,
+                                       GhostType ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
   inline const Array<Real> &

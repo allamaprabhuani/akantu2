@@ -16,10 +16,12 @@ RUN pip3 install mpi4py
 
 # Install test utilities
 RUN apt-get -qq update && apt-get -qq -y install \
-    python3-yaml python3-pytest ccache \
-    gmsh curl git xsltproc \
+    python3-yaml python3-pytest python3-termcolor python3-click \
+    ccache  gmsh curl git xsltproc \
     gcovr binutils \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install warning_parser
 
 COPY .openmpi /root/.openmpi
 

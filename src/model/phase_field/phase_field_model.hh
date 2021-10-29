@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -79,7 +79,8 @@ protected:
   void initPhaseFields();
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
+  void initSolver(TimeStepSolverType /*unused*/,
+                  NonLinearSolverType /*unused*/) override;
 
   /// initialize the model
   void initModel() override;
@@ -94,13 +95,13 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID &) override;
+  MatrixType getMatrixType(const ID & /*unused*/) override;
 
   /// callback to assemble a Matrix
-  void assembleMatrix(const ID &) override;
+  void assembleMatrix(const ID & /*unused*/) override;
 
   /// callback to assemble a lumped Matrix
-  void assembleLumpedMatrix(const ID &) override;
+  void assembleLumpedMatrix(const ID & /*unused*/) override;
 
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
@@ -116,7 +117,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty phasefield of a given type
-  PhaseField & registerNewPhaseField(const ID & mat_name, const ID & mat_type,
+  PhaseField & registerNewPhaseField(const ID & phase_name,
+                                     const ID & phase_type,
                                      const ID & opt_param);
 
   /// reassigns phasefields depending on the phasefield selector
@@ -176,10 +178,10 @@ public:
   UInt getNbData(const Array<UInt> & indexes,
                  const SynchronizationTag & tag) const override;
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void packData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
                   const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */

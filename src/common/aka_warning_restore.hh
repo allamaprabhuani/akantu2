@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -36,20 +36,20 @@
 // --- Clang -------------------------------------------------------------------
 #elif defined(__clang__) // test clang to be sure that when we test for gnu it
                          // is only gnu
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 
 // --- GCC ---------------------------------------------------------------------
 #elif defined(__GNUG__)
-#  if GCC_VERSION > 40600
-#    pragma GCC diagnostic pop
-#  else
-#    if defined(AKANTU_WARNING_IGNORE_UNUSED_PARAMETER)
-#      pragma GCC diagnostic warning "-Wunused-parameter"
-#    endif
-#    if defined(AKANTU_WARNING_IGNORE_VARIADIC_MACRO_ARGUMENTS)
-#      pragma GCC diagnostic ignored "-Wpedantic"
-#    endif
-#  endif
+#if GCC_VERSION > 40600
+#pragma GCC diagnostic pop
+#else
+#if defined(AKANTU_WARNING_IGNORE_UNUSED_PARAMETER)
+#pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
+#if defined(AKANTU_WARNING_IGNORE_VARIADIC_MACRO_ARGUMENTS)
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+#endif
 #endif
 
 #undef AKANTU_WARNING_IGNORE_UNUSED_PARAMETER

@@ -26,8 +26,9 @@ ShapeLagrange<_ek_igfem>::getShapes(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<Real> & ShapeLagrange<_ek_igfem>::getShapesDerivatives(
-    ElementType el_type, GhostType ghost_type) const {
+inline const Array<Real> &
+ShapeLagrange<_ek_igfem>::getShapesDerivatives(ElementType el_type,
+                                               GhostType ghost_type) const {
   return shapes_derivatives(FEEngine::getInterpolationType(el_type),
                             ghost_type);
 }
@@ -159,8 +160,7 @@ void ShapeLagrange<_ek_igfem>::inverseMap(const Vector<Real> & real_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 bool ShapeLagrange<_ek_igfem>::contains(const Vector<Real> & real_coords,
-                                        UInt elem,
-                                        GhostType ghost_type) const {
+                                        UInt elem, GhostType ghost_type) const {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
@@ -184,9 +184,9 @@ void ShapeLagrange<_ek_igfem>::interpolate(const Vector<Real> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeLagrange<_ek_igfem>::computeShapes(
-    const Vector<Real> & real_coords, UInt elem, Vector<Real> & shapes,
-    GhostType ghost_type) const {
+void ShapeLagrange<_ek_igfem>::computeShapes(const Vector<Real> & real_coords,
+                                             UInt elem, Vector<Real> & shapes,
+                                             GhostType ghost_type) const {
 
   AKANTU_DEBUG_IN();
   /// typedef for the two subelement_types and the parent element type
@@ -593,8 +593,7 @@ void ShapeLagrange<_ek_igfem>::interpolateOnPhysicalPoint(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange<_ek_igfem>::precomputeShapesOnEnrichedNodes(
-    __attribute__((unused)) const Array<Real> & nodes,
-    GhostType ghost_type) {
+    __attribute__((unused)) const Array<Real> & nodes, GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
@@ -672,8 +671,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapesOnEnrichedNodes(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange<_ek_igfem>::interpolateAtEnrichedNodes(
-    const Array<Real> & src, Array<Real> & dst,
-    GhostType ghost_type) const {
+    const Array<Real> & src, Array<Real> & dst, GhostType ghost_type) const {
 
   AKANTU_DEBUG_IN();
 

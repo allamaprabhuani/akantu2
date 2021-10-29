@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -95,9 +95,10 @@ public:
       FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
                        FacetsCohesiveIntegrationOrderFunctor>;
 
-  SolidMechanicsModelCohesive(Mesh & mesh, UInt dim = _all_dimensions,
-                              const ID & id = "solid_mechanics_model_cohesive",
-                              std::shared_ptr<DOFManager> dof_manager = nullptr);
+  SolidMechanicsModelCohesive(
+      Mesh & mesh, UInt dim = _all_dimensions,
+      const ID & id = "solid_mechanics_model_cohesive",
+      std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   ~SolidMechanicsModelCohesive() override;
 
@@ -273,7 +274,7 @@ public:
 
   /// get cohesive elements synchronizer
   AKANTU_GET_MACRO_NOT_CONST(CohesiveSynchronizer, *cohesive_synchronizer,
-                   ElementSynchronizer &);
+                             ElementSynchronizer &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

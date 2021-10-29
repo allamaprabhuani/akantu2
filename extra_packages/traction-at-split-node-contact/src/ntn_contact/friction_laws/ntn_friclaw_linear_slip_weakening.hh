@@ -18,12 +18,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -48,27 +48,27 @@ class NTNFricLawLinearSlipWeakening : public NTNFricLawCoulomb<Regularisation> {
 public:
   NTNFricLawLinearSlipWeakening(NTNBaseContact & contact,
                                 const ID & id = "linear_slip_weakening");
-  virtual ~NTNFricLawLinearSlipWeakening(){};
+  ~NTNFricLawLinearSlipWeakening() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// register synchronizedarrays for sync
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
 
   /// dump restart file
-  virtual void dumpRestart(const std::string & file_name) const;
+  void dumpRestart(const std::string & file_name) const override;
 
   /// read restart file
-  virtual void readRestart(const std::string & file_name);
+  void readRestart(const std::string & file_name) override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
-  virtual void computeFrictionalStrength();
+  void computeFrictionalStrength() override;
   /// computes the friction coefficient as a function of slip
   virtual void computeFrictionCoefficient();
 
@@ -76,8 +76,8 @@ protected:
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

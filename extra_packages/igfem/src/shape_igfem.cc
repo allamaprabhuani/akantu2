@@ -23,8 +23,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh, const ID & id)
-    : ShapeFunctions(mesh, id),
-      shapes("shapes_generic", id),
+    : ShapeFunctions(mesh, id), shapes("shapes_generic", id),
       shapes_derivatives("shapes_derivatives_generic", id),
       igfem_integration_points("igfem_integration_points", id),
       shapes_at_enrichments("shapes_at_enrichments", id) {

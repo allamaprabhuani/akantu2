@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -84,8 +84,8 @@ void register_structural_mechanics_model(pybind11::module & mod) {
    * Note that this is basically a port from the solid mechanic part.
    */
   py::class_<StructuralMechanicsModel, Model>(mod, "StructuralMechanicsModel")
-      .def(py::init<Mesh &, UInt, const ID &>(),
-           py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
+      .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
+           py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "structural_mechanics_model")
       .def(
           "initFull",
@@ -135,17 +135,17 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           [](StructuralMechanicsModel & self, UInt material_index)
               -> decltype(auto) { return self.getMaterial(material_index); },
           "This function returns the `i`th material of `self`."
-          " Note a reference is returned which allows to modify the material inside `self`.",
-          py::arg("i"),
-          py::return_value_policy::reference)
+          " Note a reference is returned which allows to modify the material "
+          "inside `self`.",
+          py::arg("i"), py::return_value_policy::reference)
       .def(
           "getMaterial",
           [](StructuralMechanicsModel & self, const ID & name)
               -> decltype(auto) { return self.getMaterial(name); },
           "This function returns the material with name `i` of `self`."
-          " Note a reference is returned which allows to modify the material inside `self`.",
-          py::arg("i"),
-          py::return_value_policy::reference)
+          " Note a reference is returned which allows to modify the material "
+          "inside `self`.",
+          py::arg("i"), py::return_value_policy::reference)
       .def(
           "getNbMaterials",
           [](StructuralMechanicsModel & self) { return self.getNbMaterials(); },
