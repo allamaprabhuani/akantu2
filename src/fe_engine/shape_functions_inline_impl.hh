@@ -34,11 +34,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
-//#include "shape_functions.hh"
+#include "shape_functions.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
-#define AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
+//#ifndef AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
+//#define AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -102,7 +102,7 @@ inline void ShapeFunctions::buildInterpolationMatrix(
     Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) const {
   switch (integration_order) {
   case 1: {
-    for (Int i = 0; i < coordinates.cols(); ++i)
+    for (Int i = 0; i < coordinates.cols(); ++i) {
       coordMatrix(i, 0) = 1;
     }
     break;
@@ -112,7 +112,7 @@ inline void ShapeFunctions::buildInterpolationMatrix(
 
     for (Int i = 0; i < coordinates.cols(); ++i) {
       coordMatrix(i, 0) = 1;
-      for (Int j = 1; j < nb_quadrature_points; ++j)
+      for (Int j = 1; j < nb_quadrature_points; ++j) {
         coordMatrix(i, j) = coordinates(j - 1, i);
       }
     }
@@ -316,8 +316,8 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
-    const Array<Real> & u_el, Array<Real> & out_nablauq,
-    GhostType ghost_type, const Array<Real> & shapes_derivatives,
+    const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
+    const Array<Real> & shapes_derivatives,
     const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -362,4 +362,4 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
 
-#endif /* AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_ */
+//#endif /* AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_ */

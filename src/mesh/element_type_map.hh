@@ -84,16 +84,16 @@ public:
   ElementTypeMap();
   ~ElementTypeMap() override;
 
-  inline static auto printType(SupportType type,
-                               GhostType ghost_type) -> std::string;
+  inline static auto printType(SupportType type, GhostType ghost_type)
+      -> std::string;
 
   /*! Tests whether a type is present in the object
    *  @param type the type to check for
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return true if the type is present. */
-  inline auto exists(SupportType type,
-                     GhostType ghost_type = _not_ghost) const -> bool;
+  inline auto exists(SupportType type, GhostType ghost_type = _not_ghost) const
+      -> bool;
 
   /*! get the stored data corresponding to a type
    *  @param type the type to check for
@@ -109,8 +109,8 @@ public:
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return stored data corresponding to type. */
-  inline auto operator()(SupportType type,
-                         GhostType ghost_type = _not_ghost) -> Stored &;
+  inline auto operator()(SupportType type, GhostType ghost_type = _not_ghost)
+      -> Stored &;
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
    *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
@@ -273,12 +273,12 @@ public:
    *  classes only
    *  @param ghost_type whether to return the data map or the ghost_data map
    *  @return the raw map */
-  inline auto getData(GhostType ghost_type)->DataMap &;
+  inline auto getData(GhostType ghost_type) -> DataMap &;
   /*! Direct access to the underlying data map. for internal use by daughter
    *  classes only
    *  @param ghost_type whether to return the data map or the ghost_data map
    *  @return the raw map */
-  inline auto getData(GhostType ghost_type) const ->const DataMap &;
+  inline auto getData(GhostType ghost_type) const -> const DataMap &;
 
   /* ------------------------------------------------------------------------ */
 protected:
@@ -328,8 +328,8 @@ public:
    *  @param default_value the default value to use to fill the array
    *  @return a reference to the allocated array */
   inline auto alloc(Int size, Int nb_component, SupportType type,
-                          GhostType ghost_type,
-                          const T & default_value = T()) -> Array<T> &;
+                    GhostType ghost_type, const T & default_value = T())
+      -> Array<T> &;
 
   /*! allocate memory for a new array in both the data and the ghost_data map
    *  @param size number of tuples of the new array
@@ -342,12 +342,13 @@ public:
    * @param type data filed under type is returned
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a reference to the array */
-  inline auto
-  operator()(SupportType type,
-             GhostType ghost_type = _not_ghost) const -> const Array<T> &;
+  inline auto operator()(SupportType type,
+                         GhostType ghost_type = _not_ghost) const
+      -> const Array<T> &;
 
   /// access the data of an element, this combine the map and array accessor
-  inline auto operator()(const Element & element, Int component = 0) const -> const T &;
+  inline auto operator()(const Element & element, Int component = 0) const
+      -> const T &;
 
   /// access the data of an element, this combine the map and array accessor
   inline auto operator()(const Element & element, Int component = 0) -> T &;
@@ -360,8 +361,8 @@ public:
    * @param type data filed under type is returned
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a const reference to the array */
-  inline auto operator()(SupportType type,
-                               GhostType ghost_type = _not_ghost) -> Array<T> &;
+  inline auto operator()(SupportType type, GhostType ghost_type = _not_ghost)
+      -> Array<T> &;
 
   /*! insert data of a new type (not yet present) into the map.
    *  @param type type of data (if this type is already present in the map,
@@ -402,10 +403,11 @@ public:
   /// return the id
   inline auto getID() const -> ID { return this->id; }
 
-  auto
-  getNbComponents(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-                  ElementKind kind = _ek_not_defined) const -> ElementTypeMap<Int> {
-    ElementTypeMap<UInt> nb_components;
+  auto getNbComponents(Int dim = _all_dimensions,
+                       GhostType requested_ghost_type = _not_ghost,
+                       ElementKind kind = _ek_not_defined) const
+      -> ElementTypeMap<Int> {
+    ElementTypeMap<Int> nb_components;
     auto all_ghost_types = requested_ghost_type == _casper;
     for (auto ghost_type : ghost_types) {
       if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types)) {
@@ -464,7 +466,7 @@ public:
 
 private:
   auto sizeImpl(Int spatial_dimension, GhostType ghost_type,
-               ElementKind kind) const -> Int;
+                ElementKind kind) const -> Int;
 
 private:
   ID id;
@@ -482,7 +484,7 @@ using ElementTypeMapReal = ElementTypeMapArray<Real>;
 /// to store data Array<Int> by element type
 using ElementTypeMapInt = ElementTypeMapArray<Int>;
 /// to store data Array<UInt> by element type
-using ElementTypeMapUInt = ElementTypeMapArray<UInt, ElementType>;
+using ElementTypeMapUInt = ElementTypeMapArray<UInt>;
 /// to store data Array<Idx> by element type
 using ElementTypeMapIdx = ElementTypeMapArray<Idx>;
 

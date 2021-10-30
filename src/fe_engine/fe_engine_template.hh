@@ -108,8 +108,7 @@ public:
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> & f, ElementType type,
-                 Int index,
+  Real integrate(const Ref<const VectorXr> & f, ElementType type, Int index,
                  GhostType ghost_type = _not_ghost) const override;
 
   /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
@@ -143,9 +142,8 @@ public:
                    const Element & element) const override;
 
   /// get the number of integration points
-  Int getNbIntegrationPoints(
-      ElementType type,
-      GhostType ghost_type = _not_ghost) const override;
+  Int getNbIntegrationPoints(ElementType type,
+                             GhostType ghost_type = _not_ghost) const override;
 
   /// get shapes precomputed
   const Array<Real> & getShapes(ElementType type,
@@ -153,10 +151,9 @@ public:
                                 Int id = 0) const override;
 
   /// get the derivatives of shapes
-  const Array<Real> &
-  getShapesDerivatives(ElementType type,
-                       GhostType ghost_type = _not_ghost,
-                       Int id = 0) const override;
+  const Array<Real> & getShapesDerivatives(ElementType type,
+                                           GhostType ghost_type = _not_ghost,
+                                           Int id = 0) const override;
 
   /// get integration points
   const inline Matrix<Real> &
@@ -169,9 +166,8 @@ public:
 
   /// compute the gradient of a nodal field on the integration points
   void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq,
-      const Int nb_degree_of_freedom, ElementType type,
-      GhostType ghost_type = _not_ghost,
+      const Array<Real> & u, Array<Real> & nablauq, Int nb_degree_of_freedom,
+      ElementType type, GhostType ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// interpolate a nodal field on the integration points
@@ -189,8 +185,8 @@ public:
 
   /// pre multiplies a tensor by the shapes derivaties
   void
-  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
-             ElementType type, GhostType ghost_type,
+  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs, ElementType type,
+             GhostType ghost_type,
              const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// left and right  multiplies a tensor by the shapes derivaties
@@ -200,9 +196,15 @@ public:
               const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// left multiples a vector by the shape functions
-  void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
-                  ElementType type, GhostType ghost_type,
+  void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs, ElementType type,
+                  GhostType ghost_type,
                   const Array<Idx> & filter_elements) const override;
+
+  /// left and right  multiplies a tensor by the shapes
+  void
+  computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
+              GhostType ghost_type,
+              const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// compute the position of integration points given by an element_type_map
   /// from nodes position
@@ -222,7 +224,7 @@ public:
   inline void interpolateElementalFieldFromIntegrationPoints(
       const ElementTypeMapArray<Real> & field,
       const ElementTypeMapArray<Real> & interpolation_points_coordinates,
-      ElementTypeMapArray<Real> & result, const GhostType ghost_type,
+      ElementTypeMapArray<Real> & result, GhostType ghost_type,
       const ElementTypeMapArray<Idx> * element_filter) const override;
 
   /// Interpolate field at given position from given values of this field at
@@ -234,7 +236,7 @@ public:
       const ElementTypeMapArray<Real> &
           interpolation_points_coordinates_matrices,
       const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-      ElementTypeMapArray<Real> & result, const GhostType ghost_type,
+      ElementTypeMapArray<Real> & result, GhostType ghost_type,
       const ElementTypeMapArray<Idx> * element_filter) const override;
 
   /// Build pre-computed matrices for interpolation of field form integration
@@ -257,16 +259,15 @@ public:
                        GhostType ghost_type = _not_ghost) const;
 
   /// compute the shape on a provided point
-  inline void
-  computeShapes(const Ref<const VectorXr> & real_coords, Int element,
-                ElementType type, Ref<VectorXr> shapes,
-                GhostType ghost_type = _not_ghost) const override;
+  inline void computeShapes(const Ref<const VectorXr> & real_coords,
+                            Int element, ElementType type, Ref<VectorXr> shapes,
+                            GhostType ghost_type = _not_ghost) const override;
 
   /// compute the shape derivatives on a provided point
-  inline void computeShapeDerivatives(
-      const Ref<const VectorXr> & real__coords, Int element,
-      ElementType type, Ref<MatrixXr> shape_derivatives,
-      GhostType ghost_type = _not_ghost) const override;
+  inline void
+  computeShapeDerivatives(const Ref<const VectorXr> & real__coords, Int element,
+                          ElementType type, Ref<MatrixXr> shape_derivatives,
+                          GhostType ghost_type = _not_ghost) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
@@ -278,20 +279,14 @@ public:
   computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                     GhostType ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
-      GhostType ghost_type = _not_ghost) override;
-  void computeNormalsOnIntegrationPoints(
-      const Array<Real> & field,
-      GhostType ghost_type = _not_ghost) override;
-  void computeNormalsOnIntegrationPoints(
       const Array<Real> & field, Array<Real> & normal, ElementType type,
       GhostType ghost_type = _not_ghost) const override;
 
   template <ElementType type, ElementKind kind_ = kind,
             std::enable_if_t<kind_ != _ek_regular> * = nullptr>
-  void
-  computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
-                                    Array<Real> & /*normal*/,
-                                    GhostType /*ghost_type*/) const {
+  void computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
+                                         Array<Real> & /*normal*/,
+                                         GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -302,11 +297,12 @@ public:
                                          Array<Real> & normal,
                                          GhostType ghost_type) const;
 
-private:
-  // To avoid a weird full specialization of a method in a non specalized class
-  void computeNormalsOnIntegrationPointsPoint1(const Array<Real> & /*unused*/,
-                                               Array<Real> & normal,
-                                               GhostType ghost_type) const;
+  template <
+      ElementType type, ElementKind kind_ = kind,
+      std::enable_if_t<kind_ == _ek_regular and type == _point_1> * = nullptr>
+  void computeNormalsOnIntegrationPoints(const Array<Real> & field,
+                                         Array<Real> & normal,
+                                         GhostType ghost_type) const;
 
 public:
   /// function to print the contain of the class
@@ -322,40 +318,6 @@ public:
       const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
       const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
       ElementType type, GhostType ghost_type) const override;
-
-  /// assemble a field as a lumped matrix (ex. rho in lumped mass)
-  // template <class Functor>
-  // void assembleFieldLumped(const Functor & field_funct, const ID & matrix_id,
-  //                          const ID & dof_id, DOFManager & dof_manager,
-  //                          ElementType type,
-  //                          GhostType ghost_type) const;
-
-  // /// assemble a field as a matrix (ex. rho to mass matrix)
-  // template <class Functor>
-  // void assembleFieldMatrix(const Functor & field_funct, const ID & matrix_id,
-  //                          const ID & dof_id, DOFManager & dof_manager,
-  //                          ElementType type,
-  //                          GhostType ghost_type) const;
-
-  // #ifdef AKANTU_STRUCTURAL_MECHANICS
-  //   /// assemble a field as a matrix (ex. rho to mass matrix)
-  //   void assembleFieldMatrix(const Array<Real> & field_1,
-  //                            UInt nb_degree_of_freedom, SparseMatrix & M,
-  //                            Array<Real> * n,
-  //                            ElementTypeMapArray<Real> & rotation_mat,
-  //                            ElementType type,
-  //                            GhostType ghost_type = _not_ghost)
-  //                            const;
-
-  //   /// compute shapes function in a matrix for structural elements
-  //   void
-  //   computeShapesMatrix(ElementType type, UInt nb_degree_of_freedom,
-  //                       UInt nb_nodes_per_element, Array<Real> * n, UInt id,
-  //                       UInt degree_to_interpolate, UInt degree_interpolated,
-  //                       const bool sign,
-  //                       GhostType ghost_type = _not_ghost) const
-  //                       override;
-  // #endif
 
 private:
   friend struct fe_engine::details::AssembleLumpedTemplateHelper<kind>;
@@ -410,11 +372,11 @@ public:
   void onElementsAdded(const Array<Element> & /*new_elements*/,
                        const NewElementsEvent & /*unused*/) override;
   void onElementsRemoved(const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ElementTypeMapArray<Idx> & /*unused*/,
                          const RemovedElementsEvent & /*unused*/) override;
   void onElementsChanged(const Array<Element> & /*unused*/,
                          const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ElementTypeMapArray<Idx> & /*unused*/,
                          const ChangedElementsEvent & /*unused*/) override;
 
   /* ------------------------------------------------------------------------ */

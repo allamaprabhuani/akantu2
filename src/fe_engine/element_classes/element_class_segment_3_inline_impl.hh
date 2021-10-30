@@ -113,3 +113,5 @@ inline void GeometricalElement<_gt_segment_3>::getNormal(
   ElementClass<_segment_3>::computeNormalsOnNaturalCoordinates(natural_coords,
                                                                coord, normal);
 }
+
+} // namespace akantu

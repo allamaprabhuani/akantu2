@@ -223,7 +223,7 @@ public:
 public:
   /* ------------------------------------------------------------------------ */
   Int getNbData(const Array<Entity> & entities,
-                 const SynchronizationTag & tag) const override {
+                const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }
@@ -294,8 +294,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override {
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }

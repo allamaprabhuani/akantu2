@@ -31,9 +31,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "fe_engine_template.hh"
-#include "integrator_gauss.hh"
 #include "shape_cohesive.hh"
+#include "integrator_gauss.hh"
+/* -------------------------------------------------------------------------- */
+#include "fe_engine_template.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -44,20 +45,19 @@ namespace akantu {
 template <>
 Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    integrate(const Array<Real> & f, ElementType type,
-              GhostType ghost_type,
+    integrate(const Array<Real> & f, ElementType type, GhostType ghost_type,
               const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
   auto nb_element = mesh.getNbElement(type, ghost_type);
-  if (filter_elements != empty_filter)
+  if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
   }
 
   auto nb_quadrature_points = getNbIntegrationPoints(type);
 
-  AKANTU_DEBUG_ASSERT(f.size() == Int(nb_element * nb_quadrature_points),
+  AKANTU_DEBUG_ASSERT(f.size() == nb_element * nb_quadrature_points,
                       "The vector f(" << f.getID()
                                       << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == 1,
@@ -83,13 +83,12 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, Array<Real> & intf,
-              Int nb_degree_of_freedom, ElementType type,
-              GhostType ghost_type,
+              Int nb_degree_of_freedom, ElementType type, GhostType ghost_type,
               const Array<Idx> & filter_elements) const {
 
 #ifndef AKANTU_NDEBUG
   auto nb_element = mesh.getNbElement(type, ghost_type);
-  if (filter_elements != empty_filter)
+  if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
   }
 
@@ -124,8 +123,11 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    gradientOnIntegrationPoints(const Array<Real> &, Array<Real> &, Int,
-                                ElementType, GhostType,
+    gradientOnIntegrationPoints(const Array<Real> & /* u */,
+                                Array<Real> & /*  nablauq */,
+                                Int /* nb_degree_of_freedom */,
+                                ElementType /* type  */,
+                                GhostType /*  ghost_type */,
                                 const Array<Idx> &) const {
   AKANTU_TO_IMPLEMENT();
 }

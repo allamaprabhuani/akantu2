@@ -222,36 +222,43 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   Vector<Real> nodal_factor(nb_nodes_per_element);
 
-#define ASSIGN_WEIGHT_TO_NODES(corner, mid)                                    \
-  {                                                                            \
-    for (Int n = 0; n < nb_nodes_per_element_p1; n++)                          \
-      nodal_factor(n) = corner;                                                \
-    for (Int n = nb_nodes_per_element_p1; n < nb_nodes_per_element; n++)       \
-      nodal_factor(n) = mid;                                                   \
-  }
+  auto assign_weight_to_nodes = [&nodal_factor, nb_nodes_per_element,
+                                 nb_nodes_per_element_p1](Real corner,
+                                                          Real mid) {
+    for (Int n = 0; n < nb_nodes_per_element_p1; n++) {
+      nodal_factor(n) = corner;
+    }
+    for (Int n = nb_nodes_per_element_p1; n < nb_nodes_per_element; n++) {
+      nodal_factor(n) = mid;
+    }
+  };
 
-  if (type == _triangle_6)
-    ASSIGN_WEIGHT_TO_NODES(1. / 12., 1. / 4.);
-  if (type == _tetrahedron_10)
-    ASSIGN_WEIGHT_TO_NODES(1. / 32., 7. / 48.);
-  if (type == _quadrangle_8)
-    ASSIGN_WEIGHT_TO_NODES(
+  if (type == _triangle_6) {
+    assign_weight_to_nodes(1. / 12., 1. / 4.);
+  }
+  if (type == _tetrahedron_10) {
+    assign_weight_to_nodes(1. / 32., 7. / 48.);
+  }
+  if (type == _quadrangle_8) {
+    assign_weight_to_nodes(
         3. / 76.,
         16. / 76.); /** coeff. derived by scaling
                      * the diagonal terms of the corresponding
                      * consistent mass computed with 3x3 gauss points;
                      * coeff. are (1./36., 8./36.) for 2x2 gauss points */
-  if (type == _hexahedron_20)
-    ASSIGN_WEIGHT_TO_NODES(
+  }
+  if (type == _hexahedron_20) {
+    assign_weight_to_nodes(
         7. / 248., 16. / 248.); /** coeff. derived by scaling
                                  * the diagonal terms of the corresponding
                                  * consistent mass computed with 3x3x3 gauss
                                  * points; coeff. are (1./40.,
                                  * 1./15.) for 2x2x2 gauss points */
+  }
   if (type == _pentahedron_15) {
     // coefficients derived by scaling the diagonal terms of the corresponding
     // consistent mass computed with 8 gauss points;
-    for (Int n = 0; n < nb_nodes_per_element_p1; n++)
+    for (Int n = 0; n < nb_nodes_per_element_p1; n++) {
       nodal_factor(n) = 51. / 2358.;
     }
 
@@ -274,7 +281,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     return;
   }
 
-#undef ASSIGN_WEIGHT_TO_NODES
   /// compute @f$ \int \rho dV = \rho V @f$ for each element
   auto int_field = std::make_unique<Array<Real>>(
       field.size(), nb_degree_of_freedom, "inte_rho_x");
@@ -464,19 +470,17 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
           shape_functions, integration_points, mesh.getNodes(),
           nb_degree_of_freedom, nb_element, ghost_type);
 
-  auto vect_size = shapes_voigt->size();
-
   // getting the value to assemble on the integration points
   Array<Real> field(vect_size, nb_degree_of_freedom);
   fe_engine::details::fillField(field_funct, field, nb_element,
                                 integration_points.cols(), type, ghost_type);
 
-  auto lmat_size = shapes_voigt->getNbComponent() / nb_degree_of_freedom;
+  Array<Real> local_mat(vect_size, lmat_size * lmat_size);
 
   // computing \rho * N
   for (auto && data :
        zip(make_view(local_mat, lmat_size, lmat_size),
-           make_view(modified_shapes, nb_degree_of_freedom, lmat_size),
+           make_view(shapes_voigt, nb_degree_of_freedom, lmat_size),
            make_view(field, nb_degree_of_freedom))) {
     const auto & rho = std::get<2>(data);
     const auto & N = std::get<1>(data);

@@ -146,7 +146,7 @@ public:
   template <ElementType type>
   void computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
                    GhostType ghost_type,
-                   const Array<UInt> & filter_elements) const;
+                   const Array<Idx> & filter_elements) const;
 
   /// find natural coords from real coords provided an element
   template <ElementType type>

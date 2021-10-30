@@ -96,7 +96,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template<class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
     const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
 
@@ -116,7 +117,7 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template<class D1, class D2>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
     const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
 
@@ -146,9 +147,9 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template<class D>
-inline Real
-GeometricalElement<_gt_quadrangle_8>::getInradius(const Eigen::MatrixBase<D> & coord) {
+template <class D>
+inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
+    const Eigen::MatrixBase<D> & coord) {
   Real a, b, h;
 
   auto && u0 = coord.col(0);
@@ -178,3 +179,5 @@ GeometricalElement<_gt_quadrangle_8>::getInradius(const Eigen::MatrixBase<D> & c
 
   return h;
 }
+
+} // namespace akantu

@@ -64,7 +64,7 @@ operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt
+inline Int
 ElementDataMaterialSelector<T>::operator()(const Element & element) {
   return MaterialSelector::operator()(element);
 }

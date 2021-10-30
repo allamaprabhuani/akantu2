@@ -30,6 +30,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_math.hh"
+
 
 #ifndef AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 #define AKANTU_GAUSS_INTEGRATION_TMPL_HH_

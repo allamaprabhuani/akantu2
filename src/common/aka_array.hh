@@ -54,6 +54,8 @@ class ArrayBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  using size_type = Int;
+
   explicit ArrayBase(const ID & id = "") : id(id) {}
   ArrayBase(const ArrayBase & other, const ID & id = "") {
     this->id = (id.empty()) ? other.id : id;
@@ -118,7 +120,7 @@ enum class ArrayAllocationType {
 template <typename T>
 struct ArrayAllocationTrait
     : public std::conditional_t<
-          std::is_scalar<T>::value,
+          aka::is_scalar<T>::value,
           std::integral_constant<ArrayAllocationType,
                                  ArrayAllocationType::_pod>,
           std::integral_constant<ArrayAllocationType,
@@ -323,17 +325,20 @@ public:
     parent::push_back(new_elem);
   }
 
-  template <typename Ret> inline void push_back(const const_view_iterator<Ret> & it) {
+  template <typename Ret>
+  inline void push_back(const const_view_iterator<Ret> & it) {
     push_back(*it);
   }
 
-  template <typename Ret> inline void push_back(const view_iterator<Ret> & it) {
-    push_back(*it);
-  }
+  // template <typename Ret> inline void push_back(const view_iterator<Ret> &
+  // it) {
+  //   push_back(*it);
+  // }
 
   /// erase the value at position i
   inline void erase(Idx i);
-  /// ask Nico, clarify
+
+  /// erase the entry corresponding to the iterator
   template <typename R> inline auto erase(const view_iterator<R> & it);
 
   /// @see Array::find(const_reference elem) const

@@ -68,7 +68,7 @@ private:
   void computeShapesOnIntegrationPointsInternal(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter,
+      const Array<Idx> & filter_elements = empty_filter,
       bool mass = false) const;
 
 public:
@@ -77,7 +77,7 @@ public:
   void computeShapesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Idx> & filter_elements = empty_filter) const {
     this->template computeShapesOnIntegrationPointsInternal<type>(
         nodes, integration_points, shapes, ghost_type, filter_elements, false);
   }
@@ -86,7 +86,7 @@ public:
   void computeShapesMassOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Idx> & filter_elements = empty_filter) const {
     this->template computeShapesOnIntegrationPointsInternal<type>(
         nodes, integration_points, shapes, ghost_type, filter_elements, true);
   }
@@ -186,7 +186,7 @@ public:
   void
   computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
              GhostType /*ghost_type*/,
-             const Array<Int> & /*filter_elements*/ = empty_filter) const {
+             const Array<Idx> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }
 

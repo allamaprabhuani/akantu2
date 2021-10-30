@@ -47,7 +47,7 @@ class ShapeFunctions {
 public:
   ShapeFunctions(const Mesh & mesh, Int spatial_dimension,
                  const ID & id = "shape");
-  ~ShapeFunctions() override = default;
+  virtual ~ShapeFunctions() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -66,8 +66,9 @@ public:
 
   /// set the integration points for a given element
   template <ElementType type, class D1>
-  void setIntegrationPointsByType(const Eigen::MatrixBase<D1> & integration_points,
-                                  GhostType ghost_type);
+  void
+  setIntegrationPointsByType(const Eigen::MatrixBase<D1> & integration_points,
+                             GhostType ghost_type);
 
   /// Build pre-computed matrices for interpolation of field form integration
   /// points at other given positions (interpolation_points)
@@ -101,8 +102,8 @@ protected:
   /// gradient of nodal values stored by element on the control points
   template <ElementType type>
   void gradientElementalFieldOnIntegrationPoints(
-      const Array<Real> & u_el, Array<Real> & out_nablauq,
-      GhostType ghost_type, const Array<Real> & shapes_derivatives,
+      const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
+      const Array<Real> & shapes_derivatives,
       const Array<Idx> & filter_elements) const;
 
 protected:
@@ -124,8 +125,8 @@ protected:
       const Array<Real> & interpolation_points_coordinates,
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-      const Array<Real> & quadrature_points_coordinates,
-      GhostType ghost_type, const Array<Idx> & element_filter) const;
+      const Array<Real> & quadrature_points_coordinates, GhostType ghost_type,
+      const Array<Idx> & element_filter) const;
 
   /// build matrix for the interpolation of field form integration points
   template <ElementType type, typename D1, typename D2>

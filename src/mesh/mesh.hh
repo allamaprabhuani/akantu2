@@ -367,8 +367,9 @@ public:
                            ElementKind kind = _ek_not_defined) const;
 
   /// compute the barycenter of a given element
+  template <class D, std::enable_if_t<aka::is_vector<D>::value> * = nullptr>
   inline void getBarycenter(const Element & element,
-                            Vector<Real> & barycenter) const;
+                            Eigen::MatrixBase<D> & barycenter) const;
 
   void getBarycenters(Array<Real> & barycenter, ElementType type,
                       GhostType ghost_type) const;
@@ -416,14 +417,12 @@ protected:
 public:
   /// get a name field associated to the mesh
   template <typename T>
-  inline decltype(auto)
-  getData(const ID & data_name, ElementType el_type,
-          GhostType ghost_type = _not_ghost) const;
+  inline decltype(auto) getData(const ID & data_name, ElementType el_type,
+                                GhostType ghost_type = _not_ghost) const;
 
   /// get a name field associated to the mesh
   template <typename T>
-  inline decltype(auto) getData(const ID & data_name,
-                                ElementType el_type,
+  inline decltype(auto) getData(const ID & data_name, ElementType el_type,
                                 GhostType ghost_type = _not_ghost);
 
   /// get a name field associated to the mesh
@@ -446,8 +445,8 @@ public:
   template <typename T>
   inline decltype(auto)
   getDataPointer(const std::string & data_name, ElementType el_type,
-                 GhostType ghost_type = _not_ghost,
-                 Int nb_component = 1, bool size_to_nb_element = true,
+                 GhostType ghost_type = _not_ghost, Int nb_component = 1,
+                 bool size_to_nb_element = true,
                  bool resize_with_parent = false);
 
   template <typename T>
@@ -490,18 +489,17 @@ public:
   static inline constexpr auto getSpatialDimension(ElementType type);
 
   /// get the natural space dimension of a type of element
-  static inline UInt getNaturalSpaceDimension(const ElementType & type);
+  static inline constexpr auto getNaturalSpaceDimension(ElementType type);
 
   /// get number of facets of a given element type
   static inline constexpr auto getNbFacetsPerElement(ElementType type);
 
   /// get number of facets of a given element type
-  static inline constexpr auto getNbFacetsPerElement(ElementType type,
-                                                     Idx t);
+  static inline constexpr auto getNbFacetsPerElement(ElementType type, Idx t);
 
   /// get local connectivity of a facet for a given facet type
-  static inline decltype(auto)
-  getFacetLocalConnectivity(ElementType type, Idx t = 0);
+  static inline decltype(auto) getFacetLocalConnectivity(ElementType type,
+                                                         Idx t = 0);
 
   /// get connectivity of facets for a given element
   inline decltype(auto) getFacetConnectivity(const Element & element,
@@ -509,12 +507,10 @@ public:
 
   /// get the number of type of the surface element associated to a given
   /// element type
-  static inline constexpr auto getNbFacetTypes(ElementType type,
-                                               Idx t = 0);
+  static inline constexpr auto getNbFacetTypes(ElementType type, Idx t = 0);
 
   /// get the type of the surface element associated to a given element
-  static inline constexpr auto getFacetType(ElementType type,
-                                            Idx t = 0);
+  static inline constexpr auto getFacetType(ElementType type, Idx t = 0);
 
   /// get all the type of the surface element associated to a given element
   static inline decltype(auto) getAllFacetTypes(ElementType type);
@@ -569,7 +565,7 @@ private:
   friend class MeshAccessor;
   friend class MeshUtils;
 
-  AKANTU_GET_MACRO_DEREF_PTR(NodesPointer, nodes);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(NodesPointer, nodes);
 
   /// get a pointer to the nodes_global_ids Array<UInt> and create it if
   /// necessary
@@ -585,8 +581,7 @@ private:
       -> Array<Idx> &;
 
   /// get the ghost element counter
-  inline auto getGhostsCounters(ElementType type,
-                                GhostType ghost_type = _ghost)
+  inline auto getGhostsCounters(ElementType type, GhostType ghost_type = _ghost)
       -> Array<Idx> & {
     AKANTU_DEBUG_ASSERT(ghost_type != _not_ghost,
                         "No ghost counter for _not_ghost elements");
@@ -706,8 +701,7 @@ inline constexpr auto Mesh::getNbNodesPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getNbElement(ElementType type,
-                               GhostType ghost_type) const {
+inline auto Mesh::getNbElement(ElementType type, GhostType ghost_type) const {
   try {
     const auto & conn = connectivities(type, ghost_type);
     return conn.size();
@@ -718,8 +712,7 @@ inline auto Mesh::getNbElement(ElementType type,
 
 /* -------------------------------------------------------------------------- */
 inline auto Mesh::getNbElement(const Int spatial_dimension,
-                               GhostType ghost_type,
-                               ElementKind kind) const {
+                               GhostType ghost_type, ElementKind kind) const {
   AKANTU_DEBUG_ASSERT(spatial_dimension <= 3 || spatial_dimension == Int(-1),
                       "spatial_dimension is " << spatial_dimension
                                               << " and is greater than 3 !");

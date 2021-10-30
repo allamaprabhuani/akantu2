@@ -60,7 +60,7 @@ InternalFieldTmpl<Material, T>::InternalFieldTmpl(
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, Material & material, UInt dim, FEEngine & fem,
+    const ID & id, Material & material, Int dim, FEEngine & fem,
     const ElementTypeMapArray<Idx> & element_filter)
     : ElementTypeMapArray<T>(id, material.getID()),
       material(material), fem(&fem), element_filter(element_filter),

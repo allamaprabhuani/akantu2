@@ -411,21 +411,22 @@ public:
                                      Eigen::MatrixBase<D3> & normals);
 
   /// get natural coordinates from real coordinates
-  template <class D1, class D2, class D3>
+  template <class D1, class D2, class D3,
+            aka::enable_if_vectors_t<D1, D3> * = nullptr>
   static inline void inverseMap(const Eigen::MatrixBase<D1> & real_coords,
                                 const Eigen::MatrixBase<D2> & node_coords,
-                                Eigen::MatrixBase<D3> & natural_coords,
+                                const Eigen::MatrixBase<D3> & natural_coords,
+                                Int max_iterations = 100,
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
-  template <class Derived1, class Derived2, class Derived3,
-            aka::enable_if_matrices_t<Derived1, Derived2, Derived3> * = nullptr>
-  static inline void
-  inverseMap(const Eigen::MatrixBase<Derived1> & real_coords,
-             const Eigen::MatrixBase<Derived2> & node_coords,
-             const Eigen::MatrixBase<Derived3> & natural_coords_,
-             UInt max_iterations = 100,
-             Real tolerance = 1e-10);
+  template <class D1, class D2, class D3,
+            aka::enable_if_matrices_t<D1, D3> * = nullptr>
+  static inline void inverseMap(const Eigen::MatrixBase<D1> & real_coords,
+                                const Eigen::MatrixBase<D2> & node_coords,
+                                const Eigen::MatrixBase<D3> & natural_coords_,
+                                Int max_iterations = 100,
+                                Real tolerance = 1e-10);
 
 public:
   static constexpr auto getKind() { return element_kind; }
@@ -460,20 +461,20 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_not_defined, _gt_not_defined,
                                      _git_not_defined, 0);
 } // namespace akantu
 
-#include "element_class_hexahedron_8_inline_impl.cc"
-#include "element_class_pentahedron_6_inline_impl.cc"
+#include "element_class_hexahedron_8_inline_impl.hh"
+#include "element_class_pentahedron_6_inline_impl.hh"
 /* keep order */
-#include "element_class_hexahedron_20_inline_impl.cc"
-#include "element_class_pentahedron_15_inline_impl.cc"
-#include "element_class_point_1_inline_impl.cc"
-#include "element_class_quadrangle_4_inline_impl.cc"
-#include "element_class_quadrangle_8_inline_impl.cc"
-#include "element_class_segment_2_inline_impl.cc"
-#include "element_class_segment_3_inline_impl.cc"
-#include "element_class_tetrahedron_10_inline_impl.cc"
-#include "element_class_tetrahedron_4_inline_impl.cc"
-#include "element_class_triangle_3_inline_impl.cc"
-#include "element_class_triangle_6_inline_impl.cc"
+#include "element_class_hexahedron_20_inline_impl.hh"
+#include "element_class_pentahedron_15_inline_impl.hh"
+#include "element_class_point_1_inline_impl.hh"
+#include "element_class_quadrangle_4_inline_impl.hh"
+#include "element_class_quadrangle_8_inline_impl.hh"
+#include "element_class_segment_2_inline_impl.hh"
+#include "element_class_segment_3_inline_impl.hh"
+#include "element_class_tetrahedron_10_inline_impl.hh"
+#include "element_class_tetrahedron_4_inline_impl.hh"
+#include "element_class_triangle_3_inline_impl.hh"
+#include "element_class_triangle_6_inline_impl.hh"
 
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)

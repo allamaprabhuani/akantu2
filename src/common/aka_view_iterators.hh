@@ -41,11 +41,16 @@ template <typename T, Int ndim> class TensorBase;
 }
 
 namespace akantu {
-
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace detail {
+  template <typename... V> constexpr auto product_all(V &&... v) {
+    std::common_type_t<int, V...> result = 1;
+    (void)std::initializer_list<int>{(result *= v, 0)...};
+    return result;
+  }
+
   template <class R> struct IteratorHelper { static constexpr Int dim = 0; };
 
   template <class Derived> struct IteratorHelper<Eigen::MatrixBase<Derived>> {
@@ -350,7 +355,7 @@ namespace detail {
     using pointer = R *;
     using reference = R &;
     using const_reference = const R &;
-    using difference_type = Idx;//std::ptrdiff_t;
+    using difference_type = Idx; // std::ptrdiff_t;
     using iterator_category = std::random_access_iterator_tag;
     static constexpr int dim_ = 0;
 
@@ -483,6 +488,10 @@ public:
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
   const_view_iterator(const const_view_iterator<OR> & it)
       : parent(convert(it)) {}
+
+  template <typename OR,
+            std::enable_if_t<std::is_convertible<R, OR>::value> * = nullptr>
+  const_view_iterator(const view_iterator<OR> & it) : parent(convert(it)){};
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value and

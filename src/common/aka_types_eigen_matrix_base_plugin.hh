@@ -137,6 +137,8 @@ const Scalar * storage() const {
 }
 // clang-format on
 
+void zero() { this->fill(0); }
+
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<_is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size() const {

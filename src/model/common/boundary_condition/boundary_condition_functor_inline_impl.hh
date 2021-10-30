@@ -34,8 +34,8 @@
 #include "boundary_condition_functor.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_
-#define AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_
+//#ifndef AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_
+//#define AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_
 
 /* -------------------------------------------------------------------------- */
 #define DIRICHLET_SANITY_CHECK                                                 \
@@ -55,7 +55,7 @@ namespace BC {
   /* ---------------------------------------------------------------------- */
   namespace Dirichlet {
     inline void FlagOnly::operator()(Idx /*node*/, Vector<bool> & flags,
-                                     Vector<Real> & /*primal*/,
+                                     [[gnu::unused]] Vector<Real> & primal,
                                      const Vector<Real> & /*coord*/) const {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
@@ -63,7 +63,7 @@ namespace BC {
 
     /* ---------------------------------------------------------------------- */
     inline void FixedValue::operator()(Idx /*node*/, Vector<bool> & flags,
-                                       Vector<Real> & primal,
+                                       [[gnu::unused]] Vector<Real> & primal,
                                        const Vector<Real> & /*coord*/) const {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
@@ -73,7 +73,7 @@ namespace BC {
     /* ---------------------------------------------------------------------- */
     inline void
     IncrementValue::operator()(Idx /*node*/, Vector<bool> & flags,
-                               Vector<Real> & primal,
+                               [[gnu::unused]] Vector<Real> & primal,
                                const Vector<Real> & /*coord*/) const {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
@@ -122,4 +122,4 @@ namespace BC {
 } // namespace BC
 } // namespace akantu
 
-#endif /* AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_ */
+//#endif /* AKANTU_BOUNDARY_CONDITION_FUNCTOR_INLINE_IMPL_HH_ */

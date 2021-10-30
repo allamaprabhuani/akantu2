@@ -96,8 +96,9 @@ ElementTypeMap<Stored, SupportType>::operator()(SupportType type,
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 template <typename U>
-inline Stored & ElementTypeMap<Stored, SupportType>::operator()(
-    U && insertee, SupportType type, GhostType ghost_type) {
+inline Stored &
+ElementTypeMap<Stored, SupportType>::operator()(U && insertee, SupportType type,
+                                                GhostType ghost_type) {
   auto it = this->getData(ghost_type).find(type);
 
   if (it != this->getData(ghost_type).end()) {
@@ -194,10 +195,10 @@ ElementTypeMapArray<T, SupportType>::ElementTypeMapArray(
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
-    Int size, Int nb_component, SupportType type,
-    GhostType ghost_type, const T & default_value) {
+    Int size, Int nb_component, SupportType type, GhostType ghost_type,
+    const T & default_value) {
   std::string ghost_id;
-  if (ghost_type == _ghost)
+  if (ghost_type == _ghost) {
     ghost_id = ":ghost";
   }
 
@@ -221,10 +222,8 @@ inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline void
-ElementTypeMapArray<T, SupportType>::alloc(Int size, Int nb_component,
-                                           SupportType type,
-                                           const T & default_value) {
+inline void ElementTypeMapArray<T, SupportType>::alloc(
+    Int size, Int nb_component, SupportType type, const T & default_value) {
   this->alloc(size, nb_component, type, _not_ghost, default_value);
   this->alloc(size, nb_component, type, _ghost, default_value);
 }
@@ -547,10 +546,10 @@ protected:
   using CompFunc = std::function<Int(ElementType, GhostType)>;
 
 public:
-  ElementTypeMapArrayInitializer(
-      const CompFunc & comp_func, Int spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined)
+  ElementTypeMapArrayInitializer(const CompFunc & comp_func,
+                                 Int spatial_dimension = _all_dimensions,
+                                 GhostType ghost_type = _not_ghost,
+                                 ElementKind element_kind = _ek_not_defined)
       : comp_func(comp_func), spatial_dimension(spatial_dimension),
         ghost_type(ghost_type), element_kind(element_kind) {}
 
@@ -622,7 +621,7 @@ public:
     return 0;
   }
 
-  auto nbComponent(ElementType type) const override {
+  Int nbComponent(ElementType type) const override {
     auto res = ElementTypeMapArrayInitializer::nbComponent(type);
     if (with_nb_nodes_per_element) {
       return (res * Mesh::getNbNodesPerElement(type));
@@ -637,7 +636,7 @@ protected:
   const Mesh & mesh;
   bool with_nb_element{false};
   bool with_nb_nodes_per_element{false};
-  const ElementTypeMapArray<UInt> * filter{nullptr};
+  const ElementTypeMapArray<Idx> * filter{nullptr};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -676,7 +675,7 @@ void ElementTypeMapArray<T, SupportType>::initialize(const Func & f,
                                                      bool do_not_default) {
   this->is_nodal = f.isNodal();
   auto ghost_type = f.ghostType();
-  for (auto & type : f.elementTypes()) {
+  for (const auto & type : f.elementTypes()) {
     if (not this->exists(type, ghost_type)) {
       if (do_not_default) {
         auto & array = this->alloc(0, f.nbComponent(type), type, ghost_type);
@@ -781,16 +780,18 @@ void ElementTypeMapArray<T, SupportType>::initialize(const FEEngine & fe_engine,
 
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType>
-inline T & ElementTypeMapArray<T, SupportType>::
-operator()(const Element & element, Int component) {
+inline T &
+ElementTypeMapArray<T, SupportType>::operator()(const Element & element,
+                                                Int component) {
   return this->operator()(element.type, element.ghost_type)(element.element,
                                                             component);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType>
-inline const T & ElementTypeMapArray<T, SupportType>::
-operator()(const Element & element, Int component) const {
+inline const T &
+ElementTypeMapArray<T, SupportType>::operator()(const Element & element,
+                                                Int component) const {
   return this->operator()(element.type, element.ghost_type)(element.element,
                                                             component);
 }
@@ -815,10 +816,10 @@ ElementTypeMapArray<T, SupportType>::get(const Element & element) const {
 
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType>
-UInt ElementTypeMapArray<T, SupportType>::sizeImpl(UInt spatial_dimension,
-                                                   GhostType ghost_type,
-                                                   ElementKind kind) const {
-  UInt size = 0;
+Int ElementTypeMapArray<T, SupportType>::sizeImpl(Int spatial_dimension,
+                                                  GhostType ghost_type,
+                                                  ElementKind kind) const {
+  Int size = 0;
   for (auto && type : this->elementTypes(spatial_dimension, ghost_type, kind)) {
     size += this->operator()(type, ghost_type).size();
   }

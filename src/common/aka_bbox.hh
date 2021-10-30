@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
 #include "aka_types.hh"
+#include "aka_math.hh"
 #include "communicator.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
@@ -236,8 +237,8 @@ public:
       auto & bbox = bboxes.back();
 
       auto * base = bboxes_data.data() + p * (2 * dim + 1);
-      bbox.lower_bounds = Vector<Real>(base + dim * 0, dim);
-      bbox.upper_bounds = Vector<Real>(base + dim * 1, dim);
+      bbox.lower_bounds = VectorProxy<Real>(base + dim * 0, dim);
+      bbox.upper_bounds = VectorProxy<Real>(base + dim * 1, dim);
       bbox.empty = (base[dim * 2] == 1.);
     }
 

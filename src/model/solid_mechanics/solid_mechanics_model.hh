@@ -457,7 +457,7 @@ public:
   [[gnu::deprecated("Use the interface with an Element")]] Real
   getEnergy(const std::string & energy_id, ElementType type,
             Int index) {
-    return getEnergy(energy_id, {type, index, _not_ghost});
+    return getEnergy(energy_id, Element{type, index, _not_ghost});
   }
 
   /// Compute energy for an element group

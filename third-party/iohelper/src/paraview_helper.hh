@@ -12,15 +12,15 @@
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * IOHelper is free  software: you can redistribute it and/or  modify it under
- * the terms  of the  GNU Lesser  General Public  License as  published by  the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ * IOHelper is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for
- * more details.
+ * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with IOHelper. If not, see <http://www.gnu.org/licenses/>.
@@ -103,8 +103,7 @@ enum VTKCellType {
   VTK_NUMBER_OF_CELL_TYPES
 };
 
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const VTKCellType & type) {
+inline std::ostream & operator <<(std::ostream & stream, const VTKCellType & type) {
   stream << UInt(type);
   return stream;
 }
@@ -142,8 +141,7 @@ public:
                  const std::vector<std::string> & vtus);
 
   //! write the PVD file for time description
-  static void
-  writeTimePVD(const std::string & filename,
+  static void writeTimePVD(const std::string & filename,
                const std::vector<std::pair<Real, std::string>> & pvtus);
 
   //! write the header of a vtu file
@@ -177,16 +175,13 @@ public:
   // static std::string getVTUName(const std::string & basename, UInt proc);
 
   //! push a small array of values
-  template <class Cont>
-  void pushData(const Cont & n);
+  template <template<typename T> class Cont, typename T>
+  void pushData(const Cont<T> & n);
 
   //! push a small array of values of homogeneous values with padding to size
   //! dim
-  template <class Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
-  inline void pushData(const Cont & n, UInt dim);
-
-  template <class Cont, std::enable_if_t<is_matrix<Cont>::value> * = nullptr>
-  inline void pushData(const Cont & n, UInt dim);
+  template <template<typename T> class Cont, typename T>
+  inline void pushData(const Cont<T> & n, UInt dim);
 
   //! pushing datum
   template <typename T> void pushDatum(const T & n, UInt size = 3);
@@ -218,10 +213,8 @@ public:
   void endPointDataList();
   void startCellDataList();
   void endCellDataList();
-  void startData(const std::string & name, int nb_components,
-                 const std::string & type);
-  void PDataArray(const std::string & name, int nb_components,
-                  const std::string & type);
+  void startData(const std::string & name, int nb_components, const std::string & type);
+  void PDataArray(const std::string & name, int nb_components, const std::string & type);
   void endData();
   void write_conclusion();
 

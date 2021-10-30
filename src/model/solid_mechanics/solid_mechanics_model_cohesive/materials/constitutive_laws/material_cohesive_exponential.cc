@@ -289,7 +289,7 @@ void MaterialCohesiveExponential<dim>::computeCompressivePenalty(
     Eigen::MatrixBase<D1> & tangent, const Eigen::MatrixBase<D2> & normal,
     Real delta_n) {
 
-  if (not exp_penalty)
+  if (not exp_penalty) {
     delta_n = 0.;
   }
 

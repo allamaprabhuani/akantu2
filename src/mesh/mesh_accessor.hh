@@ -99,14 +99,14 @@ public:
   }
 
   /// resize the connectivity (use carefully)
-  inline void resizeConnectivity(UInt new_size, ElementType type,
+  inline void resizeConnectivity(Int new_size, ElementType type,
                                  GhostType ghost_type = _not_ghost) {
-    this->getConnectivity(type, ghost_type).resize(new_size, UInt(-1));
+    this->getConnectivity(type, ghost_type).resize(new_size, Idx(-1));
   }
 
   /// resize the nodes (use carefully)
-  inline void resizeNodes(UInt new_size) {
-    this->getNodes().resize(new_size, UInt(-1));
+  inline void resizeNodes(Int new_size) {
+    this->getNodes().resize(new_size);
   }
 
   /// get the connectivity for the given element

@@ -63,7 +63,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 namespace {
   [[gnu::unused]] constexpr Int _all_dimensions{
-      std::numeric_limits<UInt>::max()};
+      std::numeric_limits<Int>::max()};
 #ifdef AKANTU_NDEBUG
   [[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
 #else
@@ -548,25 +548,17 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
-  inline auto & get##name() {                                                  \
+  inline decltype(auto) get##name() {                                          \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
     return (*(ptr));                                                           \
   }
 
-#define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
-  inline decltype(auto) get##name() {                                          \
-    if (not ptr) {                                                             \
-      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
-    }                                                                          \
-    return (*ptr);                                                             \
-  }
-
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
   inline auto get##name(const support & el_type,                               \
-                        GhostType ghost_type = _not_ghost)             \
-      con -> con Array<type> & {                                               \
+                        GhostType ghost_type = _not_ghost)                     \
+      con->con Array<type> & {                                                 \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT
 
@@ -606,9 +598,6 @@ inline auto trim(const std::string & to_trim, char c) -> std::string;
 /// give a string representation of the a human readable size in bit
 template <typename T> auto printMemorySize(UInt size) -> std::string;
 /* -------------------------------------------------------------------------- */
-
-struct TensorTrait {};
-struct TensorProxyTrait {};
 
 } // namespace akantu
 

@@ -32,7 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_compatibilty_with_cpp_standard.hh"
 #include "aka_error.hh"
-#include "aka_math.hh"
+#include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <array>
@@ -40,8 +40,8 @@
 #include <numeric>
 #include <type_traits>
 
-#ifndef __AKANTU_AKA_TYPES_HH__
-#define __AKANTU_AKA_TYPES_HH__
+#ifndef AKANTU_AKA_TYPES_HH
+#define AKANTU_AKA_TYPES_HH
 
 /* -------------------------------------------------------------------------- */
 namespace aka {
@@ -89,6 +89,7 @@ using MatrixXr = Matrix<Real>;
 enum NormType : int8_t { L_1 = 1, L_2 = 2, L_inf = -1 };
 
 struct TensorTraitBase {};
+
 template <size_t n> struct TensorTrait : public TensorTraitBase {};
 
 } // namespace akantu
@@ -108,6 +109,9 @@ using are_matrices = aka::conjunction<is_matrix<Ds>...>;
 
 template <typename... Ds>
 using enable_if_matrices_t = std::enable_if_t<are_matrices<Ds...>::value>;
+
+template <typename... Ds>
+using enable_if_vectors_t = std::enable_if_t<are_vectors<Ds...>::value>;
 
 // template <typename T> struct is_eigen_map : public std::false_type {};
 
@@ -857,4 +861,4 @@ struct is_convertible<Eigen::Map<POT1, MapOptions, StrideType>,
     : aka::bool_constant<is_convertible<POT1, POT2>::value> {};
 
 } // namespace std
-#endif /* __AKANTU_AKA_TYPES_HH__ */
+#endif /* AKANTU_AKA_TYPES_HH */

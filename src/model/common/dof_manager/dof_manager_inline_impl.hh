@@ -290,7 +290,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
 
   for (Int e = 0; e < nb_element; ++e, ++el_mat_it) {
     if (filter_it) {
-      conn_it = conn_begin * filter_it;
+      conn_it = conn_begin + *filter_it;
     }
 
     this->extractElementEquationNumber(equation_number, *conn_it,

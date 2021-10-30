@@ -38,7 +38,8 @@
 
 namespace akantu {
 
-template <class InType, class OutType> OutType convertType(InType /*unused*/) {
+template <class InType, class OutType>
+constexpr inline auto convertType(InType /*unused*/) {
   return OutType();
 }
 

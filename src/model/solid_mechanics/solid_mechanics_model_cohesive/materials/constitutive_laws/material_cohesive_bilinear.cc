@@ -85,7 +85,8 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
 
   for (auto && el : element_list) {
     // filter not ghost cohesive elements
-    if ((el.ghost_type != _not_ghost) or (Mesh::getKind(el.type) != _ek_cohesive))
+    if ((el.ghost_type != _not_ghost) or
+        (Mesh::getKind(el.type) != _ek_cohesive)) {
       continue;
     }
 
@@ -129,7 +130,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
 
 /* -------------------------------------------------------------------------- */
 template <Int spatial_dimension>
-template<typename D1>
+template <typename D1>
 void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
     const Element & el, Eigen::MatrixBase<D1> & sigma_c_vec) {
   AKANTU_DEBUG_IN();

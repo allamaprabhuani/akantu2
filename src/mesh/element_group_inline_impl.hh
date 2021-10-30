@@ -34,11 +34,12 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
 #include "element_group.hh"
+#include "element_type_map.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
-#define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+//#ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+//#define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -60,7 +61,7 @@ inline void ElementGroup::add(ElementType type, Idx element,
             .begin(mesh.getNbNodesPerElement(type)) +
         element;
     const auto & conn = *it;
-    for (Idx i = 0; i < conn.size(); ++i)
+    for (Idx i = 0; i < conn.size(); ++i) {
       addNode(conn[i], check_for_duplicate);
     }
   }
@@ -107,7 +108,7 @@ ElementGroup::lastType(Int dim, GhostType ghost_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::const_element_iterator
+inline auto
 ElementGroup::begin(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type).begin();
@@ -116,7 +117,7 @@ ElementGroup::begin(ElementType type, GhostType ghost_type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::const_element_iterator
+inline auto
 ElementGroup::end(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type).end();
@@ -146,4 +147,4 @@ ElementGroup::getElementsIterable(ElementType type,
 
 } // namespace akantu
 
-#endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */
+//#endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */

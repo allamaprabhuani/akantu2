@@ -52,7 +52,6 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class ElementGroup : public Dumpable {
-
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -68,7 +67,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   using ElementList = ElementTypeMapArray<Idx>;
-  using NodeList = Array<Idx>;
 
   /* ------------------------------------------------------------------------ */
   /* Element iterator                                                         */
@@ -88,12 +86,8 @@ public:
     return elements.elementTypes(_pack...);
   }
 
-  using const_element_iterator = Array<UInt>::const_scalar_iterator;
-
-  inline const_element_iterator begin(ElementType type,
-                                      GhostType ghost_type = _not_ghost) const;
-  inline const_element_iterator end(ElementType type,
-                                    GhostType ghost_type = _not_ghost) const;
+  inline auto begin(ElementType type, GhostType ghost_type = _not_ghost) const;
+  inline auto end(ElementType type, GhostType ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

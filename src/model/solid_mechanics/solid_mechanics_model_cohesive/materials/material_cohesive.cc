@@ -336,8 +336,8 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
                                    "Cohesive Openings", opening);
 #endif
 
-  for (auto & type : element_filter.elementTypes(spatial_dimension, ghost_type,
-                                                 _ek_cohesive)) {
+  for (const auto & type : element_filter.elementTypes(
+           spatial_dimension, ghost_type, _ek_cohesive)) {
     auto & elem_filter = element_filter(type, ghost_type);
     auto nb_element = elem_filter.size();
     if (nb_element == 0) {

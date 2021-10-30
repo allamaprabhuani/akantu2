@@ -44,27 +44,38 @@
 
 #define DISPATCH_HELPER(Func, ...)                                             \
   auto && call = [&](auto && enum_type) {                                      \
-    this->Func<ElementType(enum_type)>(__VA_ARGS__);                           \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    this->Func<type>(__VA_ARGS__);                                             \
   };                                                                           \
   tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 #define DISPATCH_SHAPE_FUNCTIONS_HELPER(Func, ...)                             \
   auto && call = [&](auto && enum_type) {                                      \
-    shape_functions.template Func<ElementType(enum_type)>(__VA_ARGS__);        \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    shape_functions.template Func<type>(__VA_ARGS__);                          \
   };                                                                           \
   tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
+#define DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(Func, ...)                    \
+  auto && call = [&](auto && enum_type) {                                      \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    shape_functions.template Func<type>(__VA_ARGS__);                          \
+  };                                                                           \
+  auto && res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
+
 #define DISPATCH_INTEGRATOR_HELPER(Func, ...)                                  \
   auto && call = [&](auto && enum_type) {                                      \
-    integrator.template Func<ElementType(enum_type)>(__VA_ARGS__);             \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    integrator.template Func<ElementType(type)>(__VA_ARGS__);                  \
   };                                                                           \
   tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 #define DISPATCH_INTEGRATOR_WITH_RES_HELPER(Func, ...)                         \
   auto && call = [&](auto && enum_type) {                                      \
-    return integrator.template Func<ElementType(enum_type)>(__VA_ARGS__);      \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    return integrator.template Func<type>(__VA_ARGS__);                        \
   };                                                                           \
-  auto res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
+  auto && res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 namespace akantu {
 
@@ -116,25 +127,18 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
       nablauq.getNbComponent() == nb_degree_of_freedom * element_dimension,
       "The vector nablauq(" << nablauq.getID()
                             << ") has not the good number of component.");
-
-// AKANTU_DEBUG_ASSERT(nablauq.size() == nb_element * nb_points,
-//                  "The vector nablauq(" << nablauq.getID()
-//                  << ") has not the good size.");
 #endif
 
   nablauq.resize(nb_element * nb_points);
 
   auto call = [&](auto && integral_type) {
-    constexpr ElementType type = integral_type;
+    constexpr ElementType type = std::decay_t<decltype(integral_type)>::value;
     if (element_dimension == ElementClass<type>::getSpatialDimension())
       shape_functions.template gradientOnIntegrationPoints<type>(
           u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   };
 
   tuple_dispatch<ElementTypes_t<kind>>(call, type);
-  // fe_engine::details::GradientOnIntegrationPointsHelper<kind>::call(
-  //     shape_functions, mesh, u, nablauq, nb_degree_of_freedom, type,
-  //     ghost_type, filter_elements);
   AKANTU_DEBUG_OUT();
 }
 
@@ -256,12 +260,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     nb_element = filter_elements.size();
   auto nb_quadrature_points = getNbIntegrationPoints(type);
 
-#ifndef AKANTU_NDEBUG
-  //   std::stringstream sstr; sstr << ghost_type;
-  //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-  //                  "The vector " << nablauq.getID() << " is not taged "
-  //                  << ghost_type);
-
   AKANTU_DEBUG_ASSERT(f.size() == nb_element * nb_quadrature_points,
                       "The vector f(" << f.getID() << " size " << f.size()
                                       << ") has not the good size ("
@@ -274,7 +272,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                       "The vector intf("
                           << intf.getID()
                           << ") has not the good number of component.");
-#endif
 
   intf.resize(nb_element * nb_quadrature_points);
 
@@ -298,7 +295,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
   }
-#ifndef AKANTU_NDEBUG
 
   AKANTU_DEBUG_ASSERT(u.size() == mesh.getNbNodes(),
                       "The vector u(" << u.getID()
@@ -311,7 +307,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                       "The vector uq("
                           << uq.getID()
                           << ") has not the good number of component.");
-#endif
 
   uq.resize(nb_element * nb_points);
 
@@ -387,8 +382,7 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeNtbN(
     const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
-
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeNtbN, bs, NtbNs, type, ghost_type,
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeNtbN, bs, NtbNs, ghost_type,
                                   filter_elements);
 }
 
@@ -398,7 +392,6 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeNtb(
     const Array<Real> & bs, Array<Real> & Ntbs, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
-
   DISPATCH_SHAPE_FUNCTIONS_HELPER(computeNtb, bs, Ntbs, ghost_type,
                                   filter_elements);
 }
@@ -614,7 +607,8 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 template <ElementType type, ElementKind kind_,
           std::enable_if_t<kind_ == _ek_regular and type == _point_1> *>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    computeNormalsOnIntegrationPoints(const Array<Real> &, Array<Real> & normal,
+    computeNormalsOnIntegrationPoints(const Array<Real> & field,
+                                      Array<Real> & normal,
                                       GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
@@ -634,10 +628,11 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   const auto & coords = mesh.getNodes();
 
   const Mesh * mesh_segment;
-  if (mesh.isMeshFacets())
+  if (mesh.isMeshFacets()) {
     mesh_segment = &(mesh.getMeshParent());
-  else
+  } else {
     mesh_segment = &mesh;
+  }
 
   for (Idx elem = 0; elem < nb_element; ++elem) {
     auto nb_segment = segments(elem).size();
@@ -679,7 +674,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                       Array<Real> & normal, ElementType type,
                                       GhostType ghost_type) const {
-
   DISPATCH_HELPER(computeNormalsOnIntegrationPoints, field, normal, ghost_type);
 }
 
@@ -689,333 +683,86 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::inverseMap(
     const Vector<Real> & real_coords, Int element, ElementType type,
     Vector<Real> & natural_coords, GhostType ghost_type) const {
-
-  AKANTU_DEBUG_IN();
-
   /// need sfinea to avoid structural
   DISPATCH_SHAPE_FUNCTIONS_HELPER(inverseMap, real_coords, element,
                                   natural_coords, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct ContainsHelper {
-      template <class S>
-      static void call(const S &, const Vector<Real> &, Int, ElementType,
-                       GhostType) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define CONTAINS(type)                                                         \
-  contain = shape_functions.template contains<type>(real_coords, element,      \
-                                                    ghost_type);
-
-#define AKANTU_SPECIALIZE_CONTAINS_HELPER(kind)                                \
-  template <> struct ContainsHelper<kind> {                                    \
-    template <template <ElementKind> class S, ElementKind k>                   \
-    static bool call(const S<k> & shape_functions,                             \
-                     const Vector<Real> & real_coords, Int element,            \
-                     ElementType type, GhostType ghost_type) {                 \
-      bool contain = false;                                                    \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(CONTAINS, kind);                        \
-      return contain;                                                          \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_CONTAINS_HELPER,
-                               AKANTU_FE_ENGINE_LIST_CONTAINS)
-
-#undef AKANTU_SPECIALIZE_CONTAINS_HELPER
-#undef CONTAINS
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline bool FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::contains(
     const Vector<Real> & real_coords, Int element, ElementType type,
     GhostType ghost_type) const {
-  return fe_engine::details::ContainsHelper<kind>::call(
-      shape_functions, real_coords, element, type, ghost_type);
+  DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(contains, real_coords, element,
+                                           ghost_type);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct ComputeShapesHelper {
-      template <class S>
-      static void call(const S &, const Ref<const VectorXr> &, Int,
-                       const ElementType, Ref<VectorXr>, GhostType) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define COMPUTE_SHAPES(type)                                                   \
-  shape_functions.template computeShapes<type>(real_coords, element, shapes,   \
-                                               ghost_type);
-
-#define AKANTU_SPECIALIZE_COMPUTE_SHAPES_HELPER(kind)                          \
-  template <> struct ComputeShapesHelper<kind> {                               \
-    template <class S>                                                         \
-    static void call(const S & shape_functions,                                \
-                     const Ref<const VectorXr> & real_coords, Int element,     \
-                     ElementType type, Ref<VectorXr> & shapes,                 \
-                     GhostType ghost_type) {                                   \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_SHAPES, kind);                  \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_COMPUTE_SHAPES_HELPER,
-                               AKANTU_FE_ENGINE_LIST_COMPUTE_SHAPES)
-
-#undef AKANTU_SPECIALIZE_COMPUTE_SHAPES_HELPER
-#undef COMPUTE_SHAPES
-  } // namespace details
-} // namespace fe_engine
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapes(
     const Ref<const VectorXr> & real_coords, Int element, ElementType type,
     Ref<VectorXr> shapes, GhostType ghost_type) const {
-
-  AKANTU_DEBUG_IN();
-
-  fe_engine::details::ComputeShapesHelper<kind>::call(
-      shape_functions, real_coords, element, type, shapes, ghost_type);
-
-  AKANTU_DEBUG_OUT();
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeShapes, real_coords, element, shapes,
+                                  ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct ComputeShapeDerivativesHelper {
-      template <class S>
-      static void call(const S &, const Ref<const VectorXr> &, Int,
-                       const ElementType, Ref<MatrixXr>, GhostType) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define COMPUTE_SHAPE_DERIVATIVES(type)                                        \
-  VectorProxy<const Real> coords_mat(real_coords.data(),                       \
-                                     shape_derivatives.rows(), 1);             \
-  Tensor3Proxy<Real> shapesd_tensor(shape_derivatives.data(),                  \
-                                    shape_derivatives.rows(),                  \
-                                    shape_derivatives.cols(), 1);              \
-  shape_functions.template computeShapeDerivatives<type>(                      \
-      coords_mat, element, shapesd_tensor, ghost_type);
-
-#define AKANTU_SPECIALIZE_COMPUTE_SHAPE_DERIVATIVES_HELPER(kind)               \
-  template <> struct ComputeShapeDerivativesHelper<kind> {                     \
-    template <class S>                                                         \
-    static void call(const S & shape_functions,                                \
-                     const Ref<const VectorXr> & real_coords, Int element,     \
-                     const ElementType type, Ref<MatrixXr> shape_derivatives,  \
-                     GhostType ghost_type) {                                   \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_SHAPE_DERIVATIVES, kind);       \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(
-        AKANTU_SPECIALIZE_COMPUTE_SHAPE_DERIVATIVES_HELPER,
-        AKANTU_FE_ENGINE_LIST_COMPUTE_SHAPES_DERIVATIVES)
-
-#undef AKANTU_SPECIALIZE_COMPUTE_SHAPE_DERIVATIVES_HELPER
-#undef COMPUTE_SHAPE_DERIVATIVES
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapeDerivatives(
     const Ref<const VectorXr> & real_coords, Int element, ElementType type,
     Ref<MatrixXr> shape_derivatives, GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
-  fe_engine::details::ComputeShapeDerivativesHelper<kind>::call(
-      shape_functions, real_coords, element, type, shape_derivatives,
-      ghost_type);
-
-  AKANTU_DEBUG_OUT();
+  VectorProxy<const Real> coords_mat(real_coords.data(),
+                                     shape_derivatives.rows(), 1);
+  Tensor3Proxy<Real> shapesd_tensor(shape_derivatives.data(),
+                                    shape_derivatives.rows(),
+                                    shape_derivatives.cols(), 1);
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(shape_functions, computeShapeDerivatives,
+                                  coords_mat, element, shapesd_tensor,
+                                  ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct GetNbIntegrationPointsHelper {};
-
-#define GET_NB_INTEGRATION_POINTS(type)                                        \
-  nb_quad_points = integrator.template getNbIntegrationPoints<type>(ghost_type);
-
-#define AKANTU_SPECIALIZE_GET_NB_INTEGRATION_POINTS_HELPER(kind)               \
-  template <> struct GetNbIntegrationPointsHelper<kind> {                      \
-    template <template <ElementKind, class> class I, ElementKind k, class IOF> \
-    static Int call(const I<k, IOF> & integrator, const ElementType type,      \
-                    GhostType ghost_type) {                                    \
-      Int nb_quad_points = 0;                                                  \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_NB_INTEGRATION_POINTS, kind);       \
-      return nb_quad_points;                                                   \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_NB_INTEGRATION_POINTS_HELPER)
-
-#undef AKANTU_SPECIALIZE_GET_NB_INTEGRATION_POINTS_HELPER
-#undef GET_NB_INTEGRATION
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline Int
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getNbIntegrationPoints(
     ElementType type, GhostType ghost_type) const {
-  return fe_engine::details::GetNbIntegrationPointsHelper<kind>::call(
-      integrator, type, ghost_type);
+  DISPATCH_INTEGRATOR_WITH_RES_HELPER(getNbIntegrationPoints, ghost_type);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct GetShapesHelper {};
-
-#define GET_SHAPES(type) ret = &(shape_functions.getShapes(type, ghost_type));
-
-#define AKANTU_SPECIALIZE_GET_SHAPES_HELPER(kind)                              \
-  template <> struct GetShapesHelper<kind> {                                   \
-    template <class S>                                                         \
-    static const Array<Real> & call(const S & shape_functions,                 \
-                                    const ElementType type,                    \
-                                    GhostType ghost_type) {                    \
-      const Array<Real> * ret = NULL;                                          \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_SHAPES, kind);                      \
-      return *ret;                                                             \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_SHAPES_HELPER)
-
-#undef AKANTU_SPECIALIZE_GET_SHAPES_HELPER
-#undef GET_SHAPES
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline const Array<Real> &
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getShapes(
-    ElementType type, GhostType ghost_type,
-    __attribute__((unused)) Int id) const {
-  return fe_engine::details::GetShapesHelper<kind>::call(shape_functions, type,
-                                                         ghost_type);
+    ElementType type, GhostType ghost_type, Int /*id*/) const {
+  return shape_functions.getShapes(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct GetShapesDerivativesHelper {
-      template <template <ElementKind> class S, ElementKind k>
-      static const Array<Real> & call(const S<k> &, ElementType, GhostType,
-                                      Int) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define GET_SHAPES_DERIVATIVES(type)                                           \
-  ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
-
-#define AKANTU_SPECIALIZE_GET_SHAPES_DERIVATIVES_HELPER(kind)                  \
-  template <> struct GetShapesDerivativesHelper<kind> {                        \
-    template <template <ElementKind> class S, ElementKind k>                   \
-    static const Array<Real> &                                                 \
-    call(const S<k> & shape_functions, const ElementType type,                 \
-         GhostType ghost_type, __attribute__((unused)) Int id) {               \
-      const Array<Real> * ret = NULL;                                          \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_SHAPES_DERIVATIVES, kind);          \
-      return *ret;                                                             \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_GET_SHAPES_DERIVATIVES_HELPER,
-                               AKANTU_FE_ENGINE_LIST_GET_SHAPES_DERIVATIVES)
-
-#undef AKANTU_SPECIALIZE_GET_SHAPE_DERIVATIVES_HELPER
-#undef GET_SHAPES_DERIVATIVES
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline const Array<Real> &
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getShapesDerivatives(
-    ElementType type, GhostType ghost_type,
-    __attribute__((unused)) Int id) const {
-  return fe_engine::details::GetShapesDerivativesHelper<kind>::call(
-      shape_functions, type, ghost_type, id);
+    ElementType type, GhostType ghost_type, Int /*id*/) const {
+  return shape_functions.getShapesDerivatives(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct GetIntegrationPointsHelper {};
-
-#define GET_INTEGRATION_POINTS(type)                                           \
-  ret = &(integrator.template getIntegrationPoints<type>(ghost_type));
-
-#define AKANTU_SPECIALIZE_GET_INTEGRATION_POINTS_HELPER(kind)                  \
-  template <> struct GetIntegrationPointsHelper<kind> {                        \
-    template <template <ElementKind, class> class I, ElementKind k, class IOF> \
-    static const Matrix<Real> & call(const I<k, IOF> & integrator,             \
-                                     const ElementType type,                   \
-                                     GhostType ghost_type) {                   \
-      const Matrix<Real> * ret = NULL;                                         \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_INTEGRATION_POINTS, kind);          \
-      return *ret;                                                             \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_INTEGRATION_POINTS_HELPER)
-
-#undef AKANTU_SPECIALIZE_GET_INTEGRATION_POINTS_HELPER
-#undef GET_INTEGRATION_POINTS
-  } // namespace details
-} // namespace fe_engine
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline const Matrix<Real> &
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getIntegrationPoints(
     ElementType type, GhostType ghost_type) const {
-  return fe_engine::details::GetIntegrationPointsHelper<kind>::call(
-      integrator, type, ghost_type);
+  DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(getIntegrationPoints, ghost_type);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1051,16 +798,19 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsAdded(
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsRemoved(
-    const Array<Element> & /*unused*/,
-    const ElementTypeMapArray<UInt> & /*unused*/,
-    const RemovedElementsEvent & /*unused*/) {}
+    const Array<Element> & removed_elements,
+    const ElementTypeMapArray<Idx> & new_numbering,
+    const RemovedElementsEvent & event) {
+  integrator.onElementsRemoved(removed_elements, new_numbering, event);
+  shape_functions.onElementsRemoved(removed_elements, new_numbering, event);
+}
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsChanged(
     const Array<Element> & /*unused*/, const Array<Element> & /*unused*/,
-    const ElementTypeMapArray<UInt> & /*unused*/,
+    const ElementTypeMapArray<Idx> & /*unused*/,
     const ChangedElementsEvent & /*unused*/) {}
 
 } // namespace akantu

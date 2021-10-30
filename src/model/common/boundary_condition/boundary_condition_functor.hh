@@ -61,11 +61,9 @@ namespace BC {
       DirichletFunctor() = default;
       explicit DirichletFunctor(Axis ax) : axis(ax) {}
 
-      virtual void operator()(__attribute__((unused)) UInt node,
-                              __attribute__((unused)) Vector<bool> & flags,
-                              __attribute__((unused)) Vector<Real> & primal,
-                              __attribute__((unused))
-                              const Vector<Real> & coord) const {
+      virtual void operator()(Idx /*node*/, Vector<bool> & /*flags*/,
+                              Vector<Real> & /*primal*/,
+                              const Vector<Real> & /*coord*/) const {
         AKANTU_TO_IMPLEMENT();
       }
 
@@ -82,21 +80,10 @@ namespace BC {
       explicit FlagOnly(Axis ax = _x) : DirichletFunctor(ax) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
     };
-
-    /* ---------------------------------------------------------------------- */
-    // class FreeBoundary : public DirichletFunctor {
-    // public:
-    //   explicit FreeBoundary(Axis ax = _x) : DirichletFunctor(ax) {}
-
-    // public:
-    //   inline void operator()(UInt node, Vector<bool> & flags,
-    //                          Vector<Real> & primal,
-    //                          const Vector<Real> & coord) const;
-    // };
 
     /* ---------------------------------------------------------------------- */
     class FixedValue : public DirichletFunctor {
@@ -104,7 +91,7 @@ namespace BC {
       FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 
@@ -119,7 +106,7 @@ namespace BC {
           : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 
@@ -136,7 +123,7 @@ namespace BC {
           : DirichletFunctor(_x), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 

@@ -28,36 +28,30 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
+#include "node_group.hh"
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline auto NodeGroup::begin() const {
-  return node_group.begin();
-}
+inline auto NodeGroup::begin() const { return node_group.begin(); }
 
 /* -------------------------------------------------------------------------- */
-inline auto NodeGroup::end() const {
-  return node_group.end();
-}
+inline auto NodeGroup::end() const { return node_group.end(); }
 
 /* -------------------------------------------------------------------------- */
-inline auto NodeGroup::add(Idx node,
-                           bool check_for_duplicate) {
+inline auto NodeGroup::add(Idx node, bool check_for_duplicate) {
   const_node_iterator it;
   if (check_for_duplicate) {
     it = std::find(begin(), end(), node);
-    if (it == node_group.end()) {
-      node_group.push_back(node);
-      it= (node_group.end() - 1);
+    if (it != node_group.end()) {
+      return it;
     }
-    return it;
   }
 
   node_group.push_back(node);
-  return (node_group.end() - 1);
+  it = (node_group.end() - 1);
+  return it;
 }
 
 /* -------------------------------------------------------------------------- */

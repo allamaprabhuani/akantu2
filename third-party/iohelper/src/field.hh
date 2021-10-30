@@ -13,15 +13,15 @@
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * IOHelper is free  software: you can redistribute it and/or  modify it under
- * the terms  of the  GNU Lesser  General Public  License as  published by  the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ * IOHelper is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for
- * more details.
+ * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with IOHelper. If not, see <http://www.gnu.org/licenses/>.
@@ -38,7 +38,8 @@
 
 namespace iohelper {
 
-template <class Cont> class Field : public FieldInterface {
+template <class Cont>
+class Field : public FieldInterface {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -71,9 +72,9 @@ public:
   void accept(Visitor & v) override;
 
   //! begin method
-  decltype(auto) begin() { return my_field.begin(); }
+  iterator begin(){return my_field.begin();}
   //! end method
-  decltype(auto) end() { return my_field.end(); }
+  iterator end(){return my_field.end();}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -90,7 +91,8 @@ private:
 };
 /* -------------------------------------------------------------------------- */
 
-template <class Cont> bool Field<Cont>::isHomogeneous() {
+template <class Cont>
+bool Field<Cont>::isHomogeneous(){
   return my_field.isHomogeneous();
 }
 
@@ -104,7 +106,10 @@ template <class Cont> std::string Field<Cont>::getName() { return name; }
 
 /* -------------------------------------------------------------------------- */
 
-template <class Cont> UInt Field<Cont>::size() { return my_field.size(); }
+template <class Cont>
+UInt Field<Cont>::size(){
+  return my_field.size();
+}
 
 /* -------------------------------------------------------------------------- */
 

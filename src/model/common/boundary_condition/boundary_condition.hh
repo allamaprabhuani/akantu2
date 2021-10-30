@@ -41,10 +41,6 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_BOUNDARY_CONDITION_HH__
-#define __AKANTU_BOUNDARY_CONDITION_HH__
-/* -------------------------------------------------------------------------- */
-
 namespace akantu {
 
 template <class ModelType> class BoundaryCondition {

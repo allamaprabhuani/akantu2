@@ -336,12 +336,12 @@ public:
 
   /* ------------------------------------------------------------------------ */
   virtual void dump(const std::string & dumper_name);
-  virtual void dump(const std::string & dumper_name, UInt step);
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  virtual void dump(const std::string & dumper_name, Int step);
+  virtual void dump(const std::string & dumper_name, Real time, Int step);
   /* ------------------------------------------------------------------------ */
   virtual void dump();
-  virtual void dump(UInt step);
-  virtual void dump(Real time, UInt step);
+  virtual void dump(Int step);
+  virtual void dump(Real time, Int step);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -64,40 +64,48 @@ class InterpolationElement<interpolation_type, _itk_structural> {
 public:
   using interpolation_property = InterpolationProperty<interpolation_type>;
 
-  /// compute the shape values for a given set of points in natural coordinates
-  template <typename D1, typename D2>
-  static inline void computeShapes(const Eigen::MatrixBase<D1> & Xs,
-                                   const Eigen::MatrixBase<D2> & x,
-                                   TensorBase<Real, 3> & Ns) {
-    for(auto && data : zip(Xs, Ns)) {
-      computeShapes(std::get<0>(data), x, std::get<1>(data));
-    }
-  }
-
   /// compute the shape values for a given point in natural coordinates
-  template <typename D1, typename D2, typename D3>
+  template <class D1, class D2, class D3>
   static inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coord,
                                    const Eigen::MatrixBase<D2> & real_coord,
                                    Eigen::MatrixBase<D3> & N);
 
-  static inline void computeShapesMass(const Matrix<Real> & natural_coords,
-                                       const Matrix<Real> & xs,
-                                       const Matrix<Real> & T,
-                                       Tensor3<Real> & Ns) {
-    for (UInt i = 0; i < natural_coords.cols(); ++i) {
-      Matrix<Real> N_T = Ns(i);
-      Vector<Real> X = natural_coords(i);
-      Matrix<Real> N(interpolation_property::nb_degree_of_freedom, N_T.cols());
+  /// compute the shape values for a given set of points in natural coordinates
+  template <class D1, class D2, class D3>
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & Xs,
+                                   const Eigen::MatrixBase<D2> & x,
+                                   const Eigen::MatrixBase<D3> & T,
+                                   TensorBase<Real, 3> & Ns) {
+    Matrix<Real> N(Ns.size(1), Ns.size(2));
+    for (auto && data : zip(Xs, Ns)) {
+      auto && X = std::get<0>(data);
+      auto && N_T = std::get<1>(data);
 
-      computeShapes(X, xs, N);
-      N_T.mul<false, false>(N.block(0, 0, N_T.rows(), N_T.cols()), T);
+      computeShapes(X, x, N);
+      N_T = N * T;
+    }
+  }
+
+  template <class D1, class D2, class D3>
+  static inline void computeShapesMass(const Eigen::MatrixBase<D1> & Xs,
+                                       const Eigen::MatrixBase<D2> & x,
+                                       const Eigen::MatrixBase<D3> & T,
+                                       TensorBase<Real, 3> & Ns) {
+    for (int i = 0; i < Xs.cols(); ++i) {
+      auto N_T = Ns(i);
+
+      Matrix<Real> N(interpolation_property::nb_degree_of_freedom, N_T.cols());
+      computeShapes(Xs(i), x, N);
+
+      N_T = N.block(0, 0, N_T.rows(), N_T.cols()) * T;
     }
   }
 
   /// compute shape derivatives (input is dxds) for a set of points
+  template <class D>
   static inline void computeShapeDerivatives(const TensorBase<Real, 3> & Js,
                                              const TensorBase<Real, 3> & DNDSs,
-                                             const Matrix<Real> & R,
+                                             const Eigen::MatrixBase<D> & R,
                                              TensorBase<Real, 3> & Bs) {
     for (Int i = 0; i < Js.size(2); ++i) {
       auto && DNDX = Js(i).inverse() * DNDSs(i);

@@ -136,7 +136,7 @@ template <>
 template<class D>
 inline Real
 GeometricalElement<_gt_tetrahedron_4>::getInradius(const Eigen::MatrixBase<D> & coord) {
-  return 2. * Math::tetrahedron_inradius(coord.col(0).data(), coord.col(1).data(),
-                                         coord.col(2).data(), coord.col(3).data());
+  return 2. * Math::tetrahedron_inradius(coord.col(0), coord.col(1),
+                                         coord.col(2), coord.col(3));
 }
 } // namespace akantu

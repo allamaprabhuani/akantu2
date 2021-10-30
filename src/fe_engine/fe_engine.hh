@@ -121,8 +121,8 @@ public:
   }
 
 private:
-  virtual Real integrate(const Ref<const VectorXr> & f,
-                         ElementType type, Idx index,
+  virtual Real integrate(const Ref<const VectorXr> & f, ElementType type,
+                         Idx index,
                          GhostType ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
@@ -135,14 +135,13 @@ public:
                          GhostType ghost_type = _not_ghost) const = 0;
 
   /// get the precomputed shapes
-  const virtual Array<Real> &
-  getShapes(ElementType type, GhostType ghost_type = _not_ghost,
-            Idx id = 0) const = 0;
+  const virtual Array<Real> & getShapes(ElementType type,
+                                        GhostType ghost_type = _not_ghost,
+                                        Idx id = 0) const = 0;
 
   /// get the derivatives of shapes
   virtual const Array<Real> &
-  getShapesDerivatives(ElementType type,
-                       GhostType ghost_type = _not_ghost,
+  getShapesDerivatives(ElementType type, GhostType ghost_type = _not_ghost,
                        Idx id = 0) const = 0;
 
   /// get integration points
@@ -182,8 +181,7 @@ public:
   /// left and right  multiplies a tensor by the shapes derivaties
   virtual void
   computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
-              ElementType type,
-              GhostType ghost_type = _not_ghost,
+              ElementType type, GhostType ghost_type = _not_ghost,
               const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// left multiples a vector by the shape functions
@@ -196,7 +194,7 @@ public:
   virtual void
   computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
               GhostType ghost_type = _not_ghost,
-              const Array<UInt> & filter_elements = empty_filter) const = 0;
+              const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// Compute the interpolation point position in the global coordinates for
   /// many element types
@@ -247,16 +245,14 @@ public:
                            const Element & element) const = 0;
 
   /// compute the shape on a provided point
-  virtual void
-  computeShapes(const Ref<const VectorXr> & real_coords, Int elem,
-                ElementType type, Ref<VectorXr> shapes,
-                GhostType ghost_type = _not_ghost) const = 0;
+  virtual void computeShapes(const Ref<const VectorXr> & real_coords, Int elem,
+                             ElementType type, Ref<VectorXr> shapes,
+                             GhostType ghost_type = _not_ghost) const = 0;
 
   /// compute the shape derivatives on a provided point
   virtual void
   computeShapeDerivatives(const Ref<const VectorXr> & real_coords, Int element,
-                          ElementType type,
-                          Ref<MatrixXr> shape_derivatives,
+                          ElementType type, Ref<MatrixXr> shape_derivatives,
                           GhostType ghost_type = _not_ghost) const = 0;
 
   /// assembles the lumped version of @f[ \int N^t rho N @f]
@@ -320,8 +316,8 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Mesh, mesh, Mesh &);
 
   /// get the in-radius of an element
-  static inline constexpr Real getElementInradius(const Ref<const MatrixXr> & coord,
-                                                  ElementType type);
+  static inline constexpr Real
+  getElementInradius(const Ref<const MatrixXr> & coord, ElementType type);
 
   inline Real getElementInradius(const Element & element) const;
 
@@ -330,15 +326,13 @@ public:
                                          normals_on_integration_points, Real);
 
   /// get cohesive element type for a given facet type
-  static inline constexpr auto
-  getCohesiveElementType(ElementType type_facet);
+  static inline constexpr auto getCohesiveElementType(ElementType type_facet);
 
   /// get igfem element type for a given regular type
   static inline Vector<ElementType> getIGFEMElementTypes(ElementType type);
 
   /// get the interpolation element associated to an element type
-  static inline constexpr auto
-  getInterpolationType(ElementType el_type);
+  static inline constexpr auto getInterpolationType(ElementType el_type);
 
   /// get the shape function class (probably useless: see getShapeFunction in
   /// fe_engine_template.hh)

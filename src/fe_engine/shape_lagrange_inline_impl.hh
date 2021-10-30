@@ -491,7 +491,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeNtbN(
     const Array<Real> & bs, Array<Real> & NtbNs, GhostType ghost_type,
-    const Array<Int> & filter_elements) const {
+    const Array<Idx> & filter_elements) const {
 
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   auto size_of_shapes = ElementClass<type>::getShapeSize();
@@ -520,8 +520,8 @@ void ShapeLagrange<kind>::computeNtbN(
     const auto & N = std::get<0>(values);
     const auto & b = std::get<1>(values);
     auto & Nt_b_N = std::get<2>(values);
-    Nt_b.template mul<true, false>(N, b);
-    Nt_b_N.template mul<false, false>(Nt_b, N);
+
+    Nt_b_N = N.transpose() * b * N;
   }
 }
 

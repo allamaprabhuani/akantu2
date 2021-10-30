@@ -71,12 +71,12 @@ AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <typename Derived1, typename Derived2, typename Derived3>
+template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeShapes(
-    const Eigen::MatrixBase<Derived1> & natural_coords,
-    const Eigen::MatrixBase<Derived2> & real_coord,
-    Eigen::MatrixBase<Derived3> & N) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & real_coord,
+    Eigen::MatrixBase<D3> & N) {
   Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
@@ -93,12 +93,12 @@ InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeShapes(
 }
 
 template <>
-template <typename Derived1, typename Derived2, typename Derived3>
+template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeShapes(
-    const Eigen::MatrixBase<Derived1> & natural_coords,
-    const Eigen::MatrixBase<Derived2> & real_coord,
-    Eigen::MatrixBase<Derived3> & N) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & real_coord,
+    Eigen::MatrixBase<D3> & N) {
   Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
@@ -191,10 +191,10 @@ InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::arrangeInVoigt(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class Derived1, class Derived2, class Derived3>
+template <class D1, class D2, class D3>
 inline void ElementClass<_bernoulli_beam_2>::computeRotationMatrix(
-    Eigen::MatrixBase<Derived1> & R, const Eigen::MatrixBase<Derived2> & X,
-    const Eigen::MatrixBase<Derived3> &) {
+    Eigen::MatrixBase<D1> & R, const Eigen::MatrixBase<D2> & X,
+    const Eigen::MatrixBase<D3> &) {
   auto && x2 = X(1); // X2
   auto && x1 = X(0); // X1
 
@@ -213,10 +213,10 @@ inline void ElementClass<_bernoulli_beam_2>::computeRotationMatrix(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class Derived1, class Derived2, class Derived3>
+template <class D1, class D2, class D3>
 inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
-    Eigen::MatrixBase<Derived1> & R, const Eigen::MatrixBase<Derived2> & X,
-    const Eigen::MatrixBase<Derived3> & n) {
+    Eigen::MatrixBase<D1> & R, const Eigen::MatrixBase<D2> & X,
+    const Eigen::MatrixBase<D3> & n) {
   Vector<Real> x2 = X(1); // X2
   Vector<Real> x1 = X(0); // X1
   auto dim = X.rows();
@@ -237,8 +237,8 @@ inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
 
   R.zero();
   /// Definition of the rotation matrix
-  for (Int i = 0; i < dim; ++i)
-    for (Int j = 0; j < dim; ++j)
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
       R(i + dim, j + dim) = R(i, j) = Pe(i, j);
     }
   }

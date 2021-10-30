@@ -431,19 +431,16 @@ Parameter & ParameterRegistry::get(const std::string & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-namespace {
-  namespace details {
-    template <class T, class R, class Enable = void> struct CastHelper {
-      static R convert(const T & /*unused*/) { throw std::bad_cast(); }
-    };
+namespace details {
+  template <class T, class R, class Enable = void> struct CastHelper {
+    static R convert(const T & /*unused*/) { throw std::bad_cast(); }
+  };
 
-    template <class T, class R>
-    struct CastHelper<T, R,
-                      std::enable_if_t<std::is_convertible<T, R>::value>> {
-      static R convert(const T & val) { return val; }
-    };
-  } // namespace details
-} // namespace
+  template <class T, class R>
+  struct CastHelper<T, R, std::enable_if_t<std::is_convertible<T, R>::value>> {
+    static R convert(const T & val) { return val; }
+  };
+} // namespace details
 
 template <typename T> inline ParameterTyped<T>::operator Real() const {
   if (not isReadable()) {

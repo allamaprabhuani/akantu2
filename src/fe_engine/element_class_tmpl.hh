@@ -478,13 +478,15 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
  *
  **/
 template <ElementType type, ElementKind kind>
-template <class D1, class D2, class D3>
-inline void
-ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<D1> & real_coords,
-                                     const Eigen::MatrixBase<D2> & node_coords,
-                                     Eigen::MatrixBase<D3> & natural_coords,
-                                     Int max_iterations,
-                                     Real tolerance) {
+template <class D1, class D2, class D3, aka::enable_if_vectors_t<D1, D3> *>
+inline void ElementClass<type, kind>::inverseMap(
+    const Eigen::MatrixBase<D1> & real_coords,
+    const Eigen::MatrixBase<D2> & node_coords,
+    const Eigen::MatrixBase<D3> & natural_coords_, Int max_iterations,
+    Real tolerance) {
+  auto & natural_coords = const_cast<Eigen::MatrixBase<D3> &>(
+      natural_coords_); // as advised by the Eigen developers
+
   auto spatial_dimension = real_coords.size();
   auto dimension = natural_coords.size();
 
@@ -513,7 +515,7 @@ ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<D1> & real_coords,
   /* --------------------------- */
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
-                   &mreal_coords, spatial_dimension]() {
+                   &real_coords, spatial_dimension]() {
     Vector<Real> physical_guess_v(physical_guess.data(), spatial_dimension);
     interpolation_element::interpolateOnNaturalCoordinates(
         natural_coords, node_coords, physical_guess_v);
@@ -539,16 +541,16 @@ ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<D1> & real_coords,
     J = Jt.transpose();
 
     // compute G
-    auto && G = J.transpose() * J;
+    auto && G = J * J.transpose();
 
     // compute F
-    auto && F = G.inverse() * J.transpose();
+    auto && F = J.transpose() * G.inverse();
 
     // compute increment
-    auto && dxi = F * f;
+    auto && dxi = F.transpose() * f;
 
     // update our guess
-    natural_coords += dxi;
+    natural_coords += dxi.col(0);
 
     inverse_map_error = update_f();
     iterations++;
@@ -561,19 +563,19 @@ ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<D1> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
-template <typename Derived1, typename Derived2, typename Derived3,
-          aka::enable_if_matrices_t<Derived1, Derived2, Derived3> *>
+template <class D1, class D2, class D3, aka::enable_if_matrices_t<D1, D3> *>
 inline void ElementClass<type, kind>::inverseMap(
-    const Eigen::MatrixBase<Derived1> & real_coords,
-    const Eigen::MatrixBase<Derived2> & node_coords,
-    const Eigen::MatrixBase<Derived3> & natural_coords_, Int max_iterations,
+    const Eigen::MatrixBase<D1> & real_coords,
+    const Eigen::MatrixBase<D2> & node_coords,
+    const Eigen::MatrixBase<D3> & natural_coords_, Int max_iterations,
     Real tolerance) {
-  auto & natural_coords = const_cast<Eigen::MatrixBase<Derived2> &>(
+  auto & natural_coords = const_cast<Eigen::MatrixBase<D2> &>(
       natural_coords_); // as advised by the Eigen developers
 
   auto nb_points = real_coords.cols();
   for (Int p = 0; p < nb_points; ++p) {
-      inverseMap(real_coords(p), node_coords, natural_coords(p), max_iterations, tolerance);
+    inverseMap(real_coords(p), node_coords, natural_coords(p), max_iterations,
+               tolerance);
   }
 }
 

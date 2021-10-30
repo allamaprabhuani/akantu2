@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "synchronizer_impl.hh"
+#include "synchronizer_impl.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -671,7 +671,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
   }
 
   auto rr = -1;
-  while ((rr = communicator::waitAny(requests)) != -1) {
+  while ((rr = Communicator::waitAny(requests)) != -1) {
     auto & request = requests[rr];
     auto sender = request.getSource();
 

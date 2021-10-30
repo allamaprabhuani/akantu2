@@ -85,8 +85,8 @@ ElementClass<_discrete_kirchhoff_triangle_18>::computeRotationMatrix(
   auto && P = detail::computeBasisChangeMatrix(X);
 
   R.zero();
-  for (Int i = 0; i < dim; ++i)
-    for (Int j = 0; j < dim; ++j)
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
       R(i + dim, j + dim) = R(i, j) = P(i, j);
     }
   }

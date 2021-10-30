@@ -71,8 +71,7 @@ inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type,
-                                                  Idx t) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t) {
   Int n_facet = 0;
 #define GET_NB_FACET(type)                                                     \
   n_facet = ElementClass<type>::getNbFacetsPerElement(t)
@@ -91,16 +90,7 @@ auto Mesh::elementTypes(pack &&... _pack) const -> ElementTypesIteratorHelper {
 
 /* -------------------------------------------------------------------------- */
 inline decltype(auto) Mesh::getConnectivity(const Element & element) const {
-  const auto & conn = connectivities(element.type, element.ghost_type);
-  auto it = conn.begin(conn.getNbComponent());
-  return it[element.element];
-}
-
-/* -------------------------------------------------------------------------- */
-inline decltype(auto) Mesh::getConnectivity(const Element & element) {
-  auto & conn = connectivities(element.type, element.ghost_type);
-  auto it = conn.begin(conn.getNbComponent());
-  return it[element.element];
+  return connectivities.get(element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -214,8 +204,74 @@ inline auto Mesh::getNodesGlobalIdsPointer() -> Array<Idx> & {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getConnectivityPointer(ElementType type,
-                                         GhostType ghost_type)
+template <typename T>
+inline decltype(auto)
+Mesh::getDataPointer(const ID & data_name, ElementType el_type,
+                     GhostType ghost_type, Int nb_component,
+                     bool size_to_nb_element, bool resize_with_parent) {
+  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
+      data_name, el_type, ghost_type, nb_component);
+
+  if (size_to_nb_element) {
+    if (resize_with_parent) {
+      tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
+    } else {
+      tmp.resize(this->getNbElement(el_type, ghost_type));
+    }
+  }
+
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto)
+Mesh::getDataPointer(const ID & data_name, ElementType el_type,
+                     GhostType ghost_type, Int nb_component,
+                     bool size_to_nb_element, bool resize_with_parent,
+                     const T & defaul_) {
+  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
+      data_name, el_type, ghost_type, nb_component);
+
+  if (size_to_nb_element) {
+    if (resize_with_parent) {
+      tmp.resize(mesh_parent->getNbElement(el_type, ghost_type), defaul_);
+    } else {
+      tmp.resize(this->getNbElement(el_type, ghost_type), defaul_);
+    }
+  }
+
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name, ElementType el_type,
+                                    GhostType ghost_type) const {
+  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name, ElementType el_type,
+                                    GhostType ghost_type) {
+  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name) const {
+  return this->getElementalData<T>(data_name);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name) {
+  return this->getElementalData<T>(data_name);
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto Mesh::getConnectivityPointer(ElementType type, GhostType ghost_type)
     -> Array<Idx> & {
   if (connectivities.exists(type, ghost_type)) {
     return connectivities(type, ghost_type);
@@ -233,14 +289,14 @@ inline auto Mesh::getConnectivityPointer(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Array<std::vector<Element>> &
+inline decltype(auto)
 Mesh::getElementToSubelementPointer(ElementType type, GhostType ghost_type) {
   return getDataPointer<std::vector<Element>>("element_to_subelement", type,
                                               ghost_type, 1, true);
 }
 
 /* -------------------------------------------------------------------------- */
-inline Array<Element> &
+inline decltype(auto)
 Mesh::getSubelementToElementPointer(ElementType type, GhostType ghost_type) {
   auto & array = getDataPointer<Element>(
       "subelement_to_element", type, ghost_type, getNbFacetsPerElement(type),
@@ -318,101 +374,9 @@ Mesh::getSubelementToElementNC(const Element & element) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline decltype(auto)
-Mesh::getDataPointer(const ID & data_name, ElementType el_type,
-                     GhostType ghost_type, Int nb_component,
-                     bool size_to_nb_element, bool resize_with_parent) {
-  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
-      data_name, el_type, ghost_type, nb_component);
-
-  if (size_to_nb_element) {
-    if (resize_with_parent) {
-      tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
-    } else {
-      tmp.resize(this->getNbElement(el_type, ghost_type));
-    }
-  }
-
-  return tmp;
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline Array<T> &
-Mesh::getDataPointer(const ID & data_name, ElementType el_type,
-                     GhostType ghost_type, Int nb_component,
-                     bool size_to_nb_element, bool resize_with_parent,
-                     const T & defaul_) {
-  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
-      data_name, el_type, ghost_type, nb_component);
-
-  if (size_to_nb_element) {
-    if (resize_with_parent) {
-      tmp.resize(mesh_parent->getNbElement(el_type, ghost_type), defaul_);
-    } else {
-      tmp.resize(this->getNbElement(el_type, ghost_type), defaul_);
-    }
-  }
-
-  return tmp;
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline const Array<T> & Mesh::getData(const ID & data_name, ElementType el_type,
-                                      GhostType ghost_type) const {
-  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline Array<T> & Mesh::getData(const ID & data_name, ElementType el_type,
-                                GhostType ghost_type) {
-  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline decltype(auto) Mesh::getData(const ID & data_name) const {
-  return this->getElementalData<T>(data_name);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline decltype(auto) Mesh::getData(const ID & data_name) {
-  return this->getElementalData<T>(data_name);
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbElement(ElementType type, GhostType ghost_type) const {
-  try {
-
-    const Array<UInt> & conn = connectivities(type, ghost_type);
-    return conn.size();
-  } catch (...) {
-    return 0;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbElement(const UInt spatial_dimension,
-                               GhostType ghost_type, ElementKind kind) const {
-  AKANTU_DEBUG_ASSERT(spatial_dimension <= 3 || spatial_dimension == UInt(-1),
-                      "spatial_dimension is " << spatial_dimension
-                                              << " and is greater than 3 !");
-  UInt nb_element = 0;
-
-  for (auto type : elementTypes(spatial_dimension, ghost_type, kind)) {
-    nb_element += getNbElement(type, ghost_type);
-  }
-
-  return nb_element;
-}
-
-/* -------------------------------------------------------------------------- */
+template <class D, std::enable_if_t<aka::is_vector<D>::value> *>
 inline void Mesh::getBarycenter(const Element & element,
-                                VectorProxy<Real> & barycenter) const {
+                                Eigen::MatrixBase<D> & barycenter) const {
   auto && conn = getConnectivity(element);
   Matrix<Real> local_coord(spatial_dimension, conn.size());
   auto node_begin = make_view(*nodes, spatial_dimension).begin();
@@ -421,18 +385,7 @@ inline void Mesh::getBarycenter(const Element & element,
     local_coord(std::get<0>(data)) = node_begin[std::get<1>(data)];
   }
 
-  Math::barycenter(local_coord.data(), conn.size(), spatial_dimension,
-                   barycenter.data());
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbNodesPerElement(ElementType type) {
-  UInt nb_nodes_per_element = 0;
-#define GET_NB_NODES_PER_ELEMENT(type)                                         \
-  nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT);
-#undef GET_NB_NODES_PER_ELEMENT
-  return nb_nodes_per_element;
+  Math::barycenter(local_coord, barycenter);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -443,15 +396,6 @@ inline constexpr auto Mesh::getP1ElementType(ElementType type) {
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_P1_TYPE);
 #undef GET_P1_TYPE
   return p1_type;
-}
-
-/* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getKind(ElementType type) {
-  ElementKind kind = _ek_not_defined;
-#define GET_KIND(type) kind = ElementClass<type>::getKind()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_KIND);
-#undef GET_KIND
-  return kind;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -470,7 +414,7 @@ inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) {
   Int natural_dimension = 0;
 #define GET_NATURAL_DIMENSION(type)                                            \
   natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_DIMENSION);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NATURAL_DIMENSION);
 #undef GET_NATURAL_DIMENSION
 
   return natural_dimension;
@@ -511,37 +455,7 @@ inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
-  AKANTU_DEBUG_IN();
-
-  UInt n_facet = 0;
-#define GET_NB_FACET(type) n_facet = ElementClass<type>::getNbFacetsPerElement()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_FACET);
-#undef GET_NB_FACET
-
-  AKANTU_DEBUG_OUT();
-  return n_facet;
-}
-
-/* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t) {
-  AKANTU_DEBUG_IN();
-
-  UInt n_facet = 0;
-#define GET_NB_FACET(type)                                                     \
-  n_facet = ElementClass<type>::getNbFacetsPerElement(t)
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_FACET);
-#undef GET_NB_FACET
-
-  AKANTU_DEBUG_OUT();
-  return n_facet;
-}
-
-/* -------------------------------------------------------------------------- */
-inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type,
-                                                      Idx t) {
+inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type, Idx t) {
   AKANTU_DEBUG_IN();
 
 #define GET_FACET_CON(type)                                                    \
@@ -566,11 +480,6 @@ inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
   }
 
   return facets;
-}
-
-/* -------------------------------------------------------------------------- */
-inline decltype(auto) Mesh::getConnectivity(const Element & element) const {
-  return connectivities.get(element);
 }
 
 /* -------------------------------------------------------------------------- */

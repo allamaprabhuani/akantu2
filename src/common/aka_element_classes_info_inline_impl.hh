@@ -196,7 +196,7 @@ namespace details {
                                           const DynamicType & type) {
       using integral_type = std::tuple_element_t<S - 1, Tuple>;
       if (integral_type::value == type) {
-        return function(integral_type{});
+        return std::forward<Function>(function)(integral_type{});
       } else {
         return visit_tuple_impl<S - 1>::visit(
             Tuple{}, std::forward<Function>(function), type);
@@ -207,9 +207,9 @@ namespace details {
   template <> struct visit_tuple_impl<0> {
     template <class Function, class DynamicType, class Tuple>
     static constexpr auto
-    visit(const Tuple &, Function && function, const DynamicType & /*type*/)
+    visit(const Tuple &, Function && function, const DynamicType & type)
         -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
-      throw;
+      AKANTU_EXCEPTION("Cannot call the asked function for the type " << type);
     }
   };
 } // namespace details

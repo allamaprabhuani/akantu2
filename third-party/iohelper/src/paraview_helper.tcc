@@ -9,61 +9,35 @@
 inline std::string ParaviewHelper::dataTypeToStr(DataType data_type) {
   std::string str;
   switch (data_type) {
-  case _bool:
-    str = "UInt8";
-    break;
-  case _uint:
-    str = "UInt32";
-    break;
-  case _int:
-    str = "Int32";
-    break;
-  case _float:
-    str = "Float32";
-    break;
-  case _double:
-    str = "Float64";
-    break;
-  case _uint64:
-    str = "UInt64";
-    break;
-  case _int64:
-    str = "Int64";
-    break;
-  case _uint8:
-    str = "UInt8";
-    break;
+  case _bool   : str = "UInt8"  ; break;
+  case _uint   : str = "UInt32" ; break;
+  case _int    : str = "Int32"  ; break;
+  case _float  : str = "Float32"; break;
+  case _double : str = "Float64"; break;
+  case _uint64 : str = "UInt64" ; break;
+  case _int64  : str = "Int64"  ; break;
+  case _uint8  : str = "UInt8"  ; break;
   }
   return str;
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void ParaviewHelper::visitField(T & visited) {
+template <typename T>
+inline void ParaviewHelper::visitField(T & visited){
   this->position_flag = false;
   switch (current_stage) {
-  case _s_writeFieldProperty:
-    writeFieldProperty(visited);
-    break;
-  case _s_writePosition:
-    this->position_flag = true; /* FALLTHRU */
+  case _s_writeFieldProperty:   writeFieldProperty(visited); break;
+  case _s_writePosition:        this->position_flag = true;  /* FALLTHRU */
   // [[fallthrough]] un-comment when compiler gets it
-  case _s_writeField:
-    writeField(visited);
-    break;
-  case _s_writeConnectivity:
-    writeConnectivity(visited);
-    break;
-  case _s_writeElemType:
-    writeElemType(visited);
-    break;
-  case _s_buildOffsets:
-    writeOffsets(visited);
-    break;
+  case _s_writeField:           writeField(visited);         break;
+  case _s_writeConnectivity:    writeConnectivity(visited);  break;
+  case _s_writeElemType:        writeElemType(visited);      break;
+  case _s_buildOffsets:         writeOffsets(visited);       break;
   default:
     std::stringstream sstr;
-    sstr << "the stage " << current_stage
-         << " is not a known paraviewhelper stage";
-    IOHELPER_THROW(sstr.str(), IOHelperException::_et_unknown_visitor_stage);
+    sstr << "the stage " << current_stage << " is not a known paraviewhelper stage";
+    IOHELPER_THROW(sstr.str(),
+		   IOHelperException::_et_unknown_visitor_stage);
   }
 }
 
@@ -80,7 +54,8 @@ inline void ParaviewHelper::writeFieldProperty(T & data){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void ParaviewHelper::writeField(T & data) {
+template <typename T>
+inline void ParaviewHelper::writeField(T & data){
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -103,7 +78,8 @@ template <typename T> inline void ParaviewHelper::writeField(T & data) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void ParaviewHelper::writeConnectivity(T & data) {
+template <typename T>
+inline void ParaviewHelper::writeConnectivity(T & data) {
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -114,7 +90,7 @@ template <typename T> inline void ParaviewHelper::writeConnectivity(T & data) {
     assert(nb_node_per_elem[type] == dim);
     UInt * reorder = this->write_reorder[type];
     for (UInt i = 0; i < dim; ++i) {
-      this->pushDatum((*it)(reorder[i]), dim);
+      this->pushDatum((*it)[reorder[i]], dim);
     }
   }
 }
@@ -122,7 +98,8 @@ template <typename T> inline void ParaviewHelper::writeConnectivity(T & data) {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void ParaviewHelper::writeElemType(T & data) {
+template <typename T>
+inline void ParaviewHelper::writeElemType(T & data){
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -133,52 +110,40 @@ template <typename T> inline void ParaviewHelper::writeElemType(T & data) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void ParaviewHelper::writeOffsets(T & data) {
+template <typename T>
+inline void ParaviewHelper::writeOffsets(T & data){
+
+  typename T::iterator it = data.begin();
+  typename T::iterator end = data.end();
   UInt count = 0;
-  for (auto && cont : data) {
-    count += cont.size();
+  for (; it != end; ++it) {
+    count += (*it).size();
     pushDatum(count);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename Cont, std::enable_if_t<is_vector<Cont>::value> *>
-inline void ParaviewHelper::pushData(const Cont & n, UInt dim) {
-  using T = typename Cont::value_type;
-  for (decltype(n.size()) i = 0; i < n.size(); ++i) {
+template <template<typename T> class Cont, typename T>
+inline void ParaviewHelper::pushData(const Cont<T> & n, UInt dim){
+  for (UInt i = 0; i < n.size(); ++i) {
     pushDatum<T>(n[i], dim);
   }
 
-  for (decltype(dim) i = n.size(); i < dim; ++i) {
-    T t = T();
-    this->pushDatum<T>(t, dim);
-  }
+  for (UInt i = n.size(); i < dim; ++i) { T t = T(); this->pushDatum<T>(t, dim); }
 }
 
-template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> *>
-inline void ParaviewHelper::pushData(const Cont & n, UInt dim) {
-  using T = typename Cont::value_type;
-  using Idx = decltype(n.rows());
-  for (Idx i = 0; i < Idx(dim); ++i) {
-    for (Idx j = 0; j < Idx(dim); ++j) {
-      if(i >= n.rows() or j >= n.cols()) {
-        pushDatum<T>(T(), dim);
-      } else {
-        pushDatum<T>(n(i,j), dim);
-      }
-    }
+template <template<typename T> class Cont, typename T>
+inline void ParaviewHelper::pushData(const Cont<T> & n) {
+  for (UInt i = 0; i < n.size(); ++i) {
+    pushDatum<T>(n[i], n.size());
   }
 }
 
 
 /* -------------------------------------------------------------------------- */
-template <typename Cont>
-inline void ParaviewHelper::pushData(const Cont & n) {
-  pushData(n, n.size());
+inline void ParaviewHelper::setMode(int mode){
+  bflag = BASE64 & mode;
 }
-
-/* -------------------------------------------------------------------------- */
-inline void ParaviewHelper::setMode(int mode) { bflag = BASE64 & mode; }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>

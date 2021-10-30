@@ -68,12 +68,13 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
     const Eigen::MatrixBase<D1> & X, Eigen::MatrixBase<D2> & N) {
   N(0) = 1 - X(0) - X(1); /// @f$ c0 = 1 - \xi - \eta @f$
-  N(1) = X(0);              /// @f$ c1 = \xi @f$
-  N(2) = X(1);              /// @f$ c2 = \eta @f$
+  N(1) = X(0);            /// @f$ c1 = \xi @f$
+  N(2) = X(1);            /// @f$ c2 = \eta @f$
 }
 /* -------------------------------------------------------------------------- */
 template <>
@@ -114,8 +115,11 @@ template <>
 template <class D>
 inline Real GeometricalElement<_gt_triangle_3>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
-  return 2. * Math::triangle_inradius(coord.col(0), coord.col(1),
-                                      coord.col(2));
+  auto && coord1 = coord.col(0);
+  auto && coord2 = coord.col(1);
+  auto && coord3 = coord.col(2);
+
+  return Math::triangle_inradius(coord1, coord2, coord3);
 }
 
 /* -------------------------------------------------------------------------- */

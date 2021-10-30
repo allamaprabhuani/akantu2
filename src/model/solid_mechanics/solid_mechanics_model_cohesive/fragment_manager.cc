@@ -383,7 +383,7 @@ void FragmentManager::storeMassDensityPerIntegrationPoint() {
     for (Int el = 0; el < nb_element; ++el) {
       auto & mat = model.getMaterial(mat_indexes(el));
 
-      for (Int q = 0; q < nb_quad_per_element; ++q, ++mass_density_it)
+      for (Int q = 0; q < nb_quad_per_element; ++q, ++mass_density_it) {
         *mass_density_it = mat.getRho();
       }
     }

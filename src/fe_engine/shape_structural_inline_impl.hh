@@ -33,11 +33,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_iterators.hh"
-//#include "shape_structural.hh"
+#include "shape_structural.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_
-#define AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_
+//#ifndef AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_
+//#define AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -87,7 +87,7 @@ template <ElementType type>
 void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
     Array<Real> & shapes, GhostType ghost_type,
-    const Array<Int> & filter_elements) const {
+    const Array<Idx> & filter_elements, bool mass) const {
 
   auto nb_points = integration_points.cols();
   auto nb_element = mesh.getConnectivity(type, ghost_type).size();
@@ -238,14 +238,16 @@ void ShapeStructural<kind>::precomputeShapesOnIntegrationPoints(
        zip(make_view(shapes_, nb_dof, nb_dof * nb_nodes_per_element, nb_points),
            make_view(*nodes_per_element, dim, nb_nodes_per_element),
            make_view(rot_matrices, nb_dof, nb_dof))) {
-    auto & N = std::get<0>(tuple);
-    auto & X = std::get<1>(tuple);
-    auto & RDOFs = std::get<2>(tuple);
+    auto && N = std::get<0>(tuple);
+    auto && X = std::get<1>(tuple);
+    auto && RDOFs = std::get<2>(tuple);
 
-    Matrix<Real> T(N.size(1), N.size(1), 0);
+    Matrix<Real> T(N.size(1), N.size(1));
+    T.zero();
 
-    for (UInt i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(RDOFs, i * RDOFs.rows(), i * RDOFs.rows());
+    for (Idx i = 0; i < nb_nodes_per_element; ++i) {
+      T.block(i * RDOFs.rows(), i * RDOFs.cols(), RDOFs.rows(), RDOFs.cols()) =
+          RDOFs;
     }
 
     auto R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
@@ -296,14 +298,14 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
                      nb_nodes_per_element * nb_dof, nb_points),
            make_view(rot_matrices, nb_dof, nb_dof))) {
     // compute shape derivatives
-    auto & x = std::get<0>(tuple);
+    auto & X = std::get<0>(tuple);
     auto & B = std::get<1>(tuple);
     auto & RDOFs = std::get<2>(tuple);
 
     Tensor3<Real> dnds(natural_spatial_dimension,
                        ElementClass<type>::interpolation_property::dnds_columns,
                        B.size(2));
-    ElementClass<type>::computeDNDS(natural_coords, x, dnds);
+    ElementClass<type>::computeDNDS(natural_coords, X, dnds);
 
     Tensor3<Real> J(natural_spatial_dimension, natural_spatial_dimension,
                     natural_coords.cols());
@@ -319,10 +321,10 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
     }
 
     // Rotate to local basis
-    auto && rx =
-        (R * x).block(0, 0, natural_spatial_dimension, nb_nodes_per_element);
+    auto x =
+        (R * X).block(0, 0, natural_spatial_dimension, nb_nodes_per_element);
 
-    ElementClass<type>::computeJMat(natural_coords, rx, J);
+    ElementClass<type>::computeJMat(natural_coords, x, J);
     ElementClass<type>::computeShapeDerivatives(J, dnds, T, B);
   }
 
@@ -470,7 +472,7 @@ template <>
 template <ElementType type>
 void ShapeStructural<_ek_structural>::computeNtb(
     const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Idx> & filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
 
   auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
@@ -503,4 +505,4 @@ void ShapeStructural<_ek_structural>::computeNtb(
 
 } // namespace akantu
 
-#endif /* AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_ */
+//#endif /* AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_ */

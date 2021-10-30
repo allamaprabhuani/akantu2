@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_compatibilty_with_cpp_standard.hh"
-#include "aka_str_hash.hh"
+#include "aka_named_tuple.hh"
 /* -------------------------------------------------------------------------- */
 #include <tuple>
 /* -------------------------------------------------------------------------- */
@@ -44,180 +44,6 @@
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 namespace tuple {
-  /* ---------------------------------------------------------------------- */
-  template <typename tag, typename type> struct named_tag {
-    using _tag = tag;   ///< key
-    using _type = type; ///< value type
-
-    template <
-        typename T,
-        std::enable_if_t<not std::is_same<named_tag, T>::value> * = nullptr>
-    named_tag(T && value) // NOLINT
-        : _value(std::forward<T>(value)) {}
-
-    type _value;
-  };
-
-  namespace details {
-/* ---------------------------------------------------------------------- */
-#if (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-    template <typename tag> struct named_tag_proxy {
-      using _tag = tag;
-
-      template <typename T> decltype(auto) operator=(T && value) {
-        return named_tag<_tag, T>{std::forward<T>(value)};
-      }
-    };
-#if (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic pop
-#endif
-  } // namespace details
-
-  /* ---------------------------------------------------------------------- */
-  template <typename T> struct is_named_tag : public std::false_type {};
-  template <typename tag>
-  struct is_named_tag<details::named_tag_proxy<tag>> : public std::true_type {};
-  template <typename tag, typename type>
-  struct is_named_tag<named_tag<tag, type>> : public std::true_type {};
-  /* ---------------------------------------------------------------------- */
-
-  template <class... Params>
-  struct named_tuple : public std::tuple<typename Params::_type...> {
-    using Names_t = std::tuple<typename Params::_tag...>;
-    using parent = std::tuple<typename Params::_type...>;
-
-    named_tuple(Params &&... params)
-        : parent(std::forward<typename Params::_type>(params._value)...) {}
-
-    named_tuple(typename Params::_type &&... args)
-        : parent(std::forward<typename Params::_type>(args)...) {}
-
-  private:
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
-    static constexpr std::size_t get_element_index_() noexcept {
-      return std::size_t(-1);
-    }
-
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
-    static constexpr std::size_t get_element_index_() noexcept {
-      using _tag = std::tuple_element_t<Idx, Names_t>;
-      return (std::is_same<_tag, tag>::value)
-                 ? Idx
-                 : get_element_index_<tag, Idx + 1>();
-    }
-
-  public:
-    template <typename NT>
-    static constexpr std::size_t get_element_index() noexcept {
-      return get_element_index_<typename NT::_tag, 0>();
-    }
-
-    template <typename NT>
-    static constexpr std::size_t get_element_index(NT && /*unused*/) noexcept {
-      return get_element_index_<typename NT::_tag, 0>();
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr decltype(auto) get(NT && /*unused*/) noexcept {
-      const auto index = get_element_index<NT>();
-      static_assert((index != std::size_t(-1)), "wrong named_tag");
-      return (std::get<index>(*this));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr decltype(auto) get(NT && /*unused*/) const noexcept {
-      const auto index = get_element_index<NT>();
-      static_assert((index != std::size_t(-1)), "wrong named_tag");
-      return (std::get<index>(*this));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr auto has(NT && /*unused*/) const noexcept -> bool {
-      const auto index = get_element_index<NT>();
-      return (index != std::size_t(-1));
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  template <typename T> struct is_named_tuple : public std::false_type {};
-  template <typename... Params>
-  struct is_named_tuple<named_tuple<Params...>> : public std::true_type {};
-  /* ---------------------------------------------------------------------- */
-
-  template <typename... Params>
-  constexpr decltype(auto) make_named_tuple(Params &&... params) noexcept {
-    return named_tuple<Params...>(std::forward<Params>(params)...);
-  }
-
-  template <typename tag> constexpr decltype(auto) make_named_tag() noexcept {
-    return details::named_tag_proxy<tag>{};
-  }
-
-  template <size_t HashCode> constexpr decltype(auto) get() {
-    return make_named_tag<std::integral_constant<size_t, HashCode>>();
-  }
-
-  template <size_t HashCode, class Tuple>
-  constexpr decltype(auto) get(Tuple && tuple) {
-    return tuple.get(get<HashCode>());
-  }
-
-  template <size_t HashCode, class Tuple> constexpr bool has(Tuple && tuple) {
-    return tuple.has(get<HashCode>());
-  }
-
-  template <typename Param, typename Tuple,
-            std::enable_if_t<is_named_tag<Param>::value> * = nullptr>
-  constexpr decltype(auto) get(Tuple && tuple) noexcept {
-    return tuple.template get<typename Param::hash>();
-  }
-
-  template <size_t I, class Tuple> struct tuple_name_tag {
-    using type = std::tuple_element_t<I, typename Tuple::Names_t>;
-  };
-
-  template <size_t I, class Tuple>
-  using tuple_name_tag_t = typename tuple_name_tag<I, Tuple>::type;
-
-  template <size_t I, class Tuple> struct tuple_element {
-    using type = std::tuple_element_t<I, typename Tuple::parent>;
-  };
-
-  template <size_t I, class Tuple>
-  using tuple_element_t = typename tuple_element<I, Tuple>::type;
-
-#if defined(__INTEL_COMPILER)
-// intel warnings here
-#elif defined(__clang__)
-// clang warnings here
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
-#elif (defined(__GNUC__) || defined(__GNUG__))
-// gcc warnings here
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-  /// this is a GNU exstension
-  /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
-  template <class CharT, CharT... chars>
-  constexpr decltype(auto) operator"" _n() {
-    return make_named_tag<std::integral_constant<
-        std::size_t, string_literal<CharT, chars...>::hash>>();
-  }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic pop
-#endif
-
   /* ------------------------------------------------------------------------ */
   namespace details {
     template <std::size_t N> struct Foreach {
@@ -245,8 +71,7 @@ namespace tuple {
       }
     };
 
-    /* ----------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     template <> struct Foreach<0> {
       template <class Tuple>
       static constexpr inline auto not_equal(Tuple && a, Tuple && b) -> bool {
@@ -485,13 +310,7 @@ namespace tuple {
     }
   } // namespace details
 
-  template <template <typename> class Pred, typename... Ts>
-  using filter_t = typename filter<Pred, Ts...>::type;
-  template <class Tuple>
-  constexpr decltype(auto) dynamic_get(std::size_t i, Tuple && tuple) {
-    return details::dynamic_get_impl<0>(i, std::forward<Tuple>(tuple));
-  }
-
+  /* ------------------------------------------------------------------------ */
   template <typename... Ts> struct cat {
     using type = decltype(std::tuple_cat(std::declval<Ts>()...));
   };
@@ -515,6 +334,12 @@ namespace tuple {
 
   template <template <typename> class Pred, typename... Ts>
   using filter_t = typename filter<Pred, Ts...>::type;
+
+  /* ------------------------------------------------------------------------ */
+  template <class Tuple>
+  constexpr decltype(auto) dynamic_get(std::size_t i, Tuple && tuple) {
+    return details::dynamic_get_impl<0>(i, std::forward<Tuple>(tuple));
+  }
 
   /* ------------------------------------------------------------------------ */
   template <class Tuple, class... Vals,
@@ -588,26 +413,4 @@ namespace tuple {
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
-namespace aka {
-template <typename tag, typename type_>
-struct size_type<AKANTU_ITERATORS_NAMESPACE::tuple::named_tag<tag, type_>> {
-  using type = typename std::decay_t<type_>::size_type;
-};
-} // namespace aka
-
-/* -------------------------------------------------------------------------- */
-#include <iterator>
-/* -------------------------------------------------------------------------- */
-
-namespace std {
-template <typename tag, typename type>
-struct iterator_traits<
-    ::AKANTU_ITERATORS_NAMESPACE::tuple::named_tag<tag, type>> {
-  using iterator_category = typename type::iterator_category;
-  using value_type = typename type::value_type;
-  using difference_type = typename type::difference_type;
-  using pointer = typename type::pointer;
-  using reference = typename type::reference;
-};
-} // namespace std
 #endif /* AKANTU_AKA_TUPLE_TOOLS_HH */

@@ -58,13 +58,11 @@ public:
 
   /// This constructor is only here to let cohesive elements compile
   InternalFieldTmpl(const ID & id, Material & material, FEEngine & fem,
-		    const ElementTypeMapArray<Idx> & element_filter);
+                    const ElementTypeMapArray<Idx> & element_filter);
 
   /// More general constructor
   InternalFieldTmpl(const ID & id, Material & material, Int dim, FEEngine & fem,
-		    const ElementTypeMapArray<Idx> & element_filter);
-
-  InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
+                    const ElementTypeMapArray<Idx> & element_filter);
 
   InternalFieldTmpl(const ID & id,
                     const InternalFieldTmpl<Material, T> & other);
@@ -148,8 +146,7 @@ public:
   }
 
   /// get the Array corresponding to the type en ghost_type specified
-  virtual auto operator()(ElementType type,
-                          GhostType ghost_type = _not_ghost)
+  virtual auto operator()(ElementType type, GhostType ghost_type = _not_ghost)
       -> Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
@@ -160,8 +157,7 @@ public:
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual auto previous(ElementType type,
-                        GhostType ghost_type = _not_ghost)
+  virtual auto previous(ElementType type, GhostType ghost_type = _not_ghost)
       -> Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
@@ -178,14 +174,14 @@ public:
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual auto previous() -> InternalFieldTmp<T> & {
+  virtual auto previous() -> InternalFieldTmpl & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
-  virtual auto previous() const -> const InternalFieldTmp<T> & {
+  virtual auto previous() const -> const InternalFieldTmpl & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -238,8 +234,8 @@ protected:
 };
 
 /// standard output stream operator
-template <typename T>
-inline auto operator<<(std::ostream & stream, const InternalFieldTmp<T> & _this)
+template <class Material, typename T>
+inline auto operator<<(std::ostream & stream, const InternalFieldTmpl<Material, T> & _this)
     -> std::ostream & {
   _this.printself(stream);
   return stream;
