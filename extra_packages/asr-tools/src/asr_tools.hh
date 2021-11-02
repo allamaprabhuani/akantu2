@@ -342,6 +342,9 @@ public:
   /// apply forces within an expanding sphere
   void applyPointForceDistributed(Real radius, Real F);
 
+  /// apply force by equally splitting between first loop nodes
+  void applyPointForcesFacetLoop(Real load);
+
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
 

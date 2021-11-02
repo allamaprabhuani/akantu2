@@ -5763,6 +5763,88 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
     }
   }
 }
+
+/* --------------------------------------------------------------- */
+void ASRTools::applyPointForcesFacetLoop(Real load) {
+
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & forces = model.getExternalForce();
+  auto it_force = make_view(forces, dim).begin();
+
+  CSR<Element> nodes_to_cohesives;
+  MeshUtils::buildNode2Elements(mesh, nodes_to_cohesives, dim, _ek_cohesive);
+
+  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+    std::map<std::pair<UInt, UInt>, Vector<Real>> loaded_nodes_normals;
+    auto central_node_pair = std::get<0>(data);
+    auto normals_pair = std::get<1>(data);
+    if (central_node_pair.first < central_node_pair.second) {
+      loaded_nodes_normals[central_node_pair] = normals_pair.first;
+    } else {
+      auto copy = central_node_pair;
+      central_node_pair.first = copy.second;
+      central_node_pair.second = copy.first;
+      loaded_nodes_normals[central_node_pair] = normals_pair.second;
+    }
+    auto central_node = central_node_pair.first;
+
+    for (auto & coh : nodes_to_cohesives.getRow(central_node)) {
+      // check duplicated nodes
+      auto coh_nodes = mesh.getConnectivity(coh);
+      auto nb_coh_nodes = coh_nodes.size();
+      auto nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                  .getNbIntegrationPoints(coh.type);
+
+      auto mat_id =
+          model.getMaterialByElement(coh.type, coh.ghost_type)(coh.element);
+      auto coh_loc_num = model.getMaterialLocalNumbering(
+          coh.type, coh.ghost_type)(coh.element);
+      auto && mat = model.getMaterial(mat_id);
+      auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+
+      auto && coh_normals = mat_coh->getNormals(coh.type, coh.ghost_type);
+      auto coh_norm_it = coh_normals.begin(dim);
+      Vector<Real> coh_normal = coh_norm_it[coh_loc_num * nb_quad_cohesive];
+      for (UInt i : arange(nb_coh_nodes / 2)) {
+        if (coh_nodes(i) < coh_nodes(i + nb_coh_nodes / 2)) {
+          loaded_nodes_normals[std::make_pair(
+              coh_nodes(i), coh_nodes(i + nb_coh_nodes / 2))] =
+              normals_pair.first;
+        } else if (coh_nodes(i) > coh_nodes(i + nb_coh_nodes / 2)) {
+          loaded_nodes_normals[std::make_pair(coh_nodes(i + nb_coh_nodes / 2),
+                                              coh_nodes(i))] =
+              normals_pair.second;
+        } else
+          continue;
+      }
+    }
+
+    // sum up all previously applied forces
+    Real current_load{0};
+    for (auto && pair : loaded_nodes_normals) {
+      auto node_pair = pair.first;
+      auto normal = pair.second;
+      auto node1 = node_pair.first;
+      Vector<Real> force1 = it_force[node1];
+      current_load += std::abs(force1.norm());
+    }
+    Real load_incr = load / 2 - current_load;
+
+    // split load increase between all the node pairs
+    for (auto && pair : loaded_nodes_normals) {
+      auto node_pair = pair.first;
+      auto normal = pair.second;
+      auto node1 = node_pair.first;
+      auto node2 = node_pair.second;
+      Vector<Real> force1 = it_force[node1];
+      Vector<Real> force2 = it_force[node2];
+      force1 += normal * load_incr / 2. / Real(loaded_nodes_normals.size());
+      force2 +=
+          -1. * normal * load_incr / 2. / Real(loaded_nodes_normals.size());
+    }
+  }
+}
 /* --------------------------------------------------------------- */
 void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 
