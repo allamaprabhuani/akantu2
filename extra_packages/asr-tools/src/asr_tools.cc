@@ -5775,18 +5775,10 @@ void ASRTools::applyPointForcesFacetLoop(Real load) {
   CSR<Element> nodes_to_cohesives;
   MeshUtils::buildNode2Elements(mesh, nodes_to_cohesives, dim, _ek_cohesive);
 
-  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+  for (auto && data : zip(asr_central_node_pairs)) {
     std::map<std::pair<UInt, UInt>, Vector<Real>> loaded_nodes_normals;
+    std::set<std::pair<UInt, UInt>> loaded_nodes;
     auto central_node_pair = std::get<0>(data);
-    auto normals_pair = std::get<1>(data);
-    if (central_node_pair.first < central_node_pair.second) {
-      loaded_nodes_normals[central_node_pair] = normals_pair.first;
-    } else {
-      auto copy = central_node_pair;
-      central_node_pair.first = copy.second;
-      central_node_pair.second = copy.first;
-      loaded_nodes_normals[central_node_pair] = normals_pair.second;
-    }
     auto central_node = central_node_pair.first;
 
     for (auto & coh : nodes_to_cohesives.getRow(central_node)) {
@@ -5806,17 +5798,23 @@ void ASRTools::applyPointForcesFacetLoop(Real load) {
       auto && coh_normals = mat_coh->getNormals(coh.type, coh.ghost_type);
       auto coh_norm_it = coh_normals.begin(dim);
       Vector<Real> coh_normal = coh_norm_it[coh_loc_num * nb_quad_cohesive];
+      std::pair<UInt, UInt> nodes_pair;
       for (UInt i : arange(nb_coh_nodes / 2)) {
-        if (coh_nodes(i) < coh_nodes(i + nb_coh_nodes / 2)) {
-          loaded_nodes_normals[std::make_pair(
-              coh_nodes(i), coh_nodes(i + nb_coh_nodes / 2))] =
-              normals_pair.first;
-        } else if (coh_nodes(i) > coh_nodes(i + nb_coh_nodes / 2)) {
-          loaded_nodes_normals[std::make_pair(coh_nodes(i + nb_coh_nodes / 2),
-                                              coh_nodes(i))] =
-              normals_pair.second;
-        } else
-          continue;
+        if (coh_nodes(i) != coh_nodes(i + nb_coh_nodes / 2)) {
+          nodes_pair.first =
+              std::min(coh_nodes(i), coh_nodes(i + nb_coh_nodes / 2));
+          nodes_pair.second =
+              std::max(coh_nodes(i), coh_nodes(i + nb_coh_nodes / 2));
+          Vector<Real> corr_normal = coh_normal;
+          if (nodes_pair.first != coh_nodes(i))
+            corr_normal *= -1.;
+          auto res = loaded_nodes.insert(nodes_pair);
+          if (res.second == true) {
+            loaded_nodes_normals[nodes_pair] = corr_normal;
+          } else {
+            loaded_nodes_normals[nodes_pair] += corr_normal;
+          }
+        }
       }
     }
 
@@ -5824,17 +5822,20 @@ void ASRTools::applyPointForcesFacetLoop(Real load) {
     Real current_load{0};
     for (auto && pair : loaded_nodes_normals) {
       auto node_pair = pair.first;
-      auto normal = pair.second;
       auto node1 = node_pair.first;
+      auto node2 = node_pair.second;
       Vector<Real> force1 = it_force[node1];
-      current_load += std::abs(force1.norm());
+      Vector<Real> force2 = it_force[node2];
+      current_load += std::abs(force1.norm()) + std::abs(force2.norm());
     }
-    Real load_incr = load / 2 - current_load;
+    Real load_incr = load - current_load;
 
     // split load increase between all the node pairs
     for (auto && pair : loaded_nodes_normals) {
       auto node_pair = pair.first;
       auto normal = pair.second;
+      if (not Math::are_float_equal(normal.norm(), 0))
+        normal /= normal.norm();
       auto node1 = node_pair.first;
       auto node2 = node_pair.second;
       Vector<Real> force1 = it_force[node1];
