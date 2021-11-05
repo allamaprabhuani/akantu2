@@ -134,7 +134,7 @@ void CohesiveContactSolverCallback::corrector() {
 
 /* -------------------------------------------------------------------------- */
 MatrixType
-CohesiveContactSolverCallback::getMatrixType(const ID & /*matrix_id*/) {
+CohesiveContactSolverCallback::getMatrixType(const ID & /*matrix_id*/) const {
   return _symmetric;
 }
 

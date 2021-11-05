@@ -35,12 +35,13 @@ namespace py = pybind11;
 namespace akantu {
 
 namespace {
-  class PySolverCallback : public SolverCallback {
+  template <class Parent = SolverCallback>
+  class PySolverCallback : public Parent {
   public:
-    using SolverCallback::SolverCallback;
+    using Parent::Parent;
 
     /// get the type of matrix needed
-    MatrixType getMatrixType(const ID & matrix_id) override {
+    MatrixType getMatrixType(const ID & matrix_id) const override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE_PURE(MatrixType, SolverCallback, getMatrixType,
                              matrix_id);
@@ -141,7 +142,8 @@ void register_dof_manager(py::module & mod) {
            [](NonLinearSolver & self, const std::string & id,
               const SolveConvergenceCriteria & val) { self.set(id, val); });
 
-  py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")
+  py::class_<SolverCallback, PySolverCallback<SolverCallback>>(mod,
+                                                               "SolverCallback")
       .def(py::init_alias<DOFManager &>())
       .def("getMatrixType", &SolverCallback::getMatrixType)
       .def("assembleMatrix", &SolverCallback::assembleMatrix)
@@ -154,6 +156,11 @@ void register_dof_manager(py::module & mod) {
       .def("afterSolveStep", &SolverCallback::afterSolveStep)
       .def_property_readonly("dof_manager", &SolverCallback::getSCDOFManager,
                              py::return_value_policy::reference);
+
+  py::class_<InterceptSolverCallback, SolverCallback,
+             PySolverCallback<InterceptSolverCallback>>(
+      mod, "InterceptSolverCallback")
+      .def(py::init_alias<SolverCallback &>());
 }
 
 } // namespace akantu

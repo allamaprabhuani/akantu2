@@ -15,7 +15,7 @@ import numpy as np
 import akantu as aka
 
 
-class SolverCallback(aka.SolverCallback):
+class SolverCallback(aka.InterceptSolverCallback):
     def __init__(self, model):
         super().__init__(model.getDOFManager())
         self.model = model
@@ -48,9 +48,6 @@ class SolverCallback(aka.SolverCallback):
         self.first = True
         self.k_release = -1
 
-    def getMatrixType(self, matrix_id):
-        return self.model.getMatrixType(matrix_id)
-
     def assembleMatrix(self, matrix_id):
         self.model.assembleMatrix(matrix_id)
         if matrix_id == "K":
@@ -68,9 +65,6 @@ class SolverCallback(aka.SolverCallback):
 
             self.k_release = self.model.getDOFManager().getMatrix("K").getRelease()
             self.first = False
-
-    def assembleLumpedMatrix(self, matrix_id):
-        self.model.assembleLumpedMatrix(matrix_id)
 
     def assembleResidual(self):
         displacement = self.model.getDisplacement()

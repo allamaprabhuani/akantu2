@@ -545,7 +545,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
+MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }
