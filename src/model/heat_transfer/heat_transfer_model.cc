@@ -150,7 +150,7 @@ void HeatTransferModel::assembleCapacityLumped(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) {
+MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K" or matrix_id == "M") {
     return _symmetric;
   }

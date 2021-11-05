@@ -92,7 +92,7 @@ public:
   /* Virtual methods from SolverCallback                                      */
   /* ------------------------------------------------------------------------ */
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & matrix_id) override;
@@ -105,7 +105,7 @@ public:
 
   void assembleResidual(const ID & residual_part) override;
 
-  bool canSplitResidual() override { return true; }
+  bool canSplitResidual() const override { return true; }
 
   void afterSolveStep(bool converged) override;
 

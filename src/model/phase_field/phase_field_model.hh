@@ -95,7 +95,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & /*unused*/) override;
+  MatrixType getMatrixType(const ID & /*unused*/) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & /*unused*/) override;
@@ -113,7 +113,7 @@ protected:
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
-  /* Materials (phase_field_model.cc)                            */
+  /* Materials (phase_field_model.cc)                                         */
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty phasefield of a given type

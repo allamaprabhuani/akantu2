@@ -58,7 +58,7 @@ public:
     blocked(0, _x) = true;
   }
 
-  void assembleMatrix(const ID & matrix_id) {
+  void assembleMatrix(const ID & matrix_id) override {
     if (matrix_id != "K")
       return;
 
@@ -77,17 +77,19 @@ public:
     K *= nb_dofs - 1;
   }
 
-  MatrixType getMatrixType(const ID & matrix_id) {
+  MatrixType getMatrixType(const ID & matrix_id) const override {
     if (matrix_id == "K")
       return _symmetric;
     return _mt_not_defined;
   }
-  void assembleLumpedMatrix(const ID &) {}
+  void assembleLumpedMatrix(const ID &) override {}
 
-  void assembleResidual() { dof_manager.assembleToResidual("disp", forces); }
+  void assembleResidual() override {
+    dof_manager.assembleToResidual("disp", forces);
+  }
 
-  void predictor() {}
-  void corrector() {}
+  void predictor() override {}
+  void corrector() override {}
 
   DOFManagerDefault & dof_manager;
   Array<Real> dispacement;

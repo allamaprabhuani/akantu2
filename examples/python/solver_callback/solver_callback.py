@@ -17,7 +17,7 @@ import akantu as aka
 
 class SolverCallback(aka.InterceptSolverCallback):
     def __init__(self, model):
-        super().__init__(model.getDOFManager())
+        super().__init__(model)
         self.model = model
 
         mesh = model.getMesh()
@@ -39,6 +39,10 @@ class SolverCallback(aka.InterceptSolverCallback):
         matrix_type = self.model.getMatrixType("K")
         for p in self.pair:
             #blocked_dofs[p[1]] = True
+            # a u_{i, x} + b u_{j, x} = 0
+            # self.periodic_K_modif(i*dim + aka._x, i*dim + aka._x, a)
+            # self.periodic_K_modif(i*dim + aka._x, j*dim + aka._x, b)
+
             self.periodic_K_modif(p[0]*2, p[0]*2, 1)
             self.periodic_K_modif(p[0]*2, p[1]*2, -1)
             if matrix_type == aka._unsymmetric:
@@ -60,6 +64,7 @@ class SolverCallback(aka.InterceptSolverCallback):
 
             self.model.getDOFManager().assemblePreassembledMatrix(
                 "K", self.periodic_K_modif)
+
             if self.first:
                 self.model.getDOFManager().getMatrix("K").saveMatrix("K1.mtx")
 
