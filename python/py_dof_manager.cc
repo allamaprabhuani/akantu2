@@ -18,8 +18,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "py_dof_manager.hh"
-#include "py_akantu_pybind11_compatibility.hh"
 #include "py_aka_array.hh"
+#include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
 #include <dof_manager.hh>
 #include <non_linear_solver.hh>
@@ -124,8 +124,8 @@ void register_dof_manager(py::module & mod) {
            py::arg("dof_id"), py::arg("array_to_assemble"),
            py::arg("lumped_mtx"), py::arg("scale_factor") = 1.)
       .def("assemblePreassembledMatrix",
-           &DOFManager::assemblePreassembledMatrix, py::arg("dof_id_m"),
-           py::arg("dof_id_n"), py::arg("matrix_id"), py::arg("terms"));
+           &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
+           py::arg("terms"));
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")
       .def(
@@ -142,7 +142,7 @@ void register_dof_manager(py::module & mod) {
               const SolveConvergenceCriteria & val) { self.set(id, val); });
 
   py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")
-      .def(py::init_alias<DOFManager&>())
+      .def(py::init_alias<DOFManager &>())
       .def("getMatrixType", &SolverCallback::getMatrixType)
       .def("assembleMatrix", &SolverCallback::assembleMatrix)
       .def("assembleLumpedMatrix", &SolverCallback::assembleLumpedMatrix)

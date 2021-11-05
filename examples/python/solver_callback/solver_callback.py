@@ -34,7 +34,7 @@ class SolverCallback(aka.SolverCallback):
                     self.pair.append([node_l, node_r])
 
         blocked_dofs = model.getBlockedDOFs()
-        self.periodic_K_modif = aka.TermsToAssemble()
+        self.periodic_K_modif = aka.TermsToAssemble("displacement", "displacement")
 
         matrix_type = self.model.getMatrixType("K")
         for p in self.pair:
@@ -62,7 +62,7 @@ class SolverCallback(aka.SolverCallback):
                 self.model.getDOFManager().getMatrix("K").saveMatrix("K0.mtx")
 
             self.model.getDOFManager().assemblePreassembledMatrix(
-                'displacement', 'displacement', "K", self.periodic_K_modif)
+                "K", self.periodic_K_modif)
             if self.first:
                 self.model.getDOFManager().getMatrix("K").saveMatrix("K1.mtx")
 

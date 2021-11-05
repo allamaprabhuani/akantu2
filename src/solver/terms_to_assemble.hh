@@ -45,7 +45,8 @@ class TermsToAssemble {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  TermsToAssemble() = default;
+  TermsToAssemble(const ID & dof_id_m, const ID & dof_id_n)
+      : dof_id_m(dof_id_m), dof_id_n(dof_id_n) {}
   virtual ~TermsToAssemble() = default;
 
   class TermToAssemble {
@@ -86,14 +87,18 @@ private:
 public:
   using const_terms_iterator = TermsContainer::const_iterator;
 
-  const_terms_iterator begin() const { return terms.begin(); }
-  const_terms_iterator end() const { return terms.end(); }
+  auto begin() const { return terms.begin(); }
+  auto end() const { return terms.end(); }
+
+  AKANTU_GET_MACRO(DOFIdM, dof_id_m, const ID &);
+  AKANTU_GET_MACRO(DOFIdN, dof_id_n, const ID &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   TermsContainer terms;
+  ID dof_id_m, dof_id_n;
 };
 
 } // namespace akantu

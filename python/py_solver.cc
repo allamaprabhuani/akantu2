@@ -88,7 +88,9 @@ void register_solvers(py::module & mod) {
       .def_property_readonly("j", &TermsToAssemble::TermToAssemble::j);
 
   py::class_<TermsToAssemble>(mod, "TermsToAssemble")
-      .def(py::init<>())
+      .def(py::init<const ID &, const ID &>())
+      .def("getDOFIdM", &TermsToAssemble::getDOFIdM)
+      .def("getDOFIdN", &TermsToAssemble::getDOFIdN)
       .def(
           "__call__",
           [](TermsToAssemble & self, UInt i, UInt j, Real val) {
