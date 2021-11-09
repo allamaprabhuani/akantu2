@@ -130,7 +130,8 @@ public:
 
   /// get inscribed circle diameter directly by the element
   static Real getInscribedCircleDiameter(SolidMechanicsModel & model,
-                                         const Element & el);
+                                         const Element & el,
+                                         bool initial_conf = true);
 
   /// get facets area
   static Real getFacetArea(SolidMechanicsModel & model, const Element & el);

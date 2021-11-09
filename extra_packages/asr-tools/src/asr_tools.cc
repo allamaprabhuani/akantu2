@@ -5879,6 +5879,7 @@ void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 /* --------------------------------------------------------------- */
 std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
   const auto & mesh = model.getMesh();
+  const auto & mesh_facets = mesh.getMeshFacets();
   const auto dim = mesh.getSpatialDimension();
   GhostType gt = _not_ghost;
   Material & mat = model.getMaterial(material_name);
@@ -5902,31 +5903,48 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
     if (filter.size() == 0)
       continue;
 
+    UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                .getNbIntegrationPoints(element_type);
+
     /// compute normal norm of real opening = opening + eigen opening
     auto opening_it = mat_coh->getOpening(element_type, gt).begin(dim);
     auto eigen_opening = mat_coh->getEigenOpening(element_type, gt);
     auto eigen_opening_it = eigen_opening.begin(dim);
     Array<Real> normal_eigen_opening_norm(
-        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1);
+        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 0);
     auto normal_eigen_opening_norm_it = normal_eigen_opening_norm.begin();
     Array<Real> real_normal_opening_norm(
-        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1);
+        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 0);
     auto real_normal_opening_norm_it = real_normal_opening_norm.begin();
     auto normal_it = mat_coh->getNormals(element_type, gt).begin(dim);
     auto normal_end = mat_coh->getNormals(element_type, gt).end(dim);
     /// loop on each quadrature point
-    for (; normal_it != normal_end; ++opening_it, ++eigen_opening_it,
-                                    ++normal_it, ++real_normal_opening_norm_it,
-                                    ++normal_eigen_opening_norm_it) {
+    for (UInt i = 0; normal_it != normal_end; ++i, ++opening_it,
+              ++eigen_opening_it, ++normal_it, ++real_normal_opening_norm_it,
+              ++normal_eigen_opening_norm_it) {
+      UInt coh_nb = filter(floor(i / nb_quad_cohesive));
+      Element coh{element_type, coh_nb, gt};
+      auto && coh_facets = mesh_facets.getSubelementToElement(coh);
+      bool blowed_up{false};
+      for (auto & coh_facet : coh_facets) {
+        auto inscr_diam_init =
+            MeshUtils::getInscribedCircleDiameter(model, coh_facet, true);
+        auto inscr_diam_curr =
+            MeshUtils::getInscribedCircleDiameter(model, coh_facet, false);
+        if (inscr_diam_curr >= 2 * inscr_diam_init) {
+          blowed_up = true;
+          break;
+        }
+      }
+
+      if (blowed_up)
+        continue;
+
       auto real_opening = *opening_it + *eigen_opening_it;
       *real_normal_opening_norm_it = real_opening.dot(*normal_it);
       Vector<Real> eig_opening(*eigen_opening_it);
       *normal_eigen_opening_norm_it = eig_opening.dot(*normal_it);
     }
-
-    // ASR_volume += fe_engine.integrate(normal_eigen_opening_norm,
-    // element_type,
-    //                                   gt, filter);
 
     crack_volume =
         fe_engine.integrate(real_normal_opening_norm, element_type, gt, filter);
@@ -5955,6 +5973,7 @@ void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
 
   const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
   auto && mesh = model.getMesh();
+  auto && mesh_facets = mesh.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
   GhostType gt = _not_ghost;
 
@@ -5973,6 +5992,9 @@ void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
       if (filter.size() == 0)
         continue;
 
+      UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                  .getNbIntegrationPoints(coh_type);
+
       /// compute normal norm of real opening = opening + eigen opening
       auto opening_it = mat_coh->getOpening(coh_type, gt).begin(dim);
       auto eigen_opening = mat_coh->getEigenOpening(coh_type, gt);
@@ -5987,9 +6009,27 @@ void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
       auto normal_it = mat_coh->getNormals(coh_type, gt).begin(dim);
       auto normal_end = mat_coh->getNormals(coh_type, gt).end(dim);
       /// loop on each quadrature point
-      for (; normal_it != normal_end;
-           ++opening_it, ++eigen_opening_it, ++normal_it,
-           ++real_normal_opening_norm_it, ++normal_eigen_opening_norm_it) {
+      for (UInt i = 0; normal_it != normal_end; ++i, ++opening_it,
+                ++eigen_opening_it, ++normal_it, ++real_normal_opening_norm_it,
+                ++normal_eigen_opening_norm_it) {
+        UInt coh_nb = filter(floor(i / nb_quad_cohesive));
+        Element coh{coh_type, coh_nb, gt};
+        auto && coh_facets = mesh_facets.getSubelementToElement(coh);
+        bool blowed_up{false};
+        for (auto & coh_facet : coh_facets) {
+          auto inscr_diam_init =
+              MeshUtils::getInscribedCircleDiameter(model, coh_facet, true);
+          auto inscr_diam_curr =
+              MeshUtils::getInscribedCircleDiameter(model, coh_facet, false);
+          if (inscr_diam_curr >= 2 * inscr_diam_init) {
+            blowed_up = true;
+            break;
+          }
+        }
+
+        if (blowed_up)
+          continue;
+
         auto real_opening = *opening_it + *eigen_opening_it;
         *real_normal_opening_norm_it = real_opening.dot(*normal_it);
         Vector<Real> eig_opening(*eigen_opening_it);

@@ -809,19 +809,24 @@ Real MeshUtils::distanceBetweenIncenters(const Mesh & mesh_facets,
 }
 /*-------------------------------------------------------------------- */
 Real MeshUtils::getInscribedCircleDiameter(SolidMechanicsModel & model,
-                                           const Element & el) {
+                                           const Element & el,
+                                           bool initial_conf) {
   AKANTU_DEBUG_IN();
   auto & mesh = model.getMesh();
   auto & mesh_facets = mesh.getMeshFacets();
   auto & facets_fe_engine = model.getFEEngine("FacetsFEEngine");
   auto dim = mesh.getSpatialDimension();
   const auto & pos = mesh.getNodes();
+  auto coordinates = pos;
+  if (not initial_conf) {
+    coordinates += model.getDisplacement();
+  }
 
   auto nb_nodes_per_facet = mesh_facets.getNbNodesPerElement(el.type);
   Array<Real> coord(0, nb_nodes_per_facet * dim);
   Array<UInt> dummy_list(1, 1, el.element);
-  facets_fe_engine.extractNodalToElementField(mesh_facets, pos, coord, el.type,
-                                              el.ghost_type, dummy_list);
+  facets_fe_engine.extractNodalToElementField(
+      mesh_facets, coordinates, coord, el.type, el.ghost_type, dummy_list);
   Array<Real>::matrix_iterator coord_el = coord.begin(dim, nb_nodes_per_facet);
   Real facet_indiam = facets_fe_engine.getElementInradius(*coord_el, el.type);
 
