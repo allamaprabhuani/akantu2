@@ -164,8 +164,8 @@ public:
 
   /// pre multiplies a tensor by the shapes derivaties
   void
-  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs, ElementType type,
-             GhostType ghost_type,
+  computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
+             ElementType type, GhostType ghost_type,
              const Array<UInt> & filter_elements = empty_filter) const override;
 
   /// left and right  multiplies a tensor by the shapes derivaties

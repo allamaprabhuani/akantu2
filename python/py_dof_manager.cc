@@ -35,10 +35,9 @@ namespace py = pybind11;
 namespace akantu {
 
 namespace {
-  template <class Parent = SolverCallback>
-  class PySolverCallback : public Parent {
+  class PySolverCallback : public SolverCallback {
   public:
-    using Parent::Parent;
+    using SolverCallback::SolverCallback;
 
     /// get the type of matrix needed
     MatrixType getMatrixType(const ID & matrix_id) const override {
@@ -66,9 +65,6 @@ namespace {
       PYBIND11_OVERRIDE_PURE(void, SolverCallback, assembleResidual);
     }
 
-    /* ---------------------------------------------------------------------- */
-    /* Dynamic simulations part                                               */
-    /* ---------------------------------------------------------------------- */
     /// callback for the predictor (in case of dynamic simulation)
     void predictor() override {
       // NOLINTNEXTLINE
@@ -91,6 +87,53 @@ namespace {
       PYBIND11_OVERRIDE(void, SolverCallback, afterSolveStep, converged);
     }
   };
+
+  class PyInterceptSolverCallback : public InterceptSolverCallback {
+  public:
+    using InterceptSolverCallback::InterceptSolverCallback;
+
+    MatrixType getMatrixType(const ID & matrix_id) const override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(MatrixType, SolverCallback, getMatrixType, matrix_id);
+    }
+
+    void assembleMatrix(const ID & matrix_id) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, assembleMatrix, matrix_id);
+    }
+
+    /// callback to assemble a lumped Matrix
+    void assembleLumpedMatrix(const ID & matrix_id) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, assembleLumpedMatrix, matrix_id);
+    }
+
+    void assembleResidual() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, assembleResidual);
+    }
+
+    void predictor() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, predictor);
+    }
+
+    void corrector() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, corrector);
+    }
+
+    void beforeSolveStep() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, beforeSolveStep);
+    }
+
+    void afterSolveStep(bool converged) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, SolverCallback, afterSolveStep, converged);
+    }
+  };
+
 } // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -142,8 +185,7 @@ void register_dof_manager(py::module & mod) {
            [](NonLinearSolver & self, const std::string & id,
               const SolveConvergenceCriteria & val) { self.set(id, val); });
 
-  py::class_<SolverCallback, PySolverCallback<SolverCallback>>(mod,
-                                                               "SolverCallback")
+  py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")
       .def(py::init_alias<DOFManager &>())
       .def("getMatrixType", &SolverCallback::getMatrixType)
       .def("assembleMatrix", &SolverCallback::assembleMatrix)
@@ -158,8 +200,7 @@ void register_dof_manager(py::module & mod) {
                              py::return_value_policy::reference);
 
   py::class_<InterceptSolverCallback, SolverCallback,
-             PySolverCallback<InterceptSolverCallback>>(
-      mod, "InterceptSolverCallback")
+             PyInterceptSolverCallback>(mod, "InterceptSolverCallback")
       .def(py::init_alias<SolverCallback &>());
 }
 
