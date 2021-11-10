@@ -94,43 +94,47 @@ namespace {
 
     MatrixType getMatrixType(const ID & matrix_id) const override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(MatrixType, SolverCallback, getMatrixType, matrix_id);
+      PYBIND11_OVERRIDE(MatrixType, InterceptSolverCallback, getMatrixType,
+                        matrix_id);
     }
 
     void assembleMatrix(const ID & matrix_id) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, assembleMatrix, matrix_id);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, assembleMatrix,
+                        matrix_id);
     }
 
     /// callback to assemble a lumped Matrix
     void assembleLumpedMatrix(const ID & matrix_id) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, assembleLumpedMatrix, matrix_id);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, assembleLumpedMatrix,
+                        matrix_id);
     }
 
     void assembleResidual() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, assembleResidual);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, assembleResidual);
     }
 
     void predictor() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, predictor);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, predictor);
     }
 
     void corrector() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, corrector);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, corrector);
     }
 
     void beforeSolveStep() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, beforeSolveStep);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, beforeSolveStep);
     }
 
     void afterSolveStep(bool converged) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, afterSolveStep, converged);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, afterSolveStep,
+                        converged);
     }
   };
 
