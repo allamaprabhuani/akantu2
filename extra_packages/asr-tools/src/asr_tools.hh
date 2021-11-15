@@ -64,7 +64,7 @@ public:
   /// This function is used in case of uni-axial boundary conditions:
   /// It detects the nodes, on which a traction needs to be applied and stores
   /// them in a node group
-  void fillNodeGroup(NodeGroup & node_group, bool multi_axial = false);
+  void fillNodeGroup(NodeGroup & node_group, SpatialDirection dir);
 
   /// compute volumes of each phase
   void computePhaseVolumes();
@@ -78,6 +78,8 @@ public:
   /// Apply loaded boundary conditions
   void applyLoadedBC(const Vector<Real> & traction, const ID & element_group,
                      bool multi_axial);
+  /// Apply traction on the upper limit in the given direction
+  void applyExternalTraction(Real traction, SpatialDirection direction);
 
   /// This function computes the average strain along one side
   Real computeAverageStrain(SpatialDirection direction);

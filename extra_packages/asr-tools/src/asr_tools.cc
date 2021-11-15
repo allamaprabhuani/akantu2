@@ -173,8 +173,7 @@ void ASRTools::applyFreeExpansionBC() {
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------- */
 void ASRTools::applyLoadedBC(const Vector<Real> & traction,
                              const ID & element_group, bool multi_axial) {
 
@@ -245,43 +244,41 @@ void ASRTools::applyLoadedBC(const Vector<Real> & traction,
   // }
 }
 
+/* ------------------------------------------------------------------- */
+void ASRTools::applyExternalTraction(Real traction,
+                                     SpatialDirection direction) {
+
+  /// boundary conditions
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto && upperBounds = mesh.getUpperBounds();
+  auto limit = upperBounds(direction);
+
+  auto && pos = mesh.getNodes();
+  auto & force = model.getExternalForce();
+
+  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+    if (Math::are_float_equal(pos(i, direction), limit)) {
+      force(i, direction) = traction;
+    }
+  }
+}
+
 /* --------------------------------------------------------------------------
  */
-void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
+void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-  Real top = upperBounds(1);
-  Real right = upperBounds(0);
-  Real bottom = lowerBounds(1);
-  Real front;
-  if (dim == 3) {
-    front = upperBounds(2);
-  }
+  Real top = upperBounds(dir);
+  Real bottom = lowerBounds(dir);
+
   Real eps = std::abs((top - bottom) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
-  if (multi_axial) {
-    /// fill the NodeGroup with the nodes on the left, bottom and back
-    /// surface
-    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 0) - right) < eps) {
-        node_group.add(i);
-      }
-      if (std::abs(pos(i, 1) - top) < eps) {
-        node_group.add(i);
-      }
-      if (dim == 3 && std::abs(pos(i, 2) - front) < eps) {
-        node_group.add(i);
-      }
-    }
-  }
-  /// fill the NodeGroup with the nodes on the bottom surface
-  else {
-    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 1) - top) < eps) {
-        node_group.add(i);
-      }
+  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+    if (std::abs(pos(i, dir) - top) < eps) {
+      node_group.add(i);
     }
   }
 }
@@ -6000,10 +5997,10 @@ void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
       auto eigen_opening = mat_coh->getEigenOpening(coh_type, gt);
       auto eigen_opening_it = eigen_opening.begin(dim);
       Array<Real> normal_eigen_opening_norm(
-          filter.size() * fe_engine.getNbIntegrationPoints(coh_type));
+          filter.size() * fe_engine.getNbIntegrationPoints(coh_type), 1, 0);
       auto normal_eigen_opening_norm_it = normal_eigen_opening_norm.begin();
       Array<Real> real_normal_opening_norm(
-          filter.size() * fe_engine.getNbIntegrationPoints(coh_type));
+          filter.size() * fe_engine.getNbIntegrationPoints(coh_type), 1, 0);
       Array<Real> open_volume(filter.size());
       auto real_normal_opening_norm_it = real_normal_opening_norm.begin();
       auto normal_it = mat_coh->getNormals(coh_type, gt).begin(dim);
