@@ -64,7 +64,8 @@ public:
   /// This function is used in case of uni-axial boundary conditions:
   /// It detects the nodes, on which a traction needs to be applied and stores
   /// them in a node group
-  void fillNodeGroup(NodeGroup & node_group, SpatialDirection dir);
+  void fillNodeGroup(NodeGroup & node_group, SpatialDirection dir,
+                     Real offset = 0);
 
   /// compute volumes of each phase
   void computePhaseVolumes();
@@ -73,7 +74,7 @@ public:
   void computeModelVolume();
 
   /// Apply free expansion boundary conditions
-  void applyFreeExpansionBC();
+  void applyFreeExpansionBC(Real offset = 0);
 
   /// Apply loaded boundary conditions
   void applyLoadedBC(const Vector<Real> & traction, const ID & element_group,
@@ -82,7 +83,7 @@ public:
   void applyExternalTraction(Real traction, SpatialDirection direction);
 
   /// This function computes the average strain along one side
-  Real computeAverageStrain(SpatialDirection direction);
+  Real computeAverageStrain(SpatialDirection direction, Real offset = 0);
 
   /// Computes a compoment of average volumetric strain tensor,
   /// i.e. eps_macro_xx or eps_macro_yy or eps_macro_zz
@@ -109,7 +110,7 @@ public:
 
   /// computes and writes only displacements and strains
   void computeAveragePropertiesCohesiveModel(std::ofstream & file_output,
-                                             Real time);
+                                             Real time, Real offset = 0);
 
   /// Averages strains & displacements + damage ratios in FE2 material
   void computeAveragePropertiesFe2Material(std::ofstream & file_output,

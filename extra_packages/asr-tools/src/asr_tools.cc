@@ -120,7 +120,7 @@ void ASRTools::computeModelVolume() {
   }
 }
 /* ------------------------------------------------------------------------- */
-void ASRTools::applyFreeExpansionBC() {
+void ASRTools::applyFreeExpansionBC(Real offset) {
   /// boundary conditions
   const auto & mesh = model.getMesh();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
@@ -131,21 +131,24 @@ void ASRTools::applyFreeExpansionBC() {
   Array<bool> & boun = model.getBlockedDOFs();
 
   /// accessing bounds
-  Real bottom = lowerBounds(1);
-  Real left = lowerBounds(0);
-  Real top = upperBounds(1);
-  Real eps = std::abs((top - bottom) * 1e-6);
+  Real left = lowerBounds(0) + offset;
+  Real right = upperBounds(0) - offset;
 
   switch (dim) {
   case 2: {
+    Real bottom = lowerBounds(1) + offset;
+    Real top = upperBounds(1) - offset;
+    Real eps = std::abs((top - bottom) * 1e-6);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 1) - bottom) < eps) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
+      if ((left <= pos(i, 0)) and (pos(i, 0) <= right)) {
+        if (std::abs(pos(i, 1) - bottom) < eps) {
+          boun(i, 1) = true;
+          disp(i, 1) = 0.0;
 
-        if (std::abs(pos(i, 0) - left) < eps) {
-          boun(i, 0) = true;
-          disp(i, 0) = 0.0;
+          if (std::abs(pos(i, 0) - left) < eps) {
+            boun(i, 0) = true;
+            disp(i, 0) = 0.0;
+          }
         }
       }
     }
@@ -153,19 +156,28 @@ void ASRTools::applyFreeExpansionBC() {
   }
   case 3: {
     /// accessing bounds
-    Real back = lowerBounds(2);
+    Real bottom = lowerBounds(2) + offset;
+    Real top = upperBounds(2) - offset;
+    Real back = lowerBounds(1) + offset;
+    Real front = upperBounds(1) - offset;
+    Real eps = std::abs((top - bottom) * 1e-6);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 1) - bottom) < eps) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
-      }
-      if (std::abs(pos(i, 0) - left) < eps) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-      }
-      if (std::abs(pos(i, 2) - back) < eps) {
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
+      if ((left <= pos(i, 0)) and (pos(i, 0) <= right) and
+          (bottom <= pos(i, 2)) and (pos(i, 2) <= top) and
+          (back <= pos(i, 1)) and (pos(i, 1) <= front)) {
+
+        if (std::abs(pos(i, 2) - bottom) < eps) {
+          boun(i, 2) = true;
+          disp(i, 2) = 0.0;
+        }
+        if (std::abs(pos(i, 0) - left) < eps) {
+          boun(i, 0) = true;
+          disp(i, 0) = 0.0;
+        }
+        if (std::abs(pos(i, 1) - back) < eps) {
+          boun(i, 1) = true;
+          disp(i, 1) = 0.0;
+        }
       }
     }
     break;
@@ -266,14 +278,13 @@ void ASRTools::applyExternalTraction(Real traction,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir) {
+void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir,
+                             Real offset) {
   const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-  Real top = upperBounds(dir);
-  Real bottom = lowerBounds(dir);
-
+  Real top = upperBounds(dir) - offset;
+  Real bottom = lowerBounds(dir) + offset;
   Real eps = std::abs((top - bottom) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
@@ -284,23 +295,23 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir) {
 }
 
 /* ------------------------------------------------------------------- */
-Real ASRTools::computeAverageStrain(SpatialDirection direction) {
+Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
 
   Real av_displ{0};
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-  Real right = upperBounds(0);
-  Real left = lowerBounds(0);
-  Real top = upperBounds(1);
-  Real bottom = lowerBounds(1);
+  Real right = upperBounds(0) - offset;
+  Real left = lowerBounds(0) + offset;
+  Real top = upperBounds(1) - offset;
+  Real bottom = lowerBounds(1) + offset;
   Real front;
   Real back;
   Real length{0};
   if (dim == 3) {
-    front = upperBounds(2);
-    back = lowerBounds(2);
+    front = upperBounds(2) - offset;
+    back = lowerBounds(2) + offset;
   }
   Real eps = std::abs((right - left) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
@@ -310,9 +321,12 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction) {
   if (direction == _x) {
     length = std::abs(right - left);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 0) - right) < eps && mesh.isLocalOrMasterNode(i)) {
-        av_displ += disp(i, 0);
-        ++nb_nodes;
+      if ((bottom <= pos(i, 1)) and (pos(i, 1) <= top) and
+          (std::abs(pos(i, 0) - right) < eps) and mesh.isLocalOrMasterNode(i)) {
+        if ((dim == 3) and (back <= pos(i, 2)) and (pos(i, 2) <= front)) {
+          av_displ += disp(i, 0);
+          ++nb_nodes;
+        }
       }
     }
   }
@@ -320,9 +334,12 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction) {
   else if (direction == _y) {
     length = std::abs(top - bottom);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 1) - top) < eps && mesh.isLocalOrMasterNode(i)) {
-        av_displ += disp(i, 1);
-        ++nb_nodes;
+      if ((left <= pos(i, 0)) and (pos(i, 0) <= right) and
+          (std::abs(pos(i, 1) - top) < eps) and mesh.isLocalOrMasterNode(i)) {
+        if ((dim == 3) and (back <= pos(i, 2)) and (pos(i, 2) <= front)) {
+          av_displ += disp(i, 1);
+          ++nb_nodes;
+        }
       }
     }
   } else if ((direction == _z) && (model.getSpatialDimension() == 3)) {
@@ -330,7 +347,9 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction) {
                         "no z-direction in 2D problem");
     length = std::abs(front - back);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 2) - front) < eps && mesh.isLocalOrMasterNode(i)) {
+      if ((left <= pos(i, 0)) and (pos(i, 0) <= right) and
+          (bottom <= pos(i, 1)) and (pos(i, 1) <= top) and
+          (std::abs(pos(i, 2) - front) < eps) and mesh.isLocalOrMasterNode(i)) {
         av_displ += disp(i, 2);
         ++nb_nodes;
       }
@@ -830,14 +849,14 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
 }
 /* ----------------------------------------------------------------- */
 void ASRTools::computeAveragePropertiesCohesiveModel(
-    std::ofstream & file_output, Real time) {
+    std::ofstream & file_output, Real time, Real offset) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  Real av_strain_x = computeAverageStrain(_x);
-  Real av_strain_y = computeAverageStrain(_y);
+  Real av_strain_x = computeAverageStrain(_x, offset);
+  Real av_strain_y = computeAverageStrain(_y, offset);
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
@@ -850,7 +869,7 @@ void ASRTools::computeAveragePropertiesCohesiveModel(
   }
 
   else {
-    Real av_strain_z = computeAverageStrain(_z);
+    Real av_strain_z = computeAverageStrain(_z, offset);
 
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
@@ -2385,7 +2404,8 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
     cent_facet.element = matrix_elements.getElements(facet_type)(id);
     cent_facet.ghost_type = gt;
 
-    /// eliminate possibility of inserting on a partition border or intersecting
+    /// eliminate possibility of inserting on a partition border or
+    /// intersecting
     bool border_facets{false};
     Vector<UInt> facet_nodes = facet_conn_it[cent_facet.element];
     for (auto node : facet_nodes) {
