@@ -98,8 +98,7 @@ public:
                                           Real scale_factor = 1) override;
 
   /// assemble coupling terms between to dofs
-  void assemblePreassembledMatrix(const ID & dof_id_m, const ID & dof_id_n,
-                                  const ID & matrix_id,
+  void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & terms) override;
 
 protected:

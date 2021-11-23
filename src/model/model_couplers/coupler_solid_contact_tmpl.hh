@@ -171,7 +171,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::corrector() {
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 MatrixType CouplerSolidContactTemplate<SolidMechanicsModelType>::getMatrixType(
-    const ID & matrix_id) {
+    const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }

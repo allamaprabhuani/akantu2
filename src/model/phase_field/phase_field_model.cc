@@ -91,7 +91,7 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
 PhaseFieldModel::~PhaseFieldModel() = default;
 
 /* -------------------------------------------------------------------------- */
-MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) {
+MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }

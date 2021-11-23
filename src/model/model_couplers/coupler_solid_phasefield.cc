@@ -256,7 +256,7 @@ void CouplerSolidPhaseField::corrector() {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType CouplerSolidPhaseField::getMatrixType(const ID & matrix_id) {
+MatrixType CouplerSolidPhaseField::getMatrixType(const ID & matrix_id) const {
 
   if (matrix_id == "K") {
     return _symmetric;

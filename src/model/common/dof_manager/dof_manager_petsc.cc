@@ -214,10 +214,9 @@ void DOFManagerPETSc::assembleElementalMatricesToMatrix(
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerPETSc::assemblePreassembledMatrix(
-    const ID & dof_id_m, const ID & dof_id_n, const ID & matrix_id,
-    const TermsToAssemble & terms) {
+    const ID & matrix_id, const TermsToAssemble & terms) {
   auto & A = getMatrix(matrix_id);
-  DOFManager::assemblePreassembledMatrix_(A, dof_id_m, dof_id_n, terms);
+  DOFManager::assemblePreassembledMatrix_(A, terms);
 
   A.applyModifications();
 }

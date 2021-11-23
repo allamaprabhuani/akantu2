@@ -345,7 +345,7 @@ std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createElementalField(
 /* Virtual methods from SolverCallback */
 /* -------------------------------------------------------------------------- */
 /// get the type of matrix needed
-MatrixType StructuralMechanicsModel::getMatrixType(const ID & /*id*/) {
+MatrixType StructuralMechanicsModel::getMatrixType(const ID & /*id*/) const {
   return _symmetric;
 }
 
@@ -536,7 +536,6 @@ Real StructuralMechanicsModel::getEnergy(const ID & energy) {
   return 0;
 }
 
-/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeForcesByLocalTractionArray(
     const Array<Real> & tractions, ElementType type) {

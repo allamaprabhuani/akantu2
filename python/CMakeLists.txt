@@ -48,6 +48,7 @@ set(PYAKANTU_SRCS
   py_aka_error.cc
   py_akantu.cc
   py_boundary_conditions.cc
+  py_dof_manager.cc
   py_fe_engine.cc
   py_group_manager.cc
   py_mesh.cc
