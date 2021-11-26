@@ -171,11 +171,11 @@ void register_mesh(py::module & mod) {
           },
           py::arg("name"), py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("isPeriodic", [](const Mesh & _this) { return _this.isPeriodic(); })
-      .def("getPeriodicMaster", Mesh::getPeriodicMaster)
-      .def("getPeriodicSlaves", Mesh::getPeriodicSlaves)
-      .def("isPeriodicSlave", Mesh::isPeriodicSlave)
-      .def("isPeriodicMaster", Mesh::isPeriodicMaster)
-      .def("getPeriodicMasterSlaves", Mesh::getPeriodicMasterSlaves);
+      .def("getPeriodicMaster", &Mesh::getPeriodicMaster)
+      .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
+      .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
+      .def("isPeriodicMaster", &Mesh::isPeriodicMaster)
+      .def("getPeriodicMasterSlaves", &Mesh::getPeriodicMasterSlaves);
 
   /* ------------------------------------------------------------------------ */
   py::class_<MeshUtils>(mod, "MeshUtils")
