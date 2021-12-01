@@ -54,12 +54,10 @@ namespace akantu {
 namespace BC {
   /* ---------------------------------------------------------------------- */
   namespace Dirichlet {
-    inline void FlagOnly::operator()(__attribute__((unused)) UInt node,
-                                     Vector<bool> & flags,
-                                     __attribute__((unused))
-                                     Vector<Real> & primal,
-                                     __attribute__((unused))
-                                     const Vector<Real> & coord) const {
+    inline void
+    FlagOnly::operator()([[gnu::unused]] UInt node, Vector<bool> & flags,
+                         [[gnu::unused]] Vector<Real> & primal,
+                         [[gnu::unused]] const Vector<Real> & coord) const {
 
       DIRICHLET_SANITY_CHECK;
 
@@ -67,44 +65,38 @@ namespace BC {
     }
 
     /* ---------------------------------------------------------------------- */
-    // inline void FreeBoundary::
-    // operator()(__attribute__((unused)) UInt node, Vector<bool> & flags,
-    //            __attribute__((unused)) Vector<Real> & primal,
-    //            __attribute__((unused)) const Vector<Real> & coord) const {
-
-    //   DIRICHLET_SANITY_CHECK;
-
-    //   flags(this->axis) = false;
-    // }
+    inline void
+    FreeBoundary::operator()([[gnu::unused]] UInt node, Vector<bool> & flags,
+                             [[gnu::unused]] Vector<Real> & primal,
+                             [[gnu::unused]] const Vector<Real> & coord) const {
+      DIRICHLET_SANITY_CHECK;
+      flags(this->axis) = false;
+    }
 
     /* ---------------------------------------------------------------------- */
-    inline void FixedValue::operator()(__attribute__((unused)) UInt node,
-                                       Vector<bool> & flags,
-                                       Vector<Real> & primal,
-                                       __attribute__((unused))
-                                       const Vector<Real> & coord) const {
+    inline void
+    FixedValue::operator()([[gnu::unused]] UInt node, Vector<bool> & flags,
+                           Vector<Real> & primal,
+                           [[gnu::unused]] const Vector<Real> & coord) const {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
       primal(this->axis) = value;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void IncrementValue::operator()(__attribute__((unused)) UInt node,
-                                           Vector<bool> & flags,
-                                           Vector<Real> & primal,
-                                           __attribute__((unused))
-                                           const Vector<Real> & coord) const {
+    inline void IncrementValue::operator()(
+        [[gnu::unused]] UInt node, Vector<bool> & flags, Vector<Real> & primal,
+        [[gnu::unused]] const Vector<Real> & coord) const {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
       primal(this->axis) += value;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void Increment::operator()(__attribute__((unused)) UInt node,
-                                      Vector<bool> & flags,
-                                      Vector<Real> & primal,
-                                      __attribute__((unused))
-                                      const Vector<Real> & coord) const {
+    inline void
+    Increment::operator()([[gnu::unused]] UInt node, Vector<bool> & flags,
+                          Vector<Real> & primal,
+                          [[gnu::unused]] const Vector<Real> & coord) const {
       DIRICHLET_SANITY_CHECK;
       flags.set(true);
       primal += value;
@@ -116,29 +108,27 @@ namespace BC {
 
   namespace Neumann {
     inline void FreeBoundary::operator()(
-        __attribute__((unused)) const IntegrationPoint & quad_point,
-        Vector<Real> & dual, __attribute__((unused)) const Vector<Real> & coord,
-        __attribute__((unused)) const Vector<Real> & normals) const {
+        [[gnu::unused]] const IntegrationPoint & quad_point,
+        Vector<Real> & dual, [[gnu::unused]] const Vector<Real> & coord,
+        [[gnu::unused]] const Vector<Real> & normals) const {
       for (UInt i(0); i < dual.size(); ++i) {
         dual(i) = 0.0;
       }
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void FromHigherDim::operator()(__attribute__((unused))
-                                          const IntegrationPoint & quad_point,
-                                          Vector<Real> & dual,
-                                          __attribute__((unused))
-                                          const Vector<Real> & coord,
-                                          const Vector<Real> & normals) const {
+    inline void FromHigherDim::operator()(
+        [[gnu::unused]] const IntegrationPoint & quad_point,
+        Vector<Real> & dual, [[gnu::unused]] const Vector<Real> & coord,
+        const Vector<Real> & normals) const {
       dual.mul<false>(this->bc_data, normals);
     }
 
     /* ---------------------------------------------------------------------- */
     inline void FromSameDim::operator()(
-        __attribute__((unused)) const IntegrationPoint & quad_point,
-        Vector<Real> & dual, __attribute__((unused)) const Vector<Real> & coord,
-        __attribute__((unused)) const Vector<Real> & normals) const {
+        [[gnu::unused]] const IntegrationPoint & quad_point,
+        Vector<Real> & dual, [[gnu::unused]] const Vector<Real> & coord,
+        [[gnu::unused]] const Vector<Real> & normals) const {
       dual = this->bc_data;
     }
   } // namespace Neumann
