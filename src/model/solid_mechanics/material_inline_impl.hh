@@ -432,10 +432,6 @@ void Material::flattenInternal(const std::string & field_id,
                           type, ghost_type);
     }
 
-    if (nb_element_src == 0) {
-      continue;
-    }
-
     // number of data per element
     UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
 
