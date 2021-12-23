@@ -55,11 +55,11 @@ endfunction()
 
 function(_get_version_from_git)
   if(NOT CMAKE_VERSION_GENERATOR_TAG_PREFIX)
-    set(CMAKE_VERSION_GENERATOR_TAG_PREFIX "av")
+    set(CMAKE_VERSION_GENERATOR_TAG_PREFIX "v")
   endif()
 
-
   find_package(Git)
+
   if(Git_FOUND)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} describe
@@ -100,7 +100,7 @@ function(_get_version_from_git)
 
     # git describe to PEP404 version
     set(_version_regex
-      "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}${_tag}(-([0-9]+)-g([0-9a-f]+)(-dirty)?)?$")
+      "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}${_tag}(-([0-9]+)-(g[0-9a-f]+)(-dirty)?)?$")
 
     if(_out MATCHES ${_version_regex})
       if(CMAKE_MATCH_1)
@@ -131,7 +131,6 @@ function(_get_version_from_git)
         endif()
       endif()
     endif()
-
     set(_git_version_metadata ${_metadata} PARENT_SCOPE)
   endif()
 endfunction()
@@ -158,8 +157,6 @@ function(_get_metadata_from_ci)
 
   if(DEFINED ENV{CI_MERGE_REQUEST_ID})
     set(_ci_version_metadata "ci.mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
-  elseif(DEFINED ENV{CI_COMMIT_SHORT_SHA})
-    set(_ci_version_metadata "ci.$ENV{CI_COMMIT_SHORT_SHA}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -169,8 +166,8 @@ function(define_project_version)
   _get_version_from_git()
 
   if(_git_version)
-    set(_git_version ${_file_version})
-    if(_version_metadata)
+    set(_version "${_git_version}")
+    if(_git_version_metadata)
       set(_version_metadata "${_git_version_metadata}")
     endif()
 
@@ -201,7 +198,6 @@ function(define_project_version)
   _get_metadata_from_ci()
 
   if(_version)
-    set(${_project}_VERSION ${_version} PARENT_SCOPE)
     if(_version_prerelease)
       set(_version_prerelease "-${_version_prerelease}")
     endif()
@@ -211,6 +207,7 @@ function(define_project_version)
         set(_version_metadata "${_version_metadata}.${_ci_version_metadata}")
       endif()
     endif()
+    set(${_project}_VERSION ${_version} PARENT_SCOPE)
 
     set(_semver "${_version}${_version_prerelease}${_version_metadata}")
     set(${_project}_SEMVER "${_semver}" PARENT_SCOPE)
@@ -226,6 +223,15 @@ function(define_project_version)
       if(CMAKE_MATCH_4)
         set(_patch_version ${CMAKE_MATCH_5})
         set(${_project}_PATCH_VERSION ${_patch_version} PARENT_SCOPE)
+      endif()
+      if(_version_prerelease)
+        set(${_project}_PRERELEASE_VERSION ${_version_prerelease} PARENT_SCOPE)
+      endif()
+      if(_version_metadata)
+        set(${_project}_LOCAL_VERSION ${_version_metadata} PARENT_SCOPE)
+      endif()
+      if(_version_metadata MATCHES "(\\+([0-9]+))(\\..*)*")
+        set(${_project}_TWEAK ${CMAKE_MATCH_1} PARENT_SCOPE)
       endif()
     endif()
   else()

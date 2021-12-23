@@ -25,6 +25,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
     ccache clang-format python3-flake8 python3-pip clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install warning_parser

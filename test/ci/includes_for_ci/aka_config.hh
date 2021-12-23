@@ -65,7 +65,6 @@ using UInt = unsigned int;
 #define AKANTU_USE_MUMPS
 /* #undef AKANTU_USE_PETSC */
 
-#define AKANTU_USE_IOHELPER
 /* #undef AKANTU_USE_QVIEW */
 /* #undef AKANTU_USE_BLACKDYNAMITE */
 

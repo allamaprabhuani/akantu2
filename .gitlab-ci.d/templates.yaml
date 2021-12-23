@@ -1,0 +1,133 @@
+# Configuration template
+.configure:
+  stage: configure
+  except:
+    - tags
+  variables:
+    BLA_VENDOR: "Generic"
+    CMAKE_GENERATOR: "Unix Makefiles"
+  #    CMAKE_GENERATOR: 'Ninja'
+  script:
+    # Create the build folder
+    - cmake -E make_directory build
+    - cd build
+
+    # Configure the project
+    - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
+            -DAKANTU_IMPLICIT:BOOL=TRUE
+            -DAKANTU_PARALLEL:BOOL=TRUE
+            -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
+            -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
+            -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
+            -DAKANTU_PHASE_FIELD:BOOL=TRUE
+            -DAKANTU_PYTHON_INTERFACE:BOOL=TRUE
+            -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
+            -DAKANTU_EXAMPLES:BOOL=TRUE
+            -DAKANTU_BUILD_ALL_EXAMPLES:BOOL=TRUE
+            -DAKANTU_TESTS:BOOL=TRUE
+            -DAKANTU_RUN_IN_DOCKER:BOOL=TRUE
+            -DAKANTU_TEST_EXAMPLES:BOOL=${TEST_EXAMPLES}
+            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE}
+            -G "${CMAKE_GENERATOR}" ..
+
+    # Copie the compile commands for the code quality
+    - if [ -e compile_commands.json ]; then
+    -   cp compile_commands.json ..
+    - fi
+  artifacts:
+    when: on_success
+    paths:
+      - build
+      - compile_commands.json
+    expire_in: 10h
+
+# Build the libraries
+.build_libs:
+  stage: build_libs
+  script:
+    - cmake --build build --target akantu -j1
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build --target py11_akantu -j1
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+  artifacts:
+    when: on_success
+    paths:
+      - build/
+      - build-${output}-err.log
+      - compile_commands.json
+    expire_in: 10h
+
+# build the tests
+.build_tests:
+  stage: build_tests
+  script:
+    - cmake --build build -j1
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+  artifacts:
+    when: on_success
+    paths:
+      - build/
+      - build-${output}-err.log
+      - compile_commands.json
+    exclude:
+      - build/**/*.o
+    expire_in: 10h
+
+# Build all
+.build_all:
+  stage: build_libs
+  script:
+    - cmake --build build/src
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/python
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/test/
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/examples
+             > >(tee -a build-${output}-out.log)
+            2> >(tee -a build-${output}-err.log >&2)
+  artifacts:
+    when: on_success
+    paths:
+      - build/
+      - build-${output}-err.log
+      - compile_commands.json
+    exclude:
+      - build/**/*.o
+    expire_in: 10h
+
+# Run the tests
+.tests:
+  stage: test
+  script:
+    - cd build
+    - ctest -T test --output-on-failure --no-compress-output --timeout 1800
+  after_script:
+    - cd build
+    - tag=$(head -n 1 < Testing/TAG)
+    - if [ -e Testing/${tag}/Test.xml ]; then
+    -   xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
+    - fi
+    - if [ ${CMAKE_BUILD_TYPE} = "Coverage" ]; then
+    -   gcovr --xml
+              --gcov-executable "${GCOV_EXECUTABLE}"
+              --output coverage.xml
+              --object-directory ${CI_PROJECT_DIR}/build
+              --root ${CI_PROJECT_DIR}  -s || true
+    - fi
+  artifacts:
+    when: always
+    paths:
+      - build/juint.xml
+      - build/coverage.xml
+    reports:
+      junit:
+        - build/juint.xml
+      cobertura:
+        - build/coverage.xml

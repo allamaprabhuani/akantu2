@@ -178,8 +178,13 @@ set_target_properties(akantu
     ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
     COMPILE_FLAGS "${_cxx_flags}"
     #PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS}
-    )
+)
 
+if(NOT AKANTU_SHARED)
+  set_property(TARGET akantu PROPERTY
+    POSITION_INDEPENDENT_CODE ${AKANTU_POSITION_INDEPENDENT})
+endif()
+  
 if(AKANTU_LIBRARY_PUBLIC_HDRS)
   set_property(TARGET akantu PROPERTY PUBLIC_HEADER ${AKANTU_LIBRARY_PUBLIC_HDRS})
 endif()
@@ -232,7 +237,7 @@ install(TARGETS akantu
 
 if("${AKANTU_TARGETS_EXPORT}" STREQUAL "AkantuTargets")
   install(EXPORT AkantuTargets
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME}
+    DESTINATION lib/cmake/${PROJECT_NAME}
     COMPONENT dev)
 
   #Export for build tree
