@@ -33,16 +33,13 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "dof_synchronizer.hh"
 #include "element_synchronizer.hh"
 #include "mesh.hh"
 #include "mesh_partition_scotch.hh"
 #include "synchronizer_registry.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 #include "dumper_paraview.hh"
-#endif // AKANTU_USE_IOHELPER
 
 #include "test_dof_data_accessor.hh"
 

@@ -28,17 +28,17 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-register_example(structural_mechanics.py
+register_example(structural_mechanics
   SCRIPT structural_mechanics.py
   PYTHON
   )
 
-register_example(structural_mechanics_softening.py
+register_example(structural_mechanics_softening
   SCRIPT structural_mechanics_softening.py
   PYTHON
   )
 
-register_example(structural_mechanics_dynamics.py
+register_example(structural_mechanics_dynamics
   SCRIPT structural_mechanics_dynamics.py
   PYTHON
   )

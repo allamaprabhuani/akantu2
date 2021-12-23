@@ -229,7 +229,6 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-#if defined(AKANTU_USE_IOHELPER)
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
@@ -249,7 +248,6 @@ public:
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
                        UInt spatial_dimension, ElementKind kind) override;
-#endif
 
   void dump(const std::string & dumper_name) override;
   void dump(const std::string & dumper_name, UInt step) override;

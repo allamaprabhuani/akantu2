@@ -168,9 +168,7 @@ DumperIOHelper & Model::getGroupDumper(const std::string & group_name) {
 void Model::addDumpGroupFieldToDumper(const std::string & field_id,
                                       std::shared_ptr<dumpers::Field> field,
                                       DumperIOHelper & dumper) {
-#ifdef AKANTU_USE_IOHELPER
   dumper.registerField(field_id, std::move(field));
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -279,7 +277,6 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       UInt spatial_dimension,
                                       ElementKind element_kind,
                                       bool padding_flag) {
-#ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
 
   if (!field) {
@@ -313,8 +310,6 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
     DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
     this->addDumpGroupFieldToDumper(field_id, field, dumper);
   }
-
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
