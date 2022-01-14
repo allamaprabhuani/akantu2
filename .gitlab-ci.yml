@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=gitlab-ci
+# yaml-language-server: $format.enable=false
+
 stages:
   - configure
   - build_libs
@@ -12,9 +15,9 @@ include:
 #-------------------------------------------------------------------------------
 # Rebuilding the docker images if needed
 #-------------------------------------------------------------------------------
-docker build:debian-testing:
+docker build:debian-bullseye:
   variables:
-    IMAGE_NAME: debian:testing
+    IMAGE_NAME: debian:bullseye
   extends: .docker_build
 
 docker build:ubuntu-lts:
@@ -28,87 +31,56 @@ docker build:manylinux:
   extends: .docker_build
 
 # ------------------------------------------------------------------------------
-# Debian testing compiled with GCC
+# Debian bullseye compiled with GCC
 # ------------------------------------------------------------------------------
-configure:debian_testing_gcc:
+configure:debian_bullseye_gcc:
   extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
     - .build_coverage
     - .configure
 
-build:debian_testing_gcc:
+build:debian_bullseye_gcc:
   extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
     - .build_coverage
     - .build_all
   needs:
-    - job: configure:debian_testing_gcc
+    - job: configure:debian_bullseye_gcc
 
-#build_libs:debian_testing_gcc:
-#  extends:
-#    - .debian_testing_gcc
-#    - .build_coverage
-#    - .build_libs
-#  needs:
-#    - job: configure:debian_testing_gcc
-
-#build_tests:debian_testing_gcc:
-#  extends:
-#    - .debian_testing_gcc
-#    - .build_coverage
-#    - .build_tests
-#  needs:
-#    - job: build_libs:debian_testing_gcc
-
-test:debian_testing_gcc:
+test:debian_bullseye_gcc:
   extends:
-    - .debian_testing_gcc
-    - .build_coverage
-    - .tests
-  needs:
-    - job: build:debian_testing_gcc
-
-# ------------------------------------------------------------------------------
-# Debian testing compiled with Clang
-# ------------------------------------------------------------------------------
-configure:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
-    - .build_coverage
-    - .configure
-
-build:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
-    - .build_coverage
-    - .build_all
-  needs:
-    - job: configure:debian_testing_clang
-
-#build_libs:debian_testing_clang:
-#  extends:
-#    - .debian_testing_clang
-#    - .build_coverage
-#    - .build_libs
-#  needs:
-#    - job: configure:debian_testing_clang
-
-#build_tests:debian_testing_clang:
-#  extends:
-#    - .debian_testing_clang
-#    - .build_coverage
-#    - .build_tests
-#  needs:
-#    - job: build_libs:debian_testing_clang
-
-test:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
+    - .debian_bullseye_gcc
     - .build_coverage
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_testing_clang
+    - job: build:debian_bullseye_gcc
+
+# ------------------------------------------------------------------------------
+# Debian bullseye compiled with Clang
+# ------------------------------------------------------------------------------
+configure:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
+    - .build_coverage
+    - .configure
+
+build:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
+    - .build_coverage
+    - .build_all
+  needs:
+    - job: configure:debian_bullseye_clang
+
+test:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
+    - .build_coverage
+    - .tests
+  coverage: '/^lines: (\d+\.\d+\%)/'
+  needs:
+    - job: build:debian_bullseye_clang
 
 # ------------------------------------------------------------------------------
 # Ubuntu LTS compiled with GCC
@@ -136,7 +108,7 @@ test:ubuntu_lts_gcc:
     - job: build:ubuntu_lts_gcc
 
 # ------------------------------------------------------------------------------
-# Debian testing compiled with GCC tested with valgrind
+# Debian bullseye compiled with GCC tested with valgrind
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc_valgrind:
   extends:
@@ -279,7 +251,7 @@ cq:code_quality:
   extends:
     - .code_quality_gitlab_template
   needs:
-    - job: build:debian_testing_clang
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-code-quality-report.json
@@ -297,7 +269,7 @@ cq:clang_tidy:
             clang-tidy
             -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
   needs:
-    - job: build:debian_testing_clang
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-tidy-report.json
@@ -312,7 +284,7 @@ cq:clang_format:
             clang-format
             -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
   needs:
-    - job: build:debian_testing_clang
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-format-report.json
@@ -329,8 +301,8 @@ cq:compilation_warnings:
             warnings
             build-*-err.log > gl-warnings-report.json
   needs:
-    - job: build:debian_testing_clang
-    - job: build:debian_testing_gcc
+    - job: build:debian_bullseye_clang
+    - job: build:debian_bullseye_gcc
     - job: build:ubuntu_lts_gcc
   artifacts:
     paths:
@@ -339,7 +311,7 @@ cq:compilation_warnings:
 cq:merge_code_quality:
   stage: deploy
   extends:
-    - .debian_testing_clang
+    - .debian_bullseye_clang
   script:
     - jq -Ms '[.[][]]' gl-*-report.json | tee gl-codequality.json | jq -C
   needs:
@@ -360,14 +332,14 @@ cq:merge_code_quality:
 pages:
   stage: deploy
   extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
   script:
     - cd build
     - cmake -DAKANTU_DOCUMENTATION=ON ..
     - cmake --build . -t sphinx-doc
     - mv doc/dev-doc/html ../public
   needs:
-    - job: build:debian_testing_gcc
+    - job: build:debian_bullseye_gcc
   artifacts:
     paths:
       - public

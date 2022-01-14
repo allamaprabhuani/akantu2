@@ -2,9 +2,9 @@
   stage: code_quality
   allow_failure: true
   rules:
-    - if: '$CODE_QUALITY_DISABLED'
+    - if: "$CODE_QUALITY_DISABLED"
       when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+    - if: "$CI_COMMIT_TAG || $CI_COMMIT_BRANCH"
 
 .code_quality_gitlab_template:
   extends:
@@ -54,10 +54,10 @@
 .clang_tools:
   extends:
     - .code_quality_common
-    - .debian_testing_clang
+    - .debian_bullseye_clang
   before_script:
     - if [ 'x${CI_MERGE_REQUEST_ID}' != 'x' ]; then
-    -   git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-    -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
-    -   FILE_LIST_ARG='-f file_list'
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
+    - FILE_LIST_ARG='-f file_list'
     - fi

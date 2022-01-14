@@ -11,7 +11,7 @@
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - cd test/ci/${IMAGE_NAME}/
-    - docker build -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
+    - docker build --no-cache -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
     - docker push registry.gitlab.com/akantu/akantu/${IMAGE_NAME}
   rules:
     - changes:
@@ -36,8 +36,8 @@
     - ccache --show-stats || true
 
 # ------------------------------------------------------------------------------
-.image_debian_testing:
-  image: registry.gitlab.com/akantu/akantu/debian:testing
+.image_debian_bullseye:
+  image: registry.gitlab.com/akantu/akantu/debian:bullseye
 
 .image_ubuntu_lts:
   image: registry.gitlab.com/akantu/akantu/ubuntu:lts
@@ -76,20 +76,20 @@
     BUILD_TYPE: "Valgrind"
 
 # ------------------------------------------------------------------------------
-.debian_testing_gcc:
+.debian_bullseye_gcc:
   variables:
-    output: debian_testing_gcc
+    output: debian_bullseye_gcc
   extends:
     - .compiler_gcc
-    - .image_debian_testing
+    - .image_debian_bullseye
     - .cache_build
 
-.debian_testing_clang:
+.debian_bullseye_clang:
   variables:
-    output: debian_testing_clang
+    output: debian_bullseye_clang
   extends:
     - .compiler_clang
-    - .image_debian_testing
+    - .image_debian_bullseye
     - .cache_build
 
 .ubuntu_lts_gcc:
