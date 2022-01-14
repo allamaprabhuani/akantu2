@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# encoding: utf-8
-
 """ printers.py: gdb pretty printers"""
 
 __author__ = "Nicolas Richart"
@@ -23,12 +21,10 @@ import re
 import sys
 import itertools
 
-__use_gdb_pp__ = True
 try:
     import gdb.printing
 except ImportError:
-    __use_gdb_pp__ = False
-
+    raise RuntimeError("Your GDB is too old")
 
 class AkantuPrinter(object):
     regex = None
@@ -53,35 +49,7 @@ class AkantuPrinter(object):
         return _type.tag
 
 
-if __use_gdb_pp__:
-    __akantu_pretty_printers__ = \
-        gdb.printing.RegexpCollectionPrettyPrinter("libakantu-v3")
-else:
-    class AkantuPrettyPrinters(object):
-        def __init__(self, name):
-            super(AkantuPrettyPrinters, self).__init__()
-            self.name = name
-            self.printers = {}
-
-        @property
-        def enabled(self):
-            return True
-
-        def add_printer(self, name, regex, printer):
-            self.printers[name] = printer
-
-        def __call__(self, val):
-            typename = AkantuPrinter.get_basic_type(val)
-            if not typename:
-                return None
-
-            for name, printer in self.printers.items():
-                if(printer.supports(typename)):
-                    return printer
-
-            return None
-
-    __akantu_pretty_printers__ = AkantuPrettyPrinters("libakantu-v3")
+__akantu_pretty_printers__ = gdb.printing.RegexpCollectionPrettyPrinter("libakantu-v3")
 
 
 def register_pretty_printer(pretty_printer):
@@ -90,14 +58,12 @@ def register_pretty_printer(pretty_printer):
     __akantu_pretty_printers__.add_printer(pretty_printer.name,
                                            pretty_printer.regex,
                                            pretty_printer)
-
     return pretty_printer
-
 
 @register_pretty_printer
 class AkaArrayPrinter(AkantuPrinter):
     """Pretty printer for akantu::Array<T>"""
-    regex = re.compile('^akantu::Array<(.*?), (true|false)>$')
+    regex = re.compile('^akantu::Array<(.*?), (true|false)>$|^akantu::ArrayDataLayer<(.*?), \(akantu::ArrayAllocationType\)1>$')
     name = 'akantu::Array'
 
     def __init__(self, value):
@@ -107,50 +73,27 @@ class AkaArrayPrinter(AkantuPrinter):
         self.size = int(self.value['size_'])
         self.nb_component = int(self.value['nb_component'])
 
-    def display_hint(self):
-        return 'array'
-
     def to_string(self):
         m = self.regex.search(self.typename)
         return 'Array<{0}>({1}, {2}) stored at {3}'.format(
             m.group(1), self.size, self.nb_component, self.ptr)
+    
+    def display_hint(self):
+        return 'array'
 
     def children(self):
         _ptr = self.ptr
         for i in range(self.size):
-            _values = ["{0}".format((_ptr + j).dereference())
-                       for j in range(self.nb_component)]
+            for j in range(self.nb_component):
+                yield ('[{0}, {1}]'.format(i, j), (_ptr + j).dereference())
             _ptr = _ptr + self.nb_component
-            yield ('[{0}]'.format(i),
-                   ('{0}' if self.nb_component == 1 else '[{0}]').format(
-                       ', '.join(_values)))
 
 
-if sys.version_info[0] > 2:
-    # Python 3 stuff
-    Iterator = object
-else:
-    # Python 2 stuff
-    class Iterator:
-        """Compatibility mixin for iterators
-
-        Instead of writing next() methods for iterators, write
-        __next__() methods and use this mixin to make them work in
-        Python 2 as well as Python 3.
-
-        Idea stolen from the "six" documentation:
-        <http://pythonhosted.org/six/#six.Iterator>
-        """
-        def next(self):
-            return self.__next__()
-
-
-class RbtreeIterator(Iterator):
+class RbtreeIterator(object):
     """
     Turn an RB-tree-based container (std::map, std::set etc.) into
     a Python iterable object.
     """
-
     def __init__(self, rbtree):
         self.size = rbtree['_M_t']['_M_impl']['_M_node_count']
         self.node = rbtree['_M_t']['_M_impl']['_M_header']['_M_left']
@@ -183,7 +126,6 @@ class RbtreeIterator(Iterator):
                     node = parent
                     self.node = node
         return result
-
 
 def get_value_from_aligned_membuf(buf, valtype):
     """Returns the value held in a __gnu_cxx::__aligned_membuf."""
@@ -231,7 +173,7 @@ class AkaElementTypeMapArrayPrinter(AkantuPrinter):
     name = 'akantu::ElementTypeMapArray'
 
     # Turn an RbtreeIterator into a pretty-print iterator.
-    class _rb_iter(Iterator):
+    class _rb_iter(object):
         def __init__(self, rbiter, type, ghost_type):
             self.rbiter = rbiter
             self.count = 0
@@ -396,10 +338,4 @@ class AkaElementPrinter(AkantuPrinter):
 
 def register_akantu_printers(obj):
     "Register Akantu Pretty Printers."
-
-    if __use_gdb_pp__:
-        gdb.printing.register_pretty_printer(obj, __akantu_pretty_printers__)
-    else:
-        if obj is None:
-            obj = gdb
-        obj.pretty_printers.append(__akantu_pretty_printers__)
+    gdb.printing.register_pretty_printer(obj, __akantu_pretty_printers__)
