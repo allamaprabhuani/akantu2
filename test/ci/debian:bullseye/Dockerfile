@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM debian:bullseye
 MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 # library dependencies
