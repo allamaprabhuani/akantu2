@@ -50,7 +50,7 @@ set(Python_VERSION_MAJOR \${Python_VERSION_MAJOR} CACHE INTERNAL \"\")
 set(Python_VERSION_MINOR \${Python_VERSION_MINOR} CACHE INTERNAL \"\")
 ")
 else()
-  if (PYTHON_LIBRARY MATCHES "\.a$")
+  if (PYTHON_LIBRARY MATCHES "\\.a$")
     set(PYTHON_LIBRARY NOTFOUND CACHE INTERNAL "")
   endif()
   package_declare(Python ADVANCED META DESCRIPTION "Akantu's python dependency"
