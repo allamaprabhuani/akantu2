@@ -31,22 +31,11 @@
 
 
 package_declare(Scotch EXTERNAL
-  DESCRIPTION "Add Scotch support in akantu"
-  SYSTEM ON third-party/cmake/scotch.cmake)
+  DESCRIPTION "Add Scotch support in akantu")
 
 package_declare_sources(Scotch
   mesh_utils/mesh_partition/mesh_partition_scotch.cc
   )
-
-package_add_third_party_script_variable(Scotch
-  SCOTCH_VERSION "5.1.12b")
-package_add_third_party_script_variable(Scotch
-  SCOTCH_ARCHIVE_HASH "MD5=e13b49be804755470b159d7052764dc0")
-package_add_third_party_script_variable(Scotch
-  SCOTCH_ARCHIVE "scotch_${SCOTCH_VERSION}_esmumps.tar.gz")
-package_add_third_party_script_variable(Scotch
-  SCOTCH_URL "https://gforge.inria.fr/frs/download.php/28978/scotch_${SCOTCH_VERSION}_esmumps.tar.gz")
-
 
 package_get_option_name(Scotch _opt_name)
 package_use_system(Scotch _system)
@@ -72,8 +61,5 @@ package_set_package_system_dependency(Scotch deb-src libscotch-dev)
 
 package_declare_extra_files_to_package(Scotch
   PROJECT
-    third-party/cmake/scotch.cmake
-    third-party/scotch_5.1.12b.patch
-    third-party/scotch_5.1.12b_make.inc.cmake
     cmake/Modules/FindScotch.cmake
   )

@@ -162,7 +162,6 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-#if defined(AKANTU_USE_IOHELPER)
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
@@ -177,7 +176,6 @@ public:
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */

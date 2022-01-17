@@ -29,8 +29,11 @@
 #
 #===============================================================================
 
+if(AKANTU_BYPASS_AKANTU_TARGET)
+  return()
+endif()
 
-package_declare(IOHelper EXTERNAL
+package_declare(IOHelper EXTERNAL NOT_OPTIONAL
   DESCRIPTION "Add IOHelper support in akantu"
   SYSTEM OFF third-party/cmake/iohelper.cmake
   DEFAULT ON)
@@ -42,3 +45,8 @@ package_add_third_party_script_variable(IOHelper
   IOHELPER_GIT "https://c4science.ch/source/iohelper.git")
 package_add_third_party_script_variable(IOHelper
   IOHELPER_ARCHIVE "iohelper_${_version}.tar.gz")
+
+package_declare_extra_files_to_package(dumpers
+  PROJECT
+  third-party/cmake/iohelper.cmake
+  )

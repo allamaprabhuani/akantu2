@@ -29,7 +29,6 @@
 #
 #===============================================================================
 
-
 package_declare(dumpers
   DEFAULT ON
   DESCRIPTION "Dumpers for Akantu"
@@ -55,10 +54,4 @@ package_declare_sources(dumpers
   io/dumper/dumper_text.hh
   io/dumper/dumper_type_traits.hh
   io/dumper/dumper_variable.hh
-  )
-
-package_declare_extra_files_to_package(dumpers
-  PROJECT
-    third-party/cmake/iohelper.cmake
-    cmake/Modules/FindIOHelper.cmake
   )

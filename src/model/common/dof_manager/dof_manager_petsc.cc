@@ -291,7 +291,7 @@ const SolverVectorPETSc & DOFManagerPETSc::getResidual() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered [[gnu::unused]] =
+static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "petsc", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerPETSc>(mesh, id);

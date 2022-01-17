@@ -42,6 +42,6 @@ if(AKANTU_TESTS)
 endif()
 
 package_add_third_party_script_variable(google-test
-  GTEST_VERSION "master")
+  GTEST_VERSION "main")
 package_add_third_party_script_variable(google-test
   GTEST_GIT "https://github.com/google/googletest.git")

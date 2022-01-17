@@ -28,6 +28,8 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+set(AKANTU_VERSION @AKANTU_SEMVER@)
+
 @PACKAGE_INIT@
 
 # Compute paths
@@ -47,6 +49,7 @@ else()
   include(AkantuSimulationMacros)
 endif()
 
+# Akantu exported targets
 include("${AKANTU_CMAKE_DIR}/AkantuTargets.cmake")
 
 # Dependencies
@@ -63,6 +66,4 @@ list(APPEND AKANTU_INCLUDE_DIRS ${AKANTU_EXTRA_INCLUDE_DIR})
 
 set(AKANTU_LIBRARIES ${_akantu_libraries} CACHE INTERNAL "List of akantu necessary libraries" FORCE)
 
-# set(AKANTU_VERSION @AKANTU_VERSION@)
-# set_and_check(AKANTU_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
 check_required_components(Akantu)

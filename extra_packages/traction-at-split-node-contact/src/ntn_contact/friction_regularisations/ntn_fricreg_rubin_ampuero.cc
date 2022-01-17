@@ -157,10 +157,6 @@ void NTNFricRegRubinAmpuero::addDumpFieldToDumper(
     const std::string & dumper_name, const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
-
   if (field_id == "t_star") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
@@ -168,8 +164,6 @@ void NTNFricRegRubinAmpuero::addDumpFieldToDumper(
   } else {
     NTNFricRegNoRegularisation::addDumpFieldToDumper(dumper_name, field_id);
   }
-
-#endif
 
   AKANTU_DEBUG_OUT();
 }

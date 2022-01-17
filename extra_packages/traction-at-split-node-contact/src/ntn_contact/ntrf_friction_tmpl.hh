@@ -67,7 +67,6 @@ void NTRFFriction::addDumpFieldToDumper(const std::string & dumper_name,
                     const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_IOHELPER
   //  const SynchronizedArray<UInt> * nodal_filter =
 &(this->contact.getSlaves());
 
@@ -97,8 +96,6 @@ DumperIOHelper::NodalField<Real>(this->friction_traction.getArray()));
   else {
     this->contact.addDumpFieldToDumper(dumper_name, field_id);
   }
-
-#endif
 
   AKANTU_DEBUG_OUT();
 }

@@ -49,10 +49,9 @@
 #include "synchronizer_registry.hh"
 
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
-
+/* -------------------------------------------------------------------------- */
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -82,11 +81,9 @@ SolidMechanicsModel::SolidMechanicsModel(
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
-#endif
 
   material_selector = std::make_shared<DefaultMaterialSelector>(material_index);
 
@@ -110,9 +107,7 @@ SolidMechanicsModel::~SolidMechanicsModel() = default;
 void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper().setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */

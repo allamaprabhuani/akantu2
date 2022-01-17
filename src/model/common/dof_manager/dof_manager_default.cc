@@ -473,14 +473,14 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered [[gnu::unused]] =
+static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 
-static bool dof_manager_is_registered_mumps [[gnu::unused]] =
+static bool dof_manager_is_registered_mumps =
     DOFManagerFactory::getInstance().registerAllocator(
         "mumps", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
