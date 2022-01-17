@@ -3,8 +3,6 @@
 # Configuration template
 .configure:
   stage: configure
-  except:
-    - tags
   variables:
     BLA_VENDOR: "Generic"
     CMAKE_GENERATOR: "Unix Makefiles"
