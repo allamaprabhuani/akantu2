@@ -211,7 +211,7 @@ test:python_package:
   needs:
     - job: build_pip:python_package
   script:
-    - pip install akantu -f wheelhouse
+    - pip install akantu --use-wheel --no-index --find-links=${PWD}/wheelhouse
     - python -c "import akantu"
     - cd examples/python/dynamics/
     - apt update && apt install -y gmsh
