@@ -211,6 +211,7 @@ test:python_package:
   needs:
     - job: build_pip:python_package
   script:
+    - pip install numpy scipy
     - pip install akantu --no-index --find-links=${PWD}/wheelhouse
     - python -c "import akantu"
     - cd examples/python/dynamics/
