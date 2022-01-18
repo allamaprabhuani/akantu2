@@ -229,6 +229,7 @@ package:python_gitlab:
             wheelhouse/*
   needs:
     - job: build_pip:python_package
+    - job: test:python_package
   only:
     - master
 
@@ -241,6 +242,7 @@ package:python_pypi:
           python3 -m twine upload --verbose wheelhouse/*
   needs:
     - job: build_pip:python_package
+    - job: test:python_package
   only:
     - tags
 
