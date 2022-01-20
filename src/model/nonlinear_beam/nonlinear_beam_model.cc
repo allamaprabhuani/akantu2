@@ -19,26 +19,10 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-namespace nonlinear_beam {
-  namespace details {
-    class ComputeRhoFunctor {
-    public:
-      ComputeRhoFunctor(const NonlinearBeamModel & model) : model(model){};
-
-      void operator()(Matrix<Real> & rho, const Element & /*unused*/) {
-        rho.set(model.getCapacity() * model.getDensity());
-      }
-
-    private:
-      const NonlinearBeamModel & model;
-    };
-  } // namespace details
-} // namespace nonlinear_beam
-
 /* -------------------------------------------------------------------------- */
 NonlinearBeamModel::NonlinearBeamModel(Mesh & mesh, UInt dim, const ID & id,
                                        std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_nonlinear_neam_model, dof_manager, dim, id){
+    : Model(mesh, model_type, dof_manager, dim, id){
   AKANTU_DEBUG_IN();
 
   this->registerDataAccessor(*this);
@@ -54,7 +38,7 @@ NonlinearBeamModel::NonlinearBeamModel(Mesh & mesh, UInt dim, const ID & id,
   }
   */
 
-  registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
+  //registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
 
 #ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("nonlinear_beam", id, true);
@@ -79,24 +63,29 @@ NonlinearBeamModel::~NonlinearBeamModel() = default;
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::setTimeStep(Real time_step, const ID & solver_id) {
+  
   Model::setTimeStep(time_step, solver_id);
 
 #if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper().setTimeStep(time_step);
 #endif
+  
 }
 /* -------------------------------------------------------------------------- */
 /* Initialization                                                             */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::initFullImpl(const ModelOptions & options) {
+  
   Model::initFullImpl(options);
 
   readMaterials();
+  
 }
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::initModel() {
+  
   auto & fem = this->getFEEngine();
   fem.initShapeFunctions(_not_ghost);
   fem.initShapeFunctions(_ghost);
@@ -105,12 +94,15 @@ void NonlinearBeamModel::initModel() {
 
 /* -------------------------------------------------------------------------- */
 TimeStepSolverType NonlinearBeamModel::getDefaultSolverType() const {
+  
   return TimeStepSolverType::_dynamic_lumped;
+  
 }
 
 /* -------------------------------------------------------------------------- */
 ModelSolverOptions NonlinearBeamModel::getDefaultSolverOptions(
     const TimeStepSolverType & type) const {
+  
   ModelSolverOptions options;
 
   switch (type) {
@@ -133,11 +125,13 @@ ModelSolverOptions NonlinearBeamModel::getDefaultSolverOptions(
   }
 
   return options;
+    
 }
 
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 NonlinearBeamModel::getDefaultSolverID(const AnalysisMethod & method) {
+  
   switch (method) {
   case _explicit_lumped_mass: {
     return std::make_tuple("explicit_lumped",
@@ -149,51 +143,42 @@ NonlinearBeamModel::getDefaultSolverID(const AnalysisMethod & method) {
   default:
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
+  
 }
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::initSolver(TimeStepSolverType time_step_solver_type,
                                      NonLinearSolverType /*unused*/) {
+  
   auto & dof_manager = this->getDOFManager();
-  /* ------------------------------------------------------------------------ */
+  
   // for alloc type of solvers
-  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
-  this->allocNodalField(this->angle, spatial_dimension, "angle");
   this->allocNodalField(this->linear_angular_displacement, 2*spatial_dimension, "linear_angular_displacement");
   //
-  this->allocNodalField(this->internal_force, spatial_dimension,
-                        "internal_force");
-  this->allocNodalField(this->internal_torque, spatial_dimension,
-                        "internal_torque");
   this->allocNodalField(this->internal_force_torque, 2*spatial_dimension,
                         "internal_force_torque");
   //
-  this->allocNodalField(this->external_force, spatial_dimension,
-                        "external_force");
-  this->allocNodalField(this->external_torque, spatial_dimension,
-                        "external_torque");
   this->allocNodalField(this->external_force_torque, 2*spatial_dimension,
                         "external_force_torque");
   //
   this->allocNodalField(this->blocked_dofs, 2*spatial_dimension, "blocked_dofs");
+  
 
   /* ------------------------------------------------------------------------ */
+  
   if (!dof_manager.hasDOFs("linear_angular_displacement")) {
     dof_manager.registerDOFs("linear_angular_displacement", *this->linear_angular_displacement, _dst_nodal);
     dof_manager.registerBlockedDOFs("linear_angular_displacement", *this->blocked_dofs);
     
   }
+  
 
   /* ------------------------------------------------------------------------ */
   // for dynamic
+  
   if (time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-    this->allocNodalField(this->velocity, spatial_dimension, "velocity");
-    this->allocNodalField(this->angular_velocity, spatial_dimension, "angular_velocity");
     this->allocNodalField(this->linear_angular_velocity, 2*spatial_dimension, "linear_angular_velocity");
     //
-    this->allocNodalField(this->acceleration, spatial_dimension,
-                          "acceleration");
-    this->allocNodalField(this->angular_acceleration, spatial_dimension, "angular_acceleration");
     this->allocNodalField(this->linear_angular_acceleration, 2*spatial_dimension, "linear_angular_acceleration");
 
     if (!dof_manager.hasDOFsDerivatives("linear_angular_displacement", 1)) {
@@ -201,28 +186,28 @@ void NonlinearBeamModel::initSolver(TimeStepSolverType time_step_solver_type,
       dof_manager.registerDOFsDerivative("linear_angular_displacement", 2, *this->linear_angular_acceleration);
     }
   }
+  
 }
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::assembleResidual() {
   AKANTU_DEBUG_IN();
-
-  /* ------------------------------------------------------------------------ */
+  
   // computes the internal forces
   this->assembleInternalForces();
 
-  /* ------------------------------------------------------------------------ */
   this->getDOFManager().assembleToResidual("displacement",
                                            *this->external_force_torque, 1);
   this->getDOFManager().assembleToResidual("displacement",
                                            *this->internal_force_torque, 1);
-
+  
   AKANTU_DEBUG_OUT();
 }
 
 
 MatrixType NonlinearBeamModel::getMatrixType(const ID & matrix_id) const {
   // \TODO check the materials to know what is the correct answer
+  /*
   if (matrix_id == "C") {
     return _mt_not_defined;
   }
@@ -235,35 +220,71 @@ MatrixType NonlinearBeamModel::getMatrixType(const ID & matrix_id) const {
     }
   }
   return _symmetric;
+  */
 }
+
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::assembleMatrix(const ID & matrix_id) {
+  
   if (matrix_id == "K") {
     this->assembleStiffnessMatrix();
   } else if (matrix_id == "M") {
     this->assembleMass();
   }
+  
 }
 
 /* -------------------------------------------------------------------------- */
 void NonlinearBeamModel::assembleLumpedMatrix(const ID & matrix_id) {
+  
   if (matrix_id == "M") {
     this->assembleMassLumped();
   }
+  
 }
 
-void NonlinearBeamModel::performStep(Real time_step) {
+/* -------------------------------------------------------------------------- */
+Matrix<Real> NonlinearBeamModel::N_matrix() {
   AKANTU_DEBUG_IN();
   
-  const Array<bool> & blocked_dofs =
-      this->dof_manager.getBlockedDOFs(this->dof_id);
+  Matrix<Real> N_mat(2*spatial_dimension, this->nb_nodes_per_element*2*spatial_dimension,0.);
   
-  this->prediction_Velocity(time_step, blocked_dofs);
-
+  auto _N = computeShapes(const vector_type & natural_coords, vector_type & N);
+  
+  for (UInt nd=0; nd < this->nb_nodes_per_element; ++nd) {
+    N_mat.block<6,  2*spatial_dimension>(0, nd * 2*spatial_dimension) = Matrix(6, 6).Identity() * _N[nd];
+  }
+  
+  return N_mat;
+  
   AKANTU_DEBUG_OUT();
 }
 
-void NonlinearBeamModel::prediction_velocity(Real time_step,const Array<bool> & blocked_dofs) {
-  this->linear_angular_velocity += time_step / 2 * this->linear_angular_acceleration;
+
+void NonlinearBeamModel::assembleInternalForces() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+
 }
+
+void NonlinearBeamModel::assembleMass() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+
+}
+
+void NonlinearBeamModel::assembleStiffnessMatrix() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+
+}
+
+
+
+
+}
+

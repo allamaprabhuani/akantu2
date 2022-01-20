@@ -53,6 +53,10 @@ package_declare_sources(structural_mechanics
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.hh
   model/structural_mechanics/structural_mechanics_model_mass.cc
+  model/nonlinear_beam/nonlinear_beam_model.hh
+  model/nonlinear_beam/nonlinear_beam_model.cc
+  model/nonlinear_beam/newmark-beta-NL-beam.hh
+  model/nonlinear_beam/newmark-beta-NL-beam.cc
   )
 
 package_declare_elements(structural_mechanics
