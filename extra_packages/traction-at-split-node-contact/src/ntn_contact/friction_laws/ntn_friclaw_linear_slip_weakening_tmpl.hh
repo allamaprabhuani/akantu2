@@ -163,10 +163,6 @@ void NTNFricLawLinearSlipWeakening<Regularisation>::addDumpFieldToDumper(
     const std::string & dumper_name, const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
-
   if (field_id == "mu_s") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
@@ -183,8 +179,6 @@ void NTNFricLawLinearSlipWeakening<Regularisation>::addDumpFieldToDumper(
     NTNFricLawCoulomb<Regularisation>::addDumpFieldToDumper(dumper_name,
                                                             field_id);
   }
-
-#endif
 
   AKANTU_DEBUG_OUT();
 }

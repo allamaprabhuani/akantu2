@@ -33,9 +33,6 @@
 /* -------------------------------------------------------------------------- */
 #include "dumpable.hh"
 /* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-
 #include <io_helper.hh>
 #include <utility>
 
@@ -261,19 +258,16 @@ DumperIOHelper & Dumpable::getDumper(const std::string & dumper_name) {
   auto end = this->dumpers.end();
 
   if (it == end) {
-    AKANTU_EXCEPTION("Dumper " << dumper_name
-                               << "has not been registered, yet.");
+    AKANTU_EXCEPTION("Dumper \"" << dumper_name
+                                 << "\" has not been registered, yet.");
   }
 
   return *(it->second);
 }
 
 /* -------------------------------------------------------------------------- */
-
 std::string Dumpable::getDefaultDumperName() const {
   return this->default_dumper;
 }
 
 } // namespace akantu
-
-#endif

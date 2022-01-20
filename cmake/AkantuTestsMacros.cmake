@@ -335,8 +335,7 @@ endfunction()
 
 # ==============================================================================
 function(akantu_pybind11_add_module target)
-  package_is_activated(pybind11 _pybind11_act)
-  if(_pybind11_act)
+  if(pybind11_FOUND)
     package_get_all_external_informations(
       INTERFACE_INCLUDE AKANTU_INTERFACE_EXTERNAL_INCLUDE_DIR
       )

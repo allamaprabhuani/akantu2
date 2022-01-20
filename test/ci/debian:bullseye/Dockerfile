@@ -1,8 +1,8 @@
-FROM debian:testing
+FROM debian:bullseye
 MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 # library dependencies
-RUN apt-get -qq update && apt-get -qq -y install \
+RUN apt -qq update && apt -qq -y install \
     g++ gfortran clang cmake \
     openmpi-bin libmumps-dev libscotch-dev \
     libboost-dev libopenblas-dev \
@@ -10,7 +10,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
     && rm -rf /var/lib/apt/lists/*
 
 # for documentation
-RUN apt-get -qq update && apt-get -qq -y install \
+RUN apt -qq update && apt -qq -y install \
     python3-sphinx \
     python3-sphinxcontrib.bibtex \
     python3-sphinx-rtd-theme \
@@ -20,11 +20,12 @@ RUN apt-get -qq update && apt-get -qq -y install \
     && rm -rf /var/lib/apt/lists/*
 
 # for ci
-RUN apt-get -qq update && apt-get -qq -y install \
+RUN apt -qq update && apt -qq -y install \
     gmsh python3-pytest python3-click python3-termcolor \
     ccache clang-format python3-flake8 python3-pip clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install warning_parser
@@ -32,6 +33,6 @@ RUN pip3 install warning_parser
 COPY .openmpi /root/.openmpi
 
 # for debug
-RUN apt-get -qq update && apt-get -qq -y install \
+RUN apt -qq update && apt -qq -y install \
     gdb valgrind \
     && rm -rf /var/lib/apt/lists/*

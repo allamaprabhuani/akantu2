@@ -97,7 +97,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// implementation of the SolverCallback::getMatrixType()
-  MatrixType getMatrixType(const ID & /*unused*/) final {
+  MatrixType getMatrixType(const ID & /*unused*/) const final {
     return _mt_not_defined;
   }
   /// implementation of the SolverCallback::predictor()
@@ -116,7 +116,7 @@ public:
   void beforeSolveStep() override;
   void afterSolveStep(bool converged = true) override;
 
-  bool canSplitResidual() override {
+  bool canSplitResidual() const override {
     return solver_callback->canSplitResidual();
   }
   /* ------------------------------------------------------------------------ */

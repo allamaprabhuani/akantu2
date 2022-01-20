@@ -46,15 +46,13 @@
 #include "mesh.hh"
 #include "parser.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 namespace heat_transfer {
@@ -97,10 +95,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
 
   registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
 
-#ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("heat_transfer", id, true);
   this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
-#endif
 
   this->registerParam("conductivity", conductivity, _pat_parsmod);
   this->registerParam("conductivity_variation", conductivity_variation, 0.,
@@ -150,7 +146,7 @@ void HeatTransferModel::assembleCapacityLumped(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) {
+MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K" or matrix_id == "M") {
     return _symmetric;
   }
@@ -496,9 +492,7 @@ Real HeatTransferModel::getStableTimeStep() {
 void HeatTransferModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -680,9 +674,6 @@ Real HeatTransferModel::getEnergy(const std::string & id, ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
 std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag) {
@@ -748,32 +739,6 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
 
   return field;
 }
-
-/* -------------------------------------------------------------------------- */
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
-    const std::string & /* field_name*/, const std::string & /*group_name*/,
-    bool /*padding_flag*/, ElementKind /*element_kind*/) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-HeatTransferModel::createNodalFieldBool(const std::string & /*field_name*/,
-                                        const std::string & /*group_name*/,
-                                        bool /*padding_flag*/) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-HeatTransferModel::createNodalFieldReal(const std::string & /*field_name*/,
-                                        const std::string & /*group_name*/,
-                                        bool /*padding_flag*/) {
-  return nullptr;
-}
-#endif
 
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,

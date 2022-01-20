@@ -509,7 +509,6 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
                                           const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_IOHELPER
   const Array<UInt> & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)                                       \
@@ -561,7 +560,6 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
   }
 
 #undef ADD_FIELD
-#endif
 
   AKANTU_DEBUG_OUT();
 }

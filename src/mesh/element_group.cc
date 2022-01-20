@@ -45,9 +45,8 @@
 #include <sstream>
 
 #include "element_group.hh"
-#if defined(AKANTU_USE_IOHELPER)
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 
 namespace akantu {
 
@@ -59,12 +58,10 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
       node_group(node_group), dimension(dimension) {
   AKANTU_DEBUG_IN();
 
-#if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_" + group_name, group_name,
                                        true);
   this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(),
                             _all_dimensions);
-#endif
 
   AKANTU_DEBUG_OUT();
 }

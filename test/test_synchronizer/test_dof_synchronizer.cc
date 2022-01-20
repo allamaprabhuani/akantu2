@@ -30,7 +30,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "communicator.hh"
 #include "dof_synchronizer.hh"
 #include "element_synchronizer.hh"
@@ -38,9 +37,7 @@
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
-#endif // AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
 using namespace akantu;

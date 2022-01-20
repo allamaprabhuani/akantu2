@@ -45,20 +45,9 @@ class AkaEnvironment : public ::testing::Environment {
 public:
   AkaEnvironment(int & argc, char **& argv) : argc(argc), argv(argv) {}
   // Override this to define how to set up the environment.
-  void SetUp() override {
-    ::akantu::initialize(argc, argv);
-
-#if defined(AKANTU_USE_PYBIND11)
-// py::initialize_interpreter();
-#endif
-  }
+  void SetUp() override { ::akantu::initialize(argc, argv); }
   // Override this to define how to tear down the environment.
-  void TearDown() override {
-    ::akantu::finalize();
-#if defined(AKANTU_USE_PYBIND11)
-// py::finalize_interpreter();
-#endif
-  }
+  void TearDown() override { ::akantu::finalize(); }
 
 protected:
   int & argc;

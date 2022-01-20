@@ -198,7 +198,7 @@ public:
     is_mass_assembled = true;
   }
 
-  MatrixType getMatrixType(const ID &) override { return _symmetric; }
+  MatrixType getMatrixType(const ID &) const override { return _symmetric; }
 
   void assembleMatrix(const ID & matrix_id) override {
     if (matrix_id == "K") {
