@@ -137,10 +137,12 @@ namespace containers {
     using containers_t = std::tuple<Containers...>;
 
   public:
+    using size_type = std::common_type_t<aka::size_type_t<Containers>...>;
+
     explicit ConcatContainer(Containers &&... containers)
         : containers(std::forward<Containers>(containers)...) {}
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)),
@@ -148,7 +150,7 @@ namespace containers {
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)),
@@ -156,15 +158,15 @@ namespace containers {
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) begin() {
-       return concat_iterator(
+    auto begin() -> decltype(auto) {
+      return concat_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)),
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)),
@@ -177,7 +179,8 @@ namespace containers {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class... Containers> decltype(auto) concat(Containers &&... conts) {
+  template <class... Containers>
+  auto concat(Containers &&... conts) -> decltype(auto) {
     return containers::ConcatContainer<Containers...>(
         std::forward<Containers>(conts)...);
   }

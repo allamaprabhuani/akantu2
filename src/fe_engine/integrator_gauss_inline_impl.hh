@@ -102,7 +102,7 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
-inline const decltype(auto)
+inline decltype(auto)
 IntegratorGauss<kind, IntegrationOrderFunctor>::getIntegrationPoints(
     GhostType ghost_type) const {
   AKANTU_DEBUG_ASSERT(
@@ -192,8 +192,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::checkJacobians(
   Int nb_element = mesh.getConnectivity(type, ghost_type).size();
   Real * jacobians_val = jacobians(type, ghost_type).data();
 
-  for (Idx i = 0; i < nb_element * nb_quadrature_points;
-       ++i, ++jacobians_val) {
+  for (Idx i = 0; i < nb_element * nb_quadrature_points; ++i, ++jacobians_val) {
     if (*jacobians_val < 0) {
       AKANTU_CUSTOM_EXCEPTION_INFO(debug::IntegratorGaussException{},
                                    "Negative jacobian computed,"
@@ -565,8 +564,7 @@ template <ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
 void IntegratorGauss<kind, IntegrationOrderFunctor>::
     integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
-                                 Int nb_degree_of_freedom,
-                                 GhostType ghost_type,
+                                 Int nb_degree_of_freedom, GhostType ghost_type,
                                  const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -634,7 +632,7 @@ namespace integrator {
   template <> struct IntegratorOnElementsAddedHelper<kind> {                   \
     template <class I>                                                         \
     static void call(I & integrator, const Array<Idx> & elements,              \
-                     ElementType type, GhostType ghost_type) { \
+                     ElementType type, GhostType ghost_type) {                 \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(ON_ELEMENT_ADDED, kind);                \
     }                                                                          \
   };
@@ -726,7 +724,7 @@ namespace integrator {
     static void                                                                \
     call(const IntegratorGauss<k, IOF> & _int, const Array<Real> & nodes,      \
          const Matrix<Real> & quad_points, Array<Real> & jacobians,            \
-         ElementType type, GhostType ghost_type,               \
+         ElementType type, GhostType ghost_type,                               \
          const Array<Idx> & filter_elements) {                                 \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_JACOBIANS, kind);        \
     }                                                                          \
@@ -743,8 +741,7 @@ template <ElementKind kind, class IntegrationOrderFunctor>
 void IntegratorGauss<kind, IntegrationOrderFunctor>::
     computeJacobiansOnIntegrationPoints(
         const Array<Real> & nodes, const Matrix<Real> & quad_points,
-        Array<Real> & jacobians, ElementType type,
-        GhostType ghost_type,
+        Array<Real> & jacobians, ElementType type, GhostType ghost_type,
         const Array<Idx> & filter_elements) const {
   integrator::details::GaussIntegratorComputeJacobiansHelper<kind>::call(
       *this, nodes, quad_points, jacobians, type, ghost_type, filter_elements);

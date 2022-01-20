@@ -32,17 +32,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
-#define AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
-/* -------------------------------------------------------------------------- */
-#include "base_weight_function.hh"
 #include "non_local_neighborhood_base.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
+#ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
+#define AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
+
 namespace akantu {
-class NonLocalManager;
 class BaseWeightFunction;
+class NonLocalManager;
 } // namespace akantu
 
 namespace akantu {
@@ -121,13 +120,7 @@ private:
 
 } // namespace akantu
 
-/* -------------------------------------------------------------------------- */
-/* Implementation of template functions                                       */
-/* -------------------------------------------------------------------------- */
-#include "non_local_neighborhood_tmpl.hh"
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
 #include "non_local_neighborhood_inline_impl.hh"
+#include "non_local_neighborhood_tmpl.hh"
 
 #endif /* AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_ */

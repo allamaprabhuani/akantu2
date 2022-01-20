@@ -65,12 +65,12 @@ PhysicalSurfaceSelector::PhysicalSurfaceSelector(Mesh & mesh)
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & PhysicalSurfaceSelector::getMasterList() {
+Array<Idx> & PhysicalSurfaceSelector::getMasterList() {
   return mesh.getElementGroup(master).getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & PhysicalSurfaceSelector::getSlaveList() {
+Array<Idx> & PhysicalSurfaceSelector::getSlaveList() {
   return mesh.getElementGroup(slave).getNodeGroup().getNodes();
 }
 
@@ -84,14 +84,13 @@ CohesiveSurfaceSelector::CohesiveSurfaceSelector(Mesh & mesh)
     : SurfaceSelector(mesh), mesh_facets(mesh.getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
 
-  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  auto surface_dimension = mesh.getSpatialDimension() - 1;
   mesh_facets.createElementGroup("contact_surface", surface_dimension, true);
 }
 
 /* -------------------------------------------------------------------------- */
 void CohesiveSurfaceSelector::onElementsAdded(
-    const Array<Element> & element_list,
-    __attribute__((unused)) const NewElementsEvent & event) {
+    const Array<Element> & element_list, const NewElementsEvent & /*event*/) {
 
   auto & group = mesh_facets.getElementGroup("contact_surface");
 
@@ -116,9 +115,8 @@ void CohesiveSurfaceSelector::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & /*nodes_list*/,
+void CohesiveSurfaceSelector::onNodesAdded(const Array<Idx> & /*nodes_list*/,
                                            const NewNodesEvent & event) {
-
   if (not aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     return;
   }
@@ -127,14 +125,14 @@ void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & /*nodes_list*/,
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & CohesiveSurfaceSelector::getMasterList() {
+Array<Idx> & CohesiveSurfaceSelector::getMasterList() {
   return mesh_facets.getElementGroup("contact_surface")
       .getNodeGroup()
       .getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & CohesiveSurfaceSelector::getSlaveList() {
+Array<Idx> & CohesiveSurfaceSelector::getSlaveList() {
   return mesh_facets.getElementGroup("contact_surface")
       .getNodeGroup()
       .getNodes();
@@ -150,14 +148,13 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
   this->mesh.registerEventHandler(*this, _ehp_lowest);
 
   const Parser & parser = getStaticParser();
-
   const ParserSection & section =
       *(parser.getSubSections(ParserType::_contact_detector).first);
 
   master = section.getParameterValue<std::string>("master");
   slave = section.getParameterValue<std::string>("slave");
 
-  UInt surface_dimension = this->mesh.getSpatialDimension() - 1;
+  auto surface_dimension = this->mesh.getSpatialDimension() - 1;
   auto & group =
       mesh_facets.createElementGroup("contact_surface", surface_dimension);
   group.append(mesh_facets.getElementGroup(master));
@@ -168,9 +165,7 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
 
 /* -------------------------------------------------------------------------- */
 void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
-                                         __attribute__((unused))
-                                         const NewElementsEvent & event) {
-
+                                         const NewElementsEvent & /*event*/) {
   auto & group = mesh_facets.getElementGroup("contact_surface");
 
   for (auto elem : element_list) {
@@ -194,9 +189,8 @@ void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void AllSurfaceSelector::onNodesAdded(const Array<UInt> & /* nodes_list */,
+void AllSurfaceSelector::onNodesAdded(const Array<Idx> & /* nodes_list */,
                                       const NewNodesEvent & event) {
-
   if (not aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     return;
   }
@@ -205,14 +199,14 @@ void AllSurfaceSelector::onNodesAdded(const Array<UInt> & /* nodes_list */,
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & AllSurfaceSelector::getMasterList() {
+Array<Idx> & AllSurfaceSelector::getMasterList() {
   return mesh_facets.getElementGroup("contact_surface")
       .getNodeGroup()
       .getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & AllSurfaceSelector::getSlaveList() {
+Array<Idx> & AllSurfaceSelector::getSlaveList() {
   return mesh_facets.getElementGroup("contact_surface")
       .getNodeGroup()
       .getNodes();

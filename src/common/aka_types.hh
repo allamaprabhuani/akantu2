@@ -30,9 +30,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "aka_compatibilty_with_cpp_standard.hh"
 #include "aka_error.hh"
-#include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <array>
@@ -704,6 +704,12 @@ decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime,
 } // namespace akantu
 
 namespace Eigen {
+
+template <typename Derived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void MatrixBase<Derived>::zero() {
+  return this->fill(0.);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Vector                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -793,7 +799,7 @@ MatrixBase<Derived>::end() const {
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(const MatrixBase<OtherDerived> & values_) {
+MatrixBase<Derived>::eig(const MatrixBase<OtherDerived> & values_) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
   Eigen::MatrixBase<OtherDerived> & values =
@@ -807,7 +813,7 @@ template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
 MatrixBase<Derived>::eig(const MatrixBase<D1> & values_,
-                         const MatrixBase<D2> & vectors_) {
+                         const MatrixBase<D2> & vectors_) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
 
@@ -823,7 +829,7 @@ MatrixBase<Derived>::eig(const MatrixBase<D1> & values_,
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> & values_) {
+MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> & values_) const {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
@@ -837,7 +843,7 @@ template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
 MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
-                          const MatrixBase<D2> & vectors_) {
+                          const MatrixBase<D2> & vectors_) const {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
@@ -854,11 +860,10 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
 } // namespace Eigen
 
 namespace std {
-
 template <typename POT1, typename POT2, int MapOptions, typename StrideType>
 struct is_convertible<Eigen::Map<POT1, MapOptions, StrideType>,
                       Eigen::Map<POT2, MapOptions, StrideType>>
     : aka::bool_constant<is_convertible<POT1, POT2>::value> {};
-
 } // namespace std
+
 #endif /* AKANTU_AKA_TYPES_HH */

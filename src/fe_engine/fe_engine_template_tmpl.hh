@@ -157,7 +157,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::initShapeFunctions(
     const Array<Real> & nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto & type : mesh.elementTypes(element_dimension, ghost_type, kind)) {
+  for (const auto & type :
+       mesh.elementTypes(element_dimension, ghost_type, kind)) {
     integrator.initIntegrator(nodes, type, ghost_type);
     const auto & control_points = getIntegrationPoints(type, ghost_type);
     shape_functions.initShapeFunctions(nodes, control_points, type, ghost_type);
@@ -329,7 +330,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   const Array<Idx> * filter = nullptr;
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : uq.elementTypes(_all_dimensions, ghost_type, kind)) {
+    for (const auto & type :
+         uq.elementTypes(_all_dimensions, ghost_type, kind)) {
       auto nb_quad_per_element = getNbIntegrationPoints(type, ghost_type);
 
       Int nb_element = 0;
@@ -503,20 +505,15 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 template <ElementKind kind_, std::enable_if_t<kind_ == _ek_regular> *>
 inline void
-FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolate_impl(
+FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolateImpl(
     const Ref<const VectorXr> & real_coords,
     const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
     const Element & element) const {
-
-  AKANTU_DEBUG_IN();
-
   /// add sfinea to call only on _ek_regular
   auto type = element.type;
   DISPATCH_SHAPE_FUNCTIONS_HELPER(interpolate, real_coords, element.element,
                                   nodal_values, interpolated,
                                   element.ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -527,18 +524,14 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolate(
     const Ref<const VectorXr> & real_coords,
     const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
     const Element & element) const {
-  interpolate_impl(real_coords, nodal_values, interpolated, element);
+  interpolateImpl(real_coords, nodal_values, interpolated, element);
 }
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeNormalsOnIntegrationPoints(GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
   computeNormalsOnIntegrationPoints(mesh.getNodes(), ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -559,7 +552,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
       _element_kind = kind);
 
   // loop over the type to build the normals
-  for (auto & type : mesh.elementTypes(element_dimension, ghost_type, kind)) {
+  for (const auto & type :
+       mesh.elementTypes(element_dimension, ghost_type, kind)) {
     auto & normals_on_quad = normals_on_integration_points(type, ghost_type);
     computeNormalsOnIntegrationPoints(field, normals_on_quad, type, ghost_type);
   }
@@ -702,8 +696,9 @@ inline bool FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::contains(
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
+template <ElementKind kind_, std::enable_if_t<kind_ != _ek_cohesive> *>
 inline void
-FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapes(
+FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapesImpl(
     const Ref<const VectorXr> & real_coords, Int element, ElementType type,
     Ref<VectorXr> shapes, GhostType ghost_type) const {
   DISPATCH_SHAPE_FUNCTIONS_HELPER(computeShapes, real_coords, element, shapes,
@@ -713,18 +708,19 @@ FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapes(
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
-inline void
-FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapeDerivatives(
-    const Ref<const VectorXr> & real_coords, Int element, ElementType type,
-    Ref<MatrixXr> shape_derivatives, GhostType ghost_type) const {
+template <ElementKind kind_, std::enable_if_t<kind_ != _ek_cohesive> *>
+inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
+    computeShapeDerivativesImpl(const Ref<const VectorXr> & real_coords,
+                                Int element, ElementType type,
+                                Ref<MatrixXr> shape_derivatives,
+                                GhostType ghost_type) const {
   VectorProxy<const Real> coords_mat(real_coords.data(),
                                      shape_derivatives.rows(), 1);
   Tensor3Proxy<Real> shapesd_tensor(shape_derivatives.data(),
                                     shape_derivatives.rows(),
                                     shape_derivatives.cols(), 1);
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(shape_functions, computeShapeDerivatives,
-                                  coords_mat, element, shapesd_tensor,
-                                  ghost_type);
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeShapeDerivatives, coords_mat, element,
+                                  shapesd_tensor, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -761,7 +757,7 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline const Matrix<Real> &
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getIntegrationPoints(
     ElementType type, GhostType ghost_type) const {
-  DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(getIntegrationPoints, ghost_type);
+  DISPATCH_INTEGRATOR_WITH_RES_HELPER(getIntegrationPoints, ghost_type);
   return res;
 }
 
@@ -801,8 +797,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsRemoved(
     const Array<Element> & removed_elements,
     const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & event) {
-  integrator.onElementsRemoved(removed_elements, new_numbering, event);
-  shape_functions.onElementsRemoved(removed_elements, new_numbering, event);
+  integrator.onElementsRemoved(removed_elements, new_numbering);
+  shape_functions.onElementsRemoved(removed_elements, new_numbering);
 }
 
 /* -------------------------------------------------------------------------- */

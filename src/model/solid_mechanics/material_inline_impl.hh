@@ -37,8 +37,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "integration_point.hh"
-#include "solid_mechanics_model.hh"
 #include "material.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
 // #ifndef __AKANTU_MATERIAL_INLINE_IMPL_CC__
@@ -105,6 +105,15 @@ constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
 }
 
 /* -------------------------------------------------------------------------- */
+template <Int dim, typename D1, typename D2>
+constexpr inline decltype(auto)
+Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
+                    const Eigen::MatrixBase<D2> & S, const Real & C33) {
+  Matrix<Real, dim, dim> sigma;
+  Material::StoCauchy<dim>(F, S, C33);
+  return sigma;
+}
+/* -------------------------------------------------------------------------- */
 template <typename D1, typename D2>
 constexpr inline void Material::rightCauchy(const Eigen::MatrixBase<D1> & F,
                                             Eigen::MatrixBase<D2> & C) {
@@ -112,10 +121,28 @@ constexpr inline void Material::rightCauchy(const Eigen::MatrixBase<D1> & F,
 }
 
 /* -------------------------------------------------------------------------- */
+template <Int dim, typename D>
+constexpr inline decltype(auto)
+Material::rightCauchy(const Eigen::MatrixBase<D> & F) {
+  Matrix<Real, dim, dim> C;
+  rightCauchy(F, C);
+  return C;
+}
+
+/* -------------------------------------------------------------------------- */
 template <typename D1, typename D2>
 constexpr inline void Material::leftCauchy(const Eigen::MatrixBase<D1> & F,
                                            Eigen::MatrixBase<D2> & B) {
   B = F * F.transpose();
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, typename D>
+constexpr inline decltype(auto)
+Material::leftCauchy(const Eigen::MatrixBase<D> & F) {
+  Matrix<Real, dim, dim> B;
+  rightCauchy(F, B);
+  return B;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -131,7 +158,7 @@ template <Int dim, typename D1>
 inline decltype(auto) constexpr Material::gradUToEpsilon(
     const Eigen::MatrixBase<D1> & grad_u) {
   Matrix<Real, dim, dim> epsilon;
-  Material::template gradUToEpsilon<dim>(grad_u, epsilon);
+  Material::gradUToEpsilon<dim>(grad_u, epsilon);
   return epsilon;
 }
 
@@ -381,7 +408,7 @@ Material::getInternalDataPerElem(const ID & field_id,
 
   ElementTypeMap<Int> res;
   for (auto ghost_type : ghost_types) {
-    for (auto & type : internal_field.elementTypes(ghost_type)) {
+    for (auto && type : internal_field.elementTypes(ghost_type)) {
       auto nb_quadrature_points =
           fe_engine.getNbIntegrationPoints(type, ghost_type);
       res(type, ghost_type) = nb_data_per_quad * nb_quadrature_points;
@@ -403,8 +430,7 @@ void Material::flattenInternal(const std::string & field_id,
                                                    << this->name);
   }
 
-  const auto & internal_field =
-      this->template getInternal<T>(field_id);
+  const auto & internal_field = this->template getInternal<T>(field_id);
 
   const auto & fe_engine = internal_field.getFEEngine();
   const auto & mesh = fe_engine.getMesh();

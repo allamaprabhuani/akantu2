@@ -34,8 +34,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
-//#include "integrator.hh"
-//#include "shape_functions.hh"
 /* -------------------------------------------------------------------------- */
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
@@ -121,16 +119,16 @@ public:
 private:
   template <ElementKind kind_ = kind,
             std::enable_if_t<kind_ == _ek_regular> * = nullptr>
-  inline void interpolate_impl(const Ref<const VectorXr> & real_coords,
-                               const Ref<const MatrixXr> & nodal_values,
-                               Ref<VectorXr> interpolated,
-                               const Element & element) const;
+  inline void interpolateImpl(const Ref<const VectorXr> & real_coords,
+                              const Ref<const MatrixXr> & nodal_values,
+                              Ref<VectorXr> interpolated,
+                              const Element & element) const;
 
   template <ElementKind kind_ = kind,
             std::enable_if_t<kind_ != _ek_regular> * = nullptr>
-  inline void interpolate_impl(const Ref<const VectorXr> &,
-                               const Ref<const MatrixXr> &, Ref<VectorXr>,
-                               const Element &) const {
+  inline void interpolateImpl(const Ref<const VectorXr> &,
+                              const Ref<const MatrixXr> &, Ref<VectorXr>,
+                              const Element &) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -258,16 +256,56 @@ public:
                        ElementType type,
                        GhostType ghost_type = _not_ghost) const;
 
+private:
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ != _ek_cohesive> * = nullptr>
+  inline void computeShapesImpl(const Ref<const VectorXr> & real_coords,
+                                Int element, ElementType type,
+                                Ref<VectorXr> shapes,
+                                GhostType ghost_type = _not_ghost) const;
+
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ == _ek_cohesive> * = nullptr>
+  inline void computeShapesImpl(const Ref<const VectorXr> & real_coords,
+                                Int element, ElementType type,
+                                Ref<VectorXr> shapes,
+                                GhostType ghost_type = _not_ghost) const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ != _ek_cohesive> * = nullptr>
+  inline void computeShapeDerivativesImpl(
+      const Ref<const VectorXr> & real__coords, Int element, ElementType type,
+      Ref<MatrixXr> shape_derivatives, GhostType ghost_type = _not_ghost) const;
+
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ == _ek_cohesive> * = nullptr>
+  inline void
+  computeShapeDerivativesImpl(const Ref<const VectorXr> & real__coords,
+                              Int element, ElementType type,
+                              Ref<MatrixXr> shape_derivatives,
+                              GhostType ghost_type = _not_ghost) const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+public:
   /// compute the shape on a provided point
   inline void computeShapes(const Ref<const VectorXr> & real_coords,
                             Int element, ElementType type, Ref<VectorXr> shapes,
-                            GhostType ghost_type = _not_ghost) const override;
+                            GhostType ghost_type = _not_ghost) const {
+    this->template computeShapesImpl(real_coords, element, type, shapes,
+                                     ghost_type);
+  }
 
   /// compute the shape derivatives on a provided point
   inline void
-  computeShapeDerivatives(const Ref<const VectorXr> & real__coords, Int element,
+  computeShapeDerivatives(const Ref<const VectorXr> & real_coords, Int element,
                           ElementType type, Ref<MatrixXr> shape_derivatives,
-                          GhostType ghost_type = _not_ghost) const override;
+                          GhostType ghost_type = _not_ghost) const override {
+    this->template computeShapeDerivativesImpl<kind>(
+        real_coords, element, type, shape_derivatives, ghost_type);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
@@ -313,11 +351,30 @@ public:
       const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
       ElementType type, GhostType ghost_type) const override;
 
+private:
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ != _ek_cohesive> * = nullptr>
+  void assembleFieldMatrixImpl(
+      const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
+      const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
+      ElementType type, GhostType ghost_type) const;
+
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ == _ek_cohesive> * = nullptr>
+  void assembleFieldMatrixImpl(
+      const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
+      const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
+      ElementType type, GhostType ghost_type) const;
+
+public:
   /// assemble a field as a matrix (ex. rho to mass matrix)
   void assembleFieldMatrix(
       const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
       const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
-      ElementType type, GhostType ghost_type) const override;
+      ElementType type, GhostType ghost_type) const override {
+    this->assembleFieldMatrixImpl(field_funct, matrix_id, dof_id, dof_manager,
+                                  type, ghost_type);
+  }
 
 private:
   friend struct fe_engine::details::AssembleLumpedTemplateHelper<kind>;
@@ -361,8 +418,7 @@ private:
                            Int nb_degree_of_freedom, SparseMatrix & M,
                            Array<Real> * n,
                            ElementTypeMapArray<Real> & rotation_mat,
-                           __attribute__((unused)) GhostType ghost_type) const;
-
+                           GhostType ghost_type) const;
 #endif
 
   /* ------------------------------------------------------------------------ */

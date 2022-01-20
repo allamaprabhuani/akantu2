@@ -80,10 +80,11 @@ public:
              GhostType ghost_type = _not_ghost) const {
     if (filter.exists(type, ghost_type)) {
       Int nb_comp = 1;
+      auto && array_v = array(type, ghost_type);
       if (nb_data_per_elem.exists(type, ghost_type)) {
         nb_comp = nb_data_per_elem(type, ghost_type) / array_v.getNbComponent();
       }
-      return ArrayFilter<T>(array(type, ghost_type), filter(type, ghost_type),
+      return ArrayFilter<T>(array_v, filter(type, ghost_type),
                             nb_comp);
     }
     return ArrayFilter<T>(empty_array, empty_filter, 1);

@@ -644,7 +644,7 @@ Real SolidMechanicsModel::getExternalWork() {
 
     if (count_node) {
       for (Int i = 0; i < spatial_dimension; ++i) {
-          if (boun(i)) {
+        if (boun(i)) {
           work -= int_force(i) * incr_or_velo(i);
         } else {
           work += ext_force(i) * incr_or_velo(i);
@@ -904,7 +904,7 @@ void SolidMechanicsModel::initializeNonLocal() {
 void SolidMechanicsModel::insertIntegrationPointsInNeighborhoods(
     GhostType ghost_type) {
   for (auto & mat : materials) {
-    if (not aka::is_of_type<MaterialNonLocalInterface>(mat))
+    if (not aka::is_of_type<MaterialNonLocalInterface>(mat)) {
       continue;
     }
 

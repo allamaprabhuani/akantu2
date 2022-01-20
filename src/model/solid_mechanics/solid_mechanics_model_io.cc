@@ -142,8 +142,7 @@ void SolidMechanicsModel::onDump() {
 #ifdef AKANTU_USE_IOHELPER
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, const Int & spatial_dimension,
-    ElementKind kind) {
+    bool padding_flag, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
@@ -151,8 +150,9 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, spatial_dimension, kind);
   } else if (field_name == "material_index") {
-    field = mesh.createElementalField<Int, Vector, dumpers::ElementalField>(
-        material_index, group_name, spatial_dimension, kind);
+    field =
+        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+            material_index, group_name, spatial_dimension, kind);
   } else {
     // this copy of field_name is used to compute derivated data such as
     // strain and von mises stress that are based on grad_u and stress

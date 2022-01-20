@@ -58,41 +58,30 @@ template <> Idx Array<Real>::find(const Real & elem) const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-Array<ElementType> &
-Array<ElementType>::operator*=(ElementType/*alpha*/) {
+auto Array<ElementType>::operator*=(const ElementType & /*alpha*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 template <>
-Array<ElementType> &
-Array<ElementType>::operator-=(const Array<ElementType> & /*vect*/) {
+auto Array<ElementType>::operator-=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 template <>
-Array<ElementType> &
-Array<ElementType>::operator+=(const Array<ElementType> & /*vect*/) {
+auto Array<ElementType>::operator+=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <> Array<char> & Array<char>::operator*=(const char & /*alpha*/) {
+template <> auto Array<char>::operator*=(const char & /*alpha*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <>
-Array<char> & Array<char>::operator-=(const Array<char> & /*vect*/) {
+template <> auto Array<char>::operator-=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <>
-Array<char> & Array<char>::operator+=(const Array<char> & /*vect*/) {
+template <> auto Array<char>::operator+=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 } // namespace akantu

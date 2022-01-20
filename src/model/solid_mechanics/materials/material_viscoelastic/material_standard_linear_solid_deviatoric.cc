@@ -85,171 +85,102 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateInternalParameters() {
 template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Array<Real> & stress_dev_vect = stress_dev(el_type, ghost_type);
-  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
-
-  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(dim, dim);
-  Array<Real>::matrix_iterator history_int = history_int_vect.begin(dim, dim);
-
   /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  for (auto && args : this->getArguments(el_type, ghost_type)) {
+    const auto & grad_u = tuple::get<"grad_u"_h>(args);
+    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto & h = tuple::get<"history"_h>(args);
 
-  Matrix<Real> & dev_s = *stress_d;
-  Matrix<Real> & h = *history_int;
+    /// Compute the first invariant of strain
+    Real Theta = grad_u.trace();
 
-  /// Compute the first invariant of strain
-  Real Theta = grad_u.trace();
+    dev_s = 2 * this->mu *
+            ((grad_u + grad_u.transpose()) / 2. -
+             Theta * Matrix<Real, dim, dim>::Identity() / 3.);
 
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      dev_s(i, j) = 2 * this->mu *
-                    (.5 * (grad_u(i, j) + grad_u(j, i)) -
-                     1. / 3. * Theta * Math::kronecker(i, j));
-      h(i, j) = 0.;
-    }
+    h.zero();
   }
-
-  /// Save the deviator of stress
-  ++stress_d;
-  ++history_int;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Real tau = 0.;
-  // if(std::abs(Ev) > std::numeric_limits<Real>::epsilon())
-  tau = eta / Ev;
-
-  Array<Real> & stress_dev_vect = stress_dev(el_type, ghost_type);
-  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
-
-  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(dim, dim);
-  Array<Real>::matrix_iterator history_int = history_int_vect.begin(dim, dim);
-
-  Matrix<Real> s(dim, dim);
+  Real tau = eta / Ev;
 
   Real dt = this->model.getTimeStep();
   Real exp_dt_tau = exp(-dt / tau);
   Real exp_dt_tau_2 = exp(-.5 * dt / tau);
 
-  Matrix<Real> epsilon_v(dim, dim);
+  Matrix<Real, dim, dim> s;
+  Matrix<Real, dim, dim> epsilon_d;
 
   /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  for (auto && args : this->getArguments(el_type, ghost_type)) {
+    const auto & grad_u = tuple::get<"grad_u"_h>(args);
+    auto & sigma = tuple::get<"sigma"_h>(args);
+    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto & h = tuple::get<"history"_h>(args);
 
-  Matrix<Real> & dev_s = *stress_d;
-  Matrix<Real> & h = *history_int;
+    s.zero();
+    sigma.zero();
 
-  s.zero();
-  sigma.zero();
+    /// Compute the first invariant of strain
+    auto gamma_inf = E_inf / this->E;
+    auto gamma_v = Ev / this->E;
 
-  /// Compute the first invariant of strain
-  Real gamma_inf = E_inf / this->E;
-  Real gamma_v = Ev / this->E;
+    epsilon_d = this->template gradUToEpsilon<dim>(grad_u);
+    auto Theta = epsilon_d.trace();
 
-  auto epsilon_d = this->template gradUToEpsilon<dim>(grad_u);
-  Real Theta = epsilon_d.trace();
-  epsilon_v.eye(Theta / Real(3.));
-  epsilon_d -= epsilon_v;
+    epsilon_d -= Matrix<Real, dim, dim>::Identity() * epsilon_d.trace() / 3.;
 
-  Matrix<Real> U_rond_prim(dim, dim);
+    Matrix<Real, dim, dim> U_rond_prim =
+        Matrix<Real, dim, dim>::Identity() * gamma_inf * this->kpa * Theta;
 
-  U_rond_prim.eye(gamma_inf * this->kpa * Theta);
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      s(i, j) = 2 * this->mu * epsilon_d(i, j);
-      h(i, j) = exp_dt_tau * h(i, j) + exp_dt_tau_2 * (s(i, j) - dev_s(i, j));
-      dev_s(i, j) = s(i, j);
-      sigma(i, j) = U_rond_prim(i, j) + gamma_inf * s(i, j) + gamma_v * h(i, j);
-    }
+    s = this->mu * epsilon_d;
+    h = exp_dt_tau * h + exp_dt_tau_2 * (s - dev_s);
+    dev_s = s;
+    sigma = U_rond_prim + gamma_inf * s + gamma_v * h;
   }
 
-  /// Save the deviator of stress
-  ++stress_d;
-  ++history_int;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
   this->updateDissipatedEnergy(el_type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
+  Real tau = eta / Ev;
 
-  // if(ghost_type == _ghost) return 0.;
+  Matrix<Real, dim, dim> q;
+  Matrix<Real, dim, dim> q_rate;
+  Matrix<Real, dim, dim> epsilon_d;
 
-  Real tau = 0.;
-  tau = eta / Ev;
-  Real * dis_energy = dissipated_energy(el_type, ghost_type).data();
+  auto dt = this->model.getTimeStep();
 
-  Array<Real> & stress_dev_vect = stress_dev(el_type, ghost_type);
-  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
+  auto gamma_v = Ev / this->E;
+  auto alpha = 1. / (2. * this->mu * gamma_v);
 
-  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(dim, dim);
-  Array<Real>::matrix_iterator history_int = history_int_vect.begin(dim, dim);
+  for (auto && data : zip(this->getArguments(el_type, ghost_type),
+                          dissipated_energy(el_type, ghost_type))) {
+    auto && args = std::get<0>(data);
+    auto & dis_energy = std::get<1>(data);
+    const auto & grad_u = tuple::get<"grad_u"_h>(args);
+    auto & sigma = tuple::get<"sigma"_h>(args);
+    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto & h = tuple::get<"history"_h>(args);
 
-  Matrix<Real> q(dim, dim);
-  Matrix<Real> q_rate(dim, dim);
-  Matrix<Real> epsilon_d(dim, dim);
-  Matrix<Real> epsilon_v(dim, dim);
+    /// Compute the first invariant of strain
+    epsilon_d = Material::gradUToEpsilon<dim>(grad_u);
 
-  Real dt = this->model.getTimeStep();
+    auto Theta = epsilon_d.trace();
+    epsilon_d -= Matrix<Real, dim, dim>::Identity() * Theta / 3.;
 
-  Real gamma_v = Ev / this->E;
-  Real alpha = 1. / (2. * this->mu * gamma_v);
+    q = (dev_s - h) * gamma_v;
+    q_rate = (dev_s * gamma_v - q) / tau;
 
-  /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  Matrix<Real> & dev_s = *stress_d;
-  Matrix<Real> & h = *history_int;
-
-  /// Compute the first invariant of strain
-  this->template gradUToEpsilon<dim>(grad_u, epsilon_d);
-
-  Real Theta = epsilon_d.trace();
-  epsilon_v.eye(Theta / Real(3.));
-  epsilon_d -= epsilon_v;
-
-  q.copy(dev_s);
-  q -= h;
-  q *= gamma_v;
-
-  q_rate.copy(dev_s);
-  q_rate *= gamma_v;
-  q_rate -= q;
-  q_rate /= tau;
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      *dis_energy += (epsilon_d(i, j) - alpha * q(i, j)) * q_rate(i, j) * dt;
-    }
+    dis_energy += ((epsilon_d - alpha * q) * q_rate * dt).sum();
   }
-
-  /// Save the deviator of stress
-  ++stress_d;
-  ++history_int;
-  ++dis_energy;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -260,7 +191,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (const auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
     de +=
         this->fem.integrate(dissipated_energy(type, _not_ghost), type,
                             _not_ghost, this->element_filter(type, _not_ghost));
@@ -273,16 +204,16 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
-    ElementType type, UInt index) const {
+    const Element & element) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
-  auto it =
-      this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
-  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(element.type);
+  auto it = this->dissipated_energy(element.type, _not_ghost)
+                .begin(nb_quadrature_points);
+  auto gindex = this->element_filter(element);
 
   AKANTU_DEBUG_OUT();
-  return this->fem.integrate(it[index], type, gindex);
+  return this->fem.integrate(it[element.element], element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -301,14 +232,14 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
-    const std::string & energy_id, ElementType type, UInt index) {
+    const std::string & energy_id, const Element & element) {
   if (energy_id == "dissipated") {
-    return getDissipatedEnergy(type, index);
+    return getDissipatedEnergy(element);
   }
   if (energy_id == "dissipated_sls_deviatoric") {
-    return getDissipatedEnergy(type, index);
+    return getDissipatedEnergy(element);
   }
-  return MaterialElastic<dim>::getEnergy(energy_id, type, index);
+  return Parent::getEnergy(energy_id, element);
 }
 
 /* -------------------------------------------------------------------------- */

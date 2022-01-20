@@ -49,18 +49,15 @@ namespace akantu {
 /**
  * Material plastic with a linear evolution of the yielding stress
  */
-template <Int spatial_dimension>
-class MaterialLinearIsotropicHardening
-    : public MaterialPlastic<spatial_dimension> {
+template <Int dim>
+class MaterialLinearIsotropicHardening : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialPlastic<dim>;
+
 public:
-  MaterialLinearIsotropicHardening(SolidMechanicsModel & model,
-                                   const ID & id = "");
-  MaterialLinearIsotropicHardening(SolidMechanicsModel & model, UInt dim,
-                                   const Mesh & mesh, FEEngine & fe_engine,
-                                   const ID & id = "");
+  using Parent::Parent;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -76,37 +73,18 @@ public:
 
 protected:
   /// Infinitesimal deformations
-  inline void
-  computeStressOnQuad(const Matrix<Real> & grad_u,
-                      const Matrix<Real> & previous_grad_u,
-                      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-                      Matrix<Real> & inelastic_strain,
-                      const Matrix<Real> & previous_inelastic_strain,
-                      Real & iso_hardening, const Real & previous_iso_hardening,
-                      const Real & sigma_th, const Real & previous_sigma_th);
+  template <class Args,
+            std::enable_if_t<not tuple::has_t<"F"_h, Args>::value> * = nullptr>
+  inline void computeStressOnQuad(Args && arguments);
+
   /// Finite deformations
-  inline void computeStressOnQuad(
-      const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain, Real & iso_hardening,
-      const Real & previous_iso_hardening, const Real & sigma_th,
-      const Real & previous_sigma_th, const Matrix<Real> & F_tensor);
+  template <class Args,
+            std::enable_if_t<tuple::has_t<"F"_h, Args>::value> * = nullptr>
+  inline void computeStressOnQuad(Args && arguments);
 
-  inline void computeTangentModuliOnQuad(
-      Matrix<Real> & tangent, const Matrix<Real> & grad_u,
-      const Matrix<Real> & previous_grad_u, const Matrix<Real> & sigma_tensor,
-      const Matrix<Real> & previous_sigma_tensor,
-      const Real & iso_hardening) const;
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
+  template <class Args>
+  inline void computeTangentModuliOnQuad(Args && arguments) const;
 };
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
 
 } // namespace akantu
 

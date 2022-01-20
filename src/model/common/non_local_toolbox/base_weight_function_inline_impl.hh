@@ -69,5 +69,8 @@ BaseWeightFunction::operator()(Real r, const IntegrationPoint & /* q1 */,
   return w;
 }
 
+INSTANTIATE_NL_NEIGHBORHOOD(base_wf, BaseWeightFunction);
+
 } // namespace akantu
+
 #endif /* AKANTU_BASE_WEIGHT_FUNCTION_INLINE_IMPL_HH_ */

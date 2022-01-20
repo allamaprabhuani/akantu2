@@ -65,39 +65,37 @@ namespace dumpers {
 #endif
 
     /// set the number of data per item (used for elements fields at the moment)
-    virtual void setNbData([[gnu::unused]] UInt nb_data) {
-      AKANTU_TO_IMPLEMENT();
-    };
+    virtual void setNbData(Int /*nb_data*/) { AKANTU_TO_IMPLEMENT(); };
 
     /// set the number of data per elem (used for elements fields at the moment)
     virtual void
-    setNbDataPerElem([[gnu::unused]] const ElementTypeMap<UInt> & nb_data) {
+    setNbDataPerElem([[gnu::unused]] const ElementTypeMap<Int> & nb_data) {
       AKANTU_TO_IMPLEMENT();
     };
 
     /// set the number of data per elem (used for elements fields at the moment)
-    virtual void setNbDataPerElem([[gnu::unused]] UInt nb_data) {
+    virtual void setNbDataPerElem([[gnu::unused]] Int nb_data) {
       AKANTU_TO_IMPLEMENT();
     };
 
     /// get the number of components of the hosted field
-    virtual ElementTypeMap<UInt>
-    getNbComponents([[gnu::unused]] UInt dim = _all_dimensions,
-                    [[gnu::unused]] GhostType ghost_type = _not_ghost,
-                    [[gnu::unused]] ElementKind kind = _ek_not_defined) {
-      throw;
+    virtual ElementTypeMap<Int>
+    getNbComponents(Int /*dim*/ = _all_dimensions,
+                    GhostType /*ghost_type*/ = _not_ghost,
+                    ElementKind /*kind*/ = _ek_not_defined) {
+      AKANTU_TO_IMPLEMENT();
     };
 
     /// for connection to a FieldCompute
     inline virtual std::shared_ptr<Field>
-    connect([[gnu::unused]] FieldComputeProxy & proxy) {
-      throw;
+    connect(FieldComputeProxy & /*proxy*/) {
+      AKANTU_TO_IMPLEMENT();
     };
 
     /// for connection to a FieldCompute
     inline virtual std::unique_ptr<ComputeFunctorInterface>
     connect(HomogenizerProxy & /*proxy*/) {
-      throw;
+      AKANTU_TO_IMPLEMENT();
     };
 
     /// check if the same quantity of data for all element types

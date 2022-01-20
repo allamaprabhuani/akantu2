@@ -112,14 +112,10 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
                                             Array<Real> & global) {
 
   auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn =
-        const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
-    Vector<UInt> elem_conn(master_conn.size() + 1);
-
+    const auto master_conn = model.getMesh().getConnectivity(master);
+    Vector<Idx> elem_conn(master_conn.size() + 1);
     elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
+    elem_conn.block(1, 0, master_conn.size(), 1) = master_conn;
 
     return elem_conn;
   };
@@ -178,14 +174,10 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
                                              SparseMatrix & global) {
 
   auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn =
-        const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
-    Vector<UInt> elem_conn(master_conn.size() + 1);
-
+    const auto master_conn = model.getMesh().getConnectivity(master);
+    Vector<Idx> elem_conn(master_conn.size() + 1);
     elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
+    elem_conn.block(1, 0, master_conn.size(), 1) = master_conn;
 
     return elem_conn;
   };

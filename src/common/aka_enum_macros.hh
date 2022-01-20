@@ -87,7 +87,7 @@
             BOOST_PP_SEQ_TRANSFORM(AKANTU_PP_TYPE_TO_STR, prefix, list))};     \
     return convert.at(type);                                                   \
   }                                                                            \
-  }                                                                            \
+  } /* namespace std */                                                        \
   namespace akantu {                                                           \
   inline auto operator<<(std::ostream & stream, const type_name & type)        \
       -> std::ostream & {                                                      \

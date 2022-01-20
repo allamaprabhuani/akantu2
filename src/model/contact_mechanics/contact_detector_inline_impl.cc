@@ -52,13 +52,13 @@ ContactDetector::checkValidityOfProjection(Vector<Real> & projection) const {
 inline void ContactDetector::coordinatesOfElement(const Element & el,
                                                   Matrix<Real> & coords) const {
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-  const Vector<UInt> connect = mesh.getConnectivity(el.type, _not_ghost)
-                                   .begin(nb_nodes_per_element)[el.element];
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+  auto && connect = mesh.getConnectivity(el.type, _not_ghost)
+                        .begin(nb_nodes_per_element)[el.element];
 
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt node = connect[n];
-    for (UInt s : arange(spatial_dimension)) {
+  for (auto n : arange(connect.size())) {
+    auto node = connect[n];
+    for (auto s : arange(spatial_dimension)) {
       coords(s, n) = this->positions(node, s);
     }
   }
@@ -66,20 +66,17 @@ inline void ContactDetector::coordinatesOfElement(const Element & el,
 
 /* -------------------------------------------------------------------------- */
 inline void ContactDetector::computeCellSpacing(Vector<Real> & spacing) const {
-  for (UInt s : arange(spatial_dimension)) {
+  for (auto s : arange(spatial_dimension)) {
     spacing(s) = std::sqrt(2.0) * max_dd;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void
-ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
-                               const Array<UInt> & nodes_list) const {
-  auto to_grid = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
+ContactDetector::constructGrid(SpatialGrid<Idx> & grid, BBox & bbox,
+                               const Array<Idx> & nodes_list) const {
+  auto to_grid = [&](auto node) {
+    auto && pos = make_view(this->positions, spatial_dimension).begin()[node];
 
     if (bbox.contains(pos)) {
       grid.insert(node, pos);
@@ -92,12 +89,9 @@ ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
 /* -------------------------------------------------------------------------- */
 inline void
 ContactDetector::constructBoundingBox(BBox & bbox,
-                                      const Array<UInt> & nodes_list) const {
-  auto to_bbox = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
+                                      const Array<Idx> & nodes_list) const {
+  auto to_bbox = [&](auto node) {
+    auto && pos = make_view(this->positions, spatial_dimension).begin()[node];
     bbox += pos;
   };
 
@@ -106,8 +100,8 @@ ContactDetector::constructBoundingBox(BBox & bbox,
   auto & lower_bound = bbox.getLowerBounds();
   auto & upper_bound = bbox.getUpperBounds();
 
-  lower_bound -= this->max_bb;
-  upper_bound += this->max_bb;
+  lower_bound.array() -= this->max_bb;
+  upper_bound.array() += this->max_bb;
 
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }
@@ -143,16 +137,14 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt>
-ContactDetector::constructConnectivity(UInt & slave,
+inline Vector<Idx>
+ContactDetector::constructConnectivity(Idx & slave,
                                        const Element & master) const {
-  const Vector<UInt> master_conn = this->mesh.getConnectivity(master);
+  auto && master_conn = this->mesh.getConnectivity(master);
 
-  Vector<UInt> elem_conn(master_conn.size() + 1);
+  Vector<Idx> elem_conn(master_conn.size() + 1);
   elem_conn[0] = slave;
-  for (UInt i = 1; i < elem_conn.size(); ++i) {
-    elem_conn[i] = master_conn[i - 1];
-  }
+  elem_conn.block(1, 0, master_conn.size(), 1) = master_conn;
 
   return elem_conn;
 }
@@ -166,11 +158,11 @@ ContactDetector::computeNormalOnElement(const Element & element,
 
   switch (this->spatial_dimension) {
   case 2: {
-    Math::normal2(vectors.storage(), normal.storage());
+    normal = Math::normal(vectors);
     break;
   }
   case 3: {
-    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
+    normal = Math::normal(vectors.col(0), vectors.col(1));
     break;
   }
   default: {
@@ -257,7 +249,7 @@ inline void ContactDetector::filterBoundaryElements(
 
 /* -------------------------------------------------------------------------- */
 inline bool
-ContactDetector::isValidSelfContact(const UInt & slave_node, const Real & gap,
+ContactDetector::isValidSelfContact(const Idx & slave_node, const Real & gap,
                                     const Vector<Real> & normal) const {
   UInt master_node;
 
@@ -280,7 +272,7 @@ ContactDetector::isValidSelfContact(const UInt & slave_node, const Real & gap,
       continue;
     }
 
-    const Vector<UInt> connectivity = this->mesh.getConnectivity(element);
+    auto && connectivity = this->mesh.getConnectivity(element);
 
     // finding the normal at slave node by averaging of normals
     Vector<Real> normal(spatial_dimension);

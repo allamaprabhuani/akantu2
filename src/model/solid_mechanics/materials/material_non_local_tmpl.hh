@@ -60,7 +60,7 @@ void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
   auto & neighborhood = this->model.getNonLocalManager().getNeighborhood(
       this->getNeighborhoodName());
 
-  for (auto & type :
+  for (auto && type :
        this->element_filter.elementTypes(dim, ghost_type, _ek_regular)) {
     q.type = type;
     const auto & elem_filter = this->element_filter(type, ghost_type);
@@ -95,7 +95,7 @@ void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
     GhostType ghost_type, ElementKind kind) {
 
   /// loop over all types in the material
-  for (auto & el_type :
+  for (auto && el_type :
        this->element_filter.elementTypes(dim, ghost_type, kind)) {
     auto & internal =
         this->template getInternal<Real>(field_id)(el_type, ghost_type);

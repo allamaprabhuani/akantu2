@@ -215,8 +215,7 @@ public:
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// add an element to the local mesh filter
-  inline auto addElement(ElementType type, Int element,
-                         GhostType ghost_type);
+  inline auto addElement(ElementType type, Int element, GhostType ghost_type);
   inline auto addElement(const Element & element);
 
   /// add many elements at once
@@ -260,7 +259,8 @@ protected:
     return (dim * (dim - 1) / 2 + dim);
   }
 
-  template <Int dim> static inline Int getTangentStiffnessVoigtSize() {
+  template <Int dim>
+  constexpr static inline Int getTangentStiffnessVoigtSize() {
     return getTangentStiffnessVoigtSize(dim);
   }
 
@@ -271,19 +271,33 @@ protected:
   virtual void resizeInternals();
 
   template <Int dim>
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type) {
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    auto && args =
+        zip(tuple::get<"grad_u"_h>() =
+                make_view<dim, dim>(this->gradu(el_type, ghost_type)),
+            tuple::get<"previous_sigma"_h>() =
+                make_view<dim, dim>(this->stress.previous(el_type, ghost_type)),
+            tuple::get<"previous_grad_u"_h>() =
+                make_view<dim, dim>(this->gradu.previous(el_type, ghost_type)));
+
     if (not finite_deformation) {
-      return zip(tuple::get<"sigma"_h>() =
-                     make_view<dim, dim>(this->stress(el_type, ghost_type)),
-                 tuple::get<"grad_u"_h>() =
-                     make_view<dim, dim>(this->gradu(el_type, ghost_type)));
-    } else {
-      return zip(tuple::get<"sigma"_h>() = make_view<dim, dim>(
-                     this->piola_kirchhoff_2(el_type, ghost_type)),
-                 tuple::get<"grad_u"_h>() =
-                     make_view<dim, dim>(this->gradu(el_type, ghost_type)));
+      return zip_append(args, tuple::get<"sigma"_h>() = make_view<dim, dim>(
+                                  this->stress(el_type, ghost_type)));
     }
+
+    return zip_append(args, tuple::get<"sigma"_h>() = make_view<dim, dim>(
+                                this->piola_kirchhoff_2(el_type, ghost_type)));
+  }
+
+  template <Int dim>
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type) {
+    constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
+    return zip(tuple::get<"tangent_moduli"_h>() =
+                   make_view<tangent_size, tangent_size>(tangent_matrix),
+               tuple::get<"grad_u"_h>() =
+                   make_view<dim, dim>(this->gradu(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -305,12 +319,10 @@ protected:
 
   /// assembling in finite deformation
   template <Int dim>
-  void assembleStiffnessMatrixNL(ElementType type,
-                                 GhostType ghost_type);
+  void assembleStiffnessMatrixNL(ElementType type, GhostType ghost_type);
 
   template <Int dim>
-  void assembleStiffnessMatrixL2(ElementType type,
-                                 GhostType ghost_type);
+  void assembleStiffnessMatrixL2(ElementType type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Conversion functions                                                     */
@@ -362,19 +374,31 @@ public:
             Eigen::MatrixBase<D3> & sigma, const Real & C33 = 1.0);
 
   template <Int dim, typename D1, typename D2>
+  static constexpr inline decltype(auto)
+  StoCauchy(const Eigen::MatrixBase<D1> & F, const Eigen::MatrixBase<D2> & S,
+            const Real & C33 = 1.0);
+
+  template <Int dim, typename D1, typename D2>
   static constexpr inline void gradUToF(const Eigen::MatrixBase<D1> & grad_u,
                                         Eigen::MatrixBase<D2> & F);
 
-  template <Int dim, typename D1>
+  template <Int dim, typename D>
   static constexpr inline decltype(auto)
-  gradUToF(const Eigen::MatrixBase<D1> & grad_u);
+  gradUToF(const Eigen::MatrixBase<D> & grad_u);
 
   template <typename D1, typename D2>
   static constexpr inline void rightCauchy(const Eigen::MatrixBase<D1> & F,
                                            Eigen::MatrixBase<D2> & C);
+  template <Int dim, typename D>
+  static constexpr inline decltype(auto)
+  rightCauchy(const Eigen::MatrixBase<D> & F);
+
   template <typename D1, typename D2>
   static constexpr inline void leftCauchy(const Eigen::MatrixBase<D1> & F,
                                           Eigen::MatrixBase<D2> & B);
+  template <Int dim, typename D>
+  static constexpr inline decltype(auto)
+  leftCauchy(const Eigen::MatrixBase<D> & F);
 
   template <Int dim, typename D1, typename D2>
   static constexpr inline void
@@ -391,6 +415,22 @@ public:
   template <Int dim, typename D1>
   static constexpr inline decltype(auto)
   gradUToE(const Eigen::MatrixBase<D1> & grad_u);
+
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void
+  computeDeviatoric(const Eigen::MatrixBase<D1> & sigma,
+                    Eigen::MatrixBase<D2> & sigma_dev) {
+    sigma_dev =
+        sigma - Matrix<Real, dim, dim>::Identify() * sigma.trace() / dim;
+  }
+
+  template <Int dim, typename D>
+  static constexpr inline decltype(auto)
+  computeDeviatoric(const Eigen::MatrixBase<D> & sigma) {
+    Matrix<Real, dim, dim> sigma_dev;
+    Material::computeDeviatoric<dim>(sigma, sigma_dev);
+    return sigma_dev;
+  }
 
   template <typename D1>
   static inline Real stressToVonMises(const Eigen::MatrixBase<D1> & stress);
@@ -495,8 +535,7 @@ public:
                          const Element & element);
 
   [[gnu::deprecated("Use the interface with an Element")]] virtual Real
-  getEnergy(const std::string & energy_id, ElementType type,
-            Idx index) final {
+  getEnergy(const std::string & energy_id, ElementType type, Idx index) final {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }
 
@@ -528,8 +567,8 @@ public:
   inline bool isInternal(const ID & id, ElementKind element_kind) const;
 
   template <typename T>
-  ElementTypeMap<Int>
-  getInternalDataPerElem(const ID & id, ElementKind element_kind) const;
+  ElementTypeMap<Int> getInternalDataPerElem(const ID & id,
+                                             ElementKind element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
@@ -751,6 +790,11 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 #define INSTANTIATE_MATERIAL(id, mat_name)                                     \
   INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
+  static bool material_is_alocated_##id [[gnu::unused]] =                      \
+      MaterialFactory::getInstance().registerAllocator(                        \
+          #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
+
+#define INSTANTIATE_MATERIAL_NO_INSTATIATION(id, mat_name)                     \
   static bool material_is_alocated_##id [[gnu::unused]] =                      \
       MaterialFactory::getInstance().registerAllocator(                        \
           #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))

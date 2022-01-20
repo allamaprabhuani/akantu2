@@ -36,7 +36,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ShapeFunctions::ShapeFunctions(const Mesh & mesh, UInt spatial_dimension,
+ShapeFunctions::ShapeFunctions(const Mesh & mesh, Int spatial_dimension,
                                const ID & id)
     : shapes("shapes_generic", id),
       shapes_derivatives("shapes_derivatives_generic", id), mesh(mesh),
@@ -49,9 +49,8 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     const Array<Real> & interpolation_points_coordinates,
     ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-    const Array<Real> & quadrature_points_coordinates,
-    GhostType ghost_type, const Array<Idx> & element_filter) const {
-
+    const Array<Real> & quadrature_points_coordinates, GhostType ghost_type,
+    const Array<Idx> & element_filter) const {
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = this->mesh.getSpatialDimension();

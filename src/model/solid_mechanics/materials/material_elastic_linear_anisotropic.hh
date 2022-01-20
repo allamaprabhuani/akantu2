@@ -90,15 +90,18 @@ protected:
   void rotateCprime();
 
   /// constitutive law for a given quadrature point
-  template <typename Args>
-  inline void computeStressOnQuad(Args && arguments) const;
+  template <typename Args> inline void computeStressOnQuad(Args && args) const;
 
   /// tangent matrix for a given quadrature point
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent) const;
+  template <typename Args>
+  inline void computeTangentModuliOnQuad(Args && args) const;
 
-  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                           const Matrix<Real> & sigma,
-                                           Real & epot);
+  template <typename Args>
+  inline void computePotentialEnergyOnQuad(Args && args, Real & epot);
+
+  void
+  computePotentialEnergyByElement(ElementType type, Int index,
+                                  Vector<Real> & epot_on_quad_points) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

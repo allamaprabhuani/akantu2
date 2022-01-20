@@ -30,9 +30,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-/* -------------------------------------------------------------------------- */
-#include "aka_config.hh"
-/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_DUMPABLE_INLINE_IMPL_HH_
 #define AKANTU_DUMPABLE_INLINE_IMPL_HH_

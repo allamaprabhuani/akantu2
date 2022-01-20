@@ -88,17 +88,13 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// computes the force vector due to normal traction
-  virtual void computeNormalForce(__attribute__((unused))
-                                  const ContactElement & /*unused*/,
-                                  __attribute__((unused))
+  virtual void computeNormalForce(const ContactElement & /*unused*/,
                                   Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the tangential force vector due to frictional traction
-  virtual void computeTangentialForce(__attribute__((unused))
-                                      const ContactElement & /*unused*/,
-                                      __attribute__((unused))
+  virtual void computeTangentialForce(const ContactElement & /*unused*/,
                                       Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -108,17 +104,13 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the normal moduli due to normal traction
-  virtual void computeNormalModuli(__attribute__((unused))
-                                   const ContactElement & /*unused*/,
-                                   __attribute__((unused))
+  virtual void computeNormalModuli(const ContactElement & /*unused*/,
                                    Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli due to tangential traction
-  virtual void computeTangentialModuli(__attribute__((unused))
-                                       const ContactElement & /*unused*/,
-                                       __attribute__((unused))
+  virtual void computeTangentialModuli(const ContactElement & /*unused*/,
                                        Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }

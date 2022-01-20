@@ -476,8 +476,8 @@ Int GroupManager::createClusters(Int element_dimension,
   std::unique_ptr<ElementTypeMapArray<Idx>> element_to_fragment;
 
   if (nb_proc > 1 && mesh.isDistributed()) {
-    element_to_fragment = std::make_unique<ElementTypeMapArray<Idx>>(
-        "element_to_fragment", id, memory_id);
+    element_to_fragment =
+        std::make_unique<ElementTypeMapArray<Idx>>("element_to_fragment", id);
 
     element_to_fragment->initialize(
         mesh, _nb_component = 1, _spatial_dimension = element_dimension,
@@ -732,7 +732,7 @@ void GroupManager::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 Int GroupManager::getNbElementGroups(Int dimension) const {
-    if (dimension == _all_dimensions) {
+  if (dimension == _all_dimensions) {
     return element_groups.size();
   }
 

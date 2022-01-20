@@ -487,8 +487,9 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
           normal *= -1.0;
         }
 
-        (*dual_iter)
-            .mul<false>(Matrix<Real>::eye(spatial_dimension, 1), normal);
+        (*dual_iter) =
+            Matrix<Real>::Identity(spatial_dimension, spatial_dimension) *
+            normal;
         ++dual_iter;
         ++quad_coords_iter;
         ++normals_iter;
@@ -632,13 +633,13 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
-                                            const std::string & group_name,
-                                            bool /*padding_flag*/) {
+ContactMechanicsModel::createNodalFieldInt(const std::string & field_name,
+                                           const std::string & group_name,
+                                           bool /*padding_flag*/) {
   std::shared_ptr<dumpers::Field> field;
   if (field_name == "contact_state") {
     auto && func =
-        std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+        std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     field = mesh.createNodalField(this->contact_state.get(), group_name);
     field =
         dumpers::FieldComputeProxy::createFieldCompute(field, std::move(func));
@@ -648,18 +649,15 @@ ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
 #endif
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(
-    const Array<Element> & elements, const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+Int ContactMechanicsModel::getNbData(const Array<Element> & elements,
+                                     const SynchronizationTag & /*tag*/) const {
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
-  AKANTU_DEBUG_OUT();
   return size;
 }
 
@@ -667,47 +665,29 @@ UInt ContactMechanicsModel::getNbData(
 void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
                                      const Array<Element> & /*elements*/,
                                      const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
                                        const Array<Element> & /*elements*/,
-                                       const SynchronizationTag & /*tag*/) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+                                       const SynchronizationTag & /*tag*/) {}
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(
-    const Array<UInt> & dofs, const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
+Int ContactMechanicsModel::getNbData(const Array<Idx> & dofs,
+                                     const SynchronizationTag & /*tag*/) const {
   UInt size = 0;
-
-  AKANTU_DEBUG_OUT();
   return size * dofs.size();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
-                                     const Array<UInt> & /*dofs*/,
+                                     const Array<Idx> & /*dofs*/,
                                      const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
-                                       const Array<UInt> & /*dofs*/,
-                                       const SynchronizationTag & /*tag*/) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+                                       const Array<Idx> & /*dofs*/,
+                                       const SynchronizationTag & /*tag*/) {}
 
 } // namespace akantu

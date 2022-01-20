@@ -33,7 +33,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material.hh"
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
@@ -57,11 +56,13 @@ namespace akantu {
  *   - Bc   : Parameter damage compression 2
  *   - beta : Parameter for shear
  */
-template <Int spatial_dimension>
-class MaterialMazars : public MaterialDamage<spatial_dimension> {
+template <Int dim, template <Int> class Parent = MaterialElastic>
+class MaterialMazars : public MaterialDamage<dim, Parent> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using parent_damage = MaterialDamage<dim, Parent>;
+
 public:
   MaterialMazars(SolidMechanicsModel & model, const ID & id = "");
   ~MaterialMazars() override = default;
@@ -86,6 +87,15 @@ protected:
   computeDamageOnQuad(Args && arguments,
                       const Eigen::MatrixBase<Derived> & epsilon_princ);
 
+public:
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_append(
+        parent_damage::getArguments(el_type, ghost_type),
+        tuple::get<"K0"_h>() = make_view(this->K0(el_type, ghost_type)),
+        tuple::get<"Ehat"_h>() =
+            broadcast(this->Ehat, this->damage(el_type, ghost_type).size()));
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -106,6 +116,8 @@ protected:
   /// specify the variable to average false = ehat, true = damage (only valid
   /// for non local version)
   bool damage_in_compute_stress;
+
+  Real Ehat{0};
 };
 
 } // namespace akantu
@@ -113,6 +125,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "material_mazars_inline_impl.cc"
+#include "material_mazars_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_MAZARS_HH__ */

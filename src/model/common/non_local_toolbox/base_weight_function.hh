@@ -31,9 +31,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_factory.hh"
 #include "data_accessor.hh"
 #include "model.hh"
 #include "non_local_manager.hh"
+#include "non_local_neighborhood.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -108,7 +110,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   Int getNbData(const Array<Element> &,
-                 const SynchronizationTag &) const override {
+                const SynchronizationTag &) const override {
     return 0;
   }
 
@@ -154,6 +156,20 @@ inline std::ostream & operator<<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
+
+using NonLocalNeighborhoodFactory =
+    Factory<NonLocalNeighborhoodBase, ID, NonLocalManager &,
+            const ElementTypeMapReal &, const ID &>;
+
+#define INSTANTIATE_NL_NEIGHBORHOOD(id, weight_fun_name)                       \
+  static bool weigth_is_alocated_##id [[gnu::unused]] =                        \
+      NonLocalNeighborhoodFactory::getInstance().registerAllocator(            \
+          #id,                                                                 \
+          [](NonLocalManager & non_local_manager,                              \
+             const ElementTypeMapReal & quad_point_positions, const ID & id) { \
+            return std::make_unique<NonLocalNeighborhood<weight_fun_name>>(    \
+                non_local_manager, quad_point_positions, id);                  \
+          })
 
 } // namespace akantu
 

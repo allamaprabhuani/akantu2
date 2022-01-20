@@ -87,8 +87,9 @@ public:
                            ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered mesh and provides a name
-  void addDumpFilteredMeshToDumper(
-      const std::string & dumper_name, const Mesh & mesh,
+  void
+  addDumpFilteredMeshToDumper(const std::string & dumper_name,
+                              const Mesh & mesh,
       const ElementTypeMapArray<Idx> & elements_filter,
       const Array<Idx> & nodes_filter,
       Int spatial_dimension = _all_dimensions,
@@ -116,15 +117,15 @@ public:
                                            const std::string & field_id,
                                            const Array<T> & field);
   template <typename T>
-  inline void
-  addDumpFieldExternal(const std::string & field_id,
+  inline void addDumpFieldExternal(const std::string & field_id,
                        const ElementTypeMapArray<T> & field,
                        Int spatial_dimension = _all_dimensions,
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined);
   template <typename T>
-  inline void addDumpFieldExternalToDumper(
-      const std::string & dumper_name, const std::string & field_id,
+  inline void
+  addDumpFieldExternalToDumper(const std::string & dumper_name,
+                               const std::string & field_id,
       const ElementTypeMapArray<T> & field,
       Int spatial_dimension = _all_dimensions,
       GhostType ghost_type = _not_ghost,

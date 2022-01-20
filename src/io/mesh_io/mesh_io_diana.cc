@@ -463,8 +463,6 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
                                              Mesh & mesh) {
-  AKANTU_DEBUG_IN();
-
   std::string line;
 
   for (auto type : mesh.elementTypes()) {
@@ -505,7 +503,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
 
     // loop over elements
     //    UInt * temp_id_val = temp_id.data();
-    for (Int i = 0; i < temp_id.size(); ++i)
+    for (Int i = 0; i < temp_id.size(); ++i) {
       for (Int j = temp_id(i, 0); j <= temp_id(i, 1); ++j) {
         auto & element = diana_element_number_to_elements[j];
         if (element.type == _not_defined) {
@@ -513,8 +511,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
         }
         auto elem = element.element;
         auto type = element.type;
-        auto & data =
-            mesh.getDataPointer<Int>("material", type, _not_ghost);
+        auto & data = mesh.getDataPointer<Int>("material", type, _not_ghost);
         data(elem) = mat;
       }
     }
@@ -522,7 +519,6 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
     my_getline(infile, line);
   }
 
-  AKANTU_DEBUG_OUT();
   return line;
 }
 

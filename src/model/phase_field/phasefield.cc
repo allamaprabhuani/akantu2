@@ -37,29 +37,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
-    : Parsable(ParserType::_phasefield, id), id(id), fem(model.getFEEngine()),
-      model(model), spatial_dimension(this->model.getSpatialDimension()),
-      element_filter("element_filter", id), damage("damage", *this),
-      phi("phi", *this), strain("strain", *this),
-      driving_force("driving_force", *this),
-      damage_energy("damage_energy", *this),
-      damage_energy_density("damage_energy_density", *this) {
-
-  AKANTU_DEBUG_IN();
-
-  /// for each connectivity types allocate the element filer array of the
-  /// material
-  element_filter.initialize(model.getMesh(),
-                            _spatial_dimension = spatial_dimension,
-                            _element_kind = _ek_regular);
-  this->initialize();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-PhaseField::PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
+PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
                        FEEngine & fe_engine, const ID & id)
     : Parsable(ParserType::_phasefield, id), id(id), fem(fe_engine),
       model(model), spatial_dimension(this->model.getSpatialDimension()),
@@ -84,6 +62,11 @@ PhaseField::PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
+    : PhaseField(model, model.getSpatialDimension(), model.getMesh(),
+                 model.getFEEngine(), id) {}
 
 /* -------------------------------------------------------------------------- */
 PhaseField::~PhaseField() = default;

@@ -42,32 +42,33 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <typename Args>
-inline void MaterialElastic<dim>::computeStressOnQuad(Args && arguments) const {
-  auto && sigma = tuple::get<"sigma"_h>(arguments);
-  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
+  auto && sigma = tuple::get<"sigma"_h>(args);
+  auto && grad_u = tuple::get<"grad_u"_h>(args);
   Real sigma_th = 0.;
-  if (tuple::has<"sigma_th"_h>(arguments)) {
-    sigma_th = tuple::get<"sigma_th"_h>(arguments);
-  }
+
+  static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
+    sigma_th = tuple::get<"sigma_th"_h>(args);
+  })(std::forward<Args>(args));
 
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   // u_{ij} + \nabla u_{ji})
-  sigma = mu * gradUToEpsilon(grad_u) +
+  sigma = mu * Material::gradUToEpsilon<dim>(grad_u) +
           (lambda * trace + sigma_th) * Matrix<Real, dim, dim>::Identity();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <typename Args>
-inline void MaterialElastic<1>::computeStressOnQuad(Args && arguments) const {
-  auto && sigma = tuple::get<"sigma"_h>(arguments);
-  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
+  auto && sigma = tuple::get<"sigma"_h>(args);
+  auto && grad_u = tuple::get<"grad_u"_h>(args);
   Real sigma_th = 0.;
-  if (tuple::has<"sigma_th"_h>(arguments)) {
-    sigma_th = tuple::get<"sigma_th"_h>(arguments);
-  }
+  static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
+    sigma_th = tuple::get<"sigma_th"_h>(args);
+  })(std::forward<Args>(args));
 
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
 }
@@ -75,8 +76,8 @@ inline void MaterialElastic<1>::computeStressOnQuad(Args && arguments) const {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <typename Args>
-inline void MaterialElastic<dim>::computeTangentModuliOnQuad(
-    Args && args) const {
+inline void
+MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
   auto && tangent = tuple::get<"tangent_moduli"_h>(args);
   constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
 
@@ -123,11 +124,12 @@ inline void MaterialElastic<dim>::computeTangentModuliOnQuad(
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
-  epot = .5 * sigma.doubleDot(grad_u);
+template <class Args>
+inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(Args && args,
+                                                               Real & epot) {
+  epot =
+      .5 * tuple::get<"sigma"_h>(args).doubleDot(tuple::get<"grad_u"_h>(args));
 }
-
 
 } // namespace akantu
 

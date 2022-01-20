@@ -273,21 +273,21 @@ namespace detail {
       return static_cast<daughter &>(*this);
     }
 
-    inline daughter & operator+=(UInt n) {
+    inline daughter & operator+=(Idx n) {
       ret_ptr += _offset * n;
       return static_cast<daughter &>(*this);
     }
 
-    inline daughter & operator-=(UInt n) {
+    inline daughter & operator-=(Idx n) {
       ret_ptr -= _offset * n;
       return static_cast<daughter &>(*this);
     }
 
-    inline auto operator[](UInt n) {
+    inline auto operator[](Idx n) {
       return get_new_proxy(ret_ptr + n * _offset);
     }
 
-    inline auto operator[](UInt n) const {
+    inline auto operator[](Idx n) const {
       return get_new_const_proxy(ret_ptr + n * _offset);
     }
 
@@ -388,16 +388,16 @@ namespace detail {
       return static_cast<daughter &>(*this);
     }
 
-    inline daughter & operator+=(const UInt n) {
+    inline daughter & operator+=(const Idx n) {
       ret += n;
       return static_cast<daughter &>(*this);
     }
-    inline daughter & operator-=(const UInt n) {
+    inline daughter & operator-=(const Idx n) {
       ret -= n;
       return static_cast<daughter &>(*this);
     }
 
-    inline reference operator[](const UInt n) { return ret[n]; }
+    inline reference operator[](const Idx n) { return ret[n]; }
 
     inline bool operator==(const internal_view_iterator & other) const {
       return ret == other.ret;

@@ -345,8 +345,7 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 }
 
 /* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::computeDamageOnQuadPoints(
-    GhostType ghost_type) {
+void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
@@ -416,8 +415,7 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(
 }
 
 /* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::computeStrainOnQuadPoints(
-    GhostType ghost_type) {
+void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & mesh = solid->getMesh();
@@ -452,7 +450,7 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
                              spatial_dimension))) {
             auto & strain = std::get<0>(values);
             const auto & grad_u = std::get<1>(values);
-            gradUToEpsilon(grad_u, strain);
+            strain = (grad_u + grad_u.transpose()) / 2.;
           }
         }
 
@@ -475,16 +473,6 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
   this->computeDamageOnQuadPoints(_not_ghost);
 
   solid->assembleInternalForces();
-}
-
-/* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::gradUToEpsilon(const Matrix<Real> & grad_u,
-                                            Matrix<Real> & epsilon) {
-  for (UInt i = 0; i < Model::spatial_dimension; ++i) {
-    for (UInt j = 0; j < Model::spatial_dimension; ++j) {
-      epsilon(i, j) = 0.5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -533,7 +521,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
+    bool padding_flag, Idx spatial_dimension, ElementKind kind) {
 
   return solid->createElementalField(field_name, group_name, padding_flag,
                                      spatial_dimension, kind);
@@ -570,7 +558,7 @@ CouplerSolidPhaseField::createNodalFieldBool(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
-    const std::string &, const std::string &, bool, UInt, ElementKind) {
+    const std::string &, const std::string &, bool, Idx, ElementKind) {
   return nullptr;
 }
 
@@ -597,14 +585,14 @@ void CouplerSolidPhaseField::dump(const std::string & dumper_name) {
 }
 
 /* ------------------------------------------------------------------------*/
-void CouplerSolidPhaseField::dump(const std::string & dumper_name, UInt step) {
+void CouplerSolidPhaseField::dump(const std::string & dumper_name, Int step) {
   solid->onDump();
   mesh.dump(dumper_name, step);
 }
 
 /* ----------------------------------------------------------------------- */
 void CouplerSolidPhaseField::dump(const std::string & dumper_name, Real time,
-                                  UInt step) {
+                                  Int step) {
   solid->onDump();
   mesh.dump(dumper_name, time, step);
 }
@@ -616,13 +604,13 @@ void CouplerSolidPhaseField::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(UInt step) {
+void CouplerSolidPhaseField::dump(Int step) {
   solid->onDump();
   mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(Real time, UInt step) {
+void CouplerSolidPhaseField::dump(Real time, Int step) {
   solid->onDump();
   mesh.dump(time, step);
 }

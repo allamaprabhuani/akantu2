@@ -113,8 +113,7 @@ void MaterialDamage<dim, Parent>::updateEnergies(ElementType el_type) {
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 void MaterialDamage<dim, Parent>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
 
@@ -146,7 +145,7 @@ auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
     de +=
         this->fem.integrate(dissipated_energy(type, _not_ghost), type,
                             _not_ghost, this->element_filter(type, _not_ghost));
@@ -159,10 +158,11 @@ auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 Real MaterialDamage<dim, Parent>::getEnergy(const std::string & type) {
-  if (type == "dissipated")
+  if (type == "dissipated") {
     return getDissipatedEnergy();
-  else
-    return Parent<dim>::getEnergy(type);
+  }
+
+  return Parent<dim>::getEnergy(type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -178,7 +178,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
                                Int from_dimension, Int to_dimension) {
   AKANTU_DEBUG_IN();
 
-  to_dimension = std::max(to_dimension, UInt(0));
+  to_dimension = std::max(to_dimension, Int(0));
 
   AKANTU_DEBUG_ASSERT(
       mesh_facets.isMeshFacets(),

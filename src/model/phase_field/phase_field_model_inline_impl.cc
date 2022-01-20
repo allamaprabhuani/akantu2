@@ -69,8 +69,7 @@ inline const PhaseField & PhaseFieldModel::getPhaseField(UInt mat_index) const {
 
 /* -------------------------------------------------------------------------- */
 inline PhaseField & PhaseFieldModel::getPhaseField(const std::string & name) {
-  std::map<std::string, UInt>::const_iterator it =
-      phasefields_names_to_id.find(name);
+  auto it = phasefields_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != phasefields_names_to_id.end(),
                       "The model " << id << " has no phasefield named "
                                    << name);
@@ -78,8 +77,7 @@ inline PhaseField & PhaseFieldModel::getPhaseField(const std::string & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt
-PhaseFieldModel::getPhaseFieldIndex(const std::string & name) const {
+inline Int PhaseFieldModel::getPhaseFieldIndex(const std::string & name) const {
   auto it = phasefields_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != phasefields_names_to_id.end(),
                       "The model " << id << " has no phasefield named "

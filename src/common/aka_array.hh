@@ -330,10 +330,9 @@ public:
     push_back(*it);
   }
 
-  // template <typename Ret> inline void push_back(const view_iterator<Ret> &
-  // it) {
-  //   push_back(*it);
-  // }
+  template <typename Ret> inline void push_back(const view_iterator<Ret> & it) {
+    push_back(*it);
+  }
 
   /// erase the value at position i
   inline void erase(Idx i);
@@ -351,24 +350,24 @@ public:
     std::fill_n(this->values, this->size_ * this->nb_component, t);
   }
 
+  /// set all tuples of the array to a given vector or matrix
+  /// @param vm Matrix or Vector to fill the array with
+  template <typename C, std::enable_if_t<aka::is_tensor<C>::value> * = nullptr>
+  inline void set(const C & vm);
+
   /// set the array to T{}
   inline void zero() { this->set({}); }
 
   /// resize the array to 0
   inline void clear() { this->resize(0); }
 
-  /// set all tuples of the array to a given vector or matrix
-  /// @param vm Matrix or Vector to fill the array with
-  template <typename C, std::enable_if_t<aka::is_tensor<C>::value> * = nullptr>
-  inline void set(const C & vm);
-
   /// Append the content of the other array to the current one
-  void append(const Array<T> & other);
+  void append(const Array & other);
 
   /// copy another Array in the current Array, the no_sanity_check allows you to
   /// force the copy in cases where you know what you do with two non matching
   /// Arrays in terms of n
-  void copy(const Array<T, is_scal> & other, bool no_sanity_check = false);
+  void copy(const Array & other, bool no_sanity_check = false);
 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -378,11 +377,11 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// substraction entry-wise
-  Array<T, is_scal> & operator-=(const Array<T, is_scal> & other);
+  Array & operator-=(const Array & vect);
   /// addition entry-wise
-  Array<T, is_scal> & operator+=(const Array<T, is_scal> & other);
+  Array & operator+=(const Array & vect);
   /// multiply evry entry by alpha
-  Array<T, is_scal> & operator*=(const T & alpha);
+  Array & operator*=(const T & alpha);
 
   /// check if the array are identical entry-wise
   bool operator==(const Array<T, is_scal> & other) const;

@@ -41,28 +41,24 @@ namespace dumpers {
 
   /* ------------------------------------------------------------------------ */
   template <typename type>
-  inline type
-  typeConverter(const type & input,
-                [[gnu::unused]] Vector<typename type::value_type> & res,
-                [[gnu::unused]] UInt nb_data) {
+  inline type typeConverter(const type & input,
+                            Vector<typename type::value_type> & /*res*/,
+                            Int /*nb_data*/) {
     throw;
-    return input;
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename type>
   inline Matrix<type> typeConverter(const Matrix<type> & input,
-                                    Vector<type> & res, UInt nb_data) {
-
-    Matrix<type> tmp(res.storage(), input.rows(), nb_data / input.rows());
-    Matrix<type> tmp2(tmp, true);
-    return tmp2;
+                                    Vector<type> & res, Int nb_data) {
+    MatrixProxy<type> tmp(res.data(), input.rows(), nb_data / input.rows());
+    return tmp;
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename type>
   inline Vector<type> typeConverter(const Vector<type> & /*unused*/,
-                                    Vector<type> & res, UInt /*unused*/) {
+                                    Vector<type> & res, Int /*unused*/) {
     return res;
   }
 
@@ -79,8 +75,7 @@ namespace dumpers {
     /* Constructors/Destructors */
     /* ---------------------------------------------------------------------- */
   public:
-    AvgHomogenizingFunctor(ElementTypeMap<UInt> & nb_datas) {
-
+    AvgHomogenizingFunctor(ElementTypeMap<Int> & nb_datas) {
       auto types = nb_datas.elementTypes();
       auto tit = types.begin();
       auto end = types.end();
@@ -95,7 +90,7 @@ namespace dumpers {
     }
 
     /* ---------------------------------------------------------------------- */
-    /* Methods */
+    /* Methods                                                                */
     /* ---------------------------------------------------------------------- */
   public:
     type func(const type & d, Element /*global_index*/) override {
@@ -104,11 +99,11 @@ namespace dumpers {
       if (d.size() % this->nb_data) {
         throw;
       }
-      UInt nb_to_average = d.size() / this->nb_data;
+      auto nb_to_average = d.size() / this->nb_data;
 
-      value_type * ptr = d.storage();
-      for (UInt i = 0; i < nb_to_average; ++i) {
-        Vector<value_type> tmp(ptr, this->nb_data);
+      auto && ptr = d.data();
+      for (Int i = 0; i < nb_to_average; ++i) {
+        VectorProxy<const value_type> tmp(ptr, this->nb_data);
         res += tmp;
         ptr += this->nb_data;
       }
@@ -116,15 +111,15 @@ namespace dumpers {
       return typeConverter(d, res, this->nb_data);
     };
 
-    UInt getDim() override { return nb_data; };
-    UInt getNbComponent(UInt /*old_nb_comp*/) override { throw; };
+    Int getDim() override { return nb_data; };
+    Int getNbComponent(Int /*old_nb_comp*/) override { throw; };
 
     /* ---------------------------------------------------------------------- */
     /* Class Members */
     /* ---------------------------------------------------------------------- */
 
     /// The size of data: i.e. the size of the vector to be returned
-    UInt nb_data;
+    Int nb_data;
   };
   /* ------------------------------------------------------------------------ */
 
@@ -142,7 +137,7 @@ namespace dumpers {
 
     template <typename T>
     inline std::unique_ptr<ComputeFunctorInterface> connectToField(T * field) {
-      ElementTypeMap<UInt> nb_components = field->getNbComponents();
+      ElementTypeMap<Int> nb_components = field->getNbComponents();
 
       using ret_type = typename T::types::return_type;
       return this->instantiateHomogenizer<ret_type>(nb_components);
@@ -150,7 +145,7 @@ namespace dumpers {
 
     template <typename ret_type>
     inline std::unique_ptr<ComputeFunctorInterface>
-    instantiateHomogenizer(ElementTypeMap<UInt> & nb_components);
+    instantiateHomogenizer(ElementTypeMap<Int> & nb_components);
   };
 
   /* ------------------------------------------------------------------------ */
@@ -158,7 +153,7 @@ namespace dumpers {
   template <typename ret_type>
   inline std::unique_ptr<ComputeFunctorInterface>
   HomogenizerProxy::instantiateHomogenizer(
-      ElementTypeMap<UInt> & nb_components) {
+      ElementTypeMap<Int> & nb_components) {
     using Homogenizer = dumpers::AvgHomogenizingFunctor<ret_type>;
     return std::make_unique<Homogenizer>(nb_components);
   }
@@ -166,7 +161,7 @@ namespace dumpers {
   template <>
   inline std::unique_ptr<ComputeFunctorInterface>
   HomogenizerProxy::instantiateHomogenizer<Vector<iohelper::ElemType>>(
-      [[gnu::unused]] ElementTypeMap<UInt> & nb_components) {
+      ElementTypeMap<Int> & /*nb_components*/) {
     throw;
     return nullptr;
   }

@@ -456,7 +456,7 @@ auto HeatTransferModel::getStableTimeStep() -> Real {
 
   // get the biggest parameter from k11 until k33//
   for (Int i = 0; i < spatial_dimension; i++) {
-      for (Int j = 0; j < spatial_dimension; j++) {
+    for (Int j = 0; j < spatial_dimension; j++) {
       conductivitymax = std::max(conductivity(i, j), conductivitymax);
     }
   }
@@ -604,8 +604,7 @@ void HeatTransferModel::getThermalEnergy(iterator Eth, t_iterator T_it,
 }
 
 /* -------------------------------------------------------------------------- */
-auto HeatTransferModel::getThermalEnergy(ElementType type, Idx index)
-    -> Real {
+auto HeatTransferModel::getThermalEnergy(ElementType type, Idx index) -> Real {
   AKANTU_DEBUG_IN();
 
   auto nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
@@ -666,8 +665,8 @@ auto HeatTransferModel::getEnergy(const std::string & id) -> Real {
 }
 
 /* -------------------------------------------------------------------------- */
-auto HeatTransferModel::getEnergy(const std::string & id,
-                                  ElementType type, Int index) -> Real {
+auto HeatTransferModel::getEnergy(const std::string & id, ElementType type,
+                                  Int index) -> Real {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
@@ -722,7 +721,7 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldReal(
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*padding_flag*/, const Int & /*spatial_dimension*/,
+    bool /*padding_flag*/, Int /*spatial_dimension*/,
     ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field;
@@ -776,8 +775,8 @@ HeatTransferModel::createNodalFieldReal(const std::string & /*field_name*/,
 #endif
 
 /* -------------------------------------------------------------------------- */
-inline Int HeatTransferModel::getNbData(const Array<UInt> & indexes,
-                                         const SynchronizationTag & tag) const {
+inline Int HeatTransferModel::getNbData(const Array<Idx> & indexes,
+                                        const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   Int size = 0;

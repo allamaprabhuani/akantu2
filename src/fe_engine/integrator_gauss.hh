@@ -102,15 +102,14 @@ public:
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
   template <ElementType type>
-  void integrateOnIntegrationPoints(const Array<Real> & in_f,
-                                    Array<Real> & intf,
-                                    Int nb_degree_of_freedom,
-                                    GhostType ghost_type,
-                                    const Array<Idx> & filter_elements) const;
+  void
+  integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
+                               Int nb_degree_of_freedom, GhostType ghost_type,
+                               const Array<Idx> & filter_elements) const;
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
-  const decltype(auto) getIntegrationPoints(GhostType ghost_type) const;
+  decltype(auto) getIntegrationPoints(GhostType ghost_type) const;
 
   /// return number of quadrature points
   template <ElementType type>
@@ -131,8 +130,7 @@ protected:
 
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
-      Array<Real> & jacobians, ElementType type,
-      GhostType ghost_type,
+      Array<Real> & jacobians, ElementType type, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   /// precompute jacobians on elements of type "type"

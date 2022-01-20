@@ -148,7 +148,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get Nb data for synchronization in parallel
-  UInt getNbData(const Array<Element> & elements, const ID & id) const;
+  Int getNbData(const Array<Element> & elements, const ID & id) const;
 
   /// pack data for synchronization in parallel
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
@@ -205,7 +205,7 @@ protected:
   struct NonLocalVariable {
     NonLocalVariable(const ID & variable_name, const ID & nl_variable_name,
                      const ID & id, Int nb_component)
-        : local(variable_name, id, 0), non_local(nl_variable_name, id, 0),
+        : local(variable_name, id), non_local(nl_variable_name, id),
           nb_component(nb_component) {}
     ElementTypeMapReal local;
     ElementTypeMapReal non_local;

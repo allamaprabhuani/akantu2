@@ -90,7 +90,7 @@ inline void ParaviewHelper::writeConnectivity(T & data) {
     assert(nb_node_per_elem[type] == dim);
     UInt * reorder = this->write_reorder[type];
     for (UInt i = 0; i < dim; ++i) {
-      this->pushDatum((*it)[reorder[i]], dim);
+      this->pushDatum((*it)(reorder[i]), dim);
     }
   }
 }
@@ -123,27 +123,43 @@ inline void ParaviewHelper::writeOffsets(T & data){
 }
 
 /* -------------------------------------------------------------------------- */
-template <template<typename T> class Cont, typename T>
-inline void ParaviewHelper::pushData(const Cont<T> & n, UInt dim){
-  for (UInt i = 0; i < n.size(); ++i) {
+template <typename Cont, std::enable_if_t<is_vector<Cont>::value> *>
+inline void ParaviewHelper::pushData(const Cont & n, UInt dim) {
+  using T = typename Cont::value_type;
+  for (decltype(n.size()) i = 0; i < n.size(); ++i) {
     pushDatum<T>(n[i], dim);
   }
 
-  for (UInt i = n.size(); i < dim; ++i) { T t = T(); this->pushDatum<T>(t, dim); }
+  for (decltype(dim) i = n.size(); i < dim; ++i) {
+    T t = T();
+    this->pushDatum<T>(t, dim);
+  }
 }
 
-template <template<typename T> class Cont, typename T>
-inline void ParaviewHelper::pushData(const Cont<T> & n) {
-  for (UInt i = 0; i < n.size(); ++i) {
-    pushDatum<T>(n[i], n.size());
+template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> *>
+inline void ParaviewHelper::pushData(const Cont & n, UInt dim) {
+  using T = typename Cont::value_type;
+  using Idx = decltype(n.rows());
+  for (Idx i = 0; i < Idx(dim); ++i) {
+    for (Idx j = 0; j < Idx(dim); ++j) {
+      if(i >= n.rows() or j >= n.cols()) {
+        pushDatum<T>(T(), dim);
+      } else {
+        pushDatum<T>(n(i,j), dim);
+      }
+    }
   }
 }
 
 
 /* -------------------------------------------------------------------------- */
-inline void ParaviewHelper::setMode(int mode){
-  bflag = BASE64 & mode;
+template <typename Cont>
+inline void ParaviewHelper::pushData(const Cont & n) {
+  pushData(n, n.size());
 }
+
+/* -------------------------------------------------------------------------- */
+inline void ParaviewHelper::setMode(int mode) { bflag = BASE64 & mode; }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
@@ -222,15 +238,13 @@ void ParaviewHelper::pushDataFields(T & per_node_data, T & per_elem_data) {
 
   startCellDataList();
   {
-    auto itElemField = per_elem_data.begin();
-    auto endElemField = per_elem_data.end();
-    for (; itElemField != endElemField; ++itElemField) {
-      std::string name = (*itElemField).first;
+    for (auto elem_field : per_elem_data) {
+      std::string name = elem_field.first;
       if (name == "connectivities" || name == "element_type") {
         continue;
       }
 
-      FieldInterface & f = *(*itElemField).second;
+      FieldInterface & f = *(elem_field.second);
       startData(f.getName(), f.getDim(), dataTypeToStr(f.getDataType()));
       pushField(f);
       endData();
@@ -278,10 +292,10 @@ inline  void ParaviewHelper::pushDatum<double>(const double & n,
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline  void ParaviewHelper::pushDatum<ElemType>(const ElemType & n,
-						 __attribute__((unused)) UInt size){
-  UInt n_ = this->paraview_code_type[n];
-  pushDatum<UInt>(n_);
+inline void ParaviewHelper::pushDatum<ElemType>(const ElemType & type,
+                                                UInt /*size*/) {
+  UInt n = this->paraview_code_type[type];
+  pushDatum<UInt>(n);
 }
 
 /* -------------------------------------------------------------------------- */

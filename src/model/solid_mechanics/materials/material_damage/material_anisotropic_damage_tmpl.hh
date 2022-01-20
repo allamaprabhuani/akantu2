@@ -40,6 +40,8 @@
 
 namespace akantu {
 struct EmptyIteratorContainer {
+  using size_type = std::size_t;
+
   struct iterator {
     auto & operator++() { return *this; }
     Real operator*() { return 0; }
@@ -105,11 +107,10 @@ namespace {
 
   template <Int dim, class Op, class D1, class D2>
   auto tensorPlusOp(const Eigen::MatrixBase<D1> & A,
-                    Eigen::MatrixBase<D2> & A_directions, Op && oper,
-                    bool sorted = false) {
+                    Eigen::MatrixBase<D2> & A_directions, Op && oper) {
     Vector<Real, dim> A_eigs;
     Matrix<Real, dim, dim> A_diag;
-    A.eig(A_eigs, A_directions, sorted);
+    A.eigh(A_eigs, A_directions);
 
     for (auto && data : enumerate(A_eigs)) {
       auto i = std::get<0>(data);
@@ -121,9 +122,8 @@ namespace {
 
   template <Int dim, class D1, class D2, class Op>
   auto tensorPlus(const Eigen::MatrixBase<D1> & A,
-                  Eigen::MatrixBase<D2> & A_directions, bool sorted = false) {
-    return tensorPlusOp<dim>(
-        A, A_directions, [](Real x, Real) { return x; }, sorted);
+                  Eigen::MatrixBase<D2> & A_directions) {
+    return tensorPlusOp<dim>(A, A_directions, [](Real x, Real) { return x; });
   }
 
   template <Int dim, class D, class Op>
@@ -167,14 +167,16 @@ MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class EquivalentStrain,
           template <Int> class DamageThreshold, template <Int> class Parent>
+template <class D1, class D2, class D3>
 void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
-    damageStress(Matrix<Real> & sigma, const Matrix<Real> & sigma_el,
-                 const Matrix<Real> & D, Real TrD) {
+    damageStress(Eigen::MatrixBase<D1> & sigma,
+                 const Eigen::MatrixBase<D2> & sigma_el,
+                 const Eigen::MatrixBase<D3> & D, Real TrD) {
   // σ_(n + 1) = (1 − D_(n + 1))^(1/2) σ~_(n + 1) (1 − D_(n + 1))^(1 / 2)
   //         - ((1 − D_(n + 1)) : σ~_(n + 1))/ (3 - Tr(D_(n+1))) (1 − D_(n + 1))
   //         + 1/3 (1 - Tr(D_(n+1)) <Tr(σ~_(n + 1))>_+ + <Tr(σ~_(n + 1))>_-) I
 
-  auto one_D = Matrix<Real, dim, dim>::Identity() - D;
+  Matrix<Real, dim, dim> one_D = Matrix<Real, dim, dim>::Identity() - D;
   auto sqrt_one_D = tensorSqrt<dim>(one_D);
 
   Real Tr_sigma_plus;
@@ -191,105 +193,101 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class EquivalentStrain,
           template <Int> class DamageThreshold, template <Int> class Parent>
+template <class Args>
+void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
+                               Parent>::computeStressOnQuad(Args && args) {
+  auto & sigma = tuple::get<"sigma"_h>(args);
+  auto & grad_u = tuple::get<"grad_u"_h>(args);
+  auto & sigma_th = tuple::get<"sigma_th"_h>(args);
+  auto & sigma_el = tuple::get<"sigma_el"_h>(args);
+  auto & epsilon_hat = tuple::get<"epsilon_hat"_h>(args);
+  auto & D = tuple::get<"damage"_h>(args);
+  auto & TrD_n_1 = tuple::get<"TrD_n_1"_h>(args);
+  auto & TrD = tuple::get<"TrD"_h>(args);
+  auto & equivalent_strain_data = tuple::get<"equivalent_strain_data"_h>(args);
+  auto & damage_threshold_data = tuple::get<"damage_threshold_data"_h>(args);
+
+  Matrix<Real, dim, dim> Dtmp;
+  Real TrD_n_1_tmp;
+  Matrix<Real, dim, dim> epsilon;
+
+  // yes you read properly this is a label for a goto
+  auto computeDamage = [&]() {
+    MaterialElastic<dim>::computeStressOnQuad(args);
+
+    epsilon = this->template gradUToEpsilon<dim>(grad_u);
+
+    // evaluate the damage criteria
+    epsilon_hat = equivalent_strain_function(epsilon, equivalent_strain_data);
+
+    // evolve the damage if needed
+    auto K_TrD = damage_threshold_function.K(TrD, damage_threshold_data);
+
+    auto f = epsilon_hat - K_TrD;
+
+    // if test function > 0 evolve the damage
+    if (f > 0) {
+      TrD_n_1_tmp =
+          damage_threshold_function.K_inv(epsilon_hat, damage_threshold_data);
+
+      auto epsilon_plus = tensorPlus<dim>(epsilon);
+      auto delta_lambda = (TrD_n_1_tmp - TrD) / (epsilon_hat * epsilon_hat);
+
+      Dtmp = D + delta_lambda * epsilon_plus;
+      return true;
+    }
+    return false;
+  };
+
+  // compute a temporary version of the new damage
+  auto is_damage_updated = computeDamage();
+
+  if (is_damage_updated) {
+    /// Check and correct for broken case
+    if (Dtmp.trace() > Dc) {
+      if (epsilon.trace() > 0) { // tensile loading
+        auto kpa = this->kpa;
+        auto lambda = this->lambda;
+
+        // change kappa to Kappa_broken = (1-Dc) Kappa
+        kpa = (1 - Dc) * kpa;
+        this->E = 9 * kpa * (kpa - lambda) / (3 * kpa - lambda);
+        this->nu = lambda / (3 * kpa - lambda);
+        this->updateInternalParameters();
+
+        computeDamage();
+      } else if (std::abs(epsilon.trace()) < 1e-10) { // deviatoric case
+        Matrix<Real, dim, dim> n;
+        std::vector<Int> ns;
+        tensorPlusOp<dim>(Dtmp, n, [&](Real x, Int i) {
+          if (x > this->Dc) {
+            ns.push_back(i);
+            return this->Dc;
+          }
+
+          return x;
+        });
+      }
+    }
+
+    TrD_n_1 = TrD_n_1_tmp;
+    D = Dtmp;
+  } else {
+    TrD_n_1 = TrD;
+  }
+
+  // apply the damage to the stress
+  damageStress(sigma, sigma_el, D, TrD_n_1);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, template <Int> class EquivalentStrain,
+          template <Int> class DamageThreshold, template <Int> class Parent>
 void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
                                Parent>::computeStress(ElementType type,
                                                       GhostType ghost_type) {
-
-  for (auto && data :
-       zip(make_view(this->stress(type, ghost_type), dim, dim),
-           make_view(this->gradu(type, ghost_type), dim, dim),
-           make_view(this->sigma_th(type, ghost_type)),
-           make_view(this->elastic_stress(type, ghost_type), dim, dim),
-           make_view(this->equivalent_strain(type, ghost_type)),
-           make_view(this->damage(type, ghost_type), dim, dim),
-           make_view(this->trace_damage(type, ghost_type)),
-           make_view(this->trace_damage.previous(type, ghost_type)),
-           equivalent_strain_function, damage_threshold_function)) {
-    auto & sigma = std::get<0>(data);
-    auto & grad_u = std::get<1>(data);
-    auto & sigma_th = std::get<2>(data);
-    auto & sigma_el = std::get<3>(data);
-    auto & epsilon_hat = std::get<4>(data);
-    auto & D = std::get<5>(data);
-    auto & TrD_n_1 = std::get<6>(data);
-    auto & TrD = std::get<7>(data);
-    auto & equivalent_strain_data = std::get<8>(data);
-    auto & damage_threshold_data = std::get<9>(data);
-
-    Matrix<Real> Dtmp(dim, dim);
-    Real TrD_n_1_tmp;
-    Matrix<Real> epsilon(dim, dim);
-
-    // yes you read properly this is a label for a goto
-    auto computeDamage = [&]() {
-      MaterialElastic<dim>::computeStressOnQuad(grad_u, sigma_el, sigma_th);
-
-      this->template gradUToEpsilon<dim>(grad_u, epsilon);
-
-      // evaluate the damage criteria
-      epsilon_hat = equivalent_strain_function(epsilon, equivalent_strain_data);
-
-      // evolve the damage if needed
-      auto K_TrD = damage_threshold_function.K(TrD, damage_threshold_data);
-
-      auto f = epsilon_hat - K_TrD;
-
-      // if test function > 0 evolve the damage
-      if (f > 0) {
-        TrD_n_1_tmp =
-            damage_threshold_function.K_inv(epsilon_hat, damage_threshold_data);
-
-        auto epsilon_plus = tensorPlus<dim>(epsilon);
-        auto delta_lambda = (TrD_n_1_tmp - TrD) / (epsilon_hat * epsilon_hat);
-
-        Dtmp = D + delta_lambda * epsilon_plus;
-        return true;
-      }
-      return false;
-    };
-
-    // compute a temporary version of the new damage
-    auto is_damage_updated = computeDamage();
-
-    if (is_damage_updated) {
-      /// Check and correct for broken case
-      if (Dtmp.trace() > Dc) {
-        if (epsilon.trace() > 0) { // tensile loading
-          auto kpa = this->kpa;
-          auto lambda = this->lambda;
-
-          // change kappa to Kappa_broken = (1-Dc) Kappa
-          kpa = (1 - Dc) * kpa;
-          this->E = 9 * kpa * (kpa - lambda) / (3 * kpa - lambda);
-          this->nu = lambda / (3 * kpa - lambda);
-          this->updateInternalParameters();
-
-          computeDamage();
-        } else if (std::abs(epsilon.trace()) < 1e-10) { // deviatoric case
-          Matrix<Real, dim, dim> n;
-          std::vector<Int> ns;
-          tensorPlusOp<dim>(
-              Dtmp, n,
-              [&](Real x, Int i) {
-                if (x > this->Dc) {
-                  ns.push_back(i);
-                  return this->Dc;
-                }
-
-                return x;
-              },
-              true);
-        }
-      }
-
-      TrD_n_1 = TrD_n_1_tmp;
-      D = Dtmp;
-    } else {
-      TrD_n_1 = TrD;
-    }
-
-    // apply the damage to the stress
-    damageStress(sigma, sigma_el, D, TrD_n_1);
+  for (auto && args : getArguments(type, ghost_type)) {
+    computeStressOnQuad(args);
   }
 }
 

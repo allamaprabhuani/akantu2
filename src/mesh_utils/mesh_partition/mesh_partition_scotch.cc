@@ -61,7 +61,7 @@ namespace {
 }
 
 /* -------------------------------------------------------------------------- */
-MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, UInt spatial_dimension,
+MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, Int spatial_dimension,
                                          const ID & id)
     : MeshPartition(mesh, spatial_dimension, id) {
   AKANTU_DEBUG_IN();
@@ -246,7 +246,7 @@ static void destroyMesh(SCOTCH_Mesh * meshptr) {
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionScotch::partitionate(
-    UInt nb_part,
+    Int nb_part,
     const std::function<Int(const Element &, const Element &)> & edge_load_func,
     const std::function<Int(const Element &)> & vertex_load_func) {
   AKANTU_DEBUG_IN();

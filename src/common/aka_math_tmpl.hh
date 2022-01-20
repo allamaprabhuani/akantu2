@@ -52,16 +52,44 @@
 namespace akantu {
 namespace Math {
   /* ------------------------------------------------------------------------ */
+  template <class D1, aka::enable_if_t<aka::is_vector<D1>::value> *>
+  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & vec) {
+    Vector<Real, 2> normal_;
+    AKANTU_DEBUG_ASSERT(vec.cols() == 1 and vec.rows() == 2,
+                        "Vec is not of the proper size");
+    Vector<Real, 2> vec_(vec);
+    normal_[0] = vec_[1];
+    normal_[1] = -vec_[0];
+    normal_ /= normal_.norm();
+    return normal_;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <class D1, class D2, aka::enable_if_vectors_t<D1, D2> *>
+  inline Vector<Real, 3> normal(const Eigen::MatrixBase<D1> & vec1,
+                                const Eigen::MatrixBase<D2> & vec2) {
+    AKANTU_DEBUG_ASSERT(vec1.cols() == 1 and vec1.rows() == 3,
+                        "Vec is not of the proper size");
+    AKANTU_DEBUG_ASSERT(vec2.cols() == 1 and vec2.rows() == 3,
+                        "Vec is not of the proper size");
+    Vector<Real, 3> vec1_(vec1);
+    Vector<Real, 3> vec2_(vec2);
+    auto && normal = vec1_.cross(vec2_);
+    normal /= normal.norm();
+    return normal.eval();
+  }
+
+  /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void solve(UInt n, const T * A, T * x, const T * b) {
     int N = n;
     int info;
-    auto * ipiv = new int[N];
-    auto * lu_A = new T[N * N];
+    std::vector<int> ipiv(N);
+    std::vector<T> lu_A(N * N);
 
-    std::copy(A, A + N * N, lu_A);
+    std::copy(A, A + N * N, lu_A.begin());
 
-    aka_getrf(&N, &N, lu_A, &N, ipiv, &info);
+    aka_getrf(&N, &N, lu_A.data(), &N, ipiv.data(), &info);
     if (info > 0) {
       AKANTU_ERROR("Singular matrix - cannot factorize it (info: " << info
                                                                    << " )");
@@ -72,36 +100,10 @@ namespace Math {
 
     std::copy(b, b + N, x);
 
-    aka_getrs(&trans, &N, &nrhs, lu_A, &N, ipiv, x, &N, &info);
+    aka_getrs(&trans, &N, &nrhs, lu_A.data(), &N, ipiv.data(), x, &N, &info);
     if (info != 0) {
       AKANTU_ERROR("Cannot solve the system (info: " << info << " )");
     }
-
-    delete[] ipiv;
-    delete[] lu_A;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline void vectorProduct3(const Real * v1, const Real * v2, Real * res) {
-    res[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    res[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    res[2] = v1[0] * v2[1] - v1[1] * v2[0];
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline Real vectorDot2(const Real * v1, const Real * v2) {
-    return (v1[0] * v2[0] + v1[1] * v2[1]);
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline Real vectorDot3(const Real * v1, const Real * v2) {
-    return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline Real distance_2d(const Real * x, const Real * y) {
-    return std::sqrt((y[0] - x[0]) * (y[0] - x[0]) +
-                     (y[1] - x[1]) * (y[1] - x[1]));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -177,8 +179,8 @@ namespace Math {
 
   /* ------------------------------------------------------------------------ */
   template <class D1, class D2>
-  inline void barycenter(const Eigen::MatrixBase<D1> &coord,
-                         Eigen::MatrixBase<D2> &barycenter) {
+  inline void barycenter(const Eigen::MatrixBase<D1> & coord,
+                         Eigen::MatrixBase<D2> & barycenter) {
     barycenter.zero();
     for (auto && x : coord) {
       barycenter += x;

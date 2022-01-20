@@ -94,7 +94,7 @@ namespace dumpers {
     template <class T1 = data_type,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = data_type,
@@ -105,9 +105,9 @@ namespace dumpers {
 
   protected:
     /// return the number of entries per element
-    UInt getNbDataPerElem(ElementType type,
-                          GhostType ghost_type = _not_ghost) const {
-      if (!nb_data_per_elem.exists(type, ghost_type)) {
+    Int getNbDataPerElem(ElementType type,
+                         GhostType ghost_type = _not_ghost) const {
+      if (not nb_data_per_elem.exists(type, ghost_type)) {
         return field(type, ghost_type).getNbComponent();
       }
 
@@ -154,7 +154,7 @@ namespace dumpers {
 
       /// getting information for the field of the given type
       const auto & vect = this->field(type, this->ghost_type);
-      UInt nb_data_per_elem = this->getNbDataPerElem(type);
+      auto nb_data_per_elem = this->getNbDataPerElem(type);
 
       /// define element-wise iterator
       auto view = make_view(vect, nb_data_per_elem);

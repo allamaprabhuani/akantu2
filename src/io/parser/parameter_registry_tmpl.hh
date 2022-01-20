@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
 #include "aka_iterators.hh"
+#include "aka_types.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
@@ -187,38 +188,6 @@ ParameterTyped<std::string>::setAuto(const ParserParameter & value) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ParameterTyped<Vector<Real>>::setAuto(const ParserParameter & in_param) {
-  Parameter::setAuto(in_param);
-  Vector<Real> tmp = in_param;
-  if (param.size() == 0) {
-    param = tmp;
-  } else {
-    for (Int i = 0; i < param.size(); ++i) {
-      param(i) = tmp(i);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-ParameterTyped<Matrix<Real>>::setAuto(const ParserParameter & in_param) {
-  Parameter::setAuto(in_param);
-  Matrix<Real> tmp = in_param;
-  if (param.size() == 0) {
-    param = tmp;
-  } else {
-    for (Int i = 0; i < param.rows(); ++i) {
-      for (Int j = 0; j < param.cols(); ++j) {
-        param(i, j) = tmp(i, j);
-      }
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 template <typename T> const T & ParameterTyped<T>::getTyped() const {
   return param;
 }
@@ -232,6 +201,53 @@ inline void ParameterTyped<T>::printself(std::ostream & stream) const {
   stream << param << "\n";
 }
 
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+template <typename T, Int m, Int n>
+class ParameterTyped<Eigen::Matrix<T, m, n>> : public Parameter {
+public:
+  ParameterTyped(const std::string & name, const std::string & description,
+                 ParameterAccessType param_type, Eigen::Matrix<T, m, n> & param)
+      : Parameter(name, description, param_type), param(param) {}
+
+  template <typename V> void setTyped(const V & value) { param = value; }
+  void setAuto(const ParserParameter & value) override {
+    Parameter::setAuto(value);
+    Matrix<Real> tmp = value;
+    param = tmp.block(0, 0, param.rows(), param.cols());
+  }
+
+  Eigen::Matrix<T, m, n> & getTyped() { return param; }
+  const Eigen::Matrix<T, m, n> & getTyped() const { return param; }
+
+  void printself(std::ostream & stream) const override {
+    Parameter::printself(stream);
+
+    stream << "[ ";
+    for (int i : arange(param.rows())) {
+      if (param.cols() != 1) {
+        stream << "[ ";
+      }
+      for (int j : arange(param.cols())) {
+        stream << param(i, j) << " ";
+      }
+      if (param.cols() != 1) {
+        stream << "] ";
+      }
+    }
+    stream << "]\n";
+  }
+
+  inline const std::type_info & type() const override {
+    return typeid(Eigen::Matrix<T, m, n>);
+  }
+
+private:
+  /// Value of parameter
+  Eigen::Matrix<T, m, n> & param;
+};
+
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template <typename T> class ParameterTyped<std::vector<T>> : public Parameter {
 public:
@@ -273,6 +289,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <typename T> class ParameterTyped<std::set<T>> : public Parameter {
 public:
   ParameterTyped(const std::string & name, const std::string & description,
@@ -282,7 +299,7 @@ public:
   /* ------------------------------------------------------------------------
    */
   template <typename V> void setTyped(const V & value) { param = value; }
-  void setAuto(const ParserParameter & value) override {
+  void setAuto(const ParserParameter & value) {
     Parameter::setAuto(value);
     param.clear();
     const std::set<T> & tmp = value;
@@ -294,7 +311,7 @@ public:
   std::set<T> & getTyped() { return param; }
   const std::set<T> & getTyped() const { return param; }
 
-  void printself(std::ostream & stream) const override {
+  void printself(std::ostream & stream) const {
     Parameter::printself(stream);
     stream << "[ ";
     for (auto && v : param) {
@@ -303,9 +320,7 @@ public:
     stream << "]\n";
   }
 
-  inline const std::type_info & type() const override {
-    return typeid(std::set<T>);
-  }
+  inline const std::type_info & type() const { return typeid(std::set<T>); }
 
 private:
   /// Value of parameter

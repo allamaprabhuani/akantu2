@@ -109,7 +109,7 @@ Real MaterialPlastic<spatial_dimension>::getPlasticEnergy() {
 
   Real penergy = 0.;
 
-  for (auto & type :
+  for (const auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
     penergy +=
         this->fem.integrate(plastic_energy(type, _not_ghost), type, _not_ghost,
@@ -121,78 +121,41 @@ Real MaterialPlastic<spatial_dimension>::getPlasticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialPlastic<spatial_dimension>::computePotentialEnergy(
-    ElementType el_type) {
-  AKANTU_DEBUG_IN();
+template <Int dim>
+void MaterialPlastic<dim>::computePotentialEnergy(ElementType el_type) {
+  auto epot = this->potential_energy(el_type).begin();
 
-  Array<Real>::scalar_iterator epot = this->potential_energy(el_type).begin();
+  for (auto && args : getArguments(el_type)) {
+    Matrix<Real, dim, dim> elastic_strain =
+        tuple::get<"grad_u"_h>(args) - tuple::get<"inelastic_strain"_h>(args);
 
-  Array<Real>::const_iterator<Matrix<Real>> inelastic_strain_it =
-      this->inelastic_strain(el_type).begin(spatial_dimension,
-                                            spatial_dimension);
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  Matrix<Real> elastic_strain(spatial_dimension, spatial_dimension);
-  elastic_strain.copy(grad_u);
-  elastic_strain -= *inelastic_strain_it;
-
-  MaterialElastic<spatial_dimension>::computePotentialEnergyOnQuad(
-      elastic_strain, sigma, *epot);
-
-  ++epot;
-  ++inelastic_strain_it;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+    MaterialElastic<dim>::computePotentialEnergyOnQuad(
+        tuple::replace<"grad_u"_h>(args, elastic_strain), *epot);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialPlastic<spatial_dimension>::updateEnergies(ElementType el_type) {
-  AKANTU_DEBUG_IN();
+template <Int dim>
+void MaterialPlastic<dim>::updateEnergies(ElementType el_type) {
+  MaterialElastic<dim>::updateEnergies(el_type);
 
-  MaterialElastic<spatial_dimension>::updateEnergies(el_type);
+  for (auto && args :
+       zip_append(getArguments(el_type),
+                  tuple::get<"pe"_h>() = this->plastic_energy(el_type),
+                  tuple::get<"wp"_h>() = this->d_plastic_energy(el_type))) {
 
-  Array<Real>::iterator<> pe_it = this->plastic_energy(el_type).begin();
+    Matrix<Real, dim, dim> delta_strain_it =
+        tuple::get<"inelastic_strain"_h>(args) -
+        tuple::get<"previous_inelastic_strain"_h>(args);
 
-  Array<Real>::iterator<> wp_it = this->d_plastic_energy(el_type).begin();
+    Matrix<Real, dim, dim> sigma_h =
+        tuple::get<"sigma"_h>(args) + tuple::get<"previous_sigma"_h>(args);
 
-  Array<Real>::iterator<Matrix<Real>> inelastic_strain_it =
-      this->inelastic_strain(el_type).begin(spatial_dimension,
-                                            spatial_dimension);
+    auto && wp = tuple::get<"wp"_h>(args);
+    wp = .5 * sigma_h.doubleDot(delta_strain_it);
 
-  Array<Real>::iterator<Matrix<Real>> previous_inelastic_strain_it =
-      this->inelastic_strain.previous(el_type).begin(spatial_dimension,
-                                                     spatial_dimension);
-
-  Array<Real>::matrix_iterator previous_sigma =
-      this->stress.previous(el_type).begin(spatial_dimension,
-                                           spatial_dimension);
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  Matrix<Real> delta_strain_it(*inelastic_strain_it);
-  delta_strain_it -= *previous_inelastic_strain_it;
-
-  Matrix<Real> sigma_h(sigma);
-  sigma_h += *previous_sigma;
-
-  *wp_it = .5 * sigma_h.doubleDot(delta_strain_it);
-
-  *pe_it += *wp_it;
-
-  ++pe_it;
-  ++wp_it;
-  ++inelastic_strain_it;
-  ++previous_inelastic_strain_it;
-  ++previous_sigma;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+    tuple::get<"pe"_h>(args) += wp;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

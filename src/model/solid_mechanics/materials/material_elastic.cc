@@ -121,11 +121,11 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
   auto && arguments = Parent::getArguments(el_type, ghost_type);
 
   if (!this->finite_deformation) {
-    for(auto && args : arguments) {
+    for (auto && args : arguments) {
       this->computeStressOnQuad(args);
     }
   } else {
-    for(auto && args : arguments) {
+    for (auto && args : arguments) {
       auto && E = this->template gradUToE<dim>(tuple::get<"grad_u"_h>(args));
       this->computeStressOnQuad(tuple::replace<"grad_u"_h>(args, E));
     }
@@ -141,9 +141,12 @@ void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  this->computeTangentModuliOnQuad(tangent);
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+  auto && arguments =
+      Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+
+  for (auto && args : arguments) {
+    this->computeTangentModuliOnQuad(args);
+  }
 
   this->was_stiffness_assembled = true;
 
@@ -167,28 +170,26 @@ template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  // MaterialThermal<dim>::computePotentialEnergy(ElementType)
   // needs to be implemented
   // MaterialThermal<dim>::computePotentialEnergy(el_type);
 
   auto epot = this->potential_energy(el_type, _not_ghost).begin();
 
-  if (!this->finite_deformation) {
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
+  auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
-    this->computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-    ++epot;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  if (not this->finite_deformation) {
+    for (auto && args :
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+      this->computePotentialEnergyOnQuad(std::get<0>(args), std::get<1>(args));
+    }
   } else {
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-    auto E = this->template gradUToE<dim>(grad_u);
-
-    this->computePotentialEnergyOnQuad(E, sigma, *epot);
-    ++epot;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    for (auto && data :
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+      auto && args = std::get<0>(data);
+      auto && E = this->template gradUToE<dim>(tuple::get<"grad_u"_h>(args));
+      this->computePotentialEnergyOnQuad(tuple::replace<"grad_u"_h>(args, E),
+                                         std::get<1>(data));
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -217,17 +218,18 @@ void MaterialElastic<dim>::computePotentialEnergyByElement(
   Matrix<Real> grad_u(dim, dim);
 
   if (this->finite_deformation) {
-    for (auto data : zip(range(gradu_it, gradu_end),
-                         range(stress_it, stress_end), epot_on_quad_points)) {
+    for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
+                     tuple::get<"sigma"_h>() = range(stress_it, stress_end),
+                     tuple::get<"Epot"_h>() = epot_on_quad_points)) {
       auto E = this->template gradUToE<dim>(std::get<0>(data));
-      this->computePotentialEnergyOnQuad(E, std::get<1>(data),
-                                         std::get<2>(data));
+      this->computePotentialEnergyOnQuad(tuple::replace<"grad_u"_h>(data, E),
+                                         tuple::get<"Epot"_h>(data));
     }
   } else {
-    for (auto data : zip(range(gradu_it, gradu_end),
-                         range(stress_it, stress_end), epot_on_quad_points)) {
-      this->computePotentialEnergyOnQuad(std::get<0>(data), std::get<1>(data),
-                                         std::get<2>(data));
+    for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
+                     tuple::get<"sigma"_h>() = range(stress_it, stress_end),
+                     tuple::get<"Epot"_h>() = epot_on_quad_points)) {
+      this->computePotentialEnergyOnQuad(data, tuple::get<"Epot"_h>(data));
     }
   }
 }

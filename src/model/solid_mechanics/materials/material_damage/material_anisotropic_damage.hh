@@ -55,9 +55,30 @@ public:
 public:
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        Parent<dim>::getArguments(el_type, ghost_type),
+        tuple::get<"damage"_h>() =
+            make_view<dim, dim>(this->damage(el_type, ghost_type)),
+        tuple::get<"sigma_el"_h>() =
+            make_view<dim, dim>(this->elastic_stress(el_type, ghost_type)),
+        tuple::get<"epsilon_hat"_h>() =
+            this->equivalent_strain(el_type, ghost_type),
+        tuple::get<"TrD"_h>() = this->trace_damage(el_type, ghost_type),
+        tuple::get<"TrD_n_1"_h>() =
+            this->trace_damage.previous(el_type, ghost_type),
+        tuple::get<"equivalent_strain_data"_h>() = equivalent_strain_function,
+        tuple::get<"damage_threshold_data"_h>() = damage_threshold_function);
+  }
+
+  template <class Args> void computeStressOnQuad(Args && args);
+
 private:
-  void damageStress(Matrix<double> & sigma, const Matrix<double> & sigma_el,
-                    const Matrix<double> & D, Real TrD);
+  template <class D1, class D2, class D3>
+  void damageStress(Eigen::MatrixBase<D1> & sigma,
+                    const Eigen::MatrixBase<D2> & sigma_el,
+                    const Eigen::MatrixBase<D3> & D, Real TrD);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

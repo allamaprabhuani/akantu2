@@ -79,8 +79,9 @@ public:
 
 template <class Stored, typename SupportType>
 class ElementTypeMap : public ElementTypeMapBase {
-
 public:
+  using value_type = Stored;
+
   ElementTypeMap();
   ~ElementTypeMap() override;
 
@@ -414,7 +415,7 @@ public:
         continue;
       }
 
-      for (auto & type : this->elementTypes(dim, ghost_type, kind)) {
+      for (const auto & type : this->elementTypes(dim, ghost_type, kind)) {
         auto nb_comp = (*this)(type, ghost_type).getNbComponent();
         nb_components(type, ghost_type) = nb_comp;
       }

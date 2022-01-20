@@ -70,7 +70,7 @@ public:
   PhaseField(PhaseFieldModel & model, const ID & id = "");
 
   /// Initialize phasefield with custom mesh & fe_engine
-  PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
+  PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
              FEEngine & fe_engine, const ID & id = "");
 
   /// Destructor
@@ -115,8 +115,7 @@ public:
   virtual void savePreviousState();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(ElementType type, UInt element,
-                         GhostType ghost_type);
+  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
   inline UInt addElement(const Element & element);
 
   /// function to print the contain of the class
@@ -140,8 +139,8 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -184,10 +183,10 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
 
   AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
 
   template <typename T>
   const InternalPhaseField<T> & getInternal(const ID & id) const;
@@ -247,10 +246,10 @@ protected:
   Real mu;
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// list of element handled by the phasefield
-  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<Idx> element_filter;
 
   /// damage arrays ordered by element types
   InternalPhaseField<Real> damage;

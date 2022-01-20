@@ -76,10 +76,10 @@ namespace dumpers {
 
     /// they also need an access to the map from global ids to material id and
     /// local ids
-    const ElementTypeMapArray<UInt> & material_index;
+    const ElementTypeMapArray<Idx> & material_index;
 
     /// the number of data per element
-    const ElementTypeMapArray<UInt> nb_data_per_element;
+    const ElementTypeMapArray<Idx> nb_data_per_element;
 
     UInt spatial_dimension;
   };
@@ -128,11 +128,9 @@ namespace dumpers {
       return stress;
     }
 
-    UInt getDim() override { return 9; };
-
-    UInt getNbComponent(UInt /*old_nb_comp*/) override {
-      return this->getDim();
-    };
+    Int getDim() override { return 9; }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -146,8 +144,8 @@ namespace dumpers {
 
     inline Matrix<Real> func(const Matrix<Real> & in,
                              Element global_element_id) override {
-      UInt nrows = spatial_dimension;
-      UInt nb_data = in.size() / (nrows * nrows);
+      auto nrows = spatial_dimension;
+      auto nb_data = in.size() / (nrows * nrows);
 
       Matrix<Real> strain = this->pad(in, nb_data);
       const Material & material =
@@ -156,7 +154,7 @@ namespace dumpers {
 
       if (plane_stress) {
         Real nu = material.getParam("nu");
-        for (UInt d = 0; d < nb_data; ++d) {
+        for (Int d = 0; d < nb_data; ++d) {
           strain(2, 2 + 3 * d) =
               nu / (nu - 1) * (strain(0, 0 + 3 * d) + strain(1, 1 + 3 * d));
         }
@@ -165,11 +163,9 @@ namespace dumpers {
       return strain;
     }
 
-    UInt getDim() override { return 9; };
-
-    UInt getNbComponent(UInt /*old_nb_comp*/) override {
-      return this->getDim();
-    };
+    Int getDim() override { return 9; }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -180,30 +176,32 @@ namespace dumpers {
     ComputeStrain(const SolidMechanicsModel & model) : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
-      UInt nrows = spatial_dimension;
-      UInt ncols = in.size() / nrows;
-      UInt nb_data = in.size() / (nrows * nrows);
+                             Element /*global_element_id*/)
+    override {
+      auto nrows = spatial_dimension;
+      auto ncols = in.size() / nrows;
+      auto nb_data = in.size() / (nrows * nrows);
 
       Matrix<Real> ret_all_strain(nrows, ncols);
-      Tensor3<Real> all_grad_u(in.storage(), nrows, nrows, nb_data);
-      Tensor3<Real> all_strain(ret_all_strain.storage(), nrows, nrows, nb_data);
+      Tensor3Proxy<const Real> all_grad_u(in.data(), nrows, nrows, nb_data);
+      Tensor3Proxy<Real> all_strain(ret_all_strain.data(), nrows, nrows,
+                                    nb_data);
 
       for (UInt d = 0; d < nb_data; ++d) {
-        Matrix<Real> grad_u = all_grad_u(d);
-        Matrix<Real> strain = all_strain(d);
+        auto && grad_u = all_grad_u(d);
+        auto && strain = all_strain(d);
 
         if (spatial_dimension == 2) {
           if (green_strain) {
-            Material::gradUToE<2>(grad_u, strain);
+            strain = Material::gradUToE<2>(grad_u);
           } else {
-            Material::gradUToEpsilon<2>(grad_u, strain);
+            strain = Material::gradUToEpsilon<2>(grad_u);
           }
         } else if (spatial_dimension == 3) {
           if (green_strain) {
-            Material::gradUToE<3>(grad_u, strain);
+            strain = Material::gradUToE<3>(grad_u);
           } else {
-            Material::gradUToEpsilon<3>(grad_u, strain);
+            strain = Material::gradUToEpsilon<3>(grad_u);
           }
         }
       }
@@ -211,11 +209,9 @@ namespace dumpers {
       return ret_all_strain;
     }
 
-    UInt getDim() override { return spatial_dimension * spatial_dimension; };
-
-    UInt getNbComponent(UInt /*old_nb_comp*/) override {
-      return this->getDim();
-    };
+    Int getDim() override { return spatial_dimension * spatial_dimension; }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -228,43 +224,41 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
+                             Element /*global_element_id*/)
+    override {
       UInt nrows = spatial_dimension;
       UInt nb_data = in.size() / (nrows * nrows);
 
       Matrix<Real> ret_all_strain(nrows, nb_data);
-      Tensor3<Real> all_grad_u(in.storage(), nrows, nrows, nb_data);
+      Tensor3Proxy<const Real> all_grad_u(in.data(), nrows, nrows, nb_data);
       Matrix<Real> strain(nrows, nrows);
 
       for (UInt d = 0; d < nb_data; ++d) {
         Matrix<Real> grad_u = all_grad_u(d);
 
-        if (spatial_dimension == 2) {
-          if (green_strain) {
-            Material::gradUToE<2>(grad_u, strain);
-          } else {
-            Material::gradUToEpsilon<2>(grad_u, strain);
-          }
-        } else if (spatial_dimension == 3) {
-          if (green_strain) {
-            Material::gradUToE<3>(grad_u, strain);
-          } else {
-            Material::gradUToEpsilon<3>(grad_u, strain);
-          }
-        }
+        tuple_dispatch<std::tuple<std::integral_constant<Int, 1>,
+                                  std::integral_constant<Int, 2>,
+                                  std::integral_constant<Int, 3>>>(
+            [&grad_u, &strain](auto && dim_t) {
+              constexpr auto dim = std::decay_t<decltype(dim_t)>::value;
+              if (green_strain) {
+                strain = Material::gradUToE<dim>(grad_u);
+              } else {
+                strain = Material::gradUToEpsilon<dim>(grad_u);
+              }
+            },
+            spatial_dimension);
 
-        Vector<Real> principal_strain(ret_all_strain(d));
-        strain.eig(principal_strain);
+        auto && principal_strain = ret_all_strain(d);
+        strain.eigh(principal_strain);
       }
 
       return ret_all_strain;
     }
 
-    UInt getDim() override { return spatial_dimension; };
-
-    UInt getNbComponent(UInt /*old_nb_comp*/) override {
-      return this->getDim();
-    };
+    Int getDim() override { return spatial_dimension; }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -276,27 +270,26 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Vector<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
+                             Element /*global_element_id*/)
+    override {
       UInt nrows = spatial_dimension;
       UInt nb_data = in.size() / (nrows * nrows);
 
       Vector<Real> von_mises_stress(nb_data);
       Matrix<Real> deviatoric_stress(3, 3);
 
-      for (UInt d = 0; d < nb_data; ++d) {
-        Matrix<Real> cauchy_stress(in.storage() + d * nrows * nrows, nrows,
-                                   nrows);
+      for (Int d = 0; d < nb_data; ++d) {
+        MatrixProxy<const Real> cauchy_stress(in.data() + d * nrows * nrows,
+                                              nrows, nrows);
         von_mises_stress(d) = Material::stressToVonMises(cauchy_stress);
       }
 
       return von_mises_stress;
     }
 
-    UInt getDim() override { return 1; };
-
-    UInt getNbComponent(UInt /*old_nb_comp*/) override {
-      return this->getDim();
-    };
+    Int getDim() override { return 1; }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */

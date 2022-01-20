@@ -91,8 +91,9 @@ public:
                            GhostType ghost_type = _not_ghost,
                            ElementKind element_kind = _ek_not_defined) {}
 
-  void addDumpFilteredMeshToDumper(
-      const std::string & dumper_name, const Mesh & mesh,
+  void
+  addDumpFilteredMeshToDumper(const std::string & dumper_name,
+                              const Mesh & mesh,
       const ElementTypeMapArray<Idx> & elements_filter,
       const Array<Idx> & nodes_filter,
       Int spatial_dimension = _all_dimensions,
@@ -135,8 +136,7 @@ public:
   }
 
   template <typename T>
-  void
-  addDumpFieldExternal(const std::string & field_id,
+  void addDumpFieldExternal(const std::string & field_id,
                        const ElementTypeMapArray<T> & field,
                        Int spatial_dimension = _all_dimensions,
                        GhostType ghost_type = _not_ghost,
@@ -145,8 +145,9 @@ public:
                          "AKANTU_USE_IOHELPER in cmake.");
   }
   template <typename T>
-  void addDumpFieldExternalToDumper(
-      const std::string & dumper_name, const std::string & field_id,
+  void
+  addDumpFieldExternalToDumper(const std::string & dumper_name,
+                               const std::string & field_id,
       const ElementTypeMapArray<T> & field,
       Int spatial_dimension = _all_dimensions,
       GhostType ghost_type = _not_ghost,

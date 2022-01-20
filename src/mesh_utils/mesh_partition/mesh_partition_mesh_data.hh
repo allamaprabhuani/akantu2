@@ -51,7 +51,7 @@ public:
   MeshPartitionMeshData(Mesh & mesh, Int spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData");
 
-  MeshPartitionMeshData(Mesh & mesh, const ElementTypeMapArray<UInt> & mapping,
+  MeshPartitionMeshData(Mesh & mesh, const ElementTypeMapArray<Idx> & mapping,
                         Int spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData");
 

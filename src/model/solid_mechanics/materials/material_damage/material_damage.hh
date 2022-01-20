@@ -67,8 +67,10 @@ protected:
   void updateEnergies(ElementType el_type) override;
 
   /// compute the tangent stiffness matrix for a given quadrature point
-  template<class Args>
-  inline void computeTangentModuliOnQuad(Args && args);
+  template <class Args>
+  inline void computeTangentModuliOnQuad(Args && arguments);
+
+  auto getDissipatedEnergy() const -> Real;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -79,10 +81,20 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type) {
+                              GhostType ghost_type = _not_ghost) {
     return zip_append(Parent<dim>::getArguments(el_type, ghost_type),
                       tuple::get<"damage"_h>() =
                           make_view(this->damage(el_type, ghost_type)));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type) {
+    constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
+    return zip_append(
+        Parent<dim>::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
+        tuple::get<"damage"_h>() =
+            make_view(this->damage(el_type, ghost_type)));
   }
 
   Real getEnergy(const std::string & type) override;

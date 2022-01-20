@@ -138,30 +138,7 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   /* 1) rotation of C into the global frame */
   this->rotateCprime();
-  this->C.eig(this->eigC);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialElasticOrthotropic<dim>::computePotentialEnergyByElement(
-    ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
-
-  auto gradu_it = make_view<dim, dim>(this->gradu(type)).begin();
-  auto stress_it = make_view<dim, dim>(this->stress(type)).begin();
-
-  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
-
-  gradu_it += index * nb_quadrature_points;
-  auto gradu_end = gradu_it + nb_quadrature_points;
-  stress_it += index * nb_quadrature_points;
-
-  auto epot_quad = epot_on_quad_points.begin();
-
-  Matrix<Real, dim, dim> grad_u;
-
-  for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-    this->computePotentialEnergyOnQuad(*gradu_it, *stress_it, *epot_quad);
-  }
+  this->C.eigh(this->eigC);
 }
 
 /* -------------------------------------------------------------------------- */

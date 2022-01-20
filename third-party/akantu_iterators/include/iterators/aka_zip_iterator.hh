@@ -235,16 +235,18 @@ namespace containers {
                           OtherContainers &&... other_containers) {
       return ZipContainer_<Tuple, Containers..., OtherContainers...>(
           std::get<Is>(std::forward<containers_t>(containers))...,
-          std::forward<OtherContainers>(
-              std::forward<OtherContainers>(other_containers))...);
+          std::forward<OtherContainers>(other_containers)...);
     }
 
     template <class OtherContainers, std::size_t... Is>
-    decltype(auto) extend(std::index_sequence<Is...> && /*unused*/,
+    decltype(auto) extend(std::index_sequence<Is...> && unused,
                           OtherContainers && other_containers) {
       return append(
-          std::make_index_sequence<sizeof...(Containers)>{},
-          std::get<Is>(std::forward<containers_t>(other_containers))...);
+          std::make_index_sequence<std::tuple_size<containers_t>::value>{},
+          std::forward<decltype(std::get<Is>(
+              std::forward<OtherContainers>(other_containers)))>(
+              std::get<Is>(
+                  std::forward<OtherContainers>(other_containers)))...);
     }
 
     // template <std::size_t nth, std::size_t... Is_before,
@@ -263,7 +265,7 @@ namespace containers {
 
   public:
     template <class... OtherContainers>
-    decltype(auto) append(OtherContainers &&... other_containers) {
+    auto append(OtherContainers &&... other_containers) -> decltype(auto) {
       static_assert(
           tuple::is_named_tuple<containers_t>::value ==
               aka::conjunction<
@@ -275,10 +277,10 @@ namespace containers {
     }
 
     template <class... OtherContainers>
-    decltype(auto)
-    extend(const ZipContainer_<Tuple, OtherContainers...> & other) {
+    auto extend(const ZipContainer_<Tuple, OtherContainers...> & other)
+        -> decltype(auto) {
       return extend(std::make_index_sequence<sizeof...(OtherContainers)>{},
-                    other.containers);
+                    std::forward<decltype(other.containers)>(other.containers));
     }
 
     // template <size_t Tag, class Containers_t = containers_t,
@@ -293,10 +295,10 @@ namespace containers {
     //       std::make_index_sequence<sizeof...(Containers) - nth - 1>{});
     // }
 
-    template <size_t Tag> decltype(auto) remove();
+    template <size_t Tag> auto remove() -> decltype(auto);
 
     template <size_t Tag, class Container>
-    decltype(auto) replace(Container && cont);
+    auto replace(Container && cont) -> decltype(auto);
 
   private:
     template <template <class...> class OtherTuple, class... OtherContainers>
@@ -316,7 +318,7 @@ namespace containers {
 template <class... Containers,
           std::enable_if_t<not aka::conjunction<tuple::is_named_tag<
               std::decay_t<Containers>>...>::value> * = nullptr>
-decltype(auto) zip(Containers &&... conts) {
+auto zip(Containers &&... conts) -> decltype(auto) {
   return containers::ZipContainer<Containers...>(
       std::forward<Containers>(conts)...);
 }
@@ -324,54 +326,62 @@ decltype(auto) zip(Containers &&... conts) {
 template <class... Containers,
           std::enable_if_t<aka::conjunction<tuple::is_named_tag<
               std::decay_t<Containers>>...>::value> * = nullptr>
-decltype(auto) zip(Containers &&... conts) {
+auto zip(Containers &&... conts) -> decltype(auto) {
   return containers::NamedZipContainer<Containers...>(
       std::forward<Containers>(conts)...);
 }
 
-/* -------------------------------------------------------------------------- */
-template <class zip_container_1_t, class zip_container_2_t>
-decltype(auto) zip_cat(zip_container_1_t && cont1, zip_container_2_t && cont2) {
-  return std::forward<zip_container_1_t>(cont1).extend(
-      std::forward<zip_container_2_t>(cont2));
+template <class... zip_container_t>
+auto zip_cat(zip_container_t &&... cont) -> decltype(auto) {
+  return make_transform_adaptor(
+      zip(std::forward<zip_container_t>(cont)...),
+      [](auto && value) { return tuple::flatten(value); });
 }
 
 template <class zip_container_t, class... container_t>
-decltype(auto) zip_append(zip_container_t && zip_container,
-                          container_t &&... cont) {
+auto zip_append(zip_container_t && zip_container, container_t &&... cont)
+    -> decltype(auto) {
   return std::forward<zip_container_t>(zip_container)
       .append(std::forward<container_t>(cont)...);
 }
 
 template <size_t Tag, class zip_container_t, class container_t>
-decltype(auto) zip_replace(zip_container_t && zip_container,
-                           container_t && cont) {
+auto zip_replace(zip_container_t && zip_container, container_t && cont)
+    -> decltype(auto) {
   return std::forward<zip_container_t>(zip_container)
       .template replace<Tag>(std::forward<container_t>(cont));
 }
 
 template <size_t Tag, class zip_container_t>
-decltype(auto) zip_remove(zip_container_t && zip_container) {
+auto zip_remove(zip_container_t && zip_container) -> decltype(auto) {
   return std::forward<zip_container_t>(zip_container).template remove<Tag>();
 }
 
 namespace details {
   template <class Tuple, std::size_t... Is,
+            std::enable_if_t<not tuple::is_named_tuple<
+                std::decay_t<Tuple>>::value> * = nullptr>
+  auto make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
+                                Tuple && tuple) -> decltype(auto) {
+    return zip(
+        std::forward<decltype(std::get<Is>(tuple))>(std::get<Is>(tuple))...);
+  }
+
+  template <class Tuple, std::size_t... Is,
             std::enable_if_t<
                 tuple::is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
-  decltype(auto)
-  make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
-                           Tuple && tuple) {
-    return zip(
-        std::get<tuple::tuple_name_tag<Is, std::decay_t<Tuple>>>() =
-            std::forward<tuple::tuple_element_t<Is, std::decay_t<Tuple>>>(
-                std::get<Is>(tuple))...);
+  auto make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
+                                Tuple && tuple) -> decltype(auto) {
+    return zip(tuple::template get<
+                   tuple::tuple_name_tag_t<Is, std::decay_t<Tuple>>::value>() =
+                   std::forward<decltype(std::get<Is>(tuple))>(
+                       std::get<Is>(tuple))...);
   }
 } // namespace details
 
 template <class Tuple, std::enable_if_t<tuple::is_named_tuple<
                            std::decay_t<Tuple>>::value> * = nullptr>
-decltype(auto) make_zip_from_tuple(Tuple && tuple) {
+auto make_zip_from_tuple(Tuple && tuple) -> decltype(auto) {
   return details::make_zip_from_tuple_impl(
       std::make_index_sequence<
           std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{},
@@ -383,19 +393,18 @@ decltype(auto) make_zip_from_tuple(Tuple && tuple) {
 namespace containers {
   template <template <class...> class Tuple, class... Containers>
   template <std::size_t nth>
-  decltype(auto) ZipContainer_<Tuple, Containers...>::remove() {
+  auto ZipContainer_<Tuple, Containers...>::remove() -> decltype(auto) {
     return make_zip_from_tuple(
         tuple::remove<nth>(std::forward<containers_t>(containers)));
   }
 
   template <template <class...> class Tuple, class... Containers>
   template <std::size_t nth, class Container>
-  decltype(auto)
-  ZipContainer_<Tuple, Containers...>::replace(Container && cont) {
+  auto ZipContainer_<Tuple, Containers...>::replace(Container && cont)
+      -> decltype(auto) {
     return make_zip_from_tuple(tuple::replace<nth>(
         std::forward<containers_t>(containers), std::forward<Container>(cont)));
   }
-
 } // namespace containers
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */

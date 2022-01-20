@@ -93,7 +93,7 @@ public:
                           "The Cauchy stress can only be computed if you are "
                           "working in finite deformation.");
 
-      for (auto & type : this->fem.getMesh().elementTypes(2, ghost_type)) {
+      for (auto && type : this->fem.getMesh().elementTypes(2, ghost_type)) {
         this->computeCauchyStressPlaneStress(type, ghost_type);
       }
     } else {

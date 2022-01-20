@@ -290,15 +290,6 @@ public:
   AKANTU_GET_MACRO(Nodes, *nodes, const Array<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Array<Real> &);
 
-  /// get the normals to the element if they exists (not at the integration
-  /// points)
-  const Array<Real> & getNormals(ElementType element_type,
-                                 GhostType ghost_type = _not_ghost) const;
-
-  /// same as getNormals const but compute them if needed
-  const Array<Real> & getNormals(ElementType element_type,
-                                 GhostType ghost_type = _not_ghost);
-
   /// get the number of nodes
   auto getNbNodes() const { return nodes->size(); }
 

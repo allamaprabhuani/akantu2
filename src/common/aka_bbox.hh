@@ -32,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
-#include "aka_types.hh"
 #include "aka_math.hh"
+#include "aka_types.hh"
 #include "communicator.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
@@ -49,9 +49,8 @@ class BBox {
 public:
   BBox() = default;
 
-  BBox(UInt spatial_dimension)
-      : dim(spatial_dimension),
-        lower_bounds(spatial_dimension),
+  BBox(Int spatial_dimension)
+      : dim(spatial_dimension), lower_bounds(spatial_dimension),
         upper_bounds(spatial_dimension) {
     lower_bounds.fill(std::numeric_limits<Real>::max());
     upper_bounds.fill(std::numeric_limits<Real>::lowest());

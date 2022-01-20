@@ -40,8 +40,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline UInt PhaseField::addElement(ElementType type, UInt element,
-				   GhostType ghost_type) {
-  Array<UInt> & el_filter = this->element_filter(type, ghost_type);
+                                   GhostType ghost_type) {
+  auto & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
@@ -92,14 +92,14 @@ PhaseField::unregisterInternal<bool>(InternalPhaseField<bool> & vect) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline bool PhaseField::isInternal(__attribute__((unused)) const ID & id,
-                                 __attribute__((unused))
-                                 ElementKind element_kind) const {
+                                   __attribute__((unused))
+                                   ElementKind element_kind) const {
   AKANTU_TO_IMPLEMENT();
 }
 
 template <>
 inline bool PhaseField::isInternal<Real>(const ID & id,
-                                       ElementKind element_kind) const {
+                                         ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
   return !(internal_array == internal_vectors_real.end() ||
@@ -107,10 +107,10 @@ inline bool PhaseField::isInternal<Real>(const ID & id,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::getNbData(__attribute__((unused))
-                                  const Array<Element> & elements,
-                                  __attribute__((unused))
-                                  const SynchronizationTag & tag) const {
+inline Int PhaseField::getNbData(__attribute__((unused))
+                                 const Array<Element> & elements,
+                                 __attribute__((unused))
+                                 const SynchronizationTag & tag) const {
   return 0;
 }
 

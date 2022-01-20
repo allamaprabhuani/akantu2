@@ -32,7 +32,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_math.hh"
 
-
 #ifndef AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 #define AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 
@@ -60,14 +59,14 @@ namespace _aka_gauss_helpers {
 
 #define DECLARE_GAUSS_NB_POINTS(type, order, points)                           \
   template <> struct GaussIntegrationNbPoints<type, order> {                   \
-    static constexpr Int nb_points = points;                                  \
+    static constexpr Int nb_points = points;                                   \
   }
 
 #define DECLARE_GAUSS_NB_POINTS_PENT(type, order, xo, yo)                      \
   template <> struct GaussIntegrationNbPoints<type, order> {                   \
-    static constexpr Int x_order = xo;                                        \
-    static constexpr Int yz_order = yo;                                       \
-    static constexpr Int nb_points = 1;                                       \
+    static constexpr Int x_order = xo;                                         \
+    static constexpr Int yz_order = yo;                                        \
+    static constexpr Int nb_points = 1;                                        \
   }
 
   DECLARE_GAUSS_NB_POINTS(_git_triangle, 1, 1);
@@ -116,8 +115,8 @@ namespace _aka_gauss_helpers {
     static constexpr Int getNbQuadraturePoints() { return git_np::nb_points; }
 
     static decltype(auto) getQuadraturePoints() {
-      return Eigen::Map<
-          const Eigen::Matrix<Real, dimension, git_np::nb_points>>(
+      constexpr auto nb_points = git_np::nb_points;
+      return Eigen::Map<const Eigen::Matrix<Real, dimension, nb_points>>(
           git_data::quad_positions);
     }
 
@@ -206,7 +205,8 @@ namespace _aka_gauss_helpers {
 
       Matrix<Real, dimension, tot_nquad> quads;
       Eigen::Map<Vector<Real, nquad_seg>> pos_seg(git_data_seg::quad_positions);
-      Eigen::Map<Matrix<Real, 2, nquad_tri>> pos_tri(git_data_tri::quad_positions);
+      Eigen::Map<Matrix<Real, 2, nquad_tri>> pos_tri(
+          git_data_tri::quad_positions);
 
       for (Int ns = 0, q = 0; ns < nquad_seg; ++ns) {
         for (Int nt = 0; nt < nquad_tri; ++nt, ++q) {
@@ -224,7 +224,7 @@ namespace _aka_gauss_helpers {
       constexpr auto nquad_seg = git_np_seg::nb_points;
       constexpr auto nquad_tri = git_np_tri::nb_points;
 
-       Vector<Real, tot_nquad> quads_weights;
+      Vector<Real, tot_nquad> quads_weights;
       Eigen::Map<const Vector<Real, nquad_seg>> weight_seg(
           git_data_seg::quad_weights);
       Eigen::Map<const Vector<Real, nquad_tri>> weight_tri(

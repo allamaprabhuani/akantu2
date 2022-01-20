@@ -82,15 +82,10 @@ public:
 
   void updateInternalParameters() override;
 
-  void
-  computePotentialEnergyByElement(ElementType type, Int index,
-                                  Vector<Real> & epot_on_quad_points) override;
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   AKANTU_GET_MACRO(E1, E1, Real);
   AKANTU_GET_MACRO(E2, E2, Real);
   AKANTU_GET_MACRO(E3, E3, Real);

@@ -44,8 +44,9 @@ PhaseFieldExponential::PhaseFieldExponential(PhaseFieldModel & model,
 void PhaseFieldExponential::updateInternalParameters() {
   PhaseField::updateInternalParameters();
 
-  Matrix<Real> d(spatial_dimension, spatial_dimension);
-  d.eye(this->g_c * this->l0);
+  Matrix<Real> d =
+      Matrix<Real>::Identity(spatial_dimension, spatial_dimension) * this->g_c *
+      this->l0;
   damage_energy.set(d);
 }
 

@@ -147,8 +147,7 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
                                   .begin(this->spatial_dimension);
       q2_coord = coords_type_2_it[q2.global_num];
 
-      auto & quad_volumes_1 =
-          quadrature_points_volumes(q1.type, q1.ghost_type);
+      auto & quad_volumes_1 = quadrature_points_volumes(q1.type, q1.ghost_type);
       const auto & jacobians_2 =
           this->non_local_manager.getJacobians(q2.type, q2.ghost_type);
       const auto & q2_wJ = jacobians_2(q2.global_num);
@@ -219,7 +218,7 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
 
     auto & weights = *(pair_weight[ghost_type]);
     auto weights_it = weights.begin(2);
-    for (Int i = 0; i < weights.size(); ++i, ++weights_it)
+    for (Int i = 0; i < weights.size(); ++i, ++weights_it) {
       pout << "w1: " << (*weights_it)(0) << " w2: " << (*weights_it)(1)
            << std::endl;
     }
@@ -242,16 +241,14 @@ void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
       ghost_type2,
       [ghost_type2, nb_degree_of_freedom, &to_accumulate,
        &accumulated](const auto & q1, const auto & q2, auto & weight) {
-        auto && to_acc_1 =
-            to_accumulate(q1.type, q1.ghost_type)
-                .begin(nb_degree_of_freedom)[q1.global_num];
-        auto && to_acc_2 =
-            to_accumulate(q2.type, q2.ghost_type)
-                .begin(nb_degree_of_freedom)[q2.global_num];
+        auto && to_acc_1 = to_accumulate(q1.type, q1.ghost_type)
+                               .begin(nb_degree_of_freedom)[q1.global_num];
+        auto && to_acc_2 = to_accumulate(q2.type, q2.ghost_type)
+                               .begin(nb_degree_of_freedom)[q2.global_num];
         auto && acc_1 = accumulated(q1.type, q1.ghost_type)
-                                 .begin(nb_degree_of_freedom)[q1.global_num];
+                            .begin(nb_degree_of_freedom)[q1.global_num];
         auto && acc_2 = accumulated(q2.type, q2.ghost_type)
-                                 .begin(nb_degree_of_freedom)[q2.global_num];
+                            .begin(nb_degree_of_freedom)[q2.global_num];
 
         acc_1 += weight(0) * to_acc_2;
 

@@ -197,7 +197,14 @@ constexpr decltype(auto) apply(F && f, Tuple && t) {
 
 template <class InputIt, class UnaryPredicate>
 decltype(auto) count_if(InputIt first, InputIt last, UnaryPredicate p) {
-  return std::count_if(first, last, p);
+  return std::count_if(std::forward<InputIt>(first),
+                       std::forward<InputIt>(last),
+                       std::forward<UnaryPredicate>(p));
+}
+
+template <class T, class Tuple>
+constexpr auto make_from_tuple(Tuple && t) -> T {
+  return std::make_from_tuple<T>(std::forward<Tuple>(t));
 }
 #endif
 
@@ -205,13 +212,11 @@ template <typename cat1, typename cat2>
 using is_iterator_category_at_least =
     std::is_same<std::common_type_t<cat1, cat2>, cat2>;
 
-template<typename T>
-struct size_type {
+template <typename T> struct size_type {
   using type = typename std::decay_t<T>::size_type;
 };
 
-template<typename T>
-using size_type_t = typename size_type<T>::type;
+template <typename T> using size_type_t = typename size_type<T>::type;
 
 } // namespace aka
 

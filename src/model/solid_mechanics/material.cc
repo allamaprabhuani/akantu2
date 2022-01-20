@@ -55,9 +55,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
       interpolation_inverse_coordinates("interpolation inverse coordinates",
                                         *this),
       interpolation_points_matrices("interpolation points matrices", *this),
-      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension(),
-                   0.) {
-  AKANTU_DEBUG_IN();
+      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension()) {
+  eigen_grad_u.fill(0.);
 
   this->registerParam("eigen_grad_u", eigen_grad_u, _pat_parsable,
                       "EigenGradU");
@@ -68,8 +67,6 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
                             _spatial_dimension = spatial_dimension,
                             _element_kind = _ek_regular);
   this->initialize();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -90,15 +87,13 @@ Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                                         this->element_filter),
       interpolation_points_matrices("interpolation points matrices", *this, dim,
                                     fe_engine, this->element_filter),
-      eigen_grad_u(dim, dim, 0.) {
-
-  AKANTU_DEBUG_IN();
+      eigen_grad_u(dim, dim) {
+  eigen_grad_u.fill(0.);
 
   element_filter.initialize(mesh, _spatial_dimension = spatial_dimension,
                             _element_kind = _ek_regular);
 
   this->initialize();
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -130,18 +125,12 @@ void Material::initMaterial() {
 
   if (finite_deformation) {
     this->piola_kirchhoff_2.initialize(spatial_dimension * spatial_dimension);
-    if (use_previous_stress) {
-      this->piola_kirchhoff_2.initializeHistory();
-    }
+    this->piola_kirchhoff_2.initializeHistory();
     this->green_strain.initialize(spatial_dimension * spatial_dimension);
   }
 
-  if (use_previous_stress) {
-    this->stress.initializeHistory();
-  }
-  if (use_previous_gradu) {
-    this->gradu.initializeHistory();
-  }
+  this->stress.initializeHistory();
+  this->gradu.initializeHistory();
 
   this->resizeInternals();
 
@@ -421,8 +410,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void Material::assembleStiffnessMatrix(ElementType type,
-                                       GhostType ghost_type) {
+void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const auto & elem_filter = element_filter(type, ghost_type);
@@ -873,19 +861,19 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
 
   auto & mesh = this->model.getMesh();
 
-  ElementTypeMapArray<UInt> material_local_new_numbering(
+  ElementTypeMapArray<Idx> material_local_new_numbering(
       "remove mat filter elem", id);
 
   material_local_new_numbering.initialize(
       mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
       _with_nb_element = true);
 
-  ElementTypeMapArray<UInt> element_filter_tmp("element_filter_tmp", id);
+  ElementTypeMapArray<Idx> element_filter_tmp("element_filter_tmp", id);
 
   element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
                                 _element_kind = _ek_not_defined);
 
-  ElementTypeMap<UInt> new_ids, element_ids;
+  ElementTypeMap<Idx> new_ids, element_ids;
 
   for_each_element(
       mesh,
@@ -975,7 +963,7 @@ void Material::onElementsRemoved(
     [[gnu::unused]] const RemovedElementsEvent & event) {
   auto my_num = model.getInternalIndexFromID(getID());
 
-  ElementTypeMapArray<UInt> material_local_new_numbering(
+  ElementTypeMapArray<Idx> material_local_new_numbering(
       "remove mat filter elem", getID());
 
   auto el_begin = element_list.begin();

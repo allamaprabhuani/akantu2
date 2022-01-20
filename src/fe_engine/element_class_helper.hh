@@ -62,7 +62,7 @@ public:
   Matrix<Real> dnds(natural_coords.size(), nb_nodes_per_element);              \
   Matrix<Real> jmat(dnds.rows(), positions.rows());                            \
   ElementClass<type>::computeDNDS(natural_coords, dnds);                       \
-  ElementClass<type>::computeJMat(dnds, positions, jmat);                      \
+  jmat = ElementClass<type>::computeJMat(dnds, positions);                     \
   return jmat
     AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_JMAT_NATURAL);
 #undef GET_JMAT_NATURAL

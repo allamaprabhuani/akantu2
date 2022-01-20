@@ -86,8 +86,9 @@ namespace dumpers {
           auto nb_component = vect.getNbComponent();
           auto size = (vect.size() * nb_component) / _nb_data_per_elem;
 
-          array_it = vect.begin_reinterpret(_nb_data_per_elem, size);
-          array_it_end = vect.end_reinterpret(_nb_data_per_elem, size);
+          auto view = make_view(vect, _nb_data_per_elem);
+          array_it = view.begin();
+          array_it_end = view.end();
         }
       }
       return *(static_cast<iterator *>(this));
@@ -109,7 +110,7 @@ namespace dumpers {
       return nb_data_per_elem(type, ghost_type);
     }
 
-    void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data) {
+    void setNbDataPerElem(const ElementTypeMap<Int> & nb_data) {
       this->nb_data_per_elem = nb_data;
     }
 
@@ -131,7 +132,7 @@ namespace dumpers {
     /// ghost type identification
     const GhostType ghost_type;
     /// number of data per element
-    ElementTypeMap<UInt> nb_data_per_elem;
+    ElementTypeMap<Int> nb_data_per_elem;
   };
 
   /* ------------------------------------------------------------------------ */

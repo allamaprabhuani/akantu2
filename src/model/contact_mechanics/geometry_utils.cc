@@ -47,8 +47,8 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
 
-  UInt * elem_val = mesh.getConnectivity(element.type, _not_ghost).storage();
-  mesh.extractNodalValuesFromElement(positions, coords.storage(),
+  auto * elem_val = mesh.getConnectivity(element.type, _not_ghost).data();
+  mesh.extractNodalValuesFromElement(positions, coords.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
@@ -61,13 +61,13 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
   }
   case 2: {
     vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    Math::normal2(vectors.storage(), normal.storage());
+    normal = Math::normal(vectors);
     break;
   }
   case 3: {
-    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
-    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
+    vectors(0) = coords(1) - coords(0);
+    vectors(1) = coords(2) - coords(0);
+    normal = Math::normal(vectors(0), vectors(1));
     break;
   }
   default: {
@@ -77,7 +77,6 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 
   // to ensure that normal is always outwards from master surface
   if (outward) {
-
     const auto & element_to_subelement =
         mesh.getElementToSubelement(element.type)(element.element);
 
@@ -105,7 +104,7 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 void GeometryUtils::normal(const Mesh & mesh, const Element & element,
                            Matrix<Real> & tangents, Vector<Real> & normal,
                            bool outward) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   // to ensure that normal is always outwards from master surface we
   // compute a direction vector form inside of element attached to the
@@ -153,10 +152,10 @@ void GeometryUtils::normal(const Mesh & mesh, const Element & element,
   }
   case 3: {
     auto tang_trans = tangents.transpose();
-    auto tang1 = Vector<Real>(tang_trans(0));
-    auto tang2 = Vector<Real>(tang_trans(1));
+    Vector<Real, 3> tang1 = tang_trans(0);
+    Vector<Real, 3> tang2 = tang_trans(1);
 
-    auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+    auto tang1_cross_tang2 = tang1.cross(tang2);
     normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
 
     auto ddot = inside_to_outside.dot(normal);
@@ -183,23 +182,23 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                    Matrix<Real> & tangents) {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  const ElementType type = element.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  const auto type = element.type;
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
   auto && dnds = ElementClassHelper<_ek_regular>::getDNDS(natural_coord, type);
-  tangents.mul<false, true>(dnds, nodes_coord);
+  tangents = dnds * nodes_coord.transpose();
 
   auto temp_tangents = tangents.transpose();
   for (UInt i = 0; i < spatial_dimension - 1; ++i) {
     auto temp = Vector<Real>(temp_tangents(i));
-    temp_tangents(i) = temp.normalize();
+    temp_tangents(i) = temp.normalized();
   }
 
   tangents = temp_tangents.transpose();
@@ -208,17 +207,17 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
   // of tangents should give the normal vector computed earlier
   switch (spatial_dimension) {
   case 2: {
-    Vector<Real> e_z(3);
+    Vector<Real, 3> e_z;
     e_z[0] = 0.;
     e_z[1] = 0.;
     e_z[2] = 1.;
 
-    Vector<Real> tangent(3);
+    Vector<Real, 3> tangent;
     tangent[0] = tangents(0, 0);
     tangent[1] = tangents(0, 1);
     tangent[2] = 0.;
 
-    auto exp_normal = e_z.crossProduct(tangent);
+    auto exp_normal = e_z.cross(tangent);
 
     auto ddot = normal.dot(exp_normal);
     if (ddot < 0) {
@@ -228,10 +227,10 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
   }
   case 3: {
     auto tang_trans = tangents.transpose();
-    auto tang1 = Vector<Real>(tang_trans(0));
-    auto tang2 = Vector<Real>(tang_trans(1));
+    Vector<Real, 3> tang1 = tang_trans(0);
+    Vector<Real, 3> tang2 = tang_trans(1);
 
-    auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+    auto tang1_cross_tang2 = tang1.cross(tang2);
     auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
 
     auto ddot = normal.dot(exp_normal);
@@ -254,25 +253,25 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                    Vector<Real> & natural_coord,
                                    Matrix<Real> & tangents) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
-  ElementType type = element.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  auto type = element.type;
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
   auto && dnds = ElementClassHelper<_ek_regular>::getDNDS(natural_coord, type);
-  tangents.mul<false, true>(dnds, nodes_coord);
+  tangents = dnds * nodes_coord.transpose();
 
   auto temp_tangents = tangents.transpose();
-  for (UInt i = 0; i < spatial_dimension - 1; ++i) {
+  for (Int i = 0; i < spatial_dimension - 1; ++i) {
     auto temp = Vector<Real>(temp_tangents(i));
-    temp_tangents(i) = temp.normalize();
+    temp_tangents(i) = temp.normalized();
   }
 
   tangents = temp_tangents.transpose();
@@ -283,22 +282,22 @@ void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
                               const Element & element,
                               const Vector<Real> & natural_coord,
                               Matrix<Real> & curvature) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  ElementType type = element.type;
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto type = element.type;
 
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
 
   auto && d2nds2 =
       ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, type);
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
-  mesh.extractNodalValuesFromElement(positions, coords.storage(),
+  mesh.extractNodalValuesFromElement(positions, coords.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
-  curvature.mul<false, true>(coords, d2nds2);
+  curvature = coords * d2nds2.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -308,16 +307,16 @@ UInt GeometryUtils::orthogonalProjection(
     Vector<Real> & natural_projection, Vector<Real> & normal, Real alpha,
     UInt max_iterations, Real projection_tolerance, Real extension_tolerance) {
 
-  UInt index = UInt(-1);
-  Real min_gap = std::numeric_limits<Real>::max();
+  Int index = -1;
+  auto min_gap = std::numeric_limits<Real>::max();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt surface_dimension = spatial_dimension - 1;
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto surface_dimension = spatial_dimension - 1;
 
-  UInt nb_same_sides{0};
-  UInt nb_boundary_elements{0};
+  Int nb_same_sides{0};
+  Int nb_boundary_elements{0};
 
-  UInt counter{0};
+  Int counter{0};
 
   const auto & contact_group = mesh.getElementGroup("contact_surface");
 
@@ -353,11 +352,11 @@ UInt GeometryUtils::orthogonalProjection(
     // it means that slave point lies on the master element, hence the
     // normal from master to slave cannot be computed in that case
 
-    auto master_to_slave = slave - master;
-    Real temp_gap = master_to_slave.norm();
+    auto master_to_slave = (slave - master).eval();
+    auto temp_gap = master_to_slave.norm();
 
     if (temp_gap != 0) {
-      master_to_slave /= temp_gap;
+      master_to_slave = master_to_slave / temp_gap;
     }
 
     // also the slave point should lie inside the master surface in
@@ -449,8 +448,8 @@ UInt GeometryUtils::orthogonalProjection(
     // it means that slave point lies on the master element, hence the
     // normal from master to slave cannot be computed in that case
 
-    auto master_to_slave = slave - master;
-    Real temp_gap = master_to_slave.norm();
+    auto master_to_slave = (slave - master).eval();
+    auto temp_gap = master_to_slave.norm();
 
     if (temp_gap != 0) {
       master_to_slave /= temp_gap;
@@ -486,21 +485,21 @@ void GeometryUtils::realProjection(const Mesh & mesh,
                                    const Vector<Real> & normal,
                                    Vector<Real> & projection) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
-  ElementType type = element.type;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  auto type = element.type;
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
   Vector<Real> point(nodes_coord(0));
-  Real alpha = (slave - point).dot(normal);
+  auto alpha = (slave - point).dot(normal);
 
   projection = slave - alpha * normal;
 }
@@ -521,13 +520,13 @@ void GeometryUtils::realProjection(const Mesh & mesh,
       ElementClassHelper<_ek_regular>::getN(natural_coord, element.type);
 
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
-  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
-  projection.mul<false>(nodes_coord, shapes);
+  projection = nodes_coord * shapes;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -537,15 +536,15 @@ void GeometryUtils::naturalProjection(
     Vector<Real> & natural_projection, UInt max_iterations,
     Real projection_tolerance) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt surface_dimension = spatial_dimension - 1;
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto surface_dimension = spatial_dimension - 1;
 
-  ElementType type = element.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  auto type = element.type;
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
@@ -558,9 +557,6 @@ void GeometryUtils::naturalProjection(
 
   // jacobian matrix computed on the natural_guess
   Matrix<Real> J(surface_dimension, surface_dimension);
-
-  // Jinv = J^{-1}
-  Matrix<Real> Jinv(surface_dimension, surface_dimension);
 
   // dxi = \xi_{k+1} - \xi_{k} in the iterative process
   Matrix<Real> dxi(surface_dimension, 1);
@@ -576,15 +572,14 @@ void GeometryUtils::naturalProjection(
                       nb_nodes_per_element);
 
   auto compute_double_gradient = [&d2nds2, &nodes_coord, surface_dimension,
-                                  spatial_dimension](UInt & alpha,
-                                                     UInt & beta) {
+                                  spatial_dimension](Int & alpha, Int & beta) {
     auto index = alpha * surface_dimension + beta;
     Vector<Real> d_alpha_beta(spatial_dimension);
 
     auto d2nds2_transpose = d2nds2.transpose();
     Vector<Real> d2nds2_alpha_beta(d2nds2_transpose(index));
 
-    d_alpha_beta.mul<false>(nodes_coord, d2nds2_alpha_beta);
+    d_alpha_beta = nodes_coord * d2nds2_alpha_beta;
 
     return d_alpha_beta;
   };
@@ -600,14 +595,14 @@ void GeometryUtils::naturalProjection(
     auto && shapes =
         ElementClassHelper<_ek_regular>::getN(natural_projection, type);
 
-    master_coords.mul<false>(nodes_coord, shapes);
+    master_coords = nodes_coord * shapes;
 
     auto distance = slave_coords - master_coords;
 
     // first derivative of shape function at natural projection
     auto && dnds =
         ElementClassHelper<_ek_regular>::getDNDS(natural_projection, type);
-    gradient.mul<false, true>(dnds, nodes_coord);
+    gradient = dnds * nodes_coord.transpose();
 
     // gradient transpose at natural projection
     Matrix<Real> gradient_transpose(surface_dimension, spatial_dimension);
@@ -621,7 +616,7 @@ void GeometryUtils::naturalProjection(
     }
 
     // compute initial error
-    auto error = f.norm<L_2>();
+    auto error = f.norm();
     return error;
   };
 
@@ -630,7 +625,7 @@ void GeometryUtils::naturalProjection(
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
-  UInt iterations{0};
+  Int iterations{0};
   while (projection_tolerance < projection_error and
          iterations < max_iterations) {
 
@@ -652,13 +647,11 @@ void GeometryUtils::naturalProjection(
       }
     }
 
-    Jinv.inverse(J);
-
     // compute increment
-    dxi.mul<false, false>(Jinv, f, -1.0);
+    dxi = -1 * J.inverse() * f;
 
     // update our guess
-    natural_projection += Vector<Real>(dxi(0));
+    natural_projection += dxi(0);
 
     projection_error = update_f();
     iterations++;
@@ -670,14 +663,14 @@ void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant,
                                        Matrix<Real> & contravariant) {
 
   auto inv_A = GeometryUtils::contravariantMetricTensor(covariant);
-  contravariant.mul<false, false>(inv_A, covariant);
+  contravariant = inv_A * covariant;
 }
 
 /* -------------------------------------------------------------------------- */
 Matrix<Real>
 GeometryUtils::covariantMetricTensor(const Matrix<Real> & covariant_bases) {
   Matrix<Real> A(covariant_bases.rows(), covariant_bases.rows());
-  A.mul<false, true>(covariant_bases, covariant_bases);
+  A = covariant_bases * covariant_bases.transpose();
   return A;
 }
 
@@ -694,25 +687,25 @@ Matrix<Real> GeometryUtils::covariantCurvatureTensor(
     const Mesh & mesh, const Array<Real> & positions, const Element & element,
     const Vector<Real> & natural_coord, const Vector<Real> & normal) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
   auto surface_dimension = spatial_dimension - 1;
 
-  ElementType type = element.type;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  auto type = element.type;
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto * elem_val = mesh.getConnectivity(type, _not_ghost).data();
 
   auto && d2nds2 =
       ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, type);
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
-  mesh.extractNodalValuesFromElement(positions, coords.storage(),
+  mesh.extractNodalValuesFromElement(positions, coords.data(),
                                      elem_val +
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
   Matrix<Real> curvature(spatial_dimension,
                          surface_dimension * surface_dimension);
-  curvature.mul<false, true>(coords, d2nds2);
+  curvature = coords * d2nds2.transpose();
 
   Matrix<Real> H(surface_dimension, surface_dimension);
 

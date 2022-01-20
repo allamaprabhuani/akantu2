@@ -46,7 +46,7 @@ public:
   A(const A & other)
       : a(other.a), copy_counter(other.copy_counter + 1),
         move_counter(other.move_counter) {}
-  A & operator=(const A & other) {
+  auto operator=(const A & other) -> A & {
     if (this != &other) {
       a = other.a;
       copy_counter = other.copy_counter + 1;
@@ -55,10 +55,11 @@ public:
   }
 
   A(A && other)
+  noexcept
       : a(std::move(other.a)), copy_counter(std::move(other.copy_counter)),
         move_counter(std::move(other.move_counter) + 1) {}
 
-  A & operator=(A && other) {
+  auto operator=(A && other) noexcept -> A & {
     if (this != &other) {
       a = std::move(other.a);
       copy_counter = std::move(other.copy_counter);
@@ -67,7 +68,7 @@ public:
     return *this;
   }
 
-  A & operator*=(const T & b) {
+  auto operator*=(const T & b) -> A & {
     a *= b;
     return *this;
   }
@@ -78,6 +79,7 @@ public:
 };
 
 template <typename T> struct C {
+  using size_type = std::size_t;
   struct iterator {
     using reference = A<T>;
     using difference_type = void;
@@ -87,10 +89,14 @@ template <typename T> struct C {
 
     iterator(T pos) : pos(std::move(pos)) {}
 
-    A<T> operator*() { return A<int>(pos); }
-    bool operator!=(const iterator & other) const { return pos != other.pos; }
-    bool operator==(const iterator & other) const { return pos == other.pos; }
-    iterator & operator++() {
+    auto operator*() -> A<T> { return A<int>(pos); }
+    auto operator!=(const iterator & other) const -> bool {
+      return pos != other.pos;
+    }
+    auto operator==(const iterator & other) const -> bool {
+      return pos == other.pos;
+    }
+    auto operator++() -> iterator & {
       ++pos;
       return *this;
     }
@@ -99,8 +105,8 @@ template <typename T> struct C {
 
   C(T begin_, T end_) : begin_(std::move(begin_)), end_(std::move(end_)) {}
 
-  iterator begin() { return iterator(begin_); }
-  iterator end() { return iterator(end_); }
+  auto begin() -> iterator { return iterator(begin_); }
+  auto end() -> iterator { return iterator(end_); }
 
   T begin_, end_;
 };
@@ -128,8 +134,8 @@ protected:
     EXPECT_EQ(nb_move, b.move_counter);
   }
 
-protected:
-  size_t size{20};
+public:
+  std::size_t size{20};
   std::vector<A<int>> a{};
   std::vector<A<float>> b{};
 };
@@ -220,7 +226,7 @@ TEST_F(TestZipFixutre, RandomAccess) {
 
 TEST_F(TestZipFixutre, Cat) {
   size_t i = 0;
-  for (auto && data : make_zip_cat(zip(a, b), zip(a, b))) {
+  for (auto && data : zip_cat(zip(a, b), zip(a, b))) {
     this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
     this->check(std::get<2>(data), std::get<3>(data), i, 0, 0);
     ++i;
@@ -231,18 +237,18 @@ TEST_F(TestZipFixutre, Cat) {
 TEST_F(TestZipFixutre, SimpleNamedTest) {
   size_t i = 0;
   for (auto && pair :
-       named_zip(tuple::get<"a"_h>() = this->a, tuple::get<"b"_h> = this->b)) {
+       zip(tuple::get<"a"_h>() = this->a, tuple::get<"b"_h>() = this->b)) {
     this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
     ++i;
   }
 }
 
-TEST_F(TestZipFixutre, ConstTest) {
+TEST_F(TestZipFixutre, NamedConstTest) {
   size_t i = 0;
   const auto & ca = this->a;
   const auto & cb = this->b;
-  for (auto && pair : named_zip(tuple::get<"a"_h>() = ca, tuple::get<"b"_h> = cb) {
-    this->check(tuple::get<"a"_h>(pair), tuple::get<"b">(pair), i, 0, 0);
+  for (auto && pair : zip(tuple::get<"a"_h>() = ca, tuple::get<"b"_h>() = cb)) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
     EXPECT_EQ(
         true,
         std::is_const<
@@ -255,7 +261,7 @@ TEST_F(TestZipFixutre, ConstTest) {
   }
 }
 
-TEST_F(TestZipFixutre, MixteTest) {
+TEST_F(TestZipFixutre, NamedMixteTest) {
   size_t i = 0;
   const auto & cb = this->b;
   for (auto && pair : zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = cb)) {
@@ -275,7 +281,7 @@ TEST_F(TestZipFixutre, MixteTest) {
 TEST_F(TestZipFixutre, MoveNamedTest) {
   size_t i = 0;
   for (auto && pair :
-       named_zip(tuple::get<"a"_h>() = C<int>(0, this->size),
+       zip(tuple::get<"a"_h>() = C<int>(0, this->size),
        tuple::get<"b"_h>() = C<int>(this->size, 2 * this->size))) {
     this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 1);
     ++i;
@@ -283,7 +289,7 @@ TEST_F(TestZipFixutre, MoveNamedTest) {
 }
 
 TEST_F(TestZipFixutre, BidirectionalNamed) {
-  auto _zip = named_zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
+  auto _zip = zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
   auto begin = _zip.begin();
 
   auto it = begin;
@@ -323,14 +329,14 @@ TEST(TestNamedZipFixutre, Simple) {
   std::vector<int> b{0, 1, 2, 3, 4};
 
   using namespace tuple;
-  for (auto && data : named_zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
+  for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
     auto & a = tuple::get<"a"_h>(data);
     auto & b = tuple::get<"b"_h>(data);
     b *= 10;
     EXPECT_EQ(b, a);
   }
 
-  for (auto && data : named_zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
+  for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
     auto & a = tuple::get<"a"_h>(data);
     auto & b = tuple::get<"b"_h>(data);
     EXPECT_EQ(b, a);

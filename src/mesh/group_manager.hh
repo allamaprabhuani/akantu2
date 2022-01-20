@@ -94,14 +94,14 @@ public:
       "(element|node)GroupExists")]] inline BOOST_PP_CAT(BOOST_PP_CAT(const_,      \
                                                                       group_type), \
                                                          _iterator)                \
-      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {        \
+  BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {            \
     return BOOST_PP_CAT(group_type, s).function(param_out);                        \
   };                                                                               \
                                                                                    \
   [[deprecated("use iterate(Element|Node)Groups or "                               \
                "(element|node)GroupExists")]] inline BOOST_PP_CAT(group_type,      \
                                                                   _iterator)       \
-      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {              \
+  BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {                  \
     return BOOST_PP_CAT(group_type, s).function(param_out);                        \
   }
 
@@ -241,8 +241,8 @@ public:
 
   /// register an elemental field to the given group name (overloading for
   /// ElementalField)
-  template <typename T, template <class> class ret_type,
-            template <class, template <class> class, bool> class dump_type>
+  template <typename T, class ret_type,
+            template <class, class, bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
       Int spatial_dimension, ElementKind kind,
@@ -256,8 +256,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const ElementTypeMapArray<T> & field,
                        const std::string & group_name, Int spatial_dimension,
-                       ElementKind kind,
-                       ElementTypeMap<Int> nb_data_per_elem);
+                       ElementKind kind, ElementTypeMap<Int> nb_data_per_elem);
 
   template <typename type, bool flag, template <class, bool> class ftype>
   std::shared_ptr<dumpers::Field>
@@ -299,20 +298,21 @@ protected:
 public:
   // AKANTU_GET_MACRO(ElementGroups, element_groups, const ElementGroups &);
 
-  const ElementGroup & getElementGroup(const std::string & name) const;
-  const NodeGroup & getNodeGroup(const std::string & name) const;
+  [[nodiscard]] const ElementGroup &
+  getElementGroup(const std::string & name) const;
+  [[nodiscard]] const NodeGroup & getNodeGroup(const std::string & name) const;
 
   ElementGroup & getElementGroup(const std::string & name);
   NodeGroup & getNodeGroup(const std::string & name);
 
-  Int getNbElementGroups(Int dimension = _all_dimensions) const;
+  [[nodiscard]] Int getNbElementGroups(Int dimension = _all_dimensions) const;
   Int getNbNodeGroups() { return node_groups.size(); };
 
-  bool elementGroupExists(const std::string & name) {
+  [[nodiscard]] bool elementGroupExists(const std::string & name) const {
     return element_groups.find(name) != element_groups.end();
   }
 
-  bool nodeGroupExists(const std::string & name) {
+  [[nodiscard]] bool nodeGroupExists(const std::string & name) const {
     return node_groups.find(name) != node_groups.end();
   }
 

@@ -52,9 +52,9 @@ namespace dumpers {
   public:
     virtual ~ComputeFunctorInterface() = default;
 
-  virtual Int getDim() = 0;
-  virtual Int getNbComponent(Int old_nb_comp) = 0;
-};
+    virtual Int getDim() = 0;
+    virtual Int getNbComponent(Int old_nb_comp) = 0;
+  };
 
   /* ------------------------------------------------------------------------ */
 
@@ -83,13 +83,13 @@ namespace dumpers {
 
   /* ------------------------------------------------------------------------ */
   template <class EnumType>
-  class ComputeUIntFromEnum
-      : public ComputeFunctor<Vector<EnumType>, Vector<UInt>> {
+  class ComputeIntFromEnum
+      : public ComputeFunctor<Vector<EnumType>, Vector<Int>> {
   public:
-    ComputeUIntFromEnum() = default;
+    ComputeIntFromEnum() = default;
 
-    inline Vector<UInt> func(const Vector<EnumType> & in) override {
-      Vector<UInt> out(in.size());
+    inline Vector<Int> func(const Vector<EnumType> & in) override {
+      Vector<Int> out(in.size());
       for (auto && data : zip(in, out)) {
         std::get<1>(data) =
             static_cast<std::underlying_type_t<EnumType>>(std::get<0>(data));
@@ -99,7 +99,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 1; };
-    Int getNbComponent(UInt old_nb_comp) override { return old_nb_comp; };
+    Int getNbComponent(Int old_nb_comp) override { return old_nb_comp; };
   };
 
   /* ------------------------------------------------------------------------ */
@@ -288,16 +288,16 @@ namespace dumpers {
     }
 
     /// get the number of components of the hosted field
-    ElementTypeMap<UInt>
-    getNbComponents(UInt dim = _all_dimensions,
+    ElementTypeMap<Int>
+    getNbComponents(Int dim = _all_dimensions,
                     GhostType ghost_type = _not_ghost,
                     ElementKind kind = _ek_not_defined) override {
-      ElementTypeMap<UInt> nb_components;
+      ElementTypeMap<Int> nb_components;
       const auto & old_nb_components =
           this->sub_field->getNbComponents(dim, ghost_type, kind);
 
       for (auto type : old_nb_components.elementTypes(dim, ghost_type, kind)) {
-        UInt nb_comp = old_nb_components(type, ghost_type);
+        auto nb_comp = old_nb_components(type, ghost_type);
         nb_components(type, ghost_type) = func->getNbComponent(nb_comp);
       }
       return nb_components;

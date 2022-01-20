@@ -91,8 +91,8 @@ void ContactDetector::search(Array<ContactElement> & elements,
 
   contact_pairs.clear();
 
-  SpatialGrid<UInt> master_grid(spatial_dimension);
-  SpatialGrid<UInt> slave_grid(spatial_dimension);
+  SpatialGrid<Idx> master_grid(spatial_dimension);
+  SpatialGrid<Idx> slave_grid(spatial_dimension);
 
   this->globalSearch(slave_grid, master_grid);
 
@@ -102,8 +102,8 @@ void ContactDetector::search(Array<ContactElement> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
-                                   SpatialGrid<UInt> & master_grid) {
+void ContactDetector::globalSearch(SpatialGrid<Idx> & slave_grid,
+                                   SpatialGrid<Idx> & master_grid) {
   auto & master_list = surface_selector->getMasterList();
   auto & slave_list = surface_selector->getSlaveList();
 
@@ -149,8 +149,8 @@ void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
-                                  SpatialGrid<UInt> & master_grid) {
+void ContactDetector::localSearch(SpatialGrid<Idx> & slave_grid,
+                                  SpatialGrid<Idx> & master_grid) {
   // local search
   // out of these array check each cell for closet node in that cell
   // and neighbouring cells find the actual orthogonally closet
@@ -195,8 +195,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
               continue;
             }
 
-            Vector<UInt> connectivity =
-                const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
+            const auto & connectivity = this->mesh.getConnectivity(elem);
 
             auto node_iter = std::find(connectivity.begin(), connectivity.end(),
                                        master_node);
@@ -207,7 +206,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
           }
 
           Vector<Real> pos2(spatial_dimension);
-          for (UInt s : arange(spatial_dimension)) {
+          for (auto s : arange(spatial_dimension)) {
             pos2(s) = this->positions(master_node, s);
           }
 

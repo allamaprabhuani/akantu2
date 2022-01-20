@@ -34,85 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_mazars_non_local.hh"
-#include "solid_mechanics_model.hh"
 
 namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-MaterialMazarsNonLocal<dim>::MaterialMazarsNonLocal(SolidMechanicsModel & model,
-                                                    const ID & id)
-    : parent(model, id), Ehat("epsilon_equ", *this),
-      non_local_variable("mazars_non_local", *this) {
-  AKANTU_DEBUG_IN();
-
-  this->is_non_local = true;
-  this->Ehat.initialize(1);
-  this->non_local_variable.initialize(1);
-
-  this->registerParam("average_on_damage", this->damage_in_compute_stress,
-                      false, _pat_parsable | _pat_modifiable,
-                      "Is D the non local variable");
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialMazarsNonLocal<dim>::registerNonLocalVariables() {
-  ID local;
-  if (this->damage_in_compute_stress) {
-    local = this->damage.getName();
-  } else {
-    local = this->Ehat.getName();
-  }
-
-  this->model.getNonLocalManager().registerNonLocalVariable(
-      local, non_local_variable.getName(), 1);
-  this->model.getNonLocalManager()
-      .getNeighborhood(this->name)
-      .registerNonLocalVariable(non_local_variable.getName());
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialMazarsNonLocal<dim>::computeStress(ElementType el_type,
-                                                GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  auto && arguments = getArguments(el_type, ghost_type);
-
-  for (auto && data : arguments) {
-    MaterialMazars<dim>::computeStressOnQuad(data);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialMazarsNonLocal<dim>::computeNonLocalStress(ElementType el_type,
-                                                        GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-  auto & non_loc_var = non_local_variable(el_type, ghost_type);
-
-  if (this->damage_in_compute_stress) {
-    auto && arguments = zip_replace<"damage"_h>(
-        getArguments(el_type, ghost_type), make_view(non_loc_var));
-
-    for (auto && data : arguments) {
-      MaterialMazars<dim>::computeDamageAndStressOnQuad(data);
-    }
-  } else {
-    auto && arguments = zip_replace<"Ehat"_h>(getArguments(el_type, ghost_type),
-                                              make_view(non_loc_var));
-
-    for (auto && data : arguments) {
-      MaterialMazars<dim>::computeDamageAndStressOnQuad(data);
-    }
-  }
-  AKANTU_DEBUG_OUT();
-}
 
 INSTANTIATE_MATERIAL(mazars_non_local, MaterialMazarsNonLocal);
 

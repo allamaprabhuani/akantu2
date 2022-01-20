@@ -175,13 +175,16 @@ public:
   // static std::string getVTUName(const std::string & basename, UInt proc);
 
   //! push a small array of values
-  template <template<typename T> class Cont, typename T>
-  void pushData(const Cont<T> & n);
+  template <class Cont>
+  void pushData(const Cont & n);
 
   //! push a small array of values of homogeneous values with padding to size
   //! dim
-  template <template<typename T> class Cont, typename T>
-  inline void pushData(const Cont<T> & n, UInt dim);
+  template <class Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
+  inline void pushData(const Cont & n, UInt dim);
+
+  template <class Cont, std::enable_if_t<is_matrix<Cont>::value> * = nullptr>
+  inline void pushData(const Cont & n, UInt dim);
 
   //! pushing datum
   template <typename T> void pushDatum(const T & n, UInt size = 3);

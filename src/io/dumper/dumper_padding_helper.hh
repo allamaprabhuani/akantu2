@@ -124,17 +124,17 @@ namespace dumpers {
   public:
     inline Matrix<T> pad(const Vector<T> & _in, UInt nrows, UInt ncols,
                          UInt nb_data) {
-      Matrix<T> in(_in.storage(), nrows, ncols);
+      MatrixProxy<const T> in(_in.data(), nrows, ncols);
 
       if (padding_m <= nrows && padding_n * nb_data <= ncols) {
         return in;
       }
 
       Matrix<T> ret(padding_m, padding_n * nb_data);
-      UInt nb_cols_per_data = in.cols() / nb_data;
-      for (UInt d = 0; d < nb_data; ++d) {
-        for (UInt i = 0; i < in.rows(); ++i) {
-          for (UInt j = 0; j < nb_cols_per_data; ++j) {
+      auto nb_cols_per_data = in.cols() / nb_data;
+      for (Int d = 0; d < nb_data; ++d) {
+        for (Int i = 0; i < in.rows(); ++i) {
+          for (Int j = 0; j < nb_cols_per_data; ++j) {
             ret(i, j + d * padding_n) = in(i, j + d * nb_cols_per_data);
           }
         }

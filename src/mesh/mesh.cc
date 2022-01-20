@@ -68,10 +68,10 @@ namespace akantu {
 Mesh::Mesh(Int spatial_dimension, const ID & id, Communicator & communicator)
     : GroupManager(*this, id + ":group_manager"), MeshData("mesh_data", id),
       id(id), connectivities("connectivities", id),
-      ghosts_counters("ghosts_counters", id), normals("normals", id),
-      spatial_dimension(spatial_dimension), size(spatial_dimension, 0.),
-      bbox(spatial_dimension), bbox_local(spatial_dimension),
-      communicator(&communicator) {
+      ghosts_counters("ghosts_counters", id),
+      spatial_dimension(spatial_dimension),
+      size(Vector<double>::Zero(spatial_dimension)), bbox(spatial_dimension),
+      bbox_local(spatial_dimension), communicator(&communicator) {
   AKANTU_DEBUG_IN();
   size.fill(0.);
   AKANTU_DEBUG_OUT();
@@ -132,7 +132,7 @@ public:
   }
 
   Int getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override {
+                const SynchronizationTag & tag) const override {
     Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
       Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
@@ -173,20 +173,21 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-const Array<Real> & Mesh::getNormals(ElementType element_type,
-                                     GhostType ghost_type) {
-  if (this->hasData<Real>("normals", element_type, ghost_type)) {
-    return this->getData<Real>("normals", element_type, ghost_type);
-  }
+// const Array<Real> & Mesh::getNormals(ElementType element_type,
+//                                      GhostType ghost_type) {
+//   if (this->hasData<Real>("normals", element_type, ghost_type)) {
+//     return this->getData<Real>("normals", element_type, ghost_type);
+//   }
 
-  auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
-                                        spatial_dimension, true);
-  for (auto && data [[gnu::unused]] :
-       enumerate(make_view(normals, spatial_dimension))) {
-    AKANTU_TO_IMPLEMENT();
-  }
-  AKANTU_TO_IMPLEMENT();
-}
+//   auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
+//                                         spatial_dimension, true);
+//   for (auto && data [[gnu::unused]] :
+//        enumerate(make_view(normals, spatial_dimension))) {
+//     AKANTU_TO_IMPLEMENT();
+//   }
+
+//   AKANTU_TO_IMPLEMENT();
+// }
 
 /* -------------------------------------------------------------------------- */
 Mesh & Mesh::initMeshFacets(const ID & id) {
@@ -285,8 +286,8 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         }
 
         // set physical name
-        auto && facet_element = Element{element.type, UInt(std::get<0>(*facet)),
-                                        element.ghost_type};
+        auto && facet_element =
+            Element{element.type, std::get<0>(*facet), element.ghost_type};
         phys_data(facet_element) = mesh_phys_data(element);
       },
       _spatial_dimension = spatial_dimension - 1);
@@ -581,9 +582,8 @@ void Mesh::fillNodesToElements(UInt dimension) {
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<Idx, Idx>
-Mesh::updateGlobalData(NewNodesEvent & nodes_event,
-                       NewElementsEvent & elements_event) {
+std::tuple<Idx, Idx> Mesh::updateGlobalData(NewNodesEvent & nodes_event,
+                                            NewElementsEvent & elements_event) {
   if (global_data_updater) {
     return this->global_data_updater->updateData(nodes_event, elements_event);
   }

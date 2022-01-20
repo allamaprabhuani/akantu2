@@ -105,7 +105,7 @@ void MaterialElasticLinearAnisotropic<dim>::updateInternalParameters() {
     }
   }
   this->rotateCprime();
-  this->C.eig(this->eigC);
+  this->C.eigh(this->eigC);
 
   this->was_stiffness_assembled = false;
 }
@@ -194,54 +194,71 @@ template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   auto && arguments = getArguments(el_type, ghost_type);
-  for (auto && data : arguments)
+  for (auto && data : arguments) {
     this->computeStressOnQuad(data);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
+  auto && arguments =
+      Material::getArgumentsTangent<dim>(tangent_matrix, el_type, ghost_type);
 
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-
-  this->computeTangentModuliOnQuad(tangent);
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+  for (auto && args : arguments) {
+    this->computeTangentModuliOnQuad(args);
+  }
 
   this->was_stiffness_assembled = true;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
     ElementType el_type) {
-  AKANTU_DEBUG_IN();
-
   AKANTU_DEBUG_ASSERT(!this->finite_deformation,
                       "finite deformation not possible in material anisotropic "
                       "(TO BE IMPLEMENTED)");
 
-  Array<Real>::scalar_iterator epot =
-      this->potential_energy(el_type, _not_ghost).begin();
+  auto && arguments = Material::getArguments<dim>(el_type, _not_ghost);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
+  for (auto && args :
+       zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+    this->computePotentialEnergyOnQuad(std::get<0>(args), std::get<1>(args));
+  }
+}
 
-  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  ++epot;
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyByElement(
+    ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  auto gradu_view = make_view<dim, dim>(this->gradu(type));
+  auto stress_view = make_view<dim, dim>(this->stress(type));
 
-  AKANTU_DEBUG_OUT();
+  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+
+  auto gradu_it = gradu_view.begin() + index * nb_quadrature_points;
+  auto gradu_end = gradu_it + nb_quadrature_points;
+  auto stress_it = stress_view.begin() + index * nb_quadrature_points;
+  auto stress_end = stress_it + nb_quadrature_points;
+
+  auto epot_quad = epot_on_quad_points.begin();
+
+  Matrix<Real> grad_u(dim, dim);
+
+  for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
+                   tuple::get<"sigma"_h>() = range(stress_it, stress_end),
+                   tuple::get<"Epot"_h>() = epot_on_quad_points)) {
+    this->computePotentialEnergyOnQuad(data, tuple::get<"Epot"_h>(data));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialElasticLinearAnisotropic<dim>::getCelerity(
-    __attribute__((unused)) const Element & element) const {
+    const Element & /*element*/) const {
   return std::sqrt(this->eigC(0) / rho);
 }
 

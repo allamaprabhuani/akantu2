@@ -12,15 +12,15 @@
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * IOHelper is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * IOHelper is free  software: you can redistribute it and/or  modify it under
+ * the terms  of the  GNU Lesser  General Public  License as  published by  the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
  *
- * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- * details.
+ * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for
+ * more details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with IOHelper. If not, see <http://www.gnu.org/licenses/>.
@@ -51,8 +51,7 @@ class DumperText : public Dumper, public Visitor {
   /* ------------------------------------------------------------------------ */
 
 public:
-  DumperText(TextDumpMode md = _tdm_space, 
-	     const std::string & prefix = "./",
+  DumperText(TextDumpMode md = _tdm_space, const std::string & prefix = "./",
              bool file_per_time_step = false);
   ~DumperText() override;
 
@@ -61,13 +60,12 @@ public:
   /* ------------------------------------------------------------------------ */
 
   void dump(const std::string & name, UInt count) override;
-  void setEmbeddedValue(const std::string & /*name*/,
-                        int /*value*/) {};
+  void setEmbeddedValue(const std::string & /*name*/, int /*value*/){};
 
   void dumpDescription(char descr_sep = ' ') override;
   virtual void dumpFieldDescription(char descr_sep = ' ');
   virtual void dumpTimeDescription(char descr_sep = ' ');
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -160,15 +158,15 @@ template <typename T> void DumperText::visitField(T & visited) {
 
   typename T::iterator it = visited.begin();
   typename T::iterator end = visited.end();
-  
+
   UInt dim = visited.getDim();
-  
+
   for (; it != end; ++it) {
-    for (UInt i=0; i<dim; ++i) {
+    for (UInt i = 0; i < dim; ++i) {
       if (i != 0) {
         file << this->separator;
       }
-      file << (*it)[i];
+      file << (*it)(i);
     }
     file << std::endl;
   }
@@ -206,7 +204,7 @@ template <typename T> void DumperText::visitVariable(T & visited) {
   UInt dim = visited.getDim();
 
   //  File file = it->second;
-  for (UInt i=0; i<dim; ++i) {
+  for (UInt i = 0; i < dim; ++i) {
     if (i != 0) {
       (*file) << this->separator;
     }
@@ -216,6 +214,6 @@ template <typename T> void DumperText::visitVariable(T & visited) {
 }
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace iohelper
 
 #endif /* IOHELPER_DUMPER_TEXT_H_ */

@@ -424,11 +424,10 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
   for (Int p = 0; p < nb_points; ++p) {
     interpolation_element::gradientOnNaturalCoordinates(coord.col(p), f, J);
     if (dimension == 2) {
-      Math::normal2(J.data(), normals.col(p).data());
+      normals.col(p) = Math::normal(J);
     }
     if (dimension == 3) {
-
-      Math::normal3(J.col(0).data(), J.col(1).data(), normals.col(p).data());
+      normals.col(p) = Math::normal(J.col(0), J.col(1));
     }
   }
 }
@@ -516,9 +515,9 @@ inline void ElementClass<type, kind>::inverseMap(
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
                    &real_coords, spatial_dimension]() {
-    Vector<Real> physical_guess_v(physical_guess.data(), spatial_dimension);
-    interpolation_element::interpolateOnNaturalCoordinates(
-        natural_coords, node_coords, physical_guess_v);
+    auto && physical_guess_v =
+        interpolation_element::interpolateOnNaturalCoordinates(natural_coords,
+                                                               node_coords);
 
     // compute initial objective function value f = real_coords -
     // physical_guess

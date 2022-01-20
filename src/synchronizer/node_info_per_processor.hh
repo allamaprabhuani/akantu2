@@ -66,7 +66,8 @@ protected:
   void fillNodesType();
 
   void fillCommunicationScheme(const Array<Idx> &);
-  void fillNodalData(DynamicCommunicationBuffer & buffer, std::string tag_name);
+  void fillNodalData(DynamicCommunicationBuffer & buffer,
+                     const std::string & tag_name);
 
   void fillPeriodicPairs(const Array<Idx> &, std::vector<Idx> &);
   void receiveMissingPeriodic(DynamicCommunicationBuffer &);

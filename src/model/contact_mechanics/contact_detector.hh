@@ -76,12 +76,12 @@ public:
               Array<Real> & projections);
 
   /// performs global spatial search to construct spatial grids
-  void globalSearch(SpatialGrid<UInt> & /*slave_grid*/,
-                    SpatialGrid<UInt> & /*master_grid*/);
+  void globalSearch(SpatialGrid<Idx> & /*slave_grid*/,
+                    SpatialGrid<Idx> & /*master_grid*/);
 
   ///  performs local search to find closet master node to a slave node
-  void localSearch(SpatialGrid<UInt> & /*slave_grid*/,
-                   SpatialGrid<UInt> & /*master_grid*/);
+  void localSearch(SpatialGrid<Idx> & /*slave_grid*/,
+                   SpatialGrid<Idx> & /*master_grid*/);
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,
@@ -107,19 +107,19 @@ public:
   inline void computeCellSpacing(Vector<Real> & spacing) const;
 
   /// constructs a grid containing nodes lying within bounding box
-  inline void constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
-                            const Array<UInt> & nodes_list) const;
+  inline void constructGrid(SpatialGrid<Idx> & grid, BBox & bbox,
+                            const Array<Idx> & nodes_list) const;
 
   /// constructs the bounding box based on nodes list
   inline void constructBoundingBox(BBox & bbox,
-                                   const Array<UInt> & nodes_list) const;
+                                   const Array<Idx> & nodes_list) const;
 
   /// computes the maximum in radius for a given mesh
   inline void computeMaximalDetectionDistance();
 
   /// constructs the connectivity for a contact element
-  inline Vector<UInt> constructConnectivity(UInt & slave,
-                                            const Element & master) const;
+  inline Vector<Idx> constructConnectivity(Idx & slave,
+                                           const Element & master) const;
 
   /// computes normal on an element
   inline void computeNormalOnElement(const Element & element,
@@ -140,7 +140,7 @@ public:
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  inline bool isValidSelfContact(const UInt & slave_node, const Real & gap,
+  inline bool isValidSelfContact(const Idx & slave_node, const Real & gap,
                                  const Vector<Real> & normal) const;
 
   /* ------------------------------------------------------------------------ */
@@ -187,7 +187,7 @@ private:
   Real projection_tolerance;
 
   /// iterations for finding natural projection
-  UInt max_iterations;
+  Int max_iterations;
 
   /// tolerance for extending a master elements on all sides
   Real extension_tolerance;
@@ -196,13 +196,13 @@ private:
   Mesh & mesh;
 
   /// dimension of the model
-  UInt spatial_dimension{0};
+  Int spatial_dimension{0};
 
   /// node selector for selecting master and slave nodes
   std::shared_ptr<SurfaceSelector> surface_selector;
 
   /// contact pair slave node to closet master node
-  std::vector<std::pair<UInt, UInt>> contact_pairs;
+  std::vector<std::pair<Idx, Idx>> contact_pairs;
 
   /// contains the updated positions of the nodes
   Array<Real> positions;

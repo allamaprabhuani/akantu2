@@ -94,13 +94,13 @@ namespace dumpers {
   /* ------------------------------------------------------------------------ */
 
   class FilteredConnectivityField
-      : public GenericElementalField<SingleType<UInt, Vector, true>,
+      : public GenericElementalField<SingleType<Idx, Vector<Idx>, true>,
                                      filtered_connectivity_field_iterator> {
     /* ---------------------------------------------------------------------- */
     /* Typedefs                                                               */
     /* ---------------------------------------------------------------------- */
   public:
-    using types = SingleType<UInt, Vector, true>;
+    using types = SingleType<Idx, Vector<Idx>, true>;
     using iterator = filtered_connectivity_field_iterator<types>;
     using field_type = types::field_type;
     using parent =
@@ -112,7 +112,7 @@ namespace dumpers {
   public:
     FilteredConnectivityField(const field_type & field,
                               const Array<Idx> & nodal_filter,
-                              UInt spatial_dimension = _all_dimensions,
+                              Int spatial_dimension = _all_dimensions,
                               GhostType ghost_type = _not_ghost,
                               ElementKind element_kind = _ek_not_defined)
         : parent(field, spatial_dimension, ghost_type, element_kind),
@@ -128,13 +128,13 @@ namespace dumpers {
     /* ---------------------------------------------------------------------- */
   public:
     iterator begin() override {
-      iterator it = parent::begin();
+      auto it = parent::begin();
       it.setNodalFilter(nodal_filter);
       return it;
     }
 
     iterator end() override {
-      iterator it = parent::end();
+      auto it = parent::end();
       it.setNodalFilter(nodal_filter);
       return it;
     }

@@ -46,17 +46,14 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <Int spatial_dimension>
+template <Int dim, template <Int> class Parent = MaterialElastic>
 class MaterialMazarsNonLocal
-    : public MaterialDamageNonLocal<spatial_dimension,
-                                    MaterialMazars<spatial_dimension>> {
+    : public MaterialDamageNonLocal<dim, MaterialMazars<dim, Parent>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using parent =
-      MaterialDamageNonLocal<spatial_dimension,
-                             MaterialMazars<spatial_dimension>>;
+  using parent = MaterialDamageNonLocal<dim, MaterialMazars<dim, Parent>>;
 
   MaterialMazarsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
@@ -77,13 +74,11 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type) {
-    return zip_append(
-        parent::getArguments(el_type, ghost_type),
-        tuple::get<"Ehat"_h>() = make_view(this->Ehat(el_type, ghost_type)));
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_replace<"Ehat"_h>(parent::getArguments(el_type, ghost_type),
+                                 make_view(this->Ehat(el_type, ghost_type)));
   }
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -95,5 +90,7 @@ private:
 };
 
 } // namespace akantu
+
+#include "material_mazars_non_local_tmpl.hh"
 
 #endif /* AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH_ */

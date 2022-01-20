@@ -60,7 +60,7 @@ void DumperText::registerMesh(const Mesh & mesh, Int /*spatial_dimension*/,
   // in parallel we need node type
   auto nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
-    auto func = std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+    auto func = std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     std::shared_ptr<dumpers::Field> field =
         std::make_shared<dumpers::NodalField<NodeFlag>>(mesh.getNodesFlags());
     field =
@@ -80,7 +80,7 @@ void DumperText::registerFilteredMesh(
   // in parallel we need node type
   auto nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
-    auto func = std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+    auto func = std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     std::shared_ptr<dumpers::Field> field =
         std::make_shared<dumpers::NodalField<NodeFlag, true>>(
             mesh.getNodesFlags(), 0, 0, &nodes_filter);

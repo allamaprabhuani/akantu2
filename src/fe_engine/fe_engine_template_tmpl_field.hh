@@ -66,50 +66,12 @@ namespace fe_engine {
   }   // namespace details
 } // namespace fe_engine
 
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct AssembleLumpedTemplateHelper {
-      template <template <ElementKind, class> class I,
-                template <ElementKind> class S, ElementKind k, class IOF>
-      static void call(const FEEngineTemplate<I, S, k, IOF> & /*unused*/,
-                       const std::function<void(Matrix<Real> &,
-                                                const Element &)> & /*unused*/,
-                       const ID & /*unused*/, const ID & /*unused*/,
-                       DOFManager & /*unused*/, ElementType /*unused*/,
-                       GhostType /*unused*/) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define ASSEMBLE_LUMPED(type)                                                  \
-  fem.template assembleFieldLumped<type>(field_funct, lumped, dof_id,          \
-                                         dof_manager, ghost_type)
-
-#define AKANTU_SPECIALIZE_ASSEMBLE_HELPER(kind)                                \
-  template <> struct AssembleLumpedTemplateHelper<kind> {                      \
-    template <template <ElementKind, class> class I,                           \
-              template <ElementKind> class S, ElementKind k, class IOF>        \
-    static void                                                                \
-    call(const FEEngineTemplate<I, S, k, IOF> & fem,                           \
-         const std::function<void(Matrix<Real> &, const Element &)> &          \
-             field_funct,                                                      \
-         const ID & lumped, const ID & dof_id, DOFManager & dof_manager,       \
-         ElementType type, GhostType ghost_type) {                             \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_LUMPED, kind);                 \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_ASSEMBLE_HELPER,
-                               AKANTU_FE_ENGINE_LIST_ASSEMBLE_FIELDS)
-
-#undef AKANTU_SPECIALIZE_ASSEMBLE_HELPER
-#undef AKANTU_SPECIALIZE_ASSEMBLE_HELPER_LIST_KIND
-#undef ASSEMBLE_LUMPED
-  } // namespace details
-} // namespace fe_engine
+#define DISPATCH_HELPER(Func, ...)                                             \
+  auto && call = [&](auto && enum_type) {                                      \
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
+    this->Func<type>(__VA_ARGS__);                                             \
+  };                                                                           \
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
@@ -118,12 +80,8 @@ void FEEngineTemplate<I, S, kind, IOF>::assembleFieldLumped(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     ElementType type, GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
-  fe_engine::details::AssembleLumpedTemplateHelper<kind>::call(
-      *this, field_funct, matrix_id, dof_id, dof_manager, type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
+  DISPATCH_HELPER(assembleFieldLumped, field_funct, matrix_id, dof_id,
+                  dof_manager, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -310,63 +268,27 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct AssembleFieldMatrixHelper {
-      template <template <ElementKind, class> class I,
-                template <ElementKind> class S, ElementKind k, class IOF>
-      static void call(const FEEngineTemplate<I, S, k, IOF> & /*unused*/,
-                       const std::function<void(Matrix<Real> &,
-                                                const Element &)> & /*unused*/,
-                       const ID & /*unused*/, const ID & /*unused*/,
-                       DOFManager & /*unused*/, ElementType /*unused*/,
-                       GhostType /*unused*/) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#define ASSEMBLE_MATRIX(type)                                                  \
-  fem.template assembleFieldMatrix<type>(field_funct, matrix_id, dof_id,       \
-                                         dof_manager, ghost_type)
-
-#define AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER(kind)                   \
-  template <> struct AssembleFieldMatrixHelper<kind> {                         \
-    template <template <ElementKind, class> class I,                           \
-              template <ElementKind> class S, ElementKind k, class IOF>        \
-    static void                                                                \
-    call(const FEEngineTemplate<I, S, k, IOF> & fem,                           \
-         const std::function<void(Matrix<Real> &, const Element &)> &          \
-             field_funct,                                                      \
-         const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,    \
-         ElementType type, GhostType ghost_type) {                             \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_MATRIX, kind);                 \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER,
-                               AKANTU_FE_ENGINE_LIST_ASSEMBLE_FIELDS)
-
-#undef AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER
-#undef ASSEMBLE_MATRIX
-  } // namespace details
-} // namespace fe_engine
-
-/* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IOF>
-void FEEngineTemplate<I, S, kind, IOF>::assembleFieldMatrix(
+template <ElementKind kind_, std::enable_if_t<kind_ != _ek_cohesive> *>
+void FEEngineTemplate<I, S, kind, IOF>::assembleFieldMatrixImpl(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     ElementType type, GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
+  DISPATCH_HELPER(assembleFieldMatrix, field_funct, matrix_id, dof_id,
+                  dof_manager, ghost_type);
+}
 
-  fe_engine::details::AssembleFieldMatrixHelper<kind>::template call(
-      *this, field_funct, matrix_id, dof_id, dof_manager, type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
+template <template <ElementKind, class> class I, template <ElementKind> class S,
+          ElementKind kind, class IOF>
+template <ElementKind kind_, std::enable_if_t<kind_ == _ek_cohesive> *>
+void FEEngineTemplate<I, S, kind, IOF>::assembleFieldMatrixImpl(
+    const std::function<void(Matrix<Real> &,
+                             const Element &)> & /*field_funct*/,
+    const ID & /*matrix_id*/, const ID & /*dof_id*/,
+    DOFManager & /*dof_manager*/, ElementType /*type*/,
+    GhostType /*ghost_type*/) const {
+  AKANTU_TO_IMPLEMENT();
 }
 
 namespace fe_engine {
@@ -376,18 +298,18 @@ namespace fe_engine {
       static auto getShapes(ShapeFunctions & shape_functions,
                             const Matrix<Real> & integration_points,
                             const Array<Real> & nodes,
-                            UInt & nb_degree_of_freedom, UInt nb_element,
+                            Int & nb_degree_of_freedom, Int nb_element,
                             GhostType ghost_type) {
 
-        UInt shapes_size = ElementClass<type>::getShapeSize();
+        auto shapes_size = ElementClass<type>::getShapeSize();
         Array<Real> shapes(0, shapes_size);
 
         shape_functions.template computeShapesOnIntegrationPoints<type>(
             nodes, integration_points, shapes, ghost_type);
 
-        UInt nb_integration_points = integration_points.cols();
-        UInt vect_size = nb_integration_points * nb_element;
-        UInt lmat_size = nb_degree_of_freedom * shapes_size;
+        auto nb_integration_points = integration_points.cols();
+        auto vect_size = nb_integration_points * nb_element;
+        auto lmat_size = nb_degree_of_freedom * shapes_size;
 
         // Extending the shape functions
         /// \todo move this in the shape functions as Voigt format shapes to
@@ -397,9 +319,9 @@ namespace fe_engine {
         auto mshapes_it = shapes_voigt->begin(nb_degree_of_freedom, lmat_size);
         auto shapes_it = shapes.begin(shapes_size);
 
-        for (UInt q = 0; q < vect_size; ++q, ++mshapes_it, ++shapes_it) {
-          for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-            for (UInt s = 0; s < shapes_size; ++s) {
+        for (Int q = 0; q < vect_size; ++q, ++mshapes_it, ++shapes_it) {
+          for (Int d = 0; d < nb_degree_of_freedom; ++d) {
+            for (Int s = 0; s < shapes_size; ++s) {
               (*mshapes_it)(d, s * nb_degree_of_freedom + d) = (*shapes_it)(s);
             }
           }
@@ -480,7 +402,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
   // computing \rho * N
   for (auto && data :
        zip(make_view(local_mat, lmat_size, lmat_size),
-           make_view(shapes_voigt, nb_degree_of_freedom, lmat_size),
+           make_view(*shapes_voigt, nb_degree_of_freedom, lmat_size),
            make_view(field, nb_degree_of_freedom))) {
     const auto & rho = std::get<2>(data);
     const auto & N = std::get<1>(data);

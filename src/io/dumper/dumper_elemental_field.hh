@@ -44,7 +44,7 @@ namespace akantu {
 namespace dumpers {
   /* ------------------------------------------------------------------------ */
 
-  template <typename T, template <class> class ret = Vector,
+  template <typename T, class ret = Vector<T>,
             bool filtered = false>
   class ElementalField
       : public GenericElementalField<SingleType<T, ret, filtered>,

@@ -38,7 +38,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
+#include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 #include <utility>
 /* -------------------------------------------------------------------------- */
@@ -63,69 +63,51 @@ namespace Math {
   template <typename T>
   inline void solve(UInt n, const T * A, T * x, const T * b);
 
-  /// vector cross product
-  static inline void vectorProduct3(const Real * v1, const Real * v2,
-                                    Real * res);
-
-  /// normalize a vector
-  inline void normalize2(Real * v);
-
-  /// normalize a vector
-  inline void normalize3(Real * v);
-
-  /// return norm of a 2-vector
-  inline Real norm2(const Real * v);
-
-  /// return norm of a 3-vector
-  inline Real norm3(const Real * v);
-
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
   /// compute normal a normal to a vector
-  inline void normal2(const Real * vec, Real * normal);
+  template <class D1, std::enable_if_t<aka::is_vector<D1>::value> * = nullptr>
+  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & vec);
+
+  template <class D1,
+            aka::enable_if_t<not aka::is_vector<D1>::value> * = nullptr>
+  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & vec) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// compute normal a normal to a vector
-  inline void normal3(const Real * vec1, const Real * vec2, Real * normal);
+  template <class D1, class D2,
+            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+  inline Vector<Real, 3> normal(const Eigen::MatrixBase<D1> & vec1,
+                                const Eigen::MatrixBase<D2> & vec2);
 
   /// compute the tangents to an array of normal vectors
   void compute_tangents(const Array<Real> & normals, Array<Real> & tangents);
 
-  /// distance in 2D between x and y
-  inline Real distance_2d(const Real * x, const Real * y);
-
-  /// distance in 3D between x and y
-  inline Real distance_3d(const Real * x, const Real * y);
-
   /// radius of the in-circle of a triangle in 2d space
   template <class D1, class D2, class D3>
   static inline Real triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                       const Eigen::MatrixBase<D1> & coord2,
-                                       const Eigen::MatrixBase<D1> & coord3);
+                                       const Eigen::MatrixBase<D2> & coord2,
+                                       const Eigen::MatrixBase<D3> & coord3);
 
   /// radius of the in-circle of a tetrahedron
   template <class D1, class D2, class D3, class D4>
   static inline Real tetrahedron_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                          const Eigen::MatrixBase<D1> & coord2,
-                                          const Eigen::MatrixBase<D1> & coord3,
-                                          const Eigen::MatrixBase<D1> & coord4);
+                                          const Eigen::MatrixBase<D2> & coord2,
+                                          const Eigen::MatrixBase<D3> & coord3,
+                                          const Eigen::MatrixBase<D4> & coord4);
   /// volume of a tetrahedron
   template <class D1, class D2, class D3, class D4>
   static inline Real tetrahedron_volume(const Eigen::MatrixBase<D1> & coord1,
-                                        const Eigen::MatrixBase<D1> & coord2,
-                                        const Eigen::MatrixBase<D1> & coord3,
-                                        const Eigen::MatrixBase<D1> & coord4);
+                                        const Eigen::MatrixBase<D2> & coord2,
+                                        const Eigen::MatrixBase<D3> & coord3,
+                                        const Eigen::MatrixBase<D4> & coord4);
 
   /// compute the barycenter of n points
   template <class D1, class D2>
   inline void barycenter(const Eigen::MatrixBase<D1> & coord,
                          Eigen::MatrixBase<D2> & barycenter);
-
-  /// vector between x and y
-  inline void vector_2d(const Real * x, const Real * y, Real * res);
-
-  /// vector pointing from x to y in 3 spatial dimension
-  inline void vector_3d(const Real * x, const Real * y, Real * res);
 
   /// test if two scalar are equal within a given tolerance
   inline bool are_float_equal(Real x, Real y);

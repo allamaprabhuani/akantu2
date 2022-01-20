@@ -45,19 +45,20 @@ namespace akantu {
  * Material plastic with a Drucker-pruger yield criterion
  */
 
-template <UInt spatial_dimension>
-class MaterialDruckerPrager : public MaterialPlastic<spatial_dimension> {
+template <Int dim> class MaterialDruckerPrager : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialPlastic<dim>;
+
 public:
   MaterialDruckerPrager(SolidMechanicsModel & model, const ID & id = "");
-  MaterialDruckerPrager(SolidMechanicsModel & model, UInt dim,
+  MaterialDruckerPrager(SolidMechanicsModel & model, Int spatial_dimension,
                         const Mesh & mesh, FEEngine & fe_engine,
                         const ID & id = "");
 
 protected:
-  using voigt_h = VoigtHelper<spatial_dimension>;
+  using voigt_h = VoigtHelper<dim>;
 
   void initialize();
 
@@ -69,39 +70,15 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
-  /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost) override;
-
 protected:
-  /// Infinitesimal deformations
-  inline void
-  computeStressOnQuad(const Matrix<Real> & grad_u,
-                      const Matrix<Real> & previous_grad_u,
-                      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-                      Matrix<Real> & inelastic_strain,
-                      const Matrix<Real> & previous_inelastic_strain,
-                      const Real & sigma_th, const Real & previous_sigma_th);
-
-  /// Finite deformations
-  inline void computeStressOnQuad(
-      const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain, const Real & sigma_th,
-      const Real & previous_sigma_th, const Matrix<Real> & F_tensor);
-
+  template <class Args> inline void computeStressOnQuad(Args && args);
   inline void computeTangentModuliOnQuad(
       Matrix<Real> & tangent, const Matrix<Real> & grad_u,
       const Matrix<Real> & previous_grad_u, const Matrix<Real> & sigma_tensor,
       const Matrix<Real> & previous_sigma_tensor) const;
 
   inline Real computeYieldFunction(const Matrix<Real> & sigma);
-
   inline Real computeYieldStress(const Matrix<Real> & sigma);
-
-  inline void computeDeviatoricStress(const Matrix<Real> & sigma,
-                                      Matrix<Real> & sigma_dev);
 
   /// rcompute the alpha and k parameters
   void updateInternalParameters() override;
@@ -110,9 +87,10 @@ public:
   // closet point projection method to compute stress state on the
   // yield surface
   inline void computeGradientAndPlasticMultplier(
-      const Matrix<Real> & sigma_tr, Real & plastic_multiplier_guess,
-      Vector<Real> & gradient_f, Vector<Real> & delta_inelastic_strain,
-      UInt max_iterations = 100, Real tolerance = 1e-10);
+      const Matrix<Real, dim, dim> & sigma_tr, Real & plastic_multiplier_guess,
+      Vector<Real, dim> & gradient_f,
+      Vector<Real, dim> & delta_inelastic_strain, Int max_iterations = 100,
+      Real tolerance = 1e-10);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

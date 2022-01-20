@@ -93,8 +93,8 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual Int getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const = 0;
+  [[nodiscard]] virtual Int getNbData(const Array<Element> & elements,
+                                      const SynchronizationTag & tag) const = 0;
   virtual void packData(CommunicationBuffer & buffer,
                         const Array<Element> & element,
                         const SynchronizationTag & tag) const = 0;
@@ -162,8 +162,8 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual Int getNbData(const Array<Idx> & elements,
-                        const SynchronizationTag & tag) const = 0;
+  [[nodiscard]] virtual Int getNbData(const Array<Idx> & elements,
+                                      const SynchronizationTag & tag) const = 0;
   virtual void packData(CommunicationBuffer & buffer,
                         const Array<Idx> & element,
                         const SynchronizationTag & tag) const = 0;

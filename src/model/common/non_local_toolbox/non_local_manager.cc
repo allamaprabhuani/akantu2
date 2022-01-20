@@ -32,6 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "non_local_manager.hh"
+#include "base_weight_function.hh"
 #include "grid_synchronizer.hh"
 #include "integrator.hh"
 #include "model.hh"
@@ -130,31 +131,12 @@ void NonLocalManager::createNeighborhood(const ID & weight_func,
 
   const ParserSection & section = weight_func_it->second;
   const ID weight_func_type = section.getOption();
-  /// create new neighborhood for given ID
-  std::stringstream sstr;
-  sstr << id << ":neighborhood:" << neighborhood_id;
 
-  if (weight_func_type == "base_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<BaseWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-#if defined(AKANTU_DAMAGE_NON_LOCAL)
-  } else if (weight_func_type == "remove_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<RemoveDamagedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-  } else if (weight_func_type == "stress_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<StressBasedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-  } else if (weight_func_type == "damage_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<DamagedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-#endif
-  } else {
-    AKANTU_EXCEPTION("error in weight function type provided in material file");
-  }
+  /// create new neighborhood for given ID
+  neighborhoods[neighborhood_id] =
+      NonLocalNeighborhoodFactory::getInstance().allocate(
+          neighborhood_id, *this, this->integration_points_positions,
+          id + ":neighborhood:" + neighborhood_id);
 
   neighborhoods[neighborhood_id]->parseSection(section);
   neighborhoods[neighborhood_id]->initNeighborhood();
@@ -609,8 +591,8 @@ void NonLocalManager::removeIntegrationPointsFromMap(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt NonLocalManager::getNbData(const Array<Element> & elements,
-                                const ID & id) const {
+Int NonLocalManager::getNbData(const Array<Element> & elements,
+                               const ID & id) const {
   Int size = 0;
   auto nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
   auto it = non_local_variables.find(id);

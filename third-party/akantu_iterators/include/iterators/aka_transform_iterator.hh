@@ -84,7 +84,8 @@ namespace iterators {
   };
 
   template <class iterator_t, class operator_t>
-  decltype(auto) make_transform_adaptor_iterator(iterator_t it, operator_t op) {
+  auto make_transform_adaptor_iterator(iterator_t it, operator_t op)
+      -> decltype(auto) {
     return transform_adaptor_iterator<iterator_t, operator_t>(
         it, std::forward<operator_t>(op));
   }
@@ -104,17 +105,17 @@ namespace containers {
         : cont(std::forward<container_t>(cont)),
           op(std::forward<operator_t>(op)) {}
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return iterators::make_transform_adaptor_iterator(cont.begin(), op);
     }
-    decltype(auto) begin() {
+    auto begin() -> decltype(auto) {
       return iterators::make_transform_adaptor_iterator(cont.begin(), op);
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return iterators::make_transform_adaptor_iterator(cont.end(), op);
     }
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return iterators::make_transform_adaptor_iterator(cont.end(), op);
     }
 
@@ -125,34 +126,35 @@ namespace containers {
 } // namespace containers
 
 template <class container_t, class operator_t>
-decltype(auto) make_transform_adaptor(container_t && cont, operator_t && op) {
+auto make_transform_adaptor(container_t && cont, operator_t && op)
+    -> decltype(auto) {
   return containers::TransformIteratorAdaptor<container_t, operator_t>(
       std::forward<container_t>(cont), std::forward<operator_t>(op));
 }
 
 template <class container_t>
-decltype(auto) make_keys_adaptor(container_t && cont) {
+auto make_keys_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
       [](auto && pair) -> const auto & { return pair.first; });
 }
 
 template <class container_t>
-decltype(auto) make_values_adaptor(container_t && cont) {
+auto make_values_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
       [](auto && pair) -> auto & { return pair.second; });
 }
 
 template <class container_t>
-decltype(auto) make_dereference_adaptor(container_t && cont) {
+auto make_dereference_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
       [](auto && value) -> decltype(*value) { return *value; });
 }
 
 template <typename Type, typename Size>
-decltype(auto) broadcast(Type && data, Size size) {
+auto broadcast(Type && data, Size size) -> decltype(auto) {
   return make_transform_adaptor(
       arange(size), [data](auto && value) -> decltype(auto) { return data; });
 }

@@ -42,43 +42,46 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /// Infinitesimal deformations
 template <Int dim>
-inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-    Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-    Matrix<Real> & inelastic_strain,
-    const Matrix<Real> & previous_inelastic_strain, Real & iso_hardening,
-    const Real & previous_iso_hardening, const Real & sigma_th,
-    const Real & previous_sigma_th) {
+template <class Args, std::enable_if_t<not tuple::has_t<"F"_h, Args>::value> *>
+inline void
+MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && arguments) {
+  auto && sigma_th = tuple::get<"sigma_th"_h>(arguments);
+  auto && previous_sigma_th = tuple::get<"previous_sigma_th"_h>(arguments);
 
-  Real delta_sigma_th = sigma_th - previous_sigma_th;
+  auto delta_sigma_th = sigma_th - previous_sigma_th;
 
-  Matrix<Real> grad_delta_u(grad_u);
-  grad_delta_u -= previous_grad_u;
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && previous_grad_u = tuple::get<"previous_grad_u"_h>(arguments);
+  auto && grad_delta_u = grad_u - previous_grad_u;
+
+  Matrix<Real, dim, dim> sigma_tr;
 
   // Compute trial stress, sigma_tr
-  Matrix<Real> sigma_tr(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr,
-                                            delta_sigma_th);
+  MaterialElastic<dim>::computeStressOnQuad(
+      tuple::make_named_tuple(tuple::get<"grad_u"_h>() = grad_delta_u,
+                              tuple::get<"sigma"_h>() = sigma_tr,
+                              tuple::get<"sigma_th"_h>() = delta_sigma_th));
+
+  auto && previous_sigma = tuple::get<"previous_sigma"_h>(arguments);
   sigma_tr += previous_sigma;
 
   // We need a full stress tensor, otherwise the VM stress is messed up
-  Matrix<Real> sigma_tr_dev(3, 3, 0);
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      sigma_tr_dev(i, j) = sigma_tr(i, j);
-    }
-  }
+  Matrix<Real, 3, 3> sigma_tr_dev = Matrix<Real, 3, 3>::Zero();
+  sigma_tr_dev.block<dim, dim>(0, 0) = sigma_tr;
 
-  sigma_tr_dev -= Matrix<Real>::eye(3, sigma_tr.trace() / 3.0);
+  sigma_tr_dev -= Matrix<Real, 3, 3>::Identity() * sigma_tr.trace() / 3.0;
 
   // Compute effective deviatoric trial stress
-  Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
-  Real sigma_tr_dev_eff = std::sqrt(3. / 2. * s);
+  auto s = sigma_tr_dev.doubleDot(sigma_tr_dev);
+  auto sigma_tr_dev_eff = std::sqrt(3. / 2. * s);
 
-  bool initial_yielding =
+  auto && iso_hardening = tuple::get<"iso_hardening"_h>(arguments);
+  auto initial_yielding =
       ((sigma_tr_dev_eff - iso_hardening - this->sigma_y) > 0);
 
-  Real dp = (initial_yielding)
+  auto && previous_iso_hardening =
+      tuple::get<"previous_iso_hardening"_h>(arguments);
+  auto dp = (initial_yielding)
                 ? (sigma_tr_dev_eff - this->sigma_y - previous_iso_hardening) /
                       (3 * this->mu + this->h)
                 : 0;
@@ -86,91 +89,72 @@ inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
   iso_hardening = previous_iso_hardening + this->h * dp;
 
   // Compute inelastic strain (ignore last components in 1-2D)
-  Matrix<Real> delta_inelastic_strain(dim, dim, 0.);
-  if (std::abs(sigma_tr_dev_eff) >
-      sigma_tr_dev.norm<L_inf>() * Math::getTolerance()) {
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
-        delta_inelastic_strain(i, j) = sigma_tr_dev(i, j);
-      }
-    }
-    delta_inelastic_strain *= 3. / 2. * dp / sigma_tr_dev_eff;
+  Matrix<Real, dim, dim> delta_inelastic_strain;
+  if (std::abs(sigma_tr_dev_eff) > sigma_tr_dev.norm() * Math::getTolerance()) {
+    delta_inelastic_strain =
+        sigma_tr_dev.block<dim, dim>(0, 0) * 3. / 2. * dp / sigma_tr_dev_eff;
   }
 
   MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
-      grad_delta_u, sigma, previous_sigma, inelastic_strain,
-      previous_inelastic_strain, delta_inelastic_strain);
+      tuple::append(arguments, tuple::get<"delta_inelastic_strain"_h>() =
+                                   delta_inelastic_strain));
 }
 
 /* -------------------------------------------------------------------------- */
 /// Finite deformations
 template <Int dim>
-inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-    Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-    Matrix<Real> & inelastic_strain,
-    const Matrix<Real> & previous_inelastic_strain, Real & iso_hardening,
-    const Real & previous_iso_hardening, const Real & sigma_th,
-    const Real & previous_sigma_th, const Matrix<Real> & F_tensor) {
+template <class Args, std::enable_if_t<tuple::has_t<"F"_h, Args>::value> *>
+inline void
+MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && arguments) {
   // Finite plasticity
   Real dp = 0.0;
   Real d_dp = 0.0;
   UInt n = 0;
 
-  Real delta_sigma_th = sigma_th - previous_sigma_th;
+  auto && sigma_th = tuple::get<"sigma_th"_h>(arguments);
+  auto && previous_sigma_th = tuple::get<"previous_sigma_th"_h>(arguments);
 
-  Matrix<Real> grad_delta_u(grad_u);
-  grad_delta_u -= previous_grad_u;
+  auto delta_sigma_th = sigma_th - previous_sigma_th;
+
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && previous_grad_u = tuple::get<"previous_grad_u"_h>(arguments);
+  auto && grad_delta_u = grad_u - previous_grad_u;
 
   // Compute trial stress, sigma_tr
-  Matrix<Real> sigma_tr(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr,
-                                            delta_sigma_th);
+  Matrix<Real, dim, dim> sigma_tr;
+  MaterialElastic<dim>::computeStressOnQuad(
+      tuple::make_named_tuple(tuple::get<"grad_u"_h>() = grad_delta_u,
+                              tuple::get<"sigma"_h>() = sigma_tr,
+                              tuple::get<"sigma_th"_h>() = delta_sigma_th));
+
+  auto && previous_sigma = tuple::get<"previous_sigma"_h>(arguments);
   sigma_tr += previous_sigma;
 
   // Compute deviatoric trial stress,  sigma_tr_dev
-  Matrix<Real> sigma_tr_dev(sigma_tr);
-  sigma_tr_dev -= Matrix<Real>::eye(dim, sigma_tr.trace() / 3.0);
+  auto && sigma_tr_dev =
+      sigma_tr - Matrix<Real, dim, dim>::Identity() * sigma_tr.trace() / 3.0;
 
   // Compute effective deviatoric trial stress
   Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
   Real sigma_tr_dev_eff = std::sqrt(3. / 2. * s);
 
+  auto && F = tuple::get<"F"_h>(arguments);
+
   // compute the cauchy stress to apply the Von-Mises criterion
-  Matrix<Real> cauchy_stress(dim, dim);
-  Material::StoCauchy<dim>(F_tensor, sigma_tr, cauchy_stress);
-  Matrix<Real> cauchy_stress_dev(cauchy_stress);
-  cauchy_stress_dev -= Matrix<Real>::eye(dim, cauchy_stress.trace() / 3.0);
+  auto cauchy_stress = Material::StoCauchy<dim>(F, sigma_tr);
+
+  auto && cauchy_stress_dev =
+      cauchy_stress -
+      Matrix<Real, dim, dim>::Identity() * cauchy_stress.trace() / 3.0;
   Real c = cauchy_stress_dev.doubleDot(cauchy_stress_dev);
   Real cauchy_stress_dev_eff = std::sqrt(3. / 2. * c);
 
+  auto && iso_hardening = tuple::get<"iso_hardening"_h>(arguments);
+  auto && previous_iso_hardening =
+      tuple::get<"previous_iso_hardening"_h>(arguments);
+
   const Real iso_hardening_t = previous_iso_hardening;
   iso_hardening = iso_hardening_t;
-  // Loop for correcting stress based on yield function
-
-  // F is written in terms of S
-  // bool initial_yielding = ( (sigma_tr_dev_eff - iso_hardening -
-  // this->sigma_y) > 0) ;
-  // while ( initial_yielding && std::abs(sigma_tr_dev_eff - iso_hardening -
-  // this->sigma_y) > Math::getTolerance() ) {
-
-  //   d_dp = (sigma_tr_dev_eff - 3. * this->mu *dp -  iso_hardening -
-  //   this->sigma_y)
-  //     / (3. * this->mu + this->h);
-
-  //   //r = r +  h * dp;
-  //   dp = dp + d_dp;
-  //   iso_hardening = iso_hardening_t + this->h * dp;
-
-  //   ++n;
-
-  //   /// TODO : explicit this criterion with an error message
-  //   if ((std::abs(d_dp) < 1e-9) || (n>50)){
-  //     AKANTU_DEBUG_INFO("convergence of increment of plastic strain. d_dp:"
-  //     << d_dp << "\tNumber of iteration:"<<n);
-  //     break;
-  //   }
-  // }
 
   // F is written in terms of cauchy stress
   bool initial_yielding =
@@ -196,18 +180,17 @@ inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
   }
 
   // Update internal variable
-  Matrix<Real> delta_inelastic_strain(dim, dim, 0.);
-  if (std::abs(sigma_tr_dev_eff) >
-      sigma_tr_dev.norm<L_inf>() * Math::getTolerance()) {
+  Matrix<Real, dim, dim> delta_inelastic_strain;
+  if (std::abs(sigma_tr_dev_eff) > sigma_tr_dev.norm() * Math::getTolerance()) {
 
     // /// compute the direction of the plastic strain as \frac{\partial
     // F}{\partial S} = \frac{3}{2J\sigma_{effective}}} Ft \sigma_{dev} F
-    Matrix<Real> cauchy_dev_F(dim, dim);
-    cauchy_dev_F.mul<false, false>(F_tensor, cauchy_stress_dev);
-    Real J = F_tensor.det();
+    Matrix<Real, dim, dim> cauchy_dev_F;
+    cauchy_dev_F = F * cauchy_stress_dev;
+    Real J = F.determinent();
     Real constant = not Math::are_float_equal(J, 0.) ? 1. / J : 0;
     constant *= 3. * dp / (2. * cauchy_stress_dev_eff);
-    delta_inelastic_strain.mul<true, false>(F_tensor, cauchy_dev_F, constant);
+    delta_inelastic_strain = F.transpose() * cauchy_dev_F * constant;
 
     // Direction given by the piola kirchhoff deviatoric tensor \frac{\partial
     // F}{\partial S} = \frac{3}{2\sigma_{effective}}}S_{dev}
@@ -216,87 +199,16 @@ inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
   }
 
   MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
-      grad_delta_u, sigma, previous_sigma, inelastic_strain,
-      previous_inelastic_strain, delta_inelastic_strain);
+      tuple::append(arguments, tuple::get<"delta_inelastic_strain"_h>() =
+                                   delta_inelastic_strain));
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <Int dim>
+template <class Args>
 inline void MaterialLinearIsotropicHardening<dim>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, __attribute__((unused)) const Matrix<Real> & grad_u,
-    __attribute__((unused)) const Matrix<Real> & previous_grad_u,
-    __attribute__((unused)) const Matrix<Real> & sigma_tensor,
-    __attribute__((unused)) const Matrix<Real> & previous_sigma_tensor,
-    __attribute__((unused)) const Real & iso_hardening) const {
-  // Real r=iso_hardening;
-
-  // Matrix<Real> grad_delta_u(grad_u);
-  // grad_delta_u -= previous_grad_u;
-
-  // //Compute trial stress, sigma_tr
-  // Matrix<Real> sigma_tr(dim, dim);
-  // MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr);
-  // sigma_tr += previous_sigma_tensor;
-
-  // // Compute deviatoric trial stress,  sigma_tr_dev
-  // Matrix<Real> sigma_tr_dev(sigma_tr);
-  // sigma_tr_dev -= Matrix<Real>::eye(dim, sigma_tr.trace() / 3.0);
-
-  // // Compute effective deviatoric trial stress
-  // Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
-  // Real sigma_tr_dev_eff=std::sqrt(3./2. * s);
-
-  // // Compute deviatoric stress,  sigma_dev
-  // Matrix<Real> sigma_dev(sigma_tensor);
-  // sigma_dev -= Matrix<Real>::eye(dim, sigma_tensor.trace() / 3.0);
-
-  // // Compute effective deviatoric stress
-  // s =  sigma_dev.doubleDot(sigma_dev);
-  // Real sigma_dev_eff = std::sqrt(3./2. * s);
-
-  // Real xr = 0.0;
-  // if(sigma_tr_dev_eff > sigma_dev_eff * Math::getTolerance())
-  //   xr = sigma_dev_eff / sigma_tr_dev_eff;
-
-  // Real __attribute__((unused)) q = 1.5 * (1. / (1. +  3. * this->mu  /
-  // this->h) - xr);
-
-  /*
-  UInt cols = tangent.cols();
-  UInt rows = tangent.rows();
-
-  for (UInt m = 0; m < rows; ++m) {
-    UInt i = VoigtHelper<dim>::vec[m][0];
-    UInt j = VoigtHelper<dim>::vec[m][1];
-
-    for (UInt n = 0; n < cols; ++n) {
-      UInt k = VoigtHelper<dim>::vec[n][0];
-      UInt l = VoigtHelper<dim>::vec[n][1];
-      */
-
-  // This section of the code is commented
-  // There were some problems with the convergence of plastic-coupled
-  // simulations with thermal expansion
-  // XXX: DO NOT REMOVE
-  /*if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)) {
-    tangent(m,n) =
-    2. * this->mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev
-    (k,l) / sigma_tr_dev_eff) +
-    (i==k) * (j==l) * 2. * this->mu * xr +
-    (i==j) * (k==l) * (this->kpa - 2./3. * this->mu * xr);
-    if ((m == n) && (m>=dim))
-    tangent(m, n) = tangent(m, n) - this->mu * xr;
-    } else {*/
-  /*
-  tangent(m,n) =  (i==k) * (j==l) * 2. * this->mu +
-    (i==j) * (k==l) * this->lambda;
-  tangent(m,n) -= (m==n) * (m>=dim) * this->mu;
-  */
-  //}
-  // correct tangent stiffness for shear component
-  //}
-  //}
-  MaterialElastic<dim>::computeTangentModuliOnQuad(tangent);
+    Args && arguments) const {
+  // Initial tangent
+  MaterialElastic<dim>::computeTangentModuliOnQuad(arguments);
 }
 } // namespace akantu

@@ -528,7 +528,7 @@ Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
  */
 
 template <class T, bool is_scal>
-Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
+auto Array<T, is_scal>::operator*=(const T & alpha) -> Array & {
   T * a = this->values;
   for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a++ *= alpha;
@@ -545,7 +545,7 @@ Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
  * the same shape, else false
  */
 template <class T, bool is_scal>
-bool Array<T, is_scal>::operator==(const Array<T, is_scal> & other) const {
+bool Array<T, is_scal>::operator==(const Array & other) const {
   bool equal = this->nb_component == other.nb_component &&
                this->size_ == other.size_ && this->id == other.id;
   if (not equal) {
@@ -574,19 +574,19 @@ bool Array<T, is_scal>::operator!=(const Array<T, is_scal> & other) const {
  */
 template <class T, bool is_scal>
 template <typename C, std::enable_if_t<aka::is_tensor<C>::value> *>
-inline void Array<T, is_scal>::set(const C & vm) {
+inline void Array<T, is_scal>::set(const C & elem) {
   AKANTU_DEBUG_ASSERT(
-      this->nb_component == vm.size(),
+      this->nb_component == elem.array().size(),
       "The size of the object does not match the number of components");
-  for (T * it = this->values;
-       it < this->values + this->nb_component * this->size_;
-       it += this->nb_component) {
-    std::copy_n(vm.data(), this->nb_component, it);
+
+  for (auto && v : make_view(*this, this->nb_component)) {
+    v = elem.array();
   }
 }
+
 /* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-void Array<T, is_scal>::append(const Array<T> & other) {
+void Array<T, is_scal>::append(const Array & other) {
   AKANTU_DEBUG_ASSERT(
       this->nb_component == other.nb_component,
       "Cannot append an array with a different number of component");
@@ -622,11 +622,9 @@ Array<T, is_scal>::Array(const Array & vect, const ID & id)
 
 /* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-Array<T, is_scal> &
-Array<T, is_scal>::operator=(const Array<T, is_scal> & other) {
+auto Array<T, is_scal>::operator=(const Array & other) -> Array & {
   AKANTU_DEBUG_WARNING("You are copying the array "
                        << this->id << " are you sure it is on purpose");
-
   if (&other == this) {
     return *this;
   }
@@ -669,7 +667,13 @@ inline Idx Array<T, is_scal>::find(const V & elem) {
   AKANTU_DEBUG_ASSERT(elem.size() == this->nb_component,
                       "Cannot find an element with a wrong size ("
                           << elem.size() << ") != " << this->nb_component);
-  return this->find(elem.data());
+  auto && view = make_view(*this, elem.size());
+
+  auto begin = view.begin();
+  auto end = view.end();
+  auto it = std::find(begin, end, elem);
+
+  return (it != end) ? it - begin : Idx(-1);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -877,6 +881,8 @@ public:
   /// the number of components of the filtered array
   Int getNbComponent() const { return this->array.getNbComponent(); };
 
+  /// tells if the container is empty
+  bool empty() const [[gnu::warn_unused_result]] { return (size() == 0); }
   /* ---------------------------------------------------------------------- */
   /* Class Members                                                          */
   /* ---------------------------------------------------------------------- */
@@ -951,11 +957,8 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    auto && it =
-        aka::apply([&](auto... n) { return iterator(data, n...); },
-                   take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
-
-    return it;
+    return aka::apply([&](auto... n) { return iterator(data, n...); },
+                      take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
   }
 } // namespace detail
 

@@ -98,8 +98,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type) {
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent::getArguments(el_type, ghost_type),
         tuple::get<"Yd"_h>() = make_view(this->Yd(el_type, ghost_type)),

@@ -36,9 +36,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialPhaseField<spatial_dimension>::MaterialPhaseField(
-    SolidMechanicsModel & model, const ID & id)
+template <Int dim>
+MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
+                                            const ID & id)
     : Parent(model, id) {
 
   AKANTU_DEBUG_IN();
@@ -50,50 +50,30 @@ MaterialPhaseField<spatial_dimension>::MaterialPhaseField(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeStress(
-    ElementType el_type, GhostType ghost_type) {
+template <Int dim>
+void MaterialPhaseField<dim>::computeStress(ElementType el_type,
+                                            GhostType ghost_type) {
+  for (auto && args : Parent::getArguments(el_type, ghost_type)) {
+    computeStressOnQuad(args);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
+                                                   Array<Real> & tangent_matrix,
+                                                   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto dam = this->damage(el_type, ghost_type).begin();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  computeStressOnQuad(grad_u, sigma, *dam);
-
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && args :
+       Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+    computeTangentModuliOnQuad(args);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Parent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
-
-  Real * dam = this->damage(el_type, ghost_type).storage();
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  computeTangentModuliOnQuad(tangent, *dam);
-
-  ++dam;
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, Real & dam) {
-  tangent *= (1 - dam) * (1 - dam) + eta;
-}
 
 INSTANTIATE_MATERIAL(phasefield, MaterialPhaseField);
 

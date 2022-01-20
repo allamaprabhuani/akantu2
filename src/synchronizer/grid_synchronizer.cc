@@ -224,8 +224,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
           comm.asyncSend(info, p, Tag::genTag(my_rank, count, SIZE_TAG)));
 
       if (info[1] != 0) {
-        isend_requests.push_back(comm.asyncSend(
-            conn, p, Tag::genTag(my_rank, count, DATA_TAG)));
+        isend_requests.push_back(
+            comm.asyncSend(conn, p, Tag::genTag(my_rank, count, DATA_TAG)));
       }
 
       ++count;
@@ -419,11 +419,10 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
     for (Int n = 0; n < nb_nodes_to_send; ++n) {
       auto ln = global_nodes_ids.find(asked_nodes(n));
-      AKANTU_DEBUG_ASSERT(ln != -1, "The node ["
-                                              << asked_nodes(n)
-                                              << "] requested by proc " << p
-                                              << " was not found locally!");
-      nodes_to_send.push_back(node_it + ln);
+      AKANTU_DEBUG_ASSERT(ln != -1, "The node [" << asked_nodes(n)
+                                                 << "] requested by proc " << p
+                                                 << " was not found locally!");
+      nodes_to_send.push_back(node_it[ln]);
     }
 
     if (nb_nodes_to_send != 0) {
@@ -453,8 +452,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
                         << " (communication tag : "
                         << Tag::genTag(p, 0, SEND_NODES_TAG) << ")");
 
-      VectorProxy<Real> nodes_to_recv(nodes.data() + nb_nodes * spatial_dimension,
-                                 nb_nodes_to_recv(p) * spatial_dimension);
+      VectorProxy<Real> nodes_to_recv(nodes.data() +
+                                          nb_nodes * spatial_dimension,
+                                      nb_nodes_to_recv(p) * spatial_dimension);
       comm.receive(nodes_to_recv, p, Tag::genTag(p, 0, SEND_NODES_TAG));
       nb_nodes += nb_nodes_to_recv(p);
     }

@@ -38,11 +38,6 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-#include "remove_damaged_with_damage_rate_weight_function.hh"
-/* -------------------------------------------------------------------------- */
-
-namespace akantu {
-/* -------------------------------------------------------------------------- */
 inline void RemoveDamagedWithDamageRateWeightFunction::init() {
   this->damage_with_damage_rate =
       &(this->manager.registerWeightFunctionInternal("damage-rate"));
@@ -50,9 +45,8 @@ inline void RemoveDamagedWithDamageRateWeightFunction::init() {
 
 /* -------------------------------------------------------------------------- */
 inline Real RemoveDamagedWithDamageRateWeightFunction::operator()(
-    Real r, const __attribute__((unused)) IntegrationPoint & q1,
+    Real r, const IntegrationPoint & q1, const IntegrationPoint & q2) {
 
-    const IntegrationPoint & q2) {
   /// compute the weight
   auto quad = q2.global_num;
 

@@ -111,8 +111,7 @@ inline void GeometricalElement<_gt_segment_2>::getNormal(
     const Eigen::MatrixBase<D1> & coord, Eigen::MatrixBase<D2> & normal) {
   AKANTU_DEBUG_ASSERT(normal.size() == 2,
                       "The normal is only uniquely defined in 2D");
-  Vector<Real> tmp = coord.col(0) - coord.col(1);
-  Math::normal2(tmp.data(), normal.data());
+  Math::normal(coord.col(0) - coord.col(1), normal);
 }
 
 /* -------------------------------------------------------------------------- */

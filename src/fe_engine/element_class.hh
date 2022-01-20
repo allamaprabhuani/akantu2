@@ -206,14 +206,14 @@ public:
   /// compute the shape values for a given set of points in natural coordinates
   template <class D1, class D2,
             aka::enable_if_t<aka::are_matrices<D1, D2>::value> * = nullptr>
-  static inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coord,
-                                   const Eigen::MatrixBase<D2> & shapes);
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & Xs,
+                                   const Eigen::MatrixBase<D2> & N_);
 
   /// compute the shape values for a given point in natural coordinates
   template <class D1, class D2,
             aka::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
-  static inline void computeShapes(const Eigen::MatrixBase<D1> &,
-                                   Eigen::MatrixBase<D2> &) {
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & /*Xs*/,
+                                   Eigen::MatrixBase<D2> & /*N_*/) {
     AKANTU_TO_IMPLEMENT();
   }
 

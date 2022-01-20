@@ -68,7 +68,8 @@ public:
 public:
   /// set the matrix to 0
   void zero() override;
-  void set(Real /*val*/) override { AKANTU_TO_IMPLEMENT(); }
+  void set(Real /*val*/)
+  override { AKANTU_TO_IMPLEMENT(); }
   void clearProfile() override;
 
   /// add a non-zero element to the profile
@@ -112,6 +113,8 @@ public:
   void applyModifications();
 
   void resize();
+
+  Real min() override { AKANTU_TO_IMPLEMENT(); }
 
 protected:
   void addMeTo(SparseMatrix & B, Real alpha) const override;

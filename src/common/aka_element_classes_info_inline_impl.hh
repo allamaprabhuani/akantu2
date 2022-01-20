@@ -206,8 +206,8 @@ namespace details {
 
   template <> struct visit_tuple_impl<0> {
     template <class Function, class DynamicType, class Tuple>
-    static constexpr auto
-    visit(const Tuple &, Function && function, const DynamicType & type)
+    static constexpr auto visit(const Tuple &, Function && function,
+                                const DynamicType & type)
         -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
       AKANTU_EXCEPTION("Cannot call the asked function for the type " << type);
     }

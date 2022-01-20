@@ -59,8 +59,7 @@ void Dumpable::registerExternalDumper(std::shared_ptr<DumperIOHelper> dumper,
 
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
-                           GhostType ghost_type,
-                           ElementKind element_kind) {
+                           GhostType ghost_type, ElementKind element_kind) {
 
   this->addDumpMeshToDumper(this->default_dumper, mesh, spatial_dimension,
                             ghost_type, element_kind);

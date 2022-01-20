@@ -40,9 +40,8 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension>
-class MaterialPhaseField : public MaterialDamage<spatial_dimension> {
-  using Parent = MaterialDamage<spatial_dimension>;
+template <Int dim> class MaterialPhaseField : public MaterialDamage<dim> {
+  using Parent = MaterialDamage<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -64,11 +63,10 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-                                  Real & dam);
+  template <class Args> inline void computeStressOnQuad(Args && args);
 
   /// compute the tangent stiffness matrix for a given quadrature point
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
+  template <class Args> inline void computeTangentModuliOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -81,12 +79,7 @@ protected:
   Real eta;
 };
 
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#include "material_phasefield_inline_impl.cc"
-
 } // namespace akantu
 
+#include "material_phasefield_inline_impl.cc"
 #endif /* __AKANTU_MATERIAL_PHASEFIELD_HH__ */

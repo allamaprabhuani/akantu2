@@ -51,20 +51,17 @@ namespace akantu {
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template <Int dim>
-class MaterialElastic
-    : public PlaneStressToolbox<dim,
-                                MaterialThermal<dim>> {
+class MaterialElastic : public PlaneStressToolbox<dim, MaterialThermal<dim>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 private:
-  using Parent =
-      PlaneStressToolbox<dim, MaterialThermal<dim>>;
+  using Parent = PlaneStressToolbox<dim, MaterialThermal<dim>>;
 
 public:
   MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialElastic(SolidMechanicsModel & model, Int spatial_dimension, const Mesh & mesh,
-                  FEEngine & fe_engine, const ID & id = "");
+  MaterialElastic(SolidMechanicsModel & model, Int spatial_dimension,
+                  const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
 
   ~MaterialElastic() override = default;
 
@@ -88,14 +85,12 @@ public:
   /// compute the elastic potential energy
   void computePotentialEnergy(ElementType el_type) override;
 
-  [[gnu::deprecated("Use the interface with an Element")]]
-  void
+  [[gnu::deprecated("Use the interface with an Element")]] void
   computePotentialEnergyByElement(ElementType type, Int index,
                                   Vector<Real> & epot_on_quad_points) override;
   void
   computePotentialEnergyByElement(const Element & element,
                                   Vector<Real> & epot_on_quad_points) override;
-
 
   /// compute the p-wave speed in the material
   auto getPushWaveSpeed(const Element & element) const -> Real override;
@@ -105,20 +100,17 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  template <typename Args>
-  inline void computeStressOnQuad(Args && arguments) const;
+  template <typename Args> inline void computeStressOnQuad(Args && args) const;
 
   /// compute the tangent stiffness matrix for an element
   template <typename Args>
-  inline void
-  computeTangentModuliOnQuad(Args && arguments) const;
+  inline void computeTangentModuliOnQuad(Args && args) const;
 
   /// recompute the lame coefficient if E or nu changes
   void updateInternalParameters() override;
 
-  static inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                                  const Matrix<Real> & sigma,
-                                                  Real & epot);
+  template <class Args>
+  static inline void computePotentialEnergyOnQuad(Args && args, Real & epot);
 
   auto hasStiffnessMatrixChanged() -> bool override {
     return (not was_stiffness_assembled);

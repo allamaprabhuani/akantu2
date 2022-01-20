@@ -1,8 +1,8 @@
 if(NOT _GTest_version)
-  set(_GTest_version "master")
+  set(_GTest_version "main")
 endif()
 
-if(NOT EXISTS ${_GTest_external_dir})
+if(NOT EXISTS ${_GTest_external_dir}/CMakeLists.txt)
   download_external_project(google-test
     URL "https://github.com/google/googletest.git"
     TAG "${_GTest_version}"

@@ -222,12 +222,12 @@ void PhaseFieldModel::initPhaseFields() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       mesh,
       [&](auto && element) {
-        UInt phase_index = (*phasefield_selector)(element);
+        Int phase_index = (*phasefield_selector)(element);
         AKANTU_DEBUG_ASSERT(
             phase_index < phasefields.size(),
             "The phasefield selector returned an index that does not exists");
@@ -433,10 +433,10 @@ void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
-                                const SynchronizationTag & tag) const {
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+Int PhaseFieldModel::getNbData(const Array<Element> & elements,
+                               const SynchronizationTag & tag) const {
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -484,8 +484,8 @@ void PhaseFieldModel::unpackData(__attribute__((unused))
                                  const SynchronizationTag & tag) {}
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
-                                const SynchronizationTag & tag) const {
+Int PhaseFieldModel::getNbData(const Array<Idx> & indexes,
+                               const SynchronizationTag & tag) const {
   UInt size = 0;
   UInt nb_nodes = indexes.size();
 
@@ -503,7 +503,7 @@ UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
-                               const Array<UInt> & indexes,
+                               const Array<Idx> & indexes,
                                const SynchronizationTag & tag) const {
   for (auto index : indexes) {
     switch (tag) {
@@ -520,7 +520,7 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
-                                 const Array<UInt> & indexes,
+                                 const Array<Idx> & indexes,
                                  const SynchronizationTag & tag) {
   for (auto index : indexes) {
     switch (tag) {
@@ -572,10 +572,10 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, UInt /*unused*/, ElementKind element_kind) {
+    bool /*unused*/, Int /*unused*/, ElementKind element_kind) {
 
   if (field_name == "partitions") {
-    return mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    return mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
   }
@@ -589,7 +589,7 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createElementalField(const std::string &, const std::string &,
-                                      bool, const UInt &, ElementKind) {
+                                      bool, Int, ElementKind) {
   return nullptr;
 }
 

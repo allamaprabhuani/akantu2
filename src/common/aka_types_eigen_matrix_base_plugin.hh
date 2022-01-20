@@ -48,6 +48,8 @@ MatrixBase(std::initializer_list<std::initializer_list<Scalar>> list)
   }
 }
 
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void zero();
+
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<not _is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto operator()(Index c) {
@@ -137,8 +139,6 @@ const Scalar * storage() const {
 }
 // clang-format on
 
-void zero() { this->fill(0); }
-
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<_is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size() const {
@@ -179,19 +179,19 @@ doubleDot(const MatrixBase<OtherDerived> & other) const {
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(const MatrixBase<OtherDerived> & other);
+eig(const MatrixBase<OtherDerived> & other) const;
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eig(const MatrixBase<D1> & values,
-                                               const MatrixBase<D2> & vectors);
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
+eig(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors) const;
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eigh(const MatrixBase<OtherDerived> & other);
+eigh(const MatrixBase<OtherDerived> & other) const;
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(const MatrixBase<D1> & values,
-                                                const MatrixBase<D2> & vectors);
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
+eigh(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors) const;
 /*
 public:
 */
