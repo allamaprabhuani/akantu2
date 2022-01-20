@@ -25,3 +25,7 @@ compile_commands.json
 .iwyu.imp
 .cache
 setup.cfg
+.vscode
+.auctex*
+.clangd
+.ccls
