@@ -211,7 +211,8 @@ test:python_package:
   needs:
     - job: build_pip:python_package
   script:
-    - pip install akantu -f wheelhouse
+    - pip install numpy scipy
+    - pip install akantu --no-index --find-links=${PWD}/wheelhouse
     - python -c "import akantu"
     - cd examples/python/dynamics/
     - apt update && apt install -y gmsh
@@ -229,6 +230,7 @@ package:python_gitlab:
             wheelhouse/*
   needs:
     - job: build_pip:python_package
+    - job: test:python_package
   only:
     - master
 
@@ -241,6 +243,7 @@ package:python_pypi:
           python3 -m twine upload --verbose wheelhouse/*
   needs:
     - job: build_pip:python_package
+    - job: test:python_package
   only:
     - tags
 
