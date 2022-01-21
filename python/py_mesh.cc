@@ -63,7 +63,7 @@ namespace {
               return self(type, ghost_type);
             },
             py::arg("type"), py::arg("ghost_type") = _not_ghost,
-            py::return_value_policy::reference)
+            py::return_value_policy::reference, py::keep_alive<0, 1>() )
         .def(
             "elementTypes",
             [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
