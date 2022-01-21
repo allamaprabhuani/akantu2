@@ -753,20 +753,20 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  inline void log_map(const Matrix<T> &R) {
+  inline void logMap(const Matrix<T> &R) {
     /// A discuter avec Nico
     AKANTU_DEBUG_ASSERT(this->size() == 3 && R.rows() == 3 && R.cols() == 3,
                         "need a 3 dim matrix and vector");
-    auto theta = compute_rotation_angle(R);
+    Real theta = R.computeRotationAngle();
     if (theta < 1e-8) {
       (*this) = {-R(1,2), R(0,2), -R(0,1)};
     }
-    auto sym = double((R - R.transpose()).norm() / R.norm()) < 1e-12;
+    auto sym = ((R - R.transpose()).template norm<L_2>() / R.template norm<L_2>()) < 1e-12;
     if (sym) {
-      auto _R = 0.5 * (R + R.transpose);
-      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> s(_R);
-      auto eig_vals = s.eigenvalues();
-      auto eig_vects = s.eigenvectors();
+      Matrix<T> _R = 0.5 * (R + R.transpose());
+      Matrix<T> eig_vects(3,3);
+      Vector<T> eig_vals(3);
+      _R.eig(eig_vects, eig_vals);
       for (UInt i = 0; i < eig_vals.size(); ++i) {
         auto val = eig_vals(i);
         auto vect = eig_vects(i);
@@ -776,9 +776,11 @@ public:
       }
       throw std::runtime_error("Symmetric cannot log:"); 
     }
-    auto A = (R - R.transpose()) / 2;
-    auto _log = theta / std::sin(theta) * A;
-    (*this) = skew2vec(_log);
+    Matrix<T> A = (R - R.transpose()) / 2;
+    Matrix<T> _log = theta / std::sin(theta) * A;
+    Vector<T> res(3);
+    res.skew2vec(_log);
+    (*this) = res;
   }
 
   /* ------------------------------------------------------------------------ */
@@ -800,23 +802,36 @@ public:
      \f$\frac{d}{dt}\theta(t)\f$
 
   */
-  inline void convected_angle_derivative(const Vector<T> &B,
+  inline void convectedAngleDerivative(const Vector<T> &B,
                                          const Vector<T> &Bp) {
     AKANTU_DEBUG_ASSERT(this->size() == B.size() == Bp.size() ==3,
                         "need a 3 dim vectors");
-  auto exp_deriv = exp_map(-B) * exp_derivative(B, Bp);
-  (*this) = skew2vec(exp_deriv);
+    Matrix<T> B1(3,3);
+    Matrix<T> Bp1(3,3);
+    Matrix<T> BB = -B;
+    B1.expMap(BB);
+    Bp1.expDerivative(B, Bp);
+    Matrix<T> exp_deriv = B1 * Bp1;
+    Vector<T> skew_exp_deriv(3);
+    skew_exp_deriv.skew2vec(exp_deriv);
+    (*this) = skew_exp_deriv;
   }
 
   /* ------------------------------------------------------------------------ */
-  inline void angle_acceleration(const Vector<T> &B, const Vector<T> &Bp,
+  inline void angleAcceleration(const Vector<T> &B, const Vector<T> &Bp,
                                  const Vector<T> &Bpp) {
     AKANTU_DEBUG_ASSERT(this->size() == B.size() == Bp.size() == Bpp.size() == 3,
                         "need a 3 dim vectors");
-    auto L = exp_map(B);
-    auto vel = exp_derivative(B, Bp);
-    auto acc = exp_acceleration(B, Bp, Bpp);
-    (*this) = acc * L.transpose() + vel * vel.transpose();
+    Matrix<T> L(3,3);
+    Matrix<T> vel(3,3);
+    Matrix<T> acc(3,3);
+    L.expMap(B);
+    vel.expDerivative(B, Bp);
+    acc.expAcceleration(B, Bp, Bpp);
+    Matrix<T> res = acc * L.transpose() + vel * vel.transpose();
+    Vector<T> rev_vec(3);
+    rev_vec.skew2vec(res);
+    (*this) = rev_vec;
   }
 
   /* ------------------------------------------------------------------------ */
@@ -825,11 +840,21 @@ public:
     representing rotations,
     this functions
     return the vector representing the composition of the two rotations.*/
-  inline auto compose_rotations(const Vector<T> &a1, const Vector<T> &a2) {
+  inline auto composeRotations(const Vector<T> &a1, const Vector<T> &a2) {
     AKANTU_DEBUG_ASSERT(this->size() == a1.size() == a2.size() == 3,
                         "need a 3 dim vectors");
-    (*this) = log_map(exp_map(a1) * exp_map(a2));
+    Matrix<T> mat1(3,3);
+    Matrix<T> mat2(3,3);
+    mat1.expMap(a1);
+    mat2.expMap(a2);
+    Matrix<T> mat12 = mat1 * mat2;
+    Vector<T> vec12(3);
+    vec12.logMap(mat12);
+    (*this) = vec12;
   }
+
+  /* ------------------------------------------------------------------------ */
+  
   
 
   /* ------------------------------------------------------------------------ */
@@ -842,40 +867,9 @@ public:
     return parent::template norm<nt>();
   }
 
-  template <typename T>
-  Vector<T> skew2vec(const Matrix<T> & mat){
-    Vector<T> v(3);
-    v.skew2vec(mat);
-    return v;
-  }
+  
 
-  template <typename T>
-  Vector<T> log_map(const Matrix<T> & mat){
-    Vector<T> v(3);
-    v.log_map(mat);
-    return v;
-  }
-
-  template <typename T>
-  Vector<T> convected_angle_derivative(const Vector<T> & v1, const Vector<T> & v2){
-    Vector<T> v(3);
-    v.convected_angle_derivative(v1, v2);
-    return v;
-  }
-
-  template <typename T>
-  Vector<T> angle_acceleration(const Vector<T> & v1, const Vector<T> & v2, const Vector<T> &v3){
-    Vector<T> v(3);
-    v.angle_acceleration(v1, v2, v3);
-    return v;
-  }
-
-  template <typename T>
-  Vector<T> compose_rotations(const Vector<T> & v1, const Vector<T> & v2){
-    Vector<T> v(3);
-    v.compose_rotations(v1, v2);
-    return v;
-  }
+  
 
   
 
@@ -1256,21 +1250,44 @@ public:
     AKANTU_DEBUG_ASSERT(
         v.size() == 3 && this->rows() == 3 && this->cols() == 3,
         "v and the matrix are not in dimension 3");
-    (*this)(0)=Vector<Real> {0, v(2), -v(1)};
-    (*this)(1)=Vector<Real> {-v(2), 0, v(0)};
-    (*this)(2)=Vector<Real> {v(1), -v(0), 0};
+    (*this)(0)=Vector<T> {0, v(2), -v(1)};
+    (*this)(1)=Vector<T> {-v(2), 0, v(0)};
+    (*this)(2)=Vector<T> {v(1), -v(0), 0};
   }
 
   /* ---------------------------------------------------------------------- */
-  inline void exp_map(const Vector<T> &v) {
+  inline void expMap(const Vector<T> &v) {
     AKANTU_DEBUG_ASSERT(v.size()==3 && this->rows() ==3 && this->cols() == 3,
                         "only for dimension 3 vector and matrix");
     auto theta = v.norm();
     if (Math::are_float_equal(theta, 0.)) {
-      (*this) = Matrix<Real>::eye(3);
+      (*this) = Matrix<T>::eye(3, 1.);
     }
-    auto K = skew(v) / theta;
-    (*this) = Matrix<Real>::eye(3) + std::sin(theta) * K + (1 - std::cos(theta)) * K * K;
+    Matrix<T> K(3,3);
+    K.skew(v);
+    K /= theta;
+    (*this) = Matrix<T>::eye(3, 1.) + std::sin(theta) * K + (1 - std::cos(theta)) * K * K;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  inline Real computeRotationAngle() {
+    /// demander à Nico car soirtie réel et non vecteur
+    AKANTU_DEBUG_ASSERT(this->rows() == this->cols() == 3,
+                        "need a 3 dim matrix");
+    auto cos_val = (this->trace() -1) / 2;
+    if (cos_val < -1) {
+      cos_val = -1;
+    }
+    if (cos_val > 1) {
+      cos_val = 1;
+    }
+
+    Real theta = std::acos(cos_val);
+    if(std::isnan(theta)) {
+      throw std::runtime_error(
+        "in angle calculation theta is not a number: abort");
+    }
+    return theta;
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1290,7 +1307,7 @@ public:
      @param vp the provided rotation vector derivative \f$\frac{d}{dt}
      \theta(t)\f$
   */
-  inline void exp_derivative(const Vector<T> &v, const Vector<T> &vp) {
+  inline void expDerivative(const Vector<T> &v, const Vector<T> &vp) {
     AKANTU_DEBUG_ASSERT(v.size()==3 && vp.size() == 3 && this->rows() ==3 && this->cols() == 3,
                         "only for dimension 3 vectors and matrix");
     Real f;
@@ -1311,15 +1328,16 @@ public:
       hp = (theta * std::sin(theta) + 2 * std::cos(theta) - 2.) * thetap /
         (theta * theta * theta);
     }
-    auto _B = skew(v);
-    auto _Bp = skew(vp);
+    Matrix<T> _B(3,3);
+    Matrix<T> _Bp(3,3);
+    _B.skew(v);
+    _Bp.skew(vp);
     (*this) = fp * _B + hp * _B * _B + f * _Bp + h * (_Bp * _B + _B * _Bp);
   }
 
   /* ---------------------------------------------------------------------- */
-  inline void exp_acceleration(const Vector<T> &B, const Vector<T> &Bp,
+  inline void expAcceleration(const Vector<T> &B, const Vector<T> &Bp,
                              const Vector<T> &Bpp) {
-    /// demander à Nico pour le pow
     AKANTU_DEBUG_ASSERT(B.size()==3 && Bp.size() == 3 && Bpp.size() == 3 && this->rows() ==3 && this->cols() == 3,
                         "only for dimension 3 vectors and matrix");
     auto theta = B.norm();
@@ -1360,20 +1378,18 @@ public:
          2 * theta * ((c - 1) * thetapp - 2 * s * std::pow(thetap, 2)) -
          6 * (c - 1) * std::pow(thetap, 2));
     }
-    auto Bhat = skew(B);
-    auto Bphat = skew(Bp);
-    auto Bpphat = skew(Bpp);
+    Matrix<T> Bhat(3,3);
+    Matrix<T> Bphat(3,3);
+    Matrix<T> Bpphat(3,3);
+    Bhat.skew(B);
+    Bphat.skew(Bp);
+    Bpphat.skew(Bpp);
     (*this) = fpp * Bhat + hpp * Bhat * Bhat;
-    res += 2 * fp * Bphat + 2 * hp * (Bhat * Bphat + Bphat * Bhat);
-    res += f * Bpphat + h * (2 * Bphat * Bphat + Bhat * Bpphat + Bpphat * Bhat);
+    (*this) += 2 * fp * Bphat + 2 * hp * (Bhat * Bphat + Bphat * Bhat);
+    (*this) += f * Bpphat + h * (Bphat * Bphat +  Bphat * Bphat + Bhat * Bpphat + Bpphat * Bhat);
   }
 
   
-    
-
-  
-  
-
   /* ---------------------------------------------------------------------- */
   
 private:
@@ -1747,6 +1763,41 @@ Vector<T> operator*(const Matrix<T> & A, const Vector<T> & b) {
   return r;
 }
 
+template <typename T>
+Vector<T> skew2vec(const Matrix<T> & mat){
+  Vector<T> v(3);
+  v.skew2vec(mat);
+  return v;
+}
+
+template <typename T>
+Vector<T> logMap(const Matrix<T> & mat){
+  Vector<T> v(3);
+  v.logMap(mat);
+  return v;
+}
+
+template <typename T>
+Vector<T> convectedAngleDerivative(const Vector<T> & v1, const Vector<T> & v2){
+  Vector<T> v(3);
+  v.convectedAngleDerivative(v1, v2);
+  return v;
+}
+
+template <typename T>
+Vector<T> angleAcceleration(const Vector<T> & v1, const Vector<T> & v2, const Vector<T> &v3){
+  Vector<T> v(3);
+  v.angleAcceleration(v1, v2, v3);
+  return v;
+}
+
+template <typename T>
+Vector<T> composeRotations(const Vector<T> & v1, const Vector<T> & v2){
+  Vector<T> v(3);
+  v.composeRotations(v1, v2);
+  return v;
+}
+
 /* -------------------------------------------------------------------------- */
 template <typename T>
 Matrix<T> operator*(const T & scalar, const Matrix<T> & a) {
@@ -1791,24 +1842,29 @@ Matrix<T> skew(const Vector<T> & v){
 }
 
 template <typename T>
-Matrix<T> exp_map(const Vector<T> & v){
+Matrix<T> expMap(const Vector<T> & v){
   Matrix<T> s(3,3);
-  s.exp_map(v);
+  s.expMap(v);
   return s;
 }
 
 template <typename T>
-Matrix<T> exp_derivative(const Vector<T> & v1, const Vector<T> & v2){
+Matrix<T> expDerivative(const Vector<T> & v1, const Vector<T> & v2){
   Matrix<T> s(3,3);
-  s.exp_derivative(v1, v2);
+  s.expDerivative(v1, v2);
   return s;
 }
 
 template <typename T>
-Matrix<T> exp_acceleration(const Vector<T> & v1, const Vector<T> & v2, const Vector<T> & v3){
+Matrix<T> expAcceleration(const Vector<T> & v1, const Vector<T> & v2, const Vector<T> & v3){
   Matrix<T> s(3,3);
-  s.exp_acceleration(v1, v2, v3);
+  s.expAcceleration(v1, v2, v3);
   return s;
+}
+
+template <typename T>
+Real computeRotationAngle(const Matrix<T> &mat){
+  return mat.computeRotationAngle();
 }
 
 } // namespace akantu

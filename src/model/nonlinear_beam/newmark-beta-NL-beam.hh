@@ -37,7 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_NEWMARK_BETA_NL_BEEAM_HH_
+#ifndef AKANTU_NEWMARK_BETA_NL_BEAM_HH_
 #define AKANTU_NEWMARK_BETA_NL_BEAM_HH_
 
 /* -------------------------------------------------------------------------- */

@@ -36,7 +36,7 @@
 #include "newmark-beta-NL-beam.hh"
 #include "dof_manager.hh"
 #include "sparse_matrix.hh"
-// #include "angle_tool.hh"
+#include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -81,7 +81,19 @@ void NewmarkBetaNLBeam::predictor(Real delta_t, Array<Real> & u, Array<Real> & u
     Vector<Real> rv = std::get<2>(data)(1);
 
     disp += delta_t * vel;
-    //theta = log_map(exp_map(delta_t * this->rv[nd]) * exp_map(this->theta[nd]));
+    Matrix<Real> Sk = skew(rv);
+    Matrix<Real> T = expMap(rv);
+    Matrix<Real> TT = expDerivative(rv,theta);
+    Matrix<Real> AC = expAcceleration(rv, theta, disp);
+    Real f = computeRotationAngle(T);
+
+    Vector<Real> Vec = skew2vec(Sk);
+    Vector<Real> T1 = logMap(T);
+    Vector<Real> T2 = convectedAngleDerivative(rv, theta);
+    Vector<Real> T3 = angleAcceleration(rv, disp, theta);
+    Vector<Real> T4 = composeRotations(rv, theta);
+    
+    //theta = logMap(expMap(delta_t * rv) * expMap(theta));
 }
 
   AKANTU_DEBUG_OUT();

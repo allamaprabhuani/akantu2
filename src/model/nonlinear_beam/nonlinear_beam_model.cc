@@ -246,6 +246,7 @@ void NonlinearBeamModel::assembleLumpedMatrix(const ID & matrix_id) {
 
 /* -------------------------------------------------------------------------- */
 Matrix<Real> NonlinearBeamModel::N_matrix() {
+  /*
   AKANTU_DEBUG_IN();
   
   Matrix<Real> N_mat(2*spatial_dimension, this->nb_nodes_per_element*2*spatial_dimension,0.);
@@ -259,6 +260,7 @@ Matrix<Real> NonlinearBeamModel::N_matrix() {
   return N_mat;
   
   AKANTU_DEBUG_OUT();
+  */
 }
 
 
