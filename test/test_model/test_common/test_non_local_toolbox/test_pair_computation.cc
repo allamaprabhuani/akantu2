@@ -31,14 +31,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_paraview.hh"
 #include "non_local_manager.hh"
 #include "non_local_neighborhood.hh"
 #include "solid_mechanics_model.hh"
 #include "test_material_damage.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
-typedef std::vector<std::pair<IntegrationPoint, IntegrationPoint>> PairList;
+using PairList = std::vector<std::pair<IntegrationPoint, IntegrationPoint>>;
 
 /* -------------------------------------------------------------------------- */
 void computePairs(SolidMechanicsModel & model, PairList * pair_list);
@@ -90,71 +89,64 @@ int main(int argc, char * argv[]) {
       model.getNonLocalManager().getNeighborhood("mat_2").getPairLists(_ghost);
 
   /// compare the number of pairs
-  UInt nb_not_ghost_pairs_grid =
+  auto nb_not_ghost_pairs_grid =
       pairs_mat_1_not_ghost.size() + pairs_mat_2_not_ghost.size();
-  UInt nb_ghost_pairs_grid =
+  auto nb_ghost_pairs_grid =
       pairs_mat_1_ghost.size() + pairs_mat_2_ghost.size();
-  UInt nb_not_ghost_pairs_no_grid = pair_list[0].size();
-  UInt nb_ghost_pairs_no_grid = pair_list[1].size();
+  auto nb_not_ghost_pairs_no_grid = pair_list[0].size();
+  auto nb_ghost_pairs_no_grid = pair_list[1].size();
 
   if ((nb_not_ghost_pairs_grid != nb_not_ghost_pairs_no_grid) ||
       (nb_ghost_pairs_grid != nb_ghost_pairs_no_grid)) {
     std::cout << "The number of pairs is not correct: TEST FAILED!!!"
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
   for (UInt i = 0; i < pairs_mat_1_not_ghost.size(); ++i) {
-    PairList::const_iterator it = std::find(
-        pair_list[0].begin(), pair_list[0].end(), (pairs_mat_1_not_ghost)[i]);
+    auto it = std::find(pair_list[0].begin(), pair_list[0].end(),
+                        (pairs_mat_1_not_ghost)[i]);
     if (it == pair_list[0].end()) {
       std::cout << "The pairs are not correct" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
 
-  for (UInt i = 0; i < pairs_mat_2_not_ghost.size(); ++i) {
-    PairList::const_iterator it = std::find(
-        pair_list[0].begin(), pair_list[0].end(), (pairs_mat_2_not_ghost)[i]);
+  for (Int i = 0; i < pairs_mat_2_not_ghost.size(); ++i) {
+    auto it = std::find(pair_list[0].begin(), pair_list[0].end(),
+                        (pairs_mat_2_not_ghost)[i]);
     if (it == pair_list[0].end()) {
       std::cout << "The pairs are not correct" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
 
   for (UInt i = 0; i < pairs_mat_1_ghost.size(); ++i) {
-    PairList::const_iterator it = std::find(
-        pair_list[1].begin(), pair_list[1].end(), (pairs_mat_1_ghost)[i]);
+    auto it = std::find(pair_list[1].begin(), pair_list[1].end(),
+                        (pairs_mat_1_ghost)[i]);
     if (it == pair_list[1].end()) {
       std::cout << "The pairs are not correct" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
 
   for (UInt i = 0; i < pairs_mat_2_ghost.size(); ++i) {
-    PairList::const_iterator it = std::find(
-        pair_list[1].begin(), pair_list[1].end(), (pairs_mat_2_ghost)[i]);
+    auto it = std::find(pair_list[1].begin(), pair_list[1].end(),
+                        (pairs_mat_2_ghost)[i]);
     if (it == pair_list[1].end()) {
       std::cout << "The pairs are not correct" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
-
-  finalize();
 
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
 void computePairs(SolidMechanicsModel & model, PairList * pair_list) {
-  ElementKind kind = _ek_regular;
-  Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = model.getSpatialDimension();
+  auto kind = _ek_regular;
+  auto & mesh = model.getMesh();
+  auto spatial_dimension = model.getSpatialDimension();
   /// compute the quadrature points
   ElementTypeMapReal quad_coords("quad_coords");
   quad_coords.initialize(mesh, _nb_component = spatial_dimension,
@@ -174,15 +166,15 @@ void computePairs(SolidMechanicsModel & model, PairList * pair_list) {
 
   for (auto type_1 : mesh.elementTypes(spatial_dimension, _not_ghost, kind)) {
     q1.type = type_1;
-    UInt nb_elements_1 = mesh.getNbElement(type_1, ghost_type_1);
-    UInt nb_quads_1 = model.getFEEngine().getNbIntegrationPoints(type_1);
-    Array<Real> & quad_coords_1 = quad_coords(q1.type, q1.ghost_type);
+    auto nb_elements_1 = mesh.getNbElement(type_1, ghost_type_1);
+    auto nb_quads_1 = model.getFEEngine().getNbIntegrationPoints(type_1);
+    auto & quad_coords_1 = quad_coords(q1.type, q1.ghost_type);
     auto coord_it_1 = quad_coords_1.begin(spatial_dimension);
-    for (UInt e_1 = 0; e_1 < nb_elements_1; ++e_1) {
+    for (Int e_1 = 0; e_1 < nb_elements_1; ++e_1) {
       q1.element = e_1;
-      UInt mat_index_1 = model.getMaterialByElement(q1.type, q1.ghost_type)
+      auto mat_index_1 = model.getMaterialByElement(q1.type, q1.ghost_type)
                              .begin()[q1.element];
-      for (UInt q_1 = 0; q_1 < nb_quads_1; ++q_1) {
+      for (Int q_1 = 0; q_1 < nb_quads_1; ++q_1) {
         q1.global_num = nb_quads_1 * e_1 + q_1;
         q1.num_point = q_1;
         q1_coords = coord_it_1[q1.global_num];
@@ -194,21 +186,21 @@ void computePairs(SolidMechanicsModel & model, PairList * pair_list) {
                mesh.elementTypes(spatial_dimension, ghost_type_2, kind)) {
 
             q2.type = type_2;
-            UInt nb_elements_2 = mesh.getNbElement(type_2, ghost_type_2);
-            UInt nb_quads_2 =
+            auto nb_elements_2 = mesh.getNbElement(type_2, ghost_type_2);
+            auto nb_quads_2 =
                 model.getFEEngine().getNbIntegrationPoints(type_2);
-            Array<Real> & quad_coords_2 = quad_coords(q2.type, q2.ghost_type);
+            auto & quad_coords_2 = quad_coords(q2.type, q2.ghost_type);
             auto coord_it_2 = quad_coords_2.begin(spatial_dimension);
-            for (UInt e_2 = 0; e_2 < nb_elements_2; ++e_2) {
+            for (Int e_2 = 0; e_2 < nb_elements_2; ++e_2) {
               q2.element = e_2;
-              UInt mat_index_2 =
+              auto mat_index_2 =
                   model.getMaterialByElement(q2.type, q2.ghost_type)
                       .begin()[q2.element];
-              for (UInt q_2 = 0; q_2 < nb_quads_2; ++q_2) {
+              for (Int q_2 = 0; q_2 < nb_quads_2; ++q_2) {
                 q2.global_num = nb_quads_2 * e_2 + q_2;
                 q2.num_point = q_2;
                 q2_coords = coord_it_2[q2.global_num];
-                Real distance = q1_coords.distance(q2_coords);
+                auto distance = q1_coords.distance(q2_coords);
                 if (mat_index_1 != mat_index_2)
                   continue;
                 else if (distance <=

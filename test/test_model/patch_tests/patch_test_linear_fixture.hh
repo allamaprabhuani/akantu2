@@ -119,8 +119,8 @@ public:
     for (auto & grad :
          make_view(gradient, gradient.getNbComponent() / dim, dim)) {
       auto diff = grad - pgrad;
-      auto gradient_error =
-          diff.template norm<L_inf>() / grad.template norm<L_inf>();
+      auto gradient_error = diff.template lpNorm<Eigen::Infinity>() /
+                            grad.template lpNorm<Eigen::Infinity>();
 
       EXPECT_NEAR(0, gradient_error, gradient_tolerance);
     }
@@ -133,8 +133,8 @@ public:
     for (auto & result :
          make_view(results, results.getNbComponent() / dim, dim)) {
       auto diff = result - presult;
-      auto result_error =
-          diff.template norm<L_inf>() / presult.template norm<L_inf>();
+      auto result_error = diff.template lpNorm<Eigen::Infinity>() /
+                          presult.template lpNorm<Eigen::Infinity>();
 
       EXPECT_NEAR(0, result_error, result_tolerance);
     }
@@ -158,7 +158,7 @@ public:
                              make_view(dofs, dofs.getNbComponent()))) {
       setLinearDOF(ref_dof, std::get<0>(tuple));
       auto diff = std::get<1>(tuple) - ref_dof;
-      auto dofs_error = diff.template norm<L_inf>();
+      auto dofs_error = diff.template lpNorm<Eigen::Infinity>();
 
       EXPECT_NEAR(0, dofs_error, dofs_tolerance);
     }

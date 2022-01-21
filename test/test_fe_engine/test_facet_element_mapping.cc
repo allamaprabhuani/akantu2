@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
   for (auto ghost_type : ghost_types) {
     std::cout << "  "
               << "Ghost type: " << ghost_type << std::endl;
-    for (auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
 
       const SubelemToElemMapping & subelement_to_element =
           mesh.getSubelementToElement(type, ghost_type);
@@ -88,8 +88,9 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    for (auto & type : mesh.elementTypes(spatial_dimension - 1, ghost_type)) {
-      const ElemToSubelemMapping & element_to_subelement =
+    for (const auto & type :
+         mesh.elementTypes(spatial_dimension - 1, ghost_type)) {
+      const auto & element_to_subelement =
           mesh.getElementToSubelement(type, ghost_type);
       std::cout << "  "
                 << "  "
@@ -101,12 +102,12 @@ int main(int argc, char * argv[]) {
                 << "element_to_subelement:" << std::endl;
       element_to_subelement.printself(std::cout, 8);
 
-      for (UInt i(0); i < element_to_subelement.size(); ++i) {
-        const std::vector<Element> & vec = element_to_subelement(i);
+      for (Int i(0); i < element_to_subelement.size(); ++i) {
+        const auto & vec = element_to_subelement(i);
         std::cout << "          ";
         std::cout << "item " << i << ": [ ";
         if (vec.size() > 0) {
-          for (UInt j(0); j < vec.size(); ++j) {
+          for (Int j(0); j < vec.size(); ++j) {
             if (vec[j] != ElementNull) {
               std::cout << vec[j] << ", ";
             } else {

@@ -61,12 +61,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline UInt StructuralMechanicsModel::getNbDegreeOfFreedom(ElementType type) {
-  UInt ndof = 0;
-#define GET_(type) ndof = ElementClass<type>::getNbDegreeOfFreedom()
-  AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_, _ek_structural);
-#undef GET_
-
-  return ndof;
+  return tuple_dispatch<ElementTypes_t<_ek_structural>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNbDegreeOfFreedom();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -323,16 +323,17 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, UInt spatial_dimension, ElementKind kind) {
+    bool /*unused*/, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
   if (field_name == "element_index_by_material") {
-    field = mesh.createElementalField<UInt, Vector, dumpers::ElementalField>(
-        field_name, group_name, spatial_dimension, kind);
+    field =
+        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+            field_name, group_name, spatial_dimension, kind);
   }
   if (field_name == "stress") {
-    ElementTypeMap<UInt> nb_data_per_elem = this->mesh.getNbDataPerElem(stress);
+    ElementTypeMap<Int> nb_data_per_elem = this->mesh.getNbDataPerElem(stress);
 
     field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
         stress, group_name, this->spatial_dimension, kind, nb_data_per_elem);
@@ -608,7 +609,7 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(
   for (UInt e = 0; e < nb_element; ++e, ++R_it) {
     for (UInt q = 0; q < nb_quad; ++q, ++Te_it, ++te_it) {
       // turn the traction in the local referential
-      te_it->template mul<false>(*R_it, *Te_it);
+      *te_it = *R_it * *Te_it;
     }
   }
 

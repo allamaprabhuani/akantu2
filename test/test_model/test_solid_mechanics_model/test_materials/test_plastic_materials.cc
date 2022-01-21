@@ -100,10 +100,10 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
     Matrix<Real> sigma_expected =
         t * 3. * bulk_modulus_K * Matrix<Real>::eye(3, 1.);
 
-    Real stress_error = (sigma - sigma_expected).norm<L_inf>();
+    Real stress_error = (sigma - sigma_expected).lpNorm<Eigen::Infinity>();
 
     ASSERT_NEAR(stress_error, 0., 1e-13);
-    ASSERT_NEAR(inelastic_strain_rot.norm<L_inf>(), 0., 1e-13);
+    ASSERT_NEAR(inelastic_strain_rot.lpNorm<Eigen::Infinity>(), 0., 1e-13);
 
     previous_grad_u_rot = grad_u_rot;
     previous_sigma_rot = sigma_rot;
@@ -139,9 +139,9 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
       Matrix<Real> sigma_expected =
           shear_modulus_mu * (grad_u + grad_u.transpose());
 
-      Real stress_error = (sigma - sigma_expected).norm<L_inf>();
+      Real stress_error = (sigma - sigma_expected).lpNorm<Eigen::Infinity>();
       ASSERT_NEAR(stress_error, 0., 1e-13);
-      ASSERT_NEAR(inelastic_strain_rot.norm<L_inf>(), 0., 1e-13);
+      ASSERT_NEAR(inelastic_strain_rot.lpNorm<Eigen::Infinity>(), 0., 1e-13);
     } else if (t > t_P + dt) {
       // skip the transition from non plastic to plastic
 
@@ -151,7 +151,8 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
           delta_lambda_expected * 3. / 2. / sigma_0 * previous_sigma;
       auto inelastic_strain_expected =
           delta_inelastic_strain_expected + previous_inelastic_strain;
-      ASSERT_NEAR((inelastic_strain - inelastic_strain_expected).norm<L_inf>(),
+      ASSERT_NEAR((inelastic_strain - inelastic_strain_expected)
+                      .lpNorm<Eigen::Infinity>(),
                   0., 1e-13);
       auto delta_sigma_expected =
           2. * shear_modulus_mu *
@@ -159,8 +160,9 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
            delta_inelastic_strain_expected);
 
       auto delta_sigma = sigma - previous_sigma;
-      ASSERT_NEAR((delta_sigma_expected - delta_sigma).norm<L_inf>(), 0.,
-                  1e-13);
+      ASSERT_NEAR(
+          (delta_sigma_expected - delta_sigma).lpNorm<Eigen::Infinity>(), 0.,
+          1e-13);
     }
     previous_sigma = sigma;
     previous_sigma_rot = sigma_rot;

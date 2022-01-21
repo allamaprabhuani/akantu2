@@ -46,19 +46,19 @@ inline ShapeLagrange<_ek_cohesive>::ShapeLagrange(const Mesh & mesh,
                                                   const ID & id)
     : ShapeLagrangeBase(mesh, spatial_dimension, _ek_cohesive, id) {}
 
-#define INIT_SHAPE_FUNCTIONS(type)                                             \
-  setIntegrationPointsByType<type>(integration_points, ghost_type);            \
-  precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);                \
-  precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
-
 /* -------------------------------------------------------------------------- */
 inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
     ElementType type, GhostType ghost_type) {
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+  tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        setIntegrationPointsByType<type>(integration_points, ghost_type);
+        precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
+        precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
+      },
+      type);
 }
-
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
@@ -99,8 +99,8 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
 inline void
 ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, ElementType type,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
+    const Array<Idx> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -121,8 +121,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapesOnIntegrationPoints(
   auto & natural_coords = integration_points(type, ghost_type);
   auto size_of_shapes = ElementClass<type>::getShapeSize();
 
-  auto & shapes_tmp =
-      shapes.alloc(0, size_of_shapes, itp_type, ghost_type);
+  auto & shapes_tmp = shapes.alloc(0, size_of_shapes, itp_type, ghost_type);
 
   this->computeShapesOnIntegrationPoints<type>(nodes, natural_coords,
                                                shapes_tmp, ghost_type);
@@ -171,10 +170,10 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(
   elemental_f.resize(nb_element);
 
   auto u_it =
-      make_view(elemental_f, nb_degree_of_freedom, nb_nodes_per_itp_element).begin();
+      make_view(elemental_f, nb_degree_of_freedom, nb_nodes_per_itp_element)
+          .begin();
 
-  auto nodal_f_it =
-      make_view(nodal_f, nb_degree_of_freedom).begin();
+  auto nodal_f_it = make_view(nodal_f, nb_degree_of_freedom).begin();
 
   ReduceFunction reduce_function;
 

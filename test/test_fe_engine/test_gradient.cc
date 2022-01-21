@@ -94,10 +94,10 @@ TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->gradientOnIntegrationPoints(position, grad_coord_on_quad, dim,
                                          type);
 
-  auto I = Matrix<Real>::eye(UInt(dim));
+  auto I = Matrix<Real, dim, dim>::Identity();
 
   for (auto && grad : make_view(grad_coord_on_quad, dim, dim)) {
-    auto diff = (I - grad).template norm<L_inf>();
+    auto diff = (I - grad).template lpNorm<Eigen::Infinity>();
 
     EXPECT_NEAR(0., diff, 2e-14);
   }

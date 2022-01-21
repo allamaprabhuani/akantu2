@@ -189,7 +189,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -309,7 +309,7 @@ private:
   ElementTypeMapArray<UInt> set_ID;
 
   /// number of degre of freedom
-  UInt nb_degree_of_freedom;
+  Int nb_degree_of_freedom;
 
   // Rotation matrix
   ElementTypeMapArray<Real> rotation_matrix;

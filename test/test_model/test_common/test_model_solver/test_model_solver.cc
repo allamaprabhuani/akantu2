@@ -98,8 +98,8 @@ int main(int argc, char * argv[]) {
 /* -------------------------------------------------------------------------- */
 void genMesh(Mesh & mesh, UInt nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
-  Array<Real> & nodes = mesh_accessor.getNodes();
-  Array<UInt> & conn = mesh_accessor.getConnectivity(_segment_2);
+  auto & nodes = mesh_accessor.getNodes();
+  auto & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
   mesh_accessor.setNbGlobalNodes(nb_nodes);

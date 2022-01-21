@@ -62,7 +62,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(
     Real Iy = materials[mat].Iy;
     Real GJ = materials[mat].GJ;
     for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_it) {
-      Matrix<Real> & D = *D_it;
+      auto & D = *D_it;
       D(0, 0) = E * A;
       D(1, 1) = E * Iz;
       D(2, 2) = E * Iy;

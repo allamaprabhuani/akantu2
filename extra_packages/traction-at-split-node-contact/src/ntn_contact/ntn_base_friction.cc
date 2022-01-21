@@ -80,14 +80,14 @@ void NTNBaseFriction::updateSlip() {
   Array<Real> rel_tan_incr(0, dim);
   this->contact.computeRelativeTangentialField(model.getIncrement(),
                                                rel_tan_incr);
-  Array<Real>::const_iterator<Vector<Real>> it = rel_tan_incr.begin(dim);
+  auto it = rel_tan_incr.begin(dim);
 
-  UInt nb_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  auto nb_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (this->is_sticking(n)) {
       this->slip(n) = 0.;
     } else {
-      const Vector<Real> & rti = it[n];
+      const auto & rti = it[n];
       this->slip(n) += rti.norm();
       this->cumulative_slip(n) += rti.norm();
     }
@@ -103,28 +103,27 @@ void NTNBaseFriction::computeFrictionTraction() {
   this->computeStickTraction();
   this->computeFrictionalStrength();
 
-  SolidMechanicsModel & model = this->contact.getModel();
-  UInt dim = model.getSpatialDimension();
+  auto & model = this->contact.getModel();
+  auto dim = model.getSpatialDimension();
 
   // get contact arrays
   const SynchronizedArray<bool> & is_in_contact =
       this->contact.getIsInContact();
 
-  auto & traction =
-      const_cast<Array<Real> &>(this->friction_traction.getArray());
-  Array<Real>::iterator<Vector<Real>> it_fric_trac = traction.begin(dim);
+  const auto & traction = this->friction_traction.getArray();
+  auto it_fric_trac = traction.begin(dim);
 
   this->is_sticking.zero(); // set to not sticking
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  Int nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // node pair is in contact
     if (is_in_contact(n)) {
-      Vector<Real> fric_trac = it_fric_trac[n];
+      auto && fric_trac = it_fric_trac[n];
       // check if it is larger than frictional strength
-      Real abs_fric = fric_trac.norm();
+      auto abs_fric = fric_trac.norm();
       if (abs_fric != 0.) {
-        Real alpha = this->frictional_strength(n) / abs_fric;
+        auto alpha = this->frictional_strength(n) / abs_fric;
 
         // larger -> sliding
         if (alpha < 1.) {
@@ -144,18 +143,15 @@ void NTNBaseFriction::computeFrictionTraction() {
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::computeStickTraction() {
-  AKANTU_DEBUG_IN();
+  auto & model = this->contact.getModel();
+  auto dim = model.getSpatialDimension();
+  auto delta_t = model.getTimeStep();
 
-  SolidMechanicsModel & model = this->contact.getModel();
-  UInt dim = model.getSpatialDimension();
-  Real delta_t = model.getTimeStep();
-
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
 
   // get contact arrays
-  const SynchronizedArray<Real> & impedance = this->contact.getImpedance();
-  const SynchronizedArray<bool> & is_in_contact =
-      this->contact.getIsInContact();
+  const auto & impedance = this->contact.getImpedance();
+  const auto & is_in_contact = this->contact.getIsInContact();
 
   Array<Real> acceleration(0, dim);
   this->contact.computeAcceleration(acceleration);
@@ -188,94 +184,69 @@ void NTNBaseFriction::computeStickTraction() {
   }
 
   // compute friction traction to stop sliding
-  auto & traction =
-      const_cast<Array<Real> &>(this->friction_traction.getArray());
+  const auto & traction = this->friction_traction.getArray();
   auto it_fric_trac = traction.begin(dim);
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    Vector<Real> fric_trac = it_fric_trac[n];
-    // node pair is NOT in contact
-    if (!is_in_contact(n)) {
-      fric_trac.zero(); // set to zero
-    }
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto && fric_trac = it_fric_trac[n];
 
-    // node pair is in contact
-    else {
+    if (not is_in_contact(n)) { // node pair is NOT in contact
+      fric_trac.zero();         // set to zero
+    } else {                    // node pair is in contact
       // compute friction traction
-      for (UInt d = 0; d < dim; ++d) {
+      for (Int d = 0; d < dim; ++d) {
         fric_trac(d) = impedance(n) * gap_dot(n, d) / 2.;
       }
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::applyFrictionTraction() {
-  AKANTU_DEBUG_IN();
+  auto & model = this->contact.getModel();
+  auto & residual = model.getInternalForce();
+  auto dim = model.getSpatialDimension();
 
-  SolidMechanicsModel & model = this->contact.getModel();
-  Array<Real> & residual = model.getInternalForce();
-  UInt dim = model.getSpatialDimension();
+  const auto & slaves = this->contact.getSlaves();
+  const auto & lumped_boundary_slaves = this->contact.getLumpedBoundarySlaves();
 
-  const SynchronizedArray<UInt> & slaves = this->contact.getSlaves();
-  const SynchronizedArray<Real> & lumped_boundary_slaves =
-      this->contact.getLumpedBoundarySlaves();
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = slaves(n);
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt slave = slaves(n);
-
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       residual(slave, d) -=
           lumped_boundary_slaves(n) * this->friction_traction(n, d);
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::registerSynchronizedArray(SynchronizedArrayBase & array) {
-  AKANTU_DEBUG_IN();
-
   this->frictional_strength.registerDependingArray(array);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::dumpRestart(const std::string & file_name) const {
-  AKANTU_DEBUG_IN();
-
   this->is_sticking.dumpRestartFile(file_name);
   this->frictional_strength.dumpRestartFile(file_name);
   this->friction_traction.dumpRestartFile(file_name);
   this->slip.dumpRestartFile(file_name);
   this->cumulative_slip.dumpRestartFile(file_name);
   this->slip_velocity.dumpRestartFile(file_name);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::readRestart(const std::string & file_name) {
-  AKANTU_DEBUG_IN();
-
   this->is_sticking.readRestartFile(file_name);
   this->frictional_strength.readRestartFile(file_name);
   this->friction_traction.readRestartFile(file_name);
   this->cumulative_slip.readRestartFile(file_name);
   this->slip_velocity.readRestartFile(file_name);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::setParam(const std::string & name, UInt node,
                                Real value) {
-  AKANTU_DEBUG_IN();
-
   auto & array = this->get(name).get<SynchronizedArray<Real>>();
   Int index = this->contact.getNodeIndex(node);
   if (index < 0) {
@@ -285,26 +256,21 @@ void NTNBaseFriction::setParam(const std::string & name, UInt node,
   } else {
     array(index) = value; // put value
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 UInt NTNBaseFriction::getNbStickingNodes() const {
-  AKANTU_DEBUG_IN();
+  Int nb_stick = 0;
 
-  UInt nb_stick = 0;
+  auto nb_nodes = this->contact.getNbContactNodes();
+  const auto & nodes = this->contact.getSlaves();
+  const auto & is_in_contact = this->contact.getIsInContact();
 
-  UInt nb_nodes = this->contact.getNbContactNodes();
-  const SynchronizedArray<UInt> & nodes = this->contact.getSlaves();
-  const SynchronizedArray<bool> & is_in_contact =
-      this->contact.getIsInContact();
+  const auto & mesh = this->contact.getModel().getMesh();
 
-  const Mesh & mesh = this->contact.getModel().getMesh();
-
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    bool is_local_node = mesh.isLocalOrMasterNode(nodes(n));
-    bool is_pbc_slave_node = mesh.isPeriodicSlave(nodes(n));
+  for (Int n = 0; n < nb_nodes; ++n) {
+    auto is_local_node = mesh.isLocalOrMasterNode(nodes(n));
+    auto is_pbc_slave_node = mesh.isPeriodicSlave(nodes(n));
     if (is_local_node && !is_pbc_slave_node && is_in_contact(n) &&
         this->is_sticking(n)) {
       nb_stick++;
@@ -312,35 +278,22 @@ UInt NTNBaseFriction::getNbStickingNodes() const {
   }
 
   mesh.getCommunicator().allReduce(nb_stick, SynchronizerOperation::_sum);
-
-  AKANTU_DEBUG_OUT();
   return nb_stick;
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::printself(std::ostream & stream, int indent) const {
-  AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "NTNBaseFriction [" << std::endl;
   Parsable::printself(stream, indent);
   stream << space << "]" << std::endl;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
                                            const std::string & field_id) {
-  AKANTU_DEBUG_IN();
-
 #ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
-
   if (field_id == "is_sticking") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
@@ -375,8 +328,6 @@ void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
   }
 
 #endif
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

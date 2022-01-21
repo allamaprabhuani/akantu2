@@ -182,7 +182,8 @@ int main(int argc, char * argv[]) {
 
     diff = stress;
     diff -= presc_stress;
-    Real stress_error = diff.norm<L_inf>() / stress.norm<L_inf>();
+    Real stress_error =
+        diff.lpNorm<Eigen::Infinity>() / stress.lpNorm<Eigen::Infinity>();
 
     if (stress_error > stress_tolerance) {
       std::cerr << "stress error: " << stress_error << " > " << stress_tolerance

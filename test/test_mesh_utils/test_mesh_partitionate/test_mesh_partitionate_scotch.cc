@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper("test-scotch-partition");
-  auto field = std::make_shared<dumpers::ElementalField<UInt>>(
+  auto field = std::make_shared<dumpers::ElementalField<Idx>>(
       partition.getPartitions(), dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field);

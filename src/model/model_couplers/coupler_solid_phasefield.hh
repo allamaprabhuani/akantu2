@@ -60,7 +60,7 @@ namespace akantu {
 class CouplerSolidPhaseField
     : public Model,
       public DataAccessor<Element>,
-      public DataAccessor<UInt>,
+      public DataAccessor<Idx>,
       public BoundaryCondition<CouplerSolidPhaseField> {
 
   /* ------------------------------------------------------------------------ */
@@ -71,7 +71,7 @@ class CouplerSolidPhaseField
 
 public:
   CouplerSolidPhaseField(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "coupler_solid_phasefield",
       ModelType model_type = ModelType::_coupler_solid_phasefield);
 

@@ -62,7 +62,8 @@ TEST_F(TestSynchronizerFixture, DataDistribution) {
         Vector<Real> barycenter(spatial_dimension);
         this->mesh->getBarycenter(element, barycenter);
 
-        auto dist = (std::get<1>(data) - barycenter).template norm<L_inf>();
+        auto dist =
+            (std::get<1>(data) - barycenter).template lpNorm<Eigen::Infinity>();
         EXPECT_NEAR(dist, 0, 1e-7);
       }
     }

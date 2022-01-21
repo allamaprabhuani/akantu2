@@ -75,8 +75,7 @@ template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeShapes(
     const Eigen::MatrixBase<D1> & natural_coords,
-    const Eigen::MatrixBase<D2> & real_coord,
-    Eigen::MatrixBase<D3> & N) {
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & N) {
   Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
@@ -97,8 +96,7 @@ template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeShapes(
     const Eigen::MatrixBase<D1> & natural_coords,
-    const Eigen::MatrixBase<D2> & real_coord,
-    Eigen::MatrixBase<D3> & N) {
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & N) {
   Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
@@ -147,7 +145,7 @@ InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template<class D1, class D2>
+template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::arrangeInVoigt(
     const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
@@ -166,14 +164,14 @@ template <class D1, class D2, class D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeDNDS(
     const Eigen::MatrixBase<D1> & natural_coords,
-    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase <D3> &dnds) {
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & dnds) {
   InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeDNDS(
       natural_coords, real_coord, dnds);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-template<class D1, class D2>
+template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::arrangeInVoigt(
     const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
@@ -199,7 +197,7 @@ inline void ElementClass<_bernoulli_beam_2>::computeRotationMatrix(
   auto && x1 = X(0); // X1
 
   auto cs = (x2 - x1) / (x2 - x1).norm();
-  
+
   auto c = cs(0);
   auto s = cs(1);
 

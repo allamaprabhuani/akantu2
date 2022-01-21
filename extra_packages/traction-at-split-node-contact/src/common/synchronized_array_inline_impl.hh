@@ -37,35 +37,27 @@ namespace akantu {
 template <typename T>
 template <typename P>
 inline void SynchronizedArray<T>::push_back(P && value) {
-  AKANTU_DEBUG_IN();
-
   AKANTU_DEBUG_ASSERT(deleted_elements.size() == 0,
                       "Cannot push_back element if SynchronizedArray"
                           << " is already modified without synchronization");
 
   Array<T>::push_back(std::forward<P>(value));
   this->nb_added_elements++;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void SynchronizedArray<T>::erase(UInt i) {
-  AKANTU_DEBUG_IN();
-
+template <typename T> inline void SynchronizedArray<T>::erase(Idx i) {
   AKANTU_DEBUG_ASSERT(nb_added_elements == 0,
                       "Cannot erase element if SynchronizedArray"
                           << " is already modified without synchronization");
 
-  for (UInt j = 0; j < this->nb_component; ++j) {
+  for (Int j = 0; j < this->nb_component; ++j) {
     this->values[i * this->nb_component + j] =
         this->values[(this->size_ - 1) * this->nb_component + j];
   }
   this->size_--;
 
   this->deleted_elements.push_back(i);
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

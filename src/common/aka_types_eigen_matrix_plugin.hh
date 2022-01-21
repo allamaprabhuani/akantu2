@@ -1,7 +1,8 @@
 using size_type = Index;
 
-EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE
+template <bool _is_vector = IsVectorAtCompileTime,
+          std::enable_if_t<not _is_vector> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
@@ -28,8 +29,10 @@ Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
   }
 }
 
-EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE Matrix(std::initializer_list<Scalar> list) {
+template <bool _is_vector = IsVectorAtCompileTime,
+          std::enable_if_t<_is_vector> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+Matrix(std::initializer_list<Scalar> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
 

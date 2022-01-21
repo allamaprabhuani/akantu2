@@ -53,7 +53,7 @@ TYPED_TEST(TestFEMFixture, InterpolateConstant) {
   this->fem->interpolateOnIntegrationPoints(const_val, val_on_quad, 2, type);
 
   for (auto && int_ : make_view(val_on_quad, 2)) {
-    auto diff = (value - int_).template norm<L_inf>();
+    auto diff = (value - int_).template lpNorm<Eigen::Infinity>();
     EXPECT_NEAR(0, diff, 1e-14);
   }
 }

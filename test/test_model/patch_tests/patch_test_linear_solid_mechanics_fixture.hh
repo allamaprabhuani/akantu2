@@ -80,17 +80,21 @@ public:
 
     for (auto && f : make_view(internal_forces, dim)) {
       total_force += f;
-      force_norm_inf = std::max(force_norm_inf, f.template norm<L_inf>());
+      force_norm_inf =
+          std::max(force_norm_inf, f.template lpNorm<Eigen::Infinity>());
     }
 
-    EXPECT_NEAR(0, total_force.template norm<L_inf>() / force_norm_inf, 1e-9);
+    EXPECT_NEAR(0,
+                total_force.template lpNorm<Eigen::Infinity>() / force_norm_inf,
+                1e-9);
 
     for (auto && tuple : zip(make_view(internal_forces, dim),
                              make_view(external_forces, dim))) {
       auto && f_int = std::get<0>(tuple);
       auto && f_ext = std::get<1>(tuple);
       auto f = f_int + f_ext;
-      EXPECT_NEAR(0, f.template norm<L_inf>() / force_norm_inf, 1e-9);
+      EXPECT_NEAR(0, f.template lpNorm<Eigen::Infinity>() / force_norm_inf,
+                  1e-9);
     }
   }
 
@@ -115,7 +119,7 @@ public:
             lambda = nu * E / (1 - nu * nu);
           }
 
-          decltype(strain) stress(this->dim, this->dim);
+          Matrix<Real> stress(this->dim, this->dim);
 
           if (this->dim == 1) {
             stress(0, 0) = E * strain(0, 0);

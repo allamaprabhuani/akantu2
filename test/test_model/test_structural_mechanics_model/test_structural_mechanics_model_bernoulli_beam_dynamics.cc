@@ -305,8 +305,8 @@ TYPED_TEST(TestStructBernoulliDynamic, TestBeamMatrices) {
 
   auto tol = 1e-13;
 
-  auto Ka_max = Ka.template norm<L_inf>();
-  auto Ma_max = Ma.template norm<L_inf>();
+  auto Ka_max = Ka.template lpNorm<Eigen::Infinity>();
+  auto Ma_max = Ma.template lpNorm<Eigen::Infinity>();
 
   for (auto i : arange(Ka.rows())) {
     for (auto j : arange(Ka.cols())) {

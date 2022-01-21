@@ -77,45 +77,28 @@ void MIIASYMContact::computeRelativeNormalField(
 /* -------------------------------------------------------------------------- */
 void MIIASYMContact::computeRelativeTangentialField(
     const Array<Real> & field, Array<Real> & rel_tang_field) const {
-  AKANTU_DEBUG_IN();
-
   NTRFContact::computeRelativeTangentialField(field, rel_tang_field);
 
-  UInt dim = this->model.getSpatialDimension();
+  auto dim = this->model.getSpatialDimension();
 
-  for (Array<Real>::iterator<Vector<Real>> it_rtfield =
-           rel_tang_field.begin(dim);
-       it_rtfield != rel_tang_field.end(dim); ++it_rtfield) {
-
+  for (auto && rt : make_view(rel_tang_field, dim)) {
     // in the anti-symmetric case, the tangential fields become twice as large
-    *it_rtfield *= 2.;
+    rt *= 2.;
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void MIIASYMContact::computeContactPressureInEquilibrium() {
-  AKANTU_DEBUG_IN();
-
   NTRFContact::computeContactPressure();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void MIIASYMContact::printself(std::ostream & stream, int indent) const {
-  AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "MIIASYMContact [" << std::endl;
   NTRFContact::printself(stream, indent);
   stream << space << "]" << std::endl;
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

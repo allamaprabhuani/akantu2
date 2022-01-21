@@ -94,8 +94,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldLumped(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
   auto nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto nb_integration_points = this->getNbIntegrationPoints(type);
@@ -117,8 +115,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldLumped(
     this->template assembleLumpedRowSum<type>(field, matrix_id, dof_id,
                                               dof_manager, ghost_type);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,8 +129,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     assembleLumpedRowSum(const Array<Real> & field, const ID & matrix_id,
                          const ID & dof_id, DOFManager & dof_manager,
                          GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
   auto shapes_size = ElementClass<type>::getShapeSize();
   auto nb_degree_of_freedom = field.getNbComponent();
 
@@ -154,8 +148,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   dof_manager.assembleElementalArrayToLumpedMatrix(
       dof_id, *int_field_times_shapes, matrix_id, type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -170,8 +162,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                                   const ID & matrix_id, const ID & dof_id,
                                   DOFManager & dof_manager,
                                   GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
   const auto & type_p1 = ElementClass<type>::getP1ElementType();
   auto nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(type_p1);
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -235,7 +225,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   }
 
   if (nb_element == 0) {
-    AKANTU_DEBUG_OUT();
     return;
   }
 
@@ -263,8 +252,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   dof_manager.assembleElementalArrayToLumpedMatrix(dof_id, *lumped_per_node,
                                                    matrix_id, type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -337,8 +324,11 @@ namespace fe_engine {
       static auto getShapes(ShapeFunctions & shape_functions,
                             const Matrix<Real> & integration_points,
                             const Array<Real> & nodes,
-                            UInt & nb_degree_of_freedom, UInt /*nb_element*/,
+                            Int & nb_degree_of_freedom, Int /*nb_element*/,
                             GhostType ghost_type) {
+        static_assert(ElementClass<type>::getKind() == _ek_structural,
+                      "getShapes for structural elements called with non "
+                      "strutral element type");
 
         auto nb_unknown = ElementClass<type>::getNbStressComponents();
         auto nb_degree_of_freedom_ = ElementClass<type>::getNbDegreeOfFreedom();
@@ -368,8 +358,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     GhostType ghost_type) const {
-  AKANTU_DEBUG_IN();
-
   auto shapes_size = ElementClass<type>::getShapeSize();
   auto nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
   auto lmat_size = nb_degree_of_freedom * shapes_size;
@@ -425,8 +413,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
   // assemble the elemental values to the matrix
   dof_manager.assembleElementalMatricesToMatrix(
       matrix_id, dof_id, int_field_times_shapes, type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

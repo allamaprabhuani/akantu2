@@ -93,7 +93,8 @@ TYPED_TEST(TestLumpedMassesFixture, TestLumpedMass) {
   auto mass = fem.integrate(rho_on_quad, this->type);
   const auto & masses = this->model->getMass();
 
-  Vector<Real> sum(this->dim, 0.);
+  Vector<Real> sum(this->dim);
+  sum.zero();
   for (auto & mass : make_view(masses, this->dim)) {
     sum += mass;
   }

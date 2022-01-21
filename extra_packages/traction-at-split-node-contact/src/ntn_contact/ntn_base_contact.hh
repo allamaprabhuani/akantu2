@@ -76,7 +76,7 @@ public:
   virtual void initParallel();
 
   /// add split node
-  virtual void addSplitNode(UInt node, UInt /*unused*/ = 0);
+  virtual void addSplitNode(Idx node, Idx /*unused*/ = 0);
 
   /// update normals, lumped boundary, and impedance
   virtual void updateInternalData();
@@ -130,13 +130,13 @@ public:
 protected:
   /// updateLumpedBoundary
   virtual void
-  internalUpdateLumpedBoundary(const Array<UInt> & nodes,
-                               const ElementTypeMapArray<UInt> & elements,
+  internalUpdateLumpedBoundary(const Array<Idx> & nodes,
+                               const ElementTypeMapArray<Idx> & elements,
                                SynchronizedArray<Real> & boundary);
 
   // to find the slave_elements or master_elements
-  virtual void findBoundaryElements(const Array<UInt> & interface_nodes,
-                                    ElementTypeMapArray<UInt> & elements);
+  virtual void findBoundaryElements(const Array<Idx> & interface_nodes,
+                                    ElementTypeMapArray<Idx> & elements);
 
   /// synchronize arrays
   virtual void syncArrays(SyncChoice sync_choice);
@@ -145,8 +145,8 @@ protected:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -169,7 +169,7 @@ public:
 public:
   AKANTU_GET_MACRO(Model, model, SolidMechanicsModel &)
 
-  AKANTU_GET_MACRO(Slaves, slaves, const SynchronizedArray<UInt> &)
+  AKANTU_GET_MACRO(Slaves, slaves, const SynchronizedArray<Idx> &)
   AKANTU_GET_MACRO(Normals, normals, const SynchronizedArray<Real> &)
   AKANTU_GET_MACRO(ContactPressure, contact_pressure,
                    const SynchronizedArray<Real> &)
@@ -179,22 +179,22 @@ public:
   AKANTU_GET_MACRO(IsInContact, is_in_contact, const SynchronizedArray<bool> &)
 
   AKANTU_GET_MACRO(SlaveElements, slave_elements,
-                   const ElementTypeMapArray<UInt> &)
+                   const ElementTypeMapArray<Idx> &)
 
   AKANTU_GET_MACRO(SynchronizerRegistry, *synch_registry,
                    SynchronizerRegistry &)
 
   /// get number of nodes that are in contact (globally, on all procs together)
   /// is_in_contact = true
-  virtual UInt getNbNodesInContact() const;
+  virtual Int getNbNodesInContact() const;
 
   /// get index of node in either slaves or masters array
   /// if node is in neither of them, return -1
-  virtual Int getNodeIndex(UInt node) const;
+  virtual Idx getNodeIndex(Idx node) const;
 
   /// get number of contact nodes: nodes in the system locally (on this proc)
   /// is_in_contact = true and false, because just in the system
-  virtual UInt getNbContactNodes() const { return this->slaves.size(); }
+  virtual Int getNbContactNodes() const { return this->slaves.size(); }
 
   bool isNTNContact() const { return this->is_ntn_contact; }
 
@@ -209,7 +209,7 @@ protected:
   SolidMechanicsModel & model;
 
   /// array of slave nodes
-  SynchronizedArray<UInt> slaves;
+  SynchronizedArray<Idx> slaves;
   /// array of normals
   SynchronizedArray<Real> normals;
   /// array indicating if nodes are in contact
@@ -225,7 +225,7 @@ protected:
   SurfacePtrSet contact_surfaces;
 
   /// element list for dump and lumped_boundary
-  ElementTypeMapArray<UInt> slave_elements;
+  ElementTypeMapArray<Idx> slave_elements;
   CSR<Element> node_to_elements;
 
   /// parallelisation

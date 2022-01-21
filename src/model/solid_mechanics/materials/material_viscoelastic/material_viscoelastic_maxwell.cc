@@ -216,7 +216,7 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
     const Eigen::MatrixBase<D2> & previous_grad_u,
     Eigen::MatrixBase<D3> & sigma, Tensor3<Real> & sigma_v,
     const Real & sigma_th) {
-
+  Real dt = this->model.getTimeStep();
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
@@ -228,7 +228,6 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
 
   Vector<Real, voigt_h::size> voigt_stress =
       this->Einf * this->C * voigt_current_strain;
-  Real dt = this->model.getTimeStep();
 
   auto stress = this->C * (voigt_current_strain - voigt_previous_strain);
 
@@ -289,7 +288,8 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
     const Eigen::MatrixBase<D1> & grad_u, Real & epot, Tensor3<Real> & sigma_v,
     Tensor3<Real> & epsilon_v) {
 
-  auto voigt_strain = strainToVoigt(Material::gradUToEpsilon(grad_u));
+  auto voigt_strain =
+      Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_u));
   auto voigt_stress = this->Einf * this->C * voigt_strain;
 
   epot = 0.5 * voigt_stress.dot(voigt_strain);
@@ -351,19 +351,13 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
   grad_delta_u -= previous_grad_u;
 
   Real dt = this->model.getTimeStep();
-  Vector<Real> voigt_delta_strain(voigt_h::size);
-  for (UInt I = 0; I < voigt_h::size; ++I) {
-    Real voigt_factor = voigt_h::factors[I];
-    UInt i = voigt_h::vec[I][0];
-    UInt j = voigt_h::vec[I][1];
 
-    voigt_delta_strain(I) =
-        voigt_factor * (grad_delta_u(i, j) + grad_delta_u(j, i)) / 2.;
-  }
+  Vector<Real, voigt_h::size> voigt_delta_strain =
+      Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_delta_u));
 
-  for (UInt k = 0; k < this->Eta.size(); ++k) {
-    Real lambda = this->Eta(k) / this->Ev(k);
-    Real exp_dt_lambda = exp(-dt / lambda);
+  for (Idx k = 0; k < this->Eta.size(); ++k) {
+    auto lambda = this->Eta(k) / this->Ev(k);
+    auto exp_dt_lambda = exp(-dt / lambda);
     Real E_ef_v;
 
     if (exp_dt_lambda == 1) {
@@ -372,23 +366,16 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
       E_ef_v = (1 - exp_dt_lambda) * this->Ev(k) * lambda / dt;
     }
 
-    Vector<Real> voigt_sigma_v(voigt_h::size);
-    Vector<Real> voigt_epsilon_v(voigt_h::size);
+    Vector<Real, voigt_h::size> voigt_sigma_v =
+        Material::stressToVoigt<dim>(sigma_v(k));
 
-    for (UInt I = 0; I < voigt_h::size; ++I) {
-      UInt i = voigt_h::vec[I][0];
-      UInt j = voigt_h::vec[I][1];
-
-      voigt_sigma_v(I) = sigma_v(i, j, k);
-    }
-
-    voigt_sigma_v =
+    Vector<Real, voigt_h::size> voigt_epsilon_v =
         exp_dt_lambda * voigt_sigma_v + E_ef_v * this->C * voigt_delta_strain;
     voigt_epsilon_v = 1 / Ev(k) * this->D * voigt_sigma_v;
 
-    for (UInt I = 0; I < voigt_h::size; ++I) {
-      UInt i = voigt_h::vec[I][0];
-      UInt j = voigt_h::vec[I][1];
+    for (Int I = 0; I < voigt_h::size; ++I) {
+      auto i = voigt_h::vec[I][0];
+      auto j = voigt_h::vec[I][1];
 
       sigma_v(i, j, k) = sigma_v(j, i, k) = voigt_sigma_v(I);
       epsilon_v(i, j, k) = epsilon_v(j, i, k) = voigt_epsilon_v(I);

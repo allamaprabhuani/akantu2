@@ -163,7 +163,7 @@ TYPED_TEST(ArrayFixture, Copy) {
 
   EXPECT_EQ(1000, copy.size());
   EXPECT_EQ(10, copy.getNbComponent());
-  EXPECT_NE(this->array->storage(), copy.data());
+  EXPECT_NE(this->array->data(), copy.data());
 }
 
 TYPED_TEST(ArrayFixture, Set) {

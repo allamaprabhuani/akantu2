@@ -110,7 +110,7 @@ constexpr inline decltype(auto)
 Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
                     const Eigen::MatrixBase<D2> & S, const Real & C33) {
   Matrix<Real, dim, dim> sigma;
-  Material::StoCauchy<dim>(F, S, C33);
+  Material::StoCauchy<dim>(F, S, sigma, C33);
   return sigma;
 }
 /* -------------------------------------------------------------------------- */

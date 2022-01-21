@@ -133,7 +133,8 @@ template <> void FriendMaterial<MaterialElastic<2>>::testComputeStress() {
                         (sigma_th + 2. * bulk_modulus_K) * identity;
 
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>() / sigma_expected.norm<L_inf>();
+  Real stress_error =
+      diff.lpNorm<Eigen::Infinity>() / sigma_expected.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-13);
 }
 
@@ -238,7 +239,7 @@ template <> void FriendMaterial<MaterialElastic<3>>::testComputeStress() {
                                 (sigma_th + 3. * bulk_modulus_K) * identity;
 
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>();
+  Real stress_error = diff.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-14);
 }
 
@@ -374,7 +375,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
 
   // sigmas are checked in the *material* frame of reference
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>();
+  Real stress_error = diff.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-13);
 }
 
@@ -545,7 +546,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
 
   // sigmas are checked in the *material* frame of reference
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>();
+  Real stress_error = diff.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-13);
 }
 
@@ -702,7 +703,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testComputeStress() {
 
   // sigmas are checked in the *material* frame of reference
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>();
+  Real stress_error = diff.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-13);
 }
 
@@ -820,7 +821,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<3>>::testComputeStress() {
 
   // sigmas are checked in the *material* frame of reference
   auto diff = sigma - sigma_expected;
-  Real stress_error = diff.norm<L_inf>();
+  Real stress_error = diff.lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(stress_error, 0., 1e-13);
 }
 

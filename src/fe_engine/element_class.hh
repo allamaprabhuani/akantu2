@@ -46,12 +46,12 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /// default element class structure
 template <ElementType element_type> struct ElementClassProperty {
-  static const GeometricalType geometrical_type{_gt_not_defined};
-  static const InterpolationType interpolation_type{_itp_not_defined};
-  static const ElementKind element_kind{_ek_regular};
-  static const Int spatial_dimension{0};
-  static const GaussIntegrationType gauss_itegration_type{_git_not_defined};
-  static const Int polynomial_degree{0};
+  static constexpr GeometricalType geometrical_type{_gt_not_defined};
+  static constexpr InterpolationType interpolation_type{_itp_not_defined};
+  static constexpr ElementKind element_kind{_ek_regular};
+  static constexpr Int spatial_dimension{0};
+  static constexpr GaussIntegrationType gauss_itegration_type{_git_not_defined};
+  static constexpr Int polynomial_degree{0};
 };
 
 #if !defined(DOXYGEN)
@@ -60,12 +60,13 @@ template <ElementType element_type> struct ElementClassProperty {
                                              interp_type, elem_kind, sp,       \
                                              gauss_int_type, min_int_order)    \
   template <> struct ElementClassProperty<elem_type> {                         \
-    static const GeometricalType geometrical_type{geom_type};                  \
-    static const InterpolationType interpolation_type{interp_type};            \
-    static const ElementKind element_kind{elem_kind};                          \
-    static const Int spatial_dimension{sp};                                    \
-    static const GaussIntegrationType gauss_integration_type{gauss_int_type};  \
-    static const Int polynomial_degree{min_int_order};                         \
+    static constexpr GeometricalType geometrical_type{geom_type};              \
+    static constexpr InterpolationType interpolation_type{interp_type};        \
+    static constexpr ElementKind element_kind{elem_kind};                      \
+    static constexpr Int spatial_dimension{sp};                                \
+    static constexpr GaussIntegrationType gauss_integration_type{              \
+        gauss_int_type};                                                       \
+    static constexpr Int polynomial_degree{min_int_order};                     \
   }
 #else
 #define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type,             \
@@ -78,7 +79,7 @@ template <ElementType element_type> struct ElementClassProperty {
 /* -------------------------------------------------------------------------- */
 /// Default GeometricalShape structure
 template <GeometricalType geometrical_type> struct GeometricalShape {
-  static const GeometricalShapeType shape{_gst_point};
+  static constexpr GeometricalShapeType shape{_gst_point};
 };
 
 /// Templated GeometricalShape with function contains
@@ -93,7 +94,7 @@ template <GeometricalShapeType shape> struct GeometricalShapeContains {
 /// types
 #define AKANTU_DEFINE_SHAPE(geom_type, geom_shape)                             \
   template <> struct GeometricalShape<geom_type> {                             \
-    static const GeometricalShapeType shape{geom_shape};                       \
+    static constexpr GeometricalShapeType shape{geom_shape};                   \
   }
 
 AKANTU_DEFINE_SHAPE(_gt_hexahedron_20, _gst_square);

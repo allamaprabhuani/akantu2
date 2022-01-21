@@ -421,7 +421,7 @@ public:
   computeDeviatoric(const Eigen::MatrixBase<D1> & sigma,
                     Eigen::MatrixBase<D2> & sigma_dev) {
     sigma_dev =
-        sigma - Matrix<Real, dim, dim>::Identify() * sigma.trace() / dim;
+        sigma - Matrix<Real, dim, dim>::Identity() * sigma.trace() / dim;
   }
 
   template <Int dim, typename D>

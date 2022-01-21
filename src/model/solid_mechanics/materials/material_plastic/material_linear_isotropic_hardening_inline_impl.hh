@@ -187,7 +187,7 @@ MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && arguments) {
     // F}{\partial S} = \frac{3}{2J\sigma_{effective}}} Ft \sigma_{dev} F
     Matrix<Real, dim, dim> cauchy_dev_F;
     cauchy_dev_F = F * cauchy_stress_dev;
-    Real J = F.determinent();
+    Real J = F.determinant();
     Real constant = not Math::are_float_equal(J, 0.) ? 1. / J : 0;
     constant *= 3. * dp / (2. * cauchy_stress_dev_eff);
     delta_inelastic_strain = F.transpose() * cauchy_dev_F * constant;

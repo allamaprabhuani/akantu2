@@ -70,7 +70,7 @@ struct is_matrix<Eigen::Map<Derived, MapOptions, StrideType>>
 
 namespace akantu {
 
-UInt getIOHelperType(ElementType type);
+Int getIOHelperType(ElementType type);
 
 namespace dumpers {
   class Field;

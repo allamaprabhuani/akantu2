@@ -101,11 +101,11 @@ public:
     auto L_it = this->initial_lengths.begin();
 
     for (; cit != cend; ++cit, ++L_it) {
-      const Vector<UInt> & conn = *cit;
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
-      Real p1 = this->mesh.getNodes()(n1, _x);
-      Real p2 = this->mesh.getNodes()(n2, _x);
+      auto && conn = *cit;
+      auto n1 = conn(0);
+      auto n2 = conn(1);
+      auto p1 = this->mesh.getNodes()(n1, _x);
+      auto p2 = this->mesh.getNodes()(n2, _x);
 
       *L_it = std::abs(p2 - p1);
     }
@@ -295,7 +295,7 @@ public:
       *strain_it = (u2 - u1) / *L_it;
       *stress_it = E * *strain_it;
       Real f_n = A * *stress_it;
-      Vector<Real> & f = *f_it;
+      auto && f = *f_it;
 
       f(0) = -f_n;
       f(1) = f_n;
@@ -383,8 +383,8 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag &) const override {
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag &) const override {
     return elements.size() * sizeof(Real);
   }
 
@@ -408,7 +408,7 @@ public:
 
         Real f = A * stress;
 
-        Vector<UInt> conn = cit[el.element];
+        auto && conn = cit[el.element];
         this->internal_forces(conn(0), _x) += -f;
         this->internal_forces(conn(1), _x) += f;
       }
@@ -417,7 +417,7 @@ public:
 
   const Mesh & getMesh() const { return mesh; }
 
-  UInt getSpatialDimension() const { return 1; }
+  Int getSpatialDimension() const { return 1; }
 
   auto & getBlockedDOFs() { return blocked; }
 

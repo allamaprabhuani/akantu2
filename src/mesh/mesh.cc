@@ -478,9 +478,9 @@ Mesh::createFieldFromAttachedData<Real>(const std::string & field_id,
                                         ElementKind element_kind);
 
 template std::shared_ptr<dumpers::Field>
-Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
-                                        const std::string & group_name,
-                                        ElementKind element_kind);
+Mesh::createFieldFromAttachedData<Int>(const std::string & field_id,
+                                       const std::string & group_name,
+                                       ElementKind element_kind);
 #endif
 
 /* -------------------------------------------------------------------------- */

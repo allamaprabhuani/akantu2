@@ -43,13 +43,10 @@
 
 namespace akantu {
 
-CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
+CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
                                                const ID & id,
                                                const ModelType model_type)
     : Model(mesh, model_type, dim, id) {
-
-  AKANTU_DEBUG_IN();
-
   this->registerFEEngineObject<MyFEEngineType>("CouplerSolidPhaseField", mesh,
                                                Model::spatial_dimension);
 
@@ -73,8 +70,6 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_strain);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,7 +77,6 @@ CouplerSolidPhaseField::~CouplerSolidPhaseField() = default;
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::initFullImpl(const ModelOptions & options) {
-
   Model::initFullImpl(options);
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
@@ -92,7 +86,6 @@ void CouplerSolidPhaseField::initFullImpl(const ModelOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::initModel() {
-
   getFEEngine().initShapeFunctions(_not_ghost);
   getFEEngine().initShapeFunctions(_ghost);
 }
@@ -118,7 +111,6 @@ void CouplerSolidPhaseField::initSolver(
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 CouplerSolidPhaseField::getDefaultSolverID(const AnalysisMethod & method) {
-
   switch (method) {
   case _explicit_lumped_mass: {
     return std::make_tuple("explicit_lumped",

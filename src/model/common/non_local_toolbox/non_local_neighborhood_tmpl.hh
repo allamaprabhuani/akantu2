@@ -32,6 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
+#include "model.hh"
 #include "non_local_manager.hh"
 //#include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */

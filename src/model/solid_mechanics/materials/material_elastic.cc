@@ -198,7 +198,8 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
-    ElementType type, Idx index, Vector<Real> & epot_on_quad_points) {
+    const Element & element, Vector<Real> & epot_on_quad_points) {
+  auto type = element.type;
   auto gradu_view = make_view<dim, dim>(this->gradu(type));
   auto stress_view = make_view<dim, dim>(this->stress(type));
 
@@ -208,9 +209,9 @@ void MaterialElastic<dim>::computePotentialEnergyByElement(
 
   auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
 
-  auto gradu_it = gradu_view.begin() + index * nb_quadrature_points;
+  auto gradu_it = gradu_view.begin() + element.element * nb_quadrature_points;
   auto gradu_end = gradu_it + nb_quadrature_points;
-  auto stress_it = stress_view.begin() + index * nb_quadrature_points;
+  auto stress_it = stress_view.begin() + element.element * nb_quadrature_points;
   auto stress_end = stress_it + nb_quadrature_points;
 
   auto epot_quad = epot_on_quad_points.begin();

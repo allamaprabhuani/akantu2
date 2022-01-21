@@ -43,6 +43,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(
     _itp_discrete_kirchhoff_triangle_18, _itp_lagrange_triangle_3, 6, 6, 21);
+
 AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(
     _discrete_kirchhoff_triangle_18, _gt_triangle_3,
     _itp_discrete_kirchhoff_triangle_18, _triangle_3, _ek_structural, 3,

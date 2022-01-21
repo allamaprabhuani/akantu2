@@ -65,21 +65,20 @@ inline void ShapeStructural<kind>::initShapeFunctions(
   AKANTU_TO_IMPLEMENT();
 }
 
-/* -------------------------------------------------------------------------- */
-#define INIT_SHAPE_FUNCTIONS(type)                                             \
-  setIntegrationPointsByType<type>(integration_points, ghost_type);            \
-  precomputeRotationMatrices<type>(nodes, ghost_type);                         \
-  precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);                \
-  precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
-
 template <>
 inline void ShapeStructural<_ek_structural>::initShapeFunctions(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
     ElementType type, GhostType ghost_type) {
-  AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+  tuple_dispatch<ElementTypes_t<_ek_structural>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        setIntegrationPointsByType<type>(integration_points, ghost_type);
+        precomputeRotationMatrices<type>(nodes, ghost_type);
+        precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
+        precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
+      },
+      type);
 }
-
-#undef INIT_SHAPE_FUNCTIONS
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
@@ -108,10 +107,13 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
                           << "number of component");
 #endif
 
-  auto shapes_it = shapes.begin_reinterpret(
-      nb_rows,
-      ElementClass<type>::getNbNodesPerInterpolationElement() * nb_dofs,
-      nb_points, nb_element);
+  auto shapes_it =
+      make_view(shapes, nb_rows,
+                ElementClass<type>::getNbNodesPerInterpolationElement() *
+                    nb_dofs,
+                nb_points)
+          .begin();
+
   auto shapes_begin = shapes_it;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
@@ -125,22 +127,24 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
       make_view(rotation_matrices(type, ghost_type), nb_dofs, nb_dofs).begin();
   auto rot_matrix_begin = rot_matrix_it;
 
-  for (UInt elem = 0; elem < nb_element; ++elem) {
+  for (Int elem = 0; elem < nb_element; ++elem) {
     if (filter_elements != empty_filter) {
       shapes_it = shapes_begin + filter_elements(elem);
       nodes_it = nodes_begin + filter_elements(elem);
       rot_matrix_it = rot_matrix_begin + filter_elements(elem);
     }
 
-    Tensor3<Real> & N = *shapes_it;
+    Tensor3<Real> N = *shapes_it;
     auto & real_coord = *nodes_it;
 
     auto & RDOFs = *rot_matrix_it;
 
-    Matrix<Real> T(N.size(1), N.size(1), 0);
+    Matrix<Real> T(N.size(1), N.size(1));
+    T.zero();
 
-    for (UInt i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(RDOFs, i * RDOFs.rows(), i * RDOFs.rows());
+    for (Int i = 0; i < nb_nodes_per_element; ++i) {
+      T.block(i * RDOFs.rows(), i * RDOFs.cols(), RDOFs.rows(), RDOFs.cols()) =
+          RDOFs;
     }
 
     if (not mass) {
@@ -335,8 +339,8 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::interpolateOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_dof,
-    GhostType ghost_type, const Array<Int> & filter_elements) const {
+    const Array<Real> & in_u, Array<Real> & out_uq, Int nb_dof,
+    GhostType ghost_type, const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_dof,
@@ -384,8 +388,8 @@ void ShapeStructural<kind>::interpolateOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::gradientOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_nablauq, UInt nb_dof,
-    GhostType ghost_type, const Array<Int> & filter_elements) const {
+    const Array<Real> & in_u, Array<Real> & out_nablauq, Int nb_dof,
+    GhostType ghost_type, const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto itp_type = FEEngine::getInterpolationType(type);
@@ -403,18 +407,21 @@ void ShapeStructural<kind>::gradientOnIntegrationPoints(
   auto nb_quad_points = nb_quad_points_per_element * u_el.size();
   out_nablauq.resize(nb_quad_points);
 
-  auto out_it = out_nablauq.begin_reinterpret(
-      element_dimension, 1, nb_quad_points_per_element, u_el.size());
-  auto shapesd_it = shapesd.begin_reinterpret(
-      element_dimension, nb_dof * nb_nodes_per_element,
-      nb_quad_points_per_element, nb_element);
-  auto u_it = u_el.begin_reinterpret(nb_dof * nb_nodes_per_element, 1,
-                                     nb_quad_points_per_element, u_el.size());
+  auto out_it =
+      make_view(out_nablauq, element_dimension, 1, nb_quad_points_per_element)
+          .begin();
+  auto shapesd_it =
+      make_view(shapesd, element_dimension, nb_dof * nb_nodes_per_element,
+                nb_quad_points_per_element)
+          .begin();
+  auto u_it = make_view(u_el, nb_dof * nb_nodes_per_element, 1,
+                        nb_quad_points_per_element)
+                  .begin();
 
   for_each_element(nb_element, filter_elements, [&](auto && el) {
     auto & nablau = *out_it;
     const auto & u = *u_it;
-    auto B = Tensor3<Real>(shapesd_it[el]);
+    auto B = shapesd_it[el];
 
     for (auto && q : arange(nablau.size(2))) {
       nablau(q) = B(q) * u(q);
@@ -432,7 +439,7 @@ template <>
 template <ElementType type>
 void ShapeStructural<_ek_structural>::computeBtD(
     const Array<Real> & Ds, Array<Real> & BtDs, GhostType ghost_type,
-    const Array<Int> & filter_elements) const {
+    const Array<Idx> & filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
 
   auto nb_stress = ElementClass<type>::getNbStressComponents();
@@ -463,7 +470,7 @@ void ShapeStructural<_ek_structural>::computeBtD(
     const auto & B = std::get<0>(values);
     const auto & D = std::get<1>(values);
     auto & Bt_D = std::get<2>(values);
-    Bt_D.template mul<true>(B, D);
+    Bt_D = B.transpose() * D;
   }
 }
 
@@ -499,7 +506,7 @@ void ShapeStructural<_ek_structural>::computeNtb(
     const auto & N = std::get<0>(values);
     const auto & b = std::get<1>(values);
     auto & Nt_b = std::get<2>(values);
-    Nt_b.template mul<true>(N, b);
+    Nt_b = N.transpose() * b;
   }
 }
 

@@ -119,7 +119,7 @@ inline void TestAccessor::unpackData(CommunicationBuffer & buffer,
     Vector<Real> bary(spatial_dimension);
     buffer >> bary;
 
-    auto dist = (barycenter_loc - bary).template norm<L_inf>();
+    auto dist = (barycenter_loc - bary).template lpNorm<Eigen::Infinity>();
     EXPECT_NEAR(0, dist, 1e-15);
   }
 }

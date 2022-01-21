@@ -93,14 +93,17 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  [[nodiscard]] virtual Int getNbData(const Array<Element> & elements,
-                                      const SynchronizationTag & tag) const = 0;
-  virtual void packData(CommunicationBuffer & buffer,
-                        const Array<Element> & element,
-                        const SynchronizationTag & tag) const = 0;
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const Array<Element> & element,
-                          const SynchronizationTag & tag) = 0;
+  [[nodiscard]] virtual Int
+  getNbData(const Array<Element> & /*elements*/,
+            const SynchronizationTag & /*tag*/) const {
+    return 0;
+  };
+  virtual void packData(CommunicationBuffer & /*buffer*/,
+                        const Array<Element> & /*element*/,
+                        const SynchronizationTag & /*tag*/) const {};
+  virtual void unpackData(CommunicationBuffer & /*buffer*/,
+                          const Array<Element> & /*element*/,
+                          const SynchronizationTag & /*tag*/){};
 
   /* ------------------------------------------------------------------------ */
 public:
@@ -162,14 +165,17 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  [[nodiscard]] virtual Int getNbData(const Array<Idx> & elements,
-                                      const SynchronizationTag & tag) const = 0;
-  virtual void packData(CommunicationBuffer & buffer,
-                        const Array<Idx> & element,
-                        const SynchronizationTag & tag) const = 0;
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const Array<Idx> & element,
-                          const SynchronizationTag & tag) = 0;
+  [[nodiscard]] virtual Int
+  getNbData(const Array<Idx> & /*elements*/,
+            const SynchronizationTag & /*tag*/) const {
+    return 0;
+  }
+  virtual void packData(CommunicationBuffer & /*buffer*/,
+                        const Array<Idx> & /*element*/,
+                        const SynchronizationTag & /*tag*/) const {}
+  virtual void unpackData(CommunicationBuffer & /*buffer*/,
+                          const Array<Idx> & /*element*/,
+                          const SynchronizationTag & /*tag*/) {}
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>

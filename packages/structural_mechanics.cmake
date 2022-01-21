@@ -65,7 +65,6 @@ package_declare_elements(structural_mechanics
   _itp_hermite_2
   _itp_bernoulli_beam_2
   _itp_bernoulli_beam_3
-  _itp_discrete_kirchhoff_triangle_6
   _itp_discrete_kirchhoff_triangle_18
   INTERPOLATION_KIND
   _itk_structural

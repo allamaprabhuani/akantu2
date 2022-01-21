@@ -47,11 +47,12 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getKind(ElementType type) {
-  ElementKind kind = _ek_not_defined;
-#define GET_KIND(type) kind = ElementClass<type>::getKind()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_KIND);
-#undef GET_KIND
-  return kind;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getKind();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -61,25 +62,22 @@ inline constexpr auto Element::kind() const -> ElementKind {
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
-  Int n_facet = 0;
-#define GET_NB_FACET(type) n_facet = ElementClass<type>::getNbFacetsPerElement()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET);
-#undef GET_NB_FACET
-
-  return n_facet;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNbFacetsPerElement();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t) {
-  Int n_facet = 0;
-#define GET_NB_FACET(type)                                                     \
-  n_facet = ElementClass<type>::getNbFacetsPerElement(t)
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET);
-#undef GET_NB_FACET
-
-  return n_facet;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNbFacetsPerElement(t);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -377,7 +375,7 @@ Mesh::getSubelementToElementNC(const Element & element) const {
 template <class D, std::enable_if_t<aka::is_vector<D>::value> *>
 inline void Mesh::getBarycenter(const Element & element,
                                 Eigen::MatrixBase<D> & barycenter) const {
-  const auto & conn = getConnectivity(element);
+  const auto && conn = getConnectivity(element);
   Matrix<Real> local_coord(spatial_dimension, conn.size());
   auto node_begin = make_view(*nodes, spatial_dimension).begin();
 
@@ -390,79 +388,74 @@ inline void Mesh::getBarycenter(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getP1ElementType(ElementType type) {
-  ElementType p1_type = _not_defined;
-#define GET_P1_TYPE(type) p1_type = ElementClass<type>::getP1ElementType()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_P1_TYPE);
-#undef GET_P1_TYPE
-  return p1_type;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getP1ElementType();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getSpatialDimension(ElementType type) {
-  Int spatial_dimension = 0;
-#define GET_SPATIAL_DIMENSION(type)                                            \
-  spatial_dimension = ElementClass<type>::getSpatialDimension()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_SPATIAL_DIMENSION);
-#undef GET_SPATIAL_DIMENSION
-
-  return spatial_dimension;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getSpatialDimension();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) {
-  Int natural_dimension = 0;
-#define GET_NATURAL_DIMENSION(type)                                            \
-  natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NATURAL_DIMENSION);
-#undef GET_NATURAL_DIMENSION
-
-  return natural_dimension;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNaturalSpaceDimension();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/) {
-  UInt nb = 0;
-#define GET_NB_FACET_TYPE(type) nb = ElementClass<type>::getNbFacetTypes()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET_TYPE);
-#undef GET_NB_FACET_TYPE
-  return nb;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNbFacetTypes();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getFacetType(ElementType type, Idx t) {
-#define GET_FACET_TYPE(type) return ElementClass<type>::getFacetType(t);
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_NO_DEFAULT(GET_FACET_TYPE);
-
-#undef GET_FACET_TYPE
-
-  return _not_defined;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getFacetType(t);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
-#define GET_FACET_TYPE(type)                                                   \
-  {                                                                            \
-    auto && map = ElementClass<type>::getFacetTypes();                         \
-    return Eigen::Map<const Eigen::Matrix<ElementType, Eigen::Dynamic, 1>>(    \
-        map.data(), map.rows(), map.cols());                                   \
-  }
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_FACET_TYPE);
-#undef GET_FACET_TYPE
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        auto && map = ElementClass<type>::getFacetTypes();
+        return Eigen::Map<const Eigen::Matrix<ElementType, Eigen::Dynamic, 1>>(
+            map.data(), map.rows(), map.cols());
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type, Idx t) {
-  AKANTU_DEBUG_IN();
-
-#define GET_FACET_CON(type)                                                    \
-  return ElementClass<type>::getFacetLocalConnectivityPerElement(t)
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_FACET_CON);
-#undef GET_FACET_CON
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getFacetLocalConnectivityPerElement(t);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */

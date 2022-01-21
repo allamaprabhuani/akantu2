@@ -48,8 +48,8 @@ public:
                                     const std::string & mat_2_material)
       : model(model), horizontal(horizontal), pos_interface(pos_interface),
         mat_1_material(mat_1_material), mat_2_material(mat_2_material) {
-    Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = mesh.getSpatialDimension();
+    auto & mesh = model.getMesh();
+    auto spatial_dimension = mesh.getSpatialDimension();
 
     /// store barycenters of all elements
     barycenters.initialize(mesh, _spatial_dimension = spatial_dimension,
@@ -67,11 +67,11 @@ public:
     mat_ids[1] = model.getMaterialIndex(mat_2_material);
   }
 
-  UInt operator()(const Element & elem) override {
+  Int operator()(const Element & elem) override {
     if (not materials_set) {
       setMaterials();
     }
-    const Vector<Real> bary = barycenters.get(elem);
+    const auto bary = barycenters.get(elem);
     /// check for a given element on which side of the material interface plane
     /// the bary center lies and assign corresponding material
     if (bary(horizontal) < pos_interface) {
@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
   /// specify position and orientation of material interface plane
   Real pos_interface = 0.;
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();

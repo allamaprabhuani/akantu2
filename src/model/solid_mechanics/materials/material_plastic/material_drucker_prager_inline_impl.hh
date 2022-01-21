@@ -63,10 +63,13 @@ MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> & sigma) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
+template <typename D1, typename D2, typename D3,
+          aka::enable_if_t<aka::are_vectors<D2, D3>::value> *>
 inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
-    const Matrix<Real, dim, dim> & sigma_trial, Real & plastic_multiplier_guess,
-    Vector<Real, dim> & gradient_f, Vector<Real, dim> & delta_inelastic_strain,
-    Int max_iterations, Real tolerance) {
+    const Eigen::MatrixBase<D1> & sigma_trial, Real & plastic_multiplier_guess,
+    Eigen::MatrixBase<D2> & gradient_f,
+    Eigen::MatrixBase<D3> & delta_inelastic_strain, Int max_iterations,
+    Real tolerance) {
 
   constexpr auto size = voigt_h::size;
 
@@ -100,7 +103,8 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
 
   // elastic stifnness tensor
   Matrix<Real, size, size> De;
-  MaterialElastic<dim>::computeTangentModuliOnQuad(De);
+  MaterialElastic<dim>::computeTangentModuliOnQuad(
+      make_named_tuple(tuple::get<"tangent_moduli"_h>() = De));
 
   // elastic compliance tensor
   Matrix<Real, size, size> Ce = De.inverse();
@@ -311,7 +315,8 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
   // use closet point projection to compute the plastic multiplier and
   // gradient  and inealstic strain at the surface for the given trial stress
   // state
-  Matrix<Real> delta_inelastic_strain(dim, dim, 0.);
+  Matrix<Real, dim, dim> delta_inelastic_strain;
+  delta_inelastic_strain.zero();
 
   if (initial_yielding) {
     constexpr auto size = voigt_h::size;
@@ -338,9 +343,9 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
   }
 
   // Compute the increment in inelastic strain
-  MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
-      grad_delta_u, sigma, previous_sigma, inelastic_strain,
-      previous_inelastic_strain, delta_inelastic_strain);
+  MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(tuple::append(
+      args, tuple::get<"delta_grad_u"_h>() = grad_delta_u,
+      tuple::get<"delta_inelastic_strain"_h>() = delta_inelastic_strain));
 }
 
 } // namespace akantu

@@ -69,6 +69,6 @@ TYPED_TEST(TestFEMFixture, IntegrateConstant) {
     sum += int_;
   }
 
-  auto diff = (value - sum).template norm<L_inf>();
+  auto diff = (value - sum).lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(0, diff, 1e-14);
 }

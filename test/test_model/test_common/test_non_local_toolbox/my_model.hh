@@ -66,17 +66,17 @@ public:
   void assembleLumpedMatrix(const ID &) override {}
   void assembleResidual() override {}
 
-  void onNodesAdded(const Array<UInt> &, const NewNodesEvent &) override {}
+  void onNodesAdded(const Array<Idx> &, const NewNodesEvent &) override {}
 
-  void onNodesRemoved(const Array<UInt> &, const Array<UInt> &,
+  void onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
                       const RemovedNodesEvent &) override {}
   void onElementsAdded(const Array<Element> &,
                        const NewElementsEvent &) override {}
   void onElementsRemoved(const Array<Element> &,
-                         const ElementTypeMapArray<UInt> &,
+                         const ElementTypeMapArray<Idx> &,
                          const RemovedElementsEvent &) override {}
   void onElementsChanged(const Array<Element> &, const Array<Element> &,
-                         const ElementTypeMapArray<UInt> &,
+                         const ElementTypeMapArray<Idx> &,
                          const ChangedElementsEvent &) override {}
 
   void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override {
@@ -92,7 +92,7 @@ public:
 
     auto & neighborhood = manager.getNeighborhood("test_region");
 
-    for (auto & type : quadrature_points_coordinates.elementTypes(
+    for (const auto & type : quadrature_points_coordinates.elementTypes(
              spatial_dimension, ghost_type)) {
       q.type = type;
       auto & quads = quadrature_points_coordinates(type, ghost_type);
@@ -109,13 +109,14 @@ public:
     }
   }
 
-  void computeNonLocalStresses(GhostType) override {}
+  void computeNonLocalStresses(GhostType)
+  override {}
 
-  void updateLocalInternal(ElementTypeMapReal &, GhostType,
-                           ElementKind) override {}
+  void updateLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
+  override {}
 
-  void updateNonLocalInternal(ElementTypeMapReal &, GhostType,
-                              ElementKind) override {}
+  void updateNonLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
+  override {}
 
   const auto & getNonLocalManager() const { return manager; }
 

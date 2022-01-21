@@ -44,22 +44,30 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-#define INIT_SHAPE_FUNCTIONS(type)                                             \
-  setIntegrationPointsByType<type>(integration_points, ghost_type);            \
-  precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);                \
-  if (ElementClass<type>::getNaturalSpaceDimension() ==                        \
-          mesh.getSpatialDimension() ||                                        \
-      kind != _ek_regular)                                                     \
-    precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
-
 template <ElementKind kind>
 inline void ShapeLagrange<kind>::initShapeFunctions(
+    const Array<Real> & /*nodes*/,
+    const Ref<const MatrixXr> & /*integration_points*/, ElementType /*type*/,
+    GhostType /*ghost_type*/) {}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline void ShapeLagrange<_ek_regular>::initShapeFunctions(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
     ElementType type, GhostType ghost_type) {
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+  tuple_dispatch<ElementTypes_t<_ek_regular>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        setIntegrationPointsByType<type>(integration_points, ghost_type);
+        precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
+        if (ElementClass<type>::getNaturalSpaceDimension() ==
+            mesh.getSpatialDimension()) {
+          precomputeShapeDerivativesOnIntegrationPoints<type>(nodes,
+                                                              ghost_type);
+        }
+      },
+      type);
 }
-
-#undef INIT_SHAPE_FUNCTIONS
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
@@ -115,8 +123,7 @@ void ShapeLagrange<kind>::inverseMap(const Ref<const VectorXr> & real_coords,
 template <ElementKind kind>
 template <ElementType type>
 bool ShapeLagrange<kind>::contains(const Ref<const VectorXr> & real_coords,
-                                   Idx elem,
-                                   GhostType ghost_type) const {
+                                   Idx elem, GhostType ghost_type) const {
 
   auto spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
@@ -260,8 +267,8 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, ElementType type,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
+    const Array<Idx> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -528,9 +535,9 @@ void ShapeLagrange<kind>::computeNtbN(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeNtb(
-    const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+void ShapeLagrange<kind>::computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
+                                     GhostType ghost_type,
+                                     const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   Ntbs.resize(bs.size());

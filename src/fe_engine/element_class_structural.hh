@@ -47,15 +47,15 @@ namespace akantu {
 #define AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(                  \
     itp_type, itp_geom_type, ndof, nb_stress, nb_dnds_cols)                    \
   template <> struct InterpolationProperty<itp_type> {                         \
-    static const InterpolationKind kind{_itk_structural};                      \
-    static const UInt nb_nodes_per_element{                                    \
+    static constexpr InterpolationKind kind{_itk_structural};                  \
+    static constexpr Int nb_nodes_per_element{                                 \
         InterpolationProperty<itp_geom_type>::nb_nodes_per_element};           \
-    static const InterpolationType itp_geometry_type{itp_geom_type};           \
-    static const UInt natural_space_dimension{                                 \
+    static constexpr InterpolationType itp_geometry_type{itp_geom_type};       \
+    static constexpr Int natural_space_dimension{                              \
         InterpolationProperty<itp_geom_type>::natural_space_dimension};        \
-    static const UInt nb_degree_of_freedom{ndof};                              \
-    static const UInt nb_stress_components{nb_stress};                         \
-    static const UInt dnds_columns{nb_dnds_cols};                              \
+    static constexpr Int nb_degree_of_freedom{ndof};                           \
+    static constexpr Int nb_stress_components{nb_stress};                      \
+    static constexpr Int dnds_columns{nb_dnds_cols};                           \
   }
 
 /* -------------------------------------------------------------------------- */
@@ -188,13 +188,14 @@ public:
     elem_type, geom_type, interp_type, parent_el_type, elem_kind, sp,          \
     gauss_int_type, min_int_order)                                             \
   template <> struct ElementClassProperty<elem_type> {                         \
-    static const GeometricalType geometrical_type{geom_type};                  \
-    static const InterpolationType interpolation_type{interp_type};            \
-    static const ElementType parent_element_type{parent_el_type};              \
-    static const ElementKind element_kind{elem_kind};                          \
-    static const UInt spatial_dimension{sp};                                   \
-    static const GaussIntegrationType gauss_integration_type{gauss_int_type};  \
-    static const UInt polynomial_degree{min_int_order};                        \
+    static constexpr GeometricalType geometrical_type{geom_type};              \
+    static constexpr InterpolationType interpolation_type{interp_type};        \
+    static constexpr ElementType parent_element_type{parent_el_type};          \
+    static constexpr ElementKind element_kind{elem_kind};                      \
+    static constexpr Int spatial_dimension{sp};                                \
+    static constexpr GaussIntegrationType gauss_integration_type{              \
+        gauss_int_type};                                                       \
+    static constexpr Int polynomial_degree{min_int_order};                     \
   }
 
 /* -------------------------------------------------------------------------- */
@@ -242,10 +243,11 @@ public:
     }
   }
 
-  template <typename D1, typename D2>
+  template <typename D1, typename D2, typename D3,
+            std::enable_if_t<aka::is_vector<D3>::value> * = nullptr>
   static inline void computeJacobian(const Eigen::MatrixBase<D1> & Xs,
                                      const Eigen::MatrixBase<D2> & xs,
-                                     Vector<Real> & jacobians) {
+                                     Eigen::MatrixBase<D3> & jacobians) {
     using itp = typename interpolation_element::interpolation_property;
     Tensor3<Real> Js(itp::natural_space_dimension, itp::natural_space_dimension,
                      Xs.cols());
@@ -260,15 +262,14 @@ public:
                                      Eigen::MatrixBase<D2> & R);
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(Kind, _ek_structural, ElementKind);
-  static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, _not_defined, ElementType);
-  static AKANTU_GET_MACRO_NOT_CONST(FacetType, _not_defined, ElementType);
-  static constexpr auto getFacetType(__attribute__((unused)) UInt t = 0) {
+  static constexpr AKANTU_GET_MACRO_AUTO_NOT_CONST(Kind, _ek_structural);
+  static constexpr AKANTU_GET_MACRO_AUTO_NOT_CONST(P1ElementType, _not_defined);
+  static constexpr AKANTU_GET_MACRO_AUTO_NOT_CONST(FacetType, _not_defined);
+  static constexpr auto getFacetType(__attribute__((unused)) Int t = 0) {
     return _not_defined;
   }
-  static constexpr AKANTU_GET_MACRO_NOT_CONST(
-      SpatialDimension, ElementClassProperty<element_type>::spatial_dimension,
-      UInt);
+  static constexpr AKANTU_GET_MACRO_AUTO_NOT_CONST(
+      SpatialDimension, ElementClassProperty<element_type>::spatial_dimension);
   static constexpr auto getFacetTypes() {
     return ElementClass<_not_defined>::getFacetTypes();
   }

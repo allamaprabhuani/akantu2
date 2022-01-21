@@ -176,7 +176,7 @@ template <typename T, Int ndim> class TensorBase : public TensorTrait<ndim> {
   static_assert(ndim > 2, "TensorBase cannot by used for dimensions < 3");
 
 protected:
-  using idx_t = Int;
+  using idx_t = Idx;
 
   template <typename... Args>
   using valid_args_t = typename std::enable_if<
@@ -208,9 +208,10 @@ public:
         values(std::exchange(other.values, nullptr)) {}
 
 protected:
-  template <typename Array, Int... I>
-  constexpr auto check_indices(const Array & idx,
-                               std::index_sequence<I...>) const {
+  template <typename Array, idx_t... I>
+  constexpr auto check_indices(
+      const Array & idx,
+      std::integer_sequence<idx_t, I...> /* for_template_deduction */) const {
     bool result = true;
     (void)std::initializer_list<int>{(result &= idx[I] < n[I], 0)...};
     return result;
@@ -218,15 +219,16 @@ protected:
 
   template <typename... Args> constexpr auto compute_index(Args... args) const {
     std::array<idx_t, sizeof...(Args)> idx{idx_t(args)...};
-    static_assert(
-        check_indices(idx, std::make_index_sequence<sizeof...(Args)>{}),
+    AKANTU_DEBUG_ASSERT(
+        check_indices(idx,
+                      std::make_integer_sequence<idx_t, sizeof...(Args)>{}),
         "The indexes are out of bound");
-
     idx_t index = 0, i = (sizeof...(Args)) - 1;
     for (; i > 0; i--) {
       index += idx[i];
-      if (i > 0)
+      if (i > 0) {
         index *= n[i - 1];
+      }
     }
     return index + idx[0];
   }

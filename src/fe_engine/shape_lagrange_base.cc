@@ -31,8 +31,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_iterators.hh"
 #include "shape_lagrange_base.hh"
+#include "mesh_iterators.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {

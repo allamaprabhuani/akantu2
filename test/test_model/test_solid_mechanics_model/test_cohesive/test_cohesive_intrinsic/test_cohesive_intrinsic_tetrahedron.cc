@@ -225,8 +225,7 @@ void Checker::updateDisplacement(const Vector<Real> & increment) {
     for (UInt n = 0; n < conn.size(); ++n) {
       UInt node = conn(n);
       if (!update(node)) {
-        Vector<Real> node_disp(displacement.data() +
-                                   node * spatial_dimension,
+        Vector<Real> node_disp(displacement.data() + node * spatial_dimension,
                                spatial_dimension);
         node_disp += increment;
         update(node) = true;
@@ -295,8 +294,8 @@ void Checker::checkTractions(const Vector<Real> & opening,
   std::for_each(
       traction.begin(spatial_dimension), traction.end(spatial_dimension),
       [&theoretical_traction_rotated](auto && traction) {
-        Real diff =
-            Vector<Real>(theoretical_traction_rotated - traction).norm<L_inf>();
+        Real diff = Vector<Real>(theoretical_traction_rotated - traction)
+                        .lpNorm<Eigen::Infinity>();
         if (diff > 1e-14)
           throw std::domain_error("Tractions are incorrect");
       });
@@ -329,7 +328,7 @@ void Checker::checkEquilibrium() {
   for (; res_it != res_end; ++res_it)
     residual_sum += *res_it;
 
-  if (!Math::are_float_equal(residual_sum.norm<L_inf>(), 0.))
+  if (!Math::are_float_equal(residual_sum.lpNorm<Eigen::Infinity>(), 0.))
     throw std::domain_error("System is not in equilibrium!");
 }
 

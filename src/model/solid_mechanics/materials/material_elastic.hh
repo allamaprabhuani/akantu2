@@ -87,7 +87,11 @@ public:
 
   [[gnu::deprecated("Use the interface with an Element")]] void
   computePotentialEnergyByElement(ElementType type, Int index,
-                                  Vector<Real> & epot_on_quad_points) override;
+                                  Vector<Real> & epot_on_quad_points) override {
+    computePotentialEnergyByElement({type, index, _not_ghost},
+                                    epot_on_quad_points);
+  }
+
   void
   computePotentialEnergyByElement(const Element & element,
                                   Vector<Real> & epot_on_quad_points) override;

@@ -86,10 +86,12 @@ protected:
 public:
   // closet point projection method to compute stress state on the
   // yield surface
+  template <typename D1, typename D2, typename D3,
+            aka::enable_if_t<aka::are_vectors<D2, D3>::value> * = nullptr>
   inline void computeGradientAndPlasticMultplier(
-      const Matrix<Real, dim, dim> & sigma_tr, Real & plastic_multiplier_guess,
-      Vector<Real, dim> & gradient_f,
-      Vector<Real, dim> & delta_inelastic_strain, Int max_iterations = 100,
+      const Eigen::MatrixBase<D1> & sigma_trial,
+      Real & plastic_multiplier_guess, Eigen::MatrixBase<D2> & gradient_f,
+      Eigen::MatrixBase<D3> & delta_inelastic_strain, Int max_iterations = 100,
       Real tolerance = 1e-10);
 
   /* ------------------------------------------------------------------------ */

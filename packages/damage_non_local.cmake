@@ -41,6 +41,7 @@ package_declare_sources(damage_non_local
   model/solid_mechanics/materials/material_damage/material_marigo_non_local.hh
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.hh
+  model/solid_mechanics/materials/material_damage/material_mazars_non_local_tmpl.hh
   model/solid_mechanics/materials/material_damage/material_von_mises_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage/material_von_mises_mazars_non_local.hh
   
