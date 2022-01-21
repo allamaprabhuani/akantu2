@@ -730,6 +730,7 @@ public:
       return *this;
     }
     bool operator!=(const const_iterator & other) { return other.it != it; }
+    bool operator==(const const_iterator & other) { return other.it == it; }
     auto operator*() { return it->second; }
   };
 
