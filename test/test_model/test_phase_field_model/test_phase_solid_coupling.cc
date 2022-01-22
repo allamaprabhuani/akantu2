@@ -42,7 +42,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 void applyDisplacement(SolidMechanicsModel &, Real &);
@@ -185,7 +185,8 @@ void computeStrainOnQuadPoints(SolidMechanicsModel & solid,
         auto & strain_on_qpoints = phasefield.getStrain();
         auto & gradu_on_qpoints = material.getGradU();
 
-        for (auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+        for (const auto & type :
+             mesh.elementTypes(spatial_dimension, ghost_type)) {
           auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
           auto & gradu_on_qpoints_vect = gradu_on_qpoints(type, ghost_type);
           for (auto && values :
@@ -195,7 +196,7 @@ void computeStrainOnQuadPoints(SolidMechanicsModel & solid,
                              spatial_dimension))) {
             auto & strain = std::get<0>(values);
             auto & grad_u = std::get<1>(values);
-            gradUToEpsilon(grad_u, strain);
+            Material::gradUToEpsilon<spatial_dimension>(grad_u, strain);
           }
         }
 
@@ -229,10 +230,11 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
 
         switch (spatial_dimension) {
         case 1: {
-          auto & mat = static_cast<MaterialPhaseField<1> &>(material);
+          auto & mat = dynamic_cast<MaterialPhaseField<1> &>(material);
           auto & solid_damage = mat.getDamage();
 
-          for (auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+          for (const auto & type :
+               mesh.elementTypes(spatial_dimension, ghost_type)) {
             auto & damage_on_qpoints_vect = solid_damage(type, ghost_type);
 
             fem.interpolateOnIntegrationPoints(
@@ -242,10 +244,11 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
           break;
         }
         case 2: {
-          auto & mat = static_cast<MaterialPhaseField<2> &>(material);
+          auto & mat = dynamic_cast<MaterialPhaseField<2> &>(material);
           auto & solid_damage = mat.getDamage();
 
-          for (auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+          for (const auto & type :
+               mesh.elementTypes(spatial_dimension, ghost_type)) {
             auto & damage_on_qpoints_vect = solid_damage(type, ghost_type);
 
             fem.interpolateOnIntegrationPoints(

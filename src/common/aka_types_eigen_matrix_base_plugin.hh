@@ -146,13 +146,19 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size() const {
 }
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size(Index i) const {
-  AKANTU_DEBUG_ASSERT(i < 1, "This tensor has only " << 1 << " dimensions, not "
+  AKANTU_DEBUG_ASSERT(i < 2, "This tensor has only " << 2 << " dimensions, not "
                                                      << (i + 1));
-  return this->cols();
+  return (i == 0) ? this->rows() : this->cols();
 }
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void set(const Scalar & t) {
   this->fill(t);
+}
+
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eye(const Scalar & t = Scalar()) {
+  (*this) = t * Matrix<Scalar, Derived::RowsAtCompileTime,
+                       Derived::ColsAtCompileTime>::Identity(this->rows(),
+                                                             this->cols());
 }
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void clear() { this->fill(Scalar()); };

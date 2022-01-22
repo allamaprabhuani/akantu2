@@ -114,7 +114,7 @@ int main(int argc, char * argv[]) {
   intersector_sphere.computeIntersectionQueryList(sphere_list);
   std::cout << "final mesh size = " << mesh.getNodes().size() << std::endl;
 
-  const Array<UInt> new_node_triangle_3 = intersector_sphere.getNewNodePerElem();
+  const Array<Idx> new_node_triangle_3 = intersector_sphere.getNewNodePerElem();
   const Array<Real> & nodes = mesh.getNodes();
   std::cout << "New nodes :" << std::endl;
   std::cout << "node 5, x=" << nodes(4,0) << ", y=" << nodes(4,1) << std::endl;

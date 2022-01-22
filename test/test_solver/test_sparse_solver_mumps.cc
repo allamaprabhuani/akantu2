@@ -62,9 +62,9 @@ int main(int argc, char * argv[]) {
 
   if (prank == 0) {
     genMesh(mesh, nb_global_dof);
-    RandomGenerator<UInt>::seed(1496137735);
+    RandomGenerator<Idx>::seed(1496137735);
   } else {
-    RandomGenerator<UInt>::seed(2992275470);
+    RandomGenerator<Idx>::seed(2992275470);
   }
 
   mesh.distribute();
@@ -151,16 +151,16 @@ int main(int argc, char * argv[]) {
 void genMesh(Mesh & mesh, UInt nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
   Array<Real> & nodes = mesh_accessor.getNodes();
-  Array<UInt> & conn = mesh_accessor.getConnectivity(_segment_2);
+  Array<Idx> & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
   }
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }

@@ -61,7 +61,7 @@ public:
   void setDirichletBCs() override {
     this->model->getBlockedDOFs().set(true);
     auto center_node = this->model->getBlockedDOFs().end(parent::ndof) - 1;
-    *center_node = {false, false, false, false, false, true};
+    *center_node = Vector<bool>{false, false, false, false, false, true};
 
     this->model->getDisplacement().zero();
     auto disp = ++this->model->getDisplacement().begin(parent::ndof);
@@ -73,9 +73,9 @@ public:
     // clang-format off
 
     // This displacement field tests membrane and bending modes
-    *disp = {40, 20, -800 , -20, 40, 0}; ++disp;
-    *disp = {50, 40, -1400, -40, 50, 0}; ++disp;
-    *disp = {10, 20, -200 , -20, 10, 0}; ++disp;
+    *disp = Vector<Real>{40, 20, -800 , -20, 40, 0}; ++disp;
+    *disp = Vector<Real>{50, 40, -1400, -40, 50, 0}; ++disp;
+    *disp = Vector<Real>{10, 20, -200 , -20, 10, 0}; ++disp;
 
     // This displacement tests the bending mode
     // *disp = {0, 0, -800 , -20, 40, 0}; ++disp;
@@ -101,7 +101,7 @@ protected:
 // Batoz Vol 2. patch test, ISBN 2-86601-259-3
 TEST_F(TestStructDKT18, TestDisplacements) {
   model->solveStep();
-  Vector<Real> solution = {22.5, 22.5, -337.5, -22.5, 22.5, 0};
+  Vector<Real> solution = Vector<Real>{22.5, 22.5, -337.5, -22.5, 22.5, 0};
   auto nb_nodes = this->model->getDisplacement().size();
 
   Vector<Real> center_node_disp =
@@ -109,5 +109,5 @@ TEST_F(TestStructDKT18, TestDisplacements) {
 
   auto error = solution - center_node_disp;
 
-  EXPECT_NEAR(error.norm<L_2>(), 0., 1e-12);
+  EXPECT_NEAR(error.norm(), 0., 1e-12);
 }

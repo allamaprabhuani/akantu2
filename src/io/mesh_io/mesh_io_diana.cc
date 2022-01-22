@@ -408,13 +408,13 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh,
       read_order = _read_order[akantu_type];
     }
 
-    Vector<UInt> local_connect(node_per_element);
+    Vector<Idx> local_connect(node_per_element);
 
     // used if element is written on two lines
-    UInt j_last = 0;
+    Int j_last = 0;
 
-    for (UInt j = 0; j < node_per_element; ++j) {
-      UInt node_index;
+    for (Int j = 0; j < node_per_element; ++j) {
+      Int node_index;
       sstr_elem >> node_index;
 
       // check s'il y a pas plus rien après un certain point
@@ -439,7 +439,7 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh,
 
       for (auto j = (j_last + 1); j < node_per_element; ++j) {
 
-        UInt node_index;
+        Int node_index;
         sstr_elem >> node_index;
 
         node_index -= first_node_number;

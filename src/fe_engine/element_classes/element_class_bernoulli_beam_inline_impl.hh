@@ -60,14 +60,12 @@ AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_3,
 AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
                                                 _gt_segment_2,
                                                 _itp_bernoulli_beam_2,
-                                                _segment_2, _ek_structural, 2,
-                                                _git_segment, 3);
+                                                _segment_2, 2, _git_segment, 3);
 
 AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
                                                 _gt_segment_2,
                                                 _itp_bernoulli_beam_3,
-                                                _segment_2, _ek_structural, 3,
-                                                _git_segment, 3);
+                                                _segment_2, 3, _git_segment, 3);
 
 /* -------------------------------------------------------------------------- */
 template <>
@@ -243,4 +241,5 @@ inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
 }
 
 } // namespace akantu
+
 #endif /* AKANTU_ELEMENT_CLASS_BERNOULLI_BEAM_INLINE_IMPL_HH_ */

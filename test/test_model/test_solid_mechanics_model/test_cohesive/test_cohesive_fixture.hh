@@ -221,12 +221,12 @@ public:
 
     Matrix<Real> strain;
     if (dim == 1) {
-      strain = {{1.}};
+      strain = Matrix<Real>{{1.}};
     } else if (dim == 2) {
-      strain = {{-nu, 0.}, {0., 1. - nu}};
+      strain = Matrix<Real>{{-nu, 0.}, {0., 1. - nu}};
       strain *= (1. + nu);
     } else if (dim == 3) {
-      strain = {{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
+      strain = Matrix<Real>{{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
     }
 
     strain *= sigma_c / E;
@@ -271,12 +271,12 @@ public:
 
     Matrix<Real> strain;
     if (dim == 1) {
-      strain = {{1.}};
+      strain = Matrix<Real>{{1.}};
     } else if (dim == 2) {
-      strain = {{0., 1.}, {0., 0.}};
+      strain = Matrix<Real>{{0., 1.}, {0., 0.}};
       strain *= (1. + nu);
     } else if (dim == 3) {
-      strain = {{0., 1., 0.}, {0., 0., 0.}, {0., 0., 0.}};
+      strain = Matrix<Real>{{0., 1., 0.}, {0., 0., 0.}, {0., 0., 0.}};
       strain *= (1. + nu);
     }
     strain *= 2 * beta * beta * sigma_c / E;

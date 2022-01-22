@@ -290,8 +290,8 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    std::copy_n(new_elem.derived().data(), new_elem.size(),
-                values + this->nb_component * (this->size_ - 1));
+    make_view(*this, nb_component).begin()[this->size_].array() =
+        new_elem.array();
   }
 
   /// changes the allocated size but not the size

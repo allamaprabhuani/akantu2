@@ -49,7 +49,7 @@ class DataAccessorTest : public DataAccessor<UInt> {
 public:
   explicit DataAccessorTest(Array<int> & data) : data(data) {}
 
-  UInt getNbData(const Array<UInt> & nodes, const SynchronizationTag &) const {
+  Int getNbData(const Array<UInt> & nodes, const SynchronizationTag &) const {
     return nodes.size() * sizeof(int);
   }
 

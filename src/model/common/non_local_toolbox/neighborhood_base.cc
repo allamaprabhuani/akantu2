@@ -200,13 +200,13 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
     for (const auto & pair : pair_list[ghost_type]) {
       std::tie(q1, q2) = pair;
 
-      UInt node1 = quad_to_nodes[q1];
-      UInt node2 = quad_to_nodes[q2];
+      Idx node1 = quad_to_nodes[q1];
+      Idx node2 = quad_to_nodes[q2];
 
-      connectivity.push_back(Vector<UInt>{node1, node2});
+      connectivity.push_back(Vector<Idx>{node1, node2});
       tag.push_back(node1 + 1);
       if (node1 != node2) {
-        connectivity.push_back(Vector<UInt>{node2, node1});
+        connectivity.push_back(Vector<Idx>{node2, node1});
         tag.push_back(node2 + 1);
       }
     }

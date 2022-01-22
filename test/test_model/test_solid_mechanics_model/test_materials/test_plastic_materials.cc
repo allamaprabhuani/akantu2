@@ -72,14 +72,15 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   std::vector<double> steps(strain_steps);
   std::iota(steps.begin(), steps.end(), 0.);
 
-  Matrix<Real> previous_grad_u_rot(3, 3, 0.);
-  Matrix<Real> previous_sigma(3, 3, 0.);
-  Matrix<Real> previous_sigma_rot(3, 3, 0.);
-  Matrix<Real> inelastic_strain_rot(3, 3, 0.);
-  Matrix<Real> inelastic_strain(3, 3, 0.);
-  Matrix<Real> previous_inelastic_strain(3, 3, 0.);
-  Matrix<Real> previous_inelastic_strain_rot(3, 3, 0.);
-  Matrix<Real> sigma_rot(3, 3, 0.);
+  Matrix<Real, 3, 3> previous_grad_u_rot = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> previous_sigma = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> previous_sigma_rot = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> inelastic_strain_rot = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> inelastic_strain = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> previous_inelastic_strain = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> previous_inelastic_strain_rot = Matrix<Real, 3, 3>::Zero();
+  Matrix<Real, 3, 3> sigma_rot = Matrix<Real, 3, 3>::Zero();
+
   Real iso_hardening = 0.;
   Real previous_iso_hardening = 0.;
 
@@ -90,15 +91,21 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
     auto grad_u = this->getHydrostaticStrain(t);
     auto grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
 
-    this->computeStressOnQuad(grad_u_rot, previous_grad_u_rot, sigma_rot,
-                              previous_sigma_rot, inelastic_strain_rot,
-                              previous_inelastic_strain_rot, iso_hardening,
-                              previous_iso_hardening, 0., 0.);
+    this->computeStressOnQuad(make_named_tuple(
+        tuple::get<"grad_u"_h>() = grad_u_rot,
+        tuple::get<"sigma"_h>() = sigma_rot,
+        tuple::get<"previous_sigma"_h>() = previous_sigma_rot,
+        tuple::get<"previous_grad_u"_h>() = previous_grad_u_rot,
+        tuple::get<"inelastic_strain"_h>() = inelastic_strain_rot,
+        tuple::get<"previous_inelastic_strain"_h>() =
+            previous_inelastic_strain_rot,
+        tuple::get<"iso_hardening"_h>() = iso_hardening,
+        tuple::get<"previous_iso_hardening"_h>() = previous_iso_hardening));
 
     auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
 
-    Matrix<Real> sigma_expected =
-        t * 3. * bulk_modulus_K * Matrix<Real>::eye(3, 1.);
+    Matrix<Real, 3, 3> sigma_expected =
+        t * 3. * bulk_modulus_K * Matrix<Real, 3, 3>::Identity();
 
     Real stress_error = (sigma - sigma_expected).lpNorm<Eigen::Infinity>();
 
@@ -125,17 +132,22 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
     Real iso_hardening{0.};
     Real previous_iso_hardening{0.};
 
-    this->computeStressOnQuad(grad_u_rot, previous_grad_u_rot, sigma_rot,
-                              previous_sigma_rot, inelastic_strain_rot,
-                              previous_inelastic_strain_rot, iso_hardening,
-                              previous_iso_hardening, 0., 0.);
+    this->computeStressOnQuad(make_named_tuple(
+        tuple::get<"grad_u"_h>() = grad_u_rot,
+        tuple::get<"sigma"_h>() = sigma_rot,
+        tuple::get<"previous_grad_u"_h>() = previous_grad_u_rot,
+        tuple::get<"previous_sigma"_h>() = previous_sigma_rot,
+        tuple::get<"inelastic_strain"_h>() = inelastic_strain_rot,
+        tuple::get<"previous_inelastic_strain"_h>() =
+            previous_inelastic_strain_rot,
+        tuple::get<"iso_hardening"_h>() = iso_hardening,
+        tuple::get<"previous_iso_hardening"_h>() = previous_iso_hardening));
 
     auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
     auto inelastic_strain =
         this->reverseRotation(inelastic_strain_rot, rotation_matrix);
 
     if (t < t_P) {
-
       Matrix<Real> sigma_expected =
           shear_modulus_mu * (grad_u + grad_u.transpose());
 

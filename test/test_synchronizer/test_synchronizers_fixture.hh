@@ -67,7 +67,7 @@ public:
       for (const auto & type : mesh.elementTypes(_all_dimensions, ghost_type)) {
         for (auto && data : enumerate(
                  make_view(barycenters(type, ghost_type), spatial_dimension))) {
-          Element element{type, UInt(std::get<0>(data)), ghost_type};
+          Element element{type, std::get<0>(data), ghost_type};
           mesh.getBarycenter(element, std::get<1>(data));
         }
       }

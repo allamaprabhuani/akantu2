@@ -121,13 +121,16 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Real dam = 0.;
   Real dam_ref = 0.;
   Real ehat = 0.;
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple(
+        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
+        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -163,13 +166,17 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Real dam_ref = 0.;
   Real ehat = 0.;
 
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
+
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = -this->nu * epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple(
+        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
+        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -205,13 +212,17 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Real dam_ref = 0.;
   Real ehat = 0.;
 
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
+
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = strain(2, 2) = -this->nu * epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple(
+        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
+        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
 
     Real sigma_ref;
     auto py_data =

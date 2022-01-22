@@ -45,8 +45,8 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
-  const UInt spatial_dimension = 2;
-  const UInt nb_dof = 2;
+  const Int spatial_dimension = 2;
+  const Int nb_dof = 2;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
   mesh.read("bar.msh");
   mesh.distribute();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
   Array<Real> test_synchronize(nb_nodes, nb_dof, "Test vector");
@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
   if (prank == 0)
     std::cout << "Filling the matrix" << std::endl;
 
-  for (UInt i = 0; i < nb_nodes * nb_dof; ++i) {
+  for (Int i = 0; i < nb_nodes * nb_dof; ++i) {
     if (dof_manager.isLocalOrMasterDOF(i))
       A.add(i, i, 2.);
   }
@@ -82,8 +82,8 @@ int main(int argc, char * argv[]) {
   str << "Matrix_" << prank << ".mtx";
   A.saveMatrix(str.str());
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    for (UInt d = 0; d < nb_dof; ++d) {
+  for (Int n = 0; n < nb_nodes; ++n) {
+    for (Int d = 0; d < nb_dof; ++d) {
       dof_vector(n, d) = 1.;
     }
   }

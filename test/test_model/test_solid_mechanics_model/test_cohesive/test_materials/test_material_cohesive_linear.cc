@@ -56,10 +56,10 @@ struct TestMaterialCohesiveLinear
   }
 
   void resetInternal() override {
-    normal_opening = Vector<Real>(dim, 0.);
-    tangential_opening = Vector<Real>(dim, 0.);
-    contact_traction = Vector<Real>(dim, 0.);
-    contact_opening = Vector<Real>(dim, 0.);
+    normal_opening = Vector<Real>::Zero(dim);
+    tangential_opening = Vector<Real>::Zero(dim);
+    contact_traction = Vector<Real>::Zero(dim);
+    contact_opening = Vector<Real>::Zero(dim);
   }
 
   void computeTractions(Array<Real> & openings, const Vector<Real> & normal,
@@ -108,7 +108,7 @@ struct TestMaterialCohesiveLinear
 
     if (opening.dot(normal) / delta_c < -Math::getTolerance()) {
       ADD_FAILURE() << "This is contact";
-      return Vector<Real>(dim, 0.);
+      return Vector<Real>::Zero(dim);
     }
 
     auto T = sigma_c * (delta_c - delta_) / delta_c / delta_ *

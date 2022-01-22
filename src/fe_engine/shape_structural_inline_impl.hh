@@ -480,9 +480,9 @@ template <ElementType type>
 void ShapeStructural<_ek_structural>::computeNtb(
     const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
-  auto itp_type = ElementClassProperty<type>::interpolation_type;
+  constexpr auto itp_type = ElementClassProperty<type>::interpolation_type;
+  constexpr auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
 
-  auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
   auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
   const auto & shapes = this->shapes(itp_type, ghost_type);

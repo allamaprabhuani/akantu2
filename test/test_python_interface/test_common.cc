@@ -54,7 +54,7 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
         auto ptr =
             std::make_shared<_aka::Array<_aka::Real>>(size, nb_components);
         ptr->zero();
-        long addr = (long)ptr->storage();
+        long addr = (long)ptr->data();
         py::print("initial pointer: " + std::to_string(addr));
         arrays[addr] = ptr;
         return std::tuple<long, _aka::Array<_aka::Real> &>(addr, *ptr);
@@ -121,10 +121,10 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
 
   mod.def(
       "createMatrix",
-      [&](_aka::UInt size1, _aka::UInt size2) {
+      [&](_aka::Int size1, _aka::Int size2) {
         auto ptr = std::make_shared<_aka::Matrix<_aka::Real>>(size1, size2);
         ptr->zero();
-        long addr = (long)ptr->storage();
+        long addr = (long)ptr->data();
         py::print("initial pointer: " + std::to_string(addr));
         matrices[addr] = ptr;
         return std::tuple<long, _aka::Matrix<_aka::Real> &>(addr, *ptr);

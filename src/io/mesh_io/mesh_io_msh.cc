@@ -369,7 +369,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
   };
 
   readers["$ELM"] = readers["$Elements"] = [&](const std::string & /*unused*/) {
-    UInt nb_elements;
+    Int nb_elements;
     file.read_line(nb_elements);
 
     Int index;
@@ -413,9 +413,9 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
             file.mesh_accessor.template getData<UInt>("tag_1", akantu_type);
         data1.push_back(tag1);
       } else if (file.version < 4) {
-        UInt nb_tags;
+        Int nb_tags;
         sstr_elem >> nb_tags;
-        for (UInt j = 0; j < nb_tags; ++j) {
+        for (Int j = 0; j < nb_tags; ++j) {
           Int tag;
           sstr_elem >> tag;
 
@@ -425,9 +425,9 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
         }
       }
 
-      Vector<UInt> local_connect(node_per_element);
+      Vector<Idx> local_connect(node_per_element);
       for (Int j = 0; j < node_per_element; ++j) {
-        UInt node_index;
+        Int node_index;
         sstr_elem >> node_index;
 
         AKANTU_DEBUG_ASSERT(node_index <= file.last_node_number,
@@ -649,11 +649,11 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
       Element elem{akantu_type, 0, _not_ghost};
 
       auto & connectivity = file.mesh_accessor.getConnectivity(akantu_type);
-      Vector<UInt> local_connect(connectivity.getNbComponent());
+      Vector<Idx> local_connect(connectivity.getNbComponent());
       auto && read_order = this->_read_order[akantu_type];
 
       auto & data0 =
-          file.mesh_accessor.template getData<UInt>("tag_0", akantu_type);
+          file.mesh_accessor.template getData<Idx>("tag_0", akantu_type);
       data0.resize(data0.size() + num_elements_in_block, 0);
 
       auto & physical_data = file.mesh_accessor.template getData<std::string>(
@@ -662,10 +662,10 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
 
       for (auto _ [[gnu::unused]] : arange(num_elements_in_block)) {
         auto && sstr_elem = file.get_line();
-        size_t elem_tag;
+        std::size_t elem_tag;
         sstr_elem >> elem_tag;
         for (auto && c : arange(connectivity.getNbComponent())) {
-          size_t node_tag;
+          std::size_t node_tag;
           sstr_elem >> node_tag;
 
           AKANTU_DEBUG_ASSERT(node_tag <= file.last_node_number,

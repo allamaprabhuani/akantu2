@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
 
   const Parser & p = getStaticParser();
 
-  std::cout << RandomGenerator<UInt>::seed() << "==123456" << std::endl;
+  std::cout << RandomGenerator<Int>::seed() << "==123456" << std::endl;
 
   std::cout << p << std::endl;
 

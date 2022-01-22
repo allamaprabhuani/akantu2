@@ -82,7 +82,7 @@ public:
 
     for (auto && data : enumerate(make_view(nodes, this->spatial_dimension))) {
       auto & node = std::get<1>(data);
-      UInt i = std::get<0>(data);
+      Int i = std::get<0>(data);
       node[_x] = i * le;
     }
 
@@ -90,10 +90,10 @@ public:
     auto & connectivities = mesh_accessor.getConnectivity(parent::type);
     connectivities.resize(nb_element);
     for (auto && data : enumerate(make_view(connectivities, 2))) {
-      UInt i = std::get<0>(data);
+      Idx i = std::get<0>(data);
       auto & connectivity = std::get<1>(data);
 
-      connectivity = {i, i + 1};
+      connectivity = Vector<Idx>{i, i + 1};
     }
 
     mesh_accessor.makeReady();
@@ -108,7 +108,7 @@ public:
     normals.resize(nb_element);
 
     for (auto && normal : make_view(normals, this->spatial_dimension)) {
-      normal = {0., 0., 1.};
+      normal = Vector<Real>{0., 0., 1.};
     }
   }
 
@@ -273,8 +273,10 @@ TYPED_TEST(TestStructBernoulliDynamic, TestBeamMatrices) {
   const auto & K = this->model->getDOFManager().getMatrix("K");
   const auto & M = this->model->getDOFManager().getMatrix("M");
 
-  Matrix<Real> Ka(this->nb_nodes * this->ndof, this->nb_nodes * this->ndof, 0.);
-  Matrix<Real> Ma(this->nb_nodes * this->ndof, this->nb_nodes * this->ndof, 0.);
+  Matrix<Real> Ka(this->nb_nodes * this->ndof, this->nb_nodes * this->ndof);
+  Matrix<Real> Ma(this->nb_nodes * this->ndof, this->nb_nodes * this->ndof);
+  Ka.zero();
+  Ma.zero();
 
   Matrix<Real> Ke(this->ndof * 2, this->ndof * 2);
   Matrix<Real> Me(this->ndof * 2, this->ndof * 2);

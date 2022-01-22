@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
-//#include "element_class.hh"
+#include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_
@@ -185,13 +185,13 @@ public:
 /// element types
 /* -------------------------------------------------------------------------- */
 #define AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(                       \
-    elem_type, geom_type, interp_type, parent_el_type, elem_kind, sp,          \
-    gauss_int_type, min_int_order)                                             \
+    elem_type, geom_type, interp_type, parent_el_type, sp, gauss_int_type,     \
+    min_int_order)                                                             \
   template <> struct ElementClassProperty<elem_type> {                         \
     static constexpr GeometricalType geometrical_type{geom_type};              \
     static constexpr InterpolationType interpolation_type{interp_type};        \
     static constexpr ElementType parent_element_type{parent_el_type};          \
-    static constexpr ElementKind element_kind{elem_kind};                      \
+    static constexpr ElementKind element_kind{_ek_structural};                 \
     static constexpr Int spatial_dimension{sp};                                \
     static constexpr GaussIntegrationType gauss_integration_type{              \
         gauss_int_type};                                                       \

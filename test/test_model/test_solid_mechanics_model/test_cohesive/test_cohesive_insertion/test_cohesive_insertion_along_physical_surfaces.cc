@@ -70,16 +70,16 @@ int main(int argc, char * argv[]) {
 
   std::vector<std::string> surfaces_name = {"interface", "coh1", "coh2",
                                             "coh3",      "coh4", "coh5"};
-  UInt nb_surf = surfaces_name.size();
+  Int nb_surf = surfaces_name.size();
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
-    for (UInt i = 0; i < nb_surf; ++i) {
+    for (Int i = 0; i < nb_surf; ++i) {
 
-      UInt expected_insertion = mesh.getElementGroup(surfaces_name[i])
+      auto expected_insertion = mesh.getElementGroup(surfaces_name[i])
                                     .getElements(mesh.getFacetType(type))
                                     .size();
-      UInt inserted_elements =
+      auto inserted_elements =
           model.getMaterial(surfaces_name[i]).getElementFilter()(type).size();
       if (not(expected_insertion == inserted_elements)) {
         std::cout << "!!! Mismatch in insertion of surface named "

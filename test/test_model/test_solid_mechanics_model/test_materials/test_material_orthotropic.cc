@@ -60,8 +60,8 @@ int main(int argc, char * argv[]) {
   std::cout << model << std::endl;
 
   // Boundary condition (Neumann)
-  Matrix<Real> stress(2, 2);
-  stress.eye(Real(1e3));
+  Matrix<Real> stress = Matrix<Real, 2, 2>::Identity() * 1e3;
+
   model.applyBC(BC::Neumann::FromHigherDim(stress), "boundary_0");
 
   model.setBaseName("square-orthotrope");
@@ -89,8 +89,9 @@ int main(int argc, char * argv[]) {
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
            << std::endl;
 
-    if (s % 100 == 0)
+    if (s % 100 == 0) {
       model.dump();
+    }
   }
 
   energy.close();

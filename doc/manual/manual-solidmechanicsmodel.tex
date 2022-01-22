@@ -74,7 +74,7 @@ respectively.
 auto & disp = model.getDisplacement();
 auto & velo = model.getVelocity();
 
-for (UInt node = 0; node < mesh.getNbNodes(); ++node) {
+for (Int node = 0; node < mesh.getNbNodes(); ++node) {
   disp(node, 0) = 0.1;
   velo(node, 1) = 1.;
 }
@@ -130,9 +130,9 @@ The detail codes are shown as follows:
 auto & blocked = model.getBlockedDOFs();
 const auto & pos = mesh.getNodes();
 
-UInt nb_nodes = mesh.getNbNodes();
+Int nb_nodes = mesh.getNbNodes();
 
-for (UInt node = 0; node < nb_nodes; ++node) {
+for (Int node = 0; node < nb_nodes; ++node) {
   if(Math::are_float_equal(pos(node, _x), 0)) {
     blocked(node, _x) = true; // block dof in x-direction
     blocked(node, _y) = true; // block dof in y-direction
@@ -282,7 +282,7 @@ Another example would be to use the first (\code{tag\_0}) or the second
 (\code{tag\_1}) tag associated to each elements in the mesh:
 
 \begin{cpp}
-  auto mat_selector = std::make_shared<MeshDataMaterialSelector<UInt>>(
+  auto mat_selector = std::make_shared<MeshDataMaterialSelector<Int>>(
       "tag_1", model, first_index);
   model.setMaterialSelector(*mat_selector);
 \end{cpp}
@@ -592,7 +592,7 @@ solver.set("max_iterations", 100);
 solver.set("threshold", 1e-12);
 solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
-for (UInt s = 1; time <max_time; ++s, time += time_step) {
+for (Int s = 1; time <max_time; ++s, time += time_step) {
   model.solveStep();
 }
 \end{cpp}
@@ -712,7 +712,7 @@ Newmark$-\beta$ equations with $\beta=1/2$ and $\alpha=0$. In \akantu
 these computations at each time step are invoked by calling the
 function \code{solveStep}:
 \begin{cpp}
-for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
+for (Int s = 1; (s-1)*applied_time_step < total_time; ++s) {
   model.solveStep();
 }
 \end{cpp} \index{SolidMechanicsModel!solveStep}
@@ -883,7 +883,7 @@ private:
 In order to enable to print the material parameters at any point in
 the user's example file using the standard output stream by typing:
 \begin{cpp}
-for (UInt m = 0; m  < model.getNbMaterials(); ++m)
+for (Int m = 0; m  < model.getNbMaterials(); ++m)
   std::cout << model.getMaterial(m) << std::endl;
 \end{cpp}
 the standard output stream operator has to be redefined. This should be done at the end of the header file:

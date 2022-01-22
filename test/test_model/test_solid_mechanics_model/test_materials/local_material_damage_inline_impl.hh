@@ -34,8 +34,8 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                     Matrix<Real> & sigma,
+inline void LocalMaterialDamage::computeStressOnQuad(MatrixProxy<Real> & grad_u,
+                                                     MatrixProxy<Real> & sigma,
                                                      Real & dam) {
 
   Real trace = grad_u.trace();
@@ -44,8 +44,9 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
   /// u_{ij} + \nabla u_{ji})
   auto && epsilon = (grad_u + grad_u.transpose()) / 2.;
 
-  sigma =
-      Matrix<Real>::Identity(spatial_dimension) * trace * lambda + mu * epsilon;
+  sigma = Matrix<Real>::Identity(spatial_dimension, spatial_dimension) * trace *
+              lambda +
+          mu * epsilon;
 
   Real Y = sigma.doubleDot(epsilon) / 2.;
   Real Fd = Y - Yd - Sd * dam;
@@ -60,8 +61,8 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 
 /* -------------------------------------------------------------------------- */
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & epot) {
-  epot = sigma.doubleDot(epsilon) / 2.;
+    MatrixProxy<Real> & grad_u, MatrixProxy<Real> & sigma, Real & epot) {
+  epot = sigma.doubleDot(grad_u) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */

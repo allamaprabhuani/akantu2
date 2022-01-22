@@ -73,15 +73,19 @@ void LocalMaterialDamage::initMaterial() {
 void LocalMaterialDamage::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+  auto dim = this->spatial_dimension;
 
-  auto dam = damage(el_type, ghost_type).begin();
+  for (auto && data :
+       zip(make_view(this->gradu(el_type, ghost_type), dim, dim),
+           make_view(this->stress(el_type, ghost_type), dim, dim),
+           damage(el_type, ghost_type))) {
+    auto && grad_u = std::get<0>(data);
+    auto && sigma = std::get<1>(data);
+    auto && dam = std::get<2>(data);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  computeStressOnQuad(grad_u, sigma, *dam);
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    computeStressOnQuad(grad_u, sigma, dam);
+    ++dam;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -89,16 +93,17 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
-
+  auto dim = this->spatial_dimension;
   Material::computePotentialEnergy(el_type);
 
-  Real * epot = potential_energy(el_type).data();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  epot++;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
+  for (auto && data : zip(make_view(this->gradu(el_type), dim, dim),
+                          make_view(this->stress(el_type), dim, dim),
+                          potential_energy(el_type))) {
+    auto && grad_u = std::get<0>(data);
+    auto && sigma = std::get<1>(data);
+    auto && epot = std::get<2>(data);
+    computePotentialEnergyOnQuad(grad_u, sigma, epot);
+  }
   AKANTU_DEBUG_OUT();
 }
 

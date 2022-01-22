@@ -69,24 +69,24 @@ int main(int argc, char * argv[]) {
   Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
   dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
 
-  auto & equation_number =
+  const auto & equation_number =
       dof_manager.getLocalEquationsNumbers("test_synchronize");
 
-  DOFSynchronizer & dof_synchronizer = dof_manager.getSynchronizer();
+  auto & dof_synchronizer = dof_manager.getSynchronizer();
 
   std::cout << "Synchronizing a dof vector" << std::endl;
 
   Array<Int> local_data_array(dof_manager.getLocalSystemSize(), 2);
   auto it_data = local_data_array.begin(2);
 
-  for (UInt local_dof = 0; local_dof < dof_manager.getLocalSystemSize();
+  for (Int local_dof = 0; local_dof < dof_manager.getLocalSystemSize();
        ++local_dof) {
-    UInt equ_number = equation_number(local_dof);
+    auto equ_number = equation_number(local_dof);
     Vector<Int> val;
     if (dof_manager.isLocalOrMasterDOF(equ_number)) {
-      UInt global_dof = dof_manager.localToGlobalEquationNumber(local_dof);
+      Int global_dof = dof_manager.localToGlobalEquationNumber(local_dof);
       val = {0, 1};
-      val += global_dof * 2;
+      val.array() += global_dof * 2;
     } else {
       val = {-1, -1};
     }
@@ -101,7 +101,7 @@ int main(int argc, char * argv[]) {
     auto it_data = local_data_array.begin(2);
     for (UInt local_dof = 0; local_dof < dof_manager.getLocalSystemSize();
          ++local_dof) {
-      UInt equ_number = equation_number(local_dof);
+      Int equ_number = equation_number(local_dof);
 
       Vector<Int> exp_val;
 
@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
       if (dof_manager.isLocalOrMasterDOF(equ_number) ||
           dof_manager.isSlaveDOF(equ_number)) {
         exp_val = {0, 1};
-        exp_val += global_dof * 2;
+        exp_val.array() += global_dof * 2;
       } else {
         exp_val = {-1, -1};
       }

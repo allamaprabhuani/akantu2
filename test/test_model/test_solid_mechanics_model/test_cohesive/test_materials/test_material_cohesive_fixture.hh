@@ -116,14 +116,13 @@ public:
     auto dim = normal.size();
     Matrix<Real> tangent(dim, dim - 1);
     if (dim == 2) {
-      Math::normal2(normal.data(), tangent(0).data());
+      normal = Math::normal(tangent(0));
     }
 
     if (dim == 3) {
       auto v = getRandomVector();
-      tangent(0) = (v - v.dot(normal) * normal).normalize();
-      Math::normal3(normal.data(), tangent(0).data(),
-                    tangent(1).data());
+      tangent(0) = (v - v.dot(normal) * normal).normalized();
+      normal = Math::normal(tangent(0), tangent(1));
     }
 
 #if defined(debug_)
@@ -179,8 +178,8 @@ public:
 
   /* ------------------------------------------------------------------------ */
   Real dissipated() {
-    Vector<Real> prev_opening(dim, 0.);
-    Vector<Real> prev_traction(dim, 0.);
+    Vector<Real> prev_opening = Vector<Real>::Zero(dim);
+    Vector<Real> prev_traction = Vector<Real>::Zero(dim);
 
     Real etot = 0.;
     Real erev = 0.;
@@ -231,15 +230,16 @@ public:
 
     std::uniform_real_distribution<Real> dis;
 
-    auto direction = Vector<Real>(tangents(0));
+    Vector<Real> direction = tangents(0);
     auto alpha = dis(gen) + 0.1;
     auto beta = dis(gen) + 0.2;
 #ifndef debug_
-    direction = alpha * Vector<Real>(tangents(0));
-    if (dim > 2)
-      direction += beta * Vector<Real>(tangents(1));
+    direction = alpha * tangents(0);
+    if (dim > 2) {
+      direction += beta * tangents(1);
+    }
 
-    direction = direction.normalize();
+    direction = direction.normalized();
 #endif
 
     beta = this->material->get("beta");
@@ -287,7 +287,7 @@ protected:
 template <template <UInt> class Mat, UInt dim>
 struct TestMaterialCohesive : public Mat<dim> {
   TestMaterialCohesive(SolidMechanicsModel & model)
-      : Mat<dim>(model, "test"), insertion_stress_(dim, 0.) {}
+      : Mat<dim>(model, "test"), insertion_stress_(Vector<Real>(dim)) {}
 
   virtual void SetUp() {}
   virtual void resetInternal() {}

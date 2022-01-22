@@ -106,7 +106,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   }
 
   seed *= (comm.whoAmI() + 1);
-  RandomGenerator<UInt>::seed(seed);
+  RandomGenerator<Idx>::seed(seed);
 
   long int dbl_level = static_argparser["aka_debug_level"];
   debug::setDebugLevel(DebugLevel(dbl_level));

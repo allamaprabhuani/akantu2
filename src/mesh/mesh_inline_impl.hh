@@ -45,23 +45,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getKind(ElementType type) {
-  return tuple_dispatch<AllElementTypes>(
-      [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
-        return ElementClass<type>::getKind();
-      },
-      type);
-}
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Element::kind() const -> ElementKind {
-  return Mesh::getKind(type);
-}
-
-/* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) -> Int {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -71,7 +57,8 @@ inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t)
+    -> Int {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -387,7 +374,22 @@ inline void Mesh::getBarycenter(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getP1ElementType(ElementType type) {
+inline constexpr auto Mesh::getKind(ElementType type) -> ElementKind {
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getKind();
+      },
+      type);
+}
+
+/* -------------------------------------------------------------------------- */
+inline constexpr auto Element::kind() const -> ElementKind {
+  return Mesh::getKind(type);
+}
+
+/* -------------------------------------------------------------------------- */
+inline constexpr auto Mesh::getP1ElementType(ElementType type) -> ElementType {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -397,7 +399,7 @@ inline constexpr auto Mesh::getP1ElementType(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getSpatialDimension(ElementType type) {
+inline constexpr auto Mesh::getSpatialDimension(ElementType type) -> Int {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -407,7 +409,7 @@ inline constexpr auto Mesh::getSpatialDimension(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) {
+inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) -> Int {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -417,7 +419,8 @@ inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/) {
+inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/)
+    -> Int {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -427,7 +430,8 @@ inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getFacetType(ElementType type, Idx t) {
+inline constexpr auto Mesh::getFacetType(ElementType type, Idx t)
+    -> ElementType {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
@@ -459,8 +463,8 @@ inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type, Idx t) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
-                                                 Idx t) const {
+inline auto Mesh::getFacetConnectivity(const Element & element, Idx t) const
+    -> Matrix<Idx> {
   auto local_facets = getFacetLocalConnectivity(element.type, t);
   Matrix<Idx> facets(local_facets.rows(), local_facets.cols());
 
@@ -564,7 +568,8 @@ inline auto Mesh::getNbGlobalNodes() const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getNbNodesPerElementList(const Array<Element> & elements) {
+inline auto Mesh::getNbNodesPerElementList(const Array<Element> & elements)
+    -> Int {
   Int nb_nodes_per_element = 0;
   Int nb_nodes = 0;
   ElementType current_element_type = _not_defined;
