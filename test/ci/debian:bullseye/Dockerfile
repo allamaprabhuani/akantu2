@@ -6,6 +6,7 @@ RUN apt -qq update && apt -qq -y install \
     g++ gfortran clang cmake \
     openmpi-bin libmumps-dev libscotch-dev \
     libboost-dev libopenblas-dev \
+    libeigen3-dev \
     python3 python3-dev python3-numpy python3-scipy python3-mpi4py \
     && rm -rf /var/lib/apt/lists/*
 
