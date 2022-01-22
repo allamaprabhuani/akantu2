@@ -115,9 +115,7 @@ void NTNFricRegNoRegularisation::printself(std::ostream & stream,
 /* -------------------------------------------------------------------------- */
 void NTNFricRegNoRegularisation::addDumpFieldToDumper(
     const std::string & dumper_name, const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
+  AKANTU_DEBUG_IN();
 
   if (field_id == "frictional_contact_pressure") {
     this->internalAddDumpFieldToDumper(
@@ -128,7 +126,7 @@ void NTNFricRegNoRegularisation::addDumpFieldToDumper(
     NTNBaseFriction::addDumpFieldToDumper(dumper_name, field_id);
   }
 
-#endif
+  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

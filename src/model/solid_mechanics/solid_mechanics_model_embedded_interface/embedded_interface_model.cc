@@ -30,19 +30,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "embedded_interface_model.hh"
 #include "integrator_gauss.hh"
 #include "material_elastic.hh"
 #include "material_reinforcement.hh"
 #include "mesh_iterators.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -109,11 +105,9 @@ void EmbeddedInterfaceModel::initFullImpl(const ModelOptions & options) {
 
   SolidMechanicsModel::initFullImpl(options);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("reinforcement", id);
   this->mesh.addDumpMeshToDumper("reinforcement", *interface_mesh, 1,
                                  _not_ghost, _ek_regular);
-#endif
 }
 
 void EmbeddedInterfaceModel::initModel() {
@@ -150,7 +144,6 @@ void EmbeddedInterfaceModel::addDumpGroupFieldToDumper(
     const std::string & dumper_name, const std::string & field_id,
     const std::string & group_name, ElementKind element_kind,
     bool padding_flag) {
-#ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
 
   // If dumper is reinforcement, create a 1D elemental field
@@ -168,8 +161,6 @@ void EmbeddedInterfaceModel::addDumpGroupFieldToDumper(
     DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
     Model::addDumpGroupFieldToDumper(field_id, field, dumper);
   }
-
-#endif
 }
 
 } // namespace akantu

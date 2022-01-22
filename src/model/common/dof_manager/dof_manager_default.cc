@@ -305,10 +305,9 @@ void DOFManagerDefault::assembleElementalMatricesToMatrix(
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assemblePreassembledMatrix(
-    const ID & dof_id_m, const ID & dof_id_n, const ID & matrix_id,
-    const TermsToAssemble & terms) {
+    const ID & matrix_id, const TermsToAssemble & terms) {
   auto & A = getMatrix(matrix_id);
-  DOFManager::assemblePreassembledMatrix_(A, dof_id_m, dof_id_n, terms);
+  DOFManager::assemblePreassembledMatrix_(A, terms);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -471,14 +470,14 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered [[gnu::unused]] =
+static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 
-static bool dof_manager_is_registered_mumps [[gnu::unused]] =
+static bool dof_manager_is_registered_mumps =
     DOFManagerFactory::getInstance().registerAllocator(
         "mumps", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);

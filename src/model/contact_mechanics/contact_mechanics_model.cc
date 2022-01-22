@@ -36,11 +36,8 @@
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -57,12 +54,10 @@ ContactMechanicsModel::ContactMechanicsModel(
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
                                                Model::spatial_dimension);
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_regular);
-#endif
 
   this->registerDataAccessor(*this);
 
@@ -546,7 +541,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
+MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }
@@ -592,9 +587,6 @@ void ContactMechanicsModel::afterSolveStep(bool converged) {
     resolution->afterSolveStep(converged);
   }
 }
-
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
@@ -646,7 +638,6 @@ ContactMechanicsModel::createNodalFieldInt(const std::string & field_name,
   }
   return field;
 }
-#endif
 
 /* -------------------------------------------------------------------------- */
 Int ContactMechanicsModel::getNbData(const Array<Element> & elements,

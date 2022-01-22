@@ -92,7 +92,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -162,7 +162,6 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-#if defined(AKANTU_USE_IOHELPER)
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
@@ -177,7 +176,6 @@ public:
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */

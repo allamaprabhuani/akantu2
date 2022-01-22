@@ -39,7 +39,7 @@
 #include "group_manager_inline_impl.hh"
 
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_field.hh"
@@ -48,7 +48,7 @@
 #include "dumper_iohelper.hh"
 #include "dumper_material_padders.hh"
 #include "dumper_paraview.hh"
-#endif
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -139,7 +139,6 @@ void SolidMechanicsModel::onDump() {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, Int spatial_dimension, ElementKind kind) {
@@ -266,30 +265,7 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
   field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
   return field;
 }
-/* -------------------------------------------------------------------------- */
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
-    const std::string &, const std::string &, bool, const UInt &, ElementKind) {
-  return nullptr;
-}
-/* --------------------------------------------------------------------------
- */
-std::shaed_ptr<dumpers::Field>
-SolidMechanicsModel::createNodalFieldReal(const std::string &,
-                                          const std::string &, bool) {
-  return nullptr;
-}
 
-/* --------------------------------------------------------------------------
- */
-std::shared_ptr<dumpers::Field>
-SolidMechanicsModel::createNodalFieldBool(const std::string &,
-                                          const std::string &, bool) {
-  return nullptr;
-}
-
-#endif
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
   this->onDump();

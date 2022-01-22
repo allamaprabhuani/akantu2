@@ -48,9 +48,8 @@
 #include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -138,12 +137,10 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
   tmp_material_selector->setFallback(this->material_selector);
   this->material_selector = tmp_material_selector;
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("cohesive elements", id);
   this->mesh.addDumpMeshToDumper("cohesive elements", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_cohesive);
-#endif
 
   if (this->mesh.isDistributed()) {
     /// create the distributed synchronizer for cohesive elements
@@ -179,10 +176,7 @@ SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() = default;
 void SolidMechanicsModelCohesive::setTimeStep(Real time_step,
                                               const ID & solver_id) {
   SolidMechanicsModel::setTimeStep(time_step, solver_id);
-
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper("cohesive elements").setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */

@@ -790,7 +790,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 #define INSTANTIATE_MATERIAL(id, mat_name)                                     \
   INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
-  static bool material_is_alocated_##id [[gnu::unused]] =                      \
+  static bool material_is_alocated_##id =                                      \
       MaterialFactory::getInstance().registerAllocator(                        \
           #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
 

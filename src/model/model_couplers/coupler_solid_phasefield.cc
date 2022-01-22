@@ -35,10 +35,8 @@
 #include "element_synchronizer.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -50,13 +48,11 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
   this->registerFEEngineObject<MyFEEngineType>("CouplerSolidPhaseField", mesh,
                                                Model::spatial_dimension);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("coupler_solid_phasefield", id,
                                             true);
   this->mesh.addDumpMeshToDumper("coupler_solid_phasefield", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_regular);
-#endif
 
   this->registerDataAccessor(*this);
 
@@ -248,7 +244,7 @@ void CouplerSolidPhaseField::corrector() {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType CouplerSolidPhaseField::getMatrixType(const ID & matrix_id) {
+MatrixType CouplerSolidPhaseField::getMatrixType(const ID & matrix_id) const {
 
   if (matrix_id == "K") {
     return _symmetric;
@@ -508,9 +504,6 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
-/* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, Idx spatial_dimension, ElementKind kind) {
@@ -545,30 +538,6 @@ CouplerSolidPhaseField::createNodalFieldBool(const std::string & field_name,
   std::shared_ptr<dumpers::Field> field;
   return field;
 }
-
-#else
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
-    const std::string &, const std::string &, bool, Idx, ElementKind) {
-  return nullptr;
-}
-
-/* ----------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-CouplerSolidPhaseField::createNodalFieldReal(const std::string &,
-                                             const std::string &, bool) {
-  return nullptr;
-}
-
-/*-------------------------------------------------------------------*/
-std::shared_ptr<dumpers::Field>
-CouplerSolidPhaseField::createNodalFieldBool(const std::string &,
-                                             const std::string &, bool) {
-  return nullptr;
-}
-
-#endif
 
 /* -----------------------------------------------------------------------*/
 void CouplerSolidPhaseField::dump(const std::string & dumper_name) {

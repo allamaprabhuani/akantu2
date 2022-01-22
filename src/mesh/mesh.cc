@@ -52,11 +52,8 @@
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
 #include "dumper_field.hh"
 #include "dumper_internal_material_field.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <sstream>
@@ -448,7 +445,6 @@ template ElementTypeMap<Int>
 Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 template <typename T>
 std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData(const std::string & field_id,
@@ -481,7 +477,6 @@ template std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData<Int>(const std::string & field_id,
                                        const std::string & group_name,
                                        ElementKind element_kind);
-#endif
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distributeImpl(

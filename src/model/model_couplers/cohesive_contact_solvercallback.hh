@@ -60,7 +60,7 @@ public:
   void assembleLumpedMatrix(const ID & /*matrix_id*/) override;
 
   /// implementation of SolverCallback::getMatrixType
-  MatrixType getMatrixType(const ID & /*unused*/) override;
+  MatrixType getMatrixType(const ID & /*unused*/) const override;
 
   /// implementation of SolverCallback::predictor
   void predictor() override;

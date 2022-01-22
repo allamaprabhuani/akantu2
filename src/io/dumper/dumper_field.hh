@@ -58,11 +58,9 @@ namespace dumpers {
     /* Methods */
     /* ---------------------------------------------------------------------- */
   public:
-#ifdef AKANTU_USE_IOHELPER
     /// register this to the provided dumper
     virtual void registerToDumper(const std::string & id,
                                   iohelper::Dumper & dumper) = 0;
-#endif
 
     /// set the number of data per item (used for elements fields at the moment)
     virtual void setNbData(Int /*nb_data*/) { AKANTU_TO_IMPLEMENT(); };

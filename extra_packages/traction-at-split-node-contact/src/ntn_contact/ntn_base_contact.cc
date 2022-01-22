@@ -488,7 +488,8 @@ void NTNBaseContact::syncArrays(SyncChoice sync_choice) {
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
                                           const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
+  AKANTU_DEBUG_IN();
+
   const auto & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)                                       \
@@ -540,7 +541,8 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
   }
 
 #undef ADD_FIELD
-#endif
+
+  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

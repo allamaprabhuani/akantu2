@@ -38,16 +38,14 @@
 #include "py_aka_common.hh"
 #include "py_aka_error.hh"
 #include "py_boundary_conditions.hh"
+#include "py_dof_manager.hh"
+#include "py_dumpable.hh"
 #include "py_fe_engine.hh"
 #include "py_group_manager.hh"
 #include "py_mesh.hh"
 #include "py_model.hh"
 #include "py_parser.hh"
 #include "py_solver.hh"
-
-#if defined(AKANTU_USE_IOHELPER)
-#include "py_dumpable.hh"
-#endif
 
 #if defined(AKANTU_SOLID_MECHANICS)
 #include "py_material.hh"
@@ -97,12 +95,12 @@ void register_all(pybind11::module & mod) {
   register_solvers(mod);
 
   register_group_manager(mod);
-#if defined(AKANTU_USE_IOHELPER)
   register_dumpable(mod);
-#endif
   register_mesh(mod);
 
   register_fe_engine(mod);
+
+  register_dof_manager(mod);
 
   register_boundary_conditions(mod);
   register_model(mod);

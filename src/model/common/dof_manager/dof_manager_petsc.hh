@@ -119,9 +119,7 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  void assemblePreassembledMatrix(const ID & /* dof_id_m*/,
-                                  const ID & /*dof_id_n*/,
-                                  const ID & /*matrix_id*/,
+  void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & /*terms*/) override;
 
 protected:

@@ -43,13 +43,11 @@ CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
                                 std::shared_ptr<DOFManager> dof_manager,
                                 ModelType model_type)
     : Model(mesh, model_type, dof_manager, dim, id) {
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact",
                                             id, true);
   this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_cohesive);
-#endif
 
   this->registerDataAccessor(*this);
 

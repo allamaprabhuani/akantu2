@@ -32,7 +32,6 @@
 
 package_declare(Mumps EXTERNAL
   DESCRIPTION "Add Mumps support in akantu"
-  SYSTEM ON
   )
 
 package_declare_sources(Mumps
@@ -51,47 +50,23 @@ if(AKANTU_FLOAT_TYPE STREQUAL "float" OR
   set(_mumps_components ${AKANTU_FLOAT_TYPE})
 else()
   if(DEFINED AKANTU_FLOAT_TYPE)
-    message(FATAL_ERROR "MUMPS doea not support floating point type \"${AKANTU_FLOAT_TYPE}\"")
+    message(FATAL_ERROR "MUMPS does not support floating point type \"${AKANTU_FLOAT_TYPE}\"")
   endif()
 endif()
 
 package_get_option_name(parallel _par_option)
 if(${_par_option})
-  package_set_find_package_extra_options(Mumps ARGS COMPONENTS "parallel" ${_mumps_components})
-  package_add_third_party_script_variable(Mumps MUMPS_TYPE "par")
-
+  list(APPEND _mumps_components "parallel")
   package_set_package_system_dependency(Mumps deb libmumps)
   package_set_package_system_dependency(Mumps deb-src libmumps-dev)
 else()
-  package_set_find_package_extra_options(Mumps ARGS COMPONENTS "sequential" ${_mumps_components})
-  package_add_third_party_script_variable(Mumps MUMPS_TYPE "seq")
-
+  list(APPEND _mumps_components "sequential")
   package_set_package_system_dependency(Mumps deb libmumps-seq)
   package_set_package_system_dependency(Mumps deb-src libmumps-seq-dev)
 endif()
 
-package_use_system(Mumps _use_system)
-if(NOT _use_system)
-  enable_language(Fortran)
-
-  set(AKANTU_USE_MUMPS_VERSION "4.10.0" CACHE STRING "Default Mumps version to compile")
-  mark_as_advanced(AKANTU_USE_MUMPS_VERSION)
-  set_property(CACHE AKANTU_USE_MUMPS_VERSION PROPERTY STRINGS "4.9.2" "4.10.0" "5.0.0")
-
-  package_get_option_name(MPI _mpi_option)
-  if(${_mpi_option})
-    package_add_dependencies(Mumps ScaLAPACK MPI)
-  endif()
-
-  package_add_dependencies(Mumps Scotch BLAS)
-endif()
-
+package_set_find_package_extra_options(Mumps ARGS COMPONENTS "${_mumps_components}")
 package_declare_extra_files_to_package(MUMPS
   PROJECT
-    third-party/MUMPS_4.10.0_make.inc.cmake
-    third-party/MUMPS_5.0.0.patch
-    third-party/MUMPS_4.10.0.patch
-    third-party/MUMPS_4.9.2_make.inc.cmake
-    third-party/cmake/mumps.cmake
     cmake/Modules/FindMumps.cmake
   )

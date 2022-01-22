@@ -1,12 +1,9 @@
 #===============================================================================
-# @file   python_interpreter.cmake
+# @file   CMakeLists.txt
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date creation: Wed Oct 31 2018
-# @date last modification: Wed Oct 31 2018
-#
-# @brief  packages description for the external dependency to the python interpreted
+# @brief  CMakeLists for solid mechanics dynamics example
 #
 #
 # @section LICENSE
@@ -30,6 +27,9 @@
 #===============================================================================
 
 
-package_declare(PythonInterp EXTERNAL DESCRIPTION "Akantu's python interpreter"
-  EXTRA_PACKAGE_OPTIONS ARGS ${AKANTU_PREFERRED_PYTHON_VERSION}
-  )
+add_mesh(solver_callback_mesh bar.geo DIM 2)
+register_example(solver_callback
+  SCRIPT solver_callback.py
+  PYTHON
+  FILES_TO_COPY material.dat
+  DEPENDS solver_callback_mesh)

@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
   auto & A = dof_manager.getNewMatrix("A", _symmetric);
 
   Array<Real> b(nb_nodes);
-  TermsToAssemble terms;
+  TermsToAssemble terms("x", "x");
 
   for (UInt i = 0; i < nb_nodes; ++i) {
     if (dof_manager.isLocalOrMasterDOF(i)) {
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  dof_manager.assemblePreassembledMatrix("x", "x", "A", terms);
+  dof_manager.assemblePreassembledMatrix("A", terms);
 
   std::stringstream str;
   str << "Matrix_" << prank << ".mtx";

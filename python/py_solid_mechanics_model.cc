@@ -60,6 +60,7 @@ namespace akantu {
   def(#func_name, [](SolidMechanicsModel & self) -> decltype(auto) {           \
     return self.func_name();                                                   \
   })
+
 /* -------------------------------------------------------------------------- */
 void register_solid_mechanics_model(py::module & mod) {
 

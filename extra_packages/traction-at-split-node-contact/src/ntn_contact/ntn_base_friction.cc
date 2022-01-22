@@ -293,7 +293,8 @@ void NTNBaseFriction::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
                                            const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
+  AKANTU_DEBUG_IN();
+
   if (field_id == "is_sticking") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
@@ -327,7 +328,7 @@ void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
     this->contact.addDumpFieldToDumper(dumper_name, field_id);
   }
 
-#endif
+  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

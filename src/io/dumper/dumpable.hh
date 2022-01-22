@@ -39,10 +39,6 @@
 #ifndef AKANTU_DUMPABLE_HH_
 #define AKANTU_DUMPABLE_HH_
 
-#ifdef AKANTU_USE_IOHELPER
 #include "dumpable_iohelper.hh"
-#else
-#include "dumpable_dummy.hh"
-#endif // AKANTU_USE_IOHELPER
 
 #endif /* AKANTU_DUMPABLE_HH_ */

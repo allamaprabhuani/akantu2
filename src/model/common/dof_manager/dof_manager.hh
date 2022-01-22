@@ -162,9 +162,7 @@ public:
                                                   Real scale_factor = 1) = 0;
 
   /// assemble coupling terms between to dofs
-  virtual void assemblePreassembledMatrix(const ID & dof_id_m,
-                                          const ID & dof_id_n,
-                                          const ID & matrix_id,
+  virtual void assemblePreassembledMatrix(const ID & matrix_id,
                                           const TermsToAssemble & terms) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
@@ -227,9 +225,7 @@ protected:
   /// common function that can be called by derived class with proper matrice
   /// types
   template <typename Mat>
-  void assemblePreassembledMatrix_(Mat & A, const ID & dof_id_m,
-                                   const ID & dof_id_n,
-                                   const TermsToAssemble & terms);
+  void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
   void assembleElementalMatricesToMatrix_(

@@ -24,4 +24,8 @@ compile_commands.json
 .clangd
 .iwyu.imp
 .cache
+setup.cfg
+.vscode
+.auctex*
+.clangd
 .ccls-cache

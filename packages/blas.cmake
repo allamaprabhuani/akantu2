@@ -32,11 +32,7 @@
 
 package_declare(BLAS EXTERNAL
   DESCRIPTION "Use BLAS for arithmetic operations"
-  EXTRA_PACKAGE_OPTIONS LANGUAGE Fortran
-  SYSTEM ON third-party/cmake/blas.cmake)
-
-package_add_third_party_script_variable(BLAS BLAS_ARCHIVE "http://www.netlib.org/blas/blas-3.5.0.tgz")
-package_add_third_party_script_variable(BLAS BLAS_VERSION "3.5.0")
+  EXTRA_PACKAGE_OPTIONS LANGUAGE Fortran)
 
 set(_default_blas $ENV{BLA_VENDOR})
 if(NOT _default_blas)
@@ -77,9 +73,3 @@ endif()
 
 package_set_package_system_dependency(BLAS deb libblas3)
 package_set_package_system_dependency(BLAS deb-src libblas3)
-
-package_declare_extra_files_to_package(BLAS
-  PROJECT
-    third-party/cmake/blas.cmake
-    third-party/blas_3.5.0_make.inc.cmake
-  )

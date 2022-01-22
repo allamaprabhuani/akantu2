@@ -491,7 +491,6 @@ void NTNContact::addDumpFieldToDumper(const std::string & dumper_name,
   AKANTU_DEBUG_IN();
 
   /*
-#ifdef AKANTU_USE_IOHELPER
   const Array<UInt> & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)				\
@@ -512,7 +511,6 @@ void NTNContact::addDumpFieldToDumper(const std::string & dumper_name,
 
   /*
 #undef ADD_FIELD
-#endif
   */
 
   AKANTU_DEBUG_OUT();

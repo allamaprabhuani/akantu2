@@ -38,8 +38,13 @@ mark_as_advanced(GMSH)
 
 if (GMSH)
   execute_process(COMMAND ${GMSH} --version
-    ERROR_VARIABLE GMSH_VERSION
+    OUTPUT_VARIABLE GMSH_VERSION
+    ERROR_VARIABLE GMSH_VERSION_ERR
     ERROR_STRIP_TRAILING_WHITESPACE)
+endif()
+
+if(NOT GMSH_VERSION)
+  set(GMSH_VERSION ${GMSH_VERSION_ERR})
 endif()
 
 find_package(PackageHandleStandardArgs)

@@ -40,14 +40,11 @@
 #include "mesh.hh"
 #include "parser.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
@@ -63,11 +60,9 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
   this->registerFEEngineObject<FEEngineType>("PhaseFieldFEEngine", mesh,
                                              Model::spatial_dimension);
 
-#ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("phase_field", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
-#endif // AKANTU_USE_IOHELPER
 
   phasefield_selector =
       std::make_shared<DefaultPhaseFieldSelector>(phasefield_index);
@@ -91,7 +86,7 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
 PhaseFieldModel::~PhaseFieldModel() = default;
 
 /* -------------------------------------------------------------------------- */
-MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) {
+MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }
@@ -427,9 +422,7 @@ void PhaseFieldModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {}
 void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper("phase_field").setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -536,8 +529,6 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
 std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
                                       const std::string & group_name,
@@ -583,30 +574,6 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
   std::shared_ptr<dumpers::Field> field;
   return field;
 }
-
-/* -------------------------------------------------------------------------- */
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createElementalField(const std::string &, const std::string &,
-                                      bool, Int, ElementKind) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createNodalFieldReal(const std::string &, const std::string &,
-                                      bool) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createNodalFieldBool(const std::string &, const std::string &,
-                                      bool) {
-  return nullptr;
-}
-#endif
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {

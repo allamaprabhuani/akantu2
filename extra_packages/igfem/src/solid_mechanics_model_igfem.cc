@@ -18,13 +18,12 @@
 #include "group_manager_inline_impl.hh"
 #include "igfem_helper.hh"
 #include "material_igfem.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_igfem_element_partition.hh"
 #include "dumper_igfem_elemental_field.hh"
 #include "dumper_igfem_material_internal_field.hh"
 #include "dumper_material_padders.hh"
 #include "dumper_paraview.hh"
-#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -44,11 +43,9 @@ SolidMechanicsModelIGFEM::SolidMechanicsModelIGFEM(Mesh & mesh, UInt dim,
 
   this->registerEventHandler(*this);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("igfem elements", id);
   this->mesh.addDumpMeshToDumper("igfem elements", mesh, spatial_dimension,
                                  _not_ghost, _ek_igfem);
-#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -331,8 +328,6 @@ void SolidMechanicsModelIGFEM::onDump() {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
 dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const UInt & spatial_dimension, ElementKind kind) {
@@ -429,12 +424,10 @@ dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
 }
 
 /* -------------------------------------------------------------------------- */
-
 dumpers::Field *
 SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag) {
-
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["real_displacement"] = real_displacement;
 
@@ -460,7 +453,6 @@ dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
 }
 
 /* -------------------------------------------------------------------------- */
-
 dumpers::Field *
 SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
@@ -468,10 +460,8 @@ SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
   return NULL;
 }
 
-#endif
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelIGFEM::computeValuesOnEnrichedNodes() {
-
   for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
     for (UInt s = 0; s < spatial_dimension; ++s)
       (*real_displacement)(n, s) = (*displacement)(n, s);

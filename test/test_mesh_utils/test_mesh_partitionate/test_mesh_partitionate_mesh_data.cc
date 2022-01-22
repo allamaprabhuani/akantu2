@@ -34,10 +34,8 @@
 #include "mesh.hh"
 #include "mesh_partition_mesh_data.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 #include "dumper_elemental_field.hh"
 #include "dumper_paraview.hh"
-#endif // AKANTU_USE_IOHELPER
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
