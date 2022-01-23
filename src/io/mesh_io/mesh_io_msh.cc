@@ -563,13 +563,14 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
 
     size_t node_id{0};
 
+    auto dim = nodes.getNbComponent();
+
     for (auto block [[gnu::unused]] : arange(num_blocks)) {
       int entity_dim;
       int entity_tag;
       int parametric;
       size_t num_nodes_in_block;
       Vector<double> pos(3);
-      Vector<double> real_pos(nodes.getNbComponent());
 
       if (file.version >= 4.1) {
         file.read_line(entity_dim, entity_tag, parametric, num_nodes_in_block);
@@ -586,11 +587,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
 
         for (auto _ [[gnu::unused]] : arange(num_nodes_in_block)) {
           file.read_line(pos(_x), pos(_y), pos(_z));
-          for (auto && data : zip(real_pos, pos)) {
-            std::get<0>(data) = std::get<1>(data);
-          }
-
-          nodes.push_back(real_pos);
+          nodes.push_back(pos.block(0, 0, dim, 1));
         }
       } else {
         file.read_line(entity_tag, entity_dim, parametric, num_nodes_in_block);
@@ -604,11 +601,8 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
             file.last_node_number = std::max(file.last_node_number, tag);
           }
 
-          for (auto && data : zip(real_pos, pos)) {
-            std::get<0>(data) = std::get<1>(data);
-          }
+          nodes.push_back(pos.block(0, 0, dim, 1));
 
-          nodes.push_back(real_pos);
           file.node_tags[tag] = node_id;
           ++node_id;
         }

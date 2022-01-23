@@ -290,7 +290,7 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    make_view(*this, nb_component).begin()[this->size_].array() =
+    make_view(*this, nb_component).begin()[this->size_ - 1].array() =
         new_elem.array();
   }
 

@@ -82,6 +82,4 @@ inline void DamagedWeightFunction::init() {
   this->damage = &(this->manager.registerWeightFunctionInternal("damage"));
 }
 
-INSTANTIATE_NL_NEIGHBORHOOD(damage_wf, DamagedWeightFunction);
-
 } // namespace akantu

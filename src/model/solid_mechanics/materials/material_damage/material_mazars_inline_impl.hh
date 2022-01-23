@@ -61,33 +61,32 @@ void MaterialMazars<dim, Parent>::computeStress(ElementType el_type,
   Real Ehat = 0;
 
   auto && arguments = getArguments(el_type, ghost_type);
-  for (auto && data : arguments) {
-    computeStressOnQuad(data);
+  for (auto && args : arguments) {
+    computeStressOnQuad(args);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 template <typename Args>
-inline void
-MaterialMazars<dim, Parent>::computeStressOnQuad(Args && arguments) {
-  Parent<dim>::computeStressOnQuad(arguments);
+inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
+  Parent<dim>::computeStressOnQuad(args);
 
-  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && grad_u = tuple::get<"grad_u"_h>(args);
 
   static_if(tuple::has_t<"inelastic_strain"_h, Args>())
       .then([&grad_u](auto && args) {
         grad_u -= tuple::get<"inelastic_strain"_h>(args);
-      })(std::forward<Args>(arguments));
+      })(std::forward<Args>(args));
 
   Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
 
   epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
   Vector<Real, 3> Fdiag;
-  epsilon.eigh(Fdiag);
+  epsilon.eig(Fdiag);
 
-  auto && Ehat = tuple::get<"Ehat"_h>(arguments);
+  auto && Ehat = tuple::get<"Ehat"_h>(args);
 
   Ehat = 0.;
   for (Int i = 0; i < 3; ++i) {
@@ -97,11 +96,11 @@ MaterialMazars<dim, Parent>::computeStressOnQuad(Args && arguments) {
   Ehat = std::sqrt(Ehat);
 
   if (damage_in_compute_stress) {
-    computeDamageOnQuad(arguments, Fdiag);
+    computeDamageOnQuad(args, Fdiag);
   }
 
   if (not this->is_non_local) {
-    computeDamageAndStressOnQuad(arguments);
+    computeDamageAndStressOnQuad(args);
   }
 }
 
@@ -109,35 +108,35 @@ MaterialMazars<dim, Parent>::computeStressOnQuad(Args && arguments) {
 template <Int dim, template <Int> class Parent>
 template <typename Args>
 inline void
-MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && arguments) {
-  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
+  auto && grad_u = tuple::get<"grad_u"_h>(args);
   if (not damage_in_compute_stress) {
     Vector<Real, 3> Fdiag;
     Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
 
     epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
-    epsilon.eigh(Fdiag);
-    computeDamageOnQuad(arguments, Fdiag);
+    epsilon.eig(Fdiag);
+    computeDamageOnQuad(args, Fdiag);
   }
 
-  auto && sigma = tuple::get<"sigma"_h>(arguments);
-  auto && dam = tuple::get<"damage"_h>(arguments);
+  auto && sigma = tuple::get<"sigma"_h>(args);
+  auto && dam = tuple::get<"damage"_h>(args);
   sigma *= 1 - dam;
 
   static_if(tuple::has_t<"inelastic_strain"_h, Args>())
       .then([&grad_u](auto && args) {
         grad_u += tuple::get<"inelastic_strain"_h>(args);
-      })(std::forward<Args>(arguments));
+      })(std::forward<Args>(args));
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 template <typename Args, typename Derived>
 inline void MaterialMazars<dim, Parent>::computeDamageOnQuad(
-    Args && arguments, const Eigen::MatrixBase<Derived> & epsilon_princ) {
-  auto && dam = tuple::get<"damage"_h>(arguments);
-  auto && Ehat = tuple::get<"Ehat"_h>(arguments);
+    Args && args, const Eigen::MatrixBase<Derived> & epsilon_princ) {
+  auto && dam = tuple::get<"damage"_h>(args);
+  auto && Ehat = tuple::get<"Ehat"_h>(args);
 
   auto Fs = Ehat - K0;
 

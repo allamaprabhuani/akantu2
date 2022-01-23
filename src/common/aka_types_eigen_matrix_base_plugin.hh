@@ -139,13 +139,13 @@ const Scalar * storage() const {
 }
 // clang-format on
 
-template <bool _is_vector = IsVectorAtCompileTime,
-          std::enable_if_t<_is_vector> * = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size() const {
-  return this->cols();
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index size() const {
+  return this->rows() * this->cols();
 }
 
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto size(Index i) const {
+template <bool _is_vector = IsVectorAtCompileTime,
+          std::enable_if_t<not _is_vector> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index size(Index i) const {
   AKANTU_DEBUG_ASSERT(i < 2, "This tensor has only " << 2 << " dimensions, not "
                                                      << (i + 1));
   return (i == 0) ? this->rows() : this->cols();
@@ -185,62 +185,17 @@ eig(const MatrixBase<OtherDerived> & other) const;
 
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors) const;
+eig(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors,
+    bool sort = std::is_floating_point<typename D1::Scalar>::value) const;
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
 eigh(const MatrixBase<OtherDerived> & other) const;
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eigh(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors) const;
-/*
-public:
-*/
-// template <bool ip, typename R = T,
-//           std::enable_if_t<std::is_floating_point<R>::value, int> = 0>
-// inline bool equal(const VectorBase<R, ip> & v,
-//                   R tolerance = Math::getTolerance()) const {
-//   T * a = this->data();
-//   T * b = v.data();
-//   idx_t i = 0;
-//   while (i < this->_size && (std::abs(*(a++) - *(b++)) < tolerance))
-//     ++i;
-//   return i == this->_size;
-// }
-
-// template <bool ip, typename R = T,
-//           std::enable_if_t<std::is_floating_point<R>::value, int> = 0>
-// inline short compare(const TensorBase<R, 1, ip> & v,
-//                      Real tolerance = Math::getTolerance()) const {
-//   T * a = this->data();
-//   T * b = v.data();
-//   for (UInt i(0); i < this->_size; ++i, ++a, ++b) {
-//     if (std::abs(*a - *b) > tolerance)
-//       return (((*a - *b) > tolerance) ? 1 : -1);
-//   }
-//   return 0;
-// }
-
-// template <bool ip, typename R = T,
-//           std::enable_if_t<not std::is_floating_point<R>::value, int> = 0>
-// inline bool equal(const TensorBase<R, 1, ip> & v) const {
-//   return std::equal(this->values, this->values + this->_size, v.data());
-// }
-
-// template <bool ip, typename R = T,
-//           std::enable_if_t<not std::is_floating_point<R>::value, int> = 0>
-// inline short compare(const TensorBase<R, 1, ip> & v) const {
-//   T * a = this->data();
-//   T * b = v.data();
-//   for (idx_t i(0); i < this->_size; ++i, ++a, ++b) {
-//     if (*a > *b)
-//       return 1;
-//     else if (*a < *b)
-//       return -1;
-//   }
-//   return 0;
-// }
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(const MatrixBase<D1> & values,
+                                                const MatrixBase<D2> & vectors,
+                                                bool sort = true) const;
 
 template <typename OtherDerived>
 inline bool operator<=(const MatrixBase<OtherDerived> & v) const {

@@ -103,8 +103,6 @@ RemoveDamagedWeightFunction::unpackData(CommunicationBuffer & buffer,
   }
 }
 
-INSTANTIATE_NL_NEIGHBORHOOD(remove_wf, RemoveDamagedWeightFunction);
-
 } // namespace akantu
 
 #endif /* AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_INLINE_IMPL_HH_ */

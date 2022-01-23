@@ -250,7 +250,7 @@ TEST_F(TensorFixture, VectorMultiplyEqual1) {
 
 TEST_F(TensorFixture, VectorMultiplyEqual2) {
   Vector<double> v(vref);
-  v *= v;
+  v.array() *= v.array();
 
   for (int i = 0; i < size_; ++i) {
     EXPECT_DOUBLE_EQ(reference[i] * reference[i], v[i]);
@@ -532,20 +532,43 @@ TEST_F(TensorFixture, MatrixIteratorZip) {
 
 #if defined(AKANTU_USE_LAPACK)
 TEST_F(TensorFixture, MatrixEigs) {
-  Matrix<double> m{{0, 1, 0, 0}, {1., 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 4, 0}};
+  Matrix<double, 4, 4> A{
+      {0, 1., 0, 0}, {1., 0, 0, 0}, {0, 1., 0, 1.}, {0, 0, 4., 0}};
 
-  Matrix<double> eig_vects(4, 4);
-  Vector<double> eigs(4);
-  m.eigh(eigs, eig_vects);
+  Matrix<double, 4, 4> v;
+  Vector<double, 4> lambda;
+  A.eig(lambda, v);
 
   Vector<double> eigs_ref{2, 1., -1., -2};
-  auto lambda_v = m * eig_vects;
+
+  auto Av = (A * v).eval();
+
+  // Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>
+  // perm(lambda.size()); perm.setIdentity();
+
+  // std::sort(perm.indices().data(),
+  //           perm.indices().data() + perm.indices().size(),
+  //           [&lambda](const Eigen::Index & a, const Eigen::Index & b) {
+  //             return (lambda(a) - lambda(b)) > 0;
+  //           });
+
+  // std::cout << v << std::endl;
+  // std::cout << lambda << std::endl;
+
+  // std::cout << v * perm << std::endl;
+  // std::cout << perm.transpose() * lambda << std::endl;
+
+  // std::cout << (Av(0) - lambda(0) * v(0)).eval() << std::endl;
 
   for (int i = 0; i < 4; ++i) {
-    EXPECT_NEAR(eigs_ref(i), eigs(i), 1e-14);
-    for (int j = 0; j < 4; ++j) {
-      EXPECT_NEAR(lambda_v(i, j), eigs(i) * eig_vects(i, j), 1e-14);
-    }
+    EXPECT_NEAR(eigs_ref(i), lambda(i), 1e-14);
+  }
+
+  for (int i = 0; i < 4; ++i) {
+    auto lambda_v_minus_a_v =
+        (lambda(i) * v(i) - Av(i)).template lpNorm<Eigen::Infinity>();
+
+    EXPECT_NEAR(lambda_v_minus_a_v, 0., 1e-14);
   }
 }
 #endif

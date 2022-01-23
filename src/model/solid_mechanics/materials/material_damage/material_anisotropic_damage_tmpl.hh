@@ -76,7 +76,7 @@ namespace {
   template <Int dim, class D, class Op>
   void tensorPlus_(const Eigen::MatrixBase<D> & A, Op && oper) {
     Vector<Real, dim> A_eigs;
-    A.eigh(A_eigs);
+    A.eig(A_eigs);
 
     for (auto & ap : A_eigs) {
       oper(ap);
@@ -110,7 +110,7 @@ namespace {
                     Eigen::MatrixBase<D2> & A_directions, Op && oper) {
     Vector<Real, dim> A_eigs;
     Matrix<Real, dim, dim> A_diag;
-    A.eigh(A_eigs, A_directions);
+    A.eig(A_eigs, A_directions);
 
     for (auto && data : enumerate(A_eigs)) {
       auto i = std::get<0>(data);

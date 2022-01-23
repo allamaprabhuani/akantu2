@@ -77,14 +77,14 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  template <typename Args> inline void computeStressOnQuad(Args && arguments);
+  template <typename Args> inline void computeStressOnQuad(Args && args);
 
   template <typename Args>
-  inline void computeDamageAndStressOnQuad(Args && arguments);
+  inline void computeDamageAndStressOnQuad(Args && args);
 
   template <typename Args, typename Derived>
   inline void
-  computeDamageOnQuad(Args && arguments,
+  computeDamageOnQuad(Args && args,
                       const Eigen::MatrixBase<Derived> & epsilon_princ);
 
 public:

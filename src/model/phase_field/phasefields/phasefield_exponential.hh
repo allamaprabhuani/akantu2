@@ -101,7 +101,7 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
   strain_diag_plus.zero();
   // strain_diag_minus.zero();
 
-  strain_quad.eigh(strain_values, strain_dir);
+  strain_quad.eig(strain_values, strain_dir);
 
   for (UInt i = 0; i < spatial_dimension; i++) {
     strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));

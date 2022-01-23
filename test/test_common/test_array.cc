@@ -218,35 +218,65 @@ TYPED_TEST(ArrayFixture, PushBack) {
   EXPECT_LE(0, arr.getAllocatedSize());
 }
 
-TYPED_TEST(ArrayFixture, ViewVector) {
+TYPED_TEST(ArrayFixture, ViewVectorDynamic) {
   auto && view = make_view(*this->array, 10);
   EXPECT_NO_THROW(view.begin());
   {
     auto it = view.begin();
     EXPECT_EQ(10, it->size());
     EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
-                        typeid(Vector<typename TestFixture::type>));
+                        typeid(VectorProxy<typename TestFixture::type>));
     EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
                         typeid(VectorProxy<typename TestFixture::type>));
   }
 }
 
-TYPED_TEST(ArrayFixture, ViewMatrix) {
+TYPED_TEST(ArrayFixture, ViewVectorStatic) {
+  auto && view = make_view<10>(*this->array);
+  EXPECT_NO_THROW(view.begin());
   {
-    auto && view = make_view(*this->array, 2, 5);
+    auto it = view.begin();
+    EXPECT_EQ(10, it->size());
+    EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
+                        typeid(VectorProxy<typename TestFixture::type, 10>));
+    EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
+                        typeid(VectorProxy<typename TestFixture::type, 10>));
+  }
+}
 
-    EXPECT_NO_THROW(view.begin());
-    {
-      auto it = view.begin();
-      EXPECT_EQ(10, it->size());
-      EXPECT_EQ(2, it->size(0));
-      EXPECT_EQ(5, it->size(1));
+TYPED_TEST(ArrayFixture, ViewMatrixStatic) {
+  auto && view = make_view(*this->array, 2, 5);
 
-      EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
-                          typeid(Matrix<typename TestFixture::type>));
-      EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
-                          typeid(MatrixProxy<typename TestFixture::type>));
-    }
+  EXPECT_NO_THROW(view.begin());
+  {
+    auto it = view.begin();
+    EXPECT_EQ(10, it->size());
+    EXPECT_EQ(2, it->size(0));
+    EXPECT_EQ(5, it->size(1));
+
+    EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
+                        typeid(MatrixProxy<typename TestFixture::type>));
+    EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
+                        typeid(MatrixProxy<typename TestFixture::type>));
+  }
+}
+
+TYPED_TEST(ArrayFixture, ViewMatrixDynamic) {
+  auto && view = make_view<2, 5>(*this->array);
+
+  EXPECT_NO_THROW(view.begin());
+  {
+    auto it = view.begin();
+    EXPECT_EQ(10, it->size());
+    EXPECT_EQ(2, it->size(0));
+    EXPECT_EQ(5, it->size(1));
+    EXPECT_EQ(2, it->rows());
+    EXPECT_EQ(5, it->cols());
+
+    EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
+                        typeid(MatrixProxy<typename TestFixture::type, 2, 5>));
+    EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
+                        typeid(MatrixProxy<typename TestFixture::type, 2, 5>));
   }
 }
 
@@ -267,7 +297,7 @@ TYPED_TEST(ArrayFixture, ViewMatrixIter) {
     EXPECT_EQ(10, mat.size(0));
     EXPECT_EQ(10, mat.size(1));
     EXPECT_PRED_FORMAT2(AssertType, typeid(mat),
-                        typeid(Matrix<typename TestFixture::type>));
+                        typeid(MatrixProxy<typename TestFixture::type>));
 
     ++count;
   }
@@ -283,7 +313,7 @@ TYPED_TEST(ArrayFixture, ConstViewVector) {
     auto it = view.begin();
     EXPECT_EQ(10, it->size());
     EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
-                        typeid(Vector<typename TestFixture::type>));
+                        typeid(VectorProxy<typename TestFixture::type>));
     EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
                         typeid(VectorProxy<typename TestFixture::type>));
   }

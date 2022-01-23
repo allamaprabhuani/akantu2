@@ -231,6 +231,7 @@ package_declare_sources(core
   model/common/non_local_toolbox/non_local_neighborhood_tmpl.hh
   model/common/non_local_toolbox/non_local_neighborhood_inline_impl.hh
   model/common/non_local_toolbox/base_weight_function.hh
+  model/common/non_local_toolbox/base_weight_function.cc
   model/common/non_local_toolbox/base_weight_function_inline_impl.hh
 
   model/common/model_solver.cc
