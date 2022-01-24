@@ -754,7 +754,6 @@ public:
 
   /* ------------------------------------------------------------------------ */
   inline void logMap(const Matrix<T> &R) {
-    /// A discuter avec Nico
     AKANTU_DEBUG_ASSERT(this->size() == 3 && R.rows() == 3 && R.cols() == 3,
                         "need a 3 dim matrix and vector");
     Real theta = R.computeRotationAngle();
@@ -769,7 +768,7 @@ public:
       _R.eig(eig_vals, eig_vects);
       for (UInt i = 0; i < eig_vals.size(); ++i) {
         auto val = eig_vals(i);
-        auto vect = eig_vects(i);
+        Vector<T> vect = eig_vects(i);
         if (std::abs(val - 1) < 1e-14) {
           (*this) = theta * vect / vect.norm();
         }
@@ -808,8 +807,7 @@ public:
                         "need a 3 dim vectors");
     Matrix<T> B1(3,3);
     Matrix<T> Bp1(3,3);
-    Vector<T> BB = -1 * B;
-    B1.expMap(BB);
+    B1.expMap(-1. * B);
     Bp1.expDerivative(B, Bp);
     Matrix<T> exp_deriv = B1 * Bp1;
     Vector<T> skew_exp_deriv(3);
@@ -1256,6 +1254,22 @@ public:
   }
 
   /* ---------------------------------------------------------------------- */
+  /**
+     To implement the functions:
+     - skew 
+     - expMap
+     - expDerivative
+     - expAcceleration
+     - computeRotationAngle
+     - skew2vec
+     - logMap
+     - convectedAngleDerivative
+     - angleAcceleration
+     - composeRotations
+     in 2D see: Lie Groups for 2D and 3D Transformations
+     https://ethaneade.com/lie.pdf
+     https://www.cis.upenn.edu/~cis610/geombchap14.pdf
+   */
   inline void expMap(const Vector<T> &v) {
     AKANTU_DEBUG_ASSERT(v.size()==3 && this->rows() ==3 && this->cols() == 3,
                         "only for dimension 3 vector and matrix");
@@ -1271,7 +1285,6 @@ public:
 
   /* ---------------------------------------------------------------------- */
   inline Real computeRotationAngle() const {
-    /// demander à Nico car soirtie réel et non vecteur
     AKANTU_DEBUG_ASSERT(this->rows() == this->cols() == 3,
                         "need a 3 dim matrix");
     auto cos_val = (this->trace() -1) / 2;
