@@ -763,10 +763,10 @@ public:
     }
     auto sym = ((R - R.transpose()).template norm<L_2>() / R.template norm<L_2>()) < 1e-12;
     if (sym) {
-      Matrix<T> _R = 0.5 * (R + R.transpose());
+      Matrix<T> _R = (R + R.transpose()) / 2.;
       Matrix<T> eig_vects(3,3);
       Vector<T> eig_vals(3);
-      _R.eig(eig_vects, eig_vals);
+      _R.eig(eig_vals, eig_vects);
       for (UInt i = 0; i < eig_vals.size(); ++i) {
         auto val = eig_vals(i);
         auto vect = eig_vects(i);
@@ -776,7 +776,7 @@ public:
       }
       throw std::runtime_error("Symmetric cannot log:"); 
     }
-    Matrix<T> A = (R - R.transpose()) / 2;
+    Matrix<T> A = (R - R.transpose()) / 2.;
     Matrix<T> _log = theta / std::sin(theta) * A;
     Vector<T> res(3);
     res.skew2vec(_log);
@@ -808,7 +808,7 @@ public:
                         "need a 3 dim vectors");
     Matrix<T> B1(3,3);
     Matrix<T> Bp1(3,3);
-    Matrix<T> BB = -B;
+    Vector<T> BB = -1 * B;
     B1.expMap(BB);
     Bp1.expDerivative(B, Bp);
     Matrix<T> exp_deriv = B1 * Bp1;
@@ -1270,7 +1270,7 @@ public:
   }
 
   /* ---------------------------------------------------------------------- */
-  inline Real computeRotationAngle() {
+  inline Real computeRotationAngle() const {
     /// demander à Nico car soirtie réel et non vecteur
     AKANTU_DEBUG_ASSERT(this->rows() == this->cols() == 3,
                         "need a 3 dim matrix");
