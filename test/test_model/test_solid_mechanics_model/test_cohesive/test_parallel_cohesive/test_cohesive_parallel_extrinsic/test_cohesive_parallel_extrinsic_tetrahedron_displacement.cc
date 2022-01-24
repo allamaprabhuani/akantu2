@@ -36,10 +36,6 @@
 #include "material_cohesive_linear.hh"
 #include "solid_mechanics_model_cohesive.hh"
 
-#ifdef AKANTU_USE_IOHELPER
-#include "dumper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 

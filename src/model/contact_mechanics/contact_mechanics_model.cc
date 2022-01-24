@@ -36,11 +36,8 @@
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -57,12 +54,10 @@ ContactMechanicsModel::ContactMechanicsModel(
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
                                                Model::spatial_dimension);
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_regular);
-#endif
 
   this->registerDataAccessor(*this);
 
@@ -593,9 +588,6 @@ void ContactMechanicsModel::afterSolveStep(bool converged) {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
-/* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
 ContactMechanicsModel::createNodalFieldBool(const std::string & /*unused*/,
                                             const std::string & /*unused*/,
@@ -645,7 +637,6 @@ ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
   }
   return field;
 }
-#endif
 
 /* -------------------------------------------------------------------------- */
 UInt ContactMechanicsModel::getNbData(

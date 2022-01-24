@@ -40,6 +40,9 @@ endif()
 #===============================================================================
 enable_language(Fortran)
 
+option(MUMPS_DETECT_DEBUG "Helps to debug mumps detection problems" OFF)
+mark_as_advanced(MUMPS_DETECT_DEBUG)
+
 set(MUMPS_PRECISIONS)
 set(MUMPS_PLAT)
 foreach(_comp ${Mumps_FIND_COMPONENTS})
@@ -109,6 +112,20 @@ else()
 endif()
 
 
+macro(find_mpiseq)
+  find_library(MUMPS_LIBRARY_MPISEQ mpiseq${MUMPS_PREFIX}
+    PATHS "${MUMPS_DIR}"
+    ENV MUMPS_DIR
+    PATH_SUFFIXES lib
+    )
+  if (NOT MUMPS_LIBRARY_MPISEQ)
+    message("Could not find libmpiseq for sequential version of MUMPS, was "
+      "MUMPS compiled in sequential ?")
+  endif()
+  set(${_libs} ${MUMPS_LIBRARY_MPISEQ} PARENT_SCOPE)
+  mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
+endmacro()
+
 function(mumps_add_dependency _pdep _libs)
   string(TOUPPER ${_pdep} _u_pdep)
   if(_pdep STREQUAL "mumps_common")
@@ -138,17 +155,7 @@ function(mumps_add_dependency _pdep _libs)
     endif()
   elseif(_pdep MATCHES "MPI")
     if(MUMPS_PLAT STREQUAL "_seq")
-      find_library(MUMPS_LIBRARY_MPISEQ mpiseq${MUMPS_PREFIX}
-        PATHS "${MUMPS_DIR}"
-        ENV MUMPS_DIR
-        PATH_SUFFIXES lib
-        )
-      if (NOT MUMPS_LIBRARY_MPISEQ)
-        message("Could not find libmpiseq for sequential version of MUMPS, was "
-          "MUMPS compiled in sequential ?")
-      endif()
-      set(${_libs} ${MUMPS_LIBRARY_MPISEQ} PARENT_SCOPE)
-      mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
+      find_mpiseq()
     else()
       find_package(MPI REQUIRED C Fortran QUIET)
       set(${_libs} ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES} PARENT_SCOPE)
@@ -161,6 +168,14 @@ function(mumps_add_dependency _pdep _libs)
     set(${_libs} OpenMP::OpenMP_C PARENT_SCOPE)
   elseif(_pdep MATCHES "Math")
     set(${_libs} m PARENT_SCOPE)
+  elseif(_pdep MATCHES "ScaLAPACK")
+    if(MUMPS_PLAT STREQUAL "_seq")
+      # ScaLAPACK symbols are in mpiseq form 5.20+
+      find_mpiseq()
+    else()
+      find_package(ScaLAPACK REQUIRED QUIET)
+      set(${_libs} ${SCALAPACK_LIBRARIES} PARENT_SCOPE)
+    endif()
   else()
     find_package(${_pdep} REQUIRED QUIET)
     set(${_libs} ${${_u_pdep}_LIBRARIES} ${${_u_pdep}_LIBRARY} PARENT_SCOPE)
@@ -189,7 +204,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
     file(APPEND "${_mumps_test_dir}/mumps_test_code.c"
       "// #undef MUMPS_SEQ
 ")
-        find_package(MPI REQUIRED)
+    find_package(MPI REQUIRED)
     list(APPEND _compiler_specific ${MPI_C_LIBRARIES})
     list(APPEND _include_dirs ${MPI_C_INCLUDE_PATH} ${MPI_INCLUDE_DIR})
   endif()
@@ -197,10 +212,10 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   file(APPEND "${_mumps_test_dir}/mumps_test_code.c" "${_output}")
 
   #===============================================================================
+  set(_mumps_dep_symbol_MPI mpi_send)
   set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
   set(_mumps_dep_symbol_ScaLAPACK numroc)
   set(_mumps_dep_symbol_LAPACK ilaenv)
-  set(_mumps_dep_symbol_MPI mpi_send)
   set(_mumps_dep_symbol_Scotch SCOTCH_graphInit)
   set(_mumps_dep_symbol_Scotch_ptscotch scotchfdgraphexit)
   set(_mumps_dep_symbol_Scotch_esmumps esmumps)
@@ -222,10 +237,10 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_comp_Scotch_esmumps COMPONENTS esmumps)
 
   set(_mumps_potential_dependencies
+    MPI
     mumps_common pord
     BLAS LAPACK ScaLAPACK
-    MPI
-	  Scotch Scotch_ptscotch Scotch_esmumps
+    Scotch Scotch_ptscotch Scotch_esmumps
     METIS ParMETIS
     Threads OpenMP
     Math)
@@ -245,13 +260,18 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       COMPILE_OUTPUT_VARIABLE _out)
 
     set(_retry_compile FALSE)
-    #message("COMPILATION outputs: \n${_out} \n RUN OUTPUT \n${_run}")
+    if(MUMPS_DETECT_DEBUG)
+      message("COMPILATION outputs: \n${_out} \n RUN OUTPUT \n${_run}")
+    endif()
     if(_mumps_compiles AND NOT (_mumps_run STREQUAL "FAILED_TO_RUN"))
       break()
     endif()
 
     foreach(_pdep ${_mumps_potential_dependencies})
-      #message("CHECKING ${_pdep}")
+      set(_libs)
+      if(MUMPS_DETECT_DEBUG)
+        message("Trying to add: ${_pdep} as a dependency")
+      endif()
       set(_add_pdep FALSE)
       if (NOT _mumps_compiles AND
           _out MATCHES "undefined reference.*${_mumps_dep_symbol_${_pdep}}")
@@ -261,16 +281,19 @@ ${_u_first_precision}MUMPS_STRUC_C id;
           DEFINED _mumps_run_dep_symbol_${_pdep} AND
           _run MATCHES "${_mumps_run_dep_symbol_${_pdep}}")
         set(_add_pdep TRUE)
-	      #message("NEED RUN ${_pdep}")
+        #message("NEED RUN ${_pdep}")
       endif()
 
       if(_add_pdep)
         mumps_add_dependency(${_pdep} _libs ${_mumps_dep_comp_${_pdep}})
-	#message("ADDING ${_libs}")
-	if(NOT _libs)
-	  message(FATAL_ERROR "MUMPS depends on ${_pdep} but no libraries where found")
-	endif()
-	list(APPEND _libraries_all ${_libs})
+        if(MUMPS_DETECT_DEBUG)
+          message("Found: ${_pdep} (${_libs})")
+        endif()
+
+        if(NOT _libs)
+          message(FATAL_ERROR "MUMPS depends on ${_pdep} but no libraries where found")
+        endif()
+        list(APPEND _libraries_all ${_libs})
         set(_retry_try_run TRUE)
       endif()
     endforeach()
@@ -311,7 +334,7 @@ if(CMAKE_VERSION VERSION_GREATER 2.8.12)
 
   find_package_handle_standard_args(Mumps
     REQUIRED_VARS ${_mumps_required_vars}
-                  MUMPS_INCLUDE_DIR
+    MUMPS_INCLUDE_DIR
     VERSION_VAR MUMPS_VERSION
     )
 else()

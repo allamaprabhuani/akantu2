@@ -86,6 +86,14 @@ void register_mesh(py::module & mod) {
   register_element_type_map_array<UInt>(mod, "UInt");
   // register_element_type_map_array<std::string>(mod, "String");
 
+  py::class_<Mesh::PeriodicSlaves>(mod, "PeriodicSlaves")
+      .def(
+          "__iter__",
+          [](Mesh::PeriodicSlaves & _this) {
+            py::make_iterator(_this.begin(), _this.end());
+          },
+          py::keep_alive<0, 1>());
+
   py::class_<MeshData>(mod, "MeshData")
       .def(
           "getElementalDataUInt",
@@ -169,7 +177,12 @@ void register_mesh(py::module & mod) {
              GhostType ghost_type) -> bool {
             return _this.hasData<Real>(name, type, ghost_type);
           },
-          py::arg("name"), py::arg("type"), py::arg("ghost_type") = _not_ghost);
+          py::arg("name"), py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def("isPeriodic", [](const Mesh & _this) { return _this.isPeriodic(); })
+      .def("getPeriodicMaster", &Mesh::getPeriodicMaster)
+      .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
+      .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
+      .def("isPeriodicMaster", &Mesh::isPeriodicMaster);
 
   /* ------------------------------------------------------------------------ */
   py::class_<MeshUtils>(mod, "MeshUtils")

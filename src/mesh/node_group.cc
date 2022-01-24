@@ -34,10 +34,8 @@
 #include "node_group.hh"
 #include "dumpable.hh"
 #include "dumpable_inline_impl.hh"
-#include "mesh.hh"
-#if defined(AKANTU_USE_IOHELPER)
 #include "dumper_iohelper_paraview.hh"
-#endif
+#include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -46,12 +44,10 @@ namespace akantu {
 NodeGroup::NodeGroup(const std::string & name, const Mesh & mesh,
                      const std::string & id)
     : name(name), node_group(0, 1, std::string(id + ":nodes")) {
-#if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_" + name, name, true);
   auto field = std::make_shared<dumpers::NodalField<Real, true>>(
       mesh.getNodes(), 0, 0, &this->getNodes());
   this->getDumper().registerField("positions", field);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */

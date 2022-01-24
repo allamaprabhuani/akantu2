@@ -29,7 +29,9 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
+if(AKANTU_BYPASS_AKANTU_TARGET)
+  return()
+endif()
 
 package_declare(akantu_iterators EXTERNAL
   DESCRIPTION "Akantu's iterators hearder library"

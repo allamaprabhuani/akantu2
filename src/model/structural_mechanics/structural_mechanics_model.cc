@@ -42,13 +42,11 @@
 #include "sparse_matrix.hh"
 #include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 #include "dumpable_inline_impl.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
 #include "group_manager_inline_impl.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include "structural_element_bernoulli_beam_2.hh"
 #include "structural_element_bernoulli_beam_3.hh"
@@ -88,10 +86,8 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, UInt dim,
     AKANTU_TO_IMPLEMENT();
   }
 
-#ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("structural_mechanics_model", id,
                                             true);
-#endif
   this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
 
   this->initDOFManager();
@@ -149,9 +145,7 @@ void StructuralMechanicsModel::initFEEngineBoundary() {
 void StructuralMechanicsModel::setTimeStep(Real time_step,
                                            const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper().setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
