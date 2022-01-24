@@ -312,6 +312,7 @@ more into detail in this here.
     ``v`` and ``x``
   - :cpp:func:`v.distance(x) <akantu::Vector::distance>` return the
     geometrical norm of :math:`v - x`
+  - :cpp:func:`v.composeRotations(v1, v2) <akantu::Vector::composeRotations>` returns the vector :math:`v` representing the composition of the two rotations :math:`v1` and :math:`v2`
 
 - Level 2: (results are vectors)
 
@@ -332,6 +333,10 @@ more into detail in this here.
   - :cpp:func:`v.crossProduct(v1, v2) <akantu::Vector::crossProduct>`
     computes the cross product of ``v1`` and ``v2`` and stores the result in
     ``v``
+  - :cpp:func:`v.skew2vec(A) <akantu::Vector::skew2vec>` from a skew matrix :math:`\mat{A}` construct the matching vector :math:`v`
+  - :cpp:func:`v.logMap(A) <akantu::Vector::logMap>` computes the rotation vector from a rotation matrix :math:`\mat{A}=f(\theta(t))`
+  - :cpp:func:`v.convectedAngleDerivative(A, Ap) <akantu::Vector::convectedAngleDerivative>` computes the convected angle derivative. With :math:`\mat{A}=f(\theta(t))` a rotation matrix and :math:`\mat{A}p = f\left(\frac{d\,\theta(t)}{dt}\right)` the derivative of the rotation matrix
+  - :cpp:func:`v.angleAcceleration(A, Ap, App) <akantu::Vector::angleAcceleration>` computes the second derivative of a rotation matrix. With :math:`\mat{A}=f(\theta(t))` a rotation matrix, :math:`\mat{A}_p = f\left(\frac{d\,\theta(t)}{dt}\right)` the derivative of the rotation matrix and :math:`\mat{A}_{pp} = f\left(\frac{d^2\,\theta(t)}{dt^2}\right)` the second derivative of the rotation matrix
 
 ``Matrix<T>``
 '''''''''''''
@@ -365,6 +370,11 @@ more into detail in this here.
   - :cpp:func:`A.det() <akantu::Matrix::det>` return the determinant of ``A``
   - :cpp:func:`A.doubleDot(B) <akantu::Matrix::doubleDot>` return the double
     dot product of ``A`` and ``B``, :math:`\mat{A}:\mat{B}`
+  - :cpp:func:`A.computeRotationAngle() <akantu::Matrix::computeRotationAngle>` from a rotation matrix computes the rotation angle
+
+- Level 2: (results are vectors)
+
+  - :cpp:func:`A.skew(v) <akantu::Matrix::skew>` from a vector :math:`v` constructs the matching skew matrix :math:`\mat{A}`
 
 - Level 3: (results are matrices)
 
@@ -381,6 +391,9 @@ more into detail in this here.
     the result of the product of ``A`` and code{B} time the scalar ``alpha`` in
     ``C``. ``t_A`` and ``t_B`` are boolean defining if ``A`` and ``B`` should be
     transposed or not.
+  - :cpp:func:`A.expMap(v) <akantu::Matrix::expMap>` computes the rotation matrix from a rotation vector :math:`v=f(\theta(t))`
+  - :cpp:func:`A.expDerivative(v, vp) <akantu::Matrix::expDerivative>` computes the derivative of a rotation function. With :math:`v = f(\theta(t))` a rotation vector and :math:`vp = f\left(\frac{d\,\theta(t)}{dt}\right)` the derivative of the rotation vector
+  - :cpp:func:`A.expAcceleration(v, vp, vpp) <akantu::Matrix::expAcceleration>` computes the second derivative of a rotation function. With :math:`v = f(\theta(t))` a rotation vector, :math:`vp = f\left(\frac{d\,\theta(t)}{dt}\right)` the derivative of the rotation vector and :math:`vpp = f\left(\frac{d^2\,\theta(t)}{dt^2}\right)` the second derivative of the rotation vector
 
     +----------+----------+--------------+
     |``t_A``   |``t_B``   |result        |
