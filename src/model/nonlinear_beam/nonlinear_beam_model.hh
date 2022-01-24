@@ -73,6 +73,10 @@ protected:
 
   Matrix<Real> N_matrix();
 
+  Matrix<Real> N_rotator_matrix();
+
+  Matrix<Real> N_grad_matrix();
+
   void assembleInternalForces();
 
   void assembleMass();
@@ -178,6 +182,8 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  ElementType type;
   /// time step
   Real time_step;
 
