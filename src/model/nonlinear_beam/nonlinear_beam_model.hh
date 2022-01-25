@@ -25,7 +25,7 @@ class NonlinearBeamModel : public Model,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
+  using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
   NonlinearBeamModel(Mesh & mesh, UInt dim = _all_dimensions,
                      const ID & id = "nonlinear_beam_model",
@@ -71,11 +71,17 @@ protected:
   TimeStepSolverType
   getDefaultSolverType() const override;
 
-  Matrix<Real> N_matrix();
+  void N_matrix(Array<Real> &Ns);
 
-  Matrix<Real> N_rotator_matrix();
+  void N_rotator_matrix(Array<Real> &N_rot_mat);
 
-  Matrix<Real> N_grad_matrix();
+  void N_grad_matrix(Array<Real> &dNs);
+
+  void B_matrix();
+
+  void get_rotation_matrix();
+  
+  void interpolate(Array<Real> &field, Array<Real> &interField);
 
   void assembleInternalForces();
 
@@ -182,6 +188,8 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  Array<Real> Ns;
+  Array<Real> dNs;
 
   ElementType type;
   /// time step
@@ -225,9 +233,8 @@ private:
   /// blocked dofs array
   std::unique_ptr<Array<bool>> blocked_dofs;
 
-
-
 };
+
 
 } // namespace akantu
 

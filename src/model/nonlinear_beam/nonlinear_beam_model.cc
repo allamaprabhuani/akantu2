@@ -22,7 +22,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NonlinearBeamModel::NonlinearBeamModel(Mesh & mesh, UInt dim, const ID & id,
                                        std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, model_type, dof_manager, dim, id),Ns(0,2*spatial_dimension*2*spatial_dimension*Mesh::getNbNodesPerElement(_segment_3), "shape function matrix") {
+    : Model(mesh, model_type, dof_manager, dim, id),Ns(0,2*spatial_dimension*2*spatial_dimension*Mesh::getNbNodesPerElement(_segment_3), "shape function matrix"), dNs(0,2*spatial_dimension*2*spatial_dimension*Mesh::getNbNodesPerElement(_segment_3), "derivative shape function matrix") {
   AKANTU_DEBUG_IN();
 
   this->registerDataAccessor(*this);
@@ -94,8 +94,9 @@ void NonlinearBeamModel::initModel() {
   fem.initShapeFunctions(_not_ghost);
   fem.initShapeFunctions(_ghost);
   Ns.resize(mesh.getNbElement(type) * fem.getNbIntegrationPoints(type));
+  dNs.resize(mesh.getNbElement(type) * fem.getNbIntegrationPoints(type));
   this->N_matrix(Ns);
-  
+  this->N_grad_matrix(dNs);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -254,41 +255,149 @@ void NonlinearBeamModel::assembleLumpedMatrix(const ID & matrix_id) {
 void NonlinearBeamModel::N_matrix(Array<Real> &Ns) {
   
   AKANTU_DEBUG_IN();
+  Ns.set(0.);
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   const auto & shape_vector = getFEEngine().getShapes(type);
   
-  for(auto && data : zip(make_view(shape_vector, nb_nodes_per_element), make_view(Ns, 2* sp, 2*sp*nb_node_per_element))) {
-   auto & shapes = std::get<0>(data);
-   auto & N = std::get<1>(data);
-   for (UInt nd=0; nd < this->nb_nodes_per_element; ++nd) {
-     N.block(Matrix<Real>::eye(6) * shapes(nd),0, nd * 2*spatial_dimension);
+  for(auto && data : zip(make_view(shape_vector, nb_nodes_per_element), make_view(Ns, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element))) {
+    auto & shapes = std::get<0>(data);
+    auto & N = std::get<1>(data);
+    for (UInt nd=0; nd < nb_nodes_per_element; ++nd) {
+      N.block(Matrix<Real>::eye(6,1.) * shapes(nd),0, nd * 2*spatial_dimension);
+    }
   }
-  
-   /*
-  Matrix<Real> N_mat(2*spatial_dimension, nb_nodes_per_elem*2*spatial_dimension,0.);
-  
-  auto _N = computeShapes(const Vector<Real> &natural_coords, Vector<Real> &shapes);
-  
-  for (UInt nd=0; nd < this->nb_nodes_per_element; ++nd) {
-    N_mat.block<6,  2*spatial_dimension>(0, nd * 2*spatial_dimension) = Matrix<Real>::eye(6) * _N(nd);
-  }
-  
-  return N_mat;
-   */
-  
+   
   AKANTU_DEBUG_OUT();
   
- 
 }
 
-Matrix<Real> NonlinearBeamModel::N_rotator_matrix() {
+void NonlinearBeamModel::N_grad_matrix(Array<Real> &dNs) {
+  
+  AKANTU_DEBUG_IN();
+  dNs.set(0.);
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  const auto & derivative_shape_vector = getFEEngine().getShapesDerivatives(type);
+  
+  for(auto && data : zip(make_view(derivative_shape_vector, nb_nodes_per_element), make_view(dNs, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element))) {
+    auto & deri_shapes = std::get<0>(data);
+    auto & dN = std::get<1>(data);
+    for (UInt nd=0; nd < nb_nodes_per_element; ++nd) {
+      dN.block(Matrix<Real>::eye(6,1.) * deri_shapes(nd),0, nd * 2*spatial_dimension);
+    }
+  }
+   
+  AKANTU_DEBUG_OUT();
+  
+}
+
+  
+void NonlinearBeamModel::N_rotator_matrix(Array<Real> & N_rot_mat) {
+  AKANTU_DEBUG_IN();
+  
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  const auto & derivative_shape_vector = getFEEngine().getShapesDerivatives(type);
+  const auto & shape_vector = getFEEngine().getShapes(type);
+  UInt dim = spatial_dimension;
+  //Array<Real> N_rot_mat(derivative_shape_vector.size(),2*spatial_dimension*2*spatial_dimension*nb_nodes_per_element);
+  N_rot_mat.set(0.);
+  Vector<Real> phip(3);
+
+  auto conn_it = make_view(mesh.getConnectivity(type), nb_nodes_per_element).begin();
+  auto disp_it = make_view(*(this->linear_angular_displacement), dim, 2).begin();
+  auto init_pos_it = make_view(mesh.getNodes(), dim).begin();
+  auto nb_quad_points = getFEEngine().getNbIntegrationPoints(type);
+  
+  for(auto && data : enumerate(make_view(derivative_shape_vector, nb_nodes_per_element), make_view(shape_vector, nb_nodes_per_element), make_view(N_rot_mat, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element))) {
+    auto & deri_shapes = std::get<1>(data);
+    auto & shapes = std::get<2>(data);
+    auto & N_rot = std::get<3>(data);
+    auto elem = std::get<0>(data)/nb_quad_points;
+
+    Vector<UInt> conn = conn_it[elem];
+    
+    phip.set(0.);
+    for (UInt nd = 0; nd<nb_nodes_per_element; ++nd) {
+      Vector<Real> disp = Matrix<Real> (disp_it[conn(nd)])(0);
+      Vector<Real> init = init_pos_it[conn(nd)];
+      phip += (disp + init) * deri_shapes(nd);
+    }
+    Matrix<Real> phip_mat = skew(phip);
+    for (UInt nd=0; nd < nb_nodes_per_element; ++nd) {
+      N_rot.block(phip_mat * shapes(nd), 0, nd * 2*spatial_dimension + 3);
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
 
 }
 
-Matrix<Real> NonlinearBeamModel::N_grad_matrix() {
+
+void NonlinearBeamModel::B_matrix() {
 
 }
 
+void NonlinearBeamModel::get_rotation_matrix() {
+  
+  AKANTU_DEBUG_IN();
+  const auto & shape_vector = getFEEngine().getShapes(type);
+  UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
+  
+  Array<Real> inter_angle(shape_vector.size(), nb_node_per_element);
+  Array<Real> inter_initAngle(shape_vector.size(), nb_node_per_element);
+
+  Array<Real> angle(this->linear_angular_displacement->size(), nb_node_per_element * spatial_dimension);
+  
+  ///seprarer les champs en lin et ang
+
+  
+  
+  
+  
+  this->interpolate(angle, inter_angle);
+  //inter_initAngle = this->interpolate(field, inter_initAngle);
+  
+}
+
+void NonlinearBeamModel::interpolate(Array<Real> &field, Array<Real> &interField) {
+  AKANTU_DEBUG_IN();
+  const auto & shape_vector = getFEEngine().getShapes(type);
+  //Array<Real> interField(derivative_shape_vector.size(),nb_nodes_per_element);
+  //Array<Real> field(nb_nodes, nb_nodes_per_elem*spatial_dimension);
+
+  UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
+
+  auto conn_it = make_view(mesh.getConnectivity(type), nb_node_per_element).begin();
+  auto field_it = make_view(field, spatial_dimension, 1).begin();
+  auto nb_quad_points = getFEEngine().getNbIntegrationPoints(type);
+  
+  for (auto && data : enumerate(make_view(shape_vector, nb_node_per_element), make_view(interField, nb_node_per_element))) {
+    auto & N = std::get<1>(data);
+    auto & intF = std::get<2>(data);
+    auto elem = std::get<0>(data)/nb_quad_points;
+
+    Vector<UInt> conn = conn_it[elem];
+    for (UInt nd = 0; nd<nb_node_per_element; ++nd) {
+      Vector<Real> F = Matrix<Real> (field_it[conn(nd)])(0);
+      intF= F * N(nd);
+    }
+    
+    
+  }
+  AKANTU_DEBUG_OUT();  
+}
+
+
+/*
+Matrix<Real> NonlinearBeamModel::B_matrix(Real xi) {
+  AKANTU_DEBUG_IN();
+
+  Array<Real> L = (dim, 3*3);
+
+  for (auto && data : zip(make_view(dNs, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element), make_view(N_rot, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element), make_view(L, 3, 2))) {
+    auto & dN = std::get<0>(data);
+    auto & N_rot_mat = std::get<1>(data);
+    auto & LL = std::get
+*/
 
 
 void NonlinearBeamModel::assembleInternalForces() {
@@ -311,9 +420,11 @@ void NonlinearBeamModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_OUT();
 
 }
+  
 
 
 
 
-}
+
+} // namespace akantu
 
