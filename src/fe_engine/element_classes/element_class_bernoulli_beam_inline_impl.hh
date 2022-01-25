@@ -82,10 +82,10 @@ InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeShapes(
       natural_coords, real_coord, H);
 
   // clang-format off
-  //    u1   v1      t1      u2   v2      t2
-  N << L(0), 0      , 0      , L(1), 0      , 0      ,  // u
-       0   , H(0, 0), H(0, 1), 0   , H(0, 2), H(0, 3),  // v
-       0   , H(1, 0), H(1, 1), 0   , H(1, 2), H(1, 3); // theta
+  //                        u1       v1       t1    u2       v2      t2
+  N=  Matrix<Real, 3, 6>{{L(0), 0      , 0      , L(1), 0      , 0      },  // u
+                         {0   , H(0, 0), H(0, 1), 0   , H(0, 2), H(0, 3)},  // v
+                         {0   , H(1, 0), H(1, 1), 0   , H(1, 2), H(1, 3)}}; // theta
   // clang-format on
 }
 
@@ -104,12 +104,12 @@ InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeShapes(
 
   // clang-format off
   //    u1    v1       w1       tx1   ty1       tz1    u2      v2       w2       tx2   ty2       tz2
-  N << L(0), 0      , 0      , 0   , 0       , 0      , L(1), 0      , 0      , 0   , 0       , 0      ,  // u
-       0   , H(0, 0), 0      , 0   , 0       , H(0, 1), 0   , H(0, 2), 0      , 0   , 0       , H(0, 3),  // v
-       0   , 0      , H(0, 0), 0   , -H(0, 1), 0      , 0   , 0      , H(0, 2), 0   , -H(0, 3), 0      ,  // w
-       0   , 0      , 0      , L(0), 0       , 0      , 0   , 0      , 0      , L(1), 0       , 0      ,  // thetax
-       0   , 0      , H(1, 0), 0   , -H(1, 1), 0      , 0   , 0      , H(1, 2), 0   , -H(1, 3), 0      ,  // thetay
-       0   , H(1, 0), 0      , 0   , 0       , H(1, 1), 0   , H(1, 2), 0      , 0   , 0       , H(1, 3); // thetaz
+  N = Matrix<Real, 6, 12>{{L(0), 0      , 0      , 0   , 0       , 0      , L(1), 0      , 0      , 0   , 0       , 0      },  // u
+                          {0   , H(0, 0), 0      , 0   , 0       , H(0, 1), 0   , H(0, 2), 0      , 0   , 0       , H(0, 3)},  // v
+                          {0   , 0      , H(0, 0), 0   , -H(0, 1), 0      , 0   , 0      , H(0, 2), 0   , -H(0, 3), 0      },  // w
+                          {0   , 0      , 0      , L(0), 0       , 0      , 0   , 0      , 0      , L(1), 0       , 0      },  // thetax
+                          {0   , 0      , H(1, 0), 0   , -H(1, 1), 0      , 0   , 0      , H(1, 2), 0   , -H(1, 3), 0      },  // thetay
+                          {0   , H(1, 0), 0      , 0   , 0       , H(1, 1), 0   , H(1, 2), 0      , 0   , 0       , H(1, 3)}}; // thetaz
   // clang-format on
 }
 
@@ -137,8 +137,8 @@ InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeDNDS(
   InterpolationElement<_itp_hermite_2, _itk_structural>::computeDNDS(Xs, xs, H);
 
   // Storing the derivatives in dnds
-  dnds.block(0, 0, L.rows(), L.cols()) = L;
-  dnds.block(0, 2, H.rows(), H.cols()) = H;
+  dnds.template block<1, 2>(0, 0) = L;
+  dnds.template block<1, 4>(0, 2) = H;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -147,12 +147,12 @@ template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::arrangeInVoigt(
     const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
-  auto L = dnds.block(0, 0, 1, 2); // Lagrange shape derivatives
-  auto H = dnds.block(0, 2, 1, 4); // Hermite shape derivatives
+  auto L = dnds.template block<1, 2>(0, 0); // Lagrange shape derivatives
+  auto H = dnds.template block<1, 4>(0, 2); // Hermite shape derivatives
   // clang-format off
   //    u1       v1       t1        u2        v2        t2
-  B << L(0, 0), 0,       0,        L(0, 1),  0,        0      ,
-       0,      -H(0, 0), -H(0, 1), 0,       -H(0, 2), -H(0, 3);
+  B = Matrix<Real, 2, 6>{{L(0, 0), 0,       0,        L(0, 1),  0,        0      },
+                         {0,      -H(0, 0), -H(0, 1), 0,       -H(0, 2), -H(0, 3)}};
   // clang-format on
 }
 
@@ -173,15 +173,15 @@ template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::arrangeInVoigt(
     const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
-  auto L = dnds.block(0, 0, 1, 2); // Lagrange shape derivatives
-  auto H = dnds.block(0, 2, 1, 4); // Hermite shape derivatives
+  auto L = dnds.template block<1, 2>(0, 0); // Lagrange shape derivatives
+  auto H = dnds.template block<1, 4>(0, 2); // Hermite shape derivatives
 
   // clang-format off
   //    u1       v1        w1        x1       y1        z1        u2       v2        w2         x2       y2       z2
-  B << L(0, 0), 0       , 0       , 0      , 0       , 0       , L(0, 1), 0       , 0        , 0      , 0        , 0      ,  // eps
-       0      , -H(0, 0), 0       , 0      , 0       , -H(0, 1), 0      , -H(0, 2), 0        , 0      , 0        ,-H(0, 3),  // chi strong axis
-       0      , 0       , -H(0, 0), 0      , H(0, 1) , 0       , 0      , 0       , -H(0, 2) , 0      , H(0, 3)  , 0      ,  // chi weak axis
-       0      , 0       , 0       , L(0, 0), 0       , 0       , 0      , 0       , 0        , L(0, 1), 0        , 0      ; // chi torsion
+  B = Matrix<Real, 4, 12>{{L(0, 0), 0       , 0       , 0      , 0       , 0       , L(0, 1), 0       , 0        , 0      , 0        , 0      },  // eps
+                          {0      , -H(0, 0), 0       , 0      , 0       , -H(0, 1), 0      , -H(0, 2), 0        , 0      , 0        ,-H(0, 3)},  // chi strong axis
+                          {0      , 0       , -H(0, 0), 0      , H(0, 1) , 0       , 0      , 0       , -H(0, 2) , 0      , H(0, 3)  , 0      },  // chi weak axis
+                          {0      , 0       , 0       , L(0, 0), 0       , 0       , 0      , 0       , 0        , L(0, 1), 0        , 0      }}; // chi torsion
   // clang-format on
 }
 
@@ -201,9 +201,9 @@ inline void ElementClass<_bernoulli_beam_2>::computeRotationMatrix(
 
   // clang-format off
   /// Definition of the rotation matrix
-  R << c,  s,  0.,
-      -s,  c,  0.,
-       0., 0., 1.;
+  R= Matrix<Real, 3, 3>{{ c,  s,  0.},
+                        {-s,  c,  0.},
+                        {0., 0.,  1.}};
   // clang-format on
 }
 

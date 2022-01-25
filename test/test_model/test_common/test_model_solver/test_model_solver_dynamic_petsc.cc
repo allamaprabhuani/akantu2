@@ -374,8 +374,8 @@ public:
       }
 
       ierr = MatSetValuesLocal(K, conn_int.size(), conn_int.data(),
-                               conn_int.size(), conn_int.data(),
-                               k_el.data(), ADD_VALUES);
+                               conn_int.size(), conn_int.data(), k_el.data(),
+                               ADD_VALUES);
     }
 
     ierr = MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
@@ -421,7 +421,7 @@ public:
   }
 
   void print(const Array<Real> & x) const {
-    std::cout << x.getID() << " " << Vector<Real>(x.data(), x.size())
+    std::cout << x.getID() << " " << VectorProxy<Real>(x.data(), x.size())
               << std::endl;
   }
 
@@ -589,9 +589,9 @@ public:
     auto disps = make_view(displacement, 1).begin();
     auto poss = make_view(mesh.getNodes(), 1).begin();
     for (auto && node : group) {
-      auto disp = Vector<Real>(disps[node]);
-      auto pos = Vector<Real>(poss[node]);
-      auto flags = Vector<bool>(blocked_dofs[node]);
+      auto disp = disps[node];
+      auto pos = poss[node];
+      auto flags = blocked_dofs[node];
       func(node, flags, disp, pos);
     }
   }

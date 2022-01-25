@@ -42,41 +42,6 @@
 #include "fe_engine_template.hh"
 /* -------------------------------------------------------------------------- */
 
-#define DISPATCH_HELPER(Func, ...)                                             \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    this->Func<type>(__VA_ARGS__);                                             \
-  };                                                                           \
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
-#define DISPATCH_SHAPE_FUNCTIONS_HELPER(Func, ...)                             \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    shape_functions.template Func<type>(__VA_ARGS__);                          \
-  };                                                                           \
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
-#define DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(Func, ...)                    \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    shape_functions.template Func<type>(__VA_ARGS__);                          \
-  };                                                                           \
-  auto && res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
-#define DISPATCH_INTEGRATOR_HELPER(Func, ...)                                  \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    integrator.template Func<ElementType(type)>(__VA_ARGS__);                  \
-  };                                                                           \
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
-#define DISPATCH_INTEGRATOR_WITH_RES_HELPER(Func, ...)                         \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    return integrator.template Func<type>(__VA_ARGS__);                        \
-  };                                                                           \
-  auto && res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
@@ -199,8 +164,12 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
 
   intf.resize(nb_element);
 
-  DISPATCH_INTEGRATOR_HELPER(integrate, f, intf, nb_degree_of_freedom,
-                             ghost_type, filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    integrator.template integrate<ElementType(type)>(
+        f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -229,22 +198,24 @@ Real FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
                           << ") has not the good number of component.");
 #endif
 
-  DISPATCH_INTEGRATOR_WITH_RES_HELPER(integrate, f, ghost_type,
-                                      filter_elements);
-
-  AKANTU_DEBUG_OUT();
-  return res;
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    return integrator.template integrate<type>(f, ghost_type, filter_elements);
+  };
+  return tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 Real FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
-    const Ref<const VectorXr> & f, ElementType type, Int index,
+    const Ref<const VectorXr> f, ElementType type, Int index,
     GhostType ghost_type) const {
-
-  DISPATCH_INTEGRATOR_WITH_RES_HELPER(integrate, f, index, ghost_type);
-  return res;
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    return integrator.template integrate<type>(f, index, ghost_type);
+  };
+  return tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -276,8 +247,12 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   intf.resize(nb_element * nb_quadrature_points);
 
-  DISPATCH_INTEGRATOR_HELPER(integrateOnIntegrationPoints, f, intf,
-                             nb_degree_of_freedom, ghost_type, filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    integrator.template integrateOnIntegrationPoints<ElementType(type)>(
+        f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -311,9 +286,12 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   uq.resize(nb_element * nb_points);
 
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(interpolateOnIntegrationPoints, u, uq,
-                                  nb_degree_of_freedom, ghost_type,
-                                  filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template interpolateOnIntegrationPoints<type>(
+        u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -364,8 +342,12 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeBtD(
     const Array<Real> & Ds, Array<Real> & BtDs, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
 
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeBtD, Ds, BtDs, ghost_type,
-                                  filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template computeBtD<type>(Ds, BtDs, ghost_type,
+                                              filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -374,8 +356,12 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeBtDB(
     const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeBtDB, Ds, BtDBs, order_d, ghost_type,
-                                  filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template computeBtDB<type>(Ds, BtDBs, order_d, ghost_type,
+                                               filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -384,8 +370,12 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeNtbN(
     const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeNtbN, bs, NtbNs, ghost_type,
-                                  filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template computeNtbN<type>(bs, NtbNs, ghost_type,
+                                               filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -394,8 +384,12 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeNtb(
     const Array<Real> & bs, Array<Real> & Ntbs, ElementType type,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeNtb, bs, Ntbs, ghost_type,
-                                  filter_elements);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template computeNtb<type>(bs, Ntbs, ghost_type,
+                                              filter_elements);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -419,7 +413,6 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
         Array<Real> & quadrature_points_coordinates, ElementType type,
         GhostType ghost_type, const Array<Idx> & filter_elements) const {
-
   const Array<Real> & nodes_coordinates = mesh.getNodes();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -438,7 +431,6 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
         ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
         ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
         const ElementTypeMapArray<Idx> * element_filter) const {
-
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = this->mesh.getSpatialDimension();
@@ -494,7 +486,6 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
         const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
         ElementTypeMapArray<Real> & result, const GhostType ghost_type,
         const ElementTypeMapArray<Idx> * element_filter) const {
-
   shape_functions.interpolateElementalFieldFromIntegrationPoints(
       field, interpolation_points_coordinates_matrices,
       quad_points_coordinates_inv_matrices, result, ghost_type, element_filter);
@@ -503,29 +494,36 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
-template <ElementKind kind_, std::enable_if_t<kind_ == _ek_regular> *>
+template <ElementKind kind_, typename D1, typename D2, typename D3,
+          std::enable_if_t<aka::are_vectors<D1, D3>::value and
+                           kind_ == _ek_regular> *>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolateImpl(
-    const Ref<const VectorXr> & real_coords,
-    const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
-    const Element & element) const {
+    const Eigen::MatrixBase<D1> & real_coords,
+    const Eigen::MatrixBase<D2> & nodal_values,
+    Eigen::MatrixBase<D3> & interpolated, const Element & element) const {
   /// add sfinea to call only on _ek_regular
   auto type = element.type;
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(interpolate, real_coords, element.element,
-                                  nodal_values, interpolated,
-                                  element.ghost_type);
+
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+    shape_functions.template interpolate<type>(real_coords, element.element,
+                                               nodal_values, interpolated,
+                                               element.ghost_type);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, element.type);
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolate(
-    const Ref<const VectorXr> & real_coords,
-    const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
+    const Ref<const VectorXr> real_coords,
+    const Ref<const MatrixXr> nodal_values, Ref<VectorXr> interpolated,
     const Element & element) const {
   interpolateImpl(real_coords, nodal_values, interpolated, element);
 }
+
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
@@ -668,18 +666,26 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                       Array<Real> & normal, ElementType type,
                                       GhostType ghost_type) const {
-  DISPATCH_HELPER(computeNormalsOnIntegrationPoints, field, normal, ghost_type);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    this->computeNormalsOnIntegrationPoints<type>(field, normal, ghost_type);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::inverseMap(
-    const Vector<Real> & real_coords, Int element, ElementType type,
-    Vector<Real> & natural_coords, GhostType ghost_type) const {
+    const Ref<const VectorXr> real_coords, Int element, ElementType type,
+    Ref<VectorXr> natural_coords, GhostType ghost_type) const {
   /// need sfinea to avoid structural
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(inverseMap, real_coords, element,
-                                  natural_coords, ghost_type);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template inverseMap<type>(real_coords, element,
+                                              natural_coords, ghost_type);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -688,39 +694,55 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline bool FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::contains(
     const Vector<Real> & real_coords, Int element, ElementType type,
     GhostType ghost_type) const {
-  DISPATCH_SHAPE_FUNCTIONS_WITH_RES_HELPER(contains, real_coords, element,
-                                           ghost_type);
-  return res;
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    return shape_functions.template contains<type>(real_coords, element,
+                                                   ghost_type);
+  };
+  return tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
-template <ElementKind kind_, std::enable_if_t<kind_ != _ek_cohesive> *>
+template <ElementKind kind_, typename D1, typename D2,
+          std::enable_if_t<aka::are_vectors<D1, D2>::value and
+                           kind_ != _ek_cohesive> *>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapesImpl(
-    const Ref<const VectorXr> & real_coords, Int element, ElementType type,
-    Ref<VectorXr> shapes, GhostType ghost_type) const {
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeShapes, real_coords, element, shapes,
-                                  ghost_type);
+    const Eigen::MatrixBase<D1> & real_coords, Idx element, ElementType type,
+    Eigen::MatrixBase<D2> & shapes, GhostType ghost_type) const {
+
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    this->shape_functions.template computeShapes<type>(real_coords, element,
+                                                       shapes, ghost_type);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
-template <ElementKind kind_, std::enable_if_t<kind_ != _ek_cohesive> *>
+template <
+    ElementKind kind_, typename D1, typename D2,
+    std::enable_if_t<aka::is_vector<D1>::value and kind_ != _ek_cohesive> *>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    computeShapeDerivativesImpl(const Ref<const VectorXr> & real_coords,
+    computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real_coords,
                                 Int element, ElementType type,
-                                Ref<MatrixXr> shape_derivatives,
+                                Eigen::MatrixBase<D2> & shape_derivatives,
                                 GhostType ghost_type) const {
-  VectorProxy<const Real> coords_mat(real_coords.data(),
+  MatrixProxy<const Real> coords_mat(real_coords.derived().data(),
                                      shape_derivatives.rows(), 1);
-  Tensor3Proxy<Real> shapesd_tensor(shape_derivatives.data(),
+  Tensor3Proxy<Real> shapesd_tensor(shape_derivatives.derived().data(),
                                     shape_derivatives.rows(),
                                     shape_derivatives.cols(), 1);
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(computeShapeDerivatives, coords_mat, element,
-                                  shapesd_tensor, ghost_type);
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    shape_functions.template computeShapeDerivatives<type>(
+        coords_mat, element, shapesd_tensor, ghost_type);
+  };
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -729,8 +751,12 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline Int
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getNbIntegrationPoints(
     ElementType type, GhostType ghost_type) const {
-  DISPATCH_INTEGRATOR_WITH_RES_HELPER(getNbIntegrationPoints, ghost_type);
-  return res;
+  return tuple_dispatch<ElementTypes_t<kind>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+        return integrator.template getNbIntegrationPoints<type>(ghost_type);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -757,8 +783,13 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 inline const Matrix<Real> &
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::getIntegrationPoints(
     ElementType type, GhostType ghost_type) const {
-  DISPATCH_INTEGRATOR_WITH_RES_HELPER(getIntegrationPoints, ghost_type);
-  return res;
+
+  return tuple_dispatch<ElementTypes_t<kind>>(
+      [&](auto && enum_type) -> const Matrix<Real> & {
+        constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+        return (integrator.template getIntegrationPoints<type>(ghost_type));
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */

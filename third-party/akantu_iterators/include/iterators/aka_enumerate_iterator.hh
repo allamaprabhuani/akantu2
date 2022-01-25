@@ -26,6 +26,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "iterators/aka_iterator_tools.hh"
 #include "iterators/aka_zip_iterator.hh"
 /* -------------------------------------------------------------------------- */
 #include <iterator>
@@ -43,48 +44,116 @@ namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
 namespace iterators {
-  template <class Iterator, class size_type_> class EnumerateIterator {
-  public:
-    using value_type =
-        std::tuple<std::size_t,
-                   typename std::iterator_traits<Iterator>::value_type>;
-    using difference_type = size_type_;
-    using pointer =
-        std::tuple<size_type_,
-                   typename std::iterator_traits<Iterator>::pointer>;
-    using reference =
-        std::tuple<size_type_,
-                   typename std::iterator_traits<Iterator>::reference>;
-    using iterator_category = std::input_iterator_tag;
+  template <class Iterator, class size_type_>
+  class EnumerateIterator
+      : public details::CopyAssignmentEnabler<
+            aka::conjunction<std::is_copy_assignable<Iterator>,
+                             std::is_copy_constructible<Iterator>>::value>,
+        public details::MoveAssignmentEnabler<
+            aka::conjunction<std::is_move_assignable<Iterator>,
+                             std::is_move_constructible<Iterator>>::value> {
+
+  private:
+    using it_traits = typename std::iterator_traits<Iterator>;
 
   public:
-    explicit EnumerateIterator(Iterator && iterator) : iterator(iterator) {}
+    using value_type = std::tuple<size_type_, typename it_traits::value_type>;
+    using difference_type = size_type_;
+    using pointer = std::tuple<size_type_, typename it_traits::pointer>;
+    using reference = std::tuple<size_type_, typename it_traits::reference>;
+    using iterator_category = typename it_traits::iterator_category;
+
+    explicit EnumerateIterator(Iterator iterator)
+        : iterator(std::move(iterator)) {}
 
     // input iterator ++it
-    EnumerateIterator & operator++() {
+    auto operator++() -> EnumerateIterator & {
       ++iterator;
       ++index;
       return *this;
     }
 
     // input iterator it++
-    EnumerateIterator operator++(int) {
+    auto operator++(int) -> EnumerateIterator {
       auto cpy = *this;
       this->operator++();
       return cpy;
     }
 
     // input iterator it != other_it
-    bool operator!=(const EnumerateIterator & other) const {
+    auto operator!=(const EnumerateIterator & other) const -> bool {
       return iterator != other.iterator;
     }
 
     // input iterator dereference *it
-    decltype(auto) operator*() {
+    auto operator*() -> decltype(auto) {
       return std::tuple_cat(std::make_tuple(index), *iterator);
     }
 
-    bool operator==(const EnumerateIterator & other) const {
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::bidirectional_iterator_tag>::value> * = nullptr>
+    auto operator--() -> EnumerateIterator & {
+      --iterator;
+      --index;
+      return *this;
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::bidirectional_iterator_tag>::value> * = nullptr>
+    auto operator--(int) -> EnumerateIterator {
+      auto cpy = *this;
+      this->operator--();
+      return cpy;
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator-(const EnumerateIterator & other) -> difference_type {
+      return index - other.index;
+    }
+
+    // random iterator it[idx]
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator[](size_type_ idx) -> decltype(auto) {
+      return std::tuple_cat(index + idx, iterator[idx]);
+    }
+
+    // random iterator it + n
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator+(size_type_ n) -> decltype(auto) {
+      auto && it = EnumerateIterator(iterator + n);
+      it.index = this->index + n;
+      return it;
+    }
+
+    // random iterator it - n
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator-(size_type_ n) -> decltype(auto) {
+      auto && it = EnumerateIterator(iterator - n);
+      it.index = this->index - n;
+      return it;
+    }
+
+    template <
+        class iterator_category_ = iterator_category,
+        std::enable_if_t<aka::is_iterator_category_at_least<
+            iterator_category_, std::forward_iterator_tag>::value> * = nullptr>
+    auto operator==(const EnumerateIterator & other) const -> bool {
       return not this->operator!=(other);
     }
 
@@ -94,8 +163,8 @@ namespace iterators {
   };
 
   template <class Iterator, class size_type_ = std::size_t>
-  inline constexpr decltype(auto) enumerate(Iterator && iterator,
-                                            size_type_ /*size*/) {
+  inline constexpr auto enumerate(Iterator && iterator, size_type_ /*size*/)
+      -> decltype(auto) {
     return EnumerateIterator<Iterator, size_type_>(
         std::forward<Iterator>(iterator));
   }
@@ -111,19 +180,19 @@ namespace containers {
     explicit EnumerateContainer(Containers &&... containers)
         : zip_container(std::forward<Containers>(containers)...) {}
 
-    decltype(auto) begin() {
+    auto begin() -> decltype(auto) {
       return iterators::enumerate(zip_container.begin(), size_type{});
     }
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return iterators::enumerate(zip_container.begin(), size_type{});
     }
 
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return iterators::enumerate(zip_container.end(), size_type{});
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return iterators::enumerate(zip_container.end(), size_type{});
     }
 
@@ -133,7 +202,7 @@ namespace containers {
 } // namespace containers
 
 template <class... Container>
-inline constexpr decltype(auto) enumerate(Container &&... container) {
+inline constexpr auto enumerate(Container &&... container) -> decltype(auto) {
   return containers::EnumerateContainer<Container...>(
       std::forward<Container>(container)...);
 }

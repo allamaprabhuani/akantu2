@@ -59,22 +59,23 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// initialization function for structural elements not yet implemented
-  inline void initShapeFunctions(const Array<Real> & nodes,
-                                 const Ref<const MatrixXr> & integration_points,
-                                 ElementType type,
-                                 GhostType ghost_type);
+  template <typename D>
+  inline void
+  initShapeFunctions(const Array<Real> & nodes,
+                     const Eigen::MatrixBase<D> & integration_points,
+                     ElementType type, GhostType ghost_type);
 
   /// computes the shape functions derivatives for given interpolation points
-  template <ElementType type>
+  template <ElementType type, typename D>
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+      const Array<Real> & nodes,
+      const Eigen::MatrixBase<D> & integration_points,
       Array<Real> & shape_derivatives, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type,
-      GhostType ghost_type,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
+      Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
       const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
@@ -103,10 +104,11 @@ public:
       const Array<Idx> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
-  template <ElementType type>
-  void interpolate(const Ref<const VectorXr> & real_coords, Idx elem,
-                   const Ref<const MatrixXr> & nodal_values,
-                   Ref<VectorXr> interpolated,
+  template <ElementType type, typename D1, typename D2, typename D3,
+            std::enable_if_t<aka::are_vectors<D1, D3>::value> * = nullptr>
+  void interpolate(const Eigen::MatrixBase<D1> & real_coords, Idx elem,
+                   const Eigen::MatrixBase<D2> & nodal_values,
+                   Eigen::MatrixBase<D3> & interpolated,
                    GhostType ghost_type) const;
 
   /// compute the gradient of u on the integration points
@@ -149,34 +151,36 @@ public:
                    const Array<Idx> & filter_elements) const;
 
   /// find natural coords from real coords provided an element
-  template <ElementType type>
-  void inverseMap(const Ref<const VectorXr> & real_coords, Idx element,
-                  Ref<VectorXr> natural_coords,
+  template <ElementType type, typename D1, typename D2>
+  void inverseMap(const Eigen::MatrixBase<D1> & real_coords, Idx element,
+                  const Eigen::MatrixBase<D2> & natural_coords,
                   GhostType ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false
   /// otherwise
-  template <ElementType type>
-  bool contains(const Ref<const VectorXr> & real_coords, Idx elem,
+  template <ElementType type, typename D,
+            std::enable_if_t<aka::is_vector<D>::value> *>
+  bool contains(const Eigen::MatrixBase<D> & real_coords, Idx elem,
                 GhostType ghost_type) const;
 
   /// compute the shape on a provided point
-  template <ElementType type>
-  void computeShapes(const Ref<const VectorXr> & real_coords, Idx elem,
-                     Ref<VectorXr> shapes, GhostType ghost_type) const;
+  template <ElementType type, typename D1, typename D2>
+  void computeShapes(const Eigen::MatrixBase<D1> & real_coords, Idx elem,
+                     Eigen::MatrixBase<D2> & shapes,
+                     GhostType ghost_type) const;
 
   /// compute the shape derivatives on a provided point
-  template <ElementType type>
-  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords,
+  template <ElementType type, typename D>
+  void computeShapeDerivatives(const Eigen::MatrixBase<D> & real_coords,
                                Idx elem, Tensor3Base<Real> & shapes,
                                GhostType ghost_type) const;
 
 protected:
   /// compute the shape derivatives on integration points for a given element
-  template <ElementType type>
+  template <ElementType type, typename D1, typename D2>
   inline void computeShapeDerivativesOnCPointsByElement(
-      const Ref<const MatrixXr> & node_coords,
-      const Ref<const MatrixXr> & natural_coords,
+      const Eigen::MatrixBase<D1> & node_coords,
+      const Eigen::MatrixBase<D2> & natural_coords,
       Tensor3Base<Real> & shapesd) const;
 };
 

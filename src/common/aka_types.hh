@@ -96,10 +96,10 @@ template <size_t n> struct TensorTrait : public TensorTraitBase {};
 
 namespace aka {
 template <typename Derived>
-using is_matrix = aka::bool_constant<not Derived::IsVectorAtCompileTime>;
+using is_vector = aka::bool_constant<
+    std::remove_reference_t<std::decay_t<Derived>>::IsVectorAtCompileTime>;
 
-template <typename Derived>
-using is_vector = aka::bool_constant<Derived::IsVectorAtCompileTime>;
+template <typename Derived> using is_matrix = aka::negation<is_vector<Derived>>;
 
 template <typename... Ds>
 using are_vectors = aka::conjunction<is_vector<Ds>...>;

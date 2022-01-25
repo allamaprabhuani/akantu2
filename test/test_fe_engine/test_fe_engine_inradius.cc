@@ -69,7 +69,7 @@ TYPED_TEST(TestFEMFixture, Inradius) {
   for (auto && conn :
        make_view(connectivities, connectivities.getNbComponent())) {
     for (auto s : arange(conn.size())) {
-      Vector<Real>(X(s)) = Vector<Real>(nodes[conn(s)]);
+      X(s) = nodes[conn(s)];
     }
 
     auto inradius_coor = this->fem->getElementInradius(X, this->type);

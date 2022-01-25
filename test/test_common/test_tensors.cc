@@ -384,7 +384,7 @@ TEST_F(TensorFixture, MatrixEqualSlice) {
   m.zero();
 
   for (unsigned int i = 0; i < m.cols(); ++i) {
-    m(i) = Vector<Real>(mref(i));
+    m(i) = mref(i);
   }
 
   compareToRef(m);

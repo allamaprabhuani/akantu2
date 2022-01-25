@@ -249,20 +249,6 @@ namespace containers {
                   std::forward<OtherContainers>(other_containers)))...);
     }
 
-    // template <std::size_t nth, std::size_t... Is_before,
-    //           std::size_t... Is_after>
-    // decltype(auto) remove(std::index_sequence<Is_before...> && /*unused*/,
-    //                       std::index_sequence<Is_after...> && /*unused*/) {
-    //   using tuple::tuple_element_t;
-    //   return ZipContainer_<
-    //       Tuple, tuple_element_t<Is_before, containers_t>...,
-    //       tuple_element_t<Is_after + nth + 1, containers_t>...>(
-    //       std::forward<tuple_element_t<Is_before, containers_t>>(
-    //           std::get<Is_before>(containers))...,
-    //       std::forward<tuple_element_t<Is_after + nth + 1, containers_t>>(
-    //           std::get<Is_after + nth + 1>(containers))...);
-    // }
-
   public:
     template <class... OtherContainers>
     auto append(OtherContainers &&... other_containers) -> decltype(auto) {
@@ -282,18 +268,6 @@ namespace containers {
       return extend(std::make_index_sequence<sizeof...(OtherContainers)>{},
                     std::forward<decltype(other.containers)>(other.containers));
     }
-
-    // template <size_t Tag, class Containers_t = containers_t,
-    //           std::enable_if_t<tuple::is_named_tuple<Containers_t>::value> *
-    //           =
-    //               nullptr>
-    // decltype(auto) remove() {
-    //   constexpr auto nth =
-    //       containers.template get_element_index(tuple::get<Tag>());
-    //   return remove<nth>(
-    //       std::make_index_sequence<nth>{},
-    //       std::make_index_sequence<sizeof...(Containers) - nth - 1>{});
-    // }
 
     template <size_t Tag> auto remove() -> decltype(auto);
 

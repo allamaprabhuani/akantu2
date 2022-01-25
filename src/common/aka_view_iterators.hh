@@ -95,8 +95,7 @@ namespace detail {
     using const_proxy = TensorProxy<const T, _dim>;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class R, class daughter, class IR = R,
             Int dim = IteratorHelper<std::decay_t<R>>::dim>
   class internal_view_iterator {
@@ -118,29 +117,26 @@ namespace detail {
     using iterator_category = std::random_access_iterator_tag;
 
   private:
-    template <std::size_t... I>
-    constexpr auto get_new_const_proxy(scalar_pointer data,
-                                       std::index_sequence<I...>) const {
-      return const_proxy_t(data, dims[I]...);
+    template <class ProxyType, std::size_t... I>
+    constexpr auto get_new_proxy(scalar_pointer data,
+                                 std::index_sequence<I...>) const {
+      return ProxyType(data, dims[I]...);
     }
 
     constexpr auto get_new_const_proxy(scalar_pointer data) const {
-      return get_new_const_proxy(data, std::make_index_sequence<dim>());
-    }
-    template <std::size_t... I>
-    constexpr auto get_new_proxy(scalar_pointer data,
-                                 std::index_sequence<I...>) {
-      return proxy_t(data, dims[I]...);
+      return this->template get_new_proxy<const_proxy_t>(
+          data, std::make_index_sequence<dim>());
     }
 
     constexpr auto get_new_proxy(scalar_pointer data) {
-      return get_new_proxy(data, std::make_index_sequence<dim>());
+      return this->template get_new_proxy<proxy_t>(
+          data, std::make_index_sequence<dim>());
     }
 
-    template <typename T, std::size_t... I>
-    constexpr void reset_proxy(T & t, scalar_pointer data,
+    template <typename ProxyType, std::size_t... I>
+    constexpr void reset_proxy(ProxyType & t, scalar_pointer data,
                                std::index_sequence<I...>) const {
-      new (&t) T(data, dims[I]...);
+      new (&t) ProxyType(data, dims[I]...);
     }
 
     template <typename T> constexpr auto reset_proxy(T & t) const {
@@ -203,17 +199,13 @@ namespace detail {
         : proxy(nullptr, 0, 0), const_proxy(nullptr, 0, 0) {}
 
     internal_view_iterator(const internal_view_iterator & it)
-        : proxy(get_new_proxy(it.ret_ptr)),
-          const_proxy(get_new_const_proxy(it.ret_ptr)) {
-      if (this != &it) {
-        this->dims = it.dims;
-        this->_offset = it._offset;
-        this->initial = it.initial;
-        this->ret_ptr = it.ret_ptr;
-      }
-    }
+        : dims(it.dims), _offset(it._offset), initial(it.initial),
+          ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)),
+          const_proxy(get_new_const_proxy(it.ret_ptr)) {}
 
-    internal_view_iterator(internal_view_iterator && it) = default;
+    internal_view_iterator &
+    operator=(internal_view_iterator && it) noexcept = default;
+    internal_view_iterator(internal_view_iterator && it) noexcept = default;
 
     virtual ~internal_view_iterator() = default;
 
@@ -223,6 +215,7 @@ namespace detail {
                   decltype(std::declval<IR>().data())>::value> * = nullptr>
     inline internal_view_iterator &
     operator=(const internal_view_iterator<OR, OD, OIR, dim> & it) {
+      this->dims = it.dims;
       this->_offset = it._offset;
       this->initial = it.initial;
       this->ret_ptr = it.ret_ptr;
@@ -234,6 +227,7 @@ namespace detail {
     inline internal_view_iterator &
     operator=(const internal_view_iterator & it) {
       if (this != &it) {
+        this->dims = it.dims;
         this->_offset = it._offset;
         this->initial = it.initial;
         this->ret_ptr = it.ret_ptr;
@@ -315,14 +309,14 @@ namespace detail {
       return this->ret_ptr >= other.ret_ptr;
     }
 
-    inline daughter operator+(difference_type n) {
-      daughter tmp(static_cast<daughter &>(*this));
+    inline auto operator+(difference_type n) {
+      auto tmp(static_cast<daughter &>(*this));
       tmp += n;
       return tmp;
     }
 
-    inline daughter operator-(difference_type n) {
-      daughter tmp(static_cast<daughter &>(*this));
+    inline auto operator-(difference_type n) {
+      auto tmp(static_cast<daughter &>(*this));
       tmp -= n;
       return tmp;
     }
@@ -452,32 +446,19 @@ public:
   using iterator_category = typename parent::iterator_category;
 
 protected:
-  template <typename OR, std::size_t... I>
-  static inline auto convert_helper(const view_iterator<OR> & it,
+  template <typename Iterator, std::size_t... I>
+  static inline auto convert_helper(const Iterator & it,
                                     std::index_sequence<I...>) {
     return const_view_iterator(it.data(), it.getDims()[I]...);
   }
-
-  template <typename OR, std::size_t... I>
-  static inline auto convert_helper(const const_view_iterator<OR> & it,
-                                    std::index_sequence<I...>) {
-    return const_view_iterator(it.data(), it.getDims()[I]...);
-  }
-
-  template <typename OR>
-  static inline auto convert(const view_iterator<OR> & it) {
-    return convert_helper(it, std::make_index_sequence<parent::dim_>());
-  }
-
-  template <typename OR>
-  static inline auto convert(const const_view_iterator<OR> & it) {
+  template <typename Iterator> static inline auto convert(const Iterator & it) {
     return convert_helper(it, std::make_index_sequence<parent::dim_>());
   }
 
 public:
   const_view_iterator() : parent(){};
   const_view_iterator(const const_view_iterator & it) = default;
-  const_view_iterator(const_view_iterator && it) = default;
+  const_view_iterator(const_view_iterator && it) noexcept = default;
 
   template <typename P, typename... Ns>
   const_view_iterator(P * data, Ns... ns) : parent(data, ns...) {}

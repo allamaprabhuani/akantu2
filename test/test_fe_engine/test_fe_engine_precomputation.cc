@@ -63,9 +63,9 @@ public:
              make_view(*coordinates, this->dim,
                        connectivities.getNbComponent()))) {
       const auto & conn = std::get<0>(tuple);
-      const auto & X = std::get<1>(tuple);
+      auto & X = std::get<1>(tuple);
       for (auto s : arange(conn.size())) {
-        Vector<Real>(X(s)) = Vector<Real>(nodes[conn(s)]);
+        X(s) = nodes[conn(s)];
       }
     }
   }

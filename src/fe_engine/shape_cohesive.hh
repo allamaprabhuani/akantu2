@@ -70,9 +70,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline void initShapeFunctions(const Array<Real> & nodes,
-                                 const Ref<const MatrixXr> & integration_points,
-                                 ElementType type,
-                                 GhostType ghost_type);
+                                 const Matrix<Real> & integration_points,
+                                 ElementType type, GhostType ghost_type);
 
   /// extract the nodal values and store them per element
   template <ElementType type, class ReduceFunction>
@@ -84,14 +83,13 @@ public:
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+      const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shape_derivatives, GhostType ghost_type,
       const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type,
-      GhostType ghost_type,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
+      Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
       const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural

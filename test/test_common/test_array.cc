@@ -131,17 +131,6 @@ TYPED_TEST(ArrayConstructor, ConstructDefault5) {
   EXPECT_STREQ("", array->getID().c_str());
 }
 
-// TYPED_TEST(ArrayConstructor, ConstructDefault6) {
-//   typename TestFixture::type defaultv[2] = {0, 1};
-
-//   auto array = this->construct(1000, 2, defaultv);
-//   EXPECT_EQ(1000, array->size());
-//   EXPECT_EQ(2, array->getNbComponent());
-//   EXPECT_EQ(1, array->operator()(10, 1));
-//   EXPECT_EQ(0, array->operator()(603, 0));
-//   EXPECT_STREQ("", array->getID().c_str());
-// }
-
 /* -------------------------------------------------------------------------- */
 template <typename T> class ArrayFixture : public ArrayConstructor<T> {
 public:
@@ -317,6 +306,64 @@ TYPED_TEST(ArrayFixture, ConstViewVector) {
     EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
                         typeid(VectorProxy<typename TestFixture::type>));
   }
+}
+
+TYPED_TEST(ArrayFixture, EnumerateArray) {
+  this->array->set(12);
+  const auto & carray = *this->array;
+  auto && view = enumerate(make_view(carray, 2));
+  int i = 0;
+  for (auto && data : view) {
+    EXPECT_EQ(i, std::get<0>(data));
+    EXPECT_EQ(12, std::get<1>(data)[0]);
+    EXPECT_EQ(12, std::get<1>(data)[1]);
+    ++i;
+  }
+}
+
+TYPED_TEST(ArrayFixture, ZipArray) {
+  this->array->set(12);
+  const auto & carray = *this->array;
+  auto && view = zip(arange(carray.size() * carray.getNbComponent() / 2),
+                     make_view(carray, 2));
+  int i = 0;
+  for (auto && data : view) {
+    EXPECT_EQ(i, std::get<0>(data));
+    EXPECT_EQ(12, std::get<1>(data)[0]);
+    ++i;
+  }
+}
+
+TYPED_TEST(ArrayFixture, IteratorIncrement) {
+  this->array->set(12);
+
+  auto it = make_view(*this->array, this->array->getNbComponent()).begin() + 10;
+
+  EXPECT_EQ(12, (*it)[0]);
+}
+
+TYPED_TEST(ArrayFixture, IteratorBracket) {
+  this->array->set(12);
+
+  auto && vect =
+      make_view(*this->array, this->array->getNbComponent()).begin()[10];
+
+  EXPECT_EQ(12, vect[0]);
+}
+
+TYPED_TEST(ArrayFixture, IteratorSimple) {
+  this->array->set(12);
+
+  auto it = this->array->begin(this->array->getNbComponent());
+
+  EXPECT_EQ(12, (*it)[0]);
+}
+
+TYPED_TEST(ArrayFixture, IteratorThrow) {
+  this->array->set(12);
+
+  EXPECT_THROW(this->array->begin(2 * this->array->getNbComponent()),
+               debug::Exception);
 }
 
 } // namespace

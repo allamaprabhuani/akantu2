@@ -957,8 +957,9 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    return aka::apply([&](auto... n) { return iterator(data, n...); },
-                      take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
+    return aka::apply(
+        [&](auto... n) { return iterator(data, n...); },
+        take_front<sizeof...(Ns) - 1>(std::forward_as_tuple(ns...)));
   }
 } // namespace detail
 

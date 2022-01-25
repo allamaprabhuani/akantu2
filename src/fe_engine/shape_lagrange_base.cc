@@ -84,7 +84,7 @@ namespace shape_lagrange {
 
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
-    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+    const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
     Array<Real> & shapes, ElementType type, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
 

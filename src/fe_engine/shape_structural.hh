@@ -149,7 +149,7 @@ public:
   /// compute the shape derivatives on a provided point
   template <ElementType type, typename D1>
   void computeShapeDerivatives(const Eigen::MatrixBase<D1> & /*real_coords*/,
-                               Idx /*elem*/, Tensor3Proxy<Real> & /*shapes*/,
+                               Idx /*elem*/, Tensor3Base<Real> & /*shapes*/,
                                GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }

@@ -94,7 +94,7 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
-inline decltype(auto)
+inline const Matrix<Real> &
 IntegratorGauss<kind, IntegrationOrderFunctor>::getIntegrationPoints(
     GhostType ghost_type) const {
   AKANTU_DEBUG_ASSERT(
@@ -288,8 +288,8 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
     }
     // Extracting relevant lines
     auto x = (R.block(0, 0, spatial_dimension, spatial_dimension) * X)
-                 .block(0, 0, ElementClass<type>::getNaturalSpaceDimension(),
-                        ElementClass<type>::getNbNodesPerElement());
+                 .block<ElementClass<type>::getNaturalSpaceDimension(),
+                        ElementClass<type>::getNbNodesPerElement()>(0, 0);
 
     computeJacobianOnQuadPointsByElement<type>(x, quad_points, J);
 
@@ -397,11 +397,11 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
   for (auto && data : zip(make_view(in_f, nb_degree_of_freedom, nb_points),
                           make_view(intf, nb_degree_of_freedom),
                           make_view(jacobians, nb_points))) {
-    auto && inte_f = std::get<0>(data);
-    auto && f = std::get<1>(data);
+    auto && f = std::get<0>(data);
+    auto && int_f = std::get<1>(data);
     auto && J = std::get<2>(data);
 
-    inte_f = f * J;
+    int_f = f * J;
   }
 }
 

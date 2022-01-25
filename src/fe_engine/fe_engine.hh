@@ -116,12 +116,12 @@ public:
       const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> & f, const Element & element) const {
+  Real integrate(const Ref<const VectorXr> f, const Element & element) const {
     return integrate(f, element.type, element.element, element.ghost_type);
   }
 
 private:
-  virtual Real integrate(const Ref<const VectorXr> & f, ElementType type,
+  virtual Real integrate(const Ref<const VectorXr> f, ElementType type,
                          Idx index,
                          GhostType ghost_type = _not_ghost) const = 0;
 
@@ -145,7 +145,7 @@ public:
                        Idx id = 0) const = 0;
 
   /// get integration points
-  const virtual MatrixXr &
+  virtual const MatrixXr &
   getIntegrationPoints(ElementType type,
                        GhostType ghost_type = _not_ghost) const = 0;
 
@@ -239,19 +239,19 @@ public:
       const ElementTypeMapArray<Idx> * element_filter) const = 0;
 
   /// interpolate on a phyiscal point inside an element
-  virtual void interpolate(const Ref<const VectorXr> & real_coords,
-                           const Ref<const MatrixXr> & nodal_values,
+  virtual void interpolate(const Ref<const VectorXr> real_coords,
+                           const Ref<const MatrixXr> nodal_values,
                            Ref<VectorXr> interpolated,
                            const Element & element) const = 0;
 
   /// compute the shape on a provided point
-  virtual void computeShapes(const Ref<const VectorXr> & real_coords, Int elem,
+  virtual void computeShapes(const Ref<const VectorXr> real_coords, Int elem,
                              ElementType type, Ref<VectorXr> shapes,
                              GhostType ghost_type = _not_ghost) const = 0;
 
   /// compute the shape derivatives on a provided point
   virtual void
-  computeShapeDerivatives(const Ref<const VectorXr> & real_coords, Int element,
+  computeShapeDerivatives(const Ref<const VectorXr> real_coords, Int element,
                           ElementType type, Ref<MatrixXr> shape_derivatives,
                           GhostType ghost_type = _not_ghost) const = 0;
 

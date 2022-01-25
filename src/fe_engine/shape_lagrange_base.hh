@@ -53,13 +53,13 @@ public:
 public:
   /// computes the shape functions for given interpolation points
   virtual void computeShapesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shapes, ElementType type, GhostType ghost_type,
       const Array<Int> & filter_elements = empty_filter) const;
 
   /// computes the shape functions derivatives for given interpolation points
   virtual void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
       const Array<Int> & filter_elements = empty_filter) const = 0;
 
@@ -68,7 +68,7 @@ public:
 
   template <ElementType type>
   void computeShapesOnIntegrationPoints(
-      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shapes, GhostType ghost_type,
       const Array<Int> & filter_elements = empty_filter) const;
 

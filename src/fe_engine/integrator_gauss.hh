@@ -109,7 +109,7 @@ public:
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
-  decltype(auto) getIntegrationPoints(GhostType ghost_type) const;
+  const Matrix<Real> & getIntegrationPoints(GhostType ghost_type) const;
 
   /// return number of quadrature points
   template <ElementType type>

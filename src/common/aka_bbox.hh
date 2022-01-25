@@ -204,14 +204,14 @@ public:
   BBox allSum(const Communicator & communicator) const {
     Matrix<Real> reduce_bounds(dim, 2);
 
-    Vector<Real>(reduce_bounds(0)) = lower_bounds;
-    Vector<Real>(reduce_bounds(1)) = Real(-1.) * upper_bounds;
+    reduce_bounds(0) = lower_bounds;
+    reduce_bounds(1) = Real(-1.) * upper_bounds;
 
     communicator.allReduce(reduce_bounds, SynchronizerOperation::_min);
 
     BBox global(dim);
-    global.lower_bounds = Vector<Real>(reduce_bounds(0));
-    global.upper_bounds = Real(-1.) * Vector<Real>(reduce_bounds(1));
+    global.lower_bounds = reduce_bounds(0);
+    global.upper_bounds = Real(-1.) * reduce_bounds(1);
     global.empty = false;
     return global;
   }

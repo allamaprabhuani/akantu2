@@ -45,15 +45,17 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
+template <typename D>
 inline void ShapeLagrange<kind>::initShapeFunctions(
     const Array<Real> & /*nodes*/,
-    const Ref<const MatrixXr> & /*integration_points*/, ElementType /*type*/,
+    const Eigen::MatrixBase<D> & /*integration_points*/, ElementType /*type*/,
     GhostType /*ghost_type*/) {}
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <typename D>
 inline void ShapeLagrange<_ek_regular>::initShapeFunctions(
-    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+    const Array<Real> & nodes, const Eigen::MatrixBase<D> & integration_points,
     ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<_ek_regular>>(
       [&](auto && enum_type) {
@@ -71,10 +73,10 @@ inline void ShapeLagrange<_ek_regular>::initShapeFunctions(
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
+template <ElementType type, typename D1, typename D2>
 inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
-    const Ref<const MatrixXr> & node_coords,
-    const Ref<const MatrixXr> & natural_coords,
+    const Eigen::MatrixBase<D1> & node_coords,
+    const Eigen::MatrixBase<D2> & natural_coords,
     Tensor3Base<Real> & shapesd) const {
   AKANTU_DEBUG_IN();
 
@@ -95,12 +97,14 @@ inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
-void ShapeLagrange<kind>::inverseMap(const Ref<const VectorXr> & real_coords,
-                                     Int elem, Ref<VectorXr> natural_coords,
-                                     GhostType ghost_type) const {
-
+template <ElementType type, typename D1, typename D2>
+void ShapeLagrange<kind>::inverseMap(
+    const Eigen::MatrixBase<D1> & real_coords, Int elem,
+    const Eigen::MatrixBase<D2> & natural_coords_, GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
+
+  // as advised by the Eigen developers even though this is a UB
+  auto & natural_coords = const_cast<Eigen::MatrixBase<D2> &>(natural_coords_);
 
   Int spatial_dimension = mesh.getSpatialDimension();
   constexpr Int nb_nodes_per_element =
@@ -121,10 +125,10 @@ void ShapeLagrange<kind>::inverseMap(const Ref<const VectorXr> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
-bool ShapeLagrange<kind>::contains(const Ref<const VectorXr> & real_coords,
+template <ElementType type, typename D,
+          std::enable_if_t<aka::is_vector<D>::value> *>
+bool ShapeLagrange<kind>::contains(const Eigen::MatrixBase<D> & real_coords,
                                    Idx elem, GhostType ghost_type) const {
-
   auto spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
 
@@ -134,12 +138,12 @@ bool ShapeLagrange<kind>::contains(const Ref<const VectorXr> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
-void ShapeLagrange<kind>::interpolate(const Ref<const VectorXr> & real_coords,
-                                      Idx elem,
-                                      const Ref<const MatrixXr> & nodal_values,
-                                      Ref<VectorXr> interpolated,
-                                      GhostType ghost_type) const {
+template <ElementType type, typename D1, typename D2, typename D3,
+          std::enable_if_t<aka::are_vectors<D1, D3>::value> *>
+void ShapeLagrange<kind>::interpolate(
+    const Eigen::MatrixBase<D1> & real_coords, Idx elem,
+    const Eigen::MatrixBase<D2> & nodal_values,
+    Eigen::MatrixBase<D3> & interpolated, GhostType ghost_type) const {
   constexpr auto nb_shapes = ElementClass<type>::getShapeSize();
   Vector<Real, nb_shapes> shapes;
   computeShapes<type>(real_coords, elem, shapes, ghost_type);
@@ -148,11 +152,10 @@ void ShapeLagrange<kind>::interpolate(const Ref<const VectorXr> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
-void ShapeLagrange<kind>::computeShapes(const Ref<const VectorXr> & real_coords,
-                                        Idx elem, Ref<VectorXr> shapes,
-                                        GhostType ghost_type) const {
-
+template <ElementType type, typename D1, typename D2>
+void ShapeLagrange<kind>::computeShapes(
+    const Eigen::MatrixBase<D1> & real_coords, Idx elem,
+    Eigen::MatrixBase<D2> & shapes, GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -166,11 +169,10 @@ void ShapeLagrange<kind>::computeShapes(const Ref<const VectorXr> & real_coords,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
+template <ElementType type, typename D>
 void ShapeLagrange<kind>::computeShapeDerivatives(
-    const Ref<const MatrixXr> & real_coords, Idx elem,
+    const Eigen::MatrixBase<D> & real_coords, Idx elem,
     Tensor3Base<Real> & shapesd, GhostType ghost_type) const {
-
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -212,9 +214,9 @@ ShapeLagrange<kind>::ShapeLagrange(const Mesh & mesh, Int spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
+template <ElementType type, typename D>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+    const Array<Real> & nodes, const Eigen::MatrixBase<D> & integration_points,
     Array<Real> & shape_derivatives, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -266,7 +268,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
+    const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
     Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \

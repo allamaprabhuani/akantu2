@@ -106,7 +106,7 @@ public:
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> & f, ElementType type, Int index,
+  Real integrate(const Ref<const VectorXr> f, ElementType type, Int index,
                  GhostType ghost_type = _not_ghost) const override;
 
   /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
@@ -117,25 +117,28 @@ public:
       const Array<Idx> & filter_elements = empty_filter) const override;
 
 private:
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ == _ek_regular> * = nullptr>
-  inline void interpolateImpl(const Ref<const VectorXr> & real_coords,
-                              const Ref<const MatrixXr> & nodal_values,
-                              Ref<VectorXr> interpolated,
+  template <ElementKind kind_ = kind, typename D1, typename D2, typename D3,
+            std::enable_if_t<aka::are_vectors<D1, D3>::value and
+                             kind_ == _ek_regular> * = nullptr>
+  inline void interpolateImpl(const Eigen::MatrixBase<D1> & real_coords,
+                              const Eigen::MatrixBase<D2> & nodal_values,
+                              Eigen::MatrixBase<D3> & interpolated,
                               const Element & element) const;
 
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ != _ek_regular> * = nullptr>
-  inline void interpolateImpl(const Ref<const VectorXr> &,
-                              const Ref<const MatrixXr> &, Ref<VectorXr>,
-                              const Element &) const {
+  template <ElementKind kind_ = kind, typename D1, typename D2, typename D3,
+            std::enable_if_t<aka::are_vectors<D1, D3>::value and
+                             kind_ != _ek_regular> * = nullptr>
+  inline void interpolateImpl(const Eigen::MatrixBase<D1> & real_coords,
+                              const Eigen::MatrixBase<D2> & nodal_values,
+                              Eigen::MatrixBase<D3> & interpolated,
+                              const Element & element) const {
     AKANTU_TO_IMPLEMENT();
   }
 
 public:
   /// interpolate on a phyiscal point inside an element
-  void interpolate(const Ref<const VectorXr> & real_coords,
-                   const Ref<const MatrixXr> & nodal_values,
+  void interpolate(const Ref<const VectorXr> real_coords,
+                   const Ref<const MatrixXr> nodal_values,
                    Ref<VectorXr> interpolated,
                    const Element & element) const override;
 
@@ -154,7 +157,7 @@ public:
                                            Int id = 0) const override;
 
   /// get integration points
-  const inline Matrix<Real> &
+  inline const Matrix<Real> &
   getIntegrationPoints(ElementType type,
                        GhostType ghost_type = _not_ghost) const override;
 
@@ -246,8 +249,8 @@ public:
       const ElementTypeMapArray<Idx> * element_filter = nullptr) const override;
 
   /// find natural coords from real coords provided an element
-  void inverseMap(const Vector<Real> & real_coords, Int element,
-                  ElementType type, Vector<Real> & natural_coords,
+  void inverseMap(const Ref<const VectorXr> real_coords, Int element,
+                  ElementType type, Ref<VectorXr> natural_coords,
                   GhostType ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false
@@ -257,50 +260,56 @@ public:
                        GhostType ghost_type = _not_ghost) const;
 
 private:
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ != _ek_cohesive> * = nullptr>
-  inline void computeShapesImpl(const Ref<const VectorXr> & real_coords,
+  template <ElementKind kind_ = kind, typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors<D1, D2>::value and
+                             kind_ != _ek_cohesive> * = nullptr>
+  inline void computeShapesImpl(const Eigen::MatrixBase<D1> & real_coords,
                                 Int element, ElementType type,
-                                Ref<VectorXr> shapes,
+                                Eigen::MatrixBase<D2> & shapes,
                                 GhostType ghost_type = _not_ghost) const;
 
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ == _ek_cohesive> * = nullptr>
-  inline void computeShapesImpl(const Ref<const VectorXr> & real_coords,
+  template <ElementKind kind_ = kind, typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors<D1, D2>::value and
+                             kind_ == _ek_cohesive> * = nullptr>
+  inline void computeShapesImpl(const Eigen::MatrixBase<D1> & real_coords,
                                 Int element, ElementType type,
-                                Ref<VectorXr> shapes,
+                                Eigen::MatrixBase<D2> & shapes,
                                 GhostType ghost_type = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ != _ek_cohesive> * = nullptr>
-  inline void computeShapeDerivativesImpl(
-      const Ref<const VectorXr> & real__coords, Int element, ElementType type,
-      Ref<MatrixXr> shape_derivatives, GhostType ghost_type = _not_ghost) const;
-
-  template <ElementKind kind_ = kind,
-            std::enable_if_t<kind_ == _ek_cohesive> * = nullptr>
+  template <ElementKind kind_ = kind, typename D1, typename D2,
+            std::enable_if_t<aka::is_vector<D1>::value and
+                             kind_ != _ek_cohesive> * = nullptr>
   inline void
-  computeShapeDerivativesImpl(const Ref<const VectorXr> & real__coords,
+  computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real_coords,
                               Int element, ElementType type,
-                              Ref<MatrixXr> shape_derivatives,
+                              Eigen::MatrixBase<D2> & shape_derivatives,
+                              GhostType ghost_type = _not_ghost) const;
+
+  template <ElementKind kind_ = kind, typename D1, typename D2,
+            std::enable_if_t<aka::is_vector<D1>::value and
+                             kind_ == _ek_cohesive> * = nullptr>
+  inline void
+  computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real__coords,
+                              Int element, ElementType type,
+                              Eigen::MatrixBase<D2> & shape_derivatives,
                               GhostType ghost_type = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 
 public:
   /// compute the shape on a provided point
-  inline void computeShapes(const Ref<const VectorXr> & real_coords,
-                            Int element, ElementType type, Ref<VectorXr> shapes,
-                            GhostType ghost_type = _not_ghost) const {
+  inline void computeShapes(const Ref<const VectorXr> real_coords, Int element,
+                            ElementType type, Ref<VectorXr> shapes,
+                            GhostType ghost_type = _not_ghost) const override {
     this->template computeShapesImpl(real_coords, element, type, shapes,
                                      ghost_type);
   }
 
   /// compute the shape derivatives on a provided point
   inline void
-  computeShapeDerivatives(const Ref<const VectorXr> & real_coords, Int element,
+  computeShapeDerivatives(const Ref<const VectorXr> real_coords, Int element,
                           ElementType type, Ref<MatrixXr> shape_derivatives,
                           GhostType ghost_type = _not_ghost) const override {
     this->template computeShapeDerivativesImpl<kind>(

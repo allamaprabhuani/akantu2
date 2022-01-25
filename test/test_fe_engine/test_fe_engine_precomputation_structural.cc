@@ -77,8 +77,8 @@ TEST_F(TestBernoulliB2, PrecomputeRotations) {
   auto & shape = dynamic_cast<const ShapeStruct &>(fem->getShapeFunctions());
   auto & rot = shape.getRotations(type);
 
-  Real a = std::atan(4. / 3);
-  std::vector<Real> angles = {a, -a, 0};
+  Real a = std::atan(4. / 3.);
+  std::vector<Real> angles = {a, -a, 0.};
 
   Math::setTolerance(1e-15);
 
@@ -97,12 +97,13 @@ TEST_F(TestBernoulliB3, PrecomputeRotations) {
   auto & shape = dynamic_cast<const ShapeStruct &>(fem->getShapeFunctions());
   auto & rot = shape.getRotations(type);
 
-  Matrix<Real> ref{{3. / 13, 4. / 13, 12. / 13},
-                   {-4. / 5, 3. / 5, 0},
-                   {-36. / 65, -48. / 65, 5. / 13}};
+  Matrix<Real, 3, 3> ref{{3. / 13, 4. / 13, 12. / 13},
+                         {-4. / 5, 3. / 5, 0},
+                         {-36. / 65, -48. / 65, 5. / 13}};
   Matrix<Real> solution{ndof, ndof};
-  solution.block(0, 0, ndof, ndof) = ref;
-  solution.block(dim, dim, ndof, ndof) = ref;
+  solution.zero();
+  solution.block<3, 3>(0, 0) = ref;
+  solution.block<3, 3>(3, 3) = ref;
 
   // The default tolerance is too much, really
   Math::setTolerance(1e-15);

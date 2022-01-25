@@ -44,8 +44,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline constexpr Real FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
-                                         ElementType type) {
+inline constexpr Real
+FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
+                             ElementType type) {
   Real inradius = 0.;
 #define GET_INRADIUS(type) inradius = ElementClass<type>::getInradius(coord);
 
@@ -64,8 +65,7 @@ inline Real FEEngine::getElementInradius(const Element & element) const {
   Matrix<Real> coords(spatial_dimension, connectivity.size());
 
   for (auto && data : zip(connectivity, coords)) {
-    Vector<Real>(std::get<1>(data)) =
-        Vector<Real>(positions[std::get<0>(data)]);
+    std::get<1>(data) = positions[std::get<0>(data)];
   }
 
   return getElementInradius(coords, element.type);
@@ -86,7 +86,6 @@ inline constexpr auto FEEngine::getCohesiveElementType(ElementType type) {
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_COHESIVE_TYPE);
 #undef GET_COHESIVE_TYPE
-
 }
 #else
 inline constexpr ElementType
@@ -159,8 +158,7 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
-                                   Array<T> & filtered_f,
-                                   ElementType type,
+                                   Array<T> & filtered_f, ElementType type,
                                    GhostType ghost_type,
                                    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
