@@ -307,7 +307,7 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnIntegrationPoints(
         el = filter_elements(el);
       }
 
-      for (UInt p = 0; p < 2; ++p) {
+      for (Int p = 0; p < 2; ++p) {
         Element facet = facets(el, p);
         Element segment = segments(facet.element)[0];
         VectorProxy<Real> barycenter(values + p, 1);

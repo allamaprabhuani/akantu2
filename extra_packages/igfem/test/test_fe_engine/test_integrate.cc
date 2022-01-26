@@ -74,7 +74,7 @@ int main(int argc, char * argv[]) {
 bool integrate(const ElementType type) {
 
   bool correct_result = true;
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
 
@@ -100,7 +100,7 @@ bool integrate(const ElementType type) {
   Vector<Real> values(dim);
   values(0) = 1.;
   values(1) = 2;
-  for (UInt i = 0; i < val_on_quad.getSize(); ++i, ++val_it)
+  for (Int i = 0; i < val_on_quad.getSize(); ++i, ++val_it)
     *val_it = values;
 
   // integrate function on elements
@@ -113,7 +113,7 @@ bool integrate(const ElementType type) {
   std::cout << "Val on quads : " << val_on_quad << std::endl;
   std::cout << "Integral on elements : " << int_val_on_elem << std::endl;
 
-  for (UInt i = 0; i < fem->getMesh().getNbElement(type); ++i) {
+  for (Int i = 0; i < fem->getMesh().getNbElement(type); ++i) {
     value[0] += int_val_on_elem.data()[2 * i];
     value[1] += int_val_on_elem.data()[2 * i + 1];
   }

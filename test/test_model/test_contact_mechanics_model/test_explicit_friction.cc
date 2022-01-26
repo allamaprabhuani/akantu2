@@ -58,7 +58,7 @@ int main(int argc, char * argv[]) {
   std::string mesh_file = "sliding-block-2D.msh";
   std::string material_file = "material-friction.dat";
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   initialize(material_file, argc, argv);
 
@@ -132,7 +132,7 @@ int main(int argc, char * argv[]) {
   auto & contact_nodes = surface_selector->getSlaveList();
   auto & tangential_traction = contact.getTangentialTractions();
 
-  for (UInt s : arange(max_steps)) {
+  for (Int s : arange(max_steps)) {
 
     if (s < max_normal_steps) {
       solid.applyBC(BC::Dirichlet::FixedValue(-normal_displacements[s], _y),

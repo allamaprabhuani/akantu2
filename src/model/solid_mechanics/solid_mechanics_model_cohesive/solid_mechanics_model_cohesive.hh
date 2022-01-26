@@ -96,7 +96,7 @@ public:
                        FacetsCohesiveIntegrationOrderFunctor>;
 
   SolidMechanicsModelCohesive(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "solid_mechanics_model_cohesive",
       std::shared_ptr<DOFManager> dof_manager = nullptr);
 

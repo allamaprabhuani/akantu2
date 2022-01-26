@@ -75,7 +75,7 @@ MeshIODiana::MeshIODiana() {
     UInt nb_nodes = Mesh::getNbNodesPerElement(it->second);
 
     auto * tmp = new UInt[nb_nodes];
-    for (UInt i = 0; i < nb_nodes; ++i) {
+    for (Int i = 0; i < nb_nodes; ++i) {
       tmp[i] = i;
     }
 

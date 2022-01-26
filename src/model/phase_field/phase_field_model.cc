@@ -49,7 +49,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
+PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
                                  ModelType model_type)
     : Model(mesh, model_type, dim, id),
       phasefield_index("phasefield index", id),

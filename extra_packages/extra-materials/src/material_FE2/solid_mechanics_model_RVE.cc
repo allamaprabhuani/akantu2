@@ -42,7 +42,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
                                                bool use_RVE_mat_selector,
-                                               UInt nb_gel_pockets, UInt dim,
+                                               UInt nb_gel_pockets, Int dim,
                                                const ID & id)
     : SolidMechanicsModel(mesh, dim, id), volume(0.),
       use_RVE_mat_selector(use_RVE_mat_selector),
@@ -400,7 +400,7 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   AKANTU_DEBUG_IN();
-  const UInt dim = 2;
+  const Int dim = 2;
   AKANTU_DEBUG_ASSERT(this->spatial_dimension == dim,
                       "Is only implemented for 2D!!!");
 

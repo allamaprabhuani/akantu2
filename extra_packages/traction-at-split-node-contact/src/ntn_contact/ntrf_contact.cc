@@ -55,7 +55,7 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
   coord[1] = y;
   coord[2] = z;
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
   for (UInt d = 0; d < dim; ++d) {
     this->reference_point(d) = coord[d];
   }
@@ -67,7 +67,7 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
 void NTRFContact::setNormal(Real x, Real y, Real z) {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   Real coord[3];
   coord[0] = x;
@@ -209,7 +209,7 @@ void NTRFContact::computeNormalGap(Array<Real> & gap) const {
 
   gap.resize(0);
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   auto it_cur_pos = this->model.getCurrentPosition().begin(dim);
   auto it_normal = this->normals.getArray().begin(dim);

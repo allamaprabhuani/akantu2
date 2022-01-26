@@ -52,11 +52,11 @@ class Mesh;
 
 template <typename T> class SpatialGrid {
 public:
-  explicit SpatialGrid(UInt dimension)
+  explicit SpatialGrid(Int dimension)
       : dimension(dimension), spacing(dimension), center(dimension),
         lower(dimension), upper(dimension), empty_cell() {}
 
-  SpatialGrid(UInt dimension, const Vector<Real> & spacing,
+  SpatialGrid(Int dimension, const Vector<Real> & spacing,
               const Vector<Real> & center)
       : dimension(dimension), spacing(spacing), center(center),
         lower(dimension), upper(dimension), empty_cell() {
@@ -74,19 +74,18 @@ public:
   class CellID {
   public:
     CellID() = default;
-    explicit CellID(UInt dimention) : ids(dimention) {}
+    explicit CellID(Int dimention) : ids(dimention) {}
     void setID(UInt dir, Int id) { ids(dir) = id; }
     Int getID(UInt dir) const { return ids(dir); }
 
     bool operator<(const CellID & id) const {
-      return std::lexicographical_compare(
-          ids.data(), ids.data() + ids.size(), id.ids.data(),
-          id.ids.data() + id.ids.size());
+      return std::lexicographical_compare(ids.data(), ids.data() + ids.size(),
+                                          id.ids.data(),
+                                          id.ids.data() + id.ids.size());
     }
 
     bool operator==(const CellID & id) const {
-      return std::equal(ids.data(), ids.data() + ids.size(),
-                        id.ids.data());
+      return std::equal(ids.data(), ids.data() + ids.size(), id.ids.data());
     }
 
     bool operator!=(const CellID & id) const { return !(operator==(id)); }
@@ -113,7 +112,7 @@ public:
           return *this;
         }
 
-        for (decltype(i) j = 0; j < i; ++j){
+        for (decltype(i) j = 0; j < i; ++j) {
           position(j) = -1;
         }
         position(i)++;
@@ -459,7 +458,7 @@ template <typename T> void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
   MeshAccessor mesh_accessor(mesh);
   auto & connectivity = mesh_accessor.getConnectivity(type);
   auto & nodes = mesh_accessor.getNodes();
-  auto & uint_data = mesh.getDataPointer<UInt>("tag_1", type);
+  auto & uint_data = mesh.getDataPointer<Int>("tag_1", type);
 
   Vector<Real> pos(dimension);
 

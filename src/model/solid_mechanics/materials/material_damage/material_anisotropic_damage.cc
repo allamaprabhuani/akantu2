@@ -39,9 +39,8 @@ namespace akantu {
 namespace {
   template <Int dim>
   std::unique_ptr<Material>
-  materialAnisotropicDamage(std::integral_constant<Int, dim>,
-                            const ID & option, SolidMechanicsModel & model,
-                            const ID & id) {
+  materialAnisotropicDamage(std::integral_constant<Int, dim>, const ID & option,
+                            SolidMechanicsModel & model, const ID & id) {
     if (option.empty() or option == "mazars") {
       return std::make_unique<MaterialAnisotropicDamage<
           dim, EquivalentStrainMazars, DamageThresholdTan>>(model, id);
@@ -56,7 +55,7 @@ namespace {
   }
 
   template <class... Args>
-  decltype(auto) dimensionDispatch(UInt dim, Args &&... args) {
+  decltype(auto) dimensionDispatch(Int dim, Args &&... args) {
     switch (dim) {
     case 1:
       return materialAnisotropicDamage(std::integral_constant<Int, 1>{},
@@ -77,7 +76,7 @@ namespace {
 static bool material_is_alocated_anisotropic_damage [[gnu::unused]] =
     MaterialFactory::getInstance().registerAllocator(
         "anisotropic_damage",
-        [](UInt dim, const ID & option, SolidMechanicsModel & model,
+        [](Int dim, const ID & option, SolidMechanicsModel & model,
            const ID & id) -> std::unique_ptr<Material> {
           return dimensionDispatch(dim, option, model, id);
         });

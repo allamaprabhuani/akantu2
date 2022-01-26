@@ -44,7 +44,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 MeshSphereIntersector<dim, type>::MeshSphereIntersector(Mesh & mesh)
     : parent_type(mesh), tol_intersection_on_node(1e-10) {
 #if defined(AKANTU_IGFEM)
@@ -66,13 +66,13 @@ MeshSphereIntersector<dim, type>::MeshSphereIntersector(Mesh & mesh)
   this->new_node_per_elem = new Array<UInt>(0, 1 + 4 * (dim - 1));
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 MeshSphereIntersector<dim, type>::~MeshSphereIntersector() {
   delete this->new_node_per_elem;
   delete this->intersection_points;
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSphereIntersector<dim, type>::constructData(GhostType ghost_type) {
 
   this->new_node_per_elem->resize(this->mesh.getNbElement(type, ghost_type));
@@ -82,7 +82,7 @@ void MeshSphereIntersector<dim, type>::constructData(GhostType ghost_type) {
       ghost_type);
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
     const SK::Sphere_3 & query, UInt nb_old_nodes) {
   /// function to replace computeIntersectionQuery in a more generic geometry
@@ -115,7 +115,7 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
           cgal::Cartesian::Point_3 point(CGAL::to_double(pair->first.x()),
                                          CGAL::to_double(pair->first.y()),
                                          CGAL::to_double(pair->first.z()));
-          for (UInt i = 0; i < dim; i++) {
+          for (Int i = 0; i < dim; i++) {
             new_node(i) = point[i];
           }
 
@@ -164,16 +164,14 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
               CGAL::to_double(it->target().y()),
               CGAL::to_double(it->target().z()));
           Vector<Real> source(dim), target(dim);
-          for (UInt i = 0; i < dim; i++) {
+          for (Int i = 0; i < dim; i++) {
             source(i) = source_cgal[i];
             target(i) = target_cgal[i];
           }
 
           // Check if we are close from a node of the primitive (segment)
-          if (Math::are_vector_equal(dim, source.data(),
-                                     new_node.data()) ||
-              Math::are_vector_equal(dim, target.data(),
-                                     new_node.data())) {
+          if (Math::are_vector_equal(dim, source.data(), new_node.data()) ||
+              Math::are_vector_equal(dim, target.data(), new_node.data())) {
             is_on_mesh = true;
             is_new = false;
           }

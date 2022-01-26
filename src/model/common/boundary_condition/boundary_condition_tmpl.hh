@@ -74,7 +74,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 
     const auto & coords = model.getMesh().getNodes();
     auto & boundary_flags = model.getBlockedDOFs();
-    UInt dim = model.getMesh().getSpatialDimension();
+    Int dim = model.getMesh().getSpatialDimension();
 
     auto primal_iter = primal.begin(primal.getNbComponent());
     auto coords_iter = coords.begin(dim);
@@ -98,7 +98,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
   static inline void applyBC(const FunctorType & func,
                              const ElementGroup & group,
                              BoundaryCondition<ModelType> & bc_instance) {
-    UInt dim = bc_instance.getModel().getSpatialDimension();
+    Int dim = bc_instance.getModel().getSpatialDimension();
     switch (dim) {
     case 1: {
       AKANTU_TO_IMPLEMENT();
@@ -123,7 +123,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     const auto & nodes_coords = mesh.getNodes();
     const auto & fem_boundary = model.getFEEngineBoundary();
 
-    UInt dim = model.getSpatialDimension();
+    Int dim = model.getSpatialDimension();
     UInt nb_degree_of_freedom = dual.getNbComponent();
 
     IntegrationPoint quad_point;

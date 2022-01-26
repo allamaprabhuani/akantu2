@@ -39,7 +39,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   UInt max_steps = 10000;
   Real time_factor = 0.8;
   Real max_disp = 1e-6;
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
   Real left_side = mesh.getLowerBounds()(0);
   Real right_side = mesh.getUpperBounds()(0);
 
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
     if (std::abs(pos(i, 0) - left_side) < eps) {
       disp(i, 0) = max_disp;
       boun(i, 0) = true;
@@ -94,7 +94,7 @@ int main(int argc, char * argv[]) {
   model.setTimeStep(time_step);
 
   model.dump();
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.solveStep();
     if (s % 200 == 0)
       model.dump();

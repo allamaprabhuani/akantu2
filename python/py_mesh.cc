@@ -148,7 +148,7 @@ void register_mesh(py::module & mod) {
            })
       .def(
           "getNbElement",
-          [](Mesh & self, const UInt spatial_dimension, GhostType ghost_type,
+          [](Mesh & self, const Int spatial_dimension, GhostType ghost_type,
              ElementKind kind) {
             return self.getNbElement(spatial_dimension, ghost_type, kind);
           },

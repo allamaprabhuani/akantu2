@@ -70,7 +70,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+Material::Material(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
                    FEEngine & fe_engine, const ID & id)
     : Parsable(ParserType::_material, id), id(id), fem(fe_engine), model(model),
       spatial_dimension(dim), element_filter("element_filter", id),
@@ -186,7 +186,7 @@ void Material::restorePreviousState() {
 void Material::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
   if (!finite_deformation) {
 

@@ -46,7 +46,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 EmbeddedInterfaceModel::EmbeddedInterfaceModel(Mesh & mesh,
                                                Mesh & primitive_mesh,
-                                               UInt spatial_dimension,
+                                               Int spatial_dimension,
                                                const ID & id)
     : SolidMechanicsModel(mesh, spatial_dimension, id),
       intersector(mesh, primitive_mesh), interface_mesh(nullptr),
@@ -69,7 +69,7 @@ EmbeddedInterfaceModel::EmbeddedInterfaceModel(Mesh & mesh,
   // Registering allocator for material reinforcement
   MaterialFactory::getInstance().registerAllocator(
       "reinforcement",
-      [&](UInt dim, const ID & constitutive, SolidMechanicsModel & /*unused*/,
+      [&](Int dim, const ID & constitutive, SolidMechanicsModel & /*unused*/,
           const ID & id) -> std::unique_ptr<Material> {
         if (constitutive == "elastic") {
           using mat = MaterialElastic<1>;

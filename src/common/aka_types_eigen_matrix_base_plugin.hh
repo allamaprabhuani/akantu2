@@ -54,8 +54,7 @@ template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<not _is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto operator()(Index c) {
   auto & d = this->derived();
-  return Map<Matrix<Scalar, RowsAtCompileTime, 1>>(
-      d.data() + c * d.outerStride(), d.outerStride());
+  return d.col(c);
 }
 
 template <bool _is_vector = IsVectorAtCompileTime,

@@ -46,7 +46,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt dim = 2;
+  Int dim = 2;
   UInt nb_partitions = 8;
   akantu::Mesh mesh(dim);
   mesh.read("quad.msh");

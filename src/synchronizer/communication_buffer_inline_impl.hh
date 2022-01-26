@@ -279,7 +279,7 @@ CommunicationBufferTemplated<is_static>::extractStream(UInt block_size) {
   UInt sz_block = block_size / sizeof(T);
 
   UInt n_block = 0;
-  for (UInt i = 0; i < sz; ++i) {
+  for (Int i = 0; i < sz; ++i) {
     if (i % sz_block == 0) {
       str << std::endl << n_block << " ";
       ++n_block;

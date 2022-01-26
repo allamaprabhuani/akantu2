@@ -45,11 +45,11 @@ public:
   CohesiveElementInserterHelper(
       Mesh & mesh, const ElementTypeMapArray<bool> & facet_insertion);
 
-    Int insertCohesiveElement();
-    Int insertFacetsOnly();
+  Int insertCohesiveElement();
+  Int insertFacetsOnly();
 
 private:
-  template <UInt dim> Int insertFacetsOnlyImpl();
+  template <Int dim> Int insertFacetsOnlyImpl();
   template <Int dim> void doubleFacets();
   template <Int dim> void findSubfacetToDouble();
 

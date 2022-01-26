@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-15);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   Mesh mesh(spatial_dimension);
 

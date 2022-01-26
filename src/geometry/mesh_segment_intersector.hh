@@ -45,7 +45,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 class MeshSegmentIntersector
     : public MeshGeomIntersector<dim, type, Triangle<cgal::Cartesian>,
                                  cgal::Cartesian::Segment_3, cgal::Cartesian> {

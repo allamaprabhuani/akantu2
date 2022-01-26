@@ -68,7 +68,7 @@ inline UInt StructuralMechanicsModel::getNbDegreeOfFreedom(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, UInt dim,
+StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, Int dim,
                                                    const ID & id)
     : Model(mesh, ModelType::_structural_mechanics_model, dim, id), f_m2a(1.0),
       stress("stress", id), element_material("element_material", id),
@@ -599,8 +599,8 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(
   auto Te_it = traction_global.begin(nb_degree_of_freedom);
   auto te_it = traction_local.begin(nb_degree_of_freedom);
 
-  for (UInt e = 0; e < nb_element; ++e, ++R_it) {
-    for (UInt q = 0; q < nb_quad; ++q, ++Te_it, ++te_it) {
+  for (Int e = 0; e < nb_element; ++e, ++R_it) {
+    for (Int q = 0; q < nb_quad; ++q, ++Te_it, ++te_it) {
       // turn the traction in the local referential
       *te_it = *R_it * *Te_it;
     }

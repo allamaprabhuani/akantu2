@@ -51,7 +51,7 @@ int main(int argc, char * argv[]) {
 
   // const UInt max_steps = 1000;
   // Real increment = 0.005;
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   Math::setTolerance(1.e-12);
 
   ElementType type = _tetrahedron_10;
@@ -201,12 +201,12 @@ int main(int argc, char * argv[]) {
 
       Real first_tangent_contrib = 0;
 
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         first_tangent_contrib += normal_stress(dim) * (*quad_tangents)(dim);
 
       Real second_tangent_contrib = 0;
 
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         second_tangent_contrib +=
             normal_stress(dim) * (*quad_tangents)(dim + spatial_dimension);
 

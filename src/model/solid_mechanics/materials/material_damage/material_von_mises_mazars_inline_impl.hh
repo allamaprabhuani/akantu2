@@ -35,7 +35,7 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class Parent>
+template <Int dim, template <UInt> class Parent>
 inline void MaterialVonMisesMazars<dim, Parent>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
@@ -70,7 +70,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class Parent>
+template <Int dim, template <UInt> class Parent>
 inline void MaterialVonMisesMazars<dim, Parent>::computeDamageAndStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
@@ -88,7 +88,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class Parent>
+template <Int dim, template <UInt> class Parent>
 inline void MaterialVonMisesMazars<dim, Parent>::computeDamageOnQuad(
     const Real & epsilon_equ,
     __attribute__((unused)) const Matrix<Real> & sigma,
@@ -114,7 +114,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeDamageOnQuad(
                      this->lambda * (epsilon_princ(1) + epsilon_princ(0));
 
     Vector<Real> sigma_p(3);
-    for (UInt i = 0; i < 3; i++) {
+    for (Int i = 0; i < 3; i++) {
       sigma_p(i) = std::max(Real(0.), sigma_princ(i));
     }
     // sigma_p *= 1. - dam;
@@ -122,7 +122,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeDamageOnQuad(
     Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
 
     Real alpha_t = 0;
-    for (UInt i = 0; i < 3; ++i) {
+    for (Int i = 0; i < 3; ++i) {
       Real epsilon_t = (1 + this->nu) / this->E * sigma_p(i) - trace_p;
       Real epsilon_p = std::max(Real(0.), epsilon_princ(i));
       alpha_t += epsilon_t * epsilon_p;

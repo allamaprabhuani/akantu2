@@ -543,7 +543,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     auto m_end = this->mass->end(Model::spatial_dimension);
     auto v_it = this->velocity->begin(Model::spatial_dimension);
 
-    for (UInt n = 0; m_it != m_end; ++n, ++m_it, ++v_it) {
+    for (Int n = 0; m_it != m_end; ++n, ++m_it, ++v_it) {
       const auto & v = *v_it;
       const auto & m = *m_it;
 

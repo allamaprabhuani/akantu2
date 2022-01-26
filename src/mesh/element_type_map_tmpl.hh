@@ -576,7 +576,7 @@ class MeshElementTypeMapArrayInitializer
 public:
   MeshElementTypeMapArrayInitializer(
       const Mesh & mesh, Int nb_component = 1,
-      UInt spatial_dimension = _all_dimensions,
+      Int spatial_dimension = _all_dimensions,
       GhostType ghost_type = _not_ghost,
       ElementKind element_kind = _ek_not_defined, bool with_nb_element = false,
       bool with_nb_nodes_per_element = false,

@@ -56,7 +56,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +69,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction_2.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -122,7 +122,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & pos = mesh.getNodes();
   Array<bool> & boun = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (std::abs(pos(n, 1) - bottom) < eps) {
       boun(n, 1) = true;
       disp(n, 1) = 0.;
@@ -187,7 +187,7 @@ int main(int argc, char * argv[]) {
   /// solve the system
   // counter for the damage steps
   UInt regular_steps = 15;
-  for (UInt s = 0; s < regular_steps; ++s) {
+  for (Int s = 0; s < regular_steps; ++s) {
     converged =
         model.solveStep<_scm_newton_raphson_tangent_modified,
                         SolveConvergenceCriteria::_increment>(1e-12, error, 2);
@@ -239,8 +239,8 @@ int main(int argc, char * argv[]) {
   const Array<UInt> & sub_material = igfem_material.getInternal<UInt>(
       "sub_material")(_igfem_triangle_5, _not_ghost);
   Array<UInt>::const_scalar_iterator sub_it = sub_material.begin();
-  for (UInt e = 0; e < nb_igfem_elements; ++e) {
-    for (UInt q = 0; q < nb_quads; ++q, ++sub_it, ++step_it) {
+  for (Int e = 0; e < nb_igfem_elements; ++e) {
+    for (Int q = 0; q < nb_quads; ++q, ++sub_it, ++step_it) {
       if (!*sub_it) {
         if (!Math::are_float_equal(*step_it, 0.)) {
           std::cout
@@ -278,7 +278,7 @@ int main(int argc, char * argv[]) {
       igfem_material.getInternal<Real>("damage")(_igfem_triangle_5, _not_ghost);
   Array<Real> old_damage(dam_igfem);
 
-  for (UInt s = 0; s < 1; ++s) {
+  for (Int s = 0; s < 1; ++s) {
     converged =
         model.solveStep<_scm_newton_raphson_tangent_modified,
                         SolveConvergenceCriteria::_increment>(1e-12, error, 2);
@@ -315,8 +315,8 @@ int main(int argc, char * argv[]) {
   step_it = reduction_step_igfem.begin();
   UInt reduction_constant = material.getParam<Real>("reduction_constant");
 
-  for (UInt e = 0; e < nb_igfem_elements; ++e) {
-    for (UInt q = 0; q < nb_quads;
+  for (Int e = 0; e < nb_igfem_elements; ++e) {
+    for (Int q = 0; q < nb_quads;
          ++q, ++sub_it, ++step_it, ++new_dam_it, ++old_dam_it) {
       if (!*sub_it) {
         if (!Math::are_float_equal(*step_it, 0.) ||

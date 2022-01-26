@@ -85,7 +85,7 @@ namespace {
  * @code{.cpp}
  for(auto & type : mesh.elementTypes()) {
    UInt nb_element  = mesh.getNbElement(type);
-   const Array<UInt> & conn = mesh.getConnectivity(type);
+   const auto & conn = mesh.getConnectivity(type);
    for(UInt e = 0; e < nb_element; ++e) {
      ...
    }
@@ -261,12 +261,11 @@ public:
   void getAssociatedElements(const Array<Int> & node_list,
                              Array<Element> & elements);
 
-  void getAssociatedElements(const UInt & node,
-                             Array<Element> & elements) const;
+  void getAssociatedElements(const Idx & node, Array<Element> & elements) const;
 
 public:
   /// fills the nodes_to_elements for given dimension elements
-  void fillNodesToElements(UInt dimension = _all_dimensions);
+  void fillNodesToElements(Int dimension = _all_dimensions);
 
 private:
   /// update the global ids, nodes type, ...

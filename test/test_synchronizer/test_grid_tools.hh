@@ -39,22 +39,22 @@
 template <Int dim> class Point {
 public:
   Point() : id(0), tol(TOLERANCE) {
-    for (UInt i = 0; i < dim; ++i)
+    for (Int i = 0; i < dim; ++i)
       pos[i] = 0.;
   }
 
   Point(const Point & pt) : id(pt.id), tol(pt.tol) {
-    for (UInt i = 0; i < dim; ++i)
+    for (Int i = 0; i < dim; ++i)
       pos[i] = pt.pos[i];
   }
 
   Point(const Vector<Real> & pt, UInt id = 0) : id(id), tol(TOLERANCE) {
-    for (UInt i = 0; i < dim; ++i)
+    for (Int i = 0; i < dim; ++i)
       pos[i] = pt(i);
   }
 
   bool operator==(const Point & pt) const {
-    for (UInt i = 0; i < dim; ++i) {
+    for (Int i = 0; i < dim; ++i) {
       //      std::cout << i << " " << pos[i] << " " << pt.pos[i] << " " <<
       //      std::abs(pos[i] - pt.pos[i]);
       if (std::abs(pos[i] - pt.pos[i]) > tol) {
@@ -84,12 +84,12 @@ public:
 
   void read(const std::string & str) {
     std::stringstream sstr(str);
-    for (UInt i = 0; i < dim; ++i)
+    for (Int i = 0; i < dim; ++i)
       sstr >> pos[i];
   }
 
   void write(std::ostream & ostr) const {
-    for (UInt i = 0; i < dim; ++i) {
+    for (Int i = 0; i < dim; ++i) {
       if (i != 0)
         ostr << " ";
       //    ostr << std::setprecision(std::numeric_limits<Real>::digits) <<

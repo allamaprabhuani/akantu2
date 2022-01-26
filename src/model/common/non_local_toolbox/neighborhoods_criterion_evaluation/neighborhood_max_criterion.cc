@@ -142,9 +142,9 @@ void NeighborhoodMaxCriterion::insertAllQuads(GhostType ghost_type) {
 
     auto quad = quads.begin(spatial_dimension);
 
-    for (UInt e = 0; e < nb_element; ++e) {
+    for (Int e = 0; e < nb_element; ++e) {
       q.element = e;
-      for (UInt nq = 0; nq < nb_quad; ++nq) {
+      for (Int nq = 0; nq < nb_quad; ++nq) {
         q.num_point = nq;
         q.global_num = q.element * nb_quad + nq;
         spatial_grid->insert(q, *quad);

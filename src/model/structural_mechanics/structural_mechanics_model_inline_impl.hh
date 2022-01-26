@@ -240,8 +240,8 @@ inline void StructuralMechanicsModel::computeForcesFromFunction(
 
   /// sigma/load on each quadrature points
   Real * qcoord = quad_coords.data();
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt q = 0; q < nb_quad; ++q) {
+  for (Int el = 0; el < nb_element; ++el) {
+    for (Int q = 0; q < nb_quad; ++q) {
       myf(qcoord, imposed_val, NULL, 0);
       imposed_val += offset;
       qcoord += spatial_dimension;

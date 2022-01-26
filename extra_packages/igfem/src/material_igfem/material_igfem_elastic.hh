@@ -43,7 +43,7 @@ private:
 
 public:
   MaterialIGFEMElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialIGFEMElastic(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+  MaterialIGFEMElastic(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
                        FEEngine & fe_engine, const ID & id = "");
 
   virtual ~MaterialIGFEMElastic() {}

@@ -500,7 +500,7 @@ Real MaterialCohesive::getContactEnergy() {
         contact_opening(type, _not_ghost).begin(spatial_dimension);
 
     /// loop on each quadrature point
-    for (UInt q = 0; q < nb_quad_points;
+    for (Int q = 0; q < nb_quad_points;
          ++contact_traction_it, ++contact_opening_it, ++q) {
 
       contact_energy(q) = .5 * contact_traction_it->dot(*contact_opening_it);

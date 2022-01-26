@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
   // debug::setDebugLevel(dblTest);
 
   constexpr ElementType type = _bernoulli_beam_3;
-  UInt dim = ElementClass<type>::getSpatialDimension();
+  Int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
 

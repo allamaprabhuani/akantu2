@@ -362,7 +362,7 @@ namespace debug {
 
 #define AKANTU_DEBUG_ASSERT(test, info)                                        \
   do {                                                                         \
-    if (not(test))                                                             \
+    if (not(test)) [[gnu::unlikely]]                                           \
       AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::AssertException(),         \
                                    "assert [" << #test << "] "                 \
                                               << info); /* NOLINT */           \

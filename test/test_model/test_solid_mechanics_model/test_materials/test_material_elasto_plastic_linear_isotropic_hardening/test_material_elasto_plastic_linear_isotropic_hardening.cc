@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
   initialize("test_material_elasto_plastic_linear_isotropic_hardening.dat",
              argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const Real u_increment = 0.1;
   const UInt steps = 20;
 

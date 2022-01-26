@@ -38,8 +38,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-MaterialCohesiveLinearFriction<dim>::
-    MaterialCohesiveLinearFriction(SolidMechanicsModel & model, const ID & id)
+MaterialCohesiveLinearFriction<dim>::MaterialCohesiveLinearFriction(
+    SolidMechanicsModel & model, const ID & id)
     : MaterialParent(model, id), residual_sliding("residual_sliding", *this),
       friction_force("friction_force", *this) {
   AKANTU_DEBUG_IN();
@@ -55,8 +55,7 @@ MaterialCohesiveLinearFriction<dim>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialCohesiveLinearFriction<dim>::initMaterial() {
+template <Int dim> void MaterialCohesiveLinearFriction<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialParent::initMaterial();
@@ -79,10 +78,8 @@ void MaterialCohesiveLinearFriction<dim>::computeTraction(
   friction_force.resize();
 
   /// define iterators
-  auto traction_it =
-      this->tractions(el_type, ghost_type).begin(dim);
-  auto traction_end =
-      this->tractions(el_type, ghost_type).end(dim);
+  auto traction_it = this->tractions(el_type, ghost_type).begin(dim);
+  auto traction_end = this->tractions(el_type, ghost_type).end(dim);
   auto opening_it = this->opening(el_type, ghost_type).begin(dim);
   auto previous_opening_it =
       this->opening.previous(el_type, ghost_type).begin(dim);
@@ -102,8 +99,7 @@ void MaterialCohesiveLinearFriction<dim>::computeTraction(
   auto res_sliding_it = this->residual_sliding(el_type, ghost_type).begin();
   auto res_sliding_prev_it =
       this->residual_sliding.previous(el_type, ghost_type).begin();
-  auto friction_force_it =
-      this->friction_force(el_type, ghost_type).begin(dim);
+  auto friction_force_it = this->friction_force(el_type, ghost_type).begin(dim);
 
   Vector<Real> normal_opening(dim);
   Vector<Real> tangential_opening(dim);
@@ -242,14 +238,14 @@ void MaterialCohesiveLinearFriction<dim>::computeTangentTraction(
 
       if (tau < tau_max && tau_max > Math::getTolerance()) {
         auto && I = Matrix<Real, dim, dim>::Identity();
-        auto && n =  *normal_it;
+        auto && n = *normal_it;
         *tangent_it += (I - n * n.transpose()) * friction_penalty;
       }
     }
 
     // check if the tangential stiffness matrix is symmetric
-    //    for (UInt h = 0; h < dim; ++h){
-    //      for (UInt l = h; l < dim; ++l){
+    //    for (Int h = 0; h < dim; ++h){
+    //      for (Int l = h; l < dim; ++l){
     //        if (l > h){
     //          Real k_ls = (*tangent_it)[dim*h+l];
     //          Real k_us =  (*tangent_it)[dim*l+h];

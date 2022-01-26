@@ -42,7 +42,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 MeshSegmentIntersector<dim, type>::MeshSegmentIntersector(Mesh & mesh,
                                                           Mesh & result_mesh)
     : parent_type(mesh), result_mesh(result_mesh) {
@@ -50,7 +50,7 @@ MeshSegmentIntersector<dim, type>::MeshSegmentIntersector(Mesh & mesh,
   this->constructData();
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
     const K::Segment_3 & query) {
   AKANTU_DEBUG_IN();
@@ -116,14 +116,14 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
   AKANTU_DEBUG_OUT();
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::computeMeshQueryIntersectionPoint(
     const K::Segment_3 & /*query*/, UInt /*nb_old_nodes*/) {
   AKANTU_ERROR("The method: computeMeshQueryIntersectionPoint has not "
                "been implemented in class MeshSegmentIntersector!");
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::buildResultFromQueryList(
     const std::list<K::Segment_3> & query_list) {
   AKANTU_DEBUG_IN();
@@ -133,7 +133,7 @@ void MeshSegmentIntersector<dim, type>::buildResultFromQueryList(
   AKANTU_DEBUG_OUT();
 }
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::computeSegments(
     const std::list<result_type> & intersections,
     std::set<pair_type, segmentPairsLess> & segments,
@@ -212,8 +212,8 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
           const Vector<UInt> & el_connectivity = connectivity_vec[el];
 
           Matrix<Real> node_coordinates(dim, nb_nodes_per_element);
-          for (UInt i = 0; i < nb_nodes_per_element; i++) {
-            for (UInt j = 0; j < dim; j++) {
+          for (Int i = 0; i < nb_nodes_per_element; i++) {
+            for (Int j = 0; j < dim; j++) {
               node_coordinates(j, i) = nodes(el_connectivity(i), j);
             }
           }

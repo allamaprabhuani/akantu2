@@ -41,7 +41,7 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
                            const Element & element, Vector<Real> & normal,
                            bool outward) {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1;
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
@@ -180,7 +180,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                    const Vector<Real> & normal,
                                    Vector<Real> & natural_coord,
                                    Matrix<Real> & tangents) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   const auto type = element.type;
   auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -412,7 +412,7 @@ UInt GeometryUtils::orthogonalProjection(
   UInt index = UInt(-1);
   Real min_gap = std::numeric_limits<Real>::max();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1;
 
   const auto & contact_group = mesh.getElementGroup("contact_surface");

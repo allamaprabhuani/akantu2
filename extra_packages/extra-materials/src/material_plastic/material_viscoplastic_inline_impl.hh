@@ -74,11 +74,11 @@ inline void MaterialViscoPlastic<dim>::computeTangentModuliOnQuad(
   UInt cols = tangent.cols();
   UInt rows = tangent.rows();
 
-  for (UInt m = 0; m < rows; ++m) {
+  for (Int m = 0; m < rows; ++m) {
     UInt i = VoigtHelper<dim>::vec[m][0];
     UInt j = VoigtHelper<dim>::vec[m][1];
 
-    for (UInt n = 0; n < cols; ++n) {
+    for (Int n = 0; n < cols; ++n) {
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
       tangent(m, n) = (i == k) * (j == l) * 2. * this->mu +

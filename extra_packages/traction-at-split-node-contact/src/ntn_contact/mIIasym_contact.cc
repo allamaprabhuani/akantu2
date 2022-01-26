@@ -49,7 +49,7 @@ void MIIASYMContact::updateImpedance() {
 
   NTRFContact::updateImpedance();
 
-  for (UInt i = 0; i < this->impedance.size(); ++i) {
+  for (Int i = 0; i < this->impedance.size(); ++i) {
     this->impedance(i) *= 0.5;
   }
 

@@ -49,7 +49,7 @@ bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
 void rotateArray(Array<Real> & array, Real angle);
 UInt getNbBigFragments(FragmentManager &, UInt);
 
-const UInt spatial_dimension = 3;
+const Int spatial_dimension = 3;
 const UInt total_nb_fragment = 4;
 const Real rotation_angle = M_PI / 4.;
 const Real global_tolerance = 1.e-9;
@@ -315,7 +315,7 @@ int main(int argc, char * argv[]) {
 }
 
 void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh_facets = model.getMeshFacets();
   const Array<Real> & position = mesh_facets.getNodes();
 
@@ -361,7 +361,7 @@ void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {
 
 void displaceElements(SolidMechanicsModelCohesive & model, const Real lim,
                       const Real amount) {
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   Array<Real> & displacement = model.getDisplacement();
   Mesh & mesh = model.getMesh();
   UInt nb_nodes = mesh.getNbNodes();
@@ -416,7 +416,7 @@ bool isInertiaEqual(const Vector<Real> & a, const Vector<Real> & b) {
 }
 
 void rotateArray(Array<Real> & array, Real angle) {
-  UInt spatial_dimension = array.getNbComponent();
+  Int spatial_dimension = array.getNbComponent();
 
   Real rotation_values[] = {std::cos(angle),
                             std::sin(angle),
@@ -447,7 +447,7 @@ UInt getNbBigFragments(FragmentManager & fragment_manager,
   UInt nb_fragment = fragment_manager.getNbFragment();
   UInt nb_big_fragment = 0;
 
-  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+  for (Int frag = 0; frag < nb_fragment; ++frag) {
     if (nb_elements_per_fragment(frag) >= minimum_nb_elements) {
       ++nb_big_fragment;
     }

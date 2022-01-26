@@ -42,7 +42,7 @@ using namespace akantu;
 class TestSynchronizerFixture : public ::testing::Test {
 public:
   virtual void SetUp() {
-    const UInt spatial_dimension = 3;
+    const Int spatial_dimension = 3;
 
     mesh = std::make_unique<Mesh>(spatial_dimension);
 

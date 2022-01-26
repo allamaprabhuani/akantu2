@@ -46,7 +46,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::ContactMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
     : Model(mesh, model_type, dof_manager, dim, id) {
 

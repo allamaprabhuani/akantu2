@@ -39,7 +39,7 @@
 
 namespace akantu {
 
-template <UInt dim, class MaterialDamageLocal>
+template <Int dim, class MaterialDamageLocal>
 class MaterialDamageNonLocal
     : public MaterialNonLocal<dim, MaterialDamageLocal> {
 public:

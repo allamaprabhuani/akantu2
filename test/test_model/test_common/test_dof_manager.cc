@@ -101,7 +101,7 @@ private:
 template <class T> class DOFManagerFixture : public ::testing::Test {
 public:
   constexpr static DOFManagerType type = T::value;
-  constexpr static UInt dim = 3;
+  constexpr static Int dim = 3;
   void SetUp() override {
     mesh = std::make_unique<Mesh>(this->dim);
 
@@ -162,7 +162,7 @@ protected:
 };
 
 template <class T> constexpr DOFManagerType DOFManagerFixture<T>::type;
-template <class T> constexpr UInt DOFManagerFixture<T>::dim;
+template <class T> constexpr Int DOFManagerFixture<T>::dim;
 
 TYPED_TEST_SUITE(DOFManagerFixture, dof_manager_types, );
 

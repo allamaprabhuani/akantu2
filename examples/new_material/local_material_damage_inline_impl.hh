@@ -46,16 +46,16 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   /// u_{ij} + \nabla u_{ji})
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) =
           (i == j) * lambda * trace + mu * (grad_u(i, j) + grad_u(j, i));
     }
   }
 
   Real Y = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       Y += sigma(i, j) * grad_u(i, j);
     }
   }
@@ -74,8 +74,8 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & epot) {
   epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
+  for (Int i = 0, t = 0; i < spatial_dimension; ++i)
+    for (Int j = 0; j < spatial_dimension; ++j, ++t)
       epot += sigma(i, j) * (grad_u(i, j) - (i == j));
   epot *= .5;
 }

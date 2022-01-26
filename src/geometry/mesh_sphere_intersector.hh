@@ -46,7 +46,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 class MeshSphereIntersector
     : public MeshGeomIntersector<dim, type, Line_arc<cgal::Spherical>,
                                  cgal::Spherical::Sphere_3, cgal::Spherical> {

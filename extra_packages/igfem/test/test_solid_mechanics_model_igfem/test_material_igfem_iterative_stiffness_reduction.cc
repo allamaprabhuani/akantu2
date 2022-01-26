@@ -58,7 +58,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
     std::cerr << "invalid option" << std::endl;
   }
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -251,7 +251,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
                       bool igfem_analysis) {
 
   bool test_result = true;
-  const UInt spatial_dimension = model.getSpatialDimension();
+  const Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh = model.getMesh();
 
   if (!igfem_analysis) {
@@ -261,7 +261,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     Array<Real> barycenters(element_filter.getSize(), spatial_dimension);
     Array<Real>::vector_iterator bary_it = barycenters.begin(spatial_dimension);
-    for (UInt e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
+    for (Int e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
       UInt global_el_idx = element_filter(e);
       mesh.getBarycenter(global_el_idx, element_type, bary_it->storage(),
                          _not_ghost);
@@ -279,7 +279,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
     file_output.open(file_name.str());
     file_output << std::setprecision(14);
 
-    for (UInt e = 0; e < barycenters.getSize(); ++e)
+    for (Int e = 0; e < barycenters.getSize(); ++e)
       file_output << barycenters(e, 0) << " " << barycenters(e, 1) << " "
                   << damage(e) << " " << Sc(e) << std::endl;
 
@@ -327,10 +327,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
     const Array<Real> & Sc_regular_el =
         model.getMaterial(0).getInternal<Real>("Sc")(element_type, _not_ghost);
 
-    for (UInt e = 0; e < element_filter.getSize(); ++e) {
+    for (Int e = 0; e < element_filter.getSize(); ++e) {
       UInt global_el_idx = element_filter(e);
-      mesh.getBarycenter(global_el_idx, element_type, bary.data(),
-                         _not_ghost);
+      mesh.getBarycenter(global_el_idx, element_type, bary.data(), _not_ghost);
       /// find element
       for (bary_it = bary_begin; bary_it != bary_end; ++bary_it) {
         UInt matched_dim = 0;
@@ -369,9 +368,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
             .getInternal<UInt>("sub_material")(element_type, _not_ghost)
             .data();
 
-    for (UInt e = 0; e < element_filter_igfem.getSize(); ++e) {
+    for (Int e = 0; e < element_filter_igfem.getSize(); ++e) {
       UInt global_el_idx = element_filter_igfem(e);
-      for (UInt s = 0; s < nb_sub_elements; ++s, ++sub_el_ptr) {
+      for (Int s = 0; s < nb_sub_elements; ++s, ++sub_el_ptr) {
         if (*sub_el_ptr)
           model.getSubElementBarycenter(global_el_idx, s, element_type, bary,
                                         _not_ghost);

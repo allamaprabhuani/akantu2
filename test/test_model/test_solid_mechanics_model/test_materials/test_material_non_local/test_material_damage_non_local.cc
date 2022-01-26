@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_damage_non_local.dat", argc, argv);
   UInt max_steps = 1100;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("mesh_section_gap.msh");
 
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("strain");
   model.dump();
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     // if(s % 100 == 0) std::cout << "Step " << s+1 << "/" << max_steps

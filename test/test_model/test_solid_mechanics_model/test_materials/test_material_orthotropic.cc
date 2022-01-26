@@ -79,7 +79,7 @@ int main(int argc, char * argv[]) {
   energy.open("energy.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     epot = model.getEnergy("potential");

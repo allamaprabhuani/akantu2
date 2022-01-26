@@ -188,7 +188,7 @@ void NTNBaseContact::findBoundaryElements(const Array<Idx> & interface_nodes,
 void NTNBaseContact::addSplitNode(Idx node, Idx /*unused*/) {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   // add to node arrays
   this->slaves.push_back(node);
@@ -368,7 +368,7 @@ void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
 void NTNBaseContact::computeContactPressure() {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
   Real delta_t = this->model.getTimeStep();
   UInt nb_contact_nodes = getNbContactNodes();
 
@@ -405,7 +405,7 @@ void NTNBaseContact::computeContactPressure() {
   Real * r_velo_p = r_velo.data();
   Real * r_acce_p = r_acce.data();
   Real * r_old_acce_p = r_old_acce.data();
-  for (UInt i = 0; i < nb_contact_nodes; ++i) {
+  for (Int i = 0; i < nb_contact_nodes; ++i) {
     *gap_p = *r_disp_p + delta_t * *r_velo_p + delta_t * delta_t * *r_acce_p -
              0.5 * delta_t * delta_t * *r_old_acce_p;
     // increment pointers
@@ -417,15 +417,15 @@ void NTNBaseContact::computeContactPressure() {
   }
 
   // check if gap is negative -> is in contact
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     if (gap(n) <= 0.) {
-      for (UInt d = 0; d < dim; ++d) {
+      for (Int d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) =
             this->impedance(n) * gap(n) / (2 * delta_t) * this->normals(n, d);
       }
       this->is_in_contact(n) = true;
     } else {
-      for (UInt d = 0; d < dim; ++d) {
+      for (Int d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) = 0.;
       }
       this->is_in_contact(n) = false;
@@ -445,7 +445,7 @@ void NTNBaseContact::applyContactPressure() {
   for (Int n = 0; n < nb_contact_nodes; ++n) {
     auto slave = this->slaves(n);
 
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       // residual(master,d) += this->lumped_boundary(n,0) *
       // this->contact_pressure(n,d);
       residual(slave, d) -=

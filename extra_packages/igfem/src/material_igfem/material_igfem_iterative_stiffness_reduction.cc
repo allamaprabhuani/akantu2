@@ -174,10 +174,10 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type, ghost_type);
       bool damage_element = false;
-      for (UInt e = 0; e < nb_element; ++e) {
+      for (Int e = 0; e < nb_element; ++e) {
         damage_element = false;
         /// check if damage occurs in the element
-        for (UInt q = 0; q < nb_quads;
+        for (Int q = 0; q < nb_quads;
              ++q, ++reduction_it, ++sub_mat_it, ++equivalent_stress_it) {
           if (*equivalent_stress_it >= (1 - this->dam_tolerance) *
                                            this->norm_max_equivalent_stress &&
@@ -194,7 +194,7 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
           nb_damaged_elements += 1;
           sub_mat_it -= nb_quads;
           reduction_it -= nb_quads;
-          for (UInt q = 0; q < nb_quads; ++q) {
+          for (Int q = 0; q < nb_quads; ++q) {
             if (*sub_mat_it) {
               /// increment the counter of stiffness reduction steps
               *reduction_it += 1;
@@ -263,13 +263,13 @@ void MaterialIGFEMIterativeStiffnessReduction<
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);
       UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).data();
-      for (UInt q = 0; q < nb_element * nb_quads;
+      for (Int q = 0; q < nb_element * nb_quads;
            ++q, ++sub_mat_ptr, ++dam_it, ++reduction_it) {
         if (*sub_mat_ptr) {
           if (Math::are_float_equal(*dam_it, this->max_damage))
             *reduction_it = this->max_reductions;
           else {
-            for (UInt i = 0; i < this->max_reductions; ++i) {
+            for (Int i = 0; i < this->max_reductions; ++i) {
               val = 1 - (1. / std::pow(this->reduction_constant, i));
               if (Math::are_float_equal(val, *dam_it))
                 *reduction_it = i;

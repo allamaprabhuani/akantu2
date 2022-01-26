@@ -35,7 +35,7 @@ package_declare(core NOT_OPTIONAL
   DESCRIPTION "core package for Akantu"
   FEATURES_PUBLIC cxx_strong_enums cxx_defaulted_functions
                   cxx_deleted_functions cxx_auto_type cxx_decltype_auto
-                  cxx_std_17
+                  cxx_std_14
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
                    cxx_delegating_constructors
   DEPENDS INTERFACE akantu_iterators Boost Eigen3
@@ -76,6 +76,7 @@ package_declare_sources(core
   common/aka_named_argument.hh
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
+  common/aka_tensor.hh
   common/aka_types.hh
   common/aka_types_eigen_matrix_plugin.hh
   common/aka_types_eigen_matrix_base_plugin.hh

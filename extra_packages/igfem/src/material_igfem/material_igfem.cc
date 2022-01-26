@@ -105,7 +105,7 @@ void MaterialIGFEM::computeQuadraturePointsCoordinates(
 void MaterialIGFEM::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model->getSpatialDimension();
+  Int spatial_dimension = model->getSpatialDimension();
 
   Mesh::type_iterator it =
       this->fem->getMesh().firstType(spatial_dimension, ghost_type, _ek_igfem);
@@ -160,7 +160,7 @@ void MaterialIGFEM::extrapolateInternal(const ID & id, const Element & element,
     const Matrix<Real> & values = internal_it[local_element.element];
     UInt index = 0;
     Vector<Real> tmp(nb_component);
-    for (UInt j = 0; j < values.cols(); ++j) {
+    for (Int j = 0; j < values.cols(); ++j) {
       tmp = values(j);
       if (tmp.norm() > Math::getTolerance()) {
         index = j;
@@ -168,7 +168,7 @@ void MaterialIGFEM::extrapolateInternal(const ID & id, const Element & element,
       }
     }
 
-    for (UInt i = 0; i < extrapolated.size(); ++i) {
+    for (Int i = 0; i < extrapolated.size(); ++i) {
       extrapolated(i) = values(index);
     }
   } else {
@@ -218,14 +218,14 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
   /// loop all elements for the given type
   const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
   UInt nb_elements = filter.getSize();
-  for (UInt e = 0; e < nb_elements; ++e, ++connec_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++connec_it) {
     el.element = filter(e);
     if (std::find(el_begin, el_end, el) == el_end) {
       sub_mat_ptr += nb_total_quads;
       continue;
     }
 
-    for (UInt i = 0; i < nb_parent_nodes; ++i) {
+    for (Int i = 0; i < nb_parent_nodes; ++i) {
       Vector<Real> node = nodes_it[(*connec_it)(i)];
       is_inside(i) = igfem_model->isInside(node, this->name_sub_mat_1);
     }
@@ -257,11 +257,11 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
     }
     }
 
-    for (UInt q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(0);
       *sub_mat_ptr = index;
     }
-    for (UInt q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(1);
       *sub_mat_ptr = index;
     }
@@ -298,26 +298,26 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_4>(
   /// loop all elements for the given type
   const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
   UInt nb_elements = filter.getSize();
-  for (UInt e = 0; e < nb_elements; ++e, ++connec_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++connec_it) {
     el.element = filter(e);
     if (std::find(el_begin, el_end, el) == el_end) {
       sub_mat_ptr += nb_total_quads;
       continue;
     }
 
-    for (UInt s = 0; s < this->nb_sub_materials; ++s) {
+    for (Int s = 0; s < this->nb_sub_materials; ++s) {
       igfem_model->getSubElementBarycenter(el.element, s, el.type, barycenter,
                                            ghost_type);
       sub_material_index(s) =
           1 - igfem_model->isInside(barycenter, this->name_sub_mat_1);
     }
 
-    for (UInt q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(0);
       *sub_mat_ptr = index;
     }
 
-    for (UInt q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(1);
       *sub_mat_ptr = index;
     }

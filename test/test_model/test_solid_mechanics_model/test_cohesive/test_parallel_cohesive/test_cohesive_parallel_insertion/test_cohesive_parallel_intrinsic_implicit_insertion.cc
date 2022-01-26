@@ -170,7 +170,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dbl0);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
 
@@ -212,7 +212,7 @@ int main(int argc, char * argv[]) {
 
         Array<UInt> part = partitions(*first, *gt);
 
-        for (UInt i = 0; i < part.getSize(); ++i) {
+        for (Int i = 0; i < part.getSize(); ++i) {
           output << i << " " << part(i) << std::endl;
         }
       }

@@ -101,7 +101,7 @@ int main(int argc, char * argv[]) {
 
   Real error_damage{0.};
 
-  for (UInt s = 0; s < nbSteps; ++s) {
+  for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
     applyDisplacement(model, axial_strain);
 
@@ -146,7 +146,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
   auto & positions = model.getMesh().getNodes();
   auto & blocked_dofs = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < model.getMesh().getNbNodes(); ++n) {
+  for (Int n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -0.5) {
       displacement(n, 0) = 0;
       displacement(n, 1) = 0;
@@ -266,8 +266,8 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
 
 /* -------------------------------------------------------------------------- */
 void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon) {
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j)
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j)
       epsilon(i, j) = 0.5 * (grad_u(i, j) + grad_u(j, i));
   }
 }

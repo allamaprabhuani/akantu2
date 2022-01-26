@@ -41,7 +41,7 @@ void ShapeLagrange<_ek_igfem>::extractValuesAtStandardNodes(
                           extracted_values.getNbComponent(),
                       "The arrays are not of the same size!!!!!");
   extracted_values.zero();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   Mesh::type_iterator it =
       mesh.firstType(spatial_dimension, ghost_type, _ek_igfem);
   Mesh::type_iterator end =
@@ -63,12 +63,12 @@ void ShapeLagrange<_ek_igfem>::extractValuesAtStandardNodes(
 #undef GET_NODES_INFO
 
     UInt * conn_val = mesh.getConnectivity(type, ghost_type).data();
-    for (UInt e = 0; e < nb_elements; ++e) {
+    for (Int e = 0; e < nb_elements; ++e) {
       /// copy the value at standard nodes
       UInt offset = e * nb_nodes_per_element;
-      for (UInt n = 0; n < nb_parent_nodes; ++n) {
+      for (Int n = 0; n < nb_parent_nodes; ++n) {
         UInt node = conn_val[offset + n];
-        for (UInt i = 0; i < nodal_values.getNbComponent(); ++i)
+        for (Int i = 0; i < nodal_values.getNbComponent(); ++i)
           extracted_values(node, i) = nodal_values(node, i);
       }
     }

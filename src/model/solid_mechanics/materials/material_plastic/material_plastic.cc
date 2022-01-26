@@ -87,7 +87,6 @@ void MaterialPlastic<spatial_dimension>::initialize() {
 
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
-  this->use_previous_stress_thermal = true;
 
   this->inelastic_strain.initialize(spatial_dimension * spatial_dimension);
   this->inelastic_strain.initializeHistory();

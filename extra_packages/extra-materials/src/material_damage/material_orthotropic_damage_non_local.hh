@@ -36,7 +36,7 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension, class MaterialOrthotropicDamageLocal>
+template <Int spatial_dimension, class MaterialOrthotropicDamageLocal>
 class MaterialOrthotropicDamageNonLocal
     : public MaterialOrthotropicDamageLocal,
       public MaterialNonLocal<spatial_dimension> {

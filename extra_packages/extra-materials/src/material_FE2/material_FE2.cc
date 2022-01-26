@@ -113,7 +113,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   const Real & sigma_th = *sigma_th_it;
 
   /// copy strains in Voigt notation
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     /// copy stress in
     Real voigt_factor = voigt_h::factors[I];
     UInt i = voigt_h::vec[I][0];
@@ -126,7 +126,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   voigt_stress.mul<false>(C_mat, voigt_strain);
 
   /// copy stresses back in full vectorised notation
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     UInt i = voigt_h::vec[I][0];
     UInt j = voigt_h::vec[I][1];
     sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;

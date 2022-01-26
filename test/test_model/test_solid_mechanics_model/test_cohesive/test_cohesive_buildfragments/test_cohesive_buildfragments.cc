@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-14);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const UInt max_steps = 200;
   Real strain_rate = 1.e5;
   ElementType type = _quadrangle_4;
@@ -78,7 +78,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
 
   /// initial conditions
-  for (UInt n = 0; n < nb_nodes; ++n)
+  for (Int n = 0; n < nb_nodes; ++n)
     velocity(n, 0) = strain_rate * position(n, 0);
 
   /// boundary conditions
@@ -97,7 +97,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & fragment_mass = fragment_manager.getMass();
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.checkCohesiveStress();
     model.solveStep();
 
@@ -119,7 +119,7 @@ int main(int argc, char * argv[]) {
       UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
 
       UInt nb_fragment = 1;
-      for (UInt el = 0; el < nb_cohesive_elements; ++el) {
+      for (Int el = 0; el < nb_cohesive_elements; ++el) {
         UInt q = 0;
         while (q < nb_quad_per_facet &&
                Math::are_float_equal(damage(el * nb_quad_per_facet + q), 1))
@@ -137,7 +137,7 @@ int main(int argc, char * argv[]) {
 
       /// check mass computation
       Real total_mass = 0.;
-      for (UInt frag = 0; frag < nb_fragment_num; ++frag) {
+      for (Int frag = 0; frag < nb_fragment_num; ++frag) {
         total_mass += fragment_mass(frag);
       }
 
@@ -158,7 +158,7 @@ int main(int argc, char * argv[]) {
   Real fragment_length = L / nb_fragment;
   Real initial_position = -L / 2. + fragment_length / 2.;
 
-  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+  for (Int frag = 0; frag < nb_fragment; ++frag) {
     Real theoretical_center = initial_position + fragment_length * frag;
 
     if (!Math::are_float_equal(fragment_center(frag, 0), theoretical_center)) {

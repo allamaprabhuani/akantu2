@@ -136,7 +136,7 @@ void PhaseField::computeAllDrivingForces(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
   for (const auto & type :
        element_filter.elementTypes(spatial_dimension, ghost_type)) {

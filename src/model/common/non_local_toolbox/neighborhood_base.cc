@@ -163,7 +163,7 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   Mesh mesh_out(spatial_dimension);
   MeshAccessor mesh_accessor(mesh_out);
   auto & connectivity = mesh_accessor.getConnectivity(_segment_2);
-  auto & tag = mesh_accessor.getData<UInt>("tag_1", _segment_2);
+  auto & tag = mesh_accessor.getData<Int>("tag_1", _segment_2);
   auto & nodes = mesh_accessor.getNodes();
 
   std::map<IntegrationPoint, UInt> quad_to_nodes;

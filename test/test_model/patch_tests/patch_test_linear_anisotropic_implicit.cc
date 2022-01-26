@@ -74,10 +74,10 @@ TYPED_TEST(TestPatchTestSMMLinear, AnisotropicStatic) {
         {-2.13683293282e-10, 3.69840984851, 112.93753505}}}};
 
   if (this->dim == 2) {
-    for (UInt i = 0; i < this->dim; ++i) {
-      for (UInt j = 0; j < this->dim; ++j) {
-        for (UInt k = 0; k < this->dim; ++k) {
-          for (UInt l = 0; l < this->dim; ++l) {
+    for (Int i = 0; i < this->dim; ++i) {
+      for (Int j = 0; j < this->dim; ++j) {
+        for (Int k = 0; k < this->dim; ++k) {
+          for (Int l = 0; l < this->dim; ++l) {
             C[i][j][k][l] = 0;
           }
         }

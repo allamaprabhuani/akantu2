@@ -228,7 +228,7 @@ MeshIOMSH::MeshIOMSH() {
     UInt nb_nodes = _msh_nodes_per_elem[it->second];
 
     std::vector<UInt> tmp(nb_nodes);
-    for (UInt i = 0; i < nb_nodes; ++i) {
+    for (Int i = 0; i < nb_nodes; ++i) {
       tmp[i] = i;
     }
 
@@ -376,7 +376,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
     UInt msh_type;
     ElementType akantu_type;
 
-    for (UInt i = 0; i < nb_elements; ++i) {
+    for (Int i = 0; i < nb_elements; ++i) {
       auto && sstr_elem = file.get_line();
 
       sstr_elem >> index;
@@ -406,11 +406,11 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
         sstr_elem >> tag0 >> tag1 >> nb_nodes;
 
         auto & data0 =
-            file.mesh_accessor.template getData<UInt>("tag_0", akantu_type);
+            file.mesh_accessor.template getData<Int>("tag_0", akantu_type);
         data0.push_back(tag0);
 
         auto & data1 =
-            file.mesh_accessor.template getData<UInt>("tag_1", akantu_type);
+            file.mesh_accessor.template getData<Int>("tag_1", akantu_type);
         data1.push_back(tag1);
       } else if (file.version < 4) {
         Int nb_tags;
@@ -419,7 +419,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
           Int tag;
           sstr_elem >> tag;
 
-          auto & data = file.mesh_accessor.template getData<UInt>(
+          auto & data = file.mesh_accessor.template getData<Int>(
               "tag_" + std::to_string(j), akantu_type);
           data.push_back(tag);
         }
@@ -953,7 +953,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
       outfile << " " << nodes.data()[offset + j];
     }
 
-    for (UInt p = nodes.getNbComponent(); p < 3; ++p) {
+    for (Int p = nodes.getNbComponent(); p < 3; ++p) {
       outfile << " " << 0.;
     }
     outfile << "\n";
@@ -982,14 +982,14 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     const auto & connectivity = mesh.getConnectivity(type, _not_ghost);
     element.type = type;
 
-    UInt * tag[2] = {nullptr, nullptr};
-    if (mesh.hasData<UInt>("tag_0", type, _not_ghost)) {
-      const auto & data_tag_0 = mesh.getData<UInt>("tag_0", type, _not_ghost);
+    Int * tag[2] = {nullptr, nullptr};
+    if (mesh.hasData<Int>("tag_0", type, _not_ghost)) {
+      const auto & data_tag_0 = mesh.getData<Int>("tag_0", type, _not_ghost);
       tag[0] = data_tag_0.data();
     }
 
-    if (mesh.hasData<UInt>("tag_1", type, _not_ghost)) {
-      const auto & data_tag_1 = mesh.getData<UInt>("tag_1", type, _not_ghost);
+    if (mesh.hasData<Int>("tag_1", type, _not_ghost)) {
+      const auto & data_tag_1 = mesh.getData<Int>("tag_1", type, _not_ghost);
       tag[1] = data_tag_1.data();
     }
 
@@ -1003,7 +1003,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
               << " 2";
 
       /// \todo write the real data in the file
-      for (UInt t = 0; t < 2; ++t) {
+      for (Int t = 0; t < 2; ++t) {
         if (tag[t] != nullptr) {
           outfile << " " << tag[t][element.element];
         } else {

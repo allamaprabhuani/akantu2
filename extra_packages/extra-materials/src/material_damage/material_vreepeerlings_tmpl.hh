@@ -13,7 +13,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialVreePeerlingsParent(model, id),
@@ -46,7 +46,7 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlings<spatial_dimension, MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialVreePeerlingsParent::initMaterial();
@@ -54,7 +54,7 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -65,8 +65,7 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(
   Real * equi_straint = equi_strain(el_type, ghost_type).data();
   Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).data();
   Real * Kapaq = Kapa(el_type, ghost_type).data();
-  Real * FullDam_Valstrain =
-      Full_dam_value_strain(el_type, ghost_type).data();
+  Real * FullDam_Valstrain = Full_dam_value_strain(el_type, ghost_type).data();
   Real * FullDam_Valstrain_rate =
       Full_dam_value_strain_rate(el_type, ghost_type).data();
   Real * Nb_damage = Number_damage(el_type, ghost_type).data();

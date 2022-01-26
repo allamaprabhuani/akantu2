@@ -78,7 +78,7 @@ public:
    * @param id the id of the model
    */
   EmbeddedInterfaceModel(Mesh & mesh, Mesh & primitive_mesh,
-                         UInt spatial_dimension = _all_dimensions,
+                         Int spatial_dimension = _all_dimensions,
                          const ID & id = "embedded_interface_model");
 
   /// Destructor

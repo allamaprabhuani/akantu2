@@ -44,7 +44,7 @@ Real alpha[3][4] = {{0.01, 0.02, 0.03, 0.04},
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type> static Matrix<Real> prescribed_strain() {
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> strain(spatial_dimension, spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -57,7 +57,7 @@ template <ElementType type> static Matrix<Real> prescribed_strain() {
 
 template <ElementType type>
 static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
   // plane strain in 2d
@@ -99,7 +99,7 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
 int main(int argc, char * argv[]) {
   initialize("material_elastic_plane_strain.dat", argc, argv);
 
-  UInt dim = 3;
+  Int dim = 3;
   const ElementType element_type = _tetrahedron_4;
 
   Matrix<Real> prescribed_eigengradu(dim, dim);
@@ -132,9 +132,9 @@ int main(int argc, char * argv[]) {
   for (auto & group : mesh.iterateElementGroups()) {
     for (const auto & n : group.getNodeGroup()) {
       std::cout << "Node " << n << std::endl;
-      for (UInt i = 0; i < dim; ++i) {
+      for (Int i = 0; i < dim; ++i) {
         displacement(n, i) = alpha[i][0];
-        for (UInt j = 0; j < dim; ++j) {
+        for (Int j = 0; j < dim; ++j) {
           displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
         }
         boundary(n, i) = true;

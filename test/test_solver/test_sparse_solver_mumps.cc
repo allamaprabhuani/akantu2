@@ -52,7 +52,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes);
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
-  const UInt spatial_dimension = 1;
+  const Int spatial_dimension = 1;
   const UInt nb_global_dof = 11;
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
   Array<Real> b(nb_nodes);
   TermsToAssemble terms("x", "x");
 
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     if (dof_manager.isLocalOrMasterDOF(i)) {
       auto li = local_equation_number(i);
       auto gi = dof_manager.localToGlobalEquationNumber(li);
@@ -104,7 +104,7 @@ int main(int argc, char * argv[]) {
   str << "Matrix_" << prank << ".mtx";
   A.saveMatrix(str.str());
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     b(n) = 1.;
   }
 

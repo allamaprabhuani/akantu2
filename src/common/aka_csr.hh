@@ -51,7 +51,7 @@ template <typename T> class CSR {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit CSR(UInt nb_rows = 0)
+  explicit CSR(Int nb_rows = 0)
       : nb_rows(nb_rows), rows_offsets(nb_rows + 1, 1, "rows_offsets"),
         rows(0, 1, "rows") {
     rows_offsets.zero();
@@ -67,38 +67,38 @@ public:
   inline void beginInsertions(){};
 
   /// insert a new entry val in row row
-  inline UInt insertInRow(UInt row, const T & val) {
-    UInt pos = rows_offsets(row)++;
+  inline Idx insertInRow(Idx row, const T & val) {
+    Idx pos = rows_offsets(row)++;
     rows(pos) = val;
     return pos;
   }
 
   /// access an element of the matrix
-  inline const T & operator()(UInt row, UInt col) const {
+  inline const T & operator()(Idx row, Idx col) const {
     AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col,
                         "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
   }
 
   /// access an element of the matrix
-  inline T & operator()(UInt row, UInt col) {
+  inline T & operator()(Idx row, Idx col) {
     AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col,
                         "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
   }
 
   inline void endInsertions() {
-    for (UInt i = nb_rows; i > 0; --i) {
+    for (Int i = nb_rows; i > 0; --i) {
       rows_offsets(i) = rows_offsets(i - 1);
     }
     rows_offsets(0) = 0;
   }
 
   inline void countToCSR() {
-    for (UInt i = 1; i < nb_rows; ++i) {
+    for (Int i = 1; i < nb_rows; ++i) {
       rows_offsets(i) += rows_offsets(i - 1);
     }
-    for (UInt i = nb_rows; i >= 1; --i) {
+    for (Int i = nb_rows; i >= 1; --i) {
       rows_offsets(i) = rows_offsets(i - 1);
     }
     rows_offsets(0) = 0;
@@ -109,7 +109,7 @@ public:
     rows.resize(0);
   };
 
-  inline void resizeRows(UInt nb_rows) {
+  inline void resizeRows(Int nb_rows) {
     this->nb_rows = nb_rows;
     rows_offsets.resize(nb_rows + 1);
     rows_offsets.zero();
@@ -117,7 +117,7 @@ public:
 
   inline void resizeCols() { rows.resize(rows_offsets(nb_rows)); }
 
-  inline void copy(Array<UInt> & offsets, Array<T> & values) {
+  inline void copy(Array<Idx> & offsets, Array<T> & values) {
     offsets.copy(rows_offsets);
     values.copy(rows);
   }
@@ -127,15 +127,15 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// returns the number of rows
-  inline UInt getNbRows() const { return rows_offsets.size() - 1; };
+  inline Int getNbRows() const { return rows_offsets.size() - 1; };
 
   /// returns the number of non-empty columns in a given row
-  inline UInt getNbCols(UInt row) const {
+  inline Int getNbCols(Idx row) const {
     return rows_offsets(row + 1) - rows_offsets(row);
   };
 
   /// returns the offset (start of columns) for a given row
-  inline UInt & rowOffset(UInt row) { return rows_offsets(row); };
+  inline Idx & rowOffset(Idx row) { return rows_offsets(row); };
 
   // /// iterator on a row
   // template <class array_iterator>
@@ -195,15 +195,13 @@ public:
     iterator_internal begin_, end_;
   };
 
-  inline iterator begin(UInt row) { return rows.begin() + rows_offsets(row); };
-  inline iterator end(UInt row) {
-    return rows.begin() + rows_offsets(row + 1);
-  };
+  inline iterator begin(Idx row) { return rows.begin() + rows_offsets(row); };
+  inline iterator end(Idx row) { return rows.begin() + rows_offsets(row + 1); };
 
-  inline const_iterator begin(UInt row) const {
+  inline const_iterator begin(Idx row) const {
     return rows.begin() + rows_offsets(row);
   };
-  inline const_iterator end(UInt row) const {
+  inline const_iterator end(Idx row) const {
     return rows.begin() + rows_offsets(row + 1);
   };
 
@@ -214,31 +212,31 @@ private:
   }
 
 public:
-  inline decltype(auto) getRow(UInt row) {
+  inline decltype(auto) getRow(Idx row) {
     return make_row(begin(row), end(row));
   }
-  inline decltype(auto) getRow(UInt row) const {
+  inline decltype(auto) getRow(Idx row) const {
     return make_row(begin(row), end(row));
   }
 
-  inline iterator rbegin(UInt row) {
+  inline iterator rbegin(Idx row) {
     return rows.begin() + rows_offsets(row + 1) - 1;
   };
-  inline iterator rend(UInt row) {
+  inline iterator rend(Idx row) {
     return rows.begin() + rows_offsets(row) - 1;
   };
 
-  inline const Array<UInt> & getRowsOffset() const { return rows_offsets; };
+  inline const Array<Idx> & getRowsOffset() const { return rows_offsets; };
   inline const Array<T> & getRows() const { return rows; };
   inline Array<T> & getRows() { return rows; };
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  UInt nb_rows;
+  Int nb_rows;
 
   /// array of size nb_rows containing the offset where the values are stored in
-  Array<UInt> rows_offsets;
+  Array<Idx> rows_offsets;
 
   /// compressed row values, values of row[i] are stored between rows_offsets[i]
   /// and rows_offsets[i+1]
@@ -250,17 +248,17 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /**
- * Inherits from  CSR<UInt> and  can contain information  such as  matrix values
+ * Inherits from  CSR<Idx> and  can contain information  such as  matrix values
  * where the mother class would be a CSR structure for row and cols
  *
  * @return nb_rows
  */
-template <class T> class DataCSR : public CSR<UInt> {
+template <class T> class DataCSR : public CSR<Idx> {
 public:
-  DataCSR(UInt nb_rows = 0) : CSR<UInt>(nb_rows), data(0, 1){};
+  DataCSR(Int nb_rows = 0) : CSR<Idx>(nb_rows), data(0, 1){};
 
   inline void resizeCols() {
-    CSR<UInt>::resizeCols();
+    CSR<Idx>::resizeCols();
     data.resize(rows_offsets(nb_rows));
   }
 

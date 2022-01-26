@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
   std::cout << "==" << ref << std::endl;
 
   Vector<Real> vect = p.getParameter("vect");
-  std::cout << vect << std::endl;
+  std::cout << vect.transpose() << std::endl;
 
   Matrix<Real> mat = p.getParameter("mat");
   std::cout << mat << std::endl;

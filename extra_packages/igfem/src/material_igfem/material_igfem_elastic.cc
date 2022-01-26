@@ -57,7 +57,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
   Vector<Real> lambda_per_sub_mat(this->nb_sub_materials);
   Vector<Real> mu_per_sub_mat(this->nb_sub_materials);
   Vector<Real> kpa_per_sub_mat(this->nb_sub_materials);
-  for (UInt i = 0; i < this->nb_sub_materials; ++i) {
+  for (Int i = 0; i < this->nb_sub_materials; ++i) {
     ID mat_name = this->sub_material_names[i];
     const MaterialElastic<spatial_dimension> & mat =
         dynamic_cast<MaterialElastic<spatial_dimension> &>(
@@ -95,7 +95,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
       Real * mu_ptr = this->mu(el_type, ghost_type).data();
       Real * kpa_ptr = this->kpa(el_type, ghost_type).data();
       UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).data();
-      for (UInt q = 0; q < nb_element * nb_quads;
+      for (Int q = 0; q < nb_element * nb_quads;
            ++q, ++lambda_ptr, ++mu_ptr, ++kpa_ptr, ++sub_mat_ptr) {
         UInt index = *sub_mat_ptr;
         *lambda_ptr = lambda_per_sub_mat(index);

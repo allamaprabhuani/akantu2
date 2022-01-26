@@ -64,7 +64,7 @@ class ContactMechanicsModel : public Model,
 
 public:
   ContactMechanicsModel(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "contact_mechanics_model",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
       ModelType model_type = ModelType::_contact_mechanics_model);
@@ -79,8 +79,8 @@ protected:
   void initFullImpl(const ModelOptions & options) override;
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType /*unused*/, NonLinearSolverType /*unused*/)
-  override;
+  void initSolver(TimeStepSolverType /*unused*/,
+                  NonLinearSolverType /*unused*/) override;
 
   /// initialize all internal arrays for resolutions
   void initResolutions();

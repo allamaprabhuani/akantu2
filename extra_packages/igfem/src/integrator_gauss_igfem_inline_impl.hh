@@ -144,7 +144,7 @@ IntegratorGauss<_ek_igfem, IOF>::computeQuadraturePoints(GhostType ghost_type) {
   UInt nb_quad_points_sub_2 =
       GaussIntegrationElement<sub_type_2>::getNbQuadraturePoints();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   Matrix<Real> & quads = quadrature_points(type, ghost_type);
   quads = Matrix<Real>(spatial_dimension,
@@ -227,7 +227,7 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;
   const ElementType sub_type_2 = ElementClassProperty<type>::sub_element_type_2;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   /// get the number of nodes for the subelements and the parent element
   UInt nb_nodes_sub_1 =
@@ -267,7 +267,7 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
       x_el.begin(spatial_dimension, nb_nodes_per_element);
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
-  for (UInt elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
+  for (Int elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
     const Matrix<Real> & X = *x_it;
 
     Matrix<Real> sub_1_coords(spatial_dimension, nb_nodes_sub_1);
@@ -286,11 +286,11 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
     J_sub_2 *= weights_sub_2;
 
     /// copy results into the jacobian vector for this element
-    for (UInt i = 0; i < nb_quadrature_points_sub_1; ++i) {
+    for (Int i = 0; i < nb_quadrature_points_sub_1; ++i) {
       J(i) = J_sub_1(i);
     }
 
-    for (UInt i = 0; i < nb_quadrature_points_sub_2; ++i) {
+    for (Int i = 0; i < nb_quadrature_points_sub_2; ++i) {
       J(i + nb_quadrature_points_sub_1) = J_sub_2(i);
     }
   }
@@ -339,7 +339,7 @@ inline void IntegratorGauss<_ek_igfem, IOF>::integrate(
   f_it = in_f.begin_reinterpret(nb_degree_of_freedom, nb_points, nb_element);
   inte_it = intf.begin_reinterpret(nb_degree_of_freedom, 1, nb_element);
 
-  for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
+  for (Int el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
     const Matrix<Real> & f = *f_it;
     const Matrix<Real> & J = *J_it;
     Matrix<Real> & inte_f = *inte_it;
@@ -382,7 +382,7 @@ inline Real IntegratorGauss<_ek_igfem, IOF>::integrate(
       intfv(nb_values - 2) += intfv(nb_values - 1);
 
     // sum to consecutive values and store the sum in the first half
-    for (UInt i = 0; i < nb_values_to_sum; ++i) {
+    for (Int i = 0; i < nb_values_to_sum; ++i) {
       intfv(i) = intfv(2 * i) + intfv(2 * i + 1);
     }
 
@@ -434,7 +434,7 @@ inline void IntegratorGauss<_ek_igfem, IOF>::integrateOnIntegrationPoints(
   f_it = in_f.begin(nb_degree_of_freedom);
   inte_it = intf.begin(nb_degree_of_freedom);
 
-  for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
+  for (Int el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
     const Real & J = *J_it;
     const Vector<Real> & f = *f_it;
     Vector<Real> & inte_f = *inte_it;

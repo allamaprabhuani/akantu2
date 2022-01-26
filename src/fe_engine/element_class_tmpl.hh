@@ -141,7 +141,7 @@ template <class D>
 inline bool GeometricalShapeContains<_gst_square>::contains(
     const Eigen::MatrixBase<D> & coords) {
   bool in = true;
-  for (UInt i = 0; i < coords.size() && in; ++i) {
+  for (Int i = 0; i < coords.size() && in; ++i) {
     in &= ((coords(i) >= -(1. + std::numeric_limits<Real>::epsilon())) &&
            (coords(i) <= (1. + std::numeric_limits<Real>::epsilon())));
   }
@@ -252,7 +252,7 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
 
   auto nb_points = Ns.cols();
   for (auto p = 0; p < nb_points; ++p) {
-    interpolated.col(p) = interpolate(nodal_values, Ns.col(p));
+    interpolated.col(p).noalias() = interpolate(nodal_values, Ns.col(p));
   }
 }
 
@@ -299,7 +299,7 @@ InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
       nsp, nnodes);
   auto & dfds = const_cast<Eigen::MatrixBase<D3> &>(dfds_);
   computeDNDS(natural_coords, dnds);
-  dfds = f * dnds.transpose();
+  dfds.noalias() = f * dnds.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -487,7 +487,7 @@ inline void ElementClass<type, kind>::inverseMap(
       natural_coords_); // as advised by the Eigen developers
 
   auto spatial_dimension = real_coords.size();
-  auto dimension = natural_coords.size();
+  constexpr auto dimension = getSpatialDimension();
 
   // matrix copy of the real_coords
   //  MatrixProxy<const Real> mreal_coords(real_coords.data(),
@@ -498,16 +498,22 @@ inline void ElementClass<type, kind>::inverseMap(
   natural_coords.zero();
 
   // real space coordinates provided by initial guess
-  Matrix<Real> physical_guess(spatial_dimension, 1);
+  Vector<Real> physical_guess(spatial_dimension);
 
   // objective function f = real_coords - physical_guess
-  Matrix<Real> f(spatial_dimension, 1);
+  Vector<Real> f(spatial_dimension);
 
-  // J Jacobian matrix computed on the natural_guess
-  Matrix<Real> J(dimension, spatial_dimension);
+  // G = J^t * J
+  Matrix<Real> G(dimension, dimension);
+
+  // F = G.inverse() * J^t
+  Matrix<Real> F(spatial_dimension, dimension);
 
   // J^t
   Matrix<Real> Jt(spatial_dimension, dimension);
+
+  // dxi = \xi_{k+1} - \xi in the iterative process
+  Vector<Real> dxi(dimension);
 
   /* --------------------------- */
   /* init before iteration loop  */
@@ -515,9 +521,8 @@ inline void ElementClass<type, kind>::inverseMap(
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
                    &real_coords, spatial_dimension]() {
-    auto && physical_guess_v =
-        interpolation_element::interpolateOnNaturalCoordinates(natural_coords,
-                                                               node_coords);
+    physical_guess = interpolation_element::interpolateOnNaturalCoordinates(
+        natural_coords, node_coords);
 
     // compute initial objective function value f = real_coords -
     // physical_guess
@@ -537,19 +542,17 @@ inline void ElementClass<type, kind>::inverseMap(
     // compute J^t
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,
                                                         node_coords, Jt);
-    J = Jt.transpose();
-
     // compute G
-    auto && G = J * J.transpose();
+    G = Jt.transpose() * Jt;
 
     // compute F
-    auto && F = J.transpose() * G.inverse();
+    F = Jt * G.inverse();
 
     // compute increment
-    auto && dxi = F.transpose() * f;
+    dxi = F.transpose() * f;
 
     // update our guess
-    natural_coords += dxi.col(0);
+    natural_coords += dxi;
 
     inverse_map_error = update_f();
     iterations++;

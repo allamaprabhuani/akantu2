@@ -60,7 +60,7 @@ class CouplerSolidContactTemplate : public Model,
   /* ------------------------------------------------------------------------ */
 public:
   CouplerSolidContactTemplate(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "coupler_solid_contact",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
       ModelType model_type = std::is_same<SolidMechanicsModelType,

@@ -76,7 +76,7 @@ void compare_storages_with_ref(const type & a, Real * ref, UInt size, UInt line,
                      " [Test at line: " + itoa(line) + "]");
 
   Real * a_ptr = a.data();
-  for (UInt i = 0; i < a.size(); ++i) {
+  for (Int i = 0; i < a.size(); ++i) {
     if (!((std::abs(a_ptr[i]) < tolerance && std::abs(ref[i]) < tolerance) ||
           std::abs((a_ptr[i] - ref[i]) / a_ptr[i]) < tolerance)) {
       std::stringstream txt;
@@ -179,31 +179,31 @@ void test_equal_and_accessors() {
   Vector<Real> vref1(v);
   Vector<Real> v1;
   v1 = vref1;                                          COMPARE_STORAGE(v1, vref1, "simple="  );
-  for (UInt i = 0; i < ref_size; ++i) v1 (i) = mod[i]; COMPARE        (v1,   mod, "s_acces"   );
+  for (Int i = 0; i < ref_size; ++i) v1 (i) = mod[i]; COMPARE        (v1,   mod, "s_acces"   );
   COMPARE_STORAGE(vref1, v, "refcheck1");
 
   Vector<Real> v2 = vref1;                             COMPARE_STORAGE(v2, vref1, "construc=");
-  for (UInt i = 0; i < ref_size; ++i) v2 (i) = mod[i]; COMPARE        (v2,   mod, "c_acces"   );
+  for (Int i = 0; i < ref_size; ++i) v2 (i) = mod[i]; COMPARE        (v2,   mod, "c_acces"   );
   COMPARE_STORAGE(vref1, v, "refcheck2");
 
   Vector<Real> vref2(vref1, false);
   Vector<Real> v1w;
   v1w = vref2;                                         COMPARE_STORAGE(v1w, vref1, "w_simple=" );
-  for (UInt i = 0; i < ref_size; ++i) v1w(i) = mod[i]; COMPARE        (v1w,   mod, "ws_acces"  );
+  for (Int i = 0; i < ref_size; ++i) v1w(i) = mod[i]; COMPARE        (v1w,   mod, "ws_acces"  );
   try { COMPARE(vref2, ref, "refcheck3"); } catch(wrap_error &) {}
 
   Vector<Real> v2w = vref2;                            COMPARE_STORAGE(v2w, vref1, "w_constru=");
-  for (UInt i = 0; i < ref_size; ++i) v2w(i) = mod[i]; COMPARE        (v2w,   mod, "wc_acces"  );
+  for (Int i = 0; i < ref_size; ++i) v2w(i) = mod[i]; COMPARE        (v2w,   mod, "wc_acces"  );
   try { COMPARE(vref2, ref, "refcheck4"); } catch(wrap_error &) {}
 
   VectorProxy<Real> vp1(vref1);
   Vector<Real> v3;
   v3 = vp1;                                             COMPARE_STORAGE(v3, vref1, "p_simple=" );
-  for (UInt i = 0; i < ref_size; ++i) v3(i) = mod[i];   COMPARE        (v3,   mod, "ps_acces"  );
+  for (Int i = 0; i < ref_size; ++i) v3(i) = mod[i];   COMPARE        (v3,   mod, "ps_acces"  );
   COMPARE_STORAGE(vref1, v, "refcheck5");
 
   Vector<Real> v4 = vp1;                                COMPARE_STORAGE(v4, vref1, "p_constru=");
-  for (UInt i = 0; i < ref_size; ++i) v4(i) = mod[i];
+  for (Int i = 0; i < ref_size; ++i) v4(i) = mod[i];
   try { COMPARE(v4,   mod, "pc_acces" ); } catch (wrap_error &) {}
 
   COMPARE(vref1, mod, "refcheck6");
@@ -214,11 +214,11 @@ void test_equal_and_accessors() {
   VectorProxy<Real> vp2(vref2);
   Vector<Real> v3w;
   v3w = vp2;                                           COMPARE_STORAGE(v3w, vref1, "pw_simpl=");
-  for (UInt i = 0; i < ref_size; ++i) v3w(i) = mod[i]; COMPARE        (v3w,   mod, "pws_acces");
+  for (Int i = 0; i < ref_size; ++i) v3w(i) = mod[i]; COMPARE        (v3w,   mod, "pws_acces");
   try { COMPARE(vref2, ref, "refcheck8"); } catch(wrap_error &) {}
 
   Vector<Real> v4w = vp2;           COMPARE_STORAGE( v4w,  vref1, "pw_constr=");
-  for (UInt i = 0; i < ref_size; ++i) v4w(i) = mod[i];
+  for (Int i = 0; i < ref_size; ++i) v4w(i) = mod[i];
   try { COMPARE(v4w, mod, "pwc_acces"); } catch (wrap_error &) {}
   COMPARE_STORAGE(v4w, vref2, "refcheck9");
   try { COMPARE(vref2, mod, "refcheck10"); } catch(wrap_error &) {}
@@ -245,8 +245,8 @@ void test_equal_and_accessors() {
   Matrix<Real> m1 (5, 2);
   Matrix<Real> m1t(2, 5);
 
-  for (UInt i = 0; i < 5; ++i) {
-    for (UInt j = 0; j < 2; ++j) {
+  for (Int i = 0; i < 5; ++i) {
+    for (Int j = 0; j < 2; ++j) {
       m1(i, j) = ref[i + j*5];
       m1t(j, i) = ref[j + i*2];
     }
@@ -259,14 +259,14 @@ void test_equal_and_accessors() {
 
   Matrix<Real> m2(m);
   Matrix<Real> m3(m);
-  for (UInt j = 0; j < 2; ++j) {
+  for (Int j = 0; j < 2; ++j) {
     Vector<Real> v = m2(j);
-    for (UInt i = 0; i < 5; ++i)
+    for (Int i = 0; i < 5; ++i)
       v(i) = mm(i, j);
   }
   COMPARE_STORAGE(m2, mm, "slicing");
 
-  for (UInt j = 0; j < 2; ++j)
+  for (Int j = 0; j < 2; ++j)
     m3(j) = mm(j);
 
   COMPARE_STORAGE(m3,  mm, "slic_slic");

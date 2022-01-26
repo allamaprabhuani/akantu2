@@ -71,7 +71,7 @@ void NTNBaseFriction::updateSlip() {
   AKANTU_DEBUG_IN();
 
   SolidMechanicsModel & model = this->contact.getModel();
-  UInt dim = model.getSpatialDimension();
+  Int dim = model.getSpatialDimension();
 
   // synchronize increment
   this->contact.getSynchronizerRegistry().synchronize(

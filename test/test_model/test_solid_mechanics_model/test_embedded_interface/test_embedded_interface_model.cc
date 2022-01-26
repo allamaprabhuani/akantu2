@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
   initialize("material.dat", argc, argv);
 
-  UInt dim = 2;
+  Int dim = 2;
   Math::setTolerance(1e-7);
 
   // Mesh here is a 1x1 patch
@@ -80,7 +80,7 @@ int main(int argc, char * argv[]) {
   forces(5, 0) = -500;
   forces(8, 0) = -250;
 
-  for (UInt i = 0; i < mesh.getNbNodes(); i++) {
+  for (Int i = 0; i < mesh.getNbNodes(); i++) {
     if (Math::are_float_equal(nodes(i, 0), 0.))
       bound(i, 0) = true;
     if (Math::are_float_equal(nodes(i, 1), 0.))

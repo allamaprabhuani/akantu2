@@ -104,12 +104,12 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
   nodes.resize(nb_nodes);
   mesh_accessor.setNbGlobalNodes(nb_nodes);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
   }
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }

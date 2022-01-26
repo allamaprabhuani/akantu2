@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_weight_computation.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   // mesh creation and read
   Mesh mesh(spatial_dimension);

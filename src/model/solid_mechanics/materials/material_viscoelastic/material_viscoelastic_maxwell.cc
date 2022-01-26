@@ -63,7 +63,6 @@ MaterialViscoelasticMaxwell<dim>::MaterialViscoelasticMaxwell(
   this->update_variable_flag = true;
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
-  this->use_previous_stress_thermal = true;
 
   this->dissipated_energy.initialize(1);
   this->mechanical_work.initialize(1);
@@ -294,7 +293,7 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
 
   epot = 0.5 * voigt_stress.dot(voigt_strain);
 
-  for (UInt k = 0; k < this->Eta.size(); ++k) {
+  for (Int k = 0; k < this->Eta.size(); ++k) {
     Matrix<Real> stress_v = sigma_v(k);
     Matrix<Real> strain_v = epsilon_v(k);
     epot += 0.5 * stress_v.doubleDot(strain_v);
@@ -391,7 +390,7 @@ void MaterialViscoelasticMaxwell<dim>::computeTangentModuli(
   Real dt = this->model.getTimeStep();
   Real E_ef = this->Einf;
 
-  for (UInt k = 0; k < Eta.size(); ++k) {
+  for (Int k = 0; k < Eta.size(); ++k) {
     Real lambda = this->Eta(k) / this->Ev(k);
     Real exp_dt_lambda = exp(-dt / lambda);
     if (exp_dt_lambda == 1) {

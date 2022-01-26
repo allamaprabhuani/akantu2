@@ -51,7 +51,7 @@ void applyRotation(const Vector<Real> & center, Real angle,
 
   for (; node_num_it != node_num_end; ++node_num_it) {
     const Vector<Real> pos = nodes_it[*node_num_it];
-    for (UInt i = 0; i < pos.size(); ++i)
+    for (Int i = 0; i < pos.size(); ++i)
       pos_rel(i) = pos(i);
 
     Vector<Real> dis = disp_it[*node_num_it];
@@ -78,7 +78,7 @@ void fillColour(const Mesh & mesh, ElementTypeMapArray<UInt> & colour) {
   const Array<std::string> & txt_colour = phys_data(_triangle_3);
   Array<UInt> & id_colour = colour(_triangle_3);
 
-  for (UInt i = 0; i < txt_colour.size(); ++i) {
+  for (Int i = 0; i < txt_colour.size(); ++i) {
     std::string phy_name = txt_colour(i);
 
     if (phy_name == "red")

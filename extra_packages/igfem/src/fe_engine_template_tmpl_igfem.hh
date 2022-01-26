@@ -67,7 +67,7 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
         GhostType ghost_type, const Array<Int> & filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   /// create an array with the nodal coordinates that need to be
   /// interpolated. The nodal coordinates of the enriched nodes need
   /// to be set to zero, because they represent the enrichment of the
@@ -91,7 +91,7 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
         const ElementTypeMapArray<Idx> * filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   /// create an array with the nodal coordinates that need to be
   /// interpolated. The nodal coordinates of the enriched nodes need
   /// to be set to zero, because they represent the enrichment of the

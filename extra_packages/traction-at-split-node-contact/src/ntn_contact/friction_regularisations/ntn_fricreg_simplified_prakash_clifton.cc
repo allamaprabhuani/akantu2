@@ -63,7 +63,7 @@ void NTNFricRegSimplifiedPrakashClifton::computeFrictionalStrength() {
   Real delta_t = model.getTimeStep();
 
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     Real alpha = delta_t / this->t_star(n);
     this->frictional_strength(n) += alpha * this->spc_internal(n);
     this->frictional_strength(n) /= 1 + alpha;
@@ -81,7 +81,7 @@ void NTNFricRegSimplifiedPrakashClifton::setToSteadyState() {
 
   /// set strength without regularisation
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     this->frictional_strength(n) = this->spc_internal(n);
   }
 

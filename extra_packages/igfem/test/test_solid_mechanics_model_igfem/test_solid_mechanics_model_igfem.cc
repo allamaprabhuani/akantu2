@@ -32,7 +32,7 @@ void outputArray(const Mesh & mesh, const Array<Real> & array) {
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_global_nodes = mesh.getNbGlobalNodes();
   Array<Real> solution(nb_global_nodes, spatial_dimension, 0.);
 
@@ -180,7 +180,7 @@ public:
       return this->fallback_value_igfem;
     //  return 2;//2model.getMaterialIndex(2);
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     std::vector<Sphere>::const_iterator iit = spheres.begin();
@@ -219,7 +219,7 @@ int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   /// problem dimension
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -298,7 +298,7 @@ int main(int argc, char * argv[]) {
   Vector<Real> lambda(2);
   Vector<Real> mu(2);
 
-  for (UInt m = 0; m < 2; ++m) {
+  for (Int m = 0; m < 2; ++m) {
     MaterialElastic<spatial_dimension> & mat =
         dynamic_cast<MaterialElastic<spatial_dimension> &>(
             model.getMaterial(m));

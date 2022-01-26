@@ -98,7 +98,7 @@ public:
   Material(SolidMechanicsModel & model, const ID & id = "");
 
   /// Initialize material with custom mesh & fe_engine
-  Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+  Material(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
            FEEngine & fe_engine, const ID & id = "");
 
   /// Destructor
@@ -765,7 +765,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   template class mat_name<3>  /* NOLINT */
 
 #define MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name)                       \
-  [](UInt dim, const ID &, SolidMechanicsModel & model,                        \
+  [](Int dim, const ID &, SolidMechanicsModel & model,                         \
      const ID & id) /* NOLINT */                                               \
       -> std::unique_ptr<                                                      \
           Material> { /* NOLINT */                                             \

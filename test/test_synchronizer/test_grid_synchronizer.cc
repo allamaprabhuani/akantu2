@@ -33,15 +33,15 @@
 #include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
 #include "grid_synchronizer.hh"
+#include "io_helper.hh"
 #include "mesh.hh"
 #include "mesh_partition.hh"
 #include "synchronizer_registry.hh"
 #include "test_data_accessor.hh"
-#include "io_helper.hh"
 
 using namespace akantu;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 typedef std::map<std::pair<Element, Element>, Real> pair_list;
 
@@ -162,7 +162,7 @@ int main(int argc, char * argv[]) {
   Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
 
   Vector<Real> spacing(spatial_dimension);
-  for (UInt i = 0; i < spatial_dimension; ++i) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
     spacing[i] = radius * 1.2;
   }
 
@@ -188,7 +188,7 @@ int main(int argc, char * argv[]) {
 
     Array<Real>::iterator<Vector<Real>> bary_it =
         barycenter.begin(spatial_dimension);
-    for (UInt elem = 0; elem < nb_element; ++elem) {
+    for (Int elem = 0; elem < nb_element; ++elem) {
       mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
       e.element = elem;
       grid.insert(e, *bary_it);
@@ -230,7 +230,7 @@ int main(int argc, char * argv[]) {
 
     Array<Real>::iterator<Vector<Real>> bary_it =
         barycenter.begin(spatial_dimension);
-    for (UInt elem = 0; elem < nb_element; ++elem) {
+    for (Int elem = 0; elem < nb_element; ++elem) {
       mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
       e.element = elem;
       grid.insert(e, *bary_it);

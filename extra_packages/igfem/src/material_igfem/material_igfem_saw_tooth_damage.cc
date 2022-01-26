@@ -246,7 +246,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
   return nb_damaged_elements;
 }
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
+// template<Int spatial_dimension>
 // void
 // MaterialIGFEMSawToothDamage<spatial_dimension>::updateEnergiesAfterDamage(ElementType
 // el_type, GhostType ghost_type) {
@@ -346,7 +346,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
+// template<Int spatial_dimension>
 // void
 // MaterialIGFEMSawToothDamage<spatial_dimension>::transferInternals(Material &
 // old_mat,
@@ -360,7 +360,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 
 // /// get the fe-engine of the old material
 // FEEngine & fem_old_mat = old_mat.getFEEngine();
-// for (UInt e = 0; e < element_pairs.size(); ++e) {
+// for (Int e = 0; e < element_pairs.size(); ++e) {
 //   new_el_global = element_pairs[e].first;
 //   old_el_global = element_pairs[e].second;
 //   /// get the number of the elements in their materials
@@ -392,7 +392,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 //     Array<Real> & new_damage = this->damage(new_el_global.type,
 //     new_el_global.ghost_type);
 
-//     for (UInt q = 0; q < nb_old_quads; ++q) {
+//     for (Int q = 0; q < nb_old_quads; ++q) {
 // 	quad = old_el_local.element * nb_old_quads + q;
 // 	el_old_damage(q) = old_damage(quad);
 // 	el_old_Sc(q) = old_Sc(quad);
@@ -403,7 +403,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 //     this->interpolateInternal(new_el_global, old_el_global, el_new_Sc,
 //     el_old_Sc, nb_new_quads, nb_old_quads);
 
-//     for (UInt q = 0; q < nb_new_quads; ++q) {
+//     for (Int q = 0; q < nb_new_quads; ++q) {
 // 	quad = new_el_local.element * nb_new_quads + q;
 // 	if (this->sub_material(new_el_global.type,new_el_global.ghost_type)(quad)) {
 // 	  new_damage(quad) = el_new_damage(q);
@@ -438,7 +438,7 @@ INSTANTIATE_MATERIAL(MaterialIGFEMSawToothDamage);
     // std::map<UInt, std::vector<ElementPair> > elements_by_old_mat;
 
     /// store the old elements sorted by their material
-    for (UInt e = 0; e < nb_new_elements; ++e) {
+    for (Int e = 0; e < nb_new_elements; ++e) {
       const Element new_el = element_list(e);
       const Array<Idx> & mat_idx =
    this->model->getMaterialByElement(new_el.type, new_el.ghost_type);

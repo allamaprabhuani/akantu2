@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
   const UInt max_steps = 2000;
   const Real strain_rate = 5;
 
-  UInt spatial_dimension = 1;
+  Int spatial_dimension = 1;
   Mesh mesh(spatial_dimension, "mesh");
   mesh.read("bar.msh");
 
@@ -62,7 +62,7 @@ int main(int argc, char * argv[]) {
   auto & velocity = model.getVelocity();
   auto nb_nodes = mesh.getNbNodes();
 
-  for (UInt n = 0; n < nb_nodes; ++n)
+  for (Int n = 0; n < nb_nodes; ++n)
     velocity(n) = strain_rate * (position(n) - (posx_max + posx_min) / 2.);
 
   /// boundary conditions
@@ -72,7 +72,7 @@ int main(int argc, char * argv[]) {
 
   model.assembleInternalForces();
 
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.checkCohesiveStress();
     model.solveStep();
 

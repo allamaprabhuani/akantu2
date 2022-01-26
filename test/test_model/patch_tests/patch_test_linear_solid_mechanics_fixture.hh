@@ -124,8 +124,8 @@ public:
           if (this->dim == 1) {
             stress(0, 0) = E * strain(0, 0);
           } else {
-            for (UInt i = 0; i < this->dim; ++i)
-              for (UInt j = 0; j < this->dim; ++j)
+            for (Int i = 0; i < this->dim; ++i)
+              for (Int j = 0; j < this->dim; ++j)
                 stress(i, j) =
                     (i == j) * lambda * trace + 2 * mu * strain(i, j);
           }

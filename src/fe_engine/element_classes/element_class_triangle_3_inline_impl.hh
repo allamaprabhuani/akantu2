@@ -119,7 +119,7 @@ inline Real GeometricalElement<_gt_triangle_3>::getInradius(
   auto && coord2 = coord.col(1);
   auto && coord3 = coord.col(2);
 
-  return Math::triangle_inradius(coord1, coord2, coord3);
+  return 2. * Math::triangle_inradius(coord1, coord2, coord3);
 }
 
 /* -------------------------------------------------------------------------- */

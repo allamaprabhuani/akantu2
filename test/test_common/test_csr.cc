@@ -43,10 +43,10 @@ protected:
     csr.resizeRows(N);
     csr.clearRows();
 
-    for (UInt i = 0; i < N; ++i) {
+    for (Int i = 0; i < N; ++i) {
       UInt nb_cols(UInt(rand() * double(N) / (RAND_MAX + 1.)));
       nb_cols_per_row.push_back(nb_cols);
-      for (UInt j = 0; j < nb_cols; ++j) {
+      for (Int j = 0; j < nb_cols; ++j) {
         ++csr.rowOffset(i);
       }
     }
@@ -55,9 +55,9 @@ protected:
     csr.resizeCols();
 
     csr.beginInsertions();
-    for (UInt i = 0; i < N; ++i) {
+    for (Int i = 0; i < N; ++i) {
       UInt nb_cols = nb_cols_per_row[i];
-      for (UInt j = 0; j < nb_cols; ++j) {
+      for (Int j = 0; j < nb_cols; ++j) {
         csr.insertInRow(i, nb_cols - j);
       }
     }
@@ -72,7 +72,7 @@ protected:
 TEST_F(TestCsrFixture, CheckInsertion) { EXPECT_EQ(N, this->csr.getNbRows()); }
 
 TEST_F(TestCsrFixture, Iteration) {
-  for (UInt i = 0; i < this->csr.getNbRows(); ++i) {
+  for (Int i = 0; i < this->csr.getNbRows(); ++i) {
     auto it = this->csr.begin(i);
     auto end = this->csr.end(i);
     UInt nb_cols = this->nb_cols_per_row[i];
@@ -86,7 +86,7 @@ TEST_F(TestCsrFixture, Iteration) {
 }
 
 TEST_F(TestCsrFixture, ReverseIteration) {
-  for (UInt i = 0; i < csr.getNbRows(); ++i) {
+  for (Int i = 0; i < csr.getNbRows(); ++i) {
     auto it = csr.rbegin(i);
     auto end = csr.rend(i);
 

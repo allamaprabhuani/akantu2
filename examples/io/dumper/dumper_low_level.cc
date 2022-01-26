@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
 
   // To start let us load the swiss train mesh and its mesh data information.
   // We aknowledge here a weel-known swiss industry for mesh donation.
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("swiss_train.msh");
 
@@ -172,12 +172,12 @@ int main(int argc, char * argv[]) {
   Vector<Real> l_center(3);
   Vector<Real> r_center(3);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
     l_center(i) = nodes(14, i);
     r_center(i) = nodes(2, i);
   }
 
-  for (UInt i = 0; i < nb_steps; ++i) {
+  for (Int i = 0; i < nb_steps; ++i) {
     displacement.zero();
 
     Real angle = (Real)i / (Real)nb_steps * theta;
@@ -186,7 +186,7 @@ int main(int argc, char * argv[]) {
     applyRotation(r_center, angle, nodes, displacement, rnode_1);
     applyRotation(r_center, angle, nodes, displacement, rnode_2);
 
-    for (UInt j = 0; j < nb_nodes; ++j) {
+    for (Int j = 0; j < nb_nodes; ++j) {
       displacement(j, 0) += (Real)i / (Real)nb_steps * tot_displacement;
     }
     // Output results after each moving steps for main and wheel dumpers.

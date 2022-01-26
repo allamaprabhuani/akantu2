@@ -57,7 +57,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -70,7 +70,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction_2.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -230,7 +230,7 @@ int main(int argc, char * argv[]) {
 bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
 
   bool test_result = true;
-  const UInt spatial_dimension = model.getSpatialDimension();
+  const Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh = model.getMesh();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -243,7 +243,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     Array<Real> barycenters(element_filter.getSize(), spatial_dimension);
     Array<Real>::vector_iterator bary_it = barycenters.begin(spatial_dimension);
-    for (UInt e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
+    for (Int e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
       UInt global_el_idx = element_filter(e);
       mesh.getBarycenter(global_el_idx, element_type, bary_it->storage(),
                          _not_ghost);
@@ -261,7 +261,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     file_output.open(file_name.str());
     file_output << std::setprecision(14);
 
-    for (UInt e = 0; e < barycenters.getSize(); ++e)
+    for (Int e = 0; e < barycenters.getSize(); ++e)
       file_output << barycenters(e, 0) << " " << barycenters(e, 1) << " "
                   << damage(e) << " " << Sc(e) << std::endl;
 
@@ -273,10 +273,10 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     Array<Real> barycenters_igfem(nb_sub_elements * nb_igfem_elements,
                                   spatial_dimension);
     bary_it = barycenters_igfem.begin(spatial_dimension);
-    for (UInt e = 0; e < nb_igfem_elements; ++e) {
+    for (Int e = 0; e < nb_igfem_elements; ++e) {
       /// note global index is local index because there is only one igfem
       /// material
-      for (UInt s = 0; s < nb_sub_elements; ++s, ++bary_it)
+      for (Int s = 0; s < nb_sub_elements; ++s, ++bary_it)
         model.getSubElementBarycenter(e, s, element_type_igfem, *bary_it,
                                       _not_ghost);
     }
@@ -288,8 +288,8 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
         element_type_igfem, _not_ghost);
     Array<Real>::const_scalar_iterator Sc_it = Sc_igfem.begin();
 
-    for (UInt e = 0; e < nb_igfem_elements; ++e) {
-      for (UInt s = 0; s < nb_sub_elements; ++s)
+    for (Int e = 0; e < nb_igfem_elements; ++e) {
+      for (Int s = 0; s < nb_sub_elements; ++s)
         if (IGFEMHelper::getSubElementType(element_type_igfem, s) ==
             _triangle_3) {
           file_output << barycenters_igfem(e * nb_sub_elements + s, 0) << " "
@@ -350,10 +350,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     const Array<Real> & Sc_regular_el =
         model.getMaterial(0).getInternal<Real>("Sc")(element_type, _not_ghost);
 
-    for (UInt e = 0; e < element_filter.getSize(); ++e) {
+    for (Int e = 0; e < element_filter.getSize(); ++e) {
       UInt global_el_idx = element_filter(e);
-      mesh.getBarycenter(global_el_idx, element_type, bary.data(),
-                         _not_ghost);
+      mesh.getBarycenter(global_el_idx, element_type, bary.data(), _not_ghost);
       /// find element
       for (bary_it = bary_begin; bary_it != bary_end; ++bary_it) {
         UInt matched_dim = 0;
@@ -392,9 +391,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     Array<Real>::const_scalar_iterator Sc_igfem_it =
         Sc_regular_el_igfem.begin();
 
-    for (UInt e = 0; e < element_filter_igfem.getSize(); ++e) {
+    for (Int e = 0; e < element_filter_igfem.getSize(); ++e) {
       UInt global_el_idx = element_filter_igfem(e);
-      for (UInt s = 0; s < nb_sub_elements; ++s) {
+      for (Int s = 0; s < nb_sub_elements; ++s) {
         model.getSubElementBarycenter(global_el_idx, s, element_type, bary,
                                       _not_ghost);
         /// find element

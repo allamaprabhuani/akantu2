@@ -100,7 +100,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
             intersection_points_current_type.begin(dim);
 
         NewIGFEMNodesEvent new_nodes_event;
-        for (UInt in = 0; in < intersection_points_current_type.getSize();
+        for (Int in = 0; in < intersection_points_current_type.getSize();
              ++in, ++intersec_p_it) {
           nodes.push_back(*intersec_p_it);
           new_nodes_event.getList().push_back(nb_node + in);
@@ -134,21 +134,21 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
   Array<Idx> & nodes_removed = remove_nodes.getList();
   Array<Idx> & new_numbering = remove_nodes.getNewNumbering();
 
-  for (UInt nnod = 0; nnod < this->nb_nodes_fem; ++nnod) {
+  for (Int nnod = 0; nnod < this->nb_nodes_fem; ++nnod) {
     new_numbering(nnod) = nnod;
   }
 
-  for (UInt nnod = nb_nodes_fem; nnod < old_total_nodes; ++nnod) {
+  for (Int nnod = nb_nodes_fem; nnod < old_total_nodes; ++nnod) {
     new_numbering(nnod) = UInt(-1);
     nodes_removed.push_back(nnod);
   }
 
-  for (UInt nnod = 0; nnod < nb_new_enriched_nodes; ++nnod) {
+  for (Int nnod = 0; nnod < nb_new_enriched_nodes; ++nnod) {
     new_numbering(nnod + old_total_nodes) = this->nb_nodes_fem + nnod;
   }
 
   if (nb_new_enriched_nodes > 0) {
-    for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
+    for (Int gt = _not_ghost; gt <= _ghost; ++gt) {
       GhostType ghost_type = (GhostType)gt;
 
       Mesh::type_iterator it =
@@ -167,7 +167,7 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
             connectivity_array.end(nb_nodes_per_element);
 
         for (; conn_it != conn_end; ++conn_it) {
-          for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+          for (Int n = 0; n < nb_nodes_per_element; ++n) {
             (*conn_it)(n) = new_numbering((*conn_it)(n));
           }
         }
@@ -231,7 +231,7 @@ template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
       /// container for element to be removed
       Element old_element(type, 0, ghost_type, Mesh::getKind(type));
 
-      for (UInt nel = 0; nel != new_node_per_elem.getSize(); ++nel) {
+      for (Int nel = 0; nel != new_node_per_elem.getSize(); ++nel) {
         /// a former IGFEM triangle is transformed into a regular triangle
         if ((type != _triangle_3) && (new_node_per_elem(nel, 0) == 0)) {
 
@@ -370,7 +370,7 @@ template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
       UInt el_index = 0;
       UInt nb_element = this->mesh.getNbElement(type, ghost_type);
       new_numbering.resize(nb_element);
-      for (UInt e = 0; e < nb_element; ++e) {
+      for (Int e = 0; e < nb_element; ++e) {
         if (new_numbering(e) != UInt(-1)) {
           new_numbering(e) = el_index;
           ++el_index;
@@ -408,7 +408,7 @@ void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
   MeshUtils::buildSegmentToNodeType(mesh, mesh_facets, synchronizer);
 
   // only the ghost elements are considered
-  for (UInt g = _not_ghost; g <= _ghost; ++g) {
+  for (Int g = _not_ghost; g <= _ghost; ++g) {
     GhostType ghost_type = (GhostType)g;
 
     Mesh::type_iterator it = mesh_facets.firstType(1, ghost_type);
@@ -475,10 +475,10 @@ void MeshIgfemSphericalGrowingGel<dim>::updateNodeType(
   unordered_map<std::pair<UInt, UInt>, Int>::type::iterator seg_type_end =
       segment_conn_to_node_type.end();
 
-  for (UInt el = 0; el < new_node_per_elem.getSize(); ++el) {
+  for (Int el = 0; el < new_node_per_elem.getSize(); ++el) {
     UInt nb_nodes = new_node_per_elem(el, 0);
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       UInt node_index = new_node_per_elem(el, 2 * n + 1);
       if (node_index < old_nodes || checked_node(node_index - old_nodes))
         continue;

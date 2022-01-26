@@ -180,7 +180,7 @@ inline Real GeometricalElement<_gt_triangle_6>::getInradius(
   UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 
   Real inradius = std::numeric_limits<Real>::max();
-  for (UInt t = 0; t < 4; t++) {
+  for (Int t = 0; t < 4; t++) {
     auto ir = Math::triangle_inradius(
         coord(triangles[t][0]), coord(triangles[t][1]), coord(triangles[t][2]));
     inradius = std::min(ir, inradius);

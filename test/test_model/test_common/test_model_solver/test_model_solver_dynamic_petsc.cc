@@ -529,7 +529,7 @@ public:
   //   auto ef_it = forces.begin();
   //   auto b_it = blocked.begin();
 
-  //   for (UInt node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
+  //   for (Int node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
   //     if (mesh.isLocalOrMasterNode(node))
   //       res += (*b_it ? -*if_it : *ef_it) * *it;
   //   }
@@ -769,7 +769,7 @@ int main(int argc, char * argv[]) {
 
   mesh.dump();
   max_steps = 1;
-  for (UInt i = 1; i < max_steps + 1; ++i) {
+  for (Int i = 1; i < max_steps + 1; ++i) {
     // model.applyBC(Sinusoidal(model, A, pulse_width, time_step * (i - 1)),
     //             "border");
 
@@ -812,7 +812,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
 
   // auto & all = mesh.createNodeGroup("all_nodes");
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
     // all.add(n);
   }
@@ -820,7 +820,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
   // mesh.createElementGroupFromNodeGroup("all", "all_nodes");
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }

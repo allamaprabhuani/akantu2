@@ -53,7 +53,7 @@ namespace akantu {
  * This class constructs a CGAL AABB tree of one type of element in a mesh
  * for fast intersection computations.
  */
-template <UInt dim, ElementType el_type, class Primitive, class Kernel>
+template <Int dim, ElementType el_type, class Primitive, class Kernel>
 class MeshGeomFactory : public MeshGeomAbstract {
 public:
   /// Construct from mesh

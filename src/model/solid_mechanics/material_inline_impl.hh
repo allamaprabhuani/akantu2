@@ -201,9 +201,9 @@ Material::setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
 
   /// see Finite ekement formulations for large deformation dynamic analysis,
   /// Bathe et al. IJNME vol 9, 1975, page 364 ^t \f$\tau\f$
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt m = 0; m < dim; ++m) {
-      for (UInt n = 0; n < dim; ++n) {
+  for (Int i = 0; i < dim; ++i) {
+    for (Int m = 0; m < dim; ++m) {
+      for (Int n = 0; n < dim; ++n) {
         sigma(i * dim + m, i * dim + n) = S_t(m, n);
       }
     }

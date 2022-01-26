@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
   // To start let us load the swiss train mesh and its mesh data information.
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("swiss_train.msh");
 
@@ -162,12 +162,12 @@ int main(int argc, char * argv[]) {
   Vector<Real> l_center(spatial_dimension);
   Vector<Real> r_center(spatial_dimension);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
     l_center(i) = node(14, i);
     r_center(i) = node(2, i);
   }
 
-  for (UInt i = 0; i < nb_steps; ++i) {
+  for (Int i = 0; i < nb_steps; ++i) {
     displacement.zero();
 
     Real step_ratio = Real(i) / Real(nb_steps);
@@ -178,7 +178,7 @@ int main(int argc, char * argv[]) {
     applyRotation(r_center, angle, node, displacement, rnode_1);
     applyRotation(r_center, angle, node, displacement, rnode_2);
 
-    for (UInt j = 0; j < nb_nodes; ++j) {
+    for (Int j = 0; j < nb_nodes; ++j) {
       displacement(j, _x) += step_ratio * tot_displacement;
     }
     /// Dump call is finally made through Dumpable interface.

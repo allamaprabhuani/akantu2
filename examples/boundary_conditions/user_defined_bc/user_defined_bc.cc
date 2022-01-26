@@ -62,7 +62,7 @@ protected:
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("fine_mesh.msh");

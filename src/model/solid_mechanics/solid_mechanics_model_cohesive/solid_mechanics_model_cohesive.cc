@@ -120,7 +120,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager)
     : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
@@ -655,7 +655,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
     bool padding_flag) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = Model::spatial_dimension;
+  Int spatial_dimension = Model::spatial_dimension;
   ElementKind _element_kind = element_kind;
   if (dumper_name == "cohesive elements") {
     _element_kind = _ek_cohesive;

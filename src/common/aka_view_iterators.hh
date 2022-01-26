@@ -183,7 +183,7 @@ namespace detail {
 
     // Static matrix again hard to distinguish from vectors
     template <typename RD = std::decay_t<R>,
-              std::enable_if_t<(RD::RowsAtCompileTime > 1) and
+              std::enable_if_t<(RD::RowsAtCompileTime != 1) and
                                RD::ColsAtCompileTime == 1> * = nullptr>
     constexpr internal_view_iterator(scalar_pointer data, Idx rows, Idx cols)
         : dims({rows}), _offset(rows), initial(data), ret_ptr(data),

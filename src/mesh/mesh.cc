@@ -405,7 +405,7 @@ void Mesh::getGlobalConnectivity(
 
       std::transform(local_conn_view.begin(), local_conn_view.end(),
                      global_conn_view.begin(),
-                     [&](UInt l) -> UInt { return this->getNodeGlobalId(l); });
+                     [&](Idx l) -> Idx { return this->getNodeGlobalId(l); });
     }
   }
 
@@ -442,7 +442,7 @@ template ElementTypeMap<Int>
 Mesh::getNbDataPerElem(ElementTypeMapArray<Real> & array);
 
 template ElementTypeMap<Int>
-Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
+Mesh::getNbDataPerElem(ElementTypeMapArray<Int> & array);
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
@@ -533,7 +533,7 @@ void Mesh::getAssociatedElements(const Array<Idx> & node_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getAssociatedElements(const UInt & node,
+void Mesh::getAssociatedElements(const Idx & node,
                                  Array<Element> & elements) const {
   for (const auto & element : *nodes_to_elements[node]) {
     elements.push_back(element);
@@ -541,7 +541,7 @@ void Mesh::getAssociatedElements(const UInt & node,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::fillNodesToElements(UInt dimension) {
+void Mesh::fillNodesToElements(Int dimension) {
   Element e;
 
   auto nb_nodes = nodes->size();
@@ -565,7 +565,7 @@ void Mesh::fillNodesToElements(UInt dimension) {
       auto connectivity = connectivities(type, ghost_type);
       auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
-      for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
+      for (Int el = 0; el < nb_element; ++el, ++conn_it) {
         e.element = el;
         const auto & conn = *conn_it;
         for (auto node : conn) {

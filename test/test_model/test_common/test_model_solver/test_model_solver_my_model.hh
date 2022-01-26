@@ -337,7 +337,7 @@ public:
       auto end = velocity.end();
       auto m_it = m.begin();
 
-      for (UInt node = 0; it != end; ++it, ++m_it, ++node) {
+      for (Int node = 0; it != end; ++it, ++m_it, ++node) {
         if (mesh.isLocalOrMasterNode(node))
           res += *m_it * *it * *it;
       }
@@ -357,7 +357,7 @@ public:
     auto ef_it = forces.begin();
     auto b_it = blocked.begin();
 
-    for (UInt node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
+    for (Int node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
       if (mesh.isLocalOrMasterNode(node))
         res += (*b_it ? -*if_it : *ef_it) * *it;
     }

@@ -100,11 +100,27 @@ protected:
       const Array<Idx> & filter_elements = empty_filter) const;
 
   /// gradient of nodal values stored by element on the control points
-  template <ElementType type>
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() !=
+                             0> * = nullptr>
   void gradientElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
       const Array<Real> & shapes_derivatives,
       const Array<Idx> & filter_elements) const;
+
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() ==
+                             0> * = nullptr>
+  void gradientElementalFieldOnIntegrationPoints(
+      const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
+      const Array<Real> & shapes_derivatives,
+      const Array<Idx> & filter_elements) const {
+    auto nb_points = integration_points(type, ghost_type).cols();
+    auto nb_element = mesh.getNbElement(type, ghost_type);
+
+    out_nablauq.resize(nb_element * nb_points);
+    out_nablauq.zero();
+  }
 
 protected:
   /// By element versions of non-templated eponym methods

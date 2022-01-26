@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
 
   akantu::initialize("mesoscale_materials.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("one_inclusion.msh");
   SolidMechanicsModelRVE model(mesh, false);
@@ -62,7 +62,7 @@ int main(int argc, char * argv[]) {
 
   /// apply eigenstrain
   Matrix<Real> prestrain(spatial_dimension, spatial_dimension, 0.);
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     prestrain(i, i) = 0.02;
   model.advanceASR(prestrain);
 
@@ -74,7 +74,7 @@ int main(int argc, char * argv[]) {
   std::cout << "the average eigen_gradu is " << macro_strain << std::endl;
 
   Matrix<Real> exact_eigenstrain(spatial_dimension, spatial_dimension, 0.);
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     exact_eigenstrain(i, i) = 0.00125;
 
   macro_strain -= exact_eigenstrain;

@@ -387,8 +387,8 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
 
   // sigma_expected is computed directly in the *material* frame of reference
   Matrix<Real> sigma_expected(Dim, Dim);
-  for (UInt i = 0; i < Dim; ++i) {
-    for (UInt j = 0; j < Dim; ++j) {
+  for (Int i = 0; i < Dim; ++i) {
+    for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
     }
   }
@@ -560,8 +560,8 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
 
   // sigma_expected is computed directly in the *material* frame of reference
   Matrix<Real> sigma_expected(Dim, Dim);
-  for (UInt i = 0; i < Dim; ++i) {
-    for (UInt j = 0; j < Dim; ++j) {
+  for (Int i = 0; i < Dim; ++i) {
+    for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
     }
   }

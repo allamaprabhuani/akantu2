@@ -99,6 +99,6 @@ TYPED_TEST(TestLumpedMassesFixture, TestLumpedMass) {
     sum += mass;
   }
 
-  for (UInt s = 0; s < sum.size(); ++s)
+  for (Int s = 0; s < sum.size(); ++s)
     EXPECT_NEAR(0., (mass - sum[s]) / mass, 2e-15);
 }

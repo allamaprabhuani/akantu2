@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   // mesh creation and read
   Mesh mesh(spatial_dimension);
@@ -90,13 +90,13 @@ int main(int argc, char * argv[]) {
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
   applied_strain.zero();
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     applied_strain(i, i) = 2.;
 
   ElementType element_type = _triangle_3;
   GhostType ghost_type = _not_ghost;
   /// apply constant grad_u field in all elements
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+  for (Int m = 0; m < model.getNbMaterials(); ++m) {
     auto & mat = model.getMaterial(m);
     auto & grad_u = const_cast<Array<Real> &>(
         mat.getInternal<Real>("grad_u")(element_type, ghost_type));

@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
   Real T = 10.;
   Real eps = 0.001;
 
-  const UInt dim = 2;
+  const Int dim = 2;
   Real sim_time = 25.;
   Real time_factor = 0.1;
 
@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     if (s % 1000 == 0)
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
@@ -123,7 +123,7 @@ int main(int argc, char * argv[]) {
     } else {
       epsilon = eps;
     }
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       displacement(n, 0) = epsilon * coordinate(n, 1);
       displacement(n, 1) = epsilon * coordinate(n, 0);
     }

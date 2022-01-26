@@ -130,8 +130,8 @@ template <ElementType type> struct BuildElementalFieldInterpolationMatrix {
   template <typename ShapeFunction, typename D1, typename D2>
   static inline void
   call(ShapeFunction && func, const Eigen::MatrixBase<D1> & coordinates,
-       Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) {
-    func.buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+       Eigen::MatrixBase<D2> & coord_matrix, Int integration_order) {
+    func.buildInterpolationMatrix(coordinates, coord_matrix, integration_order);
   }
 };
 
@@ -145,7 +145,7 @@ template <> struct BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
   template <typename ShapeFunction, typename D1, typename D2>
   static inline void
   call(ShapeFunction && /*func*/, const Eigen::MatrixBase<D1> & coordinates,
-       Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) {
+       Eigen::MatrixBase<D2> & coord_matrix, Int integration_order) {
 
     if (integration_order !=
         ElementClassProperty<_quadrangle_4>::polynomial_degree) {
@@ -155,10 +155,10 @@ template <> struct BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
         auto x = coordinates(0, i);
         auto y = coordinates(1, i);
 
-        coordMatrix(i, 0) = 1;
-        coordMatrix(i, 1) = x;
-        coordMatrix(i, 2) = y;
-        coordMatrix(i, 3) = x * y;
+        coord_matrix(i, 0) = 1;
+        coord_matrix(i, 1) = x;
+        coord_matrix(i, 2) = y;
+        coord_matrix(i, 3) = x * y;
       }
     }
   }
@@ -184,12 +184,6 @@ template <> struct BuildElementalFieldInterpolationMatrix<_quadrangle_8> {
         coordMatrix(i, 1) = x;
         coordMatrix(i, 2) = y;
         coordMatrix(i, 3) = x * y;
-        // for (Int e = 0; e <= 2; ++e) {
-        //   for (Int n = 0; n <= 2; ++n) {
-        //     coordMatrix(i, j) = std::pow(x, e) * std::pow(y, n);
-        //     ++j;
-        //   }
-        // }
       }
     }
   }
@@ -309,26 +303,32 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
     const auto & N = *N_it;
     auto & uq = *uq_it;
 
-    uq = u * N;
+    uq.noalias() = u * N;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type>
+template <
+    ElementType type,
+    std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() != 0> *>
 void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
     const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
     const Array<Real> & shapes_derivatives,
     const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  auto nb_nodes_per_element =
+  constexpr auto nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
-  auto nb_points = integration_points(type, ghost_type).cols();
-  auto element_dimension = ElementClass<type>::getNaturalSpaceDimension();
-  auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
-  auto nb_element = mesh.getNbElement(type, ghost_type);
+  constexpr auto element_dimension =
+      ElementClass<type>::getNaturalSpaceDimension();
 
-  Array<Real>::const_matrix_iterator B_it;
+  auto nb_points = integration_points(type, ghost_type).cols();
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+  auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
+
+  auto B_it =
+      make_view<element_dimension, nb_nodes_per_element>(shapes_derivatives)
+          .begin();
 
   Array<Real> * filtered_B = nullptr;
   if (filter_elements != empty_filter) {
@@ -336,21 +336,24 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
     filtered_B = new Array<Real>(0, shapes_derivatives.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes_derivatives, *filtered_B, type,
                                   ghost_type, filter_elements);
-    B_it = filtered_B->begin(element_dimension, nb_nodes_per_element);
-  } else {
-    B_it = shapes_derivatives.begin(element_dimension, nb_nodes_per_element);
+    B_it =
+        make_view<element_dimension, nb_nodes_per_element>(*filtered_B).begin();
   }
 
   out_nablauq.resize(nb_element * nb_points);
-  auto u_it = u_el.begin(nb_degree_of_freedom, nb_nodes_per_element);
-  auto nabla_u_it = out_nablauq.begin(nb_degree_of_freedom, element_dimension);
+  auto u_it = make_view<Eigen::Dynamic, nb_nodes_per_element>(
+                  u_el, nb_degree_of_freedom, nb_nodes_per_element)
+                  .begin();
+  auto nabla_u_it = make_view<Eigen::Dynamic, element_dimension>(
+                        out_nablauq, nb_degree_of_freedom, element_dimension)
+                        .begin();
 
   for (Int el = 0; el < nb_element; ++el, ++u_it) {
     const auto & u = *u_it;
     for (Int q = 0; q < nb_points; ++q, ++B_it, ++nabla_u_it) {
       const auto & B = *B_it;
       auto & nabla_u = *nabla_u_it;
-      nabla_u = u * B.transpose();
+      nabla_u.noalias() = u * B.transpose();
     }
   }
 

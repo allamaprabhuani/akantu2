@@ -134,7 +134,7 @@ namespace akantu {
     static const ElementType sub_element_type_1{sub_el_type_1};                \
     static const ElementType sub_element_type_2{sub_el_type_2};                \
     static const ElementKind element_kind{elem_kind};                          \
-    static const UInt spatial_dimension{sp};                                   \
+    static const Int spatial_dimension{sp};                                    \
     static const UInt minimal_integration_order{min_int_order};                \
   }
 
@@ -179,7 +179,7 @@ public:
       break;
     }
 
-    for (UInt i = 0; i < nb_nodes_sub_el; ++i) {
+    for (Int i = 0; i < nb_nodes_sub_el; ++i) {
       UInt lc = InterpolationElement<
           ElementClassProperty<element_type>::interpolation_type>::
           sub_element_connectivity[sub_element][i];
@@ -194,7 +194,7 @@ public:
         ElementClassProperty<element_type>::parent_element_type;
     UInt nb_nodes_parent_el =
         ElementClass<parent_type>::getNbNodesPerInterpolationElement();
-    for (UInt i = 0; i < nb_nodes_parent_el; ++i) {
+    for (Int i = 0; i < nb_nodes_parent_el; ++i) {
       Vector<Real> parent_c(parent_coords(i));
       parent_c = element_coords(i);
     }

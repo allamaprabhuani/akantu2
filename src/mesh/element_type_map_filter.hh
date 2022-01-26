@@ -76,16 +76,14 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline const ArrayFilter<T>
-  operator()(SupportType type,
-             GhostType ghost_type = _not_ghost) const {
+  operator()(SupportType type, GhostType ghost_type = _not_ghost) const {
     if (filter.exists(type, ghost_type)) {
       Int nb_comp = 1;
       auto && array_v = array(type, ghost_type);
       if (nb_data_per_elem.exists(type, ghost_type)) {
         nb_comp = nb_data_per_elem(type, ghost_type) / array_v.getNbComponent();
       }
-      return ArrayFilter<T>(array_v, filter(type, ghost_type),
-                            nb_comp);
+      return ArrayFilter<T>(array_v, filter(type, ghost_type), nb_comp);
     }
     return ArrayFilter<T>(empty_array, empty_filter, 1);
   };
@@ -95,7 +93,7 @@ public:
     return filter.elementTypes(std::forward<decltype(args)>(args)...);
   }
 
-  decltype(auto) getNbComponents(UInt dim = _all_dimensions,
+  decltype(auto) getNbComponents(Int dim = _all_dimensions,
                                  GhostType ghost_type = _not_ghost,
                                  ElementKind kind = _ek_not_defined) const {
     return this->array.getNbComponents(dim, ghost_type, kind);

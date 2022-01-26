@@ -179,7 +179,7 @@ int main(int argc, char * argv[]) {
 
   mesh.dump();
 
-  for (UInt i = 1; i < max_steps + 1; ++i) {
+  for (Int i = 1; i < max_steps + 1; ++i) {
     model.applyBC(Sinusoidal(model, A, pulse_width, time_step * (i - 1)),
                   "border");
 

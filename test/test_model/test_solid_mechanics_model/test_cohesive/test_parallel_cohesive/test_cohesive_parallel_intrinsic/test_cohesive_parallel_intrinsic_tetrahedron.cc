@@ -61,7 +61,7 @@ void findElementsToDisplace(const Mesh & mesh,
 int main(int argc, char * argv[]) {
   initialize("material_tetrahedron.dat", argc, argv);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
   ElementType type = _tetrahedron_10;
@@ -273,7 +273,7 @@ int main(int argc, char * argv[]) {
   rotation(2, 2) = 1.;
 
   Vector<Real> increment_tmp(spatial_dimension);
-  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+  for (Int dim = 0; dim < spatial_dimension; ++dim) {
     increment_tmp(dim) = (dim + 1) * increment_constant;
   }
 
@@ -382,7 +382,7 @@ void updateDisplacement(SolidMechanicsModelCohesive & model,
                         const ElementTypeMapArray<UInt> & elements,
                         Vector<Real> & increment) {
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   Mesh & mesh = model.getFEEngine().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -425,7 +425,7 @@ void updateDisplacement(SolidMechanicsModelCohesive & model,
 bool checkTractions(SolidMechanicsModelCohesive & model, Vector<Real> & opening,
                     Vector<Real> & theoretical_traction,
                     Matrix<Real> & rotation) {
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh = model.getMesh();
 
   const MaterialCohesive & mat_cohesive =
@@ -449,7 +449,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model, Vector<Real> & opening,
 
   Vector<Real> tangential_opening(spatial_dimension);
   tangential_opening.zero();
-  for (UInt dim = 1; dim < spatial_dimension; ++dim)
+  for (Int dim = 1; dim < spatial_dimension; ++dim)
     tangential_opening(dim) = opening(dim);
 
   Real tangential_opening_norm = tangential_opening.norm();
@@ -502,7 +502,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model, Vector<Real> & opening,
       UInt tot_nb_quad = nb_element * nb_quad_per_el;
 
       for (UInt q = 0; q < tot_nb_quad; ++q) {
-        for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+        for (Int dim = 0; dim < spatial_dimension; ++dim) {
           if (!Math::are_float_equal(
                   std::abs(theoretical_traction_rotated(dim)),
                   std::abs(traction(q, dim)))) {
@@ -536,7 +536,7 @@ void findNodesToCheck(const Mesh & mesh,
 
   Array<UInt> global_nodes_to_check;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   const Array<Real> & position = mesh.getNodes();
 
   UInt nb_nodes = position.getSize();
@@ -588,8 +588,7 @@ void findNodesToCheck(const Mesh & mesh,
     UInt recv_nodes_size = recv_nodes.getSize();
     recv_nodes.resize(recv_nodes_size + status.getSize());
 
-    comm.receive(recv_nodes.data() + recv_nodes_size, status.getSize(), p,
-                 p);
+    comm.receive(recv_nodes.data() + recv_nodes_size, status.getSize(), p, p);
   }
 
   comm.waitAll(requests);
@@ -612,7 +611,7 @@ void findNodesToCheck(const Mesh & mesh,
 
 bool checkEquilibrium(const Mesh & mesh, const Array<Real> & residual) {
 
-  UInt spatial_dimension = residual.getNbComponent();
+  Int spatial_dimension = residual.getNbComponent();
 
   Vector<Real> residual_sum(spatial_dimension);
   residual_sum.zero();
@@ -647,7 +646,7 @@ bool checkResidual(const Array<Real> & residual, const Vector<Real> & traction,
                    const Array<UInt> & nodes_to_check,
                    const Matrix<Real> & rotation) {
 
-  UInt spatial_dimension = residual.getNbComponent();
+  Int spatial_dimension = residual.getNbComponent();
 
   Vector<Real> total_force(spatial_dimension);
   total_force.zero();
@@ -685,7 +684,7 @@ bool checkResidual(const Array<Real> & residual, const Vector<Real> & traction,
 
 void findElementsToDisplace(const Mesh & mesh,
                             ElementTypeMapArray<UInt> & elements) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   mesh.initElementTypeMapArray(elements, 1, spatial_dimension);
 
@@ -704,7 +703,7 @@ void findElementsToDisplace(const Mesh & mesh,
       Array<UInt> & elem = elements(type, ghost_type);
       UInt nb_element = mesh.getNbElement(type, ghost_type);
 
-      for (UInt el = 0; el < nb_element; ++el) {
+      for (Int el = 0; el < nb_element; ++el) {
         mesh.getBarycenter(el, type, bary.data(), ghost_type);
         if (bary(0) > 0.0001)
           elem.push_back(el);

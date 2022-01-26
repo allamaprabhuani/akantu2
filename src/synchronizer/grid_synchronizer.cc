@@ -112,7 +112,7 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
       CellID cell_id(spatial_dimension);
 
-      // for (UInt i = 0; i < spatial_dimension; ++i) {
+      // for (Int i = 0; i < spatial_dimension; ++i) {
       //   if(first_cell_p[i] != 0) --first_cell_p[i];
       //   if(last_cell_p[i] != 0) ++last_cell_p[i];
       // }

@@ -43,10 +43,10 @@ using namespace akantu;
 //#define debug_
 
 /* -------------------------------------------------------------------------- */
-template <template <UInt> class Mat, typename dim_>
+template <template <Int> class Mat, typename dim_>
 class TestMaterialCohesiveFixture : public ::testing::Test {
 public:
-  static constexpr UInt dim = dim_::value;
+  static constexpr Int dim = dim_::value;
   using Material = Mat<dim>;
 
   void SetUp() override {
@@ -284,7 +284,7 @@ protected:
   std::mt19937 gen;
 };
 
-template <template <UInt> class Mat, UInt dim>
+template <template <UInt> class Mat, Int dim>
 struct TestMaterialCohesive : public Mat<dim> {
   TestMaterialCohesive(SolidMechanicsModel & model)
       : Mat<dim>(model, "test"), insertion_stress_(Vector<Real>(dim)) {}
@@ -310,5 +310,5 @@ struct TestMaterialCohesive : public Mat<dim> {
   bool is_extrinsic{true};
 };
 
-template <template <UInt> class Mat, typename dim_>
-constexpr UInt TestMaterialCohesiveFixture<Mat, dim_>::dim;
+template <template <Int> class Mat, typename dim_>
+constexpr Int TestMaterialCohesiveFixture<Mat, dim_>::dim;

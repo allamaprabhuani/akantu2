@@ -52,7 +52,7 @@ int main(int argc, char * argv[]) {
   // sim data
   Real eps = 0.1;
 
-  const UInt dim = 2;
+  const Int dim = 2;
   Real sim_time = 100.;
   Real T = 10.;
   Real tolerance = 1e-6;
@@ -105,7 +105,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     std::cout << "Time Step = " << time_step << "s" << std::endl;
     std::cout << "Time = " << time << std::endl;
@@ -118,7 +118,7 @@ int main(int argc, char * argv[]) {
       epsilon = eps;
     }
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (Math::are_float_equal(coordinate(n, 0), 0.0)) {
         displacement(n, 0) = 0;
         blocked(n, 0) = true;

@@ -65,13 +65,6 @@
 
 namespace akantu {
 namespace debug {
-
-  // static void printBacktraceAndExit(int) { std::terminate(); }
-
-  // /* ------------------------------------------------------------------------
-  // */ void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit);
-  // }
-
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char * symbol) {
     int status;
@@ -319,7 +312,7 @@ namespace debug {
                               const DebugLevel & level,
                               const std::string & info,
                               const std::string & module) const {
-    if (testLevel(level, module)) {
+    if (testLevel(level, module)) [[gnu::unlikely]] {
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())

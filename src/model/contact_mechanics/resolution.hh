@@ -164,7 +164,7 @@ protected:
   Real mu;
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// is master surface deformable
   bool is_master_deformable;
@@ -202,7 +202,7 @@ template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
 #define INSTANTIATE_RESOLUTION_ONLY(res_name) class res_name
 
 #define RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR(id, res_name)                     \
-  [](UInt dim, const ID &, ContactMechanicsModel & model,                      \
+  [](Int dim, const ID &, ContactMechanicsModel & model,                       \
      const ID & id) -> std::unique_ptr<Resolution> {                           \
     switch (dim) {                                                             \
     case 1:                                                                    \

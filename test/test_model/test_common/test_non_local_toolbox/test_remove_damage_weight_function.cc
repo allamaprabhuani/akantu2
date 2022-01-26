@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_remove_damage.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _quadrangle_4;
   GhostType ghost_type = _not_ghost;
 
@@ -76,7 +76,7 @@ int main(int argc, char * argv[]) {
       Matrix<Real>::Identity(spatial_dimension, spatial_dimension);
 
   /// apply constant grad_u field in all elements
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+  for (Int m = 0; m < model.getNbMaterials(); ++m) {
     auto & mat = model.getMaterial(m);
     auto & grad_u =
         mat.getInternal<Real>("eigen_grad_u")(element_type, ghost_type);
@@ -136,7 +136,7 @@ int main(int argc, char * argv[]) {
   model.assembleInternalForces();
   neighborhood_1.saveWeights("after_0");
   neighborhood_2.saveWeights("after_1");
-  for (UInt n = 0; n < 2; ++n) {
+  for (Int n = 0; n < 2; ++n) {
     /// print results to screen for validation
     std::stringstream sstr;
     sstr << "after_" << n << ".0";
@@ -157,7 +157,7 @@ int main(int argc, char * argv[]) {
   Matrix<Real> difference(spatial_dimension, spatial_dimension);
   Matrix<Real> difference_in_damaged_elements(spatial_dimension,
                                               spatial_dimension);
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+  for (Int m = 0; m < model.getNbMaterials(); ++m) {
     difference_in_damaged_elements.zero();
     auto & mat = model.getMaterial(m);
     auto & grad_u_nl =

@@ -138,7 +138,7 @@ void DOFSynchronizer::fillEntityToSend(Array<Idx> & dofs_to_send) {
   this->entities_from_root.zero();
   dofs_to_send.resize(0);
 
-  for (UInt d : arange(nb_dofs)) {
+  for (Int d : arange(nb_dofs)) {
     if (not dof_manager.isLocalOrMasterDOF(d)) {
       continue;
     }

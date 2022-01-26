@@ -42,12 +42,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, ElementType type, class Primitive, class Kernel>
+template <Int dim, ElementType type, class Primitive, class Kernel>
 MeshGeomFactory<dim, type, Primitive, Kernel>::MeshGeomFactory(Mesh & mesh)
     : MeshGeomAbstract(mesh) {}
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, ElementType type, class Primitive, class Kernel>
+template <Int dim, ElementType type, class Primitive, class Kernel>
 MeshGeomFactory<dim, type, Primitive, Kernel>::~MeshGeomFactory() {
   delete data_tree;
 }
@@ -57,7 +57,7 @@ MeshGeomFactory<dim, type, Primitive, Kernel>::~MeshGeomFactory() {
  * This function loops over the elements of `type` in the mesh and creates the
  * AABB tree of geometrical primitves (`data_tree`).
  */
-template <UInt dim, ElementType type, class Primitive, class Kernel>
+template <Int dim, ElementType type, class Primitive, class Kernel>
 void MeshGeomFactory<dim, type, Primitive, Kernel>::constructData(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -225,7 +225,7 @@ namespace {
 } // namespace
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, ElementType type, class Primitive, class Kernel>
+template <Int dim, ElementType type, class Primitive, class Kernel>
 void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
     const Matrix<Real> & node_coordinates, UInt id, ContainerType & list) {
   details::AddPrimitiveHelper<details::GeometricalTypeHelper<type>::type,
@@ -234,7 +234,7 @@ void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, ElementType type, class Primitive, class Kernel>
+template <Int dim, ElementType type, class Primitive, class Kernel>
 void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
     const Matrix<Real> & node_coordinates, UInt id) {
   this->addPrimitive(node_coordinates, id, this->primitive_list);

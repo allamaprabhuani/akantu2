@@ -60,20 +60,20 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Args && args) {
 }
 
 /* -------------------------------------------------------------------------- */
-class C33_NR : public Math::NewtonRaphsonFunctor {
+class C33_NR : public Math::NewtonRaphsonFunctor<Real> {
 public:
   C33_NR(std::string name, const Real & lambda, const Real & mu,
          const Matrix<Real> & C)
       : NewtonRaphsonFunctor(std::move(name)), lambda(lambda), mu(mu), C(C) {}
 
-  inline Real f(Real x) const override {
+  inline Real f(const Real & x) const override {
     return (this->lambda / 2. *
                 (std::log(x) + std::log(this->C(0, 0) * this->C(1, 1) -
                                         Math::pow<2>(this->C(0, 1)))) +
             this->mu * (x - 1.));
   }
 
-  inline Real f_prime(Real x) const override {
+  inline Real f_prime(const Real & x) const override {
     AKANTU_DEBUG_ASSERT(std::abs(x) > Math::getTolerance(),
                         "x is zero (x should be the off plane right Cauchy"
                             << " measure in this function so you made a mistake"
@@ -96,7 +96,7 @@ MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(Args && args) {
   auto F = Material::gradUToF<dim>(tuple::get<"grad_u"_h>(args));
   auto C = Material::rightCauchy<dim>(F);
 
-  Math::NewtonRaphson nr(1e-5, 100);
+  Math::NewtonRaphson<Real> nr(1e-5, 100);
   auto & C33 = tuple::get<"C33"_h>(args);
 
   C33 = nr.solve(C33_NR("Neohookean_plan_stress", this->lambda, this->mu, C),
@@ -152,10 +152,10 @@ inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Args && args) {
 
   auto && Cminus = C.inverse();
 
-  for (UInt m = 0; m < rows; m++) {
+  for (Int m = 0; m < rows; m++) {
     UInt i = VoigtHelper<dim>::vec[m][0];
     UInt j = VoigtHelper<dim>::vec[m][1];
-    for (UInt n = 0; n < cols; n++) {
+    for (Int n = 0; n < cols; n++) {
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
 

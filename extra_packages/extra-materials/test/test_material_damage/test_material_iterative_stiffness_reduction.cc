@@ -39,7 +39,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
@@ -100,7 +100,7 @@ int main(int argc, char * argv[]) {
 
     nb_damaged_elements = material.updateDamage();
 
-    for (UInt e = 0; e < mesh.getNbElement(element_type, _not_ghost); ++e) {
+    for (Int e = 0; e < mesh.getNbElement(element_type, _not_ghost); ++e) {
       std::cout << "the new modulus is " << (1 - damage(0)) * E << std::endl;
       std::cout << "the new strength is " << Sc(0) << std::endl;
     }

@@ -27,8 +27,8 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
     equiv_strain_rate += 2. / 3. * pow(volume_change_rate / 3., 2.);
   }
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+  for (Int i = 0; i < spatial_dimension; ++i)
+    for (Int j = 0; j < spatial_dimension; ++j)
       equiv_strain_rate += 2. / 3. *
                            pow(0.5 * (grad_v(i, j) + grad_v(j, i)) -
                                    (i == j) * volume_change_rate / 3.,
@@ -43,7 +43,7 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
   Vector<Real> principal_stress(spatial_dimension);
   sigma.eig(principal_stress);
   sigma_equivalent = principal_stress(0);
-  for (UInt i = 1; i < spatial_dimension; ++i)
+  for (Int i = 1; i < spatial_dimension; ++i)
     sigma_equivalent = std::max(sigma_equivalent, principal_stress(i));
 
   if (!this->is_non_local) {

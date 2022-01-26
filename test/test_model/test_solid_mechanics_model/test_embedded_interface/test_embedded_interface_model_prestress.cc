@@ -49,7 +49,7 @@ struct StressSolution : public BC::Neumann::FromHigherDim {
   Real yg;
   Real pre_stress;
 
-  StressSolution(UInt dim, Real M, Real I, Real yg = 0, Real pre_stress = 0)
+  StressSolution(Int dim, Real M, Real I, Real yg = 0, Real pre_stress = 0)
       : BC::Neumann::FromHigherDim(Matrix<Real>(dim, dim)), M(M), I(I), yg(yg),
         pre_stress(pre_stress) {}
 
@@ -58,7 +58,7 @@ struct StressSolution : public BC::Neumann::FromHigherDim {
   void operator()(const IntegrationPoint & /*quad_point*/, Vector<Real> & dual,
                   const Vector<Real> & coord,
                   const Vector<Real> & normals) const {
-    UInt dim = coord.size();
+    Int dim = coord.size();
 
     if (dim < 2)
       AKANTU_ERROR("Solution not valid for 1D");
@@ -84,7 +84,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-6);
 
-  const UInt dim = 2;
+  const Int dim = 2;
 
   /* --------------------------------------------------------------------------
    */
@@ -204,7 +204,7 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    for (UInt i = 0; i < dim; i++) {
+    for (Int i = 0; i < dim; i++) {
       if (!Math::are_float_equal(pos(1), 0.25)) {
         res_sum += std::abs(res(i));
       }
@@ -219,7 +219,7 @@ int main(int argc, char * argv[]) {
   Vector<Real> concrete_residual = lower_res + delta;
   Vector<Real> steel_residual = end_node_res - concrete_residual;
 
-  for (UInt i = 0; i < dim; i++) {
+  for (Int i = 0; i < dim; i++) {
     res_sum += std::abs(concrete_residual(i));
     res_sum += std::abs(steel_residual(i));
   }

@@ -62,7 +62,7 @@ class PhaseFieldModel : public Model,
 public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
-  PhaseFieldModel(Mesh & mesh, UInt dim = _all_dimensions,
+  PhaseFieldModel(Mesh & mesh, Int dim = _all_dimensions,
                   const ID & id = "phase_field_model",
                   ModelType model_type = ModelType::_phase_field_model);
 
@@ -79,8 +79,8 @@ protected:
   void initPhaseFields();
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType /*unused*/, NonLinearSolverType /*unused*/)
-  override;
+  void initSolver(TimeStepSolverType /*unused*/,
+                  NonLinearSolverType /*unused*/) override;
 
   /// initialize the model
   void initModel() override;

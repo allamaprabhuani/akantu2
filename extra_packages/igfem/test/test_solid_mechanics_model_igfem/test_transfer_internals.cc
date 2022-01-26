@@ -34,7 +34,7 @@ public:
       return this->fallback_value_igfem;
 
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     if (model.isInside(barycenter))
@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   /// problem dimension
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   /// mesh creation and partioning
   Mesh mesh(spatial_dimension);
@@ -230,7 +230,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
   FEEngine & fee = model.getFEEngine("IGFEMFEEngine");
   GhostType ghost_type = _not_ghost;
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   bool check_passed = true;
 
   /// loop over all IGFEM elements of type _not_ghost
@@ -250,10 +250,10 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
     UInt nb_parent_nodes = IGFEMHelper::getNbParentNodes(igfem_el_type);
     /// compute the bary center of the underlying parent element
     UInt nb_el_nodes = mesh.getNbNodesPerElement(igfem_el_type);
-    for (UInt elem = 0; elem < nb_igfem_element; ++elem) {
+    for (Int elem = 0; elem < nb_igfem_element; ++elem) {
       Real local_coord[spatial_dimension * nb_parent_nodes];
       UInt offset = elem * nb_el_nodes;
-      for (UInt n = 0; n < nb_parent_nodes; ++n) {
+      for (Int n = 0; n < nb_parent_nodes; ++n) {
         memcpy(local_coord + n * spatial_dimension,
                nodes.data() + conn_val[offset + n] * spatial_dimension,
                spatial_dimension * sizeof(Real));
@@ -275,7 +275,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
       Array<Real>::scalar_iterator damage_it = damage.begin();
       Array<UInt>::scalar_iterator sub_mat_it = sub_mat.begin();
       Array<Real>::scalar_iterator Sc_it = strength.begin();
-      for (UInt q = 0; q < nb_quads; ++q) {
+      for (Int q = 0; q < nb_quads; ++q) {
         UInt q_global = local_index * nb_quads + q;
         if (sub_mat_it[q_global] == 1) {
           if (std::abs(Sc_it[q_global] - 100) > 1e-15) {

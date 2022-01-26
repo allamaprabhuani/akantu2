@@ -51,7 +51,7 @@ StressBasedWeightFunction::StressBasedWeightFunction(NonLocalManager & manager)
 /// points are computed
 void StressBasedWeightFunction::init() {
   // const Mesh & mesh = this->material.getModel().getFEEngine().getMesh();
-  // for (UInt g = _not_ghost; g <= _ghost; ++g) {
+  // for (Int g = _not_ghost; g <= _ghost; ++g) {
   //   GhostType gt = GhostType(g);
   //   Mesh::type_iterator it = mesh.firstType(spatial_dimension, gt);
   //   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, gt);
@@ -71,7 +71,7 @@ void StressBasedWeightFunction::init() {
   // 								     gt,
   // 								     element_filter);
 
-  //     for (UInt q = 0;  q < nb_quadrature_points * nb_element; q++) {
+  //     for (Int q = 0;  q < nb_quadrature_points * nb_element; q++) {
   // 	lc(q) = pow(lc(q), 1./ Real(spatial_dimension));
   //     }
   //   }
@@ -112,7 +112,7 @@ void StressBasedWeightFunction::updatePrincipalStress(__attribute__((unused))
   // #ifndef __trick__
   //       // specify a lower bound for principal stress based on the size of
   //       the element
-  //       for (UInt i = 0; i < spatial_dimension; ++i) {
+  //       for (Int i = 0; i < spatial_dimension; ++i) {
   //         (*eigenvalues)(i) = std::max(*cl / this->R, (*eigenvalues)(i));
   //       }
   // #endif

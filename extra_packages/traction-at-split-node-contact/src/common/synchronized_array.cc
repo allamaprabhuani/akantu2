@@ -106,7 +106,7 @@ Int SynchronizedArray<T>::syncAddedElements(Int nb_add_elements) {
       nb_added_elements == 0 and deleted_elements.empty(),
       "Cannot sync with a SynchronizedArray if it has already been modified");
 
-  for (UInt i = 0; i < nb_add_elements; ++i) {
+  for (Int i = 0; i < nb_add_elements; ++i) {
     push_back(this->default_value);
   }
   syncElements(_added);

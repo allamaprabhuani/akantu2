@@ -48,7 +48,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Real increment = 0.004;
   bool passed = true;
   Real tol = 1.0e-13;
@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
   if (!infile.good())
     AKANTU_ERROR("Cannot open file K_matrix_verified.dat");
   else {
-    for (UInt i = 0; i < 2; ++i) {
+    for (Int i = 0; i < 2; ++i) {
       getline(infile, line);
       std::stringstream sstr_data(line);
       if (i == 1) {
@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    for (UInt i = 0; i < nb_lines; ++i) {
+    for (Int i = 0; i < nb_lines; ++i) {
       getline(infile, line);
       std::stringstream sstr_data(line);
       sstr_data >> tmp(0) >> tmp(1) >> tmp(2);
@@ -100,7 +100,7 @@ int main(int argc, char * argv[]) {
   infile.close();
 
   /// impose boundary conditions
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (position(n, 1) < -0.99) {
       boundary(n, 1) = true;
       boundary(n, 0) = true;
@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
   }
 
   /// solve step
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (position(n, 1) > 0.99 && position(n, 0) < -0.99)
       displacement(n, 1) += increment;
   }
@@ -128,7 +128,7 @@ int main(int argc, char * argv[]) {
   if (!infile2.good())
     AKANTU_ERROR("Cannot open file K_matrix_test.dat");
   else {
-    for (UInt i = 0; i < 2; ++i) {
+    for (Int i = 0; i < 2; ++i) {
       getline(infile2, line);
       std::stringstream sstr_data(line);
       if (i == 1) {
@@ -137,7 +137,7 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    for (UInt i = 0; i < nb_lines; ++i) {
+    for (Int i = 0; i < nb_lines; ++i) {
       getline(infile2, line);
       std::stringstream sstr_data(line);
       sstr_data >> tmp(0) >> tmp(1) >> tmp(2);
@@ -146,8 +146,8 @@ int main(int argc, char * argv[]) {
   }
   infile2.close();
 
-  for (UInt i = 0; i < K_verified.size(); ++i) {
-    for (UInt j = 0; j < K_test.size(); ++j) {
+  for (Int i = 0; i < K_verified.size(); ++i) {
+    for (Int j = 0; j < K_test.size(); ++j) {
       if ((K_test(j, 0) == K_verified(i, 0)) &&
           (K_test(j, 1) == K_verified(i, 1))) {
         if (std::abs(K_verified(i, 2)) < tol) {

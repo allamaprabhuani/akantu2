@@ -43,7 +43,7 @@
 using namespace akantu;
 
 int main(int argc, char * argv[]) {
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   initialize(argc, argv);
 
@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
 
   auto test_data = [&]() -> void {
     auto it_data = local_data_array.begin(2);
-    for (UInt local_dof = 0; local_dof < dof_manager.getLocalSystemSize();
+    for (Int local_dof = 0; local_dof < dof_manager.getLocalSystemSize();
          ++local_dof) {
       Int equ_number = equation_number(local_dof);
 

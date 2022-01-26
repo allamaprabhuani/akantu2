@@ -154,7 +154,7 @@ void ElementSynchronizer::onElementsRemoved(
 void ElementSynchronizer::buildElementToPrank() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   element_to_prank.initialize(mesh, _spatial_dimension = spatial_dimension,
                               _element_kind = _ek_not_defined,
                               _with_nb_element = true, _default_value = rank);
@@ -199,10 +199,10 @@ void ElementSynchronizer::renumberElements(
 
 /* -------------------------------------------------------------------------- */
 Int ElementSynchronizer::sanityCheckDataSize(const Array<Element> & elements,
-                                              const SynchronizationTag & tag,
-                                              bool from_comm_desc) const {
+                                             const SynchronizationTag & tag,
+                                             bool from_comm_desc) const {
   Int size = SynchronizerImpl<Element>::sanityCheckDataSize(elements, tag,
-                                                             from_comm_desc);
+                                                            from_comm_desc);
 
   // global connectivities;
   size += mesh.getNbNodesPerElementList(elements) * sizeof(Idx);

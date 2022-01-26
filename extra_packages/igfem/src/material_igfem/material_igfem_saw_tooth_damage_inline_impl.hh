@@ -43,14 +43,14 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage(
     Array<Idx> & sub_mat = this->sub_material(el_type, ghost_type);
     UInt damaged_quads = 0;
     if (dam_on_quad < dam_threshold) {
-      for (UInt q = 0; q < nb_quads; ++q, ++start_idx) {
+      for (Int q = 0; q < nb_quads; ++q, ++start_idx) {
         if (sub_mat(start_idx)) {
           dam(start_idx) += prescribed_dam;
           damaged_quads += 1;
         }
       }
     } else {
-      for (UInt q = 0; q < nb_quads; ++q, ++start_idx) {
+      for (Int q = 0; q < nb_quads; ++q, ++start_idx) {
         if (sub_mat(start_idx)) {
           dam(start_idx) += max_damage;
           damaged_quads += 1;

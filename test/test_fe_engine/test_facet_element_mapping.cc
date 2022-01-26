@@ -44,7 +44,7 @@ using namespace std;
 
 int main(int argc, char * argv[]) {
   // Testing the subelement-to-element mappings
-  UInt spatial_dimension(3);
+  Int spatial_dimension(3);
 
   akantu::initialize(argc, argv);
 
@@ -73,9 +73,9 @@ int main(int argc, char * argv[]) {
                 << "subelement_to_element:" << std::endl;
       subelement_to_element.printself(std::cout, 8);
 
-      for (UInt i(0); i < subelement_to_element.size(); ++i) {
+      for (Int i(0); i < subelement_to_element.size(); ++i) {
         std::cout << "        ";
-        for (UInt j(0); j < mesh.getNbFacetsPerElement(type); ++j) {
+        for (Int j(0); j < mesh.getNbFacetsPerElement(type); ++j) {
           if (subelement_to_element(i, j) != ElementNull) {
             std::cout << subelement_to_element(i, j);
             std::cout << ", ";

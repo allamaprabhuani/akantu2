@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
 
   Real max_displacement = 0.01;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   initialize("material_stiffness.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
@@ -117,7 +117,7 @@ int main(int argc, char * argv[]) {
 
   Array<Real> & contact_force = contact.getInternalForce();
 
-  for (UInt n : arange(contact_force.size())) {
+  for (Int n : arange(contact_force.size())) {
     std::cerr << contact_force(n, 1) << std::endl;
   }
 

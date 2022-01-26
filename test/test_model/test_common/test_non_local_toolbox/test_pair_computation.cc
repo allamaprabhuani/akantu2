@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_remove_damage.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  for (UInt i = 0; i < pairs_mat_1_not_ghost.size(); ++i) {
+  for (Int i = 0; i < pairs_mat_1_not_ghost.size(); ++i) {
     auto it = std::find(pair_list[0].begin(), pair_list[0].end(),
                         (pairs_mat_1_not_ghost)[i]);
     if (it == pair_list[0].end()) {
@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  for (UInt i = 0; i < pairs_mat_1_ghost.size(); ++i) {
+  for (Int i = 0; i < pairs_mat_1_ghost.size(); ++i) {
     auto it = std::find(pair_list[1].begin(), pair_list[1].end(),
                         (pairs_mat_1_ghost)[i]);
     if (it == pair_list[1].end()) {
@@ -130,7 +130,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  for (UInt i = 0; i < pairs_mat_2_ghost.size(); ++i) {
+  for (Int i = 0; i < pairs_mat_2_ghost.size(); ++i) {
     auto it = std::find(pair_list[1].begin(), pair_list[1].end(),
                         (pairs_mat_2_ghost)[i]);
     if (it == pair_list[1].end()) {

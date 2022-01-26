@@ -116,7 +116,7 @@ void dumpRestart(akantu::SolidMechanicsModel & model, const std::string & fname,
                  akantu::UInt prank) {
 
   const akantu::Mesh & mesh = model.getMesh();
-  const akantu::UInt spatial_dimension = model.getMesh().getSpatialDimension();
+  const akantu::Int spatial_dimension = model.getMesh().getSpatialDimension();
   auto & dof_manager = dynamic_cast<DOFManagerDefault &>(model.getDOFManager());
 
   if (prank == 0) {

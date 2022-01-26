@@ -130,13 +130,13 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
   Real alpha = is_master_deformable ? 0.5 : 1.;
 
-  for (UInt i : arange(nb_nodes)) {
+  for (Int i : arange(nb_nodes)) {
     UInt n = connectivity[i];
 
     auto slave_result = std::find(slave_list.begin(), slave_list.end(), n);
     auto master_result = std::find(master_list.begin(), master_list.end(), n);
 
-    for (UInt j : arange(nb_dofs)) {
+    for (Int j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
       global[offset_node] += alpha * local[i * nb_dofs + j];
     }
@@ -189,16 +189,16 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
   UInt total_nb_dofs = nb_dofs * nb_nodes;
 
   std::vector<UInt> equations;
-  for (UInt i : arange(connectivity.size())) {
+  for (Int i : arange(connectivity.size())) {
     UInt conn = connectivity[i];
-    for (UInt j : arange(nb_dofs)) {
+    for (Int j : arange(nb_dofs)) {
       equations.push_back(conn * nb_dofs + j);
     }
   }
 
-  for (UInt i : arange(total_nb_dofs)) {
+  for (Int i : arange(total_nb_dofs)) {
     UInt row = equations[i];
-    for (UInt j : arange(total_nb_dofs)) {
+    for (Int j : arange(total_nb_dofs)) {
       UInt col = equations[j];
       global.add(row, col, local(i, j));
     }

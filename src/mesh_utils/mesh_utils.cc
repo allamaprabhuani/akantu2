@@ -272,10 +272,10 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
         for (Int el = 0; el < nb_element; ++el) {
           current_element.element = el;
 
-          auto && facets =
+          Matrix<Idx> facets =
               mesh.getFacetConnectivity(current_element, ft).transpose();
 
-          for (auto facet : facets) {
+          for (auto & facet : facets) {
             // facet = facets(f);
 
             auto first_node_nb_elements = node_to_elem.getNbCols(facet(0));

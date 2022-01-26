@@ -44,7 +44,7 @@ class MyModel : public Model, public NonLocalManagerCallback {
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 public:
-  MyModel(Mesh & mesh, UInt spatial_dimension)
+  MyModel(Mesh & mesh, Int spatial_dimension)
       : Model(mesh, ModelType::_model, spatial_dimension),
         manager(*this, *this) {
     registerFEEngineObject<MyFEEngineType>("FEEngine", mesh, spatial_dimension);
@@ -111,14 +111,13 @@ public:
     }
   }
 
-  void computeNonLocalStresses(GhostType)
-  override {}
+  void computeNonLocalStresses(GhostType) override {}
 
-  void updateLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
-  override {}
+  void updateLocalInternal(ElementTypeMapReal &, GhostType,
+                           ElementKind) override {}
 
-  void updateNonLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
-  override {}
+  void updateNonLocalInternal(ElementTypeMapReal &, GhostType,
+                              ElementKind) override {}
 
   const auto & getNonLocalManager() const { return manager; }
 

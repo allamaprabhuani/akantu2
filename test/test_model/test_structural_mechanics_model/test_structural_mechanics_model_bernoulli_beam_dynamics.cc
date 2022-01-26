@@ -52,7 +52,7 @@ static Real analytical_solution(Real time, Real L, Real rho, Real E,
   Real omega = M_PI * M_PI / L / L * sqrt(E * I / rho);
   Real sum = 0.;
   UInt i = 5;
-  for (UInt n = 1; n <= i; n += 2) {
+  for (Int n = 1; n <= i; n += 2) {
     sum += (1. - cos(n * n * omega * time)) / pow(n, 4);
   }
 
@@ -353,7 +353,7 @@ TYPED_TEST(TestStructBernoulliDynamic, TestBeamOscilation) {
 
   Real tol = 1e-6;
   Real time = 0.;
-  for (UInt s = 1; s < 300; ++s) {
+  for (Int s = 1; s < 300; ++s) {
     EXPECT_NO_THROW(this->model->solveStep());
 
     time = s * time_step;

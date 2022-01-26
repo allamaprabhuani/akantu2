@@ -169,7 +169,7 @@ void ContactDetector::localSearch(SpatialGrid<Idx> & slave_grid,
       bool pair_exists = false;
 
       Vector<Real> pos(spatial_dimension);
-      for (UInt s : arange(spatial_dimension)) {
+      for (Int s : arange(spatial_dimension)) {
         pos(s) = this->positions(slave_node, s);
       }
 
@@ -255,7 +255,7 @@ void ContactDetector::createContactElements(
     const auto & slave_node = pairs.first;
 
     Vector<Real> slave(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
+    for (Int s : arange(spatial_dimension)) {
       slave(s) = this->positions(slave_node, s);
     }
 

@@ -274,7 +274,10 @@ public:
     Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
     computeShapes(natural_coords, shapes);
 
-    return interpolate(nodal_values, shapes);
+    Matrix<Real, Eigen::Dynamic, 1> res;
+    res.noalias() = interpolate(nodal_values, shapes);
+
+    return res;
   }
 
   /// interpolate a field given the shape functions on the interpolation point

@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
 
   const UInt max_steps = 350;
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
 
   const auto & comm = Communicator::getStaticCommunicator();
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
   Real epsilon = std::numeric_limits<Real>::epsilon();
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (std::abs(position(n, 0) - 1.) < epsilon)
       boundary(n, 0) = true;
   }
@@ -118,12 +118,12 @@ int main(int argc, char * argv[]) {
 
   /// initial conditions
   Real loading_rate = .2;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 0) = loading_rate * position(n, 0);
   }
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     model.solveStep();
 
@@ -135,7 +135,7 @@ int main(int argc, char * argv[]) {
     }
 
     // // update displacement
-    // for (UInt n = 0; n < nb_nodes; ++n) {
+    // for (Int n = 0; n < nb_nodes; ++n) {
     //   if (position(n, 1) + displacement(n, 1) > 0) {
     // 	displacement(n, 0) -= 0.01;
     //   }

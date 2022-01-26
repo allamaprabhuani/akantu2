@@ -49,7 +49,7 @@ NTNContact::NTNContact(SolidMechanicsModel & model, const ID & id)
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = this->model.getMesh();
-  UInt spatial_dimension = this->model.getSpatialDimension();
+  Int spatial_dimension = this->model.getSpatialDimension();
 
   this->master_elements.initialize(mesh, _nb_component = 1,
                                    _spatial_dimension = spatial_dimension - 1);
@@ -70,7 +70,7 @@ void NTNContact::pairInterfaceNodes(const ElementGroup & slave_boundary,
                           << " but has nb_component = "
                           << pairs.getNbComponent());
 
-  UInt dim = mesh.getSpatialDimension();
+  Int dim = mesh.getSpatialDimension();
   AKANTU_DEBUG_ASSERT(surface_normal_dir < dim,
                       "Mesh is of " << dim << " dimensions"
                                     << " and cannot have direction "
@@ -387,7 +387,7 @@ void NTNContact::computeRelativeTangentialField(
   // resize arrays to zero
   rel_tang_field.resize(0);
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   auto it_field = field.begin(dim);
   auto it_normal = this->normals.getArray().begin(dim);
@@ -396,7 +396,7 @@ void NTNContact::computeRelativeTangentialField(
   Vector<Real> np_rfv(dim);
 
   UInt nb_contact_nodes = this->slaves.size();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // nodes
     UInt slave = this->slaves(n);
     UInt master = this->masters(n);

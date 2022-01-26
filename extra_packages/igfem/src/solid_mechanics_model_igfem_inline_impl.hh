@@ -44,7 +44,7 @@ inline void SolidMechanicsModelIGFEM::getSubElementBarycenter(
   Real local_coord[spatial_dimension * nb_sub_element_nodes];
 
   UInt offset = element * nb_nodes_per_element;
-  for (UInt n = 0; n < nb_sub_element_nodes; ++n) {
+  for (Int n = 0; n < nb_sub_element_nodes; ++n) {
     UInt index = conn_val[offset + sub_el_conn[n]];
     memcpy(local_coord + n * spatial_dimension,
            node_coords.data() + index * spatial_dimension,

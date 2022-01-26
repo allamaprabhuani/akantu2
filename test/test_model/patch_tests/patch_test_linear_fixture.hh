@@ -84,7 +84,7 @@ public:
 
     for (auto & eg : mesh->iterateElementGroups()) {
       for (const auto & node : eg.getNodeGroup()) {
-        for (UInt s = 0; s < boundary.getNbComponent(); ++s) {
+        for (Int s = 0; s < boundary.getNbComponent(); ++s) {
           boundary(node, s) = true;
         }
       }
@@ -104,8 +104,8 @@ public:
   template <typename V> Matrix<Real> prescribed_gradient(const V & dof) {
     Matrix<Real> gradient(dof.getNbComponent(), dim);
 
-    for (UInt i = 0; i < gradient.rows(); ++i) {
-      for (UInt j = 0; j < gradient.cols(); ++j) {
+    for (Int i = 0; i < gradient.rows(); ++i) {
+      for (Int j = 0; j < gradient.cols(); ++j) {
         gradient(i, j) = alpha(i, j + 1);
       }
     }
@@ -142,9 +142,9 @@ public:
 
   template <typename V1, typename V2>
   void setLinearDOF(V1 && dof, V2 && coord) {
-    for (UInt i = 0; i < dof.size(); ++i) {
+    for (Int i = 0; i < dof.size(); ++i) {
       dof(i) = this->alpha(i, 0);
-      for (UInt j = 0; j < coord.size(); ++j) {
+      for (Int j = 0; j < coord.size(); ++j) {
         dof(i) += this->alpha(i, j + 1) * coord(j);
       }
     }

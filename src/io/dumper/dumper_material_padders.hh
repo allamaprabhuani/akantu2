@@ -81,7 +81,7 @@ namespace dumpers {
     /// the number of data per element
     const ElementTypeMapArray<Idx> nb_data_per_element;
 
-    UInt spatial_dimension;
+    Int spatial_dimension;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -95,7 +95,7 @@ namespace dumpers {
 
   /* ------------------------------------------------------------------------ */
 
-  template <UInt spatial_dimension>
+  template <Int spatial_dimension>
   class StressPadder : public MaterialPadder<Real, Matrix<Real>> {
 
   public:
@@ -129,12 +129,11 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
-  template <UInt spatial_dimension>
+  template <Int spatial_dimension>
   class StrainPadder : public MaterialFunctor,
                        public PadderGeneric<Matrix<Real>, Matrix<Real>> {
   public:
@@ -164,8 +163,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -176,8 +174,7 @@ namespace dumpers {
     ComputeStrain(const SolidMechanicsModel & model) : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       auto nrows = spatial_dimension;
       auto ncols = in.size() / nrows;
       auto nb_data = in.size() / (nrows * nrows);
@@ -187,7 +184,7 @@ namespace dumpers {
       Tensor3Proxy<Real> all_strain(ret_all_strain.data(), nrows, nrows,
                                     nb_data);
 
-      for (UInt d = 0; d < nb_data; ++d) {
+      for (Int d = 0; d < nb_data; ++d) {
         auto && grad_u = all_grad_u(d);
         auto && strain = all_strain(d);
 
@@ -210,8 +207,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension * spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -224,8 +220,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       UInt nrows = spatial_dimension;
       UInt nb_data = in.size() / (nrows * nrows);
 
@@ -233,7 +228,7 @@ namespace dumpers {
       Tensor3Proxy<const Real> all_grad_u(in.data(), nrows, nrows, nb_data);
       Matrix<Real> strain(nrows, nrows);
 
-      for (UInt d = 0; d < nb_data; ++d) {
+      for (Int d = 0; d < nb_data; ++d) {
         Matrix<Real> grad_u = all_grad_u(d);
 
         tuple_dispatch<std::tuple<std::integral_constant<Int, 1>,
@@ -257,8 +252,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -270,8 +264,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Vector<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       UInt nrows = spatial_dimension;
       UInt nb_data = in.size() / (nrows * nrows);
 
@@ -288,8 +281,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 1; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */

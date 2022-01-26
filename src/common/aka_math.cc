@@ -144,7 +144,7 @@ namespace Math {
       }
 
       // sum to consecutive values and store the sum in the first half
-      for (UInt i = 0; i < nb_values_to_sum; ++i) {
+      for (Int i = 0; i < nb_values_to_sum; ++i) {
         array(i) = array(2 * i) + array(2 * i + 1);
       }
 

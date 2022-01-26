@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
 
   /// create a mesh and read the regular elements from the mesh file
   /// mesh creation
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   akantu::MeshPartition * partition = NULL;
   if (prank == 0) {
@@ -80,7 +80,7 @@ int main(int argc, char * argv[]) {
 
   /// check that the igfem nodes have been created correctly
   UInt nb_global_nodes = 0;
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (mesh.isLocalOrMasterNode(n))
       nb_global_nodes += 1;
   }
@@ -121,8 +121,8 @@ int main(int argc, char * argv[]) {
                   .data();
 
   Real error = 0;
-  for (UInt e = 0; e < nb_element; ++e) {
-    for (UInt q = 0; q < nb_quads; ++q, ++lambda, ++mu) {
+  for (Int e = 0; e < nb_element; ++e) {
+    for (Int q = 0; q < nb_quads; ++q, ++lambda, ++mu) {
       error += std::abs(lambda_1 - *lambda);
       error += std::abs(mu_1 - *mu);
     }

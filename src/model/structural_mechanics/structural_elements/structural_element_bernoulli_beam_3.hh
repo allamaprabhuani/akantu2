@@ -54,14 +54,14 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(
   Array<Real>::matrix_iterator D_it =
       tangent_moduli.begin(tangent_size, tangent_size);
 
-  for (UInt e = 0; e < nb_element; ++e) {
+  for (Int e = 0; e < nb_element; ++e) {
     UInt mat = element_material(_bernoulli_beam_3, _not_ghost)(e);
     Real E = materials[mat].E;
     Real A = materials[mat].A;
     Real Iz = materials[mat].Iz;
     Real Iy = materials[mat].Iy;
     Real GJ = materials[mat].GJ;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_it) {
+    for (Int q = 0; q < nb_quadrature_points; ++q, ++D_it) {
       auto & D = *D_it;
       D(0, 0) = E * A;
       D(1, 1) = E * Iz;

@@ -72,7 +72,7 @@ void NewmarkBeta::predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
   Real * u_dot_dot_val = u_dot_dot.data();
   bool * blocked_dofs_val = blocked_dofs.data();
 
-  for (UInt d = 0; d < nb_degree_of_freedom; d++) {
+  for (Int d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
       Real dt_a_n = delta_t * *u_dot_dot_val;
 
@@ -195,7 +195,7 @@ void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
   Real * delta_val = delta.data();
   bool * blocked_dofs_val = blocked_dofs.data();
 
-  for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
+  for (Int dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {
       *u_val += e * *delta_val;
       *u_dot_val += d * *delta_val;

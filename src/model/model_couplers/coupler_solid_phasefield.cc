@@ -477,8 +477,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   auto bld_it = blocked_dofs.begin();
 
   Real norm = 0;
-  for (UInt n = 0; n < nb_degree_of_freedom;
-       ++n, ++u_n_it, ++u_o_it, ++bld_it) {
+  for (Int n = 0; n < nb_degree_of_freedom; ++n, ++u_n_it, ++u_o_it, ++bld_it) {
     if ((!*bld_it)) {
       norm += (*u_n_it - *u_o_it) * (*u_n_it - *u_o_it);
     }
@@ -491,7 +490,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   nb_degree_of_freedom = d_new.size();
 
   Real norm2 = 0;
-  for (UInt i = 0; i < nb_degree_of_freedom; ++i) {
+  for (Int i = 0; i < nb_degree_of_freedom; ++i) {
     norm2 += (*d_n_it - *d_o_it);
   }
 

@@ -51,7 +51,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   const ElementType type = _tetrahedron_10;
 
   Mesh mesh(spatial_dimension);
@@ -104,12 +104,12 @@ int main(int argc, char * argv[]) {
 
   Array<Real> & el_q_facet = element_quad_facet(type);
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+  for (Int el = 0; el < nb_element; ++el) {
+    for (Int f = 0; f < nb_facet_per_elem; ++f) {
       UInt global_facet = facet_to_element(el, f).element;
 
-      for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-        for (UInt s = 0; s < spatial_dimension; ++s) {
+      for (Int q = 0; q < nb_quad_per_facet; ++q) {
+        for (Int s = 0; s < spatial_dimension; ++s) {
           el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet +
                          f * nb_quad_per_facet + q,
                      s) = quad_facets(global_facet * nb_quad_per_facet + q, s);
@@ -131,8 +131,8 @@ int main(int argc, char * argv[]) {
   Array<Real> & stress =
       const_cast<Array<Real> &>(model.getMaterial(0).getStress(type));
 
-  for (UInt q = 0; q < nb_tot_quad_el; ++q) {
-    for (UInt s = 0; s < spatial_dimension * spatial_dimension; ++s) {
+  for (Int q = 0; q < nb_tot_quad_el; ++q) {
+    for (Int s = 0; s < spatial_dimension * spatial_dimension; ++s) {
       stress(q, s) = s * function(quad_elements(q, 0), quad_elements(q, 1),
                                   quad_elements(q, 2));
     }
@@ -145,11 +145,11 @@ int main(int argc, char * argv[]) {
   Real tolerance = 1.e-10;
 
   /// check results
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+  for (Int el = 0; el < nb_element; ++el) {
+    for (Int f = 0; f < nb_facet_per_elem; ++f) {
 
-      for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-        for (UInt s = 0; s < spatial_dimension * spatial_dimension; ++s) {
+      for (Int q = 0; q < nb_quad_per_facet; ++q) {
+        for (Int s = 0; s < spatial_dimension * spatial_dimension; ++s) {
 
           Real x = el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet +
                                   f * nb_quad_per_facet + q,

@@ -132,7 +132,7 @@ TYPED_TEST(TestSMMFixtureWorkDynamic, WorkExplicit) {
     // First, "equilibrate" a bit to get a reference state of total
     // energy and work. This is needed when we have a Dirichlet with
     // finite displacement on one side.
-    for (UInt i = 0; i < 25; ++i) {
+    for (Int i = 0; i < 25; ++i) {
       this->model->solveStep();
     }
     // Again, work reported by Akantu is infinitesimal (dW) and we
@@ -140,7 +140,7 @@ TYPED_TEST(TestSMMFixtureWorkDynamic, WorkExplicit) {
     double Etot0 =
         this->model->getEnergy("potential") + this->model->getEnergy("kinetic");
     double W = 0.0;
-    for (UInt i = 0; i < 200; ++i) {
+    for (Int i = 0; i < 200; ++i) {
       /// Solve.
       this->model->solveStep();
 

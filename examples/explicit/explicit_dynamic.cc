@@ -41,7 +41,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   const Real pulse_width = 2.;
   const Real A = 0.01;
   Real time_step;
@@ -68,7 +68,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & displacement = model.getDisplacement();
   const Array<Real> & nodes = mesh.getNodes();
 
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     Real x = nodes(n) - 2;
     // Sinus * Gaussian
     Real L = pulse_width;
@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("stress");
   model.dump();
 
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.solveStep();
 
     Real epot = model.getEnergy("potential");

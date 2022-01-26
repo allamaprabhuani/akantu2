@@ -100,11 +100,6 @@ protected:
 
   /// Current thermal stress
   InternalField<Real> sigma_th;
-
-  /// Tell if we need to use the previous thermal stress
-  bool use_previous_stress_thermal;
-
-  Real previous_sigma_th{0};
 };
 
 /* ------------------------------------------------------------------------ */

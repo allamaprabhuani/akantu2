@@ -133,7 +133,7 @@ void register_material(py::module & mod) {
            [](MaterialFactory & self, const std::string id, py::function func) {
              self.registerAllocator(
                  id,
-                 [func, id](UInt dim, const ID & /*unused*/,
+                 [func, id](Int dim, const ID & /*unused*/,
                             SolidMechanicsModel & model,
                             const ID & option) -> std::unique_ptr<Material> {
                    py::object obj = func(dim, id, model, option);

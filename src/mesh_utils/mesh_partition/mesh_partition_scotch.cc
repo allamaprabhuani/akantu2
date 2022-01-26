@@ -332,7 +332,7 @@ void MeshPartitionScotch::partitionate(
         mid /= conn.size();
 
         fgeominit << out_linerized_el++ << " ";
-        for (UInt s = 0; s < spatial_dimension; ++s) {
+        for (Int s = 0; s < spatial_dimension; ++s) {
           fgeominit << mid[s] << " ";
         }
 

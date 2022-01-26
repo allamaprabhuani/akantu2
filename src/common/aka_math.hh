@@ -54,16 +54,6 @@ namespace Math {
   extern Real tolerance; // NOLINT
 
   /* ------------------------------------------------------------------------ */
-  /* Matrix algebra                                                           */
-  /* ------------------------------------------------------------------------ */
-  /// determinent of a 3x3 matrix
-  static inline Real det3(const Real * mat);
-
-  /// solve A x = b using a LU factorization
-  template <typename T>
-  inline void solve(UInt n, const T * A, T * x, const T * b);
-
-  /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
   /// compute normal a normal to a vector
@@ -132,7 +122,7 @@ namespace Math {
   inline Real getTolerance() { return Math::tolerance; }
   inline void setTolerance(Real tol) { Math::tolerance = tol; }
 
-  template <UInt p, typename T> inline T pow(T x);
+  template <Int p, typename T> inline T pow(T x);
 
   template <class T1, class T2,
             std::enable_if_t<std::is_integral<T1>::value and
@@ -150,32 +140,23 @@ namespace Math {
   /// array is modified
   Real reduce(Array<Real> & array);
 
-  class NewtonRaphson {
+  template <class T> class NewtonRaphson {
   public:
-    NewtonRaphson(Real tolerance, Real max_iteration)
+    NewtonRaphson(Real tolerance, Int max_iteration)
         : tolerance(tolerance), max_iteration(max_iteration) {}
 
-    template <class Functor> Real solve(const Functor & funct, Real x_0);
+    template <class Functor> T solve(const Functor & funct, const T & x_0);
 
   private:
     Real tolerance;
-    Real max_iteration;
+    Int max_iteration;
   };
 
-  struct NewtonRaphsonFunctor {
+  template <class T> struct NewtonRaphsonFunctor {
     explicit NewtonRaphsonFunctor(const std::string & name) : name(name) {}
 
-    virtual ~NewtonRaphsonFunctor() = default;
-
-    NewtonRaphsonFunctor(const NewtonRaphsonFunctor & other) = default;
-    NewtonRaphsonFunctor(NewtonRaphsonFunctor && other) noexcept = default;
-    NewtonRaphsonFunctor &
-    operator=(const NewtonRaphsonFunctor & other) = default;
-    NewtonRaphsonFunctor &
-    operator=(NewtonRaphsonFunctor && other) noexcept = default;
-
-    virtual Real f(Real x) const = 0;
-    virtual Real f_prime(Real x) const = 0;
+    virtual T f(const T & x) const = 0;
+    virtual T f_prime(const T & x) const = 0;
 
     std::string name;
   };

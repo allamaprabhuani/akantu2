@@ -208,7 +208,7 @@ InterpolationElement<_itp_discrete_kirchhoff_triangle_18, _itk_structural>::
     i += mat->cols();
   }
 
-  for (UInt i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
     // clang-format off
     Eigen::Matrix<Real, 3, 6> Bm;
     Bm << dNm(0, i), 0,         0, 0, 0, 0,

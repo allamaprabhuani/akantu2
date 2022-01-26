@@ -43,13 +43,48 @@
 #ifndef AKANTU_AKA_TYPES_HH
 #define AKANTU_AKA_TYPES_HH
 
+namespace Eigen {
+template <typename PlainObjectType, int MapOptions, typename StrideType>
+struct Map;
+
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows,
+          int _MaxCols>
+struct Matrix;
+
+template <typename Derived> struct MatrixBase;
+
+} // namespace Eigen
+
 /* -------------------------------------------------------------------------- */
 namespace aka {
 template <typename T> struct is_eigen_map : public std::false_type {};
+
+template <typename PlainObjectType, int MapOptions, typename StrideType>
+struct is_eigen_map<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    : public std::true_type {};
+
+/* -------------------------------------------------------------------------- */
+template <typename T> struct is_eigen_matrix : public std::false_type {};
+
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows,
+          int _MaxCols>
+struct is_eigen_matrix<
+    Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>>
+    : public std::true_type {};
+
+/* -------------------------------------------------------------------------- */
+template <typename T> struct is_eigen_matrix_base : public std::false_type {};
+
+template <typename Derived>
+struct is_eigen_matrix_base<Eigen::MatrixBase<Derived>>
+    : public std::true_type {};
 } // namespace aka
 
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
+#define EIGEN_DEFAULT_IO_FORMAT                                                \
+  Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ",    \
+                  "[", "]", "[", "]")
 /* -------------------------------------------------------------------------- */
 #define EIGEN_MATRIXBASE_PLUGIN "aka_types_eigen_matrix_base_plugin.hh"
 #define EIGEN_MATRIX_PLUGIN "aka_types_eigen_matrix_plugin.hh"
@@ -113,9 +148,6 @@ using enable_if_matrices_t = std::enable_if_t<are_matrices<Ds...>::value>;
 template <typename... Ds>
 using enable_if_vectors_t = std::enable_if_t<are_vectors<Ds...>::value>;
 
-template <typename PlainObjectType, int MapOptions, typename StrideType>
-struct is_eigen_map<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
-    : public std::true_type {};
 /* -------------------------------------------------------------------------- */
 
 template <typename T>
@@ -123,6 +155,10 @@ struct is_tensor : public std::is_base_of<akantu::TensorTraitBase, T> {};
 
 template <typename PlainObjectType, int MapOptions, typename StrideType>
 struct is_tensor<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    : public std::true_type {};
+
+template <typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+struct is_tensor<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
     : public std::true_type {};
 
 template <typename T, Eigen::Index m, Eigen::Index n>

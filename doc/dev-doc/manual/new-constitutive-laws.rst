@@ -94,7 +94,7 @@ member declaration inside the class will look as follows::
 In order to enable to print the material parameters at any point in
 the user's example file using the standard output stream by typing::
 
-   for (UInt m = 0; m  < model.getNbMaterials(); ++m)
+   for (Int m = 0; m  < model.getNbMaterials(); ++m)
      std::cout << model.getMaterial(m) << std::endl;
 
 the standard output stream operator has to be redefined. This should be done at the end of the header file::

@@ -76,7 +76,7 @@ public:
   using MyFEEngineType =
       FEEngineTemplate<IntegratorGauss, ShapeStructural, _ek_structural>;
 
-  StructuralMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+  StructuralMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                            const ID & id = "structural_mechanics_model");
 
   ~StructuralMechanicsModel() override;

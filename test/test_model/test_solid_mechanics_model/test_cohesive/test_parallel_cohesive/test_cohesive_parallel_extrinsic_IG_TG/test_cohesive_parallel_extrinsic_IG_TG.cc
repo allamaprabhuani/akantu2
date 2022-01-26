@@ -94,7 +94,7 @@ private:
   const SolidMechanicsModelCohesive & model;
   const Mesh & mesh;
   const Mesh & mesh_facets;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   UInt nb_IG;
   UInt nb_TG;
@@ -109,7 +109,7 @@ void limitInsertion(SolidMechanicsModelCohesive & model) {
   const Mesh & mesh_facets = model.getMeshFacets();
   CohesiveElementInserter & inserter = model.getElementInserter();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> bary_facet(spatial_dimension);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -146,7 +146,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const UInt max_steps = 600;
 
   Mesh mesh(spatial_dimension);
@@ -192,7 +192,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
@@ -223,7 +223,7 @@ int main(int argc, char * argv[]) {
   Real loading_rate = 0.1;
   // bar_height  = 2
   Real VI = loading_rate * 2 * 0.5;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
     velocity(n, 0) = loading_rate * position(n, 0);
   }
@@ -238,10 +238,10 @@ int main(int argc, char * argv[]) {
   // UInt nb_coh_elem = 0;
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     dispy += VI * time_step;
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (position(n, 1) > 0.99) {
         displacement(n, 1) = dispy;
         velocity(n, 1) = VI;
@@ -303,8 +303,8 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  // for (UInt n = 0; n < position.getSize(); ++n) {
-  //   for (UInt s = 0; s < spatial_dimension; ++s) {
+  // for (Int n = 0; n < position.getSize(); ++n) {
+  //   for (Int s = 0; s < spatial_dimension; ++s) {
   //     position(n, s) += displacement(n, s);
   //   }
   // }

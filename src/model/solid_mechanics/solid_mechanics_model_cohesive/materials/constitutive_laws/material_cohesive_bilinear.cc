@@ -148,7 +148,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
   Real volume = 0.;
 
   // loop over facets
-  for (UInt f = 0; f < 2; ++f) {
+  for (Int f = 0; f < 2; ++f) {
     const auto & facet = coh_element_to_facet(f);
 
     const auto & facet_to_element =

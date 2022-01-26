@@ -186,7 +186,7 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
 
   it = neighborhoods.begin();
   /// store the names of local neighborhoods in the buffer
-  for (UInt i = 0; i < neighborhoods.size(); ++i, ++it) {
+  for (Int i = 0; i < neighborhoods.size(); ++i, ++it) {
     UInt c = 0;
     for (; c < it->first.size(); ++c) {
       buffer(i + starting_index, c) = it->first[c];
@@ -203,9 +203,9 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// exchange the names of all the neighborhoods with all procs
   static_communicator.allGatherV(buffer, buffer_size);
 
-  for (UInt i = 0; i < nb_neighborhoods_global; ++i) {
+  for (Int i = 0; i < nb_neighborhoods_global; ++i) {
     std::stringstream neighborhood_id;
-    for (UInt c = 0; c < max_id_size; ++c) {
+    for (Int c = 0; c < max_id_size; ++c) {
       if (buffer(i, c) == char(0)) {
         break;
       }
@@ -464,7 +464,7 @@ void NonLocalManager::cleanupExtraGhostElements() {
   //     new_numberings(type, _ghost).resize(nb_ghost_elem);
 
   //   Array<UInt> & new_numbering = new_numberings(type, _ghost);
-  //   for (UInt g = 0; g < nb_ghost_elem; ++g) {
+  //   for (Int g = 0; g < nb_ghost_elem; ++g) {
   //     element.element = g;
   //     if (element.element >= nb_ghost_elem_protected &&
   //         relevant_ghost_elements.find(element) ==
@@ -475,7 +475,7 @@ void NonLocalManager::cleanupExtraGhostElements() {
   //   }
   //   /// renumber remaining ghosts
   //   UInt ng = 0;
-  //   for (UInt g = 0; g < nb_ghost_elem; ++g) {
+  //   for (Int g = 0; g < nb_ghost_elem; ++g) {
   //     if (new_numbering(g) != UInt(-1)) {
   //       new_numbering(g) = ng;
   //       ++ng;
@@ -488,7 +488,7 @@ void NonLocalManager::cleanupExtraGhostElements() {
   //   if (!new_numberings.exists(type, _not_ghost))
   //     new_numberings.alloc(nb_elem, 1, type, _not_ghost);
   //   Array<UInt> & new_numbering = new_numberings(type, _not_ghost);
-  //   for (UInt e = 0; e < nb_elem; ++e) {
+  //   for (Int e = 0; e < nb_elem; ++e) {
   //     new_numbering(e) = e;
   //   }
   // }

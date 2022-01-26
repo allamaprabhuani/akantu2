@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
   initialize("embedded_element.dat", argc, argv);
 
-  constexpr UInt dim = 2;
+  constexpr Int dim = 2;
   constexpr ElementType type = _segment_2;
   const Real height = 0.4;
 

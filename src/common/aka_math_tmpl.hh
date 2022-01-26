@@ -80,33 +80,6 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
-  template <typename T>
-  inline void solve(UInt n, const T * A, T * x, const T * b) {
-    int N = n;
-    int info;
-    std::vector<int> ipiv(N);
-    std::vector<T> lu_A(N * N);
-
-    std::copy(A, A + N * N, lu_A.begin());
-
-    aka_getrf(&N, &N, lu_A.data(), &N, ipiv.data(), &info);
-    if (info > 0) {
-      AKANTU_ERROR("Singular matrix - cannot factorize it (info: " << info
-                                                                   << " )");
-    }
-
-    char trans = 'N';
-    int nrhs = 1;
-
-    std::copy(b, b + N, x);
-
-    aka_getrs(&trans, &N, &nrhs, lu_A.data(), &N, ipiv.data(), x, &N, &info);
-    if (info != 0) {
-      AKANTU_ERROR("Cannot solve the system (info: " << info << " )");
-    }
-  }
-
-  /* ------------------------------------------------------------------------ */
   template <class D1, class D2, class D3>
   static inline Real triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
                                        const Eigen::MatrixBase<D2> & coord2,
@@ -115,7 +88,7 @@ namespace Math {
     auto b = coord2.distance(coord3);
     auto c = coord1.distance(coord3);
 
-    auto s = (a + b + c) * 0.5;
+    auto s = (a + b + c) / 2.;
 
     return std::sqrt((s - a) * (s - b) * (s - c) / s);
   }
@@ -189,19 +162,6 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
-  inline void vector_2d(const Real * x, const Real * y, Real * res) {
-    res[0] = y[0] - x[0];
-    res[1] = y[1] - x[1];
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline void vector_3d(const Real * x, const Real * y, Real * res) {
-    res[0] = y[0] - x[0];
-    res[1] = y[1] - x[1];
-    res[2] = y[2] - x[2];
-  }
-
-  /* ------------------------------------------------------------------------ */
   /// Combined absolute and relative tolerance test proposed in
   /// Real-time collision detection by C. Ericson (2004)
   inline bool are_float_equal(const Real x, const Real y) {
@@ -246,23 +206,19 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
-  template <UInt p, typename T> inline T pow(T x) {
+  template <Int p, typename T> inline T pow(T x) {
     return (pow<p - 1, T>(x) * x);
   }
-  template <> inline UInt pow<0, UInt>(__attribute__((unused)) UInt x) {
-    return (1);
-  }
-  template <> inline Real pow<0, Real>(__attribute__((unused)) Real x) {
-    return (1.);
-  }
+  template <> inline Int pow<0, Int>(Int /*x*/) { return (1); }
+  template <> inline Real pow<0, Real>(Real /*x*/) { return (1.); }
 
   /* ------------------------------------------------------------------------ */
-
+  template <class T>
   template <class Functor>
-  Real NewtonRaphson::solve(const Functor & funct, Real x_0) {
-    Real x = x_0;
-    Real f_x = funct.f(x);
-    UInt iter = 0;
+  T NewtonRaphson<T>::solve(const Functor & funct, const T & x_0) {
+    T x = x_0;
+    T f_x = funct.f(x);
+    Int iter = 0;
     while (std::abs(f_x) > this->tolerance && iter < this->max_iteration) {
       x -= f_x / funct.f_prime(x);
       f_x = funct.f(x);

@@ -184,7 +184,7 @@ number of components per tuple must be specified at the :cpp:class:`Array
 values) of ten nodes, the appropriate code is the following::
 
   UInt nb_nodes = 10;
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
 
   Array<Real> position(nb_nodes, spatial_dimension);
 

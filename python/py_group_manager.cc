@@ -135,8 +135,8 @@ void register_group_manager(py::module & mod) {
            py::return_value_policy::reference)
       .def(
           "createElementGroup",
-          [](GroupManager & self, const std::string & id,
-             UInt spatial_dimension, bool b) -> decltype(auto) {
+          [](GroupManager & self, const std::string & id, Int spatial_dimension,
+             bool b) -> decltype(auto) {
             return self.createElementGroup(id, spatial_dimension, b);
           },
           py::return_value_policy::reference)

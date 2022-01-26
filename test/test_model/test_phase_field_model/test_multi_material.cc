@@ -43,7 +43,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 void applyDisplacement(SolidMechanicsModel &, Real &);
@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
   UInt nbSteps = 1000;
   Real increment = 1e-4;
 
-  for (UInt s = 0; s < nbSteps; ++s) {
+  for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
     applyDisplacement(model, axial_strain);
 
@@ -108,7 +108,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
   auto & positions = model.getMesh().getNodes();
   auto & blocked_dofs = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < model.getMesh().getNbNodes(); ++n) {
+  for (Int n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -1) {
       displacement(n, 1) = 0;
       blocked_dofs(n, 1) = true;

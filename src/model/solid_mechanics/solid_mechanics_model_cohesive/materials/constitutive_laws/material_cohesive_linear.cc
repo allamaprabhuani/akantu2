@@ -146,21 +146,21 @@ template <Int dim> void MaterialCohesiveLinear<dim>::scaleInsertionTraction() {
 
     auto nb_quad_per_facet = fe_engine_facet.getNbIntegrationPoints(type_facet);
 
-    for(auto && data : enumerate(make_view(sigma_c(type_facet), nb_quad_per_facet))) {
+    for (auto && data :
+         enumerate(make_view(sigma_c(type_facet), nb_quad_per_facet))) {
       auto f = std::get<0>(data);
       auto && sigma_c = std::get<1>(data);
 
       // compute bounding volume
       Real volume = 0;
 
-      for(auto && elem : facet_to_element(f)) {
-          if (elem == ElementNull) {
+      for (auto && elem : facet_to_element(f)) {
+        if (elem == ElementNull) {
           continue;
         }
 
         // unit vector for integration in order to obtain the volume
-        auto nb_quadrature_points =
-            fe_engine.getNbIntegrationPoints(elem.type);
+        auto nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem.type);
         Vector<Real> unit_vector(nb_quadrature_points);
         unit_vector.fill(1);
 
@@ -225,7 +225,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
     const auto & normals = model->getFEEngine("FacetsFEEngine")
                                .getNormalsOnIntegrationPoints(type_facet);
     auto normal_begin = make_view<dim>(normals).begin();
-    auto tangent_begin = make_view<dim, dim == 3 ? 2 : 1>(tangents).begin();
+    auto tangent_begin = make_view < dim, dim == 3 ? 2 : 1 > (tangents).begin();
     auto facet_stress_begin = make_view<dim, dim * 2>(f_stress).begin();
 
     std::vector<Real> new_sigmas;
@@ -262,8 +262,8 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
       // verify if the effective stress overcomes the threshold
       auto final_stress = stress_check.mean();
       if (max_quad_stress_insertion) {
-        final_stress = *std::max_element(
-            stress_check.data(), stress_check.data() + nb_quad_facet);
+        final_stress = *std::max_element(stress_check.data(),
+                                         stress_check.data() + nb_quad_facet);
       }
 
       if (final_stress > *sigma_lim_it) {
@@ -308,7 +308,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
     trac_old.resize(old_nb_quad_points + new_nb_quad_points);
     del_c.resize(old_nb_quad_points + new_nb_quad_points);
 
-    for (UInt q = 0; q < new_nb_quad_points; ++q) {
+    for (Int q = 0; q < new_nb_quad_points; ++q) {
       sig_c_eff(old_nb_quad_points + q) = new_sigmas[q];
       del_c(old_nb_quad_points + q) = new_delta_c[q];
       for (Int d = 0; d < dim; ++d) {

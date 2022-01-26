@@ -91,10 +91,9 @@ public:
                            const SynchronizationTag & tag) = 0;
 
   /// inherited function from MeshEventHandler
-  virtual void
-  onElementsRemoved(const Array<Element> & element_list,
-                    const ElementTypeMapArray<Idx> & new_numbering,
-                    const RemovedElementsEvent & event);
+  virtual void onElementsRemoved(const Array<Element> & element_list,
+                                 const ElementTypeMapArray<Idx> & new_numbering,
+                                 const RemovedElementsEvent & event);
 
 protected:
   /// create the grid
@@ -143,7 +142,7 @@ protected:
   const ElementTypeMapArray<Real> & quad_coordinates;
 
   /// the spatial dimension of the problem
-  const UInt spatial_dimension;
+  const Int spatial_dimension;
 };
 
 } // namespace akantu

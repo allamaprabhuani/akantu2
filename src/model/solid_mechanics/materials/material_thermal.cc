@@ -41,7 +41,7 @@ template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
                                       const ID & id)
     : Material(model, id), delta_T("delta_T", *this),
-      sigma_th("sigma_th", *this), use_previous_stress_thermal(false) {
+      sigma_th("sigma_th", *this) {
   this->initialize();
 }
 
@@ -52,8 +52,7 @@ MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
                                       FEEngine & fe_engine, const ID & id)
     : Material(model, spatial_dimension, mesh, fe_engine, id),
       delta_T("delta_T", *this, dim, fe_engine, this->element_filter),
-      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter),
-      use_previous_stress_thermal(false) {
+      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter) {
   this->initialize();
 }
 
@@ -74,10 +73,7 @@ template <Int dim> void MaterialThermal<dim>::initialize() {
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialThermal<dim>::initMaterial() {
   sigma_th.initialize(1);
-
-  if (use_previous_stress_thermal) {
-    sigma_th.initializeHistory();
-  }
+  sigma_th.initializeHistory();
 
   Material::initMaterial();
 }

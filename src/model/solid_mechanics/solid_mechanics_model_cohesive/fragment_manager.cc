@@ -63,7 +63,7 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
       dump_data(dump_data) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   /// compute quadrature points' coordinates
   quad_coordinates.initialize(mesh, _nb_component = spatial_dimension,
@@ -148,7 +148,7 @@ void FragmentManager::buildFragments(Real damage_limit) {
 
   auto & mesh_facets = mesh.getMeshFacets();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   std::string fragment_prefix("fragment");
 
   /// generate fragments
@@ -182,7 +182,7 @@ void FragmentManager::buildFragments(Real damage_limit) {
 void FragmentManager::computeMass() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
   /// create a unit field per quadrature point, since to compute mass
   /// it's neccessary to integrate only density
@@ -220,7 +220,7 @@ void FragmentManager::computeCenterOfMass() {
 void FragmentManager::computeVelocity() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
   /// compute velocity per quadrature point
   ElementTypeMapArray<Real> velocity_field("velocity_field", id);
@@ -261,7 +261,7 @@ void FragmentManager::computeVelocity() {
 void FragmentManager::computeInertiaMoments() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
   computeCenterOfMass();
 
@@ -471,7 +471,7 @@ void FragmentManager::integrateFieldOnFragments(
 void FragmentManager::computeNbElementsPerFragment() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   nb_elements_per_fragment.resize(global_nb_fragment);
   nb_elements_per_fragment.zero();
 

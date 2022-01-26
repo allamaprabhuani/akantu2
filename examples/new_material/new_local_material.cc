@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
   UInt max_steps = 10000;
   Real epot, ekin;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("barre_trou.msh");
@@ -85,7 +85,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     epot = model.getEnergy("potential");

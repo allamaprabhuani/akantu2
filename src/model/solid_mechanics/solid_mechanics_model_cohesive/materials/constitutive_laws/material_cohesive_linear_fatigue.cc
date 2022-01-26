@@ -129,16 +129,15 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     delta_dot_prec_array = &delta_dot_prec(el_type, ghost_type);
   }
 
-
   Vector<Real, spatial_dimension> normal_opening;
   Vector<Real, spatial_dimension> tangential_opening;
 
   Real tolerance = Math::getTolerance();
 
   /// loop on each quadrature point
-  for (UInt q = 0; traction_it != traction_end; ++traction_it, ++opening_it,
-            ++normal_it, ++contact_traction_it, ++insertion_stress_it,
-            ++contact_opening_it, ++q) {
+  for (Int q = 0; traction_it != traction_end; ++traction_it, ++opening_it,
+           ++normal_it, ++contact_traction_it, ++insertion_stress_it,
+           ++contact_opening_it, ++q) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);

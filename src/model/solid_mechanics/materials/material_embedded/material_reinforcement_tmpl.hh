@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 MaterialReinforcement<Mat, dim>::MaterialReinforcement(
     EmbeddedInterfaceModel & model, const ID & id)
     : Mat(model, 1, model.getInterfaceMesh(),
@@ -60,7 +60,7 @@ MaterialReinforcement<Mat, dim>::MaterialReinforcement(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initialize() {
   AKANTU_DEBUG_IN();
 
@@ -77,7 +77,7 @@ void MaterialReinforcement<Mat, dim>::initialize() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 MaterialReinforcement<Mat, dim>::~MaterialReinforcement() {
   AKANTU_DEBUG_IN();
 
@@ -86,7 +86,7 @@ MaterialReinforcement<Mat, dim>::~MaterialReinforcement() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initMaterial() {
   Mat::initMaterial();
 
@@ -102,7 +102,7 @@ void MaterialReinforcement<Mat, dim>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 /// Initialize the filter for background elements
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initFilters() {
   for (auto gt : ghost_types) {
     for (auto && type : emodel.getInterfaceMesh().elementTypes(1, gt)) {
@@ -133,7 +133,7 @@ void MaterialReinforcement<Mat, dim>::initFilters() {
 
 /* -------------------------------------------------------------------------- */
 /// Construct a filter for a (interface_type, background_type) pair
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::filterInterfaceBackgroundElements(
     Array<UInt> & foreground, Array<UInt> & background, ElementType type,
     ElementType interface_type, GhostType ghost_type) {
@@ -162,7 +162,7 @@ void MaterialReinforcement<Mat, dim>::filterInterfaceBackgroundElements(
 namespace detail {
   class BackgroundShapeDInitializer : public ElementTypeMapArrayInitializer {
   public:
-    BackgroundShapeDInitializer(UInt spatial_dimension, FEEngine & engine,
+    BackgroundShapeDInitializer(Int spatial_dimension, FEEngine & engine,
                                 ElementType foreground_type,
                                 const ElementTypeMapArray<UInt> & filter,
                                 GhostType ghost_type)
@@ -200,7 +200,7 @@ namespace detail {
  * in an ElementTypeMap<ElementTypeMapArray<Real> *>. The outer ElementTypeMap
  * refers to the embedded types, and the inner refers to the background types.
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::allocBackgroundShapeDerivatives() {
   AKANTU_DEBUG_IN();
 
@@ -228,7 +228,7 @@ void MaterialReinforcement<Mat, dim>::allocBackgroundShapeDerivatives() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initBackgroundShapeDerivatives() {
   AKANTU_DEBUG_IN();
 
@@ -244,7 +244,7 @@ void MaterialReinforcement<Mat, dim>::initBackgroundShapeDerivatives() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeBackgroundShapeDerivatives(
     ElementType interface_type, ElementType bg_type, GhostType ghost_type,
     const Array<UInt> & filter) {
@@ -286,7 +286,7 @@ void MaterialReinforcement<Mat, dim>::computeBackgroundShapeDerivatives(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initDirectingCosines() {
   AKANTU_DEBUG_IN();
 
@@ -305,7 +305,7 @@ void MaterialReinforcement<Mat, dim>::initDirectingCosines() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -321,7 +321,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForces(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -336,7 +336,7 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForces(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -351,7 +351,7 @@ void MaterialReinforcement<Mat, dim>::computeAllStresses(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::addPrestress(ElementType type,
                                                    GhostType ghost_type) {
   auto & stress = this->stress(type, ghost_type);
@@ -363,7 +363,7 @@ void MaterialReinforcement<Mat, dim>::addPrestress(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForces(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -386,7 +386,7 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForces(
  * \vec{r} = A_s \int_S{\mathbf{B}^T\mathbf{C}^T \vec{\sigma_s}\,\mathrm{d}s}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
     ElementType interface_type, ElementType background_type,
     GhostType ghost_type) {
@@ -452,7 +452,7 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeDirectingCosines(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -497,7 +497,7 @@ void MaterialReinforcement<Mat, dim>::computeDirectingCosines(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -519,7 +519,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
  * \mathbf{C}_i^T \mathbf{D}_{s, i} \mathbf{C}_i \mathbf{B}\,\mathrm{d}s}}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
     ElementType interface_type, ElementType background_type,
     GhostType ghost_type) {
@@ -609,7 +609,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 Real MaterialReinforcement<Mat, dim>::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
   if (id == "potential") {
@@ -636,7 +636,7 @@ Real MaterialReinforcement<Mat, dim>::getEnergy(const std::string & id) {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeGradU(ElementType interface_type,
                                                    GhostType ghost_type) {
   // Looping over background types
@@ -695,7 +695,7 @@ void MaterialReinforcement<Mat, dim>::computeGradU(ElementType interface_type,
  * \frac{\mathrm{d}\vec{r}(s)}{\mathrm{d}s}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 inline void MaterialReinforcement<Mat, dim>::computeDirectingCosinesOnQuad(
     const Matrix<Real> & nodes, Matrix<Real> & cosines) {
   AKANTU_DEBUG_IN();
@@ -732,7 +732,7 @@ inline void MaterialReinforcement<Mat, dim>::computeDirectingCosinesOnQuad(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 inline void MaterialReinforcement<Mat, dim>::stressTensorToVoigtVector(
     const Matrix<Real> & tensor, Vector<Real> & vector) {
   AKANTU_DEBUG_IN();
@@ -754,12 +754,12 @@ inline void MaterialReinforcement<Mat, dim>::stressTensorToVoigtVector(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 inline void MaterialReinforcement<Mat, dim>::strainTensorToVoigtVector(
     const Matrix<Real> & tensor, Vector<Real> & vector) {
   AKANTU_DEBUG_IN();
 
-  for (UInt i = 0; i < dim; i++) {
+  for (Int i = 0; i < dim; i++) {
     vector(i) = tensor(i, i);
   }
 
