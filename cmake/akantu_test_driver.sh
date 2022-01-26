@@ -146,5 +146,5 @@ fi
 
 if [ -n "${reference}" ]; then
   echo "Comparing last generated output to the reference file"
-  diff -w "${lastout}" "${reference}"
+  diff -biwI "([0-9]\+ ms\( total\)\?)" "${lastout}" "${reference}"
 fi

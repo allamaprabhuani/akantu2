@@ -32,81 +32,27 @@
 #
 #===============================================================================
 
-
-register_test(test_buildfacets_triangle_3
-  SOURCES test_buildfacets_triangle_3.cc
-  FILES_TO_COPY triangle_3.msh
-  PACKAGE cohesive_element
+set(_meshes
+  _triangle_3.msh
+  _triangle_6.msh
+  _quadrangle_4.msh
+  _quadrangle_8.msh
+  _quadrangle_4_triangle_3.msh
+  _quadrangle_8_triangle_6.msh
+  _tetrahedron_10.msh
+  _hexahedron_8.msh
+  _hexahedron_20.msh
+  _pentahedron_6.msh
+  _pentahedron_15.msh
+  _hexahedron_8_pentahedron_6.msh
+  _hexahedron_20_pentahedron_15.msh
   )
 
-register_test(test_buildfacets_triangle_6
-  SOURCES test_buildfacets_triangle_6.cc
-  FILES_TO_COPY triangle_6.msh
-  PACKAGE cohesive_element
+register_gtest_sources(
+  SOURCES test_buildfacets.cc
+  PACKAGE core
   )
 
-register_test(test_buildfacets_quadrangle_4
-  SOURCES test_buildfacets_quadrangle_4.cc
-  FILES_TO_COPY quadrangle_4.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_quadrangle_8
-  SOURCES test_buildfacets_quadrangle_8.cc
-  FILES_TO_COPY quadrangle_8.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_mixed2d_linear
-  SOURCES test_buildfacets_mixed2d_linear.cc
-  FILES_TO_COPY mixed2d_linear.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_mixed2d_quadratic
-  SOURCES test_buildfacets_mixed2d_quadratic.cc
-  FILES_TO_COPY mixed2d_quadratic.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_tetrahedron_10
-  SOURCES test_buildfacets_tetrahedron_10.cc
-  FILES_TO_COPY tetrahedron_10.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_hexahedron_8
-  SOURCES test_buildfacets_hexahedron_8.cc
-  FILES_TO_COPY hexahedron_8.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_hexahedron_20
-  SOURCES test_buildfacets_hexahedron_20.cc
-  FILES_TO_COPY hexahedron_20.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_pentahedron_6
-  SOURCES test_buildfacets_pentahedron_6.cc
-  FILES_TO_COPY pentahedron_6.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_pentahedron_15
-  SOURCES test_buildfacets_pentahedron_15.cc
-  FILES_TO_COPY pentahedron_15.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_mixed3d_linear
-  SOURCES test_buildfacets_mixed3d_linear.cc
-  FILES_TO_COPY mixed3d_linear.msh
-  PACKAGE cohesive_element
-  )
-
-register_test(test_buildfacets_mixed3d_quadratic
-  SOURCES test_buildfacets_mixed3d_quadratic.cc
-  FILES_TO_COPY mixed3d_quadratic.msh
-  PACKAGE cohesive_element
+register_gtest_test(test_buildfacets
+  FILES_TO_COPY ${_meshes}
   )
