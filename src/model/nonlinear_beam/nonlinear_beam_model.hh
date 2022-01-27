@@ -77,11 +77,14 @@ protected:
 
   void N_grad_matrix(Array<Real> &dNs);
 
-  void B_matrix();
+  void B_matrix(Array<Real> B_mat);
 
-  void get_rotation_matrix();
+  void get_rotation_matrix(Array<Real> L, bool origin = false);
   
   void interpolate(Array<Real> &field, Array<Real> &interField);
+  void grad_interpolate(Array<Real> &field, Array<Real> &interField);
+
+  void computeStrains(Array<Real> strains, bool origin);
 
   void assembleInternalForces();
 
@@ -180,6 +183,11 @@ public:
   /// get the NonlinearBeamModel::blocked_dofs array
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
+  /// get the NonlinearBeamModel::initial_angle array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Initial_Angle, initial_angle);
+  /// get the NonlinearBeamModel::initial_angle array
+  AKANTU_GET_MACRO_DEREF_PTR(Initial_Angle, initial_angle);
+
 protected:
   /* ------------------------------------------------------------------------ */
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
@@ -232,6 +240,9 @@ private:
 
   /// blocked dofs array
   std::unique_ptr<Array<bool>> blocked_dofs;
+
+  /// initial angle
+  std::unique_ptr<Array<Real>> initial_angle;
 
 };
 

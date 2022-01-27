@@ -169,6 +169,8 @@ void NonlinearBeamModel::initSolver(TimeStepSolverType time_step_solver_type,
                         "external_force_torque");
   //
   this->allocNodalField(this->blocked_dofs, 2*spatial_dimension, "blocked_dofs");
+  //
+  this->allocNodalField(this->initial_angle, spatial_dimension, "initial_angle");
   
 
   /* ------------------------------------------------------------------------ */
@@ -332,11 +334,35 @@ void NonlinearBeamModel::N_rotator_matrix(Array<Real> & N_rot_mat) {
 }
 
 
-void NonlinearBeamModel::B_matrix() {
+void NonlinearBeamModel::B_matrix(Array<Real> B_mat) {
+  
+  AKANTU_DEBUG_IN();
+  UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
+  const auto & derivative_shape_vector = getFEEngine().getShapesDerivatives(type);
+  
+  Array<Real> L(derivative_shape_vector.size(), spatial_dimension*nb_node_per_element);
+  Array<Real> N_rot_mat(derivative_shape_vector.size(),2*spatial_dimension*2*spatial_dimension*nb_node_per_element);
+  this->get_rotation_matrix(L);
+  this->N_rotator_matrix(N_rot_mat);
+  Matrix<Real> Rot(6,6);
 
+  for (auto && data : zip(make_view(L, spatial_dimension, nb_node_per_element), make_view(N_rot_mat, 2* spatial_dimension, 2*spatial_dimension*nb_node_per_element), make_view(dNs, 2* spatial_dimension, 2*spatial_dimension*nb_node_per_element), make_view(B_mat, 2* spatial_dimension, 2*spatial_dimension*nb_node_per_element))) {
+    auto & LL = std::get<0>(data);
+    auto & N_rot = std::get<1>(data);
+    auto & dN = std::get<2>(data);
+    auto & B = std::get<3>(data);
+
+    Rot.set(0.);
+    Rot.block(LL, 0, 0);
+    Rot.block(LL, 3, 3);
+
+    B = Rot.transpose() * (dN + N_rot);
+  }
+  AKANTU_DEBUG_OUT();
+    
 }
 
-void NonlinearBeamModel::get_rotation_matrix() {
+void NonlinearBeamModel::get_rotation_matrix(Array<Real> L, bool origin) {
   
   AKANTU_DEBUG_IN();
   const auto & shape_vector = getFEEngine().getShapes(type);
@@ -344,26 +370,30 @@ void NonlinearBeamModel::get_rotation_matrix() {
   
   Array<Real> inter_angle(shape_vector.size(), nb_node_per_element);
   Array<Real> inter_initAngle(shape_vector.size(), nb_node_per_element);
-
-  Array<Real> angle(this->linear_angular_displacement->size(), nb_node_per_element * spatial_dimension);
+  Array<Real> angle(this->linear_angular_displacement->size(), spatial_dimension);
   
-  ///seprarer les champs en lin et ang
-
-  
-  
-  
-  
+  for (auto && data : zip(make_view(angle, spatial_dimension), make_view(*(this->linear_angular_displacement), spatial_dimension, 2))) {
+    std::get<0>(data) = std::get<1>(data)(1);
+  }
+    
   this->interpolate(angle, inter_angle);
-  //inter_initAngle = this->interpolate(field, inter_initAngle);
+  this->interpolate(*(this->initial_angle), inter_initAngle);
+
+  for (auto && data : zip(make_view(L, spatial_dimension,nb_node_per_element), make_view(inter_angle, spatial_dimension), make_view(inter_initAngle, spatial_dimension))) {
+    auto & LL = std::get<0>(data);
+;
+    LL = expMap(std::get<2>(data));
+    if (not origin) {
+      LL = expMap(std::get<1>(data)) * LL;
+    }
+  }
+  AKANTU_DEBUG_OUT();
   
 }
 
 void NonlinearBeamModel::interpolate(Array<Real> &field, Array<Real> &interField) {
   AKANTU_DEBUG_IN();
   const auto & shape_vector = getFEEngine().getShapes(type);
-  //Array<Real> interField(derivative_shape_vector.size(),nb_nodes_per_element);
-  //Array<Real> field(nb_nodes, nb_nodes_per_elem*spatial_dimension);
-
   UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
 
   auto conn_it = make_view(mesh.getConnectivity(type), nb_node_per_element).begin();
@@ -378,26 +408,159 @@ void NonlinearBeamModel::interpolate(Array<Real> &field, Array<Real> &interField
     Vector<UInt> conn = conn_it[elem];
     for (UInt nd = 0; nd<nb_node_per_element; ++nd) {
       Vector<Real> F = Matrix<Real> (field_it[conn(nd)])(0);
-      intF= F * N(nd);
-    }
-    
-    
+      intF += F * N(nd);
+    }   
+  }
+  AKANTU_DEBUG_OUT();  
+}
+
+void NonlinearBeamModel::grad_interpolate(Array<Real> &field, Array<Real> &gradinterField) {
+  AKANTU_DEBUG_IN();
+  const auto & derivative_shape_vector = getFEEngine().getShapesDerivatives(type);
+  UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
+
+  auto conn_it = make_view(mesh.getConnectivity(type), nb_node_per_element).begin();
+  auto field_it = make_view(field, spatial_dimension, 1).begin();
+  auto nb_quad_points = getFEEngine().getNbIntegrationPoints(type);
+  
+  for (auto && data : enumerate(make_view(derivative_shape_vector, nb_node_per_element), make_view(gradinterField, nb_node_per_element))) {
+    auto & dN = std::get<1>(data);
+    auto & gintF = std::get<2>(data);
+    auto elem = std::get<0>(data)/nb_quad_points;
+
+    Vector<UInt> conn = conn_it[elem];
+    for (UInt nd = 0; nd<nb_node_per_element; ++nd) {
+      Vector<Real> F = Matrix<Real> (field_it[conn(nd)])(0);
+      gintF += F * dN(nd);
+    }   
   }
   AKANTU_DEBUG_OUT();  
 }
 
 
-/*
-Matrix<Real> NonlinearBeamModel::B_matrix(Real xi) {
+void NonlinearBeamModel::computeStrains(Array<Real> strains, bool origin) {
+
   AKANTU_DEBUG_IN();
+  UInt nb_node_per_element = Mesh::getNbNodesPerElement(type);
+  const auto & shape_vector = getFEEngine().getShapes(type);
 
-  Array<Real> L = (dim, 3*3);
+  Array<Real> pos(this->linear_angular_displacement->size(), spatial_dimension);
 
-  for (auto && data : zip(make_view(dNs, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element), make_view(N_rot, 2* spatial_dimension, 2*spatial_dimension*nb_nodes_per_element), make_view(L, 3, 2))) {
-    auto & dN = std::get<0>(data);
-    auto & N_rot_mat = std::get<1>(data);
-    auto & LL = std::get
-*/
+  for (auto && data : zip(make_view(pos, spatial_dimension), make_view(mesh.getNodes(), spatial_dimension), make_view(*(this->linear_angular_displacement), spatial_dimension, 2))) {
+    auto P = std::get<0>(data);
+    auto init_P = std::get<1>(data);
+    auto lin_disp = std::get<2>(data)(0);
+
+    P = init_P;
+    if (not origin) {
+      P = init_P + Vector<Real> (lin_disp);
+    }
+  }
+
+  Array<Real> L(shape_vector.size(), spatial_dimension*nb_node_per_element);
+  Array<Real> L0(shape_vector.size(), spatial_dimension*nb_node_per_element);
+  this->get_rotation_matrix(L, origin);
+  this->get_rotation_matrix(L0, true);
+
+  Array<Real> theta(this->linear_angular_displacement->size(), spatial_dimension);
+  for (auto && data : zip(make_view(theta, spatial_dimension), make_view(*(this->linear_angular_displacement), spatial_dimension, 2))) {
+    std::get<0>(data) = std::get<1>(data)(1);
+  }
+
+  Array<Real> Gamma(shape_vector.size(), spatial_dimension);
+  Array<Real> B(shape_vector.size(), spatial_dimension);
+  Array<Real> Bp(shape_vector.size(), spatial_dimension);
+  this->grad_interpolate(pos, Gamma);
+  this->interpolate(theta, B);
+  this->grad_interpolate(theta, Bp);
+
+  Matrix<Real> Omega_hat(3,3);
+  Vector<Real> e3 = {0., 0., 1.};
+
+  for (auto && data : zip(make_view(L,spatial_dimension,nb_node_per_element), make_view(L0, spatial_dimension,nb_node_per_element), make_view(Gamma, nb_node_per_element), make_view(B, nb_node_per_element), make_view(Bp, nb_node_per_element), make_view(strains, spatial_dimension, 2))) {
+    auto & LL = std::get<0>(data);
+    auto & LL0 = std::get<1>(data);
+    auto & Gam = std::get<2>(data);
+    auto & BB = std::get<3>(data);
+    auto & BBp = std::get<4>(data);
+    auto & strain = std::get<5>(data);
+    
+    Omega_hat = LL.transpose() * expDerivative(BB, BBp) * LL0;
+    strain(1) = skew2vec(Omega_hat);
+    strain(0) = LL.transpose() * Gam - e3;
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+  
+
+void NonlinearBeamModel::ConstitutiveC() {
+
+}
+
+void NonlinearBeamModel::computeJbar() {
+
+}
+
+void NonlinearBeamModel::computeStresses(Array<Real> stresses) {
+
+  AKANTU_DEBUG_IN();
+  Array<Real> strains(dim, 2*spatial_dimension);
+  this->computeStrains(strains);
+  Array<Real> C(dim, 2*spatial_dimension*2*nb_nodes_per_element);
+  this->constitutive_C(C);
+
+  for (auto && data :zip(make_view(stresses, 2*spatial_dimension), make_view(strains, 2*spatial_dimension), make_view(C, 2*spatial_dimension, 2*nb_node_per_element))){
+    auto & stress = std::get<0>(data);
+    auto & strain = std::get<1>(data);
+    auto & CC = std::get<2>(data);
+
+    stress = CC * strain;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void NonlinearBeamModel::assembleInternalForces() {
