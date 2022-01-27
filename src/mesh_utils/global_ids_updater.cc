@@ -72,7 +72,7 @@ Int GlobalIdsUpdater::updateGlobalIDsLocally(Int local_nb_new_nodes) {
     return this->mesh.isLocalOrMasterNode(n);
   };
 
-  Vector<Int> local_master_nodes(2, 0);
+  Vector<Int, 2> local_master_nodes(Vector<Int, 2>::Zero());
   /// compute the number of global nodes based on the number of old nodes
   auto range_old = arange(old_nb_nodes);
   local_master_nodes(0) =

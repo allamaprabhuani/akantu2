@@ -88,8 +88,7 @@ int main(int argc, char * argv[]) {
       val = {-1, -1};
     }
 
-    Vector<Int> data = it_data[local_dof];
-    data = val;
+    it_data[local_dof] = val;
   }
 
   dof_synchronizer.synchronizeArray(local_data_array);
@@ -102,7 +101,7 @@ int main(int argc, char * argv[]) {
 
       Vector<Int> exp_val;
 
-      UInt global_dof = dof_manager.localToGlobalEquationNumber(local_dof);
+      auto global_dof = dof_manager.localToGlobalEquationNumber(local_dof);
 
       if (dof_manager.isLocalOrMasterDOF(equ_number) ||
           dof_manager.isSlaveDOF(equ_number)) {
@@ -112,7 +111,7 @@ int main(int argc, char * argv[]) {
         exp_val = {-1, -1};
       }
 
-      Vector<Int> val = it_data[local_dof];
+      auto && val = it_data[local_dof];
       if (exp_val != val) {
         std::cerr << "Failed !" << prank << " DOF: " << global_dof << " - l"
                   << local_dof << " value:" << val << " expected: " << exp_val

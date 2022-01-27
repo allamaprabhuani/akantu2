@@ -746,7 +746,7 @@ Int GroupManager::getNbElementGroups(Int dimension) const {
 void GroupManager::checkAndAddGroups(DynamicCommunicationBuffer & buffer) {
   AKANTU_DEBUG_IN();
 
-  Int nb_node_group;
+  decltype(this->node_groups.size()) nb_node_group;
   buffer >> nb_node_group;
   AKANTU_DEBUG_INFO("Received " << nb_node_group << " node group names");
 
@@ -761,7 +761,7 @@ void GroupManager::checkAndAddGroups(DynamicCommunicationBuffer & buffer) {
     AKANTU_DEBUG_INFO("Received node goup name: " << node_group_name);
   }
 
-  Int nb_element_group;
+  decltype(this->element_groups.size()) nb_element_group;
   buffer >> nb_element_group;
   AKANTU_DEBUG_INFO("Received " << nb_element_group << " element group names");
   for (Int eg = 0; eg < nb_element_group; ++eg) {
@@ -809,13 +809,12 @@ void GroupManager::fillBufferWithGroupNames(
   nb_groups = this->element_groups.size();
   comm_buffer << nb_groups;
   AKANTU_DEBUG_INFO("Sending " << nb_groups << " element group names");
-  auto gnames_it = this->element_groups.begin();
-  auto gnames_end = this->element_groups.end();
-  for (; gnames_it != gnames_end; ++gnames_it) {
-    auto & element_group = *(gnames_it->second);
-    std::string element_group_name = gnames_it->first;
+
+  for (auto && pair : this->element_groups) {
+    auto & element_group = *(pair.second);
+    std::string element_group_name = pair.first;
     std::string node_group_name = element_group.getNodeGroup().getName();
-    auto dim = element_group.getDimension();
+    Int dim = element_group.getDimension();
 
     comm_buffer << element_group_name;
     comm_buffer << node_group_name;

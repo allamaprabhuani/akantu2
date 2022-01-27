@@ -202,7 +202,7 @@ inline void ContactDetector::vectorsAlongElement(const Element & el,
   this->coordinatesOfElement(el, coords);
 
   for (auto i : arange(spatial_dimension - 1)) {
-    vectors(i) = Vector<Real>(coords(i + 1)) - Vector<Real>(coords(0));
+    vectors(i) = coords(i + 1) - coords(0);
   }
 }
 

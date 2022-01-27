@@ -197,8 +197,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
 
   auto temp_tangents = tangents.transpose();
   for (UInt i = 0; i < spatial_dimension - 1; ++i) {
-    auto temp = Vector<Real>(temp_tangents(i));
-    temp_tangents(i) = temp.normalized();
+    temp_tangents(i).normalize();
   }
 
   tangents = temp_tangents.transpose();
@@ -576,10 +575,7 @@ void GeometryUtils::naturalProjection(
     auto index = alpha * surface_dimension + beta;
     Vector<Real> d_alpha_beta(spatial_dimension);
 
-    auto d2nds2_transpose = d2nds2.transpose();
-    Vector<Real> d2nds2_alpha_beta(d2nds2_transpose(index));
-
-    d_alpha_beta = nodes_coord * d2nds2_alpha_beta;
+    d_alpha_beta = nodes_coord * d2nds2.transpose()(index);
 
     return d_alpha_beta;
   };
@@ -611,8 +607,7 @@ void GeometryUtils::naturalProjection(
 
     // loop over surface dimensions
     for (auto alpha : arange(surface_dimension)) {
-      Vector<Real> gradient_alpha(gradient_transpose(alpha));
-      f(alpha, 0) = -2. * gradient_alpha.dot(distance);
+      f(alpha, 0) = -2. * gradient_transpose(alpha).dot(distance);
     }
 
     // compute initial error

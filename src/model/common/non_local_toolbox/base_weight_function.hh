@@ -158,14 +158,14 @@ inline std::ostream & operator<<(std::ostream & stream,
 }
 
 using NonLocalNeighborhoodFactory =
-    Factory<NonLocalNeighborhoodBase, ID, NonLocalManager &,
+    Factory<NonLocalNeighborhoodBase, ID, ID, NonLocalManager &,
             const ElementTypeMapReal &, const ID &>;
 
 #define INSTANTIATE_NL_NEIGHBORHOOD(id, weight_fun_name)                       \
   static bool weigth_is_alocated_##id [[gnu::unused]] =                        \
       NonLocalNeighborhoodFactory::getInstance().registerAllocator(            \
           #id,                                                                 \
-          [](NonLocalManager & non_local_manager,                              \
+          [](const ID & /*name*/, NonLocalManager & non_local_manager,         \
              const ElementTypeMapReal & quad_point_positions, const ID & id) { \
             return std::make_unique<NonLocalNeighborhood<weight_fun_name>>(    \
                 non_local_manager, quad_point_positions, id);                  \

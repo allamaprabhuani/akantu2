@@ -92,25 +92,31 @@ protected:
   virtual Real computeNormalTraction(Real & gap) const;
 
   /// local computation of trial tangential traction due to friction
+  template <typename D>
   void computeTrialTangentialTraction(const ContactElement & element,
                                       const Matrix<Real> & covariant_basis,
-                                      Vector<Real> & traction);
+                                      Eigen::MatrixBase<D> & traction);
 
   /// local computation of tangential traction due to stick
-  void computeStickTangentialTraction(const ContactElement & unused,
-                                      Vector<Real> & traction_trial,
-                                      Vector<Real> & traction_tangential);
+  template <typename D1, typename D2>
+  void
+  computeStickTangentialTraction(const ContactElement & unused,
+                                 Eigen::MatrixBase<D1> & traction_trial,
+                                 Eigen::MatrixBase<D2> & traction_tangential);
 
   /// local computation of tangential traction due to slip
-  void computeSlipTangentialTraction(const ContactElement & element,
-                                     const Matrix<Real> & covariant_basis,
-                                     Vector<Real> & traction_trial,
-                                     Vector<Real> & traction_tangential);
+  template <typename D1, typename D2>
+  void
+  computeSlipTangentialTraction(const ContactElement & element,
+                                const Matrix<Real> & covariant_basis,
+                                Eigen::MatrixBase<D1> & traction_trial,
+                                Eigen::MatrixBase<D2> & traction_tangential);
 
   /// local computation of tangential traction due to friction
+  template <typename D>
   void computeTangentialTraction(const ContactElement & element,
                                  const Matrix<Real> & covariant_basis,
-                                 Vector<Real> & traction_tangential);
+                                 Eigen::MatrixBase<D> & traction_tangential);
 
 public:
   void beforeSolveStep() override;

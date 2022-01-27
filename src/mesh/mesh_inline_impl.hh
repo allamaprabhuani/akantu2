@@ -49,7 +49,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) -> Int {
   return tuple_dispatch<AllElementTypes>(
-      [&](auto && enum_type) {
+      [&](auto && enum_type) -> Int {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getNbFacetsPerElement();
       },

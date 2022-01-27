@@ -51,8 +51,9 @@ MasterElementInfoPerProc::MasterElementInfoPerProc(
     ElementSynchronizer & synchronizer, Int message_cnt, Int root,
     ElementType type, const MeshPartition & partition)
     : ElementInfoPerProc(synchronizer, message_cnt, root, type),
-      partition(partition), all_nb_local_element(nb_proc, 0),
-      all_nb_ghost_element(nb_proc, 0), all_nb_element_to_send(nb_proc, 0) {
+      partition(partition), all_nb_local_element(Vector<Int>::Zero(nb_proc)),
+      all_nb_ghost_element(Vector<Int>::Zero(nb_proc)),
+      all_nb_element_to_send(Vector<Int>::Zero(nb_proc)) {
   Vector<Int> size(5);
   size(0) = (Int)type;
 
@@ -193,7 +194,8 @@ void MasterElementInfoPerProc::synchronizePartitions() {
   std::vector<Array<Int>> buffers(this->partition.getNbPartition());
 
   /// splitting the partition information to send them to processors
-  Vector<Int> count_by_proc(nb_proc, 0);
+  Vector<Int> count_by_proc(Vector<Int>::Zero(nb_proc));
+
   for (Idx el = 0; el < nb_element; ++el) {
     auto proc = partition_num(el);
     buffers[proc].push_back(ghost_partition.getNbCols(el));
@@ -354,8 +356,7 @@ void MasterElementInfoPerProc::fillTagBufferTemplated(
 
   data_it = data.data();
   /// copying the data for the ghost element
-  for (Idx el(0); data_it != data_end;
-       data_it += data.getNbComponent(), ++el) {
+  for (Idx el(0); data_it != data_end; data_it += data.getNbComponent(), ++el) {
     auto it = ghost_partition.begin(el);
     auto end = ghost_partition.end(el);
     for (; it != end; ++it) {

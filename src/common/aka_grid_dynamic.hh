@@ -94,8 +94,8 @@ public:
         : private std::iterator<std::forward_iterator_tag, Idx> {
     public:
       neighbor_cells_iterator(const CellID & cell_id, bool end)
-          : cell_id(cell_id), position(cell_id.ids.size(), end ? 1 : -1) {
-
+          : cell_id(cell_id), position(cell_id.ids.size()) {
+        position.fill(end ? 1 : -1);
         this->updateIt();
         if (end) {
           this->it++;

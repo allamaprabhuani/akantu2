@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
   model.initFull();
 
   /// boundary conditions
-  Vector<Real> traction(2, 0.2);
+  Vector<Real, 2> traction{.2, .2};
   model.applyBC(SineBoundary(.2, 10., _x), "Fixed_x");
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "Fixed_y");
   model.applyBC(BC::Neumann::FromTraction(traction), "Traction");

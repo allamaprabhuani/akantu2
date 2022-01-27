@@ -97,6 +97,8 @@ public:
     for (const auto & type : quadrature_points_coordinates.elementTypes(
              spatial_dimension, ghost_type)) {
       q.type = type;
+
+      auto nb_quads_per_elem = this->getFEEngine().getNbIntegrationPoints(type);
       auto & quads = quadrature_points_coordinates(type, ghost_type);
       this->getFEEngine().computeIntegrationPointsCoordinates(quads, type,
                                                               ghost_type);
@@ -111,13 +113,14 @@ public:
     }
   }
 
-  void computeNonLocalStresses(GhostType) override {}
+  void computeNonLocalStresses(GhostType)
+  override {}
 
-  void updateLocalInternal(ElementTypeMapReal &, GhostType,
-                           ElementKind) override {}
+  void updateLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
+  override {}
 
-  void updateNonLocalInternal(ElementTypeMapReal &, GhostType,
-                              ElementKind) override {}
+  void updateNonLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
+  override {}
 
   const auto & getNonLocalManager() const { return manager; }
 

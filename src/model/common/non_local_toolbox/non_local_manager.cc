@@ -135,7 +135,8 @@ void NonLocalManager::createNeighborhood(const ID & weight_func,
   /// create new neighborhood for given ID
   neighborhoods[neighborhood_id] =
       NonLocalNeighborhoodFactory::getInstance().allocate(
-          neighborhood_id, *this, this->integration_points_positions,
+          weight_func_type, neighborhood_id, *this,
+          this->integration_points_positions,
           id + ":neighborhood:" + neighborhood_id);
 
   neighborhoods[neighborhood_id]->parseSection(section);

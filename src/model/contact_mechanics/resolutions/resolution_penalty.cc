@@ -73,8 +73,8 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
   auto surface_dimension = spatial_dimension - 1;
 
   Real gap(gaps.begin()[element.slave]);
-  Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
-  Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
+  auto && normal = normals.begin(spatial_dimension)[element.slave];
+  auto && projection = projections.begin(surface_dimension)[element.slave];
 
   auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
 
@@ -104,14 +104,14 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 
   // compute covariant basis
   auto & projections = model.getProjections();
-  Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
+  auto && projection = projections.begin(surface_dimension)[element.slave];
 
   auto & normals = model.getNormals();
-  Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
+  auto && normal = normals.begin(spatial_dimension)[element.slave];
 
   auto & tangents = model.getTangents();
-  Matrix<Real> covariant_basis(
-      tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
+  auto && covariant_basis =
+      tangents.begin(surface_dimension, spatial_dimension)[element.slave];
 
   // check for no-contact to contact condition
   // need a better way to check if new node added is not presnt in the
@@ -128,8 +128,8 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 
   // compute tangential traction using return map algorithm
   auto & tangential_tractions = model.getTangentialTractions();
-  Vector<Real> tangential_traction(
-      tangential_tractions.begin(surface_dimension)[element.slave]);
+  auto && tangential_traction =
+      tangential_tractions.begin(surface_dimension)[element.slave];
   this->computeTangentialTraction(element, covariant_basis,
                                   tangential_traction);
 
@@ -158,9 +158,10 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D>
 void ResolutionPenalty::computeTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_tangential) {
+    Eigen::MatrixBase<D> & traction_tangential) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
@@ -204,9 +205,10 @@ void ResolutionPenalty::computeTangentialTraction(
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D>
 void ResolutionPenalty::computeTrialTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction) {
+    Eigen::MatrixBase<D> & traction) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
@@ -291,16 +293,19 @@ void ResolutionPenalty::computeTrialTangentialTraction(
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 void ResolutionPenalty::computeStickTangentialTraction(
-    const ContactElement & /*element*/, Vector<Real> & traction_trial,
-    Vector<Real> & traction_tangential) {
+    const ContactElement & /*element*/, Eigen::MatrixBase<D1> & traction_trial,
+    Eigen::MatrixBase<D2> & traction_tangential) {
   traction_tangential = traction_trial;
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 void ResolutionPenalty::computeSlipTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_trial, Vector<Real> & traction_tangential) {
+    Eigen::MatrixBase<D1> & traction_trial,
+    Eigen::MatrixBase<D2> & traction_tangential) {
   UInt surface_dimension = spatial_dimension - 1;
 
   auto & gaps = model.getGaps();
@@ -319,12 +324,8 @@ void ResolutionPenalty::computeSlipTangentialTraction(
   }
   traction_trial_norm = sqrt(traction_trial_norm);
 
-  auto slip_direction = traction_trial;
-  slip_direction /= traction_trial_norm;
-
   Real p_n = computeNormalTraction(gap);
-  traction_tangential = slip_direction;
-  traction_tangential *= mu * p_n;
+  traction_tangential = traction_trial / traction_trial_norm * mu * p_n;
 }
 
 /* -------------------------------------------------------------------------- */

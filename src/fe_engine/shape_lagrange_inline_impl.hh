@@ -407,23 +407,20 @@ void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
 
   Array<Real> shapes_derivatives_filtered(0,
                                           shapes_derivatives.getNbComponent());
-  auto && view =
+  auto view =
       make_view(shapes_derivatives, spatial_dimension, nb_nodes_per_element);
-  auto B_it = view.begin();
-  auto B_end = view.end();
 
   if (filter_elements != empty_filter) {
     FEEngine::filterElementalData(this->mesh, shapes_derivatives,
                                   shapes_derivatives_filtered, type, ghost_type,
                                   filter_elements);
-    auto && view = make_view(shapes_derivatives_filtered, spatial_dimension,
-                             nb_nodes_per_element);
-    B_it = view.begin();
-    B_end = view.end();
+    view =
+        make_view(const_cast<const Array<Real> &>(shapes_derivatives_filtered),
+                  spatial_dimension, nb_nodes_per_element);
   }
 
   for (auto && values :
-       zip(range(B_it, B_end),
+       zip(view,
            make_view(Ds, Ds.getNbComponent() / spatial_dimension,
                      spatial_dimension),
            make_view(BtDs, BtDs.getNbComponent() / nb_nodes_per_element,
@@ -432,7 +429,7 @@ void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
     const auto & D = std::get<1>(values);
     auto & Bt_D = std::get<2>(values);
     // transposed due to the storage layout of B
-    Bt_D = D * B;
+    Bt_D.noalias() = D * B;
   }
 }
 

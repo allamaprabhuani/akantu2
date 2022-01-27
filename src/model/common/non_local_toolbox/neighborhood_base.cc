@@ -46,31 +46,16 @@ NeighborhoodBase::NeighborhoodBase(Model & model,
                                    const ID & id)
     : id(id), model(model), quad_coordinates(quad_coordinates),
       spatial_dimension(this->model.getMesh().getSpatialDimension()) {
-
-  AKANTU_DEBUG_IN();
-
   this->registerDataAccessor(*this);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 NeighborhoodBase::~NeighborhoodBase() = default;
 
 /* -------------------------------------------------------------------------- */
-// void NeighborhoodBase::createSynchronizerRegistry(
-//     DataAccessor<Element> * data_accessor) {
-//   this->synch_registry = new SynchronizerRegistry(*data_accessor);
-// }
-
-/* -------------------------------------------------------------------------- */
 void NeighborhoodBase::initNeighborhood() {
-  AKANTU_DEBUG_IN();
-
   AKANTU_DEBUG_INFO("Creating the grid");
   this->createGrid();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* ------------------------------------------------------------------------- */

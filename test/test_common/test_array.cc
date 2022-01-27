@@ -366,4 +366,17 @@ TYPED_TEST(ArrayFixture, IteratorThrow) {
                debug::Exception);
 }
 
+TYPED_TEST(ArrayFixture, IteratorRange) {
+  this->array->set(12);
+
+  auto && view = make_view(*this->array, this->array->getNbComponent());
+
+  auto begin = view.begin();
+  auto end = view.end();
+
+  for (auto && data : range(begin, end)) {
+    EXPECT_EQ(12, data[0]);
+  }
+}
+
 } // namespace

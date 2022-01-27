@@ -474,17 +474,14 @@ void Material::flattenInternal(const std::string & field_id,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline const InternalField<T> &
-Material::getInternal([[gnu::unused]] const ID & int_id) const {
+Material::getInternal(const ID & /*int_id*/) const {
   AKANTU_TO_IMPLEMENT();
-  return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline InternalField<T> &
-Material::getInternal([[gnu::unused]] const ID & int_id) {
+inline InternalField<T> & Material::getInternal(const ID & /*int_id*/) {
   AKANTU_TO_IMPLEMENT();
-  return NULL;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -93,9 +93,10 @@ namespace dumpers {
     /* Methods                                                                */
     /* ---------------------------------------------------------------------- */
   public:
-    type func(const type & d, Element /*global_index*/) override {
+    type func(const type & d, Element /*global_index*/)
+    override {
       Vector<value_type> res(this->nb_data);
-
+      res.zero();
       if (d.size() % this->nb_data) {
         throw;
       }
@@ -112,7 +113,8 @@ namespace dumpers {
     };
 
     Int getDim() override { return nb_data; };
-    Int getNbComponent(Int /*old_nb_comp*/) override { throw; };
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { throw; };
 
     /* ---------------------------------------------------------------------- */
     /* Class Members */

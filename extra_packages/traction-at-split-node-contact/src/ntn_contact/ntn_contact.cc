@@ -402,13 +402,11 @@ void NTNContact::computeRelativeTangentialField(
     UInt master = this->masters(n);
 
     // relative field vector (slave - master)
-    rfv = Vector<Real>(it_field[slave]);
-    rfv -= Vector<Real>(it_field[master]);
+    rfv = it_field[slave] - it_field[master];
 
     // normal projection of relative field
     const Vector<Real> normal_v = it_normal[n];
-    np_rfv = normal_v;
-    np_rfv *= rfv.dot(normal_v);
+    np_rfv = normal_v * rfv.dot(normal_v);
 
     // subract normal projection from relative field to get the tangential
     // projection

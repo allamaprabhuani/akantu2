@@ -90,8 +90,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
     const auto & proc_bounding_box = bboxes[p];
     auto intersection = my_bounding_box.intersection(proc_bounding_box);
 
-    Vector<Int> first_cell_p = first_cells(p);
-    Vector<Int> last_cell_p = last_cells(p);
+    auto && first_cell_p = first_cells(p);
+    auto && last_cell_p = last_cells(p);
 
     intersects_proc[p] = intersection;
 

@@ -477,7 +477,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
       for (auto q : arange(nb_quad_points)) {
         quad_point.num_point = q;
         auto ddot = inside_to_outside.dot(*normals_iter);
-        Vector<Real> normal(*normals_iter);
+        auto & normal = *normals_iter;
         if (ddot < 0) {
           normal *= -1.0;
         }
@@ -512,7 +512,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
        zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
 
     auto & area = std::get<0>(tuple);
-    Vector<Real> force(std::get<1>(tuple));
+    auto & force = std::get<1>(tuple);
     area = force.norm();
   }
 

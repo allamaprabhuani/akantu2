@@ -37,46 +37,41 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T>
-inline Int
+template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
+                                       not aka::is_tensor<T>::value> *>
+inline std::size_t
 CommunicationBufferTemplated<is_static>::sizeInBuffer(const T & /*unused*/) {
   return sizeof(T);
 }
 
 template <bool is_static>
-template <typename T>
-inline Int
-CommunicationBufferTemplated<is_static>::sizeInBuffer(const Vector<T> & data) {
-  auto size = data.size() * sizeof(T);
+template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
+inline std::size_t
+CommunicationBufferTemplated<is_static>::sizeInBuffer(const Tensor & data) {
+  std::size_t size = data.size() * sizeof(typename Tensor::Scalar);
   return size;
 }
 
 template <bool is_static>
 template <typename T>
-inline Int
-CommunicationBufferTemplated<is_static>::sizeInBuffer(const Matrix<T> & data) {
-  auto size = data.size() * sizeof(T);
-  return size;
-}
-
-template <bool is_static>
-template <typename T>
-inline Int CommunicationBufferTemplated<is_static>::sizeInBuffer(
+inline std::size_t CommunicationBufferTemplated<is_static>::sizeInBuffer(
     const std::vector<T> & data) {
-  Int size = data.size() * sizeof(T) + sizeof(size_t);
+  std::size_t size = data.size() * sizeof(T) + sizeof(size_t);
   return size;
 }
 
 template <bool is_static>
-inline Int CommunicationBufferTemplated<is_static>::sizeInBuffer(
+inline std::size_t CommunicationBufferTemplated<is_static>::sizeInBuffer(
     const std::string & data) {
-  Int size = data.size() * sizeof(std::string::value_type) + sizeof(size_t);
+  std::size_t size =
+      data.size() * sizeof(std::string::value_type) + sizeof(size_t);
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::packResize(Int size) {
+inline void
+CommunicationBufferTemplated<is_static>::packResize(std::size_t size) {
   if (not is_static) {
     char * values = buffer.data();
     auto nb_packed = ptr_pack - values;
@@ -93,10 +88,11 @@ inline void CommunicationBufferTemplated<is_static>::packResize(Int size) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T>
+template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
+                                       not aka::is_tensor<T>::value> *>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(const T & to_pack) {
-  auto size = sizeInBuffer(to_pack);
+  std::size_t size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
@@ -108,10 +104,11 @@ CommunicationBufferTemplated<is_static>::operator<<(const T & to_pack) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T>
+template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
+                                       not aka::is_tensor<T>::value> *>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator>>(T & to_unpack) {
-  auto size = sizeInBuffer(to_unpack);
+  std::size_t size = sizeInBuffer(to_unpack);
 
   alignas(alignof(T)) std::array<char, sizeof(T)> aligned_ptr;
   memcpy(aligned_ptr.data(), ptr_unpack, size);
@@ -127,19 +124,11 @@ CommunicationBufferTemplated<is_static>::operator>>(T & to_unpack) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Specialization                                                             */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Vector
- */
-
-/* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T>
+template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator<<(const Vector<T> & to_pack) {
-  auto size = sizeInBuffer(to_pack);
+CommunicationBufferTemplated<is_static>::operator<<(const Tensor & to_pack) {
+  std::size_t size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
@@ -149,45 +138,13 @@ CommunicationBufferTemplated<is_static>::operator<<(const Vector<T> & to_pack) {
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
-template <bool is_static>
-template <typename T>
-inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(Vector<T> & to_unpack) {
-  auto size = sizeInBuffer(to_unpack);
-  AKANTU_DEBUG_ASSERT(
-      (buffer.data() + buffer.size()) >= (ptr_unpack + size),
-      "Unpacking too much data in the CommunicationBufferTemplated");
-  memcpy(to_unpack.data(), ptr_unpack, size);
-  ptr_unpack += size;
-  return *this;
-}
-
-/**
- * Matrix
+/* --------------------------------------------------------------------------
  */
-
-/* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T>
+template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator<<(const Matrix<T> & to_pack) {
-  auto size = sizeInBuffer(to_pack);
-  packResize(size);
-  AKANTU_DEBUG_ASSERT(
-      (buffer.data() + buffer.size()) >= (ptr_pack + size),
-      "Packing too much data in the CommunicationBufferTemplated");
-  memcpy(ptr_pack, to_pack.data(), size);
-  ptr_pack += size;
-  return *this;
-}
-
-/* -------------------------------------------------------------------------- */
-template <bool is_static>
-template <typename T>
-inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(Matrix<T> & to_unpack) {
-  auto size = sizeInBuffer(to_unpack);
+CommunicationBufferTemplated<is_static>::operator>>(Tensor & to_unpack) {
+  std::size_t size = sizeInBuffer(to_unpack);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
       "Unpacking too much data in the CommunicationBufferTemplated");
@@ -196,11 +153,12 @@ CommunicationBufferTemplated<is_static>::operator>>(Matrix<T> & to_unpack) {
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 template <typename T>
 inline void CommunicationBufferTemplated<is_static>::packIterable(T & to_pack) {
-  operator<<(size_t(to_pack.size()));
+  operator<<(std::size_t(to_pack.size()));
   auto it = to_pack.begin();
   auto end = to_pack.end();
   for (; it != end; ++it) {
@@ -208,13 +166,15 @@ inline void CommunicationBufferTemplated<is_static>::packIterable(T & to_pack) {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 template <typename T>
 inline void
 CommunicationBufferTemplated<is_static>::unpackIterable(T & to_unpack) {
-  size_t size;
+  std::size_t size;
   operator>>(size);
+
   to_unpack.resize(size);
   auto it = to_unpack.begin();
   auto end = to_unpack.end();
@@ -226,7 +186,8 @@ CommunicationBufferTemplated<is_static>::unpackIterable(T & to_unpack) {
 /**
  * std::vector<T>
  */
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 template <bool is_static>
 template <typename T>
@@ -237,7 +198,8 @@ CommunicationBufferTemplated<is_static>::operator<<(
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
@@ -250,7 +212,8 @@ CommunicationBufferTemplated<is_static>::operator>>(
 /**
  * std::string
  */
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 template <bool is_static>
 inline CommunicationBufferTemplated<is_static> &
@@ -260,7 +223,8 @@ CommunicationBufferTemplated<is_static>::operator<<(
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator>>(std::string & to_unpack) {
@@ -268,18 +232,19 @@ CommunicationBufferTemplated<is_static>::operator>>(std::string & to_unpack) {
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 template <typename T>
 inline std::string
-CommunicationBufferTemplated<is_static>::extractStream(Int block_size) {
+CommunicationBufferTemplated<is_static>::extractStream(std::size_t block_size) {
   std::stringstream str;
   auto * ptr = reinterpret_cast<T *>(buffer.data());
   auto sz = buffer.size() / sizeof(T);
   auto sz_block = block_size / sizeof(T);
 
-  Int n_block = 0;
-  for (Int i = 0; i < sz; ++i) {
+  std::size_t n_block = 0;
+  for (std::size_t i = 0; i < sz; ++i) {
     if (i % sz_block == 0) {
       str << std::endl << n_block << " ";
       ++n_block;
@@ -290,9 +255,10 @@ CommunicationBufferTemplated<is_static>::extractStream(Int block_size) {
   return str.str();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::resize(Int size) {
+inline void CommunicationBufferTemplated<is_static>::resize(std::size_t size) {
   if (!is_static) {
     buffer.resize(0, 0);
   } else {
@@ -304,24 +270,27 @@ inline void CommunicationBufferTemplated<is_static>::resize(Int size) {
 #endif
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::reserve(Int size) {
+inline void CommunicationBufferTemplated<is_static>::reserve(std::size_t size) {
   char * values = buffer.data();
-  auto nb_packed = ptr_pack - values;
+  std::size_t nb_packed = ptr_pack - values;
 
   buffer.resize(size);
   ptr_pack = buffer.data() + nb_packed;
   ptr_unpack = buffer.data() + (ptr_unpack - values);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 inline void CommunicationBufferTemplated<is_static>::zero() {
   buffer.zero();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <bool is_static>
 inline void CommunicationBufferTemplated<is_static>::reset() {
   ptr_pack = buffer.data();

@@ -95,7 +95,8 @@ int main(int argc, char * argv[]) {
   Int nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
   SparseMatrix K(nb_global_nodes * spatial_dimension, _symmetric);
   K.buildProfile(mesh, dof_synchronizer, spatial_dimension);
-  Matrix<Real> element_input(nb_dofs_per_element, nb_dofs_per_element, 0);
+  Matrix<Real> element_input(nb_dofs_per_element, nb_dofs_per_element);
+  element_input.zero();
   for (Int i = 0; i < nb_dofs_per_element; ++i) {
     for (Int j = 0; j < nb_dofs_per_element; ++j) {
       element_input(i, j) = ((i == j) ? 1 : -1);
