@@ -1144,7 +1144,6 @@ Int SolidMechanicsModel::getNbData(const Array<Idx> & dofs,
   AKANTU_DEBUG_IN();
 
   Int size = 0;
-  //  UInt nb_nodes = mesh.getNbNodes();
 
   switch (tag) {
   case SynchronizationTag::_smm_uv: {

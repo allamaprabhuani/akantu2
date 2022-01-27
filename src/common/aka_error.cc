@@ -250,7 +250,7 @@ namespace debug {
       }
 
       if (debugger.printBacktrace()) {
-        std::cerr << "Random generator seed: " << RandomGenerator<UInt>::seed()
+        std::cerr << "Random generator seed: " << RandomGenerator<Int>::seed()
                   << std::endl;
         printBacktrace();
       }
@@ -348,7 +348,7 @@ namespace debug {
   /* ------------------------------------------------------------------------ */
   void Debugger::setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    UInt pad = std::ceil(std::log10(size));
+    Int pad = std::ceil(std::log10(size));
     sstr << "<" << getpid() << ">[R" << std::setfill(' ') << std::right
          << std::setw(pad) << rank << "|S" << size << "] ";
     parallel_context = sstr.str();

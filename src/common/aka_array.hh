@@ -314,7 +314,7 @@ public:
   Idx find(const_reference elem) const;
 
   /// @see Array::find(const_reference elem) const
-  //  UInt find(T elem[]) const;
+  //  Int find(T elem[]) const;
 
   /// append a value to the end of the Array
   inline void push_back(const_reference value) { parent::push_back(value); }

@@ -103,7 +103,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
   AKANTU_GET_MACRO(Model, model, const Model &);
   /// return the object handling synchronizers
   const PairList & getPairLists(GhostType type) {

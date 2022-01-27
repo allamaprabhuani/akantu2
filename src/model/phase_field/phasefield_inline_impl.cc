@@ -61,7 +61,7 @@ PhaseField::registerInternal<Real>(InternalPhaseField<Real> & vect) {
 template <>
 inline void
 PhaseField::registerInternal<UInt>(InternalPhaseField<UInt> & vect) {
-  internal_vectors_uint[vect.getID()] = &vect;
+  internal_vectors_int[vect.getID()] = &vect;
 }
 
 template <>
@@ -80,7 +80,7 @@ PhaseField::unregisterInternal<Real>(InternalPhaseField<Real> & vect) {
 template <>
 inline void
 PhaseField::unregisterInternal<UInt>(InternalPhaseField<UInt> & vect) {
-  internal_vectors_uint.erase(vect.getID());
+  internal_vectors_int.erase(vect.getID());
 }
 
 template <>

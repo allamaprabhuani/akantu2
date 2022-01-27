@@ -212,7 +212,7 @@ protected:
   bool is_init;
 
   std::map<ID, InternalPhaseField<Real> *> internal_vectors_real;
-  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_uint;
+  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_int;
   std::map<ID, InternalPhaseField<bool> *> internal_vectors_bool;
 
 protected:

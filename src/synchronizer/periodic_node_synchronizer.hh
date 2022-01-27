@@ -59,10 +59,6 @@ public:
   void synchronizeOnceImpl(DataAccessor<Idx> & data_accessor,
                            const SynchronizationTag & tag) const override;
 
-  // /// asynchronous synchronization of ghosts
-  // void asynchronousSynchronizeImpl(const DataAccessor<UInt> & data_accessor,
-  //                                  const SynchronizationTag & tag) override;
-
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronizeImpl(DataAccessor<Idx> & data_accessor,
                               const SynchronizationTag & tag) override;
@@ -81,7 +77,7 @@ template <template <class> class Op, typename T>
 void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
     Array<T> & array) const {
   ReduceDataAccessor<Idx, Op, T> data_accessor(array,
-                                                SynchronizationTag::_whatever);
+                                               SynchronizationTag::_whatever);
   auto size =
       data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
   CommunicationBuffer buffer(size);
@@ -91,7 +87,6 @@ void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
 
   this->reduceSynchronizeArray<Op>(array);
 }
-
 
 } // namespace akantu
 

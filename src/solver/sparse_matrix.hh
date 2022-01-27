@@ -129,7 +129,7 @@ public:
   Int size() const { return size_; }
   AKANTU_GET_MACRO_AUTO(MatrixType, matrix_type);
 
-  virtual UInt getRelease() const = 0;
+  virtual Int getRelease() const = 0;
 
   virtual Real min() = 0;
 

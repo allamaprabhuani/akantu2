@@ -48,7 +48,7 @@ template <bool is_static = true> class CommunicationBufferTemplated {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit CommunicationBufferTemplated(UInt size) : buffer(size, 1, char()) {
+  explicit CommunicationBufferTemplated(Int size) : buffer(size, 1, char()) {
     ptr_pack = buffer.data();
     ptr_unpack = buffer.data();
   };
@@ -73,25 +73,29 @@ public:
   inline void reset();
 
   /// resize the internal buffer do not allocate on dynamic buffers
-  inline void resize(UInt size);
+  inline void resize(Int size);
 
   /// resize the internal buffer allocate always
-  inline void reserve(UInt size);
+  inline void reserve(Int size);
 
   /// clear buffer context
   inline void zero();
 
 private:
-  inline void packResize(UInt size);
+  inline void packResize(Int size);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  [[deprecated("use data instead to be stl compatible")]]
-  inline char * storage() { return buffer.data(); };
-  [[deprecated("use data instead to be stl compatible")]]
-  inline const char * storage() const { return buffer.data(); };
+  [[deprecated("use data instead to be stl compatible")]] inline char *
+  storage() {
+    return buffer.data();
+  };
+  [[deprecated("use data instead to be stl compatible")]] inline const char *
+  storage() const {
+    return buffer.data();
+  };
 
   inline char * data() { return buffer.data(); };
   inline const char * data() const { return buffer.data(); };
@@ -101,7 +105,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// printing tool
-  template <typename T> inline std::string extractStream(UInt block_size);
+  template <typename T> inline std::string extractStream(Int block_size);
 
   /// packing data
   template <typename T>
@@ -141,21 +145,21 @@ private:
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> static inline UInt sizeInBuffer(const T & data);
-  template <typename T> static inline UInt sizeInBuffer(const Vector<T> & data);
-  template <typename T> static inline UInt sizeInBuffer(const Matrix<T> & data);
+  template <typename T> static inline Int sizeInBuffer(const T & data);
+  template <typename T> static inline Int sizeInBuffer(const Vector<T> & data);
+  template <typename T> static inline Int sizeInBuffer(const Matrix<T> & data);
   template <typename T>
-  static inline UInt sizeInBuffer(const std::vector<T> & data);
-  static inline UInt sizeInBuffer(const std::string & data);
+  static inline Int sizeInBuffer(const std::vector<T> & data);
+  static inline Int sizeInBuffer(const std::string & data);
 
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize() const { return ptr_pack - buffer.data(); };
+  inline Int getPackedSize() const { return ptr_pack - buffer.data(); };
   /// return the size in bytes of data left to be unpacked
-  inline UInt getLeftToUnpack() const {
+  inline Int getLeftToUnpack() const {
     return buffer.size() - (ptr_unpack - buffer.data());
   };
   /// return the global size allocated
-  inline UInt size() const { return buffer.size(); };
+  inline Int size() const { return buffer.size(); };
 
   /// is the buffer empty
   inline bool empty() const {

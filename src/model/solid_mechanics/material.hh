@@ -63,7 +63,7 @@ class Material;
 namespace akantu {
 
 using MaterialFactory =
-    Factory<Material, ID, UInt, const ID &, SolidMechanicsModel &, const ID &>;
+    Factory<Material, ID, Int, const ID &, SolidMechanicsModel &, const ID &>;
 
 /**
  * Interface of all materials
@@ -515,7 +515,7 @@ public:
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
 
   /// return the potential energy for the subset of elements contained by the
   /// material
@@ -627,7 +627,7 @@ protected:
   bool is_init{false};
 
   std::map<ID, InternalField<Real> *> internal_vectors_real;
-  std::map<ID, InternalField<UInt> *> internal_vectors_uint;
+  std::map<ID, InternalField<Int> *> internal_vectors_int;
   std::map<ID, InternalField<bool> *> internal_vectors_bool;
 
 protected:

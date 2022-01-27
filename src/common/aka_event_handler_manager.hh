@@ -51,7 +51,7 @@ private:
     bool operator()(const priority_value & a, const priority_value & b) const {
       return (a.first < b.first);
     }
-    bool operator()(const priority_value & a, UInt b) const {
+    bool operator()(const priority_value & a, Int b) const {
       return (a.first < b);
     }
   };

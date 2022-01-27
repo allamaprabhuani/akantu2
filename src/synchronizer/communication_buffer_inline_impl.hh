@@ -38,45 +38,45 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
 template <typename T>
-inline UInt
+inline Int
 CommunicationBufferTemplated<is_static>::sizeInBuffer(const T & /*unused*/) {
   return sizeof(T);
 }
 
 template <bool is_static>
 template <typename T>
-inline UInt
+inline Int
 CommunicationBufferTemplated<is_static>::sizeInBuffer(const Vector<T> & data) {
-  UInt size = data.size() * sizeof(T);
+  auto size = data.size() * sizeof(T);
   return size;
 }
 
 template <bool is_static>
 template <typename T>
-inline UInt
+inline Int
 CommunicationBufferTemplated<is_static>::sizeInBuffer(const Matrix<T> & data) {
-  UInt size = data.size() * sizeof(T);
+  auto size = data.size() * sizeof(T);
   return size;
 }
 
 template <bool is_static>
 template <typename T>
-inline UInt CommunicationBufferTemplated<is_static>::sizeInBuffer(
+inline Int CommunicationBufferTemplated<is_static>::sizeInBuffer(
     const std::vector<T> & data) {
-  UInt size = data.size() * sizeof(T) + sizeof(size_t);
+  Int size = data.size() * sizeof(T) + sizeof(size_t);
   return size;
 }
 
 template <bool is_static>
-inline UInt CommunicationBufferTemplated<is_static>::sizeInBuffer(
+inline Int CommunicationBufferTemplated<is_static>::sizeInBuffer(
     const std::string & data) {
-  UInt size = data.size() * sizeof(std::string::value_type) + sizeof(size_t);
+  Int size = data.size() * sizeof(std::string::value_type) + sizeof(size_t);
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::packResize(UInt size) {
+inline void CommunicationBufferTemplated<is_static>::packResize(Int size) {
   if (not is_static) {
     char * values = buffer.data();
     auto nb_packed = ptr_pack - values;
@@ -96,7 +96,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(const T & to_pack) {
-  UInt size = sizeInBuffer(to_pack);
+  auto size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
@@ -111,7 +111,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator>>(T & to_unpack) {
-  UInt size = sizeInBuffer(to_unpack);
+  auto size = sizeInBuffer(to_unpack);
 
   alignas(alignof(T)) std::array<char, sizeof(T)> aligned_ptr;
   memcpy(aligned_ptr.data(), ptr_unpack, size);
@@ -139,7 +139,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(const Vector<T> & to_pack) {
-  UInt size = sizeInBuffer(to_pack);
+  auto size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
@@ -154,7 +154,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator>>(Vector<T> & to_unpack) {
-  UInt size = sizeInBuffer(to_unpack);
+  auto size = sizeInBuffer(to_unpack);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
       "Unpacking too much data in the CommunicationBufferTemplated");
@@ -172,7 +172,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(const Matrix<T> & to_pack) {
-  UInt size = sizeInBuffer(to_pack);
+  auto size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
@@ -187,7 +187,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator>>(Matrix<T> & to_unpack) {
-  UInt size = sizeInBuffer(to_unpack);
+  auto size = sizeInBuffer(to_unpack);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
       "Unpacking too much data in the CommunicationBufferTemplated");
@@ -272,13 +272,13 @@ CommunicationBufferTemplated<is_static>::operator>>(std::string & to_unpack) {
 template <bool is_static>
 template <typename T>
 inline std::string
-CommunicationBufferTemplated<is_static>::extractStream(UInt block_size) {
+CommunicationBufferTemplated<is_static>::extractStream(Int block_size) {
   std::stringstream str;
   auto * ptr = reinterpret_cast<T *>(buffer.data());
-  UInt sz = buffer.size() / sizeof(T);
-  UInt sz_block = block_size / sizeof(T);
+  auto sz = buffer.size() / sizeof(T);
+  auto sz_block = block_size / sizeof(T);
 
-  UInt n_block = 0;
+  Int n_block = 0;
   for (Int i = 0; i < sz; ++i) {
     if (i % sz_block == 0) {
       str << std::endl << n_block << " ";
@@ -292,7 +292,7 @@ CommunicationBufferTemplated<is_static>::extractStream(UInt block_size) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::resize(UInt size) {
+inline void CommunicationBufferTemplated<is_static>::resize(Int size) {
   if (!is_static) {
     buffer.resize(0, 0);
   } else {
@@ -306,7 +306,7 @@ inline void CommunicationBufferTemplated<is_static>::resize(UInt size) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-inline void CommunicationBufferTemplated<is_static>::reserve(UInt size) {
+inline void CommunicationBufferTemplated<is_static>::reserve(Int size) {
   char * values = buffer.data();
   auto nb_packed = ptr_pack - values;
 

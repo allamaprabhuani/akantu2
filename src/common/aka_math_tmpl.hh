@@ -186,7 +186,7 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
-  inline bool are_vector_equal(UInt n, Real * x, Real * y) {
+  inline bool are_vector_equal(Int n, Real * x, Real * y) {
     bool test = true;
     for (Int i = 0; i < n; ++i) {
       test &= are_float_equal(x[i], y[i]);

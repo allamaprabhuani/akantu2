@@ -136,7 +136,7 @@ public:
   const std::string & getValue() const { return value; }
 
   /// Set info for debug output
-  void setDebugInfo(const std::string & filename, UInt line, UInt column) {
+  void setDebugInfo(const std::string & filename, Int line, Int column) {
     dbg_filename = filename;
     dbg_line = line;
     dbg_column = column;
@@ -169,7 +169,7 @@ private:
   /// File for debug output
   std::string dbg_filename;
   /// Position of parameter in parsed file
-  UInt dbg_line, dbg_column;
+  Int dbg_line, dbg_column;
 };
 
 /* ------------------------------------------------------------------------ */
@@ -359,7 +359,7 @@ public:
   }
 
   /// Get number of subsections of certain type
-  UInt getNbSubSections(ParserType type = ParserType::_not_defined) const {
+  Int getNbSubSections(ParserType type = ParserType::_not_defined) const {
     if (type != ParserType::_not_defined) {
       return this->sub_sections_by_type.count(type);
     }

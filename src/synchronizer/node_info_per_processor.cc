@@ -68,7 +68,8 @@ void NodeInfoPerProc::fillNodeGroupsFromBuffer(CommunicationBuffer & buffer) {
 
   buffer >> node_to_group;
 
-  AKANTU_DEBUG_ASSERT(node_to_group.size() == std::size_t(mesh.getNbGlobalNodes()),
+  AKANTU_DEBUG_ASSERT(node_to_group.size() ==
+                          std::size_t(mesh.getNbGlobalNodes()),
                       "Not the good amount of nodes where transmitted");
 
   const auto & global_nodes = mesh.getGlobalNodesIds();
@@ -93,10 +94,10 @@ void NodeInfoPerProc::fillNodesType() {
   auto nb_nodes = mesh.getNbNodes();
   auto & nodes_flags = this->getNodesFlags();
 
-  Array<UInt> nodes_set(nb_nodes);
+  Array<Idx> nodes_set(nb_nodes);
   nodes_set.set(0);
 
-  enum NodeSet : UInt {
+  enum NodeSet : Idx {
     NORMAL_SET = 1,
     GHOST_SET = 2,
   };
@@ -318,11 +319,11 @@ void MasterNodeInfoPerProc::synchronizeNodes() {
   auto & nodes = this->getNodes();
 
   all_nodes.copy(nodes);
-  nodes_pranks.resize(nodes.size(), UInt(-1));
+  nodes_pranks.resize(nodes.size(), -1);
 
   for (Int p = 0; p < nb_proc; ++p) {
     Int nb_nodes = 0;
-    //      UInt * buffer;
+    //      Int * buffer;
     Array<Real> * nodes_to_send{nullptr};
 
     auto & nodespp = nodes_per_proc[p];

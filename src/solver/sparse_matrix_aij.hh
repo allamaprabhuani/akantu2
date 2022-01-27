@@ -152,7 +152,7 @@ public:
   /// (my_release != release) and not as (my_release < release)
   AKANTU_GET_MACRO_AUTO(ProfileRelease, profile_release);
   AKANTU_GET_MACRO_AUTO(ValueRelease, value_release);
-  UInt getRelease() const override { return value_release; }
+  Int getRelease() const override { return value_release; }
 
 protected:
   using KeyCOO = std::pair<Idx, Idx>;
@@ -160,7 +160,7 @@ protected:
 
   /// get the pair corresponding to (i, j)
   inline KeyCOO key(Idx i, Idx j) const {
-      if (this->matrix_type == _symmetric && (i > j)) {
+    if (this->matrix_type == _symmetric && (i > j)) {
       return std::make_pair(j, i);
     }
     return std::make_pair(i, j);
@@ -182,10 +182,10 @@ private:
   Array<Real> a;
 
   /// Profile release
-  UInt profile_release{1};
+  Int profile_release{1};
 
   /// Value release
-  UInt value_release{1};
+  Int value_release{1};
 
   /// map for (i, j) ->  k correspondence
   coordinate_list_map irn_jcn_k;

@@ -50,7 +50,7 @@ namespace dumpers {
     /* Typedefs                                                               */
     /* ---------------------------------------------------------------------- */
   public:
-    using support_type = UInt;
+    using support_type = Idx;
     using types = TypeTraits<T, Vector<T>, Container>;
 
     class iterator : public iohelper::iterator<T, iterator, VectorProxy<T>> {
@@ -144,7 +144,7 @@ namespace dumpers {
 
     void setPadding(Int padding) { this->padding = padding; }
 
-    UInt size() {
+    Int size() {
       if (filter != nullptr) {
         return filter->size();
       }
@@ -164,7 +164,7 @@ namespace dumpers {
     template <class T1 = T,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = T,
@@ -180,7 +180,7 @@ namespace dumpers {
     const Container & field;
     Int n, stride;
     const Filter * filter{nullptr};
-    UInt padding;
+    Int padding;
   };
 
 } // namespace dumpers

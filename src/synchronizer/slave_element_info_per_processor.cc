@@ -89,7 +89,7 @@ void SlaveElementInfoPerProc::synchronizeConnectivities() {
 /* -------------------------------------------------------------------------- */
 void SlaveElementInfoPerProc::synchronizePartitions() {
   Array<Idx> local_partitions(this->nb_element_to_receive +
-                               this->nb_ghost_element * 2);
+                              this->nb_ghost_element * 2);
   AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
   this->comm.receive(local_partitions, this->root,
                      Tag::genTag(root, this->message_count, Tag::_partitions));
@@ -148,7 +148,7 @@ void SlaveElementInfoPerProc::synchronizeTags() {
   comm.probe<char>(root,
                    Tag::genTag(root, this->message_count, Tag::_mesh_data),
                    mesh_data_comm_status);
-  UInt mesh_data_buffer_size(mesh_data_comm_status.size());
+  Int mesh_data_buffer_size(mesh_data_comm_status.size());
   AKANTU_DEBUG_INFO("Receiving "
                     << mesh_data_buffer_size << " bytes of mesh data TAG("
                     << Tag::genTag(root, this->message_count, Tag::_mesh_data)

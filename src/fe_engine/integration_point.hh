@@ -51,8 +51,8 @@ class IntegrationPoint : public Element {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  IntegrationPoint(const Element & element = ElementNull, UInt num_point = 0,
-                   UInt nb_quad_per_element = 0)
+  IntegrationPoint(const Element & element = ElementNull, Int num_point = 0,
+                   Int nb_quad_per_element = 0)
       : Element(element), num_point(num_point),
         global_num(element.element * nb_quad_per_element + num_point) {}
 

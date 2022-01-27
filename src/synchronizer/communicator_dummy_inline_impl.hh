@@ -84,8 +84,8 @@ bool Communicator::testAll(std::vector<CommunicationRequest> & /*unused*/) {
 }
 void Communicator::wait(CommunicationRequest & /*unused*/) {}
 void Communicator::waitAll(std::vector<CommunicationRequest> & /*unused*/) {}
-UInt Communicator::waitAny(std::vector<CommunicationRequest> & /*unused*/) {
-  return UInt(-1);
+Int Communicator::waitAny(std::vector<CommunicationRequest> & /*unused*/) {
+  return -1;
 }
 
 void Communicator::barrier() const {}

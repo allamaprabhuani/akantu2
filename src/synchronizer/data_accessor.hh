@@ -280,7 +280,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 template <class T>
-using SimpleUIntDataAccessor = ReduceDataAccessor<UInt, IdentityOperation, T>;
+using SimpleIdxDataAccessor = ReduceDataAccessor<Idx, IdentityOperation, T>;
 
 /* -------------------------------------------------------------------------- */
 template <class T>

@@ -917,8 +917,8 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
@@ -938,8 +938,8 @@ void Material::resizeInternals() {
     it->second->resize();
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->resize();
   }
 
@@ -1024,8 +1024,8 @@ void Material::onElementsRemoved(
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 

@@ -77,7 +77,7 @@ Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
                           << mat_name << "' has already been registered. "
                           << "Please use unique names for materials");
 
-  UInt mat_count = materials.size();
+  auto mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
   std::stringstream sstr_mat;

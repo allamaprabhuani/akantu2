@@ -111,7 +111,7 @@ protected:
   int hash_id;
 
   /// message counter per tag
-  std::map<SynchronizationTag, UInt> tag_counter;
+  std::map<SynchronizationTag, Int> tag_counter;
 
   /// the static memory instance
   const Communicator & communicator;

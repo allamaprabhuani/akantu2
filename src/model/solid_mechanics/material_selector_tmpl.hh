@@ -41,8 +41,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Int ElementDataMaterialSelector<std::string>::
-operator()(const Element & element) {
+inline Int
+ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
   try {
     std::string material_name = this->elementData(element);
     return model.getMaterialIndex(material_name);
@@ -53,8 +53,8 @@ operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Int ElementDataMaterialSelector<UInt>::
-operator()(const Element & element) {
+inline Int
+ElementDataMaterialSelector<Int>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -64,8 +64,7 @@ operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline Int
-ElementDataMaterialSelector<T>::operator()(const Element & element) {
+inline Int ElementDataMaterialSelector<T>::operator()(const Element & element) {
   return MaterialSelector::operator()(element);
 }
 

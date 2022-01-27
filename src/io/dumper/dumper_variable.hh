@@ -65,9 +65,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](UInt i) const { return vari[i]; }
+    const T & operator[](Idx i) const { return vari[i]; }
 
-    UInt getDim() { return vari.size(); }
+    Int getDim() { return vari.size(); }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:
@@ -85,9 +85,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](UInt i) const { return vari[i]; }
+    const T & operator[](Idx i) const { return vari[i]; }
 
-    UInt getDim() { return vari.size(); }
+    Int getDim() { return vari.size(); }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:
@@ -106,9 +106,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](__attribute__((unused)) UInt i) const { return vari; }
+    const T & operator[](Idx /*i*/) const { return vari; }
 
-    UInt getDim() { return 1; }
+    Int getDim() { return 1; }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:

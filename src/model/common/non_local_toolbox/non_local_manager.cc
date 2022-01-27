@@ -149,8 +149,8 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// exchange all the neighborhood IDs, so that every proc knows how many
   /// neighborhoods exist globally
   /// First: Compute locally the maximum ID size
-  UInt max_id_size = 0;
-  UInt current_size = 0;
+  Int max_id_size = 0;
+  Int current_size = 0;
   NeighborhoodMap::const_iterator it;
   for (it = neighborhoods.begin(); it != neighborhoods.end(); ++it) {
     current_size = it->first.size();
@@ -164,8 +164,8 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   static_communicator.allReduce(max_id_size, SynchronizerOperation::_max);
 
   /// get the rank for this proc and the total nb proc
-  UInt prank = static_communicator.whoAmI();
-  UInt psize = static_communicator.getNbProc();
+  Int prank = static_communicator.whoAmI();
+  Int psize = static_communicator.getNbProc();
 
   /// exchange the number of neighborhoods on each proc
   Array<Int> nb_neighborhoods_per_proc(psize);
@@ -173,21 +173,21 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   static_communicator.allGather(nb_neighborhoods_per_proc);
 
   /// compute the total number of neighborhoods
-  UInt nb_neighborhoods_global = std::accumulate(
+  Int nb_neighborhoods_global = std::accumulate(
       nb_neighborhoods_per_proc.begin(), nb_neighborhoods_per_proc.end(), 0);
 
   /// allocate an array of chars to store the names of all neighborhoods
   Array<char> buffer(nb_neighborhoods_global, max_id_size);
 
   /// starting index on this proc
-  UInt starting_index =
+  Int starting_index =
       std::accumulate(nb_neighborhoods_per_proc.begin(),
                       nb_neighborhoods_per_proc.begin() + prank, 0);
 
   it = neighborhoods.begin();
   /// store the names of local neighborhoods in the buffer
   for (Int i = 0; i < neighborhoods.size(); ++i, ++it) {
-    UInt c = 0;
+    Int c = 0;
     for (; c < it->first.size(); ++c) {
       buffer(i + starting_index, c) = it->first[c];
     }
@@ -419,8 +419,6 @@ void NonLocalManager::computeAllNonLocalStresses() {
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::cleanupExtraGhostElements() {
-  // ElementTypeMap<UInt> & nb_ghost_protected) {
-
   using ElementSet = std::set<Element>;
   ElementSet relevant_ghost_elements;
 
@@ -438,61 +436,6 @@ void NonLocalManager::cleanupExtraGhostElements() {
     auto & neighborhood = *pair.second;
     neighborhood.cleanupExtraGhostElements(relevant_ghost_elements);
   }
-
-  // /// remove all unneccessary ghosts from the mesh
-  // /// Create list of element to remove and new numbering for element to keep
-  // Mesh & mesh = this->model.getMesh();
-  // ElementSet ghost_to_erase;
-
-  // RemovedElementsEvent remove_elem(mesh);
-  // auto & new_numberings = remove_elem.getNewNumbering();
-  // Element element;
-  // element.ghost_type = _ghost;
-
-  // for (auto & type : mesh.elementTypes(spatial_dimension, _ghost)) {
-  //   element.type = type;
-  //   UInt nb_ghost_elem = mesh.getNbElement(type, _ghost);
-  //   // UInt nb_ghost_elem_protected = 0;
-  //   // try {
-  //   //   nb_ghost_elem_protected = nb_ghost_protected(type, _ghost);
-  //   // } catch (...) {
-  //   // }
-
-  //   if (!new_numberings.exists(type, _ghost))
-  //     new_numberings.alloc(nb_ghost_elem, 1, type, _ghost);
-  //   else
-  //     new_numberings(type, _ghost).resize(nb_ghost_elem);
-
-  //   Array<UInt> & new_numbering = new_numberings(type, _ghost);
-  //   for (Int g = 0; g < nb_ghost_elem; ++g) {
-  //     element.element = g;
-  //     if (element.element >= nb_ghost_elem_protected &&
-  //         relevant_ghost_elements.find(element) ==
-  //             relevant_ghost_elements.end()) {
-  //       remove_elem.getList().push_back(element);
-  //       new_numbering(element.element) = UInt(-1);
-  //     }
-  //   }
-  //   /// renumber remaining ghosts
-  //   UInt ng = 0;
-  //   for (Int g = 0; g < nb_ghost_elem; ++g) {
-  //     if (new_numbering(g) != UInt(-1)) {
-  //       new_numbering(g) = ng;
-  //       ++ng;
-  //     }
-  //   }
-  // }
-
-  // for (auto & type : mesh.elementTypes(spatial_dimension, _not_ghost)) {
-  //   UInt nb_elem = mesh.getNbElement(type, _not_ghost);
-  //   if (!new_numberings.exists(type, _not_ghost))
-  //     new_numberings.alloc(nb_elem, 1, type, _not_ghost);
-  //   Array<UInt> & new_numbering = new_numberings(type, _not_ghost);
-  //   for (Int e = 0; e < nb_elem; ++e) {
-  //     new_numbering(e) = e;
-  //   }
-  // }
-  // mesh.sendEvent(remove_elem);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -43,41 +43,6 @@
 
 namespace akantu {
 namespace Math {
-  /* ------------------------------------------------------------------------ */
-  void matrix_vector(UInt m, UInt n, const Array<Real> & A,
-                     const Array<Real> & x, Array<Real> & y, Real alpha) {
-    AKANTU_DEBUG_ASSERT(A.size() == x.size(),
-                        "The vector A(" << A.getID() << ") and the vector x("
-                                        << x.getID()
-                                        << ") must have the same size");
-
-    AKANTU_DEBUG_ASSERT(
-        A.getNbComponent() == m * n,
-        "The vector A(" << A.getID() << ") has the good number of component.");
-
-    AKANTU_DEBUG_ASSERT(x.getNbComponent() == n,
-                        "The vector x("
-                            << x.getID()
-                            << ") do not the good number of component.");
-
-    AKANTU_DEBUG_ASSERT(y.getNbComponent() == n,
-                        "The vector y("
-                            << y.getID()
-                            << ") do not the good number of component.");
-
-    UInt nb_element = A.size();
-    y.resize(nb_element);
-
-    for (auto && data :
-         zip(make_view(y, m), make_view(A, m, n), make_view(x, n))) {
-      auto && y = std::get<0>(data);
-      auto && A = std::get<1>(data);
-      auto && x = std::get<2>(data);
-
-      y = alpha * A * x;
-    }
-  }
-
   /* ---------------------------------------------------------------------- */
   void compute_tangents(const Array<Real> & normals, Array<Real> & tangents) {
     if (normals.empty()) {
@@ -132,13 +97,13 @@ namespace Math {
       return 0.;
     }
 
-    UInt nb_values_to_sum = nb_values >> 1;
+    Int nb_values_to_sum = nb_values >> 1;
 
     std::sort(array.begin(), array.end());
 
     // as long as the half is not empty
-    while (nb_values_to_sum != 0U) {
-      UInt remaining = (nb_values - 2 * nb_values_to_sum);
+    while (nb_values_to_sum != 0) {
+      Int remaining = (nb_values - 2 * nb_values_to_sum);
       if (remaining != 0U) {
         array(nb_values - 2) += array(nb_values - 1);
       }

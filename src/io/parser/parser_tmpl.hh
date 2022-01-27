@@ -103,13 +103,13 @@ template <> inline ParserParameter::operator Vector<Real>() const {
 }
 
 /* --------------------------------------------------------- ---------------- */
-template <> inline ParserParameter::operator Vector<UInt>() const {
+template <> inline ParserParameter::operator Vector<Int>() const {
   Vector<Real> tmp = Parser::parseVector(value, *parent_section);
-  Vector<UInt> tmp_uint(tmp.size());
+  Vector<Int> tmp_int(tmp.size());
   for (Int i = 0; i < tmp.size(); ++i) {
-    tmp_uint(i) = UInt(tmp(i));
+    tmp_int(i) = Int(tmp(i));
   }
-  return tmp_uint;
+  return tmp_int;
 }
 
 /* --------------------------------------------------------- ---------------- */

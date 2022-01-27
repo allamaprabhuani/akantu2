@@ -179,7 +179,7 @@ namespace dumpers {
       }
 
       const array_type & vect = this->field(type, this->ghost_type);
-      UInt nb_data = this->getNbDataPerElem(type);
+      Int nb_data = this->getNbDataPerElem(type);
       auto it = make_view(vect, nb_data).end();
       auto rit = iterator(this->field, end, end, it, it, this->ghost_type);
       rit.setNbDataPerElem(this->nb_data_per_elem);

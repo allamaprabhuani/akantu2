@@ -97,26 +97,27 @@ void DOFManager::assembleElementalArrayLocalArray(
                           << elementary_vect.getID()
                           << ") has not the good size.");
 
-  const auto & connectivity =
-      this->mesh->getConnectivity(type, ghost_type);
+  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
 
-  Array<Real>::const_matrix_iterator elem_it =
-      elementary_vect.begin(nb_degree_of_freedom, nb_nodes_per_element);
+  auto elem_it =
+      make_view(elementary_vect, nb_degree_of_freedom, nb_nodes_per_element)
+          .begin();
+  auto assemble_it = make_view(array_assembeled, nb_degree_of_freedom).begin();
 
   for (Int el = 0; el < nb_element; ++el, ++elem_it) {
     auto element = el;
     if (filter_it != nullptr) {
-      // conn_it = conn_begin + *filter_it;
+
       element = *filter_it;
     }
 
     // const Vector<UInt> & conn = *conn_it;
-    const Matrix<Real> & elemental_val = *elem_it;
+    const auto & elemental_val = *elem_it;
     for (Int n = 0; n < nb_nodes_per_element; ++n) {
-      auto offset_node = connectivity(element, n) * nb_degree_of_freedom;
-      VectorProxy<Real> assemble(array_assembeled.data() + offset_node,
-                            nb_degree_of_freedom);
-      assemble = scale_factor * elemental_val(n);
+      auto node = connectivity(element, n);
+
+      auto && assemble = assemble_it[node];
+      assemble += scale_factor * elemental_val(n);
     }
 
     if (filter_it != nullptr) {
@@ -131,13 +132,13 @@ void DOFManager::assembleElementalArrayLocalArray(
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
-    const ID & dof_id, const Array<Real> & elementary_vect,
-    ElementType type, GhostType ghost_type, Real scale_factor,
+    const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
+    GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom =
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
   Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
                                       nb_degree_of_freedom);
@@ -156,13 +157,12 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type,
-    GhostType ghost_type, Real scale_factor,
-    const Array<Int> & filter_elements) {
+    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom =
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
   Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
                                       nb_degree_of_freedom);
@@ -632,8 +632,8 @@ void DOFManager::zeroLumpedMatrix(const ID & mtx) {
 /* -------------------------------------------------------------------------- */
 /* Mesh Events                                                                */
 /* -------------------------------------------------------------------------- */
-std::pair<Int, Int>
-DOFManager::updateNodalDOFs(const ID & dof_id, const Array<Idx> & nodes_list) {
+std::pair<Int, Int> DOFManager::updateNodalDOFs(const ID & dof_id,
+                                                const Array<Idx> & nodes_list) {
   auto & dof_data = this->getDOFData(dof_id);
   Int nb_new_local_dofs, nb_new_pure_local;
 
@@ -723,7 +723,7 @@ public:
   }
 
   Int getNbData(const Array<Idx> & nodes,
-                 const SynchronizationTag & tag) const override {
+                const SynchronizationTag & tag) const override {
     if (tag == SynchronizationTag::_ask_nodes or
         tag == SynchronizationTag::_giu_global_conn) {
       return nodes.size() * dof_data.dof->getNbComponent() * sizeof(Idx);

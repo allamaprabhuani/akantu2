@@ -53,7 +53,7 @@ public:
 
   /// generates a tag
   template <typename CommTag>
-  static inline Tag genTag(int proc, UInt msg_count, CommTag tag) {
+  static inline Tag genTag(int proc, Idx msg_count, CommTag tag) {
     int _tag = ((((proc & 0xFFFFF) << 12) + ((msg_count & 0xFF) << 4) +
                  ((int)tag & 0xF)));
     Tag t(_tag);
@@ -62,7 +62,7 @@ public:
 
   /// generates a tag and hashes it
   template <typename CommTag>
-  static inline Tag genTag(int proc, UInt msg_count, CommTag tag, int hash) {
+  static inline Tag genTag(int proc, Idx msg_count, CommTag tag, int hash) {
     Tag t = genTag(proc, msg_count, tag);
     t.tag = t.tag ^ hash;
     t.hash = hash;

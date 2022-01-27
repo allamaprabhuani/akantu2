@@ -60,7 +60,7 @@ public:
               const Vector<Real> & center)
       : dimension(dimension), spacing(spacing), center(center),
         lower(dimension), upper(dimension), empty_cell() {
-    for (UInt i = 0; i < dimension; ++i) {
+    for (Int i = 0; i < dimension; ++i) {
       lower(i) = std::numeric_limits<Real>::max();
       upper(i) = -std::numeric_limits<Real>::max();
     }
@@ -75,8 +75,8 @@ public:
   public:
     CellID() = default;
     explicit CellID(Int dimention) : ids(dimention) {}
-    void setID(UInt dir, Int id) { ids(dir) = id; }
-    Int getID(UInt dir) const { return ids(dir); }
+    void setID(Int dir, Int id) { ids(dir) = id; }
+    Int getID(Int dir) const { return ids(dir); }
 
     bool operator<(const CellID & id) const {
       return std::lexicographical_compare(ids.data(), ids.data() + ids.size(),
@@ -91,7 +91,7 @@ public:
     bool operator!=(const CellID & id) const { return !(operator==(id)); }
 
     class neighbor_cells_iterator
-        : private std::iterator<std::forward_iterator_tag, UInt> {
+        : private std::iterator<std::forward_iterator_tag, Idx> {
     public:
       neighbor_cells_iterator(const CellID & cell_id, bool end)
           : cell_id(cell_id), position(cell_id.ids.size(), end ? 1 : -1) {

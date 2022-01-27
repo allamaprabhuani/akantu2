@@ -67,8 +67,8 @@ public:
   virtual SolverVector & operator+(const SolverVector & y) = 0;
   virtual SolverVector & operator=(const SolverVector & y) = 0;
 
-  UInt & release() { return release_; }
-  UInt release() const { return release_; }
+  Int & release() { return release_; }
+  Int release() const { return release_; }
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
@@ -78,7 +78,7 @@ protected:
   /// Underlying dof manager
   DOFManager & _dof_manager;
 
-  UInt release_{0};
+  Int release_{0};
 };
 
 inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {

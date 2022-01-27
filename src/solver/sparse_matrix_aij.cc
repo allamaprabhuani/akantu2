@@ -71,8 +71,8 @@ void SparseMatrixAIJ::applyBoundary(Real block_val) {
   };
 
   for (auto && ij_a : zip(irn, jcn, a)) {
-    UInt ni = std::get<0>(ij_a) - 1;
-    UInt nj = std::get<1>(ij_a) - 1;
+    auto ni = std::get<0>(ij_a) - 1;
+    auto nj = std::get<1>(ij_a) - 1;
 
     if (is_blocked(ni) or is_blocked(nj)) {
 
@@ -118,8 +118,8 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
     // write content
     if (comm.whoAmI() == p) {
       for (auto && data : zip(this->irn, this->jcn)) {
-        outfile << std::get<0>(data) << " " << std::get<1>(data)
-                << " 1" << std::endl;
+        outfile << std::get<0>(data) << " " << std::get<1>(data) << " 1"
+                << std::endl;
       }
     }
     comm.barrier();
@@ -164,8 +164,8 @@ void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
     // write content
     if (comm.whoAmI() == p) {
       for (auto && data : zip(this->irn, this->jcn, this->a)) {
-        outfile << std::get<0>(data) << " " << std::get<1>(data) << " " << std::get<2>(data)
-                << std::endl;
+        outfile << std::get<0>(data) << " " << std::get<1>(data) << " "
+                << std::get<2>(data) << std::endl;
       }
     }
     comm.barrier();
@@ -186,9 +186,11 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
   auto y_it = make_view(y).begin();
 
   for (auto && data : zip(this->irn, this->jcn, this->a)) {
-    Int i = this->dof_manager.globalToLocalEquationNumber(std::get<0>(data) - 1);
-    Int j = this->dof_manager.globalToLocalEquationNumber(std::get<1>(data) - 1);
-    const Real & A = std::get<2>(data);
+    auto i =
+        this->dof_manager.globalToLocalEquationNumber(std::get<0>(data) - 1);
+    auto j =
+        this->dof_manager.globalToLocalEquationNumber(std::get<1>(data) - 1);
+    const auto & A = std::get<2>(data);
 
     y_it[i] += alpha * A * x_it[j];
 
@@ -238,9 +240,9 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
 
   this->irn_jcn_k.clear();
 
-  UInt i;
-  UInt j;
-  UInt k;
+  Idx i;
+  Idx j;
+  Idx k;
   for (auto && data : enumerate(irn, jcn)) {
     std::tie(k, i, j) = data;
 
@@ -260,8 +262,8 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
 /* -------------------------------------------------------------------------- */
 template <class MatrixType>
 void SparseMatrixAIJ::addMeToTemplated(MatrixType & B, Real alpha) const {
-  UInt i;
-  UInt j;
+  Idx i;
+  Idx j;
   Real A_ij;
   for (auto && tuple : zip(irn, jcn, a)) {
     std::tie(i, j, A_ij) = tuple;

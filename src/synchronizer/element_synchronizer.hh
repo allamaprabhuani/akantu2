@@ -101,52 +101,51 @@ protected:
   void fillNodesType(const MeshData & mesh_data,
                      DynamicCommunicationBuffer * buffers,
                      const std::string & tag_name, ElementType el_type,
-                     const Array<UInt> & partition_num);
+                     const Array<Idx> & partition_num);
 
   template <typename T>
   void fillTagBufferTemplated(const MeshData & mesh_data,
                               DynamicCommunicationBuffer * buffers,
                               const std::string & tag_name, ElementType el_type,
-                              const Array<UInt> & partition_num,
-                              const CSR<UInt> & ghost_partition);
+                              const Array<Idx> & partition_num,
+                              const CSR<Idx> & ghost_partition);
 
   void fillTagBuffer(const MeshData & mesh_data,
                      DynamicCommunicationBuffer * buffers,
                      const std::string & tag_name, ElementType el_type,
-                     const Array<UInt> & partition_num,
-                     const CSR<UInt> & ghost_partition);
+                     const Array<Idx> & partition_num,
+                     const CSR<Idx> & ghost_partition);
 
   /// function that handels the MeshData to be split (root side)
-  static void synchronizeTagsSend(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags, ElementType type,
-                                  const Array<UInt> & partition_num,
-                                  const CSR<UInt> & ghost_partition,
-                                  UInt nb_local_element, UInt nb_ghost_element);
+  static void synchronizeTagsSend(ElementSynchronizer & communicator, Idx root,
+                                  Mesh & mesh, Int nb_tags, ElementType type,
+                                  const Array<Idx> & partition_num,
+                                  const CSR<Idx> & ghost_partition,
+                                  Int nb_local_element, Int nb_ghost_element);
 
   /// function that handles the MeshData to be split (other nodes)
-  static void synchronizeTagsRecv(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags, ElementType type,
-                                  UInt nb_local_element, UInt nb_ghost_element);
+  static void synchronizeTagsRecv(ElementSynchronizer & communicator, Idx root,
+                                  Mesh & mesh, Int nb_tags, ElementType type,
+                                  Int nb_local_element, Int nb_ghost_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh, ElementType type,
-                                       const Array<UInt> & partition_num,
-                                       const CSR<UInt> & ghost_partition,
-                                       UInt nb_element);
+                                       Idx root, Mesh & mesh, ElementType type,
+                                       const Array<Idx> & partition_num,
+                                       const CSR<Idx> & ghost_partition,
+                                       Int nb_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh,
-                                       ElementType type);
+                                       Idx root, Mesh & mesh, ElementType type);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeNodeGroupsMaster(ElementSynchronizer & communicator,
-                                          UInt root, Mesh & mesh);
+                                          Idx root, Mesh & mesh);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeNodeGroupsSlaves(ElementSynchronizer & communicator,
-                                          UInt root, Mesh & mesh);
+                                          Idx root, Mesh & mesh);
 
   template <class CommunicationBuffer>
   static void fillNodeGroupsFromBuffer(ElementSynchronizer & communicator,
@@ -168,8 +167,8 @@ protected:
                            const SynchronizationTag & /*tag*/) const override;
   void unpackSanityCheckData(CommunicationBuffer & /*buffer*/,
                              const Array<Element> & /*elements*/,
-                             const SynchronizationTag & /*tag*/, Int /*proc*/,
-                             Int /*rank*/) const override;
+                             const SynchronizationTag & /*tag*/, Idx /*proc*/,
+                             Idx /*rank*/) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

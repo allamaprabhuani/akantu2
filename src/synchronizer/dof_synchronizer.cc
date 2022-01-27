@@ -98,11 +98,11 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
         auto an_it = an_begin;
         auto an_end = associated_nodes.end();
 
-        std::vector<UInt> global_dofs_per_node;
+        std::vector<Idx> global_dofs_per_node;
         while ((an_it = std::find(an_it, an_end, node)) != an_end) {
-          UInt pos = an_it - an_begin;
-          UInt local_eq_num = equation_numbers(pos);
-          UInt global_eq_num =
+          auto pos = an_it - an_begin;
+          auto local_eq_num = equation_numbers(pos);
+          auto global_eq_num =
               dof_manager.localToGlobalEquationNumber(local_eq_num);
           global_dofs_per_node.push_back(global_eq_num);
           ++an_it;
@@ -110,8 +110,8 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
 
         std::sort(global_dofs_per_node.begin(), global_dofs_per_node.end());
         std::transform(global_dofs_per_node.begin(), global_dofs_per_node.end(),
-                       global_dofs_per_node.begin(), [this](UInt g) -> UInt {
-                         UInt l = dof_manager.globalToLocalEquationNumber(g);
+                       global_dofs_per_node.begin(), [this](Idx g) -> Idx {
+                         auto l = dof_manager.globalToLocalEquationNumber(g);
                          return l;
                        });
         for (auto & leqnum : global_dofs_per_node) {
@@ -133,7 +133,7 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
 
 /* -------------------------------------------------------------------------- */
 void DOFSynchronizer::fillEntityToSend(Array<Idx> & dofs_to_send) {
-  UInt nb_dofs = dof_manager.getLocalSystemSize();
+  auto nb_dofs = dof_manager.getLocalSystemSize();
 
   this->entities_from_root.zero();
   dofs_to_send.resize(0);
@@ -147,7 +147,7 @@ void DOFSynchronizer::fillEntityToSend(Array<Idx> & dofs_to_send) {
   }
 
   for (auto d : entities_from_root) {
-    UInt global_dof = dof_manager.localToGlobalEquationNumber(d);
+    auto global_dof = dof_manager.localToGlobalEquationNumber(d);
     dofs_to_send.push_back(global_dof);
   }
 }
@@ -212,8 +212,8 @@ void DOFSynchronizer::onNodesAdded(const Array<Idx> & /*nodes_list*/) {
   //   for (auto & pair : dofs_per_proc[*sr_it]) {
   //     std::sort(pair.second.begin(), pair.second.end(),
   //               [this](UInt la, UInt lb) -> bool {
-  //                 UInt ga = dof_manager.localToGlobalEquationNumber(la);
-  //                 UInt gb = dof_manager.localToGlobalEquationNumber(lb);
+  //                 auto ga = dof_manager.localToGlobalEquationNumber(la);
+  //                 auto gb = dof_manager.localToGlobalEquationNumber(lb);
   //                 return ga < gb;
   //               });
 

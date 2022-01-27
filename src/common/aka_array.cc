@@ -53,7 +53,7 @@ template <> Idx Array<Real>::find(const Real & elem) const {
   });
 
   AKANTU_DEBUG_OUT();
-  return (it != end()) ? end() - it : UInt(-1);
+  return (it != end()) ? end() - it : -1;
 }
 
 /* -------------------------------------------------------------------------- */

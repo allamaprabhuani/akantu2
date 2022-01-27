@@ -57,7 +57,7 @@ public:
       : model(model), A(amplitude), k(2 * M_PI / pulse_width),
         t(t), v{std::sqrt(model.E / model.rho)} {}
 
-  void operator()(UInt n, Vector<bool> & /*flags*/, Vector<Real> & disp,
+  void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> & disp,
                   const Vector<Real> & coord) const {
     auto x = coord(_x);
     model.velocity(n, _x) = k * v * A * sin(k * (x - v * t));

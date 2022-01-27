@@ -137,7 +137,7 @@ namespace dumpers {
       return_type operator*() { return func.func(*it); }
 
       /// Do to IOHelper the needs it...
-      UInt element_type() { return this->it.element_type(); }
+      Int element_type() { return this->it.element_type(); }
 
     protected:
       sub_iterator it;
@@ -233,7 +233,7 @@ namespace dumpers {
 
       Element getCurrentElement() { return this->it.getCurrentElement(); }
 
-      UInt element_type() { return this->it.element_type(); }
+      Int element_type() { return this->it.element_type(); }
 
     protected:
       sub_iterator it;
@@ -278,7 +278,7 @@ namespace dumpers {
     template <class T1 = data_type,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = data_type,
@@ -339,12 +339,12 @@ namespace dumpers {
         return this->connectToFunctor<Vector<Real>>(ptr);
       }
 
-      if (aka::is_of_type<ComputeFunctorOutput<Vector<UInt>>>(func)) {
-        return this->connectToFunctor<Vector<UInt>>(ptr);
+      if (aka::is_of_type<ComputeFunctorOutput<Vector<Int>>>(func)) {
+        return this->connectToFunctor<Vector<Int>>(ptr);
       }
 
-      if (aka::is_of_type<ComputeFunctorOutput<Matrix<UInt>>>(func)) {
-        return this->connectToFunctor<Matrix<UInt>>(ptr);
+      if (aka::is_of_type<ComputeFunctorOutput<Matrix<Int>>>(func)) {
+        return this->connectToFunctor<Matrix<Int>>(ptr);
       }
 
       if (aka::is_of_type<ComputeFunctorOutput<Matrix<Real>>>(func)) {

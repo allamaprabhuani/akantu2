@@ -112,8 +112,8 @@ void PhaseField::resizeInternals() {
     it->second->resize();
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->resize();
   }
 

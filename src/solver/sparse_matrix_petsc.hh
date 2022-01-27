@@ -68,8 +68,7 @@ public:
 public:
   /// set the matrix to 0
   void zero() override;
-  void set(Real /*val*/)
-  override { AKANTU_TO_IMPLEMENT(); }
+  void set(Real /*val*/) override { AKANTU_TO_IMPLEMENT(); }
   void clearProfile() override;
 
   /// add a non-zero element to the profile
@@ -138,7 +137,7 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  UInt getRelease() const override { return release; };
+  Int getRelease() const override { return release; };
 
   operator Mat &() { return mat; }
   operator const Mat &() const { return mat; }
@@ -156,7 +155,7 @@ protected:
   Mat mat;
 
   /// matrix release
-  UInt release{0};
+  Int release{0};
 };
 
 } // namespace akantu

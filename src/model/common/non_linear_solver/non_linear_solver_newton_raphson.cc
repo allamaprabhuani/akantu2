@@ -180,7 +180,7 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
   const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
 
   const Array<Real> & array(solver_vector);
-  UInt nb_degree_of_freedoms = array.size();
+  Int nb_degree_of_freedoms = array.size();
 
   auto arr_it = array.begin();
   auto bld_it = blocked_dofs.begin();

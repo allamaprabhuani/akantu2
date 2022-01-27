@@ -166,8 +166,8 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   auto & tag = mesh_accessor.getData<Int>("tag_1", _segment_2);
   auto & nodes = mesh_accessor.getNodes();
 
-  std::map<IntegrationPoint, UInt> quad_to_nodes;
-  UInt node = 0;
+  std::map<IntegrationPoint, Idx> quad_to_nodes;
+  Idx node = 0;
 
   IntegrationPoint q1;
   IntegrationPoint q2;

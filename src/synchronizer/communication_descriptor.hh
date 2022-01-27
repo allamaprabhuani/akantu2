@@ -66,13 +66,13 @@ public:
   Communication(const Communication &) = delete;
   Communication & operator=(const Communication &) = delete;
 
-  void resize(UInt size) {
+  void resize(Int size) {
     this->_size = size;
     this->_buffer.resize(size);
   }
 
   inline const CommunicationSendRecv & type() const { return this->_type; }
-  inline const UInt & size() const { return this->_size; }
+  inline Int size() const { return this->_size; }
 
   inline const CommunicationRequest & request() const { return this->_request; }
   inline CommunicationRequest & request() { return this->_request; }
@@ -81,7 +81,7 @@ public:
   inline CommunicationBuffer & buffer() { return this->_buffer; }
 
 private:
-  UInt _size{0};
+  Int _size{0};
   CommunicationBuffer _buffer;
   CommunicationRequest _request;
   CommunicationSendRecv _type;
@@ -94,7 +94,7 @@ template <class Entity> class CommunicationDescriptor {
 public:
   CommunicationDescriptor(Communication & communication, Array<Entity> & scheme,
                           Communications<Entity> & communications,
-                          const SynchronizationTag & tag, UInt proc);
+                          const SynchronizationTag & tag, Idx proc);
 
   CommunicationDescriptor(const CommunicationDescriptor &) = default;
 
@@ -102,9 +102,9 @@ public:
   operator=(const CommunicationDescriptor &) = default;
 
   /// get the quantity of data in the buffer
-  UInt getNbData() { return communication.size(); }
+  Int getNbData() { return communication.size(); }
   /// set the quantity of data in the buffer
-  void setNbData(UInt size) { communication.resize(size); }
+  void setNbData(Int size) { communication.resize(size); }
 
   /// get the corresponding tag
   const SynchronizationTag & getTag() const { return tag; }
@@ -135,16 +135,16 @@ public:
   /// free the request
   void freeRequest();
 
-  UInt getProc() { return proc; }
+  Idx getProc() { return proc; }
 
 protected:
   Communication & communication;
   const Array<Entity> & scheme;
   Communications<Entity> & communications;
   const SynchronizationTag & tag;
-  UInt proc;
-  UInt rank;
-  UInt counter;
+  Idx proc;
+  Idx rank;
+  Int counter;
 };
 
 /* -------------------------------------------------------------------------- */

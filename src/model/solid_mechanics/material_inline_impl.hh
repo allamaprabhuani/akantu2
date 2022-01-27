@@ -349,8 +349,8 @@ inline void Material::registerInternal<Real>(InternalField<Real> & vect) {
 }
 
 template <>
-inline void Material::registerInternal<UInt>(InternalField<UInt> & vect) {
-  internal_vectors_uint[vect.getID()] = &vect;
+inline void Material::registerInternal<Int>(InternalField<Int> & vect) {
+  internal_vectors_int[vect.getID()] = &vect;
 }
 
 template <>
@@ -365,8 +365,8 @@ inline void Material::unregisterInternal<Real>(InternalField<Real> & vect) {
 }
 
 template <>
-inline void Material::unregisterInternal<UInt>(InternalField<UInt> & vect) {
-  internal_vectors_uint.erase(vect.getID());
+inline void Material::unregisterInternal<Int>(InternalField<Int> & vect) {
+  internal_vectors_int.erase(vect.getID());
 }
 
 template <>
@@ -516,10 +516,10 @@ inline InternalField<Real> & Material::getInternal(const ID & int_id) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline const InternalField<UInt> &
+inline const InternalField<Int> &
 Material::getInternal(const ID & int_id) const {
-  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
-  if (it == internal_vectors_uint.end()) {
+  auto it = internal_vectors_int.find(getID() + ":" + int_id);
+  if (it == internal_vectors_int.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
@@ -530,9 +530,9 @@ Material::getInternal(const ID & int_id) const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline InternalField<UInt> & Material::getInternal(const ID & int_id) {
-  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
-  if (it == internal_vectors_uint.end()) {
+inline InternalField<Int> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_int.find(getID() + ":" + int_id);
+  if (it == internal_vectors_int.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("

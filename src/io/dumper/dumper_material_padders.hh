@@ -53,8 +53,8 @@ namespace dumpers {
     /* ---------------------------------------------------------------------- */
     /// return the material from the global element index
     const Material & getMaterialFromGlobalIndex(Element global_index) {
-      UInt index = global_index.element;
-      UInt material_id = material_index(global_index.type)(index);
+      auto index = global_index.element;
+      auto material_id = material_index(global_index.type)(index);
       const Material & material = model.getMaterial(material_id);
       return material;
     }
@@ -106,9 +106,9 @@ namespace dumpers {
 
     inline Matrix<Real> func(const Vector<Real> & in,
                              Element global_element_id) override {
-      UInt nrows = spatial_dimension;
-      UInt ncols = in.size() / nrows;
-      UInt nb_data = in.size() / (nrows * nrows);
+      auto nrows = spatial_dimension;
+      auto ncols = in.size() / nrows;
+      auto nb_data = in.size() / (nrows * nrows);
 
       Matrix<Real> stress = this->pad(in, nrows, ncols, nb_data);
       const Material & material =
@@ -120,7 +120,7 @@ namespace dumpers {
 
       if (plane_strain) {
         Real nu = material.getParam("nu");
-        for (UInt d = 0; d < nb_data; ++d) {
+        for (Int d = 0; d < nb_data; ++d) {
           stress(2, 2 + 3 * d) =
               nu * (stress(0, 0 + 3 * d) + stress(1, 1 + 3 * d));
         }
@@ -129,7 +129,8 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -163,7 +164,8 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -174,7 +176,8 @@ namespace dumpers {
     ComputeStrain(const SolidMechanicsModel & model) : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
+                             Element /*global_element_id*/)
+    override {
       auto nrows = spatial_dimension;
       auto ncols = in.size() / nrows;
       auto nb_data = in.size() / (nrows * nrows);
@@ -207,7 +210,8 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension * spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -220,9 +224,10 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
-      UInt nrows = spatial_dimension;
-      UInt nb_data = in.size() / (nrows * nrows);
+                             Element /*global_element_id*/)
+    override {
+      auto nrows = spatial_dimension;
+      auto nb_data = in.size() / (nrows * nrows);
 
       Matrix<Real> ret_all_strain(nrows, nb_data);
       Tensor3Proxy<const Real> all_grad_u(in.data(), nrows, nrows, nb_data);
@@ -252,7 +257,8 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -264,9 +270,10 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Vector<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/) override {
-      UInt nrows = spatial_dimension;
-      UInt nb_data = in.size() / (nrows * nrows);
+                             Element /*global_element_id*/)
+    override {
+      auto nrows = spatial_dimension;
+      auto nb_data = in.size() / (nrows * nrows);
 
       Vector<Real> von_mises_stress(nb_data);
       Matrix<Real> deviatoric_stress(3, 3);
@@ -281,7 +288,8 @@ namespace dumpers {
     }
 
     Int getDim() override { return 1; }
-    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/)
+    override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */

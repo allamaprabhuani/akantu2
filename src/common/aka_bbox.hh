@@ -244,11 +244,11 @@ public:
     return bboxes;
   }
 
-  std::map<UInt, BBox> intersection(const BBox & other,
-                                    const Communicator & communicator) const {
+  std::map<Int, BBox> intersection(const BBox & other,
+                                   const Communicator & communicator) const {
     // todo: change for a custom reduction algorithm
     auto other_bboxes = other.allGather(communicator);
-    std::map<UInt, BBox> intersections;
+    std::map<Int, BBox> intersections;
     for (const auto & bbox : enumerate(other_bboxes)) {
       auto && tmp = this->intersection(std::get<1>(bbox));
       if (tmp) {

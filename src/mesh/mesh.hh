@@ -84,9 +84,9 @@ namespace {
  * In order to loop on all element you have to loop on all types like this :
  * @code{.cpp}
  for(auto & type : mesh.elementTypes()) {
-   UInt nb_element  = mesh.getNbElement(type);
+   Int nb_element  = mesh.getNbElement(type);
    const auto & conn = mesh.getConnectivity(type);
-   for(UInt e = 0; e < nb_element; ++e) {
+   for(Int e = 0; e < nb_element; ++e) {
      ...
    }
  }
@@ -224,11 +224,6 @@ public:
                                             T * elemental_values,
                                             Idx * connectivity, Int n_nodes,
                                             Int nb_degree_of_freedom) const;
-
-  // /// extract coordinates of nodes from a reversed element
-  // inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
-  //                                                   UInt * connectivity,
-  //                                                   UInt n_nodes);
 
   /// add a Array of connectivity for the given ElementType and GhostType .
   inline void addConnectivityType(ElementType type,

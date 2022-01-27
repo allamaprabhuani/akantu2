@@ -103,7 +103,7 @@ namespace Math {
   inline bool are_float_equal(Real x, Real y);
 
   /// test if two vectors are equal within a given tolerance
-  inline bool are_vector_equal(UInt n, Real * x, Real * y);
+  inline bool are_vector_equal(Int n, Real * x, Real * y);
 
 #ifdef isnan
 #error                                                                         \

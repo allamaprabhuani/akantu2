@@ -119,12 +119,6 @@ protected:
   /// set the values of the jacobians
   void setJacobians(const FEEngine & fe_engine, ElementKind kind);
 
-  /// allocation of eelment type maps
-  // void initElementTypeMap(UInt nb_component,
-  //                         ElementTypeMapReal & element_map,
-  //                         const FEEngine & fe_engine,
-  //                         const ElementKind el_kind = _ek_regular);
-
   /// resizing of element type maps
   void resizeElementTypeMap(Int nb_component, ElementTypeMapReal & element_map,
                             const FEEngine & fee,
@@ -141,7 +135,7 @@ protected:
 
   /// cleanup unneccessary ghosts
   void
-  cleanupExtraGhostElements(); // ElementTypeMap<UInt> & nb_ghost_protected);
+  cleanupExtraGhostElements(); // ElementTypeMap<Int> & nb_ghost_protected);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor kind of interface                                           */
@@ -229,7 +223,7 @@ protected:
   ElementTypeMapReal volumes;
 
   /// counter for computeStress calls
-  UInt compute_stress_calls;
+  Int compute_stress_calls;
 
   /// map to store weight function types from input file
   std::map<ID, ParserSection> weight_function_types;

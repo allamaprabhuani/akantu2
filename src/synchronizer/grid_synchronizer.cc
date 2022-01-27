@@ -162,7 +162,7 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
         auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
         // /!\ this part must be slow due to the access in the
-        // ElementTypeMapArray<UInt>
+        // ElementTypeMapArray<Idx>
         if (!elempproc.exists(type, _not_ghost)) {
           elempproc.alloc(0, nb_nodes_per_element, type, _not_ghost);
         }

@@ -87,7 +87,7 @@ inline void SparseMatrixAIJ::clearProfile() {
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrixAIJ::add(Idx i, Idx j, Real value) {
-  UInt idx = this->add(i, j);
+  Idx idx = this->add(i, j);
 
   this->a(idx) += value;
 

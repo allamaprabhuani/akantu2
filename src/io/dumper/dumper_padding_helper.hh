@@ -61,12 +61,12 @@ namespace dumpers {
      */
 
   public:
-    void setPadding(UInt m, UInt n = 0) {
+    void setPadding(Int m, Int n = 0) {
       padding_m = m;
       padding_n = n;
     }
 
-    virtual UInt getPaddedDim(UInt nb_data) { return nb_data; }
+    virtual Int getPaddedDim(Int nb_data) { return nb_data; }
 
     /* ------------------------------------------------------------------------
      */
@@ -76,7 +76,7 @@ namespace dumpers {
 
   public:
     /// padding informations
-    UInt padding_n, padding_m;
+    Int padding_n, padding_m;
   };
 
   /* --------------------------------------------------------------------------
@@ -102,8 +102,7 @@ namespace dumpers {
      */
 
   public:
-    inline output_type pad(const input_type & in,
-                           __attribute__((unused)) UInt nb_data) {
+    inline output_type pad(const input_type & in, Int /*nb_data*/) {
       return in; // trick due to the fact that IOHelper padds the vectors (avoid
                  // a copy of data)
     }
@@ -122,8 +121,8 @@ namespace dumpers {
      */
 
   public:
-    inline Matrix<T> pad(const Vector<T> & _in, UInt nrows, UInt ncols,
-                         UInt nb_data) {
+    inline Matrix<T> pad(const Vector<T> & _in, Int nrows, Int ncols,
+                         Int nb_data) {
       MatrixProxy<const T> in(_in.data(), nrows, ncols);
 
       if (padding_m <= nrows && padding_n * nb_data <= ncols) {

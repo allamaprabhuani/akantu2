@@ -116,7 +116,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 template <class Entity> class Communications<Entity>::tag_iterator {
-  using internal_iterator = std::map<SynchronizationTag, UInt>::const_iterator;
+  using internal_iterator = std::map<SynchronizationTag, Int>::const_iterator;
 
 public:
   tag_iterator(const internal_iterator & it) : it(it) {}
@@ -148,10 +148,9 @@ Communications<Entity>::getCommunications(const SynchronizationTag & tag,
 
 /* ---------------------------------------------------------------------- */
 template <class Entity>
-UInt Communications<Entity>::getPending(
-    const SynchronizationTag & tag, const CommunicationSendRecv & sr) const {
-  const std::map<SynchronizationTag, UInt> & pending =
-      pending_communications[sr];
+Int Communications<Entity>::getPending(const SynchronizationTag & tag,
+                                       const CommunicationSendRecv & sr) const {
+  const auto & pending = pending_communications[sr];
   auto it = pending.find(tag);
 
   if (it == pending.end()) {
@@ -202,10 +201,10 @@ Communications<Entity>::waitAny(const SynchronizationTag & tag,
     }
   }
 
-  UInt req_id = Communicator::waitAny(requests);
+  auto req_id = Communicator::waitAny(requests);
   if (req_id != UInt(-1)) {
     auto & request = requests[req_id];
-    UInt proc = sr == _recv ? request.getSource() : request.getDestination();
+    auto proc = sr == _recv ? request.getSource() : request.getDestination();
 
     return iterator(this->schemes[sr].find(proc), comms.find(proc), *this, tag);
   }
@@ -244,8 +243,8 @@ void Communications<Entity>::decrementPending(
 template <class Entity>
 void Communications<Entity>::freeRequests(const SynchronizationTag & tag,
                                           const CommunicationSendRecv & sr) {
-  iterator it = this->begin(tag, sr);
-  iterator end = this->end(tag, sr);
+  auto it = this->begin(tag, sr);
+  auto end = this->end(tag, sr);
 
   for (; it != end; ++it) {
     (*it).freeRequest();
@@ -255,7 +254,7 @@ void Communications<Entity>::freeRequests(const SynchronizationTag & tag,
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 typename Communications<Entity>::Scheme &
-Communications<Entity>::createScheme(UInt proc,
+Communications<Entity>::createScheme(Idx proc,
                                      const CommunicationSendRecv & sr) {
   // scheme_iterator it = schemes[sr].find(proc);
   // if (it != schemes[sr].end()) {
@@ -280,7 +279,7 @@ void Communications<Entity>::resetSchemes(const CommunicationSendRecv & sr) {
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 void Communications<Entity>::setCommunicationSize(
-    const SynchronizationTag & tag, UInt proc, UInt size,
+    const SynchronizationTag & tag, Idx proc, Idx size,
     const CommunicationSendRecv & sr) {
   // accessor that fails if it does not exists
   comm_size_computed[tag] = true; // TODO: need perhaps to be split based on sr
@@ -424,7 +423,7 @@ void Communications<Entity>::incrementCounter(const SynchronizationTag & tag) {
 }
 
 template <class Entity>
-UInt Communications<Entity>::getCounter(const SynchronizationTag & tag) const {
+Int Communications<Entity>::getCounter(const SynchronizationTag & tag) const {
   auto it = comm_counter.find(tag);
   if (it == comm_counter.end()) {
     AKANTU_CUSTOM_EXCEPTION_INFO(
@@ -505,13 +504,13 @@ void Communications<Entity>::freeRecvRequests(const SynchronizationTag & tag) {
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 typename Communications<Entity>::Scheme &
-Communications<Entity>::createSendScheme(UInt proc) {
+Communications<Entity>::createSendScheme(Idx proc) {
   return createScheme(proc, _send);
 }
 
 template <class Entity>
 typename Communications<Entity>::Scheme &
-Communications<Entity>::createRecvScheme(UInt proc) {
+Communications<Entity>::createRecvScheme(Idx proc) {
   return createScheme(proc, _recv);
 }
 
@@ -524,14 +523,14 @@ template <class Entity> void Communications<Entity>::resetSchemes() {
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 typename Communications<Entity>::Scheme &
-Communications<Entity>::getScheme(UInt proc, const CommunicationSendRecv & sr) {
+Communications<Entity>::getScheme(Idx proc, const CommunicationSendRecv & sr) {
   return this->schemes[sr].find(proc)->second;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 const typename Communications<Entity>::Scheme &
-Communications<Entity>::getScheme(UInt proc,
+Communications<Entity>::getScheme(Idx proc,
                                   const CommunicationSendRecv & sr) const {
   return this->schemes[sr].find(proc)->second;
 }
@@ -539,13 +538,13 @@ Communications<Entity>::getScheme(UInt proc,
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 void Communications<Entity>::setSendCommunicationSize(
-    const SynchronizationTag & tag, UInt proc, UInt size) {
+    const SynchronizationTag & tag, Idx proc, Int size) {
   this->setCommunicationSize(tag, proc, size, _send);
 }
 
 template <class Entity>
 void Communications<Entity>::setRecvCommunicationSize(
-    const SynchronizationTag & tag, UInt proc, UInt size) {
+    const SynchronizationTag & tag, Idx proc, Int size) {
   this->setCommunicationSize(tag, proc, size, _recv);
 }
 

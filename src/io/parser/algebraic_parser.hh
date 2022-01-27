@@ -443,7 +443,7 @@ namespace parser {
 
   inline std::ostream & operator<<(std::ostream & stream,
                                    const ParsableRandomGenerator & prg) {
-    stream << "prg[" << prg.base << " " << UInt(prg.type) << " "
+    stream << "prg[" << prg.base << " " << Int(prg.type) << " "
            << prg.parameters << "]";
     return stream;
   }

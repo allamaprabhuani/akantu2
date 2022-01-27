@@ -67,7 +67,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
   std::tie(send_dir, recv_dir) = send_recv_schemes;
 
   using CommunicationRequests = std::vector<CommunicationRequest>;
-  using CommunicationBuffers = std::map<UInt, CommunicationBuffer>;
+  using CommunicationBuffers = std::map<Int, CommunicationBuffer>;
 
   CommunicationRequests send_requests;
   CommunicationRequests recv_requests;
@@ -100,7 +100,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
       if (sr == recv_dir) {
         requests.push_back(communicator.asyncReceive(
             buffer, proc,
-            Tag::genTag(this->rank, UInt(tag), comm_tag, this->hash_id)));
+            Tag::genTag(this->rank, Int(tag), comm_tag, this->hash_id)));
       } else {
 #ifndef AKANTU_NDEBUG
         this->packSanityCheckData(buffer, scheme, tag);
@@ -118,7 +118,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
 
         send_requests.push_back(communicator.asyncSend(
             buffer, proc,
-            Tag::genTag(proc, UInt(tag), comm_tag, this->hash_id)));
+            Tag::genTag(proc, Int(tag), comm_tag, this->hash_id)));
       }
     }
   };
@@ -130,8 +130,8 @@ void SynchronizerImpl<Entity>::communicateOnce(
   postComm(send_dir, send_buffers, send_requests);
 
   // treat the receive requests
-  UInt request_ready;
-  while ((request_ready = Communicator::waitAny(recv_requests)) != UInt(-1)) {
+  Idx request_ready;
+  while ((request_ready = Communicator::waitAny(recv_requests)) != -1) {
     auto & req = recv_requests[request_ready];
     auto proc = req.getSource();
 
@@ -284,7 +284,7 @@ void SynchronizerImpl<Entity>::computeBufferSizeImpl(
     for (auto && pair : this->communications.iterateSchemes(sr)) {
       auto proc = pair.first;
       const auto & scheme = pair.second;
-      UInt size = 0;
+      Int size = 0;
 #ifndef AKANTU_NDEBUG
       size += this->sanityCheckDataSize(scheme, tag);
 #endif
@@ -365,7 +365,7 @@ template <typename Entity>
 template <typename Pred>
 void SynchronizerImpl<Entity>::filterScheme(Pred && pred) {
   std::vector<CommunicationRequest> requests;
-  std::unordered_map<UInt, Array<UInt>> keep_entities;
+  std::unordered_map<Idx, Array<Idx>> keep_entities;
 
   auto filter_list = [](const auto & keep, auto & list) {
     Array<Entity> new_list;
@@ -408,9 +408,9 @@ void SynchronizerImpl<Entity>::filterScheme(Pred && pred) {
                       << proc << " (communication tag : " << tag << ")");
 
     CommunicationStatus status;
-    communicator.probe<UInt>(proc, tag, status);
+    communicator.probe<Int>(proc, tag, status);
 
-    Array<UInt> keep_entity(status.size(), 1, "keep_element");
+    Array<Int> keep_entity(status.size(), 1, "keep_element");
     AKANTU_DEBUG_INFO("I have "
                       << keep_entity.size()
                       << " elements to keep in my send list to processor "
@@ -465,8 +465,8 @@ Int SynchronizerImpl<Entity>::sanityCheckDataSize(
 
   Int size = 0;
   size += sizeof(SynchronizationTag); // tag
-  size += sizeof(Int);               // comm_desc.getNbData();
-  size += sizeof(Int);               // comm_desc.getProc();
+  size += sizeof(Int);                // comm_desc.getNbData();
+  size += sizeof(Int);                // comm_desc.getProc();
   size += sizeof(this->rank);         // mesh.getCommunicator().whoAmI();
 
   return size;
@@ -516,10 +516,10 @@ void SynchronizerImpl<Entity>::unpackSanityCheckData(
       nb_data == recv_nb_data,
       "The nb_data received does not correspond to the nb_data expected");
 
-  AKANTU_DEBUG_ASSERT(UInt(recv_rank) == proc,
+  AKANTU_DEBUG_ASSERT(recv_rank == proc,
                       "The rank received does not correspond to the proc");
 
-  AKANTU_DEBUG_ASSERT(recv_proc == UInt(rank),
+  AKANTU_DEBUG_ASSERT(recv_proc == rank,
                       "The proc received does not correspond to the rank");
 
   auto & recv_element = comm_desc.getScheme();
@@ -570,7 +570,7 @@ inline void SynchronizerImpl<Idx>::initScatterGatherCommunicationScheme() {
     communicator.gather(entities_to_send.size(), nb_entities_per_proc);
 
     for (Int p = 0; p < nb_proc; ++p) {
-        if (p == Int(this->root)) {
+      if (p == Int(this->root)) {
         continue;
       }
 
@@ -848,8 +848,8 @@ template <class Entity>
 template <typename T>
 void SynchronizerImpl<Entity>::synchronizeArray(Array<T> & array) const {
   static_assert(std::is_same<Entity, Idx>::value,
-                "Not implemented for other type than UInt");
-  SimpleUIntDataAccessor<T> data_accessor(array, SynchronizationTag::_whatever);
+                "Not implemented for other type than Idx");
+  SimpleIdxDataAccessor<T> data_accessor(array, SynchronizationTag::_whatever);
   this->synchronizeOnce(data_accessor, SynchronizationTag::_whatever);
 }
 
@@ -858,9 +858,9 @@ template <class Entity>
 template <template <class> class Op, typename T>
 void SynchronizerImpl<Entity>::reduceSynchronizeArray(Array<T> & array) const {
   static_assert(std::is_same<Entity, Idx>::value,
-                "Not implemented for other type than UInt");
+                "Not implemented for other type than Idx");
   ReduceDataAccessor<Idx, Op, T> data_accessor(array,
-                                                SynchronizationTag::_whatever);
+                                               SynchronizationTag::_whatever);
   this->slaveReductionOnceImpl(data_accessor, SynchronizationTag::_whatever);
   this->synchronizeArray(array);
 }

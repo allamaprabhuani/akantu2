@@ -133,8 +133,8 @@ void NeighborhoodMaxCriterion::insertAllQuads(GhostType ghost_type) {
   Mesh & mesh = this->model.getMesh();
 
   for (auto type : mesh.elementTypes(spatial_dimension, ghost_type)) {
-    UInt nb_element = mesh.getNbElement(type, ghost_type);
-    UInt nb_quad =
+    Int nb_element = mesh.getNbElement(type, ghost_type);
+    Int nb_quad =
         this->model.getFEEngine().getNbIntegrationPoints(type, ghost_type);
 
     const Array<Real> & quads = this->quad_coordinates(type, ghost_type);
@@ -185,7 +185,7 @@ void NeighborhoodMaxCriterion::findMaxQuads(
 
   for (auto type : mesh.elementTypes(spatial_dimension, _not_ghost)) {
     quad.type = type;
-    UInt nb_quadrature_points =
+    Int nb_quadrature_points =
         this->model.getFEEngine().getNbIntegrationPoints(type, _not_ghost);
 
     /// loop over is_highest for the current element type
@@ -270,7 +270,7 @@ void NeighborhoodMaxCriterion::cleanupExtraGhostElements(
       if (element.element >= nb_ghost_elem_protected &&
           relevant_ghost_elements.find(element) == end) {
         ghosts_to_erase.push_back(element);
-        new_numbering(element.element) = UInt(-1);
+        new_numbering(element.element) = -1;
       }
     }
     /// renumber remaining ghosts

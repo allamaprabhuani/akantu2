@@ -110,7 +110,8 @@ void MeshPartition::buildDualGraph(
   for_each_element(
       mesh,
       [&](auto && element) {
-        const auto & conn = const_cast<const Mesh &>(mesh).getConnectivity(element);
+        const auto & conn =
+            const_cast<const Mesh &>(mesh).getConnectivity(element);
         std::map<Element, Int> hits;
 
         // count the number of nodes shared with a given element
@@ -173,10 +174,10 @@ void MeshPartition::buildDualGraph(
   }
 
   /// convert the dxadj array of sizes in a csr one of offsets
-  for (auto i : arange(nb_elements)) {
-      dxadj(i) += dxadj(i - 1);
+  for (auto i : arange(1, nb_elements)) {
+    dxadj(i) += dxadj(i - 1);
   }
-  for (auto i : arange(nb_elements, 0, -1)) {
+  for (auto i = nb_elements; i > 0; --i) {
     dxadj(i) = dxadj(i - 1);
   }
   dxadj(0) = 0;
@@ -263,7 +264,7 @@ void MeshPartition::fillPartitionInformation(
     /// convert the ghost_partitions_offset array in an offset array
     auto & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
     for (Int i = 1; i < nb_element; ++i) {
-        ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i - 1);
+      ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i - 1);
     }
     for (Int i = nb_element; i > 0; --i) {
       ghost_partitions_offset_ptr(i) = ghost_partitions_offset_ptr(i - 1);
@@ -273,7 +274,8 @@ void MeshPartition::fillPartitionInformation(
 
   // All Facets
   for (auto sp = spatial_dimension - 1; sp >= 0; --sp) {
-    for (const auto & type : mesh.elementTypes(sp, _not_ghost, _ek_not_defined)) {
+    for (const auto & type :
+         mesh.elementTypes(sp, _not_ghost, _ek_not_defined)) {
       auto nb_element = mesh.getNbElement(type);
 
       auto & partition = partitions.alloc(nb_element, 1, type, _not_ghost);

@@ -227,7 +227,7 @@ MeshIOMSH::MeshIOMSH() {
        it != _akantu_to_msh_element_types.end(); ++it) {
     UInt nb_nodes = _msh_nodes_per_elem[it->second];
 
-    std::vector<UInt> tmp(nb_nodes);
+    std::vector<Idx> tmp(nb_nodes);
     for (Int i = 0; i < nb_nodes; ++i) {
       tmp[i] = i;
     }

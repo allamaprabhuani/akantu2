@@ -40,8 +40,7 @@ namespace akantu {
 NodeSynchronizer::NodeSynchronizer(Mesh & mesh, const ID & id,
                                    const bool register_to_event_manager,
                                    EventHandlerPriority event_priority)
-    : SynchronizerImpl<Idx>(mesh.getCommunicator(), id),
-      mesh(mesh) {
+    : SynchronizerImpl<Idx>(mesh.getCommunicator(), id), mesh(mesh) {
   AKANTU_DEBUG_IN();
 
   if (register_to_event_manager) {
@@ -104,7 +103,7 @@ void NodeSynchronizer::onNodesAdded(const Array<Idx> & /*nodes_list*/,
     CommunicationStatus status;
 
     auto tag = Tag::genTag(proc, rank, 0xcafe);
-    communicator.probe<UInt>(proc, tag, status);
+    communicator.probe<Int>(proc, tag, status);
 
     scheme.resize(status.size());
     communicator.receive(scheme, proc, tag);

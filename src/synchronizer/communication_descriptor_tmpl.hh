@@ -45,7 +45,7 @@ template <class Entity>
 CommunicationDescriptor<Entity>::CommunicationDescriptor(
     Communication & communication, Array<Entity> & scheme,
     Communications<Entity> & communications, const SynchronizationTag & tag,
-    UInt proc)
+    Int proc)
     : communication(communication), scheme(scheme),
       communications(communications), tag(tag), proc(proc),
       rank(communications.getCommunicator().whoAmI()) {

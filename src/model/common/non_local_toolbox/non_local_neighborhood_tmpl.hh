@@ -104,7 +104,7 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
   Vector<Real> q1_coord(this->spatial_dimension);
   Vector<Real> q2_coord(this->spatial_dimension);
 
-  UInt nb_weights_per_pair = 2; /// w1: q1->q2, w2: q2->q1
+  Int nb_weights_per_pair = 2; /// w1: q1->q2, w2: q2->q1
 
   /// get the elementtypemap for the neighborhood volume for each quadrature
   /// point

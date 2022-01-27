@@ -57,8 +57,8 @@ MeshIOMSHStruct::MeshIOMSHStruct() {
       _msh_triangle_3;
 
   for (auto & kv_pair : _akantu_to_msh_element_types) {
-    UInt nb_nodes = _msh_nodes_per_elem[kv_pair.second];
-    std::vector<UInt> tmp(nb_nodes);
+    Int nb_nodes = _msh_nodes_per_elem[kv_pair.second];
+    std::vector<Idx> tmp(nb_nodes);
     std::iota(tmp.begin(), tmp.end(), 0);
     _read_order[kv_pair.first] = tmp;
   }

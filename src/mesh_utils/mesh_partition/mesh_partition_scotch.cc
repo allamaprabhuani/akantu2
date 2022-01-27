@@ -444,7 +444,7 @@ void MeshPartitionScotch::reorder() {
   }
 
   /// \todo think of a in-place way to do it
-  Array<Real> new_coordinates(nb_nodes);
+  Array<Real> new_coordinates(nb_nodes, spatial_dimension);
   auto new_nodes_it = make_view(new_coordinates, spatial_dimension).begin();
   for (auto && data :
        zip(make_view(mesh.getNodes(), spatial_dimension), permtab)) {

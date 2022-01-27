@@ -62,7 +62,7 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
     for (Int n = 0; n < nb_nodes_per_element; ++n) {
       auto offset_conn = conn[el_offset + n];
       VectorProxy<T> data_vect(data.data() + offset_conn * nb_component,
-                          nb_component);
+                               nb_component);
 
       if (pack_helper) {
         buffer << data_vect;
@@ -81,8 +81,8 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
     const FEEngine & fem) {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
-  UInt nb_quad_per_elem = 0;
-  UInt nb_component = 0;
+  Int nb_quad_per_elem = 0;
+  Int nb_component = 0;
 
   Array<T> * vect = nullptr;
 
@@ -101,8 +101,8 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
     }
 
     VectorProxy<T> data(vect->data() +
-                       el.element * nb_component * nb_quad_per_elem,
-                   nb_component * nb_quad_per_elem);
+                            el.element * nb_component * nb_quad_per_elem,
+                        nb_component * nb_quad_per_elem);
     if (pack_helper) {
       buffer << data;
     } else {

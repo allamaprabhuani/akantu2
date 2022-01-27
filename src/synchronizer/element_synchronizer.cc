@@ -258,8 +258,8 @@ void ElementSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
     }
 
     const auto & conns = mesh.getConnectivity(element.type, element.ghost_type);
-    Vector<UInt> global_conn(conns.getNbComponent());
-    Vector<UInt> local_global_conn(conns.getNbComponent());
+    Vector<Idx> global_conn(conns.getNbComponent());
+    Vector<Idx> local_global_conn(conns.getNbComponent());
 
     auto is_same = true;
     for (auto n : arange(global_conn.size())) {

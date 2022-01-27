@@ -165,9 +165,8 @@ public:
     return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
-  template <
-      typename Tensor,
-      std::enable_if_t<aka::conjunction<aka::is_tensor<Tensor>>::value> * = nullptr>
+  template <typename Tensor, std::enable_if_t<aka::conjunction<
+                                 aka::is_tensor<Tensor>>::value> * = nullptr>
   inline void
   send(const Tensor & values, Int receiver, Int tag,
        const CommunicationMode & mode = CommunicationMode::_auto) const {
@@ -431,7 +430,7 @@ public:
 
   inline void broadcast(CommunicationBufferTemplated<false> & buffer,
                         int root = 0) const {
-    UInt buffer_size = buffer.size();
+    auto buffer_size = buffer.size();
     this->broadcastImpl(&buffer_size, 1, root);
     if (whoAmI() != root) {
       buffer.reserve(buffer_size);
@@ -458,7 +457,7 @@ public:
   static bool testAll(std::vector<CommunicationRequest> & request);
   static void wait(CommunicationRequest & request);
   static void waitAll(std::vector<CommunicationRequest> & requests);
-  static UInt waitAny(std::vector<CommunicationRequest> & requests);
+  static Int waitAny(std::vector<CommunicationRequest> & requests);
   static inline void freeCommunicationRequest(CommunicationRequest & request);
   static inline void
   freeCommunicationRequest(std::vector<CommunicationRequest> & requests);

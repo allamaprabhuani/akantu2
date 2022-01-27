@@ -123,12 +123,12 @@ public:
                                         UInt nb_component = 1);
 
   template <typename T>
-  inline UInt getNbComponentTemplated(const ID & name, ElementType el_type,
-                                      GhostType ghost_type) const;
-  inline UInt getNbComponent(const ID & name, ElementType el_type,
-                             GhostType ghost_type = _not_ghost) const;
+  inline Int getNbComponentTemplated(const ID & name, ElementType el_type,
+                                     GhostType ghost_type) const;
+  inline Int getNbComponent(const ID & name, ElementType el_type,
+                            GhostType ghost_type = _not_ghost) const;
 
-  inline UInt getNbComponent(const ID & name) const;
+  inline Int getNbComponent(const ID & name) const;
 
   /// Get an existing elemental data
   template <typename T>

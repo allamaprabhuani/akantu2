@@ -42,11 +42,10 @@ namespace akantu {
 int MPICommunicatorData::is_externaly_initialized = 0;
 #endif
 
-UInt InternalCommunicationRequest::counter = 0;
+Int InternalCommunicationRequest::counter = 0;
 
 /* -------------------------------------------------------------------------- */
-InternalCommunicationRequest::InternalCommunicationRequest(UInt source,
-                                                           UInt dest)
+InternalCommunicationRequest::InternalCommunicationRequest(Idx source, Idx dest)
     : source(source), destination(dest) {
   this->id = counter++;
 }

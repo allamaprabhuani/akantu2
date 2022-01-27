@@ -318,10 +318,10 @@ MeshData::getElementalDataArrayAlloc(const ID & name, ElementType elem_type,
     break;                                                                     \
   }
 
-inline UInt MeshData::getNbComponent(const ID & name, ElementType el_type,
-                                     GhostType ghost_type) const {
+inline Int MeshData::getNbComponent(const ID & name, ElementType el_type,
+                                    GhostType ghost_type) const {
   auto it = typecode_map.at(MeshDataType::_elemental).find(name);
-  UInt nb_comp(0);
+  Int nb_comp(0);
   if (it == typecode_map.at(MeshDataType::_elemental).end()) {
     AKANTU_EXCEPTION("Could not determine the type held in dataset "
                      << name << " for type: " << el_type
@@ -342,14 +342,14 @@ inline UInt MeshData::getNbComponent(const ID & name, ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt MeshData::getNbComponentTemplated(const ID & name,
-                                              ElementType el_type,
-                                              GhostType ghost_type) const {
+inline Int MeshData::getNbComponentTemplated(const ID & name,
+                                             ElementType el_type,
+                                             GhostType ghost_type) const {
   return getElementalDataArray<T>(name, el_type, ghost_type).getNbComponent();
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt MeshData::getNbComponent(const ID & name) const {
+inline Int MeshData::getNbComponent(const ID & name) const {
   auto it = nodal_data.find(name);
   if (it == nodal_data.end()) {
     AKANTU_EXCEPTION("No nodal dataset registered with the name" << name
