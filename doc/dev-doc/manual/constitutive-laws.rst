@@ -750,7 +750,7 @@ infinitesimal deformation as
 .. math::
 
    \boldsymbol{\varepsilon} &= \boldsymbol{\varepsilon}^e +\boldsymbol{\varepsilon}^p\\
-   \boldsymbol{\sigma} &= 2G(\boldsymbol{\varepsilon}^e) + \lambda  \mathrm{tr}(\boldsymbol{\varepsilon}^e)\boldsymbol{I}
+   \boldsymbol{\sigma} &= 2\mu\boldsymbol{\varepsilon}^e + \lambda  \mathrm{tr}(\boldsymbol{\varepsilon}^e)\boldsymbol{I}.
 
 .. figure:: figures/cl/isotropic_hardening_plasticity.svg
    :name:   fig:smm:cl:Lin-strain-hard
@@ -770,22 +770,30 @@ critical elastic shear energy is achieved.
 .. math::
 
    \label{eqn:smm:constitutive:von Mises}
-     f = \sigma_{{\mathrm{eff}}} - \sigma_y = \left(\frac{3}{2} {\boldsymbol{\sigma}}^{{\mathrm{tr}}} : {\boldsymbol{\sigma}}^{{\mathrm{tr}}}\right)^\frac{1}{2}-\sigma_y (\boldsymbol{\varepsilon}^p)
+     f(\boldsymbol{\sigma}, R(p)) = \sigma_{{\mathrm{eq}}} - R(p) - \sigma_y = \left(\frac{3}{2} {\boldsymbol{\sigma}}^{{\mathrm{d}}} : {\boldsymbol{\sigma}}^{{\mathrm{d}}}\right)^\frac{1}{2}-R(p)-\sigma_y,
 
 .. math::
 
    \label{eqn:smm:constitutive:yielding}
-     f < 0 \quad \textrm{Elastic deformation,} \qquad f = 0 \quad  \textrm{Plastic deformation}
+     f < 0 \quad \textrm{Elastic deformation,} \qquad f = 0 \quad  \textrm{Plastic deformation},
 
-where :math:`\sigma_y` is the yield strength of the material which can
-be function of plastic strain in case of hardening type of materials and
-:math:`{\boldsymbol{\sigma}}^{{\mathrm{tr}}}` is the
+where :math:`\sigma_y` is the yield strength of the material, :math:`R(p)` a scalar function characterizing the isotropic hardening, :math:`p` the cumulated plastic train and
+:math:`{\boldsymbol{\sigma}}^{{\mathrm{d}}}` is the
 deviatoric part of stress given by
 
 .. math::
 
    \label{eqn:smm:constitutive:deviatoric stress}
-     {\boldsymbol{\sigma}}^{{\mathrm{tr}}}=\boldsymbol{\sigma} - \frac{1}{3} \mathrm{tr}(\boldsymbol{\sigma}) \boldsymbol{I}
+     {\boldsymbol{\sigma}}^{{\mathrm{d}}}=\boldsymbol{\sigma} - \frac{1}{3} \mathrm{tr}(\boldsymbol{\sigma}) \boldsymbol{I}.
+
+**Remark: We note here the implemented scalar function characterizing the isotropic hardening is linear, it reads**
+
+.. math::
+   
+   \label{epn:smm:constitutive:isotropic hardening function}
+   R(p) = h\, p,
+
+**with** :math:`h` **the isotropic hardening modulus.**
 
 After yielding :math:`(f = 0)`, the normality hypothesis of plasticity
 determines the direction of plastic flow which is normal to the tangent
@@ -796,59 +804,61 @@ the plastic constitutive equation using the von Mises yielding criterion
 .. math::
 
    \label{eqn:smm:constitutive:plastic contitutive equation}
-     \Delta {\boldsymbol{\varepsilon}}^p = \Delta p \frac {\partial{f}}{\partial{\boldsymbol{\sigma}}}=\frac{3}{2} \Delta p \frac{{\boldsymbol{\sigma}}^{{\mathrm{tr}}}}{\sigma_{{\mathrm{eff}}}}
+     \Delta {\boldsymbol{\varepsilon}}^p = \Delta p \frac {\partial{f}}{\partial{\boldsymbol{\sigma}}}=\frac{3}{2} \Delta p \frac{{\boldsymbol{\sigma}}^{{\mathrm{d}}}}{\sigma_{{\mathrm{eq}}}}.
 
 In these expressions, the direction of the plastic strain increment (or
 equivalently, plastic strain rate) is given by
-:math:`\frac{{\boldsymbol{\sigma}}^{{\mathrm{tr}}}}{\sigma_{{\mathrm{eff}}}}`
+:math:`\frac{{\boldsymbol{\sigma}}^{{\mathrm{d}}}}{\sigma_{{\mathrm{eq}}}}`
 while the magnitude is defined by the plastic multiplier
 :math:`\Delta p`. This can be obtained using the *consistency condition*
 which impose the requirement for the load point to remain on the
 yielding surface in the plastic regime.
 
 Here, we summarize the implementation procedures for the
-small-deformation plasticity with linear isotropic hardening:
+small-deformation plasticity with linear isotropic hardening.
+
+**Remark: To simplify the notations, we will omit the index** :math:`k+1` **for the variables computed at time** :math:`t_{k+1}` **(i.e.** :math:`\boldsymbol{\sigma}=\boldsymbol{\sigma}_{k+1}` **).**
 
 #. Compute the trial stress:
 
-   .. math:: {\boldsymbol{\sigma}}^{{\mathrm{tr}}} = {\boldsymbol{\sigma}}_t + 2G\Delta \boldsymbol{\varepsilon} + \lambda \mathrm{tr}(\Delta \boldsymbol{\varepsilon})\boldsymbol{I}
+   .. math:: {\boldsymbol{\sigma}}^{{\mathrm{tr}}} = {\boldsymbol{\sigma}}_k + 2\mu\Delta \boldsymbol{\varepsilon} + \lambda \mathrm{tr}(\Delta \boldsymbol{\varepsilon})\boldsymbol{I}
 
 #. Check the Yielding criteria:
 
-   .. math:: f = (\frac{3}{2} {\boldsymbol{\sigma}}^{{\mathrm{tr}}} : {\boldsymbol{\sigma}}^{{\mathrm{tr}}})^{1/2}-\sigma_y (\boldsymbol{\varepsilon}^p)
+   .. math:: f(\boldsymbol{\sigma}^{{\mathrm{tr}}}, R(p)) = \left(\frac{3}{2} {\boldsymbol{\sigma}}^{{d,\mathrm{tr}}} : {\boldsymbol{\sigma}}^{{d,\mathrm{tr}}}\right)^{1/2} - R(p_k) - \sigma_y 
 
 #. Compute the Plastic multiplier:
 
    .. math::
 
       \begin{aligned}
-          d \Delta p &= \frac{\sigma^{tr}_{eff} - 3G \Delta P^{(k)}- \sigma_y^{(k)}}{3G + h}\\
-          \Delta p^{(k+1)} &= \Delta p^{(k)}+ d\Delta p\\
-          \sigma_y^{(k+1)} &= (\sigma_y)_t+ h\Delta p
+          d \Delta p &= \frac{\sigma^{tr}_{eq} - 3\mu \Delta p_{k} - R(p_k) - \sigma_y}{3\mu + h}\\
+          \Delta p &= \Delta p_{k}+ d\Delta p\\
+          R(p) &= R(p_k)+ h\Delta p
         \end{aligned}
 
 #. Compute the plastic strain increment:
 
-   .. math:: \Delta {\boldsymbol{\varepsilon}}^p = \frac{3}{2} \Delta p \frac{{\boldsymbol{\sigma}}^{{\mathrm{tr}}}}{\sigma_{{\mathrm{eff}}}}
+   .. math:: \Delta {\boldsymbol{\varepsilon}}^p = \frac{3}{2} \Delta p \frac{{\boldsymbol{\sigma}}^{{\mathrm{d, tr}}}}{\sigma^{{\mathrm{tr}}}_{{\mathrm{eq}}}}
 
 #. Compute the stress increment:
 
-   .. math:: {\Delta \boldsymbol{\sigma}} = 2G(\Delta \boldsymbol{\varepsilon}-\Delta \boldsymbol{\varepsilon}^p) + \lambda  \mathrm{tr}(\Delta \boldsymbol{\varepsilon}-\Delta \boldsymbol{\varepsilon}^p)\boldsymbol{I}
+   .. math:: {\Delta \boldsymbol{\sigma}} = 2\mu(\Delta \boldsymbol{\varepsilon}-\Delta \boldsymbol{\varepsilon}^p) + \lambda  \mathrm{tr}(\Delta \boldsymbol{\varepsilon}-\Delta \boldsymbol{\varepsilon}^p)\boldsymbol{I}
 
 #. Update the variables:
 
    .. math::
 
       \begin{aligned}
-          {\boldsymbol{\varepsilon^p}} &= {\boldsymbol{\varepsilon}}^p_t+{\Delta {\boldsymbol{\varepsilon}}^p}\\
-          {\boldsymbol{\sigma}} &= {\boldsymbol{\sigma}}_t+{\Delta \boldsymbol{\sigma}}
+          {\boldsymbol{\varepsilon^p}} &= {\boldsymbol{\varepsilon}}^p_k+{\Delta {\boldsymbol{\varepsilon}}^p}\\
+          {\boldsymbol{\sigma}} &= {\boldsymbol{\sigma}}_k+{\Delta \boldsymbol{\sigma}}
         \end{aligned}
 
 We use an implicit integration technique called *the radial return method* to
 obtain the plastic multiplier. This method has the advantage of being
 unconditionally stable, however, the accuracy remains dependent on the step
 size. The plastic parameters to indicate in the material file are:
-:math:`\sigma_y` (Yield stress) and ``h`` (Hardening modulus). In addition, the
+:math:`\sigma_y` ``sigma_y`` (Yield stress) and ``h`` (Isotropic hardening modulus). In addition, the
 elastic parameters need to be defined as previously mentioned: ``E`` (Young’s
 modulus), ``nu`` (Poisson’s ratio).
 
