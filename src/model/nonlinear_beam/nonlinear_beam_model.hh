@@ -85,12 +85,22 @@ protected:
   void grad_interpolate(Array<Real> &field, Array<Real> &interField);
 
   void computeStrains(Array<Real> strains, bool origin);
+  void computeStresses(Array<Real> stresses);
+  void constitutive_C(Array<Real> C);
+  void computeJbar(Array<Real> Jbar);
+  void computeDX(Array<Real> DX, Array<Real> strains, Array<Real> Lambda, Real x1, Real x2);
 
+  void computeInertiaTensor(Array<Real> J);
+
+  void computeInertialBodyForce(Array<Real> IBF);
+  void convected_angular_velocity(Array<Real> conv_rv);
+  void computeInertialForces();
+  
   void assembleInternalForces();
+  void computeAcceleration();
 
   void assembleMass();
 
-  void assembleStiffnessMatrix();
 
   void assembleMassLumped();
   /* ------------------------------------------------------------------------ */
@@ -178,6 +188,11 @@ public:
   /// get the NonlinearBeamModel::internal_force_torque array
   AKANTU_GET_MACRO_DEREF_PTR(InternalForceTorque, internal_force_torque);
 
+  /// get the NonlinearBeamModel::inertial_force_torque array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InertialForceTorque, inertial_force_torque);
+  /// get the NonlinearBeamModel::inertial_force_torque array
+  AKANTU_GET_MACRO_DEREF_PTR(InertialForceTorque, inertial_force_torque);
+
   /// get the NonlinearBeamModel::blocked_dofs array
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
   /// get the NonlinearBeamModel::blocked_dofs array
@@ -198,6 +213,7 @@ protected:
 private:
   Array<Real> Ns;
   Array<Real> dNs;
+  Array<Real> M;
 
   ElementType type;
   /// time step
@@ -222,6 +238,7 @@ private:
   Real J_12;
   Real J_13;
   Real J_23;
+  Real J_0;
 
   /// linear and angular displacement array
   std::unique_ptr<Array<Real>> linear_angular_displacement;
@@ -237,6 +254,9 @@ private:
   
   /// internal force and torque array
   std::unique_ptr<Array<Real>> internal_force_torque;
+
+  /// inertial force and torque array
+  std::unique_ptr<Array<Real>> inertial_force_torque;
 
   /// blocked dofs array
   std::unique_ptr<Array<bool>> blocked_dofs;

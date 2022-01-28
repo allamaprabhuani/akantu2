@@ -1848,6 +1848,13 @@ Matrix<T> operator-(const Matrix<T> & a, const Matrix<T> & b) {
 }
 
 template <typename T>
+Matrix<T> outerProduct(const Vector<T> & v1, const Vector<T> & v2){
+  Matrix<T> s(v1.size(), v2.size());
+  s.outerProduct(v1,v2);
+  return s;
+}
+
+template <typename T>
 Matrix<T> skew(const Vector<T> & v){
   Matrix<T> s(3,3);
   s.skew(v);
