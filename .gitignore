@@ -3,7 +3,7 @@ build*
 TAGS
 third-party/*/
 !third-party/cmake/*
-!third-party/akantu-iterators
+!third-party/akantu_iterators
 !third-party/iohelper
 *~
 release
