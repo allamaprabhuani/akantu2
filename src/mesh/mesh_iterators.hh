@@ -40,7 +40,7 @@
 namespace akantu {
 
 class MeshElementsByTypes {
-  using elements_iterator = Array<Element>::scalar_iterator;
+  using elements_iterator = Array<Element>::const_scalar_iterator;
 
 public:
   explicit MeshElementsByTypes(const Array<Element> & elements) {
@@ -53,9 +53,8 @@ public:
   public:
     MeshElementsRange() = default;
 
-    MeshElementsRange(const elements_iterator & begin,
-                      const elements_iterator & end)
-        : type((*begin).type), ghost_type((*begin).ghost_type), begin(begin),
+    MeshElementsRange(elements_iterator & begin, elements_iterator & end)
+        : type(begin->type), ghost_type(begin->ghost_type), begin(begin),
           end(end) {}
 
     AKANTU_GET_MACRO(Type, type, ElementType);
@@ -90,11 +89,11 @@ public:
 
   public:
     iterator(const iterator &) = default;
-    iterator(const elements_iterator & first, const elements_iterator & last)
+    iterator(elements_iterator first, elements_iterator last)
         : range(std::equal_range(first, last, *first, element_comparator())),
-          first(first), last(last) {}
+          first(std::move(first)), last(std::move(last)) {}
 
-    decltype(auto) operator*() const {
+    decltype(auto) operator*() {
       return MeshElementsRange(range.first, range.second);
     }
 

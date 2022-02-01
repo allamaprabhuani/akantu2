@@ -44,6 +44,11 @@ constexpr inline auto convertType(InType /*unused*/) {
 }
 
 template <>
+constexpr inline auto convertType<ElementType, ElementType>(ElementType type) {
+  return type;
+}
+
+template <>
 constexpr inline auto
 convertType<ElementType, InterpolationType>(ElementType type) {
   auto itp_type = _itp_not_defined;

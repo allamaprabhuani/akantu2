@@ -153,8 +153,8 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   Int max_id_size = 0;
   Int current_size = 0;
   NeighborhoodMap::const_iterator it;
-  for (it = neighborhoods.begin(); it != neighborhoods.end(); ++it) {
-    current_size = it->first.size();
+  for (const auto & id : make_keys_adaptor(neighborhoods)) {
+    current_size = id.size();
     if (current_size > max_id_size) {
       max_id_size = current_size;
     }
@@ -185,12 +185,13 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
       std::accumulate(nb_neighborhoods_per_proc.begin(),
                       nb_neighborhoods_per_proc.begin() + prank, 0);
 
-  it = neighborhoods.begin();
   /// store the names of local neighborhoods in the buffer
-  for (Int i = 0; i < neighborhoods.size(); ++i, ++it) {
+  for (auto && data : enumerate(make_keys_adaptor(neighborhoods))) {
     Int c = 0;
-    for (; c < it->first.size(); ++c) {
-      buffer(i + starting_index, c) = it->first[c];
+    auto i = std::get<0>(data);
+    const auto & id = std::get<1>(data);
+    for (; c < id.size(); ++c) {
+      buffer(i + starting_index, c) = id[c];
     }
 
     for (; c < max_id_size; ++c) {
@@ -309,8 +310,8 @@ void NonLocalManager::updatePairLists() {
   this->model.getFEEngine().computeIntegrationPointsCoordinates(
       integration_points_positions);
 
-  for (auto & pair : neighborhoods) {
-    pair.second->updatePairList();
+  for (auto & neighborhood : make_values_adaptor(neighborhoods)) {
+    neighborhood->updatePairList();
   }
 
   AKANTU_DEBUG_OUT();

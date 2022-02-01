@@ -182,8 +182,16 @@ public:
   const Vector<Real> & getLowerBounds() const { return lower_bounds; }
   const Vector<Real> & getUpperBounds() const { return upper_bounds; }
 
-  Vector<Real> & getLowerBounds() { return lower_bounds; }
-  Vector<Real> & getUpperBounds() { return upper_bounds; }
+  template <typename D>
+  void setLowerBounds(const Eigen::MatrixBase<D> & lower_bounds) {
+    this->lower_bounds = lower_bounds;
+    this->empty = false;
+  }
+  template <typename D>
+  void setUpperBounds(const Eigen::MatrixBase<D> & upper_bounds) {
+    this->upper_bounds = upper_bounds;
+    this->empty = false;
+  }
 
   /* ------------------------------------------------------------------------ */
   inline Real size(const SpatialDirection & direction) const {
@@ -222,8 +230,9 @@ public:
     Array<Real> bboxes_data(nb_proc, dim * 2 + 1);
 
     auto * base = bboxes_data.data() + prank * (2 * dim + 1);
-    VectorProxy<Real>(base + dim * 0, dim) = lower_bounds;
-    VectorProxy<Real>(base + dim * 1, dim) = upper_bounds;
+    MatrixProxy<Real> bounds(base, dim, 2);
+    bounds(0) = lower_bounds;
+    bounds(1) = upper_bounds;
     base[dim * 2] = empty ? 1. : 0.; // ugly trick
 
     communicator.allGather(bboxes_data);
@@ -236,8 +245,9 @@ public:
       auto & bbox = bboxes.back();
 
       auto * base = bboxes_data.data() + p * (2 * dim + 1);
-      bbox.lower_bounds = VectorProxy<Real>(base + dim * 0, dim);
-      bbox.upper_bounds = VectorProxy<Real>(base + dim * 1, dim);
+      MatrixProxy<Real> bounds(base, dim, 2);
+      bbox.lower_bounds = bounds(0);
+      bbox.upper_bounds = bounds(1);
       bbox.empty = (base[dim * 2] == 1.);
     }
 

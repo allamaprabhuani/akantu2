@@ -330,10 +330,17 @@ struct GaussIntegrationTypeData {
 template <ElementType type,
           Int n = ElementClassProperty<type>::polynomial_degree>
 class GaussIntegrationElement {
+  static constexpr InterpolationType itp_type =
+      ElementClassProperty<type>::interpolation_type;
+  using interpolation_property = InterpolationProperty<itp_type>;
+
 public:
   static constexpr Int getNbQuadraturePoints();
-  static constexpr decltype(auto) getQuadraturePoints();
-  static constexpr decltype(auto) getWeights();
+  static constexpr auto getQuadraturePoints()
+      -> Matrix<Real, interpolation_property::natural_space_dimension,
+                GaussIntegrationElement::getNbQuadraturePoints()>;
+  static constexpr auto getWeights()
+      -> Vector<Real, GaussIntegrationElement::getNbQuadraturePoints()>;
 };
 
 /* -------------------------------------------------------------------------- */

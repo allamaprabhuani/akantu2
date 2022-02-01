@@ -114,14 +114,18 @@ namespace _aka_gauss_helpers {
 
     static constexpr Int getNbQuadraturePoints() { return git_np::nb_points; }
 
-    static decltype(auto) getQuadraturePoints() {
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, dimension,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       constexpr auto nb_points = git_np::nb_points;
       return Eigen::Map<const Eigen::Matrix<Real, dimension, nb_points>>(
           git_data::quad_positions);
     }
 
-    static decltype(auto) getWeights() {
-      return Eigen::Map<const Eigen::Matrix<Real, git_np::nb_points, 1>>(
+    static constexpr auto getWeights()
+        -> Vector<Real,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      return Eigen::Map<const Vector<Real, git_np::nb_points>>(
           git_data::quad_weights);
     }
   };
@@ -139,7 +143,9 @@ namespace _aka_gauss_helpers {
       return Math::pow(git_np::nb_points, dimension);
     }
 
-    static constexpr decltype(auto) getQuadraturePoints() {
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, dimension,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       const auto tot_nquad = getNbQuadraturePoints();
       const auto nquad = git_np::nb_points;
 
@@ -158,7 +164,9 @@ namespace _aka_gauss_helpers {
       return quads;
     }
 
-    static constexpr decltype(auto) getWeights() {
+    static constexpr Vector<
+        Real, GaussIntegrationTypeDataHelper::getNbQuadraturePoints()>
+    getWeights() {
       const auto tot_nquad = getNbQuadraturePoints();
       const auto nquad = git_np::nb_points;
 
@@ -198,7 +206,9 @@ namespace _aka_gauss_helpers {
       return git_np_seg::nb_points * git_np_tri::nb_points;
     }
 
-    static const Matrix<Real> getQuadraturePoints() {
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, dimension,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       constexpr auto tot_nquad = getNbQuadraturePoints();
       constexpr auto nquad_seg = git_np_seg::nb_points;
       constexpr auto nquad_tri = git_np_tri::nb_points;
@@ -219,7 +229,9 @@ namespace _aka_gauss_helpers {
       return quads;
     }
 
-    static const Vector<Real> getWeights() {
+    static constexpr auto getWeights()
+        -> Vector<Real,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       constexpr auto tot_nquad = getNbQuadraturePoints();
       constexpr auto nquad_seg = git_np_seg::nb_points;
       constexpr auto nquad_tri = git_np_tri::nb_points;
@@ -241,42 +253,34 @@ namespace _aka_gauss_helpers {
 #endif
 } // namespace _aka_gauss_helpers
 
+/* -------------------------------------------------------------------------- */
 template <ElementType element_type, Int n>
-constexpr decltype(auto)
-GaussIntegrationElement<element_type, n>::getQuadraturePoints() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
+constexpr Int
+GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
       ElementClassProperty<element_type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;
-  return data_helper::getQuadraturePoints();
+  return data_helper::getNbQuadraturePoints();
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType element_type, Int n>
-constexpr decltype(auto)
-GaussIntegrationElement<element_type, n>::getWeights() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
+constexpr auto GaussIntegrationElement<element_type, n>::getWeights()
+    -> Vector<Real, GaussIntegrationElement::getNbQuadraturePoints()> {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
       ElementClassProperty<element_type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;
   return data_helper::getWeights();
 }
 
-/* -------------------------------------------------------------------------- */
-template <ElementType element_type, Int n>
-constexpr Int
-GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
+template <ElementType type, Int n>
+constexpr auto GaussIntegrationElement<type, n>::getQuadraturePoints()
+    -> Matrix<Real, interpolation_property::natural_space_dimension,
+              GaussIntegrationElement::getNbQuadraturePoints()> {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
-      ElementClassProperty<element_type>::gauss_integration_type,
+      ElementClassProperty<type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;
-  return data_helper::getNbQuadraturePoints();
+  return data_helper::getQuadraturePoints();
 }
 
 } // namespace akantu

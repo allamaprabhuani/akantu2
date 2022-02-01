@@ -90,7 +90,7 @@ public:
   decltype(auto) size() const { return size_; }
   /// Get the number of components
   decltype(auto) getNbComponent() const { return nb_component; }
-  /// Get the name of th array
+  /// Get the name of th arrya
   AKANTU_GET_MACRO_AUTO(ID, id);
   /// Set the name of th array
   AKANTU_SET_MACRO(ID, id, const ID &);
@@ -291,6 +291,9 @@ public:
   template <typename... Ns> inline auto end(Ns &&... n);
   template <typename... Ns> inline auto begin(Ns &&... n) const;
   template <typename... Ns> inline auto end(Ns &&... n) const;
+
+  template <typename... Ns> inline auto cbegin(Ns &&... n) const;
+  template <typename... Ns> inline auto cend(Ns &&... n) const;
 
   template <typename... Ns>
   [[deprecated("use make_view instead")]] inline auto

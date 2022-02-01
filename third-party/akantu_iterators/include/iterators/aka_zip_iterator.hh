@@ -69,9 +69,6 @@ namespace iterators {
         std::common_type_t<
             typename std::iterator_traits<Iterators>::iterator_category...>;
 
-    //    using nb_iterators = sizeof...(Iterators);
-
-  public:
     explicit ZipIterator_(tuple_t iterators)
         : iterators(std::move(iterators)) {}
 
@@ -80,7 +77,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::bidirectional_iterator_tag>::value> * = nullptr>
-    ZipIterator_ & operator--() {
+    auto operator--() -> ZipIterator_ & {
       tuple::foreach ([](auto && it) { --it; }, iterators);
       return *this;
     }
@@ -89,34 +86,34 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::bidirectional_iterator_tag>::value> * = nullptr>
-    ZipIterator_ operator--(int) {
+    auto operator--(int) -> ZipIterator_ {
       auto cpy = *this;
       this->operator--();
       return cpy;
     }
 
     // input iterator ++it
-    ZipIterator_ & operator++() {
+    auto operator++() -> ZipIterator_ & {
       tuple::foreach ([](auto && it) { ++it; }, iterators);
       return *this;
     }
 
     // input iterator it++
-    ZipIterator_ operator++(int) {
+    auto operator++(int) -> ZipIterator_ {
       auto cpy = *this;
       this->operator++();
       return cpy;
     }
 
     // input iterator it != other_it
-    bool operator!=(const ZipIterator_ & other) const {
+    auto operator!=(const ZipIterator_ & other) const -> bool {
       // return tuple::are_not_equal(iterators, other.iterators);
       return std::get<0>(iterators) !=
              std::get<0>(other.iterators); // helps the compiler to optimize
     }
 
     // input iterator dereference *it
-    decltype(auto) operator*() {
+    auto operator*() -> decltype(auto) {
       return tuple::transform([](auto && it) -> decltype(auto) { return *it; },
                               iterators);
     }
@@ -125,7 +122,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    difference_type operator-(const ZipIterator_ & other) {
+    auto operator-(const ZipIterator_ & other) -> difference_type {
       return std::get<0>(this->iterators) - std::get<0>(other.iterators);
     }
 
@@ -134,7 +131,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator[](std::size_t idx) {
+    auto operator[](std::size_t idx) -> decltype(auto) {
       return tuple::transform(
           [idx](auto && it) -> decltype(auto) { return it[idx]; }, iterators);
     }
@@ -144,7 +141,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator+(std::size_t n) {
+    auto operator+(std::size_t n) -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it + n; }, iterators)));
     }
@@ -154,7 +151,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator-(std::size_t n) {
+    auto operator-(std::size_t n) -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it - n; }, iterators)));
     }
@@ -163,7 +160,7 @@ namespace iterators {
         class iterator_category_ = iterator_category,
         std::enable_if_t<aka::is_iterator_category_at_least<
             iterator_category_, std::forward_iterator_tag>::value> * = nullptr>
-    bool operator==(const ZipIterator_ & other) const {
+    auto operator==(const ZipIterator_ & other) const -> bool {
       return not tuple::are_not_equal(iterators, other.iterators);
     }
 
@@ -180,15 +177,16 @@ namespace iterators {
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
-decltype(auto) zip_iterator(std::tuple<Iterators...> && iterators_tuple) {
+auto zip_iterator(std::tuple<Iterators...> && iterators_tuple)
+    -> decltype(auto) {
   auto zip = iterators::ZipIterator<Iterators...>(
       std::forward<decltype(iterators_tuple)>(iterators_tuple));
   return zip;
 }
 
 template <class... Iterators>
-decltype(auto)
-zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple) {
+auto zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple)
+    -> decltype(auto) {
   auto zip = iterators::NamedZipIterator<Iterators...>(
       std::forward<decltype(iterators_tuple)>(iterators_tuple));
   return zip;

@@ -335,7 +335,7 @@ inline void ElementTypeMapArray<T, SupportType>::setArray(
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
 inline void ElementTypeMapArray<T, SupportType>::onElementsRemoved(
-    const ElementTypeMapArray<Int> & new_numbering) {
+    const ElementTypeMapArray<Idx> & new_numbering) {
   for (auto gt : ghost_types) {
     for (auto && type :
          new_numbering.elementTypes(_all_dimensions, gt, _ek_not_defined)) {
@@ -347,15 +347,20 @@ inline void ElementTypeMapArray<T, SupportType>::onElementsRemoved(
         }
 
         auto & vect = this->operator()(support_type, gt);
+        auto nb_entry_per_element = vect.size() / renumbering.size();
         auto nb_component = vect.getNbComponent();
-        Array<T> tmp(renumbering.size(), nb_component);
+
+        Array<T> tmp(renumbering.size() * nb_entry_per_element, nb_component);
+        auto tmp_it =
+            make_view(tmp, nb_entry_per_element * nb_component).begin();
         Int new_size = 0;
 
-        for (Int i = 0; i < vect.size(); ++i) {
-          auto new_i = renumbering(i);
-          if (new_i != Int(-1)) {
-            std::copy_n(vect.data() + i * nb_component, nb_component,
-                        tmp.data() + new_i * nb_component);
+        for (auto && data :
+             zip(renumbering,
+                 make_view(vect, nb_entry_per_element * nb_component))) {
+          auto new_i = std::get<0>(data);
+          if (new_i != -1) {
+            tmp_it[new_i] = std::get<1>(data);
             ++new_size;
           }
         }

@@ -97,11 +97,13 @@ ContactDetector::constructBoundingBox(BBox & bbox,
 
   std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox);
 
-  auto & lower_bound = bbox.getLowerBounds();
-  auto & upper_bound = bbox.getUpperBounds();
+  Vector<Real> lower_bound = bbox.getLowerBounds();
+  Vector<Real> upper_bound = bbox.getUpperBounds();
 
   lower_bound.array() -= this->max_bb;
   upper_bound.array() += this->max_bb;
+  bbox.setLowerBounds(lower_bound);
+  bbox.setUpperBounds(upper_bound);
 
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }

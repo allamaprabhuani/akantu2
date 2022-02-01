@@ -54,7 +54,7 @@ public:
     parent::SetUp();
 
     const auto & connectivities = this->mesh->getConnectivity(this->type);
-    const auto & nodes = this->mesh->getNodes().begin(this->dim);
+    auto nodes = this->mesh->getNodes().cbegin(this->dim);
     coordinates = std::make_unique<Array<Real>>(
         connectivities.size(), connectivities.getNbComponent() * this->dim);
 
@@ -62,7 +62,7 @@ public:
          zip(make_view(connectivities, connectivities.getNbComponent()),
              make_view(*coordinates, this->dim,
                        connectivities.getNbComponent()))) {
-      const auto & conn = std::get<0>(tuple);
+      auto && conn = std::get<0>(tuple);
       auto & X = std::get<1>(tuple);
       for (auto s : arange(conn.size())) {
         X(s) = nodes[conn(s)];

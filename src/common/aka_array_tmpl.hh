@@ -996,6 +996,21 @@ inline auto Array<T, is_scal>::end(Ns &&... ns) const {
 
 template <class T, bool is_scal>
 template <typename... Ns>
+inline auto Array<T, is_scal>::cbegin(Ns &&... ns) const {
+  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
+                              this->size_);
+}
+
+template <class T, bool is_scal>
+template <typename... Ns>
+inline auto Array<T, is_scal>::cend(Ns &&... ns) const {
+  return detail::get_iterator(*this,
+                              this->values + this->nb_component * this->size_,
+                              std::forward<Ns>(ns)..., this->size_);
+}
+
+template <class T, bool is_scal>
+template <typename... Ns>
 inline auto Array<T, is_scal>::begin_reinterpret(Ns &&... ns) {
   return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...);
 }

@@ -193,7 +193,7 @@ inline void SparseMatrixAIJ::addValues(const Vector<Idx> & is,
 
 /* -------------------------------------------------------------------------- */
 inline Real SparseMatrixAIJ::min() {
-  return *std::min(this->a.begin(), this->a.end());
+  return *std::min_element(this->a.cbegin(), this->a.cend());
 }
 
 } // namespace akantu

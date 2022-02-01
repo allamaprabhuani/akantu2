@@ -978,6 +978,8 @@ void SolidMechanicsModel::splitElementByMaterial(
   for (const auto & el : elements) {
     Element mat_el = el;
     mat_el.element = this->material_local_numbering(el);
+    AKANTU_DEBUG_ASSERT(mat_el.element != -1,
+                        "The element" << el << " has no defined material");
     elements_per_mat[this->material_index(el)].push_back(mat_el);
   }
 }
@@ -996,7 +998,7 @@ Int SolidMechanicsModel::getNbData(const Array<Element> & elements,
 
   switch (tag) {
   case SynchronizationTag::_material_id: {
-    size += elements.size() * sizeof(Int);
+    size += elements.size() * sizeof(decltype(material_index)::value_type);
     break;
   }
   case SynchronizationTag::_smm_mass: {
@@ -1089,9 +1091,9 @@ void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   switch (tag) {
   case SynchronizationTag::_material_id: {
     for (auto && element : elements) {
-      Int recv_mat_index;
+      decltype(material_index)::value_type recv_mat_index;
       buffer >> recv_mat_index;
-      auto mat_index = material_index(element);
+      auto & mat_index = material_index(element);
       if (mat_index != -1) {
         continue;
       }

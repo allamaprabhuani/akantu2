@@ -73,12 +73,7 @@ constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
                       "equal to the dimension of the tensor grad_u.");
 
   F.Identity();
-
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      F(i, j) += grad_u(i, j);
-    }
-  }
+  F.template block<dim, dim>(0, 0) += grad_u;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -484,9 +484,6 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
                 nb_ghost_element * nb_nodes_per_element, ghost_conn.data());
   }
 
-  auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
-  ghost_counter.resize(nb_ghost_element, 1);
-
   AKANTU_DEBUG_OUT();
 }
 

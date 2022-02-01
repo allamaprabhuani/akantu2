@@ -276,32 +276,37 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
     const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
     const Array<Real> & shapes, const Array<Int> & filter_elements) const {
   auto nb_element = mesh.getNbElement(type, ghost_type);
+
+  if (nb_element == 0) {
+    return;
+  }
+
   auto nb_nodes_per_element = ElementClass<type>::getShapeSize();
-  auto nb_points = shapes.size() / mesh.getNbElement(type, ghost_type);
+  auto nb_points = shapes.size() / nb_element;
   auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  Array<Real>::const_matrix_iterator N_it;
+  auto N_view = make_view(shapes, nb_nodes_per_element, nb_points);
   std::unique_ptr<Array<Real>> filtered_N;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
     filtered_N = std::make_unique<Array<Real>>(0, shapes.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type,
                                   filter_elements);
-    N_it = make_view(*filtered_N, nb_nodes_per_element, nb_points).cbegin();
-  } else {
-    N_it = make_view(shapes, nb_nodes_per_element, nb_points).begin();
+    N_view = make_view(const_cast<const Array<Real> &>(*filtered_N),
+                       nb_nodes_per_element, nb_points);
   }
-
   uq.resize(nb_element * nb_points);
 
   auto u_it =
       make_view(u_el, nb_degree_of_freedom, nb_nodes_per_element).begin();
   auto uq_it = make_view(uq, nb_degree_of_freedom, nb_points).begin();
 
-  for (Int el = 0; el < nb_element; ++el, ++N_it, ++u_it, ++uq_it) {
-    const auto & u = *u_it;
-    const auto & N = *N_it;
-    auto & uq = *uq_it;
+  for (auto && data :
+       zip(N_view, make_view(uq, nb_degree_of_freedom, nb_points),
+           make_view(u_el, nb_degree_of_freedom, nb_nodes_per_element))) {
+    const auto & u = std::get<2>(data);
+    const auto & N = std::get<0>(data);
+    auto & uq = std::get<1>(data);
 
     uq.noalias() = u * N;
   }

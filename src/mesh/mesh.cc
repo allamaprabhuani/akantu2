@@ -604,11 +604,13 @@ void Mesh::eraseElements(const Array<Element> & elements) {
     if (el.ghost_type != _not_ghost) {
       auto & count = ghosts_counters(el);
       --count;
+      AKANTU_DEBUG_ASSERT(count >= 0,
+                          "Something went wrong in the ghost element counter");
+
       if (count > 0) {
         continue;
       }
     }
-
     remove_list.push_back(el);
     if (not new_numbering.exists(el.type, el.ghost_type)) {
       auto nb_element = mesh.getNbElement(el.type, el.ghost_type);
@@ -619,13 +621,13 @@ void Mesh::eraseElements(const Array<Element> & elements) {
       }
     }
 
-    new_numbering(el) = UInt(-1);
+    new_numbering(el) = -1;
   }
 
   auto find_last_not_deleted = [](auto && array, Int start) -> Int {
     do {
       --start;
-    } while (start >= 0 and array[start] == UInt(-1));
+    } while (start >= 0 and array[start] == -1);
 
     return start;
   };
@@ -655,6 +657,8 @@ void Mesh::eraseElements(const Array<Element> & elements) {
       }
     }
   }
+
+  this->ghosts_counters.onElementsRemoved(new_numbering);
   this->sendEvent(event);
 }
 

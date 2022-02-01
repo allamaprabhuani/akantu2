@@ -37,7 +37,7 @@ using namespace akantu;
 
 TYPED_TEST(TestFEMFixture, Inradius) {
   const auto & connectivities = this->mesh->getConnectivity(this->type);
-  const auto & nodes = this->mesh->getNodes().begin(this->dim);
+  auto nodes = this->mesh->getNodes().cbegin(this->dim);
 
   std::ifstream fin;
   fin.open(std::to_string(this->type) + ".csv");

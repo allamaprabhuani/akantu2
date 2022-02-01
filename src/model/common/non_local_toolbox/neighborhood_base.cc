@@ -65,9 +65,9 @@ void NeighborhoodBase::createGrid() {
   const Real safety_factor = 1.2; // for the cell grid spacing
   Mesh & mesh = this->model.getMesh();
 
-  const auto & lower_bounds = mesh.getLocalLowerBounds();
-  const auto & upper_bounds = mesh.getLocalUpperBounds();
-  Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
+  const auto & lower_bounds = mesh.getLowerBounds();
+  const auto & upper_bounds = mesh.getUpperBounds();
+  Vector<Real> center = (upper_bounds + lower_bounds) / 2.;
   Vector<Real> spacing(spatial_dimension);
   spacing.fill(this->neighborhood_radius * safety_factor);
 

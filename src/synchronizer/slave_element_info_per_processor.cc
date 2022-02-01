@@ -84,6 +84,10 @@ void SlaveElementInfoPerProc::synchronizeConnectivities() {
   MeshUtils::renumberMeshNodes(this->mesh, local_connectivity,
                                this->nb_local_element, this->nb_ghost_element,
                                this->type, old_nodes);
+
+  MeshAccessor mesh_accessor(mesh);
+  auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
+  ghost_counter.resize(nb_ghost_element, 1);
 }
 
 /* -------------------------------------------------------------------------- */

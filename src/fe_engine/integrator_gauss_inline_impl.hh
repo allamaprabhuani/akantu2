@@ -369,7 +369,10 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::multiplyJacobiansByWeights(
   constexpr auto nb_quadrature_points =
       GaussIntegrationElement<type, polynomial_degree>::getNbQuadraturePoints();
 
-  auto weights = GaussIntegrationElement<type, polynomial_degree>::getWeights();
+  const auto dimension = ElementClass<type>::getSpatialDimension();
+
+  auto && weights =
+      GaussIntegrationElement<type, polynomial_degree>::getWeights();
 
   auto && view = make_view<nb_quadrature_points>(jacobians);
 
@@ -553,7 +556,7 @@ IntegratorGauss<kind, IntegrationOrderFunctor>::onElementsAddedByType(
   constexpr auto polynomial_degree =
       IntegrationOrderFunctor::template getOrder<type>();
 
-  multiplyJacobiansByWeights<type, polynomial_degree>(
+  this->multiplyJacobiansByWeights<type, polynomial_degree>(
       this->jacobians(type, ghost_type), elements);
 }
 

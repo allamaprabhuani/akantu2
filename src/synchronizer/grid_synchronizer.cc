@@ -65,8 +65,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
   const auto & upper = grid.getUpperBounds();
   const auto & spacing = grid.getSpacing();
 
-  my_bounding_box.getLowerBounds() = lower - spacing;
-  my_bounding_box.getUpperBounds() = upper + spacing;
+  my_bounding_box.setLowerBounds(lower - spacing);
+  my_bounding_box.setUpperBounds(upper + spacing);
 
   AKANTU_DEBUG_INFO(
       "Exchange of bounding box to detect the overlapping regions.");
@@ -111,11 +111,6 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       AKANTU_DEBUG_INFO("I intersects with processor " << p);
 
       CellID cell_id(spatial_dimension);
-
-      // for (Int i = 0; i < spatial_dimension; ++i) {
-      //   if(first_cell_p[i] != 0) --first_cell_p[i];
-      //   if(last_cell_p[i] != 0) ++last_cell_p[i];
-      // }
 
       for (Int fd = first_cell_p(0); fd <= last_cell_p(0); ++fd) {
         cell_id.setID(0, fd);
@@ -163,7 +158,7 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
         // /!\ this part must be slow due to the access in the
         // ElementTypeMapArray<Idx>
-        if (!elempproc.exists(type, _not_ghost)) {
+        if (not elempproc.exists(type, _not_ghost)) {
           elempproc.alloc(0, nb_nodes_per_element, type, _not_ghost);
         }
 
@@ -193,7 +188,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
    * Sending loop, sends the connectivity asynchronously to all concerned proc
    */
   std::vector<CommunicationRequest> isend_requests;
-  Tensor3<Int> space(2, _max_element_type, nb_proc);
+  Array<Int> space(0, 2);
+  space.reserve(nb_proc * Int(_max_element_type));
 
   for (Int p = 0; p < nb_proc; ++p) {
     if (p == my_rank) {
@@ -204,16 +200,14 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       continue;
     }
 
-    auto && info_proc = space(p);
     auto & elempproc = element_per_proc[p];
     Int count = 0;
 
     for (auto type : elempproc.elementTypes(_all_dimensions, _not_ghost)) {
-      auto & conn = elempproc(type, _not_ghost);
-
-      auto && info = info_proc((Int)type);
-      info[0] = (Int)type;
-      info[1] = conn.size() * conn.getNbComponent();
+      const auto & conn = elempproc(type, _not_ghost);
+      space.push_back(
+          Vector<Int>{Int(type), conn.size() * conn.getNbComponent()});
+      VectorProxy<Int> info(space.data() + 2 * (space.size() - 1), 2);
 
       AKANTU_DEBUG_INFO(
           "I have " << conn.size() << " elements of type " << type
@@ -231,9 +225,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       ++count;
     }
 
-    auto && info = info_proc((Int)_not_defined);
-    info[0] = (Int)_not_defined;
-    info[1] = 0;
+    space.push_back(Vector<Int>{Int(_not_defined), 0});
+    VectorProxy<Int> info(space.data() + 2 * (space.size() - 1), 2);
     isend_requests.push_back(
         comm.asyncSend(info, p, Tag::genTag(my_rank, count, SIZE_TAG)));
   }
@@ -290,10 +283,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       auto nb_element = info[1] / nb_nodes_per_element;
 
       Array<Idx> tmp_conn(nb_element, nb_nodes_per_element);
-      tmp_conn.clear();
-      if (info[1] != 0)
+      if (info[1] != 0) {
         comm.receive(tmp_conn, p, Tag::genTag(p, count, DATA_TAG));
-
+      }
       AKANTU_DEBUG_INFO("I will receive "
                         << nb_element << " elements of type "
                         << ElementType(info[0]) << " from processor " << p

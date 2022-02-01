@@ -30,8 +30,8 @@
 #include <utility>
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKA_FILTER_ITERATOR_H
-#define AKA_FILTER_ITERATOR_H
+#ifndef AKA_FILTER_ITERATOR_HH
+#define AKA_FILTER_ITERATOR_HH
 
 #ifndef AKANTU_ITERATORS_NAMESPACE
 #define AKANTU_ITERATORS_NAMESPACE akantu
@@ -42,54 +42,128 @@ namespace AKANTU_ITERATORS_NAMESPACE {
 /* -------------------------------------------------------------------------- */
 namespace iterators {
   template <class filter_iterator_t, class container_iterator_t>
-  class FilterIterator {
+  class FilterIterator
+      : public details::CopyAssignmentEnabler<aka::conjunction<
+            std::is_copy_assignable<filter_iterator_t>,
+            std::is_copy_constructible<filter_iterator_t>,
+            std::is_copy_assignable<container_iterator_t>,
+            std::is_copy_constructible<container_iterator_t>>::value>,
+        public details::MoveAssignmentEnabler<aka::conjunction<
+            std::is_move_assignable<filter_iterator_t>,
+            std::is_move_constructible<filter_iterator_t>,
+            std::is_move_assignable<container_iterator_t>,
+            std::is_move_constructible<container_iterator_t>>::value> {
   public:
-    using value_type =
-        decltype(std::declval<container_iterator_t>().operator[](0));
-    using difference_type = typename std::decay_t<filter_iterator_t>::difference_type;
+    using value_type = typename std::decay_t<container_iterator_t>::value_type;
+    using difference_type =
+        typename std::decay_t<filter_iterator_t>::difference_type;
     using pointer = std::decay_t<value_type> *;
-    using reference = value_type &;
-    using iterator_category = typename std::decay_t<filter_iterator_t>::iterator_category;
+    using reference = typename std::decay_t<container_iterator_t>::reference;
+    using iterator_category =
+        typename std::decay_t<filter_iterator_t>::iterator_category;
 
     FilterIterator(filter_iterator_t filter_it,
-                   container_iterator_t && container_begin)
+                   container_iterator_t container_begin)
         : filter_it(std::move(filter_it)),
           container_begin(std::move(container_begin)) {}
 
-    FilterIterator(const FilterIterator &) = default;
-
-    FilterIterator & operator++() {
+    auto operator++() -> FilterIterator & {
       ++filter_it;
       return *this;
     }
 
-    decltype(auto) operator*() {
-      auto container_it = this->container_begin + *this->filter_it;
+    auto operator++(int) -> FilterIterator {
+      auto cpy = *this;
+      this->operator++();
+      return cpy;
+    }
+
+    auto operator*() -> reference {
+      container_it = this->container_begin + *this->filter_it;
       return *container_it;
     }
 
-    decltype(auto) operator*() const {
-      auto container_it = this->container_begin + *this->filter_it;
+    auto operator!=(const FilterIterator & other) const -> bool {
+      return (filter_it != other.filter_it) or
+             (container_begin != other.container_begin);
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::bidirectional_iterator_tag>::value> * = nullptr>
+    auto operator--() -> FilterIterator & {
+      --filter_it;
+      return *this;
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::bidirectional_iterator_tag>::value> * = nullptr>
+    auto operator--(int) -> FilterIterator {
+      auto cpy = *this;
+      this->operator--();
+      return cpy;
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator-(const FilterIterator & other) -> difference_type {
+      return filter_it - other.index;
+    }
+
+    // random iterator it[idx]
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator[](difference_type idx) -> reference {
+      container_it = this->container_begin + *(this->filter_it + idx);
       return *container_it;
     }
 
-    bool operator==(const FilterIterator & other) const {
+    // random iterator it + n
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator+(difference_type n) -> FilterIterator {
+      auto it = FilterIterator(filter_it + n, container_begin);
+      return it;
+    }
+
+    // random iterator it - n
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    auto operator-(difference_type n) -> FilterIterator {
+      auto it = FilterIterator(filter_it - n, container_begin);
+      return it;
+    }
+
+    template <
+        class iterator_category_ = iterator_category,
+        std::enable_if_t<aka::is_iterator_category_at_least<
+            iterator_category_, std::forward_iterator_tag>::value> * = nullptr>
+    auto operator==(const FilterIterator & other) const -> bool {
       return (filter_it == other.filter_it) and
              (container_begin == other.container_begin);
-    }
-
-    bool operator!=(const FilterIterator & other) const {
-      return filter_it != other.filter_it;
     }
 
   private:
     filter_iterator_t filter_it;
     container_iterator_t container_begin;
+    container_iterator_t container_it;
   };
 
   template <class filter_iterator_t, class container_iterator_t>
-  decltype(auto) make_filter_iterator(filter_iterator_t && filter_it,
-                                      container_iterator_t && container_begin) {
+  auto make_filter_iterator(filter_iterator_t && filter_it,
+                            container_iterator_t && container_begin)
+      -> decltype(auto) {
     return FilterIterator<filter_iterator_t, container_iterator_t>(
         std::forward<filter_iterator_t>(filter_it),
         std::forward<container_iterator_t>(container_begin));
@@ -110,19 +184,19 @@ namespace containers {
           "Containers must all have random iterators");
     }
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return iterators::make_filter_iterator(filter.begin(), container.begin());
     }
 
-    decltype(auto) begin() {
+    auto begin() -> decltype(auto) {
       return iterators::make_filter_iterator(filter.begin(), container.begin());
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return iterators::make_filter_iterator(filter.end(), container.begin());
     }
 
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return iterators::make_filter_iterator(filter.end(), container.begin());
     }
 
@@ -133,7 +207,7 @@ namespace containers {
 } // namespace containers
 
 template <class filter_t, class Container>
-decltype(auto) filter(filter_t && filter, Container && container) {
+auto filter(filter_t && filter, Container && container) -> decltype(auto) {
   return containers::FilterAdaptor<filter_t, Container>(
       std::forward<filter_t>(filter), std::forward<Container>(container));
 }
@@ -158,4 +232,4 @@ public:
 };
 } // namespace std
 
-#endif // AKA_FILTER_ITERATOR_H
+#endif // AKA_FILTER_ITERATOR_HH

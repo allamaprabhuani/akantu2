@@ -180,6 +180,10 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
   MeshUtils::renumberMeshNodes(mesh, buffers[root], all_nb_local_element[root],
                                all_nb_ghost_element[root], type, old_nodes);
 
+  MeshAccessor mesh_accessor(mesh);
+  auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
+  ghost_counter.resize(nb_ghost_element, 1);
+
   Communicator::waitAll(requests);
   Communicator::freeCommunicationRequest(requests);
 }
