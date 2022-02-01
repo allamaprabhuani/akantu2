@@ -203,6 +203,41 @@ void register_material(py::module & mod) {
             return self.getElementFilter();
           },
           py::return_value_policy::reference)
+
+      /*
+       * These functions override the `Parsable` interface.
+       * This ensure that the `updateInternalParameters()` function is called.
+       */
+      .def(
+          "setReal",
+          [](Material & self, const ID & name, const Real value) -> void {
+            self.setParam(name, value);
+            return;
+          },
+          py::arg("name"), py::arg("value"))
+      .def(
+          "setBool",
+          [](Material & self, const ID & name, const bool value) -> void {
+            self.setParam(name, value);
+            return;
+          },
+          py::arg("name"), py::arg("value"))
+      .def(
+          "setString",
+          [](Material & self, const ID & name,
+             const std::string & value) -> void {
+            self.setParam(name, value);
+            return;
+          },
+          py::arg("name"), py::arg("value"))
+      .def(
+          "setInt",
+          [](Material & self, const ID & name, const int value) -> void {
+            self.setParam(name, value);
+            return;
+          },
+          py::arg("name"), py::arg("value"))
+
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
 
