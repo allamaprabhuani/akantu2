@@ -973,8 +973,7 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
   for (auto ghost_type : ghost_types) {
     for (const auto & type : element_filter.elementTypes(
              _ghost_type = ghost_type, _element_kind = _ek_not_defined)) {
-      element_filter(type, ghost_type)
-          .copy(element_filter_tmp(type, ghost_type));
+      element_filter(type, ghost_type) = element_filter_tmp(type, ghost_type);
     }
   }
 

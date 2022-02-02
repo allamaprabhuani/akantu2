@@ -621,8 +621,8 @@ Array<T, is_scal>::Array(const Array & vect, const ID & id)
 template <class T, bool is_scal>
 Array<T, is_scal> &
 Array<T, is_scal>::operator=(const Array<T, is_scal> & other) {
-  AKANTU_DEBUG_WARNING("You are copying the array "
-                       << this->id << " are you sure it is on purpose");
+  AKANTU_DEBUG_INFO("You are copying the array "
+                    << this->id << " are you sure it is on purpose");
 
   if (&other == this) {
     return *this;

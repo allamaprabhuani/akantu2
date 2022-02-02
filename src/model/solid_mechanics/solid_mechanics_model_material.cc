@@ -205,14 +205,17 @@ void SolidMechanicsModel::reassignMaterial() {
   std::vector<Array<Element>> element_to_add(materials.size());
   std::vector<Array<Element>> element_to_remove(materials.size());
 
-  for_each_element(mesh, [&](auto && element) {
-    auto old_material = material_index(element);
-    auto new_material = (*material_selector)(element);
-    if (old_material != new_material) {
-      element_to_add[new_material].push_back(element);
-      element_to_remove[old_material].push_back(element);
-    }
-  });
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        auto old_material = material_index(element);
+        auto new_material = (*material_selector)(element);
+        if (old_material != new_material) {
+          element_to_add[new_material].push_back(element);
+          element_to_remove[old_material].push_back(element);
+        }
+      },
+      _spatial_dimension = spatial_dimension);
 
   for (auto && data : enumerate(materials)) {
     auto mat_index = std::get<0>(data);

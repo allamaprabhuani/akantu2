@@ -303,8 +303,8 @@ public:
   using type_iterator = typename parent::type_iterator;
 
   /// standard assigment (copy) operator
-  void operator=(const ElementTypeMapArray &) = delete;
-  ElementTypeMapArray(const ElementTypeMapArray & /*other*/);
+  auto operator=(const ElementTypeMapArray & other) -> ElementTypeMapArray &;
+  ElementTypeMapArray(const ElementTypeMapArray & other);
 
   /// explicit copy
   void copy(const ElementTypeMapArray & other);

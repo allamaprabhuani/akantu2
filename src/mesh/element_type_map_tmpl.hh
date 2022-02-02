@@ -178,7 +178,7 @@ void ElementTypeMapArray<T, SupportType>::copy(
       const auto & array_to_copy = other(type, ghost_type);
       auto & array =
           this->alloc(0, array_to_copy.getNbComponent(), type, ghost_type);
-      array.copy(array_to_copy);
+      array = array_to_copy;
     }
   }
 }
@@ -189,6 +189,17 @@ ElementTypeMapArray<T, SupportType>::ElementTypeMapArray(
     const ElementTypeMapArray & other)
     : parent(), id(other.id + "_copy"), name(other.name + "_copy") {
   this->copy(other);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T, typename SupportType>
+auto ElementTypeMapArray<T, SupportType>::operator=(
+    const ElementTypeMapArray & other) -> ElementTypeMapArray & {
+  if (this != &other) {
+    this->id = other.id + "_copy";
+    this->name = other.name + "_copy";
+    this->copy(other);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
