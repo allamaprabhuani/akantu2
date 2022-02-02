@@ -126,6 +126,12 @@ macro(find_mpiseq)
   mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
 endmacro()
 
+macro(debug_message)
+  if(MUMPS_DETECT_DEBUG)
+    message(${ARGN})
+  endif()
+endmacro()
+
 function(mumps_add_dependency _pdep _libs)
   string(TOUPPER ${_pdep} _u_pdep)
   if(_pdep STREQUAL "mumps_common")
@@ -212,11 +218,12 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   file(APPEND "${_mumps_test_dir}/mumps_test_code.c" "${_output}")
 
   #===============================================================================
+  # ADD here the symbols needed to compile
   set(_mumps_dep_symbol_MPI mpi_send)
   set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
   set(_mumps_dep_symbol_ScaLAPACK numroc)
   set(_mumps_dep_symbol_LAPACK ilaenv)
-  set(_mumps_dep_symbol_Scotch scotchfstratexit)
+  set(_mumps_dep_symbol_Scotch SCOTCH_graphInit scotchfstratexit)
   set(_mumps_dep_symbol_Scotch_ptscotch scotchfdgraphexit)
   set(_mumps_dep_symbol_Scotch_esmumps esmumps)
   set(_mumps_dep_symbol_mumps_common mumps_abort)
@@ -228,7 +235,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_symbol_Math lround)
   set(_mumps_dep_symbol_ParMETIS ParMETIS_V3_NodeND)
 
-  # added for fucking macosx that cannot fail at link
+  # ADD here the symbols needed to run
   set(_mumps_run_dep_symbol_mumps_common mumps_fac_descband)
   set(_mumps_run_dep_symbol_MPI mpi_bcast)
   set(_mumps_run_dep_symbol_ScaLAPACK idamax)
@@ -261,36 +268,46 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       COMPILE_OUTPUT_VARIABLE _out)
 
     set(_retry_compile FALSE)
-    if(MUMPS_DETECT_DEBUG)
-      message("COMPILATION outputs: \n${_out} \n RUN OUTPUT \n${_run}")
-    endif()
+
+    debug_message("COMPILATION outputs: \n${_out} \n RUN OUTPUT \n${_run}")
+
     if(_mumps_compiles AND NOT (_mumps_run STREQUAL "FAILED_TO_RUN"))
       break()
     endif()
 
     foreach(_pdep ${_mumps_potential_dependencies})
-      message("Mumps run: ${_mumps_run}")
       set(_libs)
-      if(MUMPS_DETECT_DEBUG)
-        message("Trying to add: ${_pdep} as a dependency")
-      endif()
+
+      debug_message("Trying to add: ${_pdep} as a dependency")
+
       set(_add_pdep FALSE)
-      if (NOT _mumps_compiles AND
-          _out MATCHES "${_mumps_dep_symbol_${_pdep}}")
-        set(_add_pdep TRUE)
-        message("NEED COMPILE ${_pdep}")
-      elseif(_mumps_run STREQUAL "FAILED_TO_RUN" AND
-          DEFINED _mumps_run_dep_symbol_${_pdep} AND
-          _run MATCHES "${_mumps_run_dep_symbol_${_pdep}}")
-        set(_add_pdep TRUE)
-        message("NEED RUN ${_pdep}")
+      
+      if (NOT _mumps_compiles
+          AND DEFINED _mumps_dep_symbol_${_pdep})
+        
+        foreach (_comile_dep ${_mumps_dep_symbol_${_pdep}})
+          if(_out MATCHES "undefined reference.*${_comile_dep}" OR
+              _out MATCHES "${_comile_dep}.*referenced from")
+            set(_add_pdep TRUE)
+            debug_message(" - ${_pdep} is a compile dependency")
+          endif()
+        endforeach()
+        
+      elseif(_mumps_run STREQUAL "FAILED_TO_RUN"
+          AND DEFINED _mumps_run_dep_symbol_${_pdep})
+
+        foreach(_run_dep ${_mumps_run_dep_symbol_${_pdep}})
+          if(_run MATCHES "${_run_dep}")
+            set(_add_pdep TRUE)
+            debug_message(" - ${_pdep} is a run dependency")
+          endif()
+        endforeach()
+
       endif()
 
       if(_add_pdep)
         mumps_add_dependency(${_pdep} _libs ${_mumps_dep_comp_${_pdep}})
-        if(MUMPS_DETECT_DEBUG)
-          message("Found: ${_pdep} (${_libs})")
-        endif()
+        debug_message(" - Found: ${_pdep} (${_libs})")
 
         if(NOT _libs)
           message(FATAL_ERROR "MUMPS depends on ${_pdep} but no libraries where found")
