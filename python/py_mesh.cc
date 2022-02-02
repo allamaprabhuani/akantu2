@@ -101,7 +101,7 @@ namespace {
                   _default_value = default_value,
                   _do_not_default = do_not_default);
             },
-            py::arg("mesh"), py::kw_only(), py::arg("ghost_type") = _casper,
+            py::arg("mesh"), py::arg("ghost_type") = _casper,
             py::arg("nb_component") = 1,
             py::arg("spatial_dimension") = UInt(-2),
             py::arg("element_kind") = _ek_not_defined,
