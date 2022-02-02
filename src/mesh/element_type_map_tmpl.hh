@@ -203,6 +203,7 @@ auto ElementTypeMapArray<T, SupportType>::operator=(
     this->name = other.name + "_copy";
     this->copy(other);
   }
+  return *this;
 }
 
 /* -------------------------------------------------------------------------- */
