@@ -133,6 +133,18 @@ test:ubuntu_lts_gcc_valgrind:
     - job: build:ubuntu_lts_gcc_valgrind
 
 # ------------------------------------------------------------------------------
+# MacOS
+# ------------------------------------------------------------------------------
+configure:macos_11:
+  tags:
+    - shared-macos-amd64
+  image: macos-11-xcode-12
+  script:
+    - gcc --version
+    - which brew
+    - which macports
+    
+# ------------------------------------------------------------------------------
 # Manylinux to build python packages
 # ------------------------------------------------------------------------------
 configure:python_package:
