@@ -216,7 +216,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
   set(_mumps_dep_symbol_ScaLAPACK numroc)
   set(_mumps_dep_symbol_LAPACK ilaenv)
-  set(_mumps_dep_symbol_Scotch SCOTCH_graphInit)
+  set(_mumps_dep_symbol_Scotch scotchfstratexit)
   set(_mumps_dep_symbol_Scotch_ptscotch scotchfdgraphexit)
   set(_mumps_dep_symbol_Scotch_esmumps esmumps)
   set(_mumps_dep_symbol_mumps_common mumps_abort)
@@ -232,6 +232,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_run_dep_symbol_mumps_common mumps_fac_descband)
   set(_mumps_run_dep_symbol_MPI mpi_bcast)
   set(_mumps_run_dep_symbol_ScaLAPACK idamax)
+  set(_mumps_run_dep_symbol_Scotch_ptscotch scotchfdgraphbuild)
 
   set(_mumps_dep_comp_Scotch_ptscotch COMPONENTS ptscotch)
   set(_mumps_dep_comp_Scotch_esmumps COMPONENTS esmumps)
@@ -268,20 +269,21 @@ ${_u_first_precision}MUMPS_STRUC_C id;
     endif()
 
     foreach(_pdep ${_mumps_potential_dependencies})
+      message("Mumps run: ${_mumps_run}")
       set(_libs)
       if(MUMPS_DETECT_DEBUG)
         message("Trying to add: ${_pdep} as a dependency")
       endif()
       set(_add_pdep FALSE)
       if (NOT _mumps_compiles AND
-          _out MATCHES "undefined reference.*${_mumps_dep_symbol_${_pdep}}")
+          _out MATCHES "${_mumps_dep_symbol_${_pdep}}")
         set(_add_pdep TRUE)
-        #message("NEED COMPILE ${_pdep}")
+        message("NEED COMPILE ${_pdep}")
       elseif(_mumps_run STREQUAL "FAILED_TO_RUN" AND
           DEFINED _mumps_run_dep_symbol_${_pdep} AND
           _run MATCHES "${_mumps_run_dep_symbol_${_pdep}}")
         set(_add_pdep TRUE)
-        #message("NEED RUN ${_pdep}")
+        message("NEED RUN ${_pdep}")
       endif()
 
       if(_add_pdep)
