@@ -142,7 +142,7 @@ namespace {
 
 /* -------------------------------------------------------------------------- */
 void register_dof_manager(py::module & mod) {
-  py::class_<DOFManager>(mod, "DOFManager")
+  py::class_<DOFManager, std::shared_ptr<DOFManager>>(mod, "DOFManager")
       .def("getMatrix", &DOFManager::getMatrix,
            py::return_value_policy::reference)
       .def(

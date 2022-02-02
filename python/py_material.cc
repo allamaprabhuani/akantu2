@@ -239,7 +239,12 @@ void register_material(py::module & mod) {
           py::arg("name"), py::arg("value"))
 
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
-      .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
+      .def("getShearWaveSpeed", &Material::getShearWaveSpeed)
+      .def("__repr__", [](Material & self) {
+        std::stringstream sstr;
+        sstr << self;
+        return sstr.str();
+      });
 
   register_material_classes<MaterialElastic<2>>(mod, "MaterialElastic2D");
   register_material_classes<MaterialElastic<3>>(mod, "MaterialElastic3D");
