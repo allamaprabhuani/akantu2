@@ -491,6 +491,12 @@ public:
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
+  template <typename T>
+  void inflateInternal(const std::string & field_id,
+                       const ElementTypeMapArray<T> & field,
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined);
+
   /// apply a constant eigengrad_u everywhere in the material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                GhostType /*ghost_type*/ = _not_ghost);

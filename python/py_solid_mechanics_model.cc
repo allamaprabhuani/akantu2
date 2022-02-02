@@ -178,6 +178,8 @@ void register_solid_mechanics_model(py::module & mod) {
           py::arg("option") = "", py::return_value_policy::reference)
       .def("initMaterials", &SolidMechanicsModel::initMaterials)
       .def("flattenInternal", &SolidMechanicsModel::flattenInternal,
+           py::return_value_policy::reference)
+      .def("inflateInternal", &SolidMechanicsModel::inflateInternal,
            py::return_value_policy::reference);
 }
 
