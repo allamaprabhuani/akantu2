@@ -80,13 +80,11 @@ Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
   UInt mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
-  std::stringstream sstr_mat;
-  sstr_mat << this->id << ":" << mat_count << ":" << mat_type;
-  ID mat_id = sstr_mat.str();
+  ID mat_id = this->id + ":" + std::to_string(mat_count) + ":" + mat_type;
 
   std::unique_ptr<Material> material = MaterialFactory::getInstance().allocate(
       mat_type, spatial_dimension, opt_param, *this, mat_id);
-
+  material->setName(mat_name);
   materials.push_back(std::move(material));
 
   return *(materials.back());

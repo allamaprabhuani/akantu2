@@ -425,6 +425,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO(Name, name, const std::string &);
+  AKANTU_SET_MACRO(Name, name, const std::string &);
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &)
 
