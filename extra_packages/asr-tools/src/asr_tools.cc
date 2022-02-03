@@ -262,7 +262,6 @@ void ASRTools::applyExternalTraction(Real traction,
 
   /// boundary conditions
   auto && mesh = model.getMesh();
-  auto dim = mesh.getSpatialDimension();
   auto && upperBounds = mesh.getUpperBounds();
   auto limit = upperBounds(direction);
 
@@ -324,8 +323,11 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
       if ((bottom <= pos(i, 1)) and (pos(i, 1) <= top) and
           (std::abs(pos(i, 0) - right) < eps) and mesh.isLocalOrMasterNode(i)) {
         if ((dim == 3) and (back <= pos(i, 2)) and (pos(i, 2) <= front)) {
-          av_displ += disp(i, 0);
-          ++nb_nodes;
+          // dirtly trick to exclude blowed up elements
+          if (disp(i, 0) < length / 50) {
+            av_displ += disp(i, 0);
+            ++nb_nodes;
+          }
         }
       }
     }
@@ -337,8 +339,10 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
       if ((left <= pos(i, 0)) and (pos(i, 0) <= right) and
           (std::abs(pos(i, 1) - top) < eps) and mesh.isLocalOrMasterNode(i)) {
         if ((dim == 3) and (back <= pos(i, 2)) and (pos(i, 2) <= front)) {
-          av_displ += disp(i, 1);
-          ++nb_nodes;
+          if (disp(i, 1) < length / 50) {
+            av_displ += disp(i, 1);
+            ++nb_nodes;
+          }
         }
       }
     }
@@ -350,8 +354,10 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
       if ((left <= pos(i, 0)) and (pos(i, 0) <= right) and
           (bottom <= pos(i, 1)) and (pos(i, 1) <= top) and
           (std::abs(pos(i, 2) - front) < eps) and mesh.isLocalOrMasterNode(i)) {
-        av_displ += disp(i, 2);
-        ++nb_nodes;
+        if (disp(i, 2) < length / 50) {
+          av_displ += disp(i, 2);
+          ++nb_nodes;
+        }
       }
     }
   } else {
@@ -5944,11 +5950,15 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
       auto && coh_facets = mesh_facets.getSubelementToElement(coh);
       bool blowed_up{false};
       for (auto & coh_facet : coh_facets) {
-        auto inscr_diam_init =
-            MeshUtils::getInscribedCircleDiameter(model, coh_facet, true);
-        auto inscr_diam_curr =
-            MeshUtils::getInscribedCircleDiameter(model, coh_facet, false);
-        if (inscr_diam_curr >= 2 * inscr_diam_init) {
+        // auto inscr_diam_init =
+        //     MeshUtils::getInscribedCircleDiameter(model, coh_facet, true);
+        // auto inscr_diam_curr =
+        //     MeshUtils::getInscribedCircleDiameter(model, coh_facet, false);
+        // if (inscr_diam_curr >= 2 * inscr_diam_init) {
+        auto initial_area = MeshUtils::getFacetArea(model, coh_facet);
+        auto current_area = MeshUtils::getCurrentFacetArea(model, coh_facet);
+
+        if (current_area >= 2 * initial_area) {
           blowed_up = true;
           break;
         }

@@ -136,6 +136,10 @@ public:
   /// get facets area
   static Real getFacetArea(SolidMechanicsModel & model, const Element & el);
 
+  /// get facets area in the current configuration (works for triangle_3 only)
+  static Real getCurrentFacetArea(SolidMechanicsModel & model,
+                                  const Element & el);
+
   /// check if two facets are connected and by which subfacets
   static std::pair<bool, Array<Element>>
   areFacetsConnected(const Mesh & mesh_facets, const Element & facet1,

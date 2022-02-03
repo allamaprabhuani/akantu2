@@ -856,6 +856,44 @@ Real MeshUtils::getFacetArea(SolidMechanicsModel & model, const Element & el) {
   return el_area;
 }
 /*-------------------------------------------------------------------- */
+Real MeshUtils::getCurrentFacetArea(SolidMechanicsModel & model,
+                                    const Element & el) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(el.type == _triangle_3,
+                      "The only facet type supported is _triangle_3");
+  auto & mesh = model.getMesh();
+  auto & mesh_facets = mesh.getMeshFacets();
+  auto dim = mesh.getSpatialDimension();
+  const auto & pos = mesh.getNodes();
+  auto coordinates = pos;
+  coordinates += model.getDisplacement();
+  auto coord_it = make_view(coordinates, dim).begin();
+
+  auto && facet_conn = mesh_facets.getConnectivity(el.type, el.ghost_type);
+  auto nb_nodes_facet = facet_conn.getNbComponent();
+  auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
+  auto facet_nodes = facet_nodes_it[el.element];
+
+  // compute triangle's area from sides
+  UInt A, B, C;
+  Real a, b, c;
+  A = facet_nodes(0);
+  B = facet_nodes(1);
+  C = facet_nodes(2);
+  Vector<Real> AB = Vector<Real>(coord_it[B]) - Vector<Real>(coord_it[A]);
+  Vector<Real> BC = Vector<Real>(coord_it[C]) - Vector<Real>(coord_it[B]);
+  Vector<Real> AC = Vector<Real>(coord_it[C]) - Vector<Real>(coord_it[B]);
+  a = AB.norm();
+  b = BC.norm();
+  c = AC.norm();
+  auto s = (a + b + c) / 2;
+
+  auto area = sqrt(s * (s - a) * (s - b) * (s - c));
+
+  AKANTU_DEBUG_OUT();
+  return area;
+}
+/*-------------------------------------------------------------------- */
 std::pair<bool, Array<Element>>
 MeshUtils::areFacetsConnected(const Mesh & mesh_facets, const Element & facet1,
                               const Element & facet2) {
