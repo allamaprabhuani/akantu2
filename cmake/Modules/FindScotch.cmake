@@ -199,7 +199,7 @@ int main() {
 }
 ")
 
-  find_package(MPI REQUIRED)
+  find_package(MPI REQUIRED COMPONENTS C)
 
   find_library(SCOTCH_LIBRARY_PTSCOTCH ptscotch HINTS ${_scotch_hint})
 

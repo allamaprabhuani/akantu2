@@ -210,9 +210,10 @@ ${_u_first_precision}MUMPS_STRUC_C id;
     file(APPEND "${_mumps_test_dir}/mumps_test_code.c"
       "// #undef MUMPS_SEQ
 ")
-    find_package(MPI REQUIRED)
-    list(APPEND _compiler_specific ${MPI_C_LIBRARIES})
-    list(APPEND _include_dirs ${MPI_C_INCLUDE_PATH} ${MPI_INCLUDE_DIR})
+    find_package(MPI REQUIRED
+      COMPONENTS C Fortran)
+    list(APPEND _compiler_specific ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+    list(APPEND _include_dirs ${MPI_C_INCLUDE_PATH} ${MPI_Forstran_INCLUDE_PATH} ${MPI_INCLUDE_DIR})
   endif()
 
   file(APPEND "${_mumps_test_dir}/mumps_test_code.c" "${_output}")

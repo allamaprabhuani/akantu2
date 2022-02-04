@@ -31,10 +31,10 @@
 #===============================================================================
 
 
-set(MPI_CXX_SKIP_MPICXX TRUE)
+#set(MPI_CXX_SKIP_MPICXX TRUE)
 package_declare(MPI EXTERNAL
   DESCRIPTION "Add MPI support in akantu"
-  EXTRA_PACKAGE_OPTIONS PREFIX MPI_C MPI
+  EXTRA_PACKAGE_OPTIONS PREFIX MPI_C MPI ARGS "COMPONENTS;C"
   )
 
 package_declare_sources(MPI
