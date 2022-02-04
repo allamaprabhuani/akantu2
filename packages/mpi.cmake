@@ -31,7 +31,7 @@
 #===============================================================================
 
 
-#set(MPI_CXX_SKIP_MPICXX TRUE)
+set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "" FORCE)
 package_declare(MPI EXTERNAL
   DESCRIPTION "Add MPI support in akantu"
   EXTRA_PACKAGE_OPTIONS PREFIX MPI_C MPI ARGS "COMPONENTS;C"
@@ -44,9 +44,9 @@ package_declare_sources(MPI
 
 function(_add_to_mpi_preflags flag)
   if(NOT MPIEXEC_PREFLAGS MATCHES "${flag}")
-	  string(STRIP "${flag} ${MPIEXEC_PREFLAGS}" _preflags)
-	  set(MPIEXEC_PREFLAGS "${_preflags}" CACHE STRING "" FORCE)
-	endif()
+    string(STRIP "${flag} ${MPIEXEC_PREFLAGS}" _preflags)
+    set(MPIEXEC_PREFLAGS "${_preflags}" CACHE STRING "" FORCE)
+  endif()
 endfunction()
 
 function(add_extra_mpi_options)
