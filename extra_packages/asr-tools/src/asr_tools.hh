@@ -1,8 +1,9 @@
 /**
  * @file   asr_tools.hh
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Tue Jan 16 10:26:53 2014
- *
+ * @update Tue Feb 8  2022
  * @brief  tools for the analysis of ASR samples
  *
  * @section LICENSE
@@ -276,10 +277,6 @@ protected:
   /// same in 3D
   void insertGap3D(const Real gap_ratio);
 
-  // /// on elements added for asr-tools
-  // void onElementsAdded(const Array<Element> & elements,
-  //                      const NewElementsEvent & element_event);
-
   void onNodesAdded(const Array<UInt> & new_nodes,
                     const NewNodesEvent & nodes_event);
 
@@ -385,9 +382,6 @@ public:
 
   /// max ratio traction norm over max possible traction (SLA)
   template <UInt dim> std::tuple<Real, Element, UInt> getMaxDeltaMaxExcess();
-
-  // /// apply self-weight force
-  // void applyBodyForce();
 
   /// apply delta u on nodes
   void applyDeltaU(Real delta_u);
@@ -526,9 +520,6 @@ public:
 private:
   SolidMechanicsModel & model;
 
-  // /// 2D hardcoded - no 3D support currently
-  // using voigt_h = VoigtHelper<2>;
-
 protected:
   /// volume of the RVE
   Real volume;
@@ -605,7 +596,6 @@ public:
 
     Mesh & mesh = this->model.getMesh();
     UInt dim = model.getSpatialDimension();
-    //    Element el{_triangle_3, 0, _not_ghost};
     for (auto el_type : model.getMaterial(aggregate_material)
                             .getElementFilter()
                             .elementTypes(dim)) {
@@ -656,7 +646,6 @@ public:
     Mesh & mesh = this->model.getMesh();
     auto & mesh_facets = mesh.getMeshFacets();
     UInt dim = model.getSpatialDimension();
-    //    Element el{_triangle_3, 0, _not_ghost};
     for (auto el_type : model.getMaterial(aggregate_material)
                             .getElementFilter()
                             .elementTypes(dim)) {
@@ -819,9 +808,9 @@ private:
   DefaultMaterialCohesiveSelector default_cohesive;
 };
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------- */
 /* Boundary conditions functors */
-/* -------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------- */
 
 class Pressure : public BC::Neumann::NeumannFunctor {
 public:
@@ -902,8 +891,6 @@ public:
       if (flow_quad_coord != coord)
         continue;
       Real P = pressure_on_qpoint(coh_elem_nb * nb_quad_points + qp);
-      // if (P < 0)
-      //   P = 0.;
       dual = P * normal_corrected;
       node_found = true;
     }
@@ -917,7 +904,7 @@ protected:
   const Array<Real> & quad_coords;
 };
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
 class PressureSimple : public BC::Neumann::NeumannFunctor {
 public:
   PressureSimple(SolidMechanicsModel & model, const Real pressure,
@@ -1069,6 +1056,7 @@ protected:
   const std::string group_name;
   const Real compressibility;
 };
+
 /* ------------------------------------------------------------------- */
 class PressureVolumeDependent3D : public BC::Neumann::NeumannFunctor {
 public:
@@ -1221,7 +1209,7 @@ protected:
   const Array<Array<Element>> ASR_facets_from_mesh;
 };
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
 class DeltaU : public BC::Dirichlet::DirichletFunctor {
 public:
   DeltaU(const SolidMechanicsModel & model, const Real delta_u,

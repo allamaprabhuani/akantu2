@@ -1,15 +1,15 @@
 /**
- * @file   material_cohesive_linear_inline_impl.hh
+ * @file   material_cohesive_linear_sequential_inline_impl.hh
  *
  * @author Mauro Corrado <mauro.corrado@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @date creation: Wed Apr 22 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Tue Feb 8 2022
  *
- * @brief  Inline functions of the MaterialCohesiveLinear
- *
+ * @brief  Inline functions for material_cohesive_linear_sequential.hh *
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -127,7 +127,7 @@ inline void MaterialCohesiveLinearSequential<dim>::computeSimpleTractionOnQuad(
     const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
     const Real & sigma_c, Vector<Real> & normal_opening,
     Vector<Real> & tangential_opening, Real & normal_opening_norm,
-    Real & tangential_opening_norm, Real & damage, bool & penetration,
+    Real & tangential_opening_norm, Real & damage,
     Vector<Real> & contact_traction, Vector<Real> & contact_opening) {
 
   // compute normal and tangential opening vectors
@@ -234,8 +234,7 @@ inline void MaterialCohesiveLinearSequential<dim>::computeTangentTractionOnQuad(
 template <UInt dim>
 inline void MaterialCohesiveLinearSequential<dim>::computeSecantTractionOnQuad(
     Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
-    const Real & sigma_c, const Vector<Real> & normal, const Real & damage,
-    const Real & prev_damage) {
+    const Real & sigma_c, const Vector<Real> & normal) {
 
   Real t{0};
 

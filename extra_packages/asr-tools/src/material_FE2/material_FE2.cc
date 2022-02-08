@@ -1,15 +1,28 @@
 /**
  * @file   material_FE2.cc
- *
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
+ * @date Tue Feb 8  2022
  * @brief Material for multi-scale simulations. It stores an
  * underlying RVE on each integration point of the material.
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -37,8 +50,6 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
 
   this->C.initialize(voigt_h::size * voigt_h::size);
   this->gelstrain.initialize(spatial_dimension * spatial_dimension);
-  // this->non_reacted_gel.initialize(1);
-  // this->non_reacted_gel.setDefaultValue(1.0);
   this->crack_volume_ratio.initialize(1);
   this->crack_volume_ratio_paste.initialize(1);
   this->crack_volume_ratio_agg.initialize(1);
@@ -59,16 +70,6 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
                       "the mesh file for the RVE");
   this->registerParam("nb_gel_pockets", nb_gel_pockets, _pat_parsmod,
                       "the number of gel pockets in each RVE");
-  // this->registerParam("k", k, _pat_parsable | _pat_modifiable,
-  //                     "pre-exponential factor of Arrhenius law");
-  // this->registerParam("activ_energy", activ_energy,
-  //                     _pat_parsable | _pat_modifiable,
-  //                     "activation energy of ASR in Arrhenius law");
-  // this->registerParam("R", R, _pat_parsable | _pat_modifiable,
-  //                     "universal gas constant R in Arrhenius law");
-  // this->registerParam("saturation_constant", sat_const, Real(0.0),
-  //                     _pat_parsable | _pat_modifiable, "saturation
-  //                     constant");
   this->registerParam("eps_inf", eps_inf, _pat_parsmod,
                       "asymptotic value of ASR expansion");
   this->registerParam("U_C", U_C, _pat_parsmod, "thermal activation energy C");
@@ -88,8 +89,8 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
 
-  /// create a Mesh and SolidMechanicsModel on each integration point of the
-  /// material
+  // create a Mesh and SolidMechanicsModel on each integration point of the
+  // material
   auto & mesh = this->model.getMesh();
   auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
   // AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
@@ -117,7 +118,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
 
-    /// compute intial stiffness of the RVE
+    // compute intial stiffness of the RVE
     RVE.homogenizeStiffness(C, false);
   }
   AKANTU_DEBUG_OUT();
@@ -144,29 +145,29 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
            this->delta_T(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
-    /// reset nodal and internal fields
+    // reset nodal and internal fields
     RVE.resetNodalFields();
     RVE.resetInternalFields();
 
-    /// reset the damage to the previously converged state
+    // reset the damage to the previously converged state
     if (reset_damage)
       RVE.restoreDamageField();
 
-    /// apply boundary conditions based on the current macroscopic displ.
-    /// gradient
+    // apply boundary conditions based on the current macroscopic displ.
+    // gradient
     RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
-    /// advance the ASR in every RVE based on the new gel strain
+    // advance the ASR in every RVE based on the new gel strain
     RVE.advanceASR(std::get<5>(data));
 
-    /// compute the average average rVE stress
+    // compute the average average rVE stress
     RVE.homogenizeStressField(std::get<2>(data));
 
-    // /// compute the new effective stiffness of the RVE
-    //   /// decide whether stiffness homogenization is done via tension
-    //   RVE.setStiffHomogenDir(std::get<2>(data));
-    //   /// compute the new effective stiffness of the RVE
-    //   RVE.homogenizeStiffness(std::get<4>(data), RVE.isTensileHomogen());
+    // compute the new effective stiffness of the RVE
+    // decide whether stiffness homogenization is done via tension
+    RVE.setStiffHomogenDir(std::get<2>(data));
+    // compute the new effective stiffness of the RVE
+    RVE.homogenizeStiffness(std::get<4>(data), RVE.isTensileHomogen());
   }
   AKANTU_DEBUG_OUT();
 }
@@ -228,14 +229,14 @@ void MaterialFE2<spatial_dimension>::updateStiffness() {
     if (reset_damage)
       RVE.storeDamageField();
 
-    /// decide whether stiffness homogenization is done via tension
+    // decide whether stiffness homogenization is done via tension
     RVE.setStiffHomogenDir(std::get<2>(data));
-    /// compute the new effective stiffness of the RVE
+    // compute the new effective stiffness of the RVE
     RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
 
-    /// compute crack volume ratio in each RVE
+    // compute crack volume ratio in each RVE
     RVE.computeCrackVolume(std::get<4>(data));
-    /// compute crack volume ratio per material
+    // compute crack volume ratio per material
     RVE.computeCrackVolumePerMaterial(std::get<5>(data), "paste");
     RVE.computeCrackVolumePerMaterial(std::get<6>(data), "aggregate");
   }
@@ -290,7 +291,7 @@ void MaterialFE2<spatial_dimension>::setDirectoryToRveDumper(
   AKANTU_DEBUG_IN();
 
   for (auto && data : RVEs) {
-    /// set default directory to all RVEs
+    // set default directory to all RVEs
     data->setDirectory(directory);
   }
 
@@ -315,9 +316,9 @@ template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
   AKANTU_DEBUG_IN();
 
   for (auto && RVE : RVEs) {
-    /// update stress field before dumping
+    // update stress field before dumping
     RVE->assembleInternalForces();
-    /// dump all the RVEs
+    // dump all the RVEs
     RVE->dumpRve();
   }
 
@@ -329,9 +330,9 @@ void MaterialFE2<spatial_dimension>::dump(UInt dump_nb) {
   AKANTU_DEBUG_IN();
 
   for (auto && RVE : RVEs) {
-    /// update stress field before dumping
+    // update stress field before dumping
     RVE->assembleInternalForces();
-    /// dump all the RVEs
+    // dump all the RVEs
     RVE->dumpRve(dump_nb);
   }
 
@@ -344,7 +345,7 @@ void MaterialFE2<spatial_dimension>::setTimeStep(Real time_step) {
   AKANTU_DEBUG_IN();
 
   for (auto && RVE : RVEs) {
-    /// set time step to all the RVEs
+    // set time step to all the RVEs
     RVE->setTimeStep(time_step);
   }
 
@@ -384,9 +385,9 @@ void MaterialFE2<spatial_dimension>::saveRVEsState(std::string & restart_dir) {
         // set up precision
         constexpr auto max_digits10 = std::numeric_limits<Real>::max_digits10;
         file_output << std::setprecision(max_digits10);
-        /// get the internal field
+        // get the internal field
         const InternalField<Real> & internal_real = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_real.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -408,9 +409,9 @@ void MaterialFE2<spatial_dimension>::saveRVEsState(std::string & restart_dir) {
         // set up precision
         constexpr auto max_digits10 = std::numeric_limits<UInt>::max_digits10;
         file_output << std::setprecision(max_digits10);
-        /// get the internal field
+        // get the internal field
         const InternalField<UInt> & internal_uint = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_uint.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -433,9 +434,9 @@ void MaterialFE2<spatial_dimension>::saveRVEsState(std::string & restart_dir) {
         // set up precision
         constexpr auto max_digits10 = std::numeric_limits<bool>::max_digits10;
         file_output << std::setprecision(max_digits10);
-        /// get the internal field
+        // get the internal field
         const InternalField<bool> & internal_bool = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_bool.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -463,7 +464,7 @@ void MaterialFE2<spatial_dimension>::saveRVEsState(std::string & restart_dir) {
 /* ------------------------------------------------------------------ */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
-  /// variables for parallel execution
+  // variables for parallel execution
   auto & mesh = this->model.getMesh();
   auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
   GhostType gt = _not_ghost;
@@ -473,7 +474,7 @@ void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
     UInt gl_RVE_id = g_ids(proc_RVE_id);
     auto & RVE = *(std::get<1>(data));
 
-    /// open the input file
+    // open the input file
     std::stringstream file_stream;
     file_stream << restart_dir << "/RVE_" << std::to_string(gl_RVE_id)
                 << "_state.txt";
@@ -489,11 +490,11 @@ void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
     for (UInt m = 0; m < nb_materials; ++m) {
       const Material & mat = RVE.getMaterial(m);
 
-      /// get the internal field that need to be set
+      // get the internal field that need to be set
       for (auto pair : mat.getInternalVectorsReal()) {
-        /// get the internal field
+        // get the internal field
         InternalField<Real> & internal_real = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_real.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -516,11 +517,11 @@ void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
         }
       }
 
-      /// get the internal field that need to be set
+      // get the internal field that need to be set
       for (auto pair : mat.getInternalVectorsUInt()) {
-        /// get the internal field
+        // get the internal field
         InternalField<UInt> & internal_uint = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_uint.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -543,11 +544,11 @@ void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
         }
       }
 
-      /// get the internal field that need to be set
+      // get the internal field that need to be set
       for (auto pair : mat.getInternalVectorsBool()) {
-        /// get the internal field
+        // get the internal field
         InternalField<bool> & internal_bool = *pair.second;
-        /// loop over all types in that material
+        // loop over all types in that material
         for (auto element_type : internal_bool.elementTypes(gt)) {
           const Array<UInt> & elem_filter =
               mat.getElementFilter(element_type, gt);
@@ -570,7 +571,7 @@ void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
         }
       }
     }
-    /// close the file
+    // close the file
     file_input.close();
   }
 }

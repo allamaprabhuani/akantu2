@@ -1,19 +1,30 @@
-
 /**
  * @file   material_FE2.hh
- *
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
+ * @date Tue Feb 8  2022
  * @brief Material for multi-scale simulations. It stores an
  * underlying RVE on each integration point of the material.
  *
+ * @section LICENSE
  *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "material.hh"
 #include "material_thermal.hh"
@@ -28,9 +39,9 @@ class SolidMechanicsModelRVE;
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-/// /!\ This material works ONLY for meshes with a single element type!!!!!
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/// /!\ This material works ONLY for meshes with a single element type!!!
+/* ------------------------------------------------------------------ */
 
 /**
  * MaterialFE2
@@ -65,23 +76,6 @@ public:
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
-
-  // /// compute ASR strain according to the sigmoidal rule (Larive,1998)
-  // void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
-  //                             Matrix<Real> & gelstrain);
-  // /// gel strain inrease linear with time, exponential with temperature
-  // void computeNewGelStrain(Matrix<Real> & gelstrain,
-  //                          const Real & delta_time_day, const Real &
-  //                          temp);
-
-  // /// assymptotic gel strain - time curve
-  // void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
-  //                                       const Real & delta_time_day,
-  //                                       const Real & T, Real &
-  //                                       non_reacted_gel);
-
-  // /// reset the gel strain value to a previous value
-  // void resetGelStrain(const Real & old_time_step);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);

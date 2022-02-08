@@ -1,7 +1,9 @@
 /**
  * @file   solid_mechanics_model_RVE.hh
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Wed Jan 13 14:54:18 2016
+ * @update Tue Feb 8  2022
  *
  * @brief  SMM for RVE computations in FE2 simulations
  *
@@ -41,9 +43,9 @@ namespace akantu {
 
 class SolidMechanicsModelRVE : public SolidMechanicsModel, public ASRTools {
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  /* ----------------------------------------------------------------- */
+  /* Constructors/Destructors                                          */
+  /* ----------------------------------------------------------------- */
 
 public:
   SolidMechanicsModelRVE(Mesh & mesh, bool use_RVE_mat_selector = true,

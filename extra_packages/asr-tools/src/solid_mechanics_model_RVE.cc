@@ -1,7 +1,9 @@
 /**
  * @file   solid_mechanics_model_RVE.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Wed Jan 13 15:32:35 2016
+ * @update Tue Feb 8  2022
  *
  * @brief  Implementation of SolidMechanicsModelRVE
  *
@@ -55,8 +57,8 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
   // It is done to generate same random internal fields
   RandomGenerator<UInt>::seed(2);
 
-  /// remove the corner nodes from the surface node groups:
-  /// This most be done because corner nodes a not periodic
+  // remove the corner nodes from the surface node groups:
+  // This most be done because corner nodes a not periodic
   mesh.getElementGroup("top").removeNode(corner_nodes(2));
   mesh.getElementGroup("top").removeNode(corner_nodes(3));
   mesh.getElementGroup("left").removeNode(corner_nodes(3));
@@ -94,13 +96,12 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   solver.set("max_iterations", 50);
   solver.set("threshold", 1e-4);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
-  // this->initMaterials();
 
-  /// compute the volume of the RVE
+  // compute the volume of the RVE
   this->computeModelVolume();
   std::cout << "The volume of the RVE is " << this->volume << std::endl;
 
-  /// dumping
+  // dumping
   std::stringstream base_name;
   base_name << this->id; // << this->memory_id - 1;
   this->setBaseName(base_name.str());
@@ -124,7 +125,7 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::assembleInternalForces() {
 
-  /// displacement correction
+  // displacement correction
   auto disp_begin = make_view(*this->displacement, spatial_dimension).begin();
 
   auto u_top_corr = Vector<Real>(disp_begin[this->corner_nodes(2)]) -
@@ -160,7 +161,7 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(spatial_dimension == 2, "This is 2D only!");
 
-  /// apply the new eigenstrain
+  // apply the new eigenstrain
   for (auto element_type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
     Array<Real> & prestrain_vect =
@@ -176,7 +177,7 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     }
   }
 
-  /// advance the damage
+  // advance the damage
   MaterialDamageIterativeInterface & mat_paste =
       dynamic_cast<MaterialDamageIterativeInterface &>(
           this->getMaterial("paste"));
@@ -188,23 +189,23 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   Real max_eq_stress_paste = 0;
   this->stiffness_changed = false;
 
-  /// variables for parallel execution
+  // variables for parallel execution
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
 
-  /// save nodal fields (disp, boun & ext_force)
+  // save nodal fields (disp, boun & ext_force)
   this->storeNodalFields();
 
   do {
-    /// restore nodals and update grad_u accordingly
+    // restore nodals and update grad_u accordingly
     this->restoreNodalFields();
 
-    /// restore historical internal fields (sigma_v for visc)
+    // restore historical internal fields (sigma_v for visc)
     this->restoreInternalFields();
 
     this->solveStep();
 
-    /// compute damage
+    // compute damage
     max_eq_stress_aggregate = mat_aggregate.getNormMaxEquivalentStress();
     max_eq_stress_paste = mat_paste.getNormMaxEquivalentStress();
 
@@ -218,7 +219,7 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
           (mat_paste.updateDamage() + mat_aggregate.updateDamage());
     }
 
-    /// mark the flag to update stiffness if elements were damaged
+    // mark the flag to update stiffness if elements were damaged
     if (nb_damaged_elements != 0) {
       this->stiffness_changed = true;
     }
@@ -227,11 +228,6 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
               << nb_damaged_elements << std::endl;
 
   } while (nb_damaged_elements);
-
-  //  if (this->nb_dumps % 10 == 0) {
-  // this->dump();
-  //  }
-  // this->nb_dumps += 1;
 
   AKANTU_DEBUG_OUT();
 }
@@ -258,7 +254,7 @@ void SolidMechanicsModelRVE::initMaterials() {
   this->synchronize(SynchronizationTag::_material_id);
 
   for (auto & material : materials) {
-    /// init internals properties
+    // init internals properties
     const auto type = material->getID();
     if (type.find("material_FE2") != std::string::npos)
       continue;
@@ -270,7 +266,6 @@ void SolidMechanicsModelRVE::initMaterials() {
   if (this->non_local_manager) {
     this->non_local_manager->initialize();
   }
-  // SolidMechanicsModel::initMaterials();
 
   AKANTU_DEBUG_OUT();
 }

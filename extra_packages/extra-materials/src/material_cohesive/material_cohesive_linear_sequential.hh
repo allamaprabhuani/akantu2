@@ -1,15 +1,12 @@
 /**
- * @file   material_cohesive_linear.hh
+ * @file   material_cohesive_linear_sequential.hh
  *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Feb 21 2018
+ * @date creation: Tue Feb 8 2022
  *
- * @brief  Linear irreversible cohesive law of mixed mode loading with
- * random stress definition for extrinsic type
+ * @brief  Linear irreversible cohesive law of solved via sequential linear
+ * analysis
  *
  * @section LICENSE
  *
@@ -134,7 +131,7 @@ protected:
       const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
       const Real & sigma_c, Vector<Real> & normal_opening,
       Vector<Real> & tangential_opening, Real & normal_opening_norm,
-      Real & tangential_opening_norm, Real & damage, bool & penetration,
+      Real & tangential_opening_norm, Real & damage,
       Vector<Real> & contact_traction, Vector<Real> & contact_opening);
 
   /// compute the stiffness dependent only on previous delta max (SLA)
@@ -146,12 +143,11 @@ protected:
 
   /// compute the stiffness dependent only on previous delta max both for
   /// tension and compression (SLA)
-  inline void
-  computeSecantTractionOnQuad(Matrix<Real> & tangent, Real & delta_max,
-                              const Real & delta_c, const Real & sigma_c,
-                              const Vector<Real> & normal,
-
-                              const Real & damage, const Real & prev_damage);
+  inline void computeSecantTractionOnQuad(Matrix<Real> & tangent,
+                                          Real & delta_max,
+                                          const Real & delta_c,
+                                          const Real & sigma_c,
+                                          const Vector<Real> & normal);
 
   inline bool updateDeltaMaxOnQuad(const Real & normal_opening_norm,
                                    const Real & tangential_opening_norm,

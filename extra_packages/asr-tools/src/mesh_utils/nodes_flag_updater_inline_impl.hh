@@ -1,3 +1,29 @@
+/**
+ * @file   nodes_flag_updater.hh
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @date Tue Feb 8  2022
+ * @brief  inline implementation of the synchronizer for the ASR-employed nodes
+ * flag
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "mesh.hh"
@@ -33,11 +59,11 @@ inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
   buffer << prank;
 
   for (const auto & element : elements) {
-    /// get element connectivity
+    // get element connectivity
     const Vector<UInt> current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
-    /// loop on all connectivity nodes
+    // loop on all connectivity nodes
     for (auto node : current_conn) {
       buffer << prevent_insertion(node);
     }
@@ -61,11 +87,11 @@ inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
   buffer >> proc;
 
   for (const auto & element : elements) {
-    /// get element connectivity
+    // get element connectivity
     Vector<UInt> current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
-    /// loop on all connectivity nodes
+    // loop on all connectivity nodes
     for (auto node : current_conn) {
       bool unpacked_node_flag;
       buffer >> unpacked_node_flag;
