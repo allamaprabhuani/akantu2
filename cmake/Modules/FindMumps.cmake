@@ -125,17 +125,13 @@ macro(find_mpiseq)
   mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
 endmacro()
 
-<<<<<<< HEAD
 macro(debug_message)
   if(MUMPS_DETECT_DEBUG)
     message(${ARGN})
   endif()
 endmacro()
 
-function(mumps_add_dependency _pdep _libs)
-=======
 function(mumps_add_dependency _pdep _libs _incs)
->>>>>>> 76b8b3b52 (Improving MUMPS detection)
   string(TOUPPER ${_pdep} _u_pdep)
   if(_pdep STREQUAL "mumps_common")
     find_library(MUMPS_LIBRARY_COMMON mumps_common${MUMPS_PREFIX}
@@ -309,7 +305,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
         endforeach()
       elseif (NOT _mumps_compiles AND DEFINED _mumps_dep_include_${_pdep})
         foreach (_comile_dep ${_mumps_dep_include_${_pdep}})
-          if(_out MATCHES "${_mumps_dep_include_${_pdep}}.*No such file")
+          if(_out MATCHES "${_mumps_dep_include_${_pdep}}.*(No such file|file not found)")
             set(_add_pdep TRUE)
             debug_message(" - ${_pdep} is a compile dependency")
           endif()
