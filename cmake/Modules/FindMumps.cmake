@@ -37,6 +37,7 @@ set(_MUMPS_COMPONENTS "sequential" "parallel" "double" "float" "complex_double" 
 if(NOT Mumps_FIND_COMPONENTS)
   set(Mumps_FIND_COMPONENTS "parallel" "double" "float" "complex_double" "complex_float")
 endif()
+
 #===============================================================================
 enable_language(Fortran)
 
@@ -45,9 +46,11 @@ mark_as_advanced(MUMPS_DETECT_DEBUG)
 
 set(MUMPS_PRECISIONS)
 set(MUMPS_PLAT)
+
 foreach(_comp ${Mumps_FIND_COMPONENTS})
   if("${_comp}" STREQUAL "sequential")
     set(MUMPS_PLAT _seq) #default plat on debian based distribution
+    message("blip")
   endif()
 
   if("${_comp}" STREQUAL "float")
@@ -82,7 +85,14 @@ mark_as_advanced(MUMPS_INCLUDE_DIR)
 set(_mumps_required_vars)
 foreach(_precision ${MUMPS_PRECISIONS})
   string(TOUPPER "${_precision}" _u_precision)
-  find_library(MUMPS_LIBRARY_${_u_precision}MUMPS NAMES ${_precision}mumps${MUMPS_PREFIX}
+
+  if(DEFINED MUMPS_LIBRARY_${_u_precision}MUMPS AND
+      (NOT "${Mumps_FIND_COMPONENTS}" STREQUAL "${Mumps_FIND_COMPONENTS_SAVE}"))
+    set(MUMPS_LIBRARY_${_u_precision}MUMPS NOTFOUND CACHE PATH "" FORCE)
+  endif()
+
+  
+  find_library(MUMPS_LIBRARY_${_u_precision}MUMPS NAMES ${_precision}mumps${MUMPS_PLAT} ${_precision}mumps
     PATHS "${MUMPS_DIR}"
     ENV MUMPS_DIR
     PATH_SUFFIXES lib
@@ -93,20 +103,9 @@ foreach(_precision ${MUMPS_PRECISIONS})
   list(APPEND MUMPS_LIBRARIES_ALL ${MUMPS_LIBRARY_${_u_precision}MUMPS})
 endforeach()
 
-
 if(MUMPS_LIBRARY_${_u_first_precision}MUMPS MATCHES ".*${_first_precision}mumps.*${CMAKE_STATIC_LIBRARY_SUFFIX}")
   # Assuming mumps was compiled as a static library
   set(MUMPS_LIBRARY_TYPE STATIC CACHE INTERNAL "" FORCE)
-
-  if (CMAKE_Fortran_COMPILER MATCHES ".*gfortran")
-    set(_compiler_specific gfortran)
-  elseif (CMAKE_Fortran_COMPILER MATCHES ".*ifort")
-    set(_compiler_specific ifcore)
-  else()
-    message("Compiler ${CMAKE_Fortran_COMPILER} is not known, you will probably "
-      "have to add semething instead of this message to be able to test mumps "
-      "install")
-  endif()
 else()
   set(MUMPS_LIBRARY_TYPE SHARED CACHE INTERNAL "" FORCE)
 endif()
@@ -126,6 +125,7 @@ macro(find_mpiseq)
   mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
 endmacro()
 
+<<<<<<< HEAD
 macro(debug_message)
   if(MUMPS_DETECT_DEBUG)
     message(${ARGN})
@@ -133,6 +133,9 @@ macro(debug_message)
 endmacro()
 
 function(mumps_add_dependency _pdep _libs)
+=======
+function(mumps_add_dependency _pdep _libs _incs)
+>>>>>>> 76b8b3b52 (Improving MUMPS detection)
   string(TOUPPER ${_pdep} _u_pdep)
   if(_pdep STREQUAL "mumps_common")
     find_library(MUMPS_LIBRARY_COMMON mumps_common${MUMPS_PREFIX}
@@ -163,14 +166,21 @@ function(mumps_add_dependency _pdep _libs)
     if(MUMPS_PLAT STREQUAL "_seq")
       find_mpiseq()
     else()
-      find_package(MPI REQUIRED C Fortran QUIET)
+      find_package(MPI REQUIRED QUIET
+        COMPONENTS C Fortran)
       set(${_libs} ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES} PARENT_SCOPE)
+      set(${_incs}
+        ${MPI_C_INCLUDE_PATH} # deprecated
+        ${MPI_C_INCLUDE_DIRS}
+        ${MPI_Fortran_INCLUDE_PATH} # deprecated
+        ${MPI_Fortran_INCLUDE_DIRS}
+        PARENT_SCOPE)
     endif()
   elseif(_pdep MATCHES "Threads")
-    find_package(Threads REQUIRED)
+    find_package(Threads REQUIRED QUIET)
     set(${_libs} Threads::Threads PARENT_SCOPE)
   elseif(_pdep MATCHES "OpenMP")
-    find_package(OpenMP REQUIRED)
+    find_package(OpenMP REQUIRED QUIET)
     set(${_libs} OpenMP::OpenMP_C PARENT_SCOPE)
   elseif(_pdep MATCHES "Math")
     set(${_libs} m PARENT_SCOPE)
@@ -182,6 +192,8 @@ function(mumps_add_dependency _pdep _libs)
       find_package(ScaLAPACK REQUIRED QUIET)
       set(${_libs} ${SCALAPACK_LIBRARIES} PARENT_SCOPE)
     endif()
+  elseif(_pdep MATCHES "gfortran")
+    set(${_libs} gfortran PARENT_SCOPE)
   else()
     find_package(${_pdep} REQUIRED QUIET)
     set(${_libs} ${${_u_pdep}_LIBRARIES} ${${_u_pdep}_LIBRARY} PARENT_SCOPE)
@@ -210,20 +222,14 @@ ${_u_first_precision}MUMPS_STRUC_C id;
     file(APPEND "${_mumps_test_dir}/mumps_test_code.c"
       "// #undef MUMPS_SEQ
 ")
-    find_package(MPI REQUIRED
-      COMPONENTS C Fortran)
-    list(APPEND _compiler_specific ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
-    list(APPEND _include_dirs
-      ${MPI_C_INCLUDE_PATH} # deprecated
-      ${MPI_C_INCLUDE_DIRS}
-      ${MPI_Fortran_INCLUDE_PATH} # deprecated
-      ${MPI_Fortran_INCLUDE_DIRS})
   endif()
 
   file(APPEND "${_mumps_test_dir}/mumps_test_code.c" "${_output}")
 
   #===============================================================================
   # ADD here the symbols needed to compile
+  set(_mumps_dep_include_MPI mpi.h)
+  # ADD here the symbols needed to link
   set(_mumps_dep_symbol_MPI mpi_send)
   set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
   set(_mumps_dep_symbol_ScaLAPACK numroc)
@@ -236,6 +242,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_symbol_METIS metis_nodend)
   set(_mumps_dep_symbol_Threads pthread_create)
   set(_mumps_dep_symbol_OpenMP GOMP_loop_end_nowait)
+  set(_mumps_dep_symbol_gfortran gfortran)
   # TODO find missing symbols for IOMP
   set(_mumps_dep_symbol_Math lround)
   set(_mumps_dep_symbol_ParMETIS ParMETIS_V3_NodeND)
@@ -250,12 +257,13 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_comp_Scotch_esmumps COMPONENTS esmumps)
 
   set(_mumps_potential_dependencies
-    MPI
     mumps_common pord
+    MPI
     BLAS LAPACK ScaLAPACK
     Scotch Scotch_ptscotch Scotch_esmumps
     METIS ParMETIS
     Threads OpenMP
+    gfortran
     Math)
   #===============================================================================
 
@@ -268,7 +276,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       "${_mumps_test_dir}"
       "${_mumps_test_dir}/mumps_test_code.c"
       CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${_include_dirs}"
-      LINK_LIBRARIES ${_libraries_all} ${_libraries_all} ${_compiler_specific}
+      LINK_LIBRARIES ${_libraries_all} ${_libraries_all}
       RUN_OUTPUT_VARIABLE _run
       COMPILE_OUTPUT_VARIABLE _out)
 
@@ -280,44 +288,55 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       break()
     endif()
 
+    if(_retry_count EQUAL 0 AND (NOT _mumps_compiles OR _mumps_run STREQUAL "FAILED_TO_RUN"))
+      message(STATUS "Searching for MUMPS link dependencies")
+    endif()
+    
     foreach(_pdep ${_mumps_potential_dependencies})
       set(_libs)
-
-      debug_message("Trying to add: ${_pdep} as a dependency")
-
+      set(_incs)
       set(_add_pdep FALSE)
       
-      if (NOT _mumps_compiles
-          AND DEFINED _mumps_dep_symbol_${_pdep})
-        
+      debug_message("Trying to add: ${_pdep} as a dependency")
+      
+      if (NOT _mumps_compiles AND DEFINED _mumps_dep_symbol_${_pdep})
         foreach (_comile_dep ${_mumps_dep_symbol_${_pdep}})
           if(_out MATCHES "undefined reference.*${_comile_dep}" OR
               _out MATCHES "${_comile_dep}.*referenced from")
             set(_add_pdep TRUE)
+            debug_message(" - ${_pdep} is a link dependency")
+          endif()
+        endforeach()
+      elseif (NOT _mumps_compiles AND DEFINED _mumps_dep_include_${_pdep})
+        foreach (_comile_dep ${_mumps_dep_include_${_pdep}})
+          if(_out MATCHES "${_mumps_dep_include_${_pdep}}.*No such file")
+            set(_add_pdep TRUE)
             debug_message(" - ${_pdep} is a compile dependency")
           endif()
         endforeach()
-        
-      elseif(_mumps_run STREQUAL "FAILED_TO_RUN"
-          AND DEFINED _mumps_run_dep_symbol_${_pdep})
-
-        foreach(_run_dep ${_mumps_run_dep_symbol_${_pdep}})
+      elseif(_mumps_run STREQUAL "FAILED_TO_RUN" AND
+          DEFINED _mumps_run_dep_symbol_${_pdep})
+                foreach(_run_dep ${_mumps_run_dep_symbol_${_pdep}})
           if(_run MATCHES "${_run_dep}")
             set(_add_pdep TRUE)
             debug_message(" - ${_pdep} is a run dependency")
           endif()
         endforeach()
-
       endif()
 
       if(_add_pdep)
-        mumps_add_dependency(${_pdep} _libs ${_mumps_dep_comp_${_pdep}})
+        mumps_add_dependency(${_pdep} _libs _incs ${_mumps_dep_comp_${_pdep}})
         debug_message(" - Found: ${_pdep} (${_libs})")
 
         if(NOT _libs)
           message(FATAL_ERROR "MUMPS depends on ${_pdep} but no libraries where found")
+        else()
+          message(STATUS "  Found MUMPS dependency ${_pdep} (${_libs})")
         endif()
         list(APPEND _libraries_all ${_libs})
+        if(_incs)
+          list(APPEND _include_dirs ${_incs})
+        endif()
         set(_retry_try_run TRUE)
       endif()
     endforeach()
@@ -326,13 +345,13 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   endwhile()
 
   if(_retry_count GREATER 10)
-    message(FATAL_ERROR "Do not know what to do to link with mumps on your system, I give up!")
-    message("Last compilation outputs: \n${_out} \n And last run output \n${_run}")
+    message(FATAL_ERROR "Do not know what to do to link with mumps on your system, I give up!"
+      "Last compilation outputs: \n${_out} \n And last run output \n${_run}")
   endif()
 
   if(APPLE)
     # in doubt add some stuff because mumps was perhaps badly compiled
-    mumps_add_dependency(pord _libs)
+    mumps_add_dependency(pord _libs _incs)
     list(APPEND _libraries_all ${_libs})
   endif()
 
@@ -364,4 +383,8 @@ if(CMAKE_VERSION VERSION_GREATER 2.8.12)
 else()
   find_package_handle_standard_args(Mumps DEFAULT_MSG
     ${_mumps_required_vars} MUMPS_INCLUDE_DIR)
+endif()
+
+if(Mumps_FOUND)
+  set(Mumps_FIND_COMPONENTS_SAVE "${Mumps_FIND_COMPONENTS}" CACHE INTERNAL "")
 endif()
