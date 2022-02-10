@@ -46,9 +46,8 @@ namespace akantu {
 SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
                                                bool use_RVE_mat_selector,
                                                UInt nb_gel_pockets, UInt dim,
-                                               const ID & id,
-                                               const MemoryID & memory_id)
-    : SolidMechanicsModel(mesh, dim, id, memory_id),
+                                               const ID & id)
+    : SolidMechanicsModel(mesh, dim, id),
       ASRTools(dynamic_cast<SolidMechanicsModel &>(*this)),
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
@@ -103,7 +102,7 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
 
   // dumping
   std::stringstream base_name;
-  base_name << this->id; // << this->memory_id - 1;
+  base_name << this->id;
   this->setBaseName(base_name.str());
   this->addDumpFieldVector("displacement");
   this->addDumpField("stress");

@@ -82,10 +82,9 @@ protected:
   using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
 
 public:
-  SolidMechanicsModel(
-      Mesh & mesh, UInt dim = _all_dimensions,
-      const ID & id = "solid_mechanics_model", const MemoryID & memory_id = 0,
-      ModelType model_type = ModelType::_solid_mechanics_model);
+  SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+                      const ID & id = "solid_mechanics_model",
+                      ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
 
@@ -206,13 +205,15 @@ public:
   /// assemble the mass matrix for consistent mass resolutions
   void assembleMass();
 
-protected:
+public:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
+  
+protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
@@ -234,18 +235,15 @@ protected:
 
   void computeNonLocalStresses(GhostType ghost_type) override;
 
-  void
-  insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
+  void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
 
   /// update the values of the non local internal
   void updateLocalInternal(ElementTypeMapReal & internal_flat,
-                           GhostType ghost_type,
-                           ElementKind kind) override;
+                           GhostType ghost_type, ElementKind kind) override;
 
   /// copy the results of the averaging in the materials
   void updateNonLocalInternal(ElementTypeMapReal & internal_flat,
-                              GhostType ghost_type,
-                              ElementKind kind) override;
+                              GhostType ghost_type, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -303,12 +301,10 @@ public:
   virtual void onDump();
 
   //! decide wether a field is a material internal or not
-  bool isInternal(const std::string & field_name,
-                  ElementKind element_kind);
+  bool isInternal(const std::string & field_name, ElementKind element_kind);
   //! give the amount of data per element
   virtual ElementTypeMap<UInt>
-  getInternalDataPerElem(const std::string & field_name,
-                         ElementKind kind);
+  getInternalDataPerElem(const std::string & field_name, ElementKind kind);
 
   //! flatten a given material internal field
   ElementTypeMapArray<Real> &
@@ -330,20 +326,15 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension,
-                       ElementKind kind) override;
+                       UInt spatial_dimension, ElementKind kind) override;
 
-  virtual void dump(const std::string & dumper_name);
-
-  virtual void dump(const std::string & dumper_name, UInt step);
-
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  void dump(const std::string & dumper_name) override;
+  void dump(const std::string & dumper_name, UInt step) override;
+  void dump(const std::string & dumper_name, Real time, UInt step) override;
 
   void dump() override;
-
-  virtual void dump(UInt step);
-
-  virtual void dump(Real time, UInt step);
+  void dump(UInt step) override;
+  void dump(Real time, UInt step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -441,12 +432,29 @@ public:
   /// compute the stable time step
   Real getStableTimeStep();
 
-  /// get the energies
+  /**
+   * @brief Returns the total energy for a given energy type
+   *
+   * Energy types of SolidMechanicsModel expected as argument are:
+   *   - `kinetic`
+   *   - `external work`
+   *
+   * Other energy types are passed on to the materials. All materials should
+   * define a `potential` energy type. For additional energy types, see material
+   * documentation.
+   */
   Real getEnergy(const std::string & energy_id);
 
-  /// compute the energy for energy
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index);
+  /// Compute energy for an element type and material index
+  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+
+  /// Compute energy for an individual element
+  Real getEnergy(const std::string & energy_id, const Element & element) {
+    return getEnergy(energy_id, element.type, element.element);
+  }
+
+  /// Compute energy for an element group
+  Real getEnergy(const ID & energy_id, const ID & group_id);
 
   AKANTU_GET_MACRO(MaterialByElement, material_index,
                    const ElementTypeMapArray<UInt> &);
@@ -457,15 +465,16 @@ public:
   /// index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialByElement, material_index,
                                          UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialLocalNumbering,
                                          material_local_numbering, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
-                                   material_local_numbering, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
+  //                                  material_local_numbering, UInt);
 
   AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, *material_selector,
                              MaterialSelector &);
-  void setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
+  void
+  setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
     this->material_selector = std::move(material_selector);
   }
 
@@ -559,6 +568,8 @@ protected:
 
   /// tells if the material are instantiated
   bool are_materials_instantiated{false};
+
+  friend class Material;
 };
 
 /* -------------------------------------------------------------------------- */

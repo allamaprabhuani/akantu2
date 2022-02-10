@@ -47,8 +47,7 @@ template <ElementKind kind> class ShapeLagrange : public ShapeLagrangeBase {
   /* ------------------------------------------------------------------------ */
 public:
   ShapeLagrange(const Mesh & mesh, UInt spatial_dimension,
-                const ID & id = "shape_lagrange",
-                const MemoryID & memory_id = 0);
+                const ID & id = "shape_lagrange");
   ~ShapeLagrange() override = default;
 
   /* ------------------------------------------------------------------------ */
@@ -136,6 +135,11 @@ public:
   void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
                   GhostType ghost_type,
                   const Array<UInt> & filter_elements = empty_filter) const;
+
+  template <ElementType type>
+  void computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
+                   GhostType ghost_type,
+                   const Array<UInt> & filter_elements) const;
 
   /// find natural coords from real coords provided an element
   template <ElementType type>

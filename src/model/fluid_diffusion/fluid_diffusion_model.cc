@@ -80,9 +80,8 @@ namespace fluid_diffusion {
 } // namespace fluid_diffusion
 
 /* -------------------------------------------------------------------------- */
-FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
-                                         const MemoryID & memory_id)
-    : Model(mesh, ModelType::_fluid_diffusion_model, dim, id, memory_id),
+FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id)
+    : Model(mesh, ModelType::_fluid_diffusion_model, dim, id),
       pressure_gradient("pressure_gradient", id),
       pressure_on_qpoints("pressure_on_qpoints", id),
       delta_pres_on_qpoints("delta_pres_on_qpoints", id),
@@ -146,19 +145,6 @@ void FluidDiffusionModel::initModel() {
 FEEngine & FluidDiffusionModel::getFEEngineBoundary(const ID & name) {
   return aka::as_type<FEEngine>(getFEEngineClassBoundary<FEEngineType>(name));
 }
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-void FluidDiffusionModel::allocNodalField(Array<T> *& array, const ID & name) {
-  if (array == nullptr) {
-    UInt nb_nodes = mesh.getNbNodes();
-    std::stringstream sstr_disp;
-    sstr_disp << id << ":" << name;
-
-    array = &(alloc<T>(sstr_disp.str(), nb_nodes, 1, T()));
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 FluidDiffusionModel::~FluidDiffusionModel() = default;
 
@@ -260,14 +246,15 @@ void FluidDiffusionModel::assembleCapacityLumped() {
 }
 
 /* -------------------------------------------------------------------------- */
-void FluidDiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                     NonLinearSolverType /*non_linear_solver_type*/) {
+void FluidDiffusionModel::initSolver(
+    TimeStepSolverType time_step_solver_type,
+    NonLinearSolverType /*non_linear_solver_type*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
-  this->allocNodalField(this->pressure, "pressure");
-  this->allocNodalField(this->external_flux, "external_flux");
-  this->allocNodalField(this->internal_flux, "internal_flux");
-  this->allocNodalField(this->blocked_dofs, "blocked_dofs");
+  this->allocNodalField(this->pressure, 1, "pressure");
+  this->allocNodalField(this->external_flux, 1, "external_flux");
+  this->allocNodalField(this->internal_flux, 1, "internal_flux");
+  this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
   // this->allocNodalField(this->aperture, "aperture");
 
   if (!dof_manager.hasDOFs("pressure")) {
@@ -277,7 +264,7 @@ void FluidDiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
 
   if (time_step_solver_type == TimeStepSolverType::_dynamic ||
       time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-    this->allocNodalField(this->pressure_rate, "pressure_rate");
+    this->allocNodalField(this->pressure_rate, 1, "pressure_rate");
 
     if (!dof_manager.hasDOFsDerivatives("pressure", 1)) {
       dof_manager.registerDOFsDerivative("pressure", 1, *this->pressure_rate);
@@ -909,10 +896,12 @@ void FluidDiffusionModel::updateFluidElementsFromCohesive(
 
 /* -------------------------------------------------------------------------- */
 void FluidDiffusionModel::applyExternalFluxAtElementGroup(
-    const Real & rate, const ElementGroup & source_facets, GhostType ghost_type) {
+    const Real & rate, const ElementGroup & source_facets,
+    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && type : source_facets.elementTypes(spatial_dimension, ghost_type)) {
+  for (auto && type :
+       source_facets.elementTypes(spatial_dimension, ghost_type)) {
     const auto & element_ids = source_facets.getElements(type, ghost_type);
 
     const auto nb_fluid_elem = mesh.getNbElement(type);
@@ -971,7 +960,7 @@ std::shared_ptr<dumpers::Field> FluidDiffusionModel::createNodalFieldBool(
     __attribute__((unused)) bool padding_flag) {
 
   std::map<std::string, Array<bool> *> uint_nodal_fields;
-  uint_nodal_fields["blocked_dofs"] = blocked_dofs;
+  uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
 
   auto field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
   return field;
@@ -989,11 +978,11 @@ std::shared_ptr<dumpers::Field> FluidDiffusionModel::createNodalFieldReal(
   }
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
-  real_nodal_fields["pressure"] = pressure;
-  real_nodal_fields["pressure_rate"] = pressure_rate;
-  real_nodal_fields["external_flux"] = external_flux;
-  real_nodal_fields["internal_flux"] = internal_flux;
-  // real_nodal_fields["increment"] = increment;
+  real_nodal_fields["pressure"] = pressure.get();
+  real_nodal_fields["pressure_rate"] = pressure_rate.get();
+  real_nodal_fields["external_flux"] = external_flux.get();
+  real_nodal_fields["internal_flux"] = internal_flux.get();
+  // real_nodal_fields["increment"] = increment.get();
 
   std::shared_ptr<dumpers::Field> field =
       mesh.createNodalField(real_nodal_fields[field_name], group_name);
@@ -1004,8 +993,7 @@ std::shared_ptr<dumpers::Field> FluidDiffusionModel::createNodalFieldReal(
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> FluidDiffusionModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*padding_flag*/,
-    UInt /*spatial_dimension*/,
+    bool /*padding_flag*/, UInt /*spatial_dimension*/,
     ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field;
@@ -1115,7 +1103,9 @@ FluidDiffusionModel::getNbData(const Array<UInt> & indexes,
     size += nb_nodes * sizeof(Real);
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 
   AKANTU_DEBUG_OUT();
@@ -1135,7 +1125,9 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
       buffer << (*pressure)(index);
       break;
     }
-    default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
     }
   }
   AKANTU_DEBUG_OUT();
@@ -1153,7 +1145,9 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
       buffer >> (*pressure)(index);
       break;
     }
-    default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
     }
   }
 
@@ -1186,7 +1180,9 @@ FluidDiffusionModel::getNbData(const Array<Element> & elements,
     size += nb_nodes_per_element * sizeof(Real); // nodal pressures
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 
   AKANTU_DEBUG_OUT();
@@ -1209,7 +1205,9 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
     packNodalDataHelper(*pressure, buffer, elements, mesh);
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
@@ -1229,7 +1227,9 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
 
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
@@ -1248,16 +1248,17 @@ void FluidDiffusionModel::injectIntoFacetsByCoord(const Vector<Real> & position,
 
   Real min_dist = std::numeric_limits<Real>::max();
   Element inj_facet;
-  for_each_element(mesh,
-                   [&](auto && facet) {
-                     mesh.getBarycenter(facet, bary_facet);
-                     auto dist = std::abs(bary_facet.distance(position));
-                     if (dist < min_dist) {
-                       min_dist = dist;
-                       inj_facet = facet;
-                     }
-                   },
-                   _spatial_dimension = dim - 1);
+  for_each_element(
+      mesh,
+      [&](auto && facet) {
+        mesh.getBarycenter(facet, bary_facet);
+        auto dist = std::abs(bary_facet.distance(position));
+        if (dist < min_dist) {
+          min_dist = dist;
+          inj_facet = facet;
+        }
+      },
+      _spatial_dimension = dim - 1);
 
   auto & facet_conn = mesh.getConnectivity(inj_facet.type, gt);
   auto nb_nodes_per_elem = facet_conn.getNbComponent();

@@ -31,7 +31,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_random_generator.hh"
-#include "aka_static_memory.hh"
 #include "communicator.hh"
 
 #include "cppargparse.hh"
@@ -57,7 +56,6 @@ void initialize(int & argc, char **& argv) {
 /* -------------------------------------------------------------------------- */
 void initialize(const std::string & input_file, int & argc, char **& argv) {
   AKANTU_DEBUG_IN();
-  StaticMemory::getStaticMemory();
   Communicator & comm = Communicator::getWorldCommunicator();
 
   Tag::setMaxTag(comm.getMaxTag());
@@ -119,15 +117,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
 }
 
 /* -------------------------------------------------------------------------- */
-void finalize() {
-  AKANTU_DEBUG_IN();
-
-  if (StaticMemory::isInstantiated()) {
-    delete &(StaticMemory::getStaticMemory());
-  }
-
-  AKANTU_DEBUG_OUT();
-}
+void finalize() {}
 
 /* -------------------------------------------------------------------------- */
 void readInputFile(const std::string & input_file) {
@@ -149,7 +139,8 @@ const ParserSection & getUserParser() {
 
 std::ostream & operator<<(std::ostream & stream, NodeFlag flag) {
   using under = std::underlying_type_t<NodeFlag>;
-  auto digits = static_cast<int>(std::log(std::numeric_limits<under>::max() + 1) / std::log(16));
+  auto digits = static_cast<int>(
+      std::log(std::numeric_limits<under>::max() + 1) / std::log(16));
   std::ios_base::fmtflags ff;
   ff = stream.flags();
   auto value = static_cast<std::common_type_t<under, unsigned int>>(flag);

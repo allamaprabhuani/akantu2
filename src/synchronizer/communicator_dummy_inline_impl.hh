@@ -39,8 +39,6 @@ namespace akantu {
 
 Communicator::Communicator(const private_member & /*unused*/) {}
 
-Communicator::Communicator(const private_member & /*unused*/) {}
-
 template <typename T>
 void Communicator::sendImpl(const T * /*unused*/, Int /*unused*/,
                             Int /*unused*/, Int /*unused*/,
@@ -150,8 +148,7 @@ Int Communicator::whoAmI() const { return 0; }
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getWorldCommunicator() {
   if (!world_communicator) {
-    world_communicator =
-        std::make_unique<Communicator>(private_member{});
+    world_communicator = std::make_unique<Communicator>(private_member{});
   }
   return *world_communicator;
 }
@@ -159,11 +156,9 @@ Communicator & Communicator::getWorldCommunicator() {
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getSelfCommunicator() {
   if (!self_communicator) {
-    self_communicator =
-        std::make_unique<Communicator>(private_member{});
+    self_communicator = std::make_unique<Communicator>(private_member{});
   }
   return *self_communicator;
 }
-
 
 } // namespace akantu

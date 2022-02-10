@@ -119,8 +119,8 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id)
-    : SolidMechanicsModel(mesh, dim, id, memory_id,
+    Mesh & mesh, UInt dim, const ID & id)
+    : SolidMechanicsModel(mesh, dim, id,
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
       facet_material("facet_material", id) {
@@ -617,17 +617,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
     copy(*previous_displacement);
   }
 
-  // if (external_force)
-  //   copy(*external_force);
-  // if (internal_force)
-  //   copy(*internal_force);
-
   if (displacement_increment) {
     copy(*displacement_increment);
   }
-
-  copy(getDOFManager().getSolution("displacement"));
-  // this->assembleMassLumped();
 
   AKANTU_DEBUG_OUT();
 }

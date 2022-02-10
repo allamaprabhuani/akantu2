@@ -44,14 +44,14 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-DOFManager::DOFManager(const ID & id, const MemoryID & memory_id)
-    : Memory(id, memory_id), dofs_flag(0, 1, std::string(id + ":dofs_type")),
+DOFManager::DOFManager(const ID & id)
+    : id(id), dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
       communicator(Communicator::getSelfCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
-DOFManager::DOFManager(Mesh & mesh, const ID & id, const MemoryID & memory_id)
-    : Memory(id, memory_id), mesh(&mesh),
+DOFManager::DOFManager(Mesh & mesh, const ID & id)
+    : id(id), mesh(&mesh),
       dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
       communicator(mesh.getCommunicator()) {
@@ -1013,6 +1013,7 @@ void DOFManager::assembleMatMulVectToGlobalArray(const ID & dof_id,
                                                  Real scale_factor) {
   auto & A = this->getMatrix(A_id);
 
+  data_cache->resize();
   data_cache->zero();
   this->assembleToGlobalArray(dof_id, x, *data_cache, 1.);
 

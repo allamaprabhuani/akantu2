@@ -64,10 +64,9 @@ public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
   FluidDiffusionModel(Mesh & mesh, UInt dim = _all_dimensions,
-                      const ID & id = "fluid_diffusion_model",
-                      const MemoryID & memory_id = 0);
+                      const ID & id = "fluid_diffusion_model");
 
-    ~FluidDiffusionModel() override;
+  ~FluidDiffusionModel() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -295,14 +294,6 @@ protected:
   /* ------------------------------------------------------------------------ */
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
-  /* ----------------------------------------------------------------------- */
-  // template <class iterator>
-  // void getThermalEnergy(iterator Eth, Array<Real>::const_iterator<Real> T_it,
-  //                       Array<Real>::const_iterator<Real> T_end) const;
-
-  template <typename T>
-  void allocNodalField(Array<T> *& array, const ID & name);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -314,10 +305,10 @@ private:
   Real time_step;
 
   /// pressure array
-  Array<Real> * pressure{nullptr};
+  std::unique_ptr<Array<Real>> pressure;
 
   /// pressure derivatives array
-  Array<Real> * pressure_rate{nullptr};
+  std::unique_ptr<Array<Real>> pressure_rate;
 
   // /// increment array (@f$\delta \dot P@f$ or @f$\delta P@f$)
   // Array<Real> * increment{nullptr};
@@ -344,13 +335,13 @@ private:
   ElementTypeMapArray<Real> k_gradp_on_qpoints;
 
   /// external flux vector
-  Array<Real> * external_flux{nullptr};
+  std::unique_ptr<Array<Real>> external_flux;
 
   /// residuals array
-  Array<Real> * internal_flux{nullptr};
+  std::unique_ptr<Array<Real>> internal_flux;
 
   /// boundary vector
-  Array<bool> * blocked_dofs{nullptr};
+  std::unique_ptr<Array<bool>> blocked_dofs;
 
   // viscosity
   Real viscosity{0.};

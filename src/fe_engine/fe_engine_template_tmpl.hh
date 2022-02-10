@@ -43,10 +43,10 @@ namespace akantu {
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::FEEngineTemplate(
-    Mesh & mesh, UInt spatial_dimension, const ID & id, MemoryID memory_id)
-    : FEEngine(mesh, spatial_dimension, id, memory_id),
-      integrator(mesh, spatial_dimension, id, memory_id),
-      shape_functions(mesh, spatial_dimension, id, memory_id) {}
+    Mesh & mesh, UInt spatial_dimension, const ID & id)
+    : FEEngine(mesh, spatial_dimension, id),
+      integrator(mesh, spatial_dimension, id),
+      shape_functions(mesh, spatial_dimension, id) {}
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
@@ -601,6 +601,42 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeBtDB(
 /* -------------------------------------------------------------------------- */
 namespace fe_engine {
   namespace details {
+    template <ElementKind kind> struct ComputeNtbNHelper {};
+
+#define COMPUTE_NtbN(type)                                                     \
+  shape_functions.template computeNtbN<type>(bs, NtbNs, ghost_type,            \
+                                             filter_elements);
+
+#define AKANTU_SPECIALIZE_COMPUTE_NtbN_HELPER(kind)                            \
+  template <> struct ComputeNtbNHelper<kind> {                                 \
+    template <class S>                                                         \
+    static void call(const S & shape_functions, const Array<Real> & bs,        \
+                     Array<Real> & NtbNs, ElementType type,                    \
+                     GhostType ghost_type,                                     \
+                     const Array<UInt> & filter_elements) {                    \
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_NtbN, kind);                    \
+    }                                                                          \
+  };
+
+    AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_COMPUTE_NtbN_HELPER)
+
+#undef AKANTU_SPECIALIZE_COMPUTE_NtbN_HELPER
+#undef COMPUTE_NtbN
+  } // namespace details
+} // namespace fe_engine
+
+template <template <ElementKind, class> class I, template <ElementKind> class S,
+          ElementKind kind, class IntegrationOrderFunctor>
+inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeNtbN(
+    const Array<Real> & bs, Array<Real> & NtbNs, ElementType type,
+    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+  fe_engine::details::ComputeNtbNHelper<kind>::call(
+      shape_functions, bs, NtbNs, type, ghost_type, filter_elements);
+}
+
+/* -------------------------------------------------------------------------- */
+namespace fe_engine {
+  namespace details {
     template <ElementKind kind> struct ComputeNtbHelper {};
 
 #define COMPUTE_Ntb(type)                                                      \
@@ -680,8 +716,7 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   UInt spatial_dimension = this->mesh.getSpatialDimension();
 
   ElementTypeMapArray<Real> quadrature_points_coordinates(
-      "quadrature_points_coordinates_for_interpolation", getID(),
-      getMemoryID());
+      "quadrature_points_coordinates_for_interpolation", getID());
 
   quadrature_points_coordinates.initialize(*this,
                                            _nb_component = spatial_dimension);
@@ -706,9 +741,9 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
         const ElementTypeMapArray<UInt> * element_filter) const {
 
   ElementTypeMapArray<Real> interpolation_points_coordinates_matrices(
-      "interpolation_points_coordinates_matrices", id, memory_id);
+      "interpolation_points_coordinates_matrices", id);
   ElementTypeMapArray<Real> quad_points_coordinates_inv_matrices(
-      "quad_points_coordinates_inv_matrices", id, memory_id);
+      "quad_points_coordinates_inv_matrices", id);
 
   initElementalFieldInterpolationFromIntegrationPoints(
       interpolation_points_coordinates,

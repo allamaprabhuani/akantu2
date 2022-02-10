@@ -97,23 +97,21 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   auto const & element_filter = this->getElementFilter()(this->el_type);
 
   for (auto && data :
-       zip(arange(element_filter.size()), element_filter,
+       zip(element_filter,
            make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
-    UInt mat_el_id = std::get<0>(data);
-    UInt proc_el_id = std::get<1>(data);
+    UInt proc_el_id = std::get<0>(data);
     UInt gl_el_id = g_ids(proc_el_id);
-    auto & C = std::get<2>(data);
+    auto & C = std::get<1>(data);
 
     meshes.emplace_back(std::make_unique<Mesh>(
-        spatial_dimension, "RVE_mesh_" + std::to_string(gl_el_id),
-        mat_el_id + 1));
+        spatial_dimension, "RVE_mesh_" + std::to_string(gl_el_id)));
 
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,
-        "SMM_RVE_" + std::to_string(gl_el_id), mat_el_id + 1));
+        "SMM_RVE_" + std::to_string(gl_el_id)));
 
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
