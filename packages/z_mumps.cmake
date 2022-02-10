@@ -28,8 +28,6 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 package_declare(Mumps EXTERNAL
   DESCRIPTION "Add Mumps support in akantu"
   )
