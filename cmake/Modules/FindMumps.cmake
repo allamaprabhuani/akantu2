@@ -50,7 +50,6 @@ set(MUMPS_PLAT)
 foreach(_comp ${Mumps_FIND_COMPONENTS})
   if("${_comp}" STREQUAL "sequential")
     set(MUMPS_PLAT _seq) #default plat on debian based distribution
-    message("blip")
   endif()
 
   if("${_comp}" STREQUAL "float")
@@ -76,8 +75,7 @@ list(GET MUMPS_PRECISIONS 0 _first_precision)
 string(TOUPPER "${_first_precision}" _u_first_precision)
 
 find_path(MUMPS_INCLUDE_DIR ${_first_precision}mumps_c.h
-  PATHS "${MUMPS_DIR}"
-  ENV MUMPS_DIR
+  PATHS "${MUMPS_DIR}" ENV MUMPS_DIR
   PATH_SUFFIXES include
   )
 mark_as_advanced(MUMPS_INCLUDE_DIR)
@@ -92,9 +90,9 @@ foreach(_precision ${MUMPS_PRECISIONS})
   endif()
 
   
-  find_library(MUMPS_LIBRARY_${_u_precision}MUMPS NAMES ${_precision}mumps${MUMPS_PLAT} ${_precision}mumps
-    PATHS "${MUMPS_DIR}"
-    ENV MUMPS_DIR
+  find_library(MUMPS_LIBRARY_${_u_precision}MUMPS
+    NAMES ${_precision}mumps${MUMPS_PLAT} ${_precision}mumps
+    PATHS "${MUMPS_DIR}" ENV MUMPS_DIR
     PATH_SUFFIXES lib
     )
   mark_as_advanced(MUMPS_LIBRARY_${_u_precision}MUMPS)
@@ -112,9 +110,8 @@ endif()
 
 
 macro(find_mpiseq)
-  find_library(MUMPS_LIBRARY_MPISEQ mpiseq${MUMPS_PREFIX}
-    PATHS "${MUMPS_DIR}"
-    ENV MUMPS_DIR
+  find_library(MUMPS_LIBRARY_MPISEQ mpiseq${MUMPS_PLAT} mpiseq
+    PATHS "${MUMPS_DIR}" ENV MUMPS_DIR
     PATH_SUFFIXES lib
     )
   if (NOT MUMPS_LIBRARY_MPISEQ)
@@ -134,17 +131,17 @@ endmacro()
 function(mumps_add_dependency _pdep _libs _incs)
   string(TOUPPER ${_pdep} _u_pdep)
   if(_pdep STREQUAL "mumps_common")
-    find_library(MUMPS_LIBRARY_COMMON mumps_common${MUMPS_PREFIX}
-      PATHS "${MUMPS_DIR}"
-      ENV MUMPS_DIR
+    find_library(MUMPS_LIBRARY_COMMON
+      NAMES mumps_common${MUMPS_PLAT} mumps_common
+      PATHS "${MUMPS_DIR}" ENV MUMPS_DIR
       PATH_SUFFIXES lib
       )
     set(${_libs} ${MUMPS_LIBRARY_COMMON} PARENT_SCOPE)
     mark_as_advanced(MUMPS_LIBRARY_COMMON)
   elseif(_pdep STREQUAL "pord")
-    find_library(MUMPS_LIBRARY_PORD pord${MUMPS_PREFIX}
-      PATHS "${MUMPS_DIR}"
-      ENV MUMPS_DIR
+    find_library(MUMPS_LIBRARY_PORD
+      NAMES pord${MUMPS_PLAT} pord
+      PATHS "${MUMPS_DIR}" ENV MUMPS_DIR
       PATH_SUFFIXES lib
       )
     set(${_libs} ${MUMPS_LIBRARY_PORD} PARENT_SCOPE)
@@ -162,6 +159,9 @@ function(mumps_add_dependency _pdep _libs _incs)
     if(MUMPS_PLAT STREQUAL "_seq")
       find_mpiseq()
     else()
+      if(NOT CMAKE_Fortran_COMPILER_LOADED)
+        enable_language(Fortran)
+      endif()
       find_package(MPI REQUIRED QUIET
         COMPONENTS C Fortran)
       set(${_libs} ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES} PARENT_SCOPE)
@@ -189,6 +189,9 @@ function(mumps_add_dependency _pdep _libs _incs)
       set(${_libs} ${SCALAPACK_LIBRARIES} PARENT_SCOPE)
     endif()
   elseif(_pdep MATCHES "gfortran")
+    if(NOT CMAKE_Fortran_COMPILER_LOADED)
+      enable_language(Fortran)
+    endif()
     set(${_libs} gfortran PARENT_SCOPE)
   else()
     find_package(${_pdep} REQUIRED QUIET)
@@ -226,14 +229,14 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   # ADD here the symbols needed to compile
   set(_mumps_dep_compile_MPI mpi.h)
   # ADD here the symbols needed to link
-  set(_mumps_dep_link_MPI mpi_send)
+  set(_mumps_dep_link_MPI mpi_send mpi_type_free mpi_allreduce)
   set(_mumps_dep_link_BLAS ${_first_precision}gemm)
   set(_mumps_dep_link_ScaLAPACK numroc)
   set(_mumps_dep_link_LAPACK ilaenv)
   set(_mumps_dep_link_Scotch SCOTCH_graphInit scotchfstratexit)
   set(_mumps_dep_link_Scotch_ptscotch scotchfdgraphexit)
   set(_mumps_dep_link_Scotch_esmumps esmumps)
-  set(_mumps_dep_link_mumps_common mumps_abort)
+  set(_mumps_dep_link_mumps_common mumps_abort mumps_get_perlu)
   set(_mumps_dep_link_pord SPACE_ordering)
   set(_mumps_dep_link_METIS metis_nodend)
   set(_mumps_dep_link_Threads pthread_create)
@@ -246,7 +249,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   # ADD here the symbols needed to run
   set(_mumps_dep_run_mumps_common mumps_fac_descband)
   set(_mumps_dep_run_MPI mpi_bcast)
-  set(_mumps_dep_run_ScaLAPACK idamax)
+  set(_mumps_dep_run_ScaLAPACK idamax numroc)
   set(_mumps_dep_run_Scotch_ptscotch scotchfdgraphbuild)
 
   set(_mumps_dep_comp_Scotch_ptscotch COMPONENTS ptscotch)
@@ -296,9 +299,10 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       debug_message("Trying to add: ${_pdep} as a dependency")
       
       if (NOT _mumps_compiles)
-        if(DEFINED _mumps_dep_symbol_${_pdep})
+        if(DEFINED _mumps_dep_link_${_pdep})
           foreach (_link_dep ${_mumps_dep_link_${_pdep}})
-            if(_out MATCHES "undefined reference.*${_link_dep}" OR
+            debug_message(" - test ${_link_dep}")
+            if(_out MATCHES "undefined reference to.*${_link_dep}" OR
                 _out MATCHES "${_link_dep}.*referenced from")
               set(_add_pdep TRUE)
               debug_message(" - ${_pdep} is a link dependency")
