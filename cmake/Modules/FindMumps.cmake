@@ -224,49 +224,48 @@ ${_u_first_precision}MUMPS_STRUC_C id;
 
   #===============================================================================
   # ADD here the symbols needed to compile
-  set(_mumps_dep_include_MPI mpi.h)
+  set(_mumps_dep_compile_MPI mpi.h)
   # ADD here the symbols needed to link
-  set(_mumps_dep_symbol_MPI mpi_send)
-  set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
-  set(_mumps_dep_symbol_ScaLAPACK numroc)
-  set(_mumps_dep_symbol_LAPACK ilaenv)
-  set(_mumps_dep_symbol_Scotch SCOTCH_graphInit scotchfstratexit)
-  set(_mumps_dep_symbol_Scotch_ptscotch scotchfdgraphexit)
-  set(_mumps_dep_symbol_Scotch_esmumps esmumps)
-  set(_mumps_dep_symbol_mumps_common mumps_abort)
-  set(_mumps_dep_symbol_pord SPACE_ordering)
-  set(_mumps_dep_symbol_METIS metis_nodend)
-  set(_mumps_dep_symbol_Threads pthread_create)
-  set(_mumps_dep_symbol_OpenMP GOMP_loop_end_nowait)
-  set(_mumps_dep_symbol_gfortran gfortran)
+  set(_mumps_dep_link_MPI mpi_send)
+  set(_mumps_dep_link_BLAS ${_first_precision}gemm)
+  set(_mumps_dep_link_ScaLAPACK numroc)
+  set(_mumps_dep_link_LAPACK ilaenv)
+  set(_mumps_dep_link_Scotch SCOTCH_graphInit scotchfstratexit)
+  set(_mumps_dep_link_Scotch_ptscotch scotchfdgraphexit)
+  set(_mumps_dep_link_Scotch_esmumps esmumps)
+  set(_mumps_dep_link_mumps_common mumps_abort)
+  set(_mumps_dep_link_pord SPACE_ordering)
+  set(_mumps_dep_link_METIS metis_nodend)
+  set(_mumps_dep_link_Threads pthread_create)
+  set(_mumps_dep_link_OpenMP GOMP_loop_end_nowait)
+  set(_mumps_dep_link_gfortran gfortran)
   # TODO find missing symbols for IOMP
-  set(_mumps_dep_symbol_Math lround)
-  set(_mumps_dep_symbol_ParMETIS ParMETIS_V3_NodeND)
+  set(_mumps_dep_link_Math lround)
+  set(_mumps_dep_link_ParMETIS ParMETIS_V3_NodeND)
 
   # ADD here the symbols needed to run
-  set(_mumps_run_dep_symbol_mumps_common mumps_fac_descband)
-  set(_mumps_run_dep_symbol_MPI mpi_bcast)
-  set(_mumps_run_dep_symbol_ScaLAPACK idamax)
-  set(_mumps_run_dep_symbol_Scotch_ptscotch scotchfdgraphbuild)
+  set(_mumps_dep_run_mumps_common mumps_fac_descband)
+  set(_mumps_dep_run_MPI mpi_bcast)
+  set(_mumps_dep_run_ScaLAPACK idamax)
+  set(_mumps_dep_run_Scotch_ptscotch scotchfdgraphbuild)
 
   set(_mumps_dep_comp_Scotch_ptscotch COMPONENTS ptscotch)
   set(_mumps_dep_comp_Scotch_esmumps COMPONENTS esmumps)
 
   set(_mumps_potential_dependencies
     mumps_common pord
-    MPI
+    MPI Threads OpenMP
     BLAS LAPACK ScaLAPACK
     Scotch Scotch_ptscotch Scotch_esmumps
     METIS ParMETIS
-    Threads OpenMP
-    gfortran
-    Math)
+    gfortran Math)
   #===============================================================================
 
   set(_retry_try_run TRUE)
   set(_retry_count 0)
 
-  # trying only as long as we add dependencies to avoid inifinte loop in case of an unkown dependency
+  # trying only as long as we add dependencies to avoid infinite loop in case of
+  # an unknown dependency
   while (_retry_try_run AND _retry_count LESS 100)
     try_run(_mumps_run _mumps_compiles
       "${_mumps_test_dir}"
@@ -284,7 +283,8 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       break()
     endif()
 
-    if(_retry_count EQUAL 0 AND (NOT _mumps_compiles OR _mumps_run STREQUAL "FAILED_TO_RUN"))
+    if(_retry_count EQUAL 0 AND
+        (NOT _mumps_compiles OR _mumps_run STREQUAL "FAILED_TO_RUN"))
       message(STATUS "Searching for MUMPS link dependencies")
     endif()
     
@@ -295,24 +295,27 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       
       debug_message("Trying to add: ${_pdep} as a dependency")
       
-      if (NOT _mumps_compiles AND DEFINED _mumps_dep_symbol_${_pdep})
-        foreach (_comile_dep ${_mumps_dep_symbol_${_pdep}})
-          if(_out MATCHES "undefined reference.*${_comile_dep}" OR
-              _out MATCHES "${_comile_dep}.*referenced from")
-            set(_add_pdep TRUE)
-            debug_message(" - ${_pdep} is a link dependency")
-          endif()
-        endforeach()
-      elseif (NOT _mumps_compiles AND DEFINED _mumps_dep_include_${_pdep})
-        foreach (_comile_dep ${_mumps_dep_include_${_pdep}})
-          if(_out MATCHES "${_mumps_dep_include_${_pdep}}.*(No such file|file not found)")
-            set(_add_pdep TRUE)
-            debug_message(" - ${_pdep} is a compile dependency")
-          endif()
-        endforeach()
+      if (NOT _mumps_compiles)
+        if(DEFINED _mumps_dep_symbol_${_pdep})
+          foreach (_link_dep ${_mumps_dep_link_${_pdep}})
+            if(_out MATCHES "undefined reference.*${_link_dep}" OR
+                _out MATCHES "${_link_dep}.*referenced from")
+              set(_add_pdep TRUE)
+              debug_message(" - ${_pdep} is a link dependency")
+            endif()
+          endforeach()
+        endif()
+        if (DEFINED _mumps_dep_compile_${_pdep})
+          foreach (_compile_dep ${_mumps_dep_compile_${_pdep}})
+            if(_out MATCHES "${_compile_dep}.*(No such file|file not found)")
+              set(_add_pdep TRUE)
+              debug_message(" - ${_pdep} is a compile dependency")
+            endif()
+          endforeach()
+        endif()
       elseif(_mumps_run STREQUAL "FAILED_TO_RUN" AND
-          DEFINED _mumps_run_dep_symbol_${_pdep})
-                foreach(_run_dep ${_mumps_run_dep_symbol_${_pdep}})
+          DEFINED _mumps_dep_run_${_pdep})
+        foreach(_run_dep ${_mumps_dep_run_${_pdep}})
           if(_run MATCHES "${_run_dep}")
             set(_add_pdep TRUE)
             debug_message(" - ${_pdep} is a run dependency")
