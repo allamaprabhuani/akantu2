@@ -4,14 +4,14 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void zero();
 
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<not _is_vector> * = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto operator()(Index c) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) operator()(Index c) {
   auto & d = this->derived();
   return d.col(c);
 }
 
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<not _is_vector> * = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto operator()(Index c) const {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) operator()(Index c) const {
   const auto & d = this->derived();
   return d.col(c);
 }

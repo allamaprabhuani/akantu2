@@ -57,9 +57,9 @@ namespace fe_engine {
         for (auto && data : enumerate(make_view(field, nb_degree_of_freedom,
                                                 nb_integration_points))) {
           el.element = std::get<0>(data);
-          mat.fill(0.);
+          mat.zero();
           field_funct(mat, el);
-          mat = std::get<1>(data);
+          std::get<1>(data) = mat;
         }
       }
     } // namespace

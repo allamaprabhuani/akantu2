@@ -213,8 +213,15 @@ public:
   template <typename V> void setTyped(const V & value) { param = value; }
   void setAuto(const ParserParameter & value) override {
     Parameter::setAuto(value);
-    Matrix<Real> tmp = value;
-    param = tmp.block(0, 0, param.rows(), param.cols());
+    static_if(aka::bool_constant<n == 1>{})
+        .then([&](auto && args) {
+          Vector<Real> tmp = args;
+          param = tmp.block(0, 0, param.rows(), 1);
+        })
+        .else_([&](auto && args) {
+          Matrix<Real> tmp = args;
+          param = tmp.block(0, 0, param.rows(), param.cols());
+        })(std::forward<decltype(value)>(value));
   }
 
   Eigen::Matrix<T, m, n> & getTyped() { return param; }

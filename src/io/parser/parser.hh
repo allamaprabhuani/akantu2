@@ -144,8 +144,10 @@ public:
 
   template <typename T> inline operator T() const;
 
-  // template <typename T> inline operator Vector<T>() const;
-  // template <typename T> inline operator Matrix<T>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n == 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n != 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
 
   /// Print parameter info in stream
   void printself(std::ostream & stream,

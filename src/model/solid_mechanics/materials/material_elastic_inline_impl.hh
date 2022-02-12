@@ -55,7 +55,7 @@ inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   // u_{ij} + \nabla u_{ji})
-  sigma = mu * Material::gradUToEpsilon<dim>(grad_u) +
+  sigma = 2. * mu * Material::gradUToEpsilon<dim>(grad_u) +
           (lambda * trace + sigma_th) * Matrix<Real, dim, dim>::Identity();
 }
 

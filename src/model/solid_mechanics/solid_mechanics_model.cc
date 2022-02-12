@@ -512,7 +512,7 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
                                          _not_ghost);
 
     for (auto && data :
-         zip(make_view(X, spatial_dimension),
+         zip(make_view(X, spatial_dimension, nb_nodes_per_element),
              make_view(material_index(type, ghost_type)),
              make_view(material_local_numbering(type, ghost_type)))) {
       auto && X_el = std::get<0>(data);

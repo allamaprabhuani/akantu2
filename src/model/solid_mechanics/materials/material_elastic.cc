@@ -120,7 +120,7 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
 
   auto && arguments = Parent::getArguments(el_type, ghost_type);
 
-  if (!this->finite_deformation) {
+  if (not this->finite_deformation) {
     for (auto && args : arguments) {
       this->computeStressOnQuad(args);
     }

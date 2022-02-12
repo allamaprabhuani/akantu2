@@ -98,10 +98,7 @@ template <>
 template <class D>
 inline Real GeometricalElement<_gt_segment_2>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
-  auto a{coord(0)};
-  auto b{coord(1)};
-
-  return (b - a).norm();
+  return (coord.col(1) - coord.col(0)).norm();
 }
 
 /* -------------------------------------------------------------------------- */

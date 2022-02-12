@@ -188,7 +188,7 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 
   Int spatial_dimension = model.getSpatialDimension();
 
-  if (!finite_deformation) {
+  if (not finite_deformation) {
 
     auto & internal_force = model.getInternalForce();
 

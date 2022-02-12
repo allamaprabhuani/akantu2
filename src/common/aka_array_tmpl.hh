@@ -580,7 +580,7 @@ inline void Array<T, is_scal>::set(const C & elem) {
       "The size of the object does not match the number of components");
 
   for (auto && v : make_view(*this, this->nb_component)) {
-    v = elem.array();
+    v = elem.reshaped(this->nb_component, 1);
   }
 }
 

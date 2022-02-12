@@ -98,22 +98,25 @@ template <> inline ParserParameter::operator std::set<std::string>() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <> inline ParserParameter::operator Vector<Real>() const {
+template <typename T, Int m, Int n, std::enable_if_t<n == 1> *>
+inline ParserParameter::operator Matrix<T, m, n>() const {
   return Parser::parseVector(value, *parent_section);
 }
 
-/* --------------------------------------------------------- ---------------- */
-template <> inline ParserParameter::operator Vector<Int>() const {
-  Vector<Real> tmp = Parser::parseVector(value, *parent_section);
-  Vector<Int> tmp_int(tmp.size());
-  for (Int i = 0; i < tmp.size(); ++i) {
-    tmp_int(i) = Int(tmp(i));
-  }
-  return tmp_int;
-}
+// /* --------------------------------------------------------- ----------------
+// */ template <Int m, Int n, std::enable_if_t<n == 1> * = nullptr> inline
+// ParserParameter::operator Matrix<Int, m, n>() const {
+//   Vector<Real> tmp = Parser::parseVector(value, *parent_section);
+//   Vector<Int> tmp_int(tmp.size());
+//   for (Int i = 0; i < tmp.size(); ++i) {
+//     tmp_int(i) = Int(tmp(i));
+//   }
+//   return tmp_int;
+// }
 
 /* --------------------------------------------------------- ---------------- */
-template <> inline ParserParameter::operator Matrix<Real>() const {
+template <typename T, Int m, Int n, std::enable_if_t<n != 1> *>
+inline ParserParameter::operator Matrix<T, m, n>() const {
   return Parser::parseMatrix(value, *parent_section);
 }
 

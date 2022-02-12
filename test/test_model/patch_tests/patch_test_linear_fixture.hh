@@ -129,9 +129,8 @@ public:
   template <typename presult_func_t, typename Result, typename DOFs>
   void checkResults(presult_func_t && presult_func, const Result & results,
                     const DOFs & dofs) {
-    auto presult = presult_func(prescribed_gradient(dofs));
-    for (auto & result :
-         make_view(results, results.getNbComponent() / dim, dim)) {
+    Matrix<Real> presult = presult_func(prescribed_gradient(dofs));
+    for (auto & result : make_view(results, presult.rows(), presult.cols())) {
       auto diff = result - presult;
       auto result_error = diff.template lpNorm<Eigen::Infinity>() /
                           presult.template lpNorm<Eigen::Infinity>();

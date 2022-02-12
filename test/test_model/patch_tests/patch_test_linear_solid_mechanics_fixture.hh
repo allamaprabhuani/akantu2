@@ -109,7 +109,8 @@ public:
           Real nu = this->model->getMaterial(0).get("nu");
           Real E = this->model->getMaterial(0).get("E");
 
-          auto strain = (pstrain + pstrain.transpose()) / 2.;
+          Matrix<Real, this->dim, this->dim> strain =
+              (pstrain + pstrain.transpose()) / 2.;
           auto trace = strain.trace();
 
           auto lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
@@ -119,15 +120,14 @@ public:
             lambda = nu * E / (1 - nu * nu);
           }
 
-          Matrix<Real> stress(this->dim, this->dim);
+          Matrix<Real, this->dim, this->dim> stress;
 
           if (this->dim == 1) {
-            stress(0, 0) = E * strain(0, 0);
+            stress = E * strain;
           } else {
-            for (Int i = 0; i < this->dim; ++i)
-              for (Int j = 0; j < this->dim; ++j)
-                stress(i, j) =
-                    (i == j) * lambda * trace + 2 * mu * strain(i, j);
+            stress = Matrix<Real, this->dim, this->dim>::Identity() * lambda *
+                         trace +
+                     2 * mu * strain;
           }
 
           return stress;
