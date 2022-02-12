@@ -61,7 +61,7 @@ public:
   void setDirichletBCs() override {
     this->model->getBlockedDOFs().set(true);
     auto center_node = this->model->getBlockedDOFs().end(parent::ndof) - 1;
-    *center_node = Vector<bool>{false, false, false, false, false, true};
+    *center_node << false, false, false, false, false, true;
 
     this->model->getDisplacement().zero();
     auto disp = ++this->model->getDisplacement().begin(parent::ndof);
@@ -73,9 +73,9 @@ public:
     // clang-format off
 
     // This displacement field tests membrane and bending modes
-    *disp = Vector<Real>{40, 20, -800 , -20, 40, 0}; ++disp;
-    *disp = Vector<Real>{50, 40, -1400, -40, 50, 0}; ++disp;
-    *disp = Vector<Real>{10, 20, -200 , -20, 10, 0}; ++disp;
+    *disp << 40, 20, -800 , -20, 40, 0; ++disp;
+    *disp << 50, 40, -1400, -40, 50, 0; ++disp;
+    *disp << 10, 20, -200 , -20, 10, 0; ++disp;
 
     // This displacement tests the bending mode
     // *disp = {0, 0, -800 , -20, 40, 0}; ++disp;

@@ -154,7 +154,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
     v3 = this->rot_mat(2);
   }
 
-  auto test_axis = v1.cross(v2) - v3;
+  Vector<Real, 3> test_axis = v1.cross(v2) - v3;
 
   if (test_axis.norm() > 8 * std::numeric_limits<Real>::epsilon()) {
     AKANTU_ERROR("The axis vectors do not form a right-handed coordinate "
