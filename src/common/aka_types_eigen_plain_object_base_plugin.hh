@@ -25,7 +25,7 @@ PlainObjectBase(std::initializer_list<std::initializer_list<Scalar>> list) {
   Index m = list.size();
   Index n = 0;
   for (auto row : list) {
-    n = std::max(n, row.size());
+    n = std::max(n, Index(row.size()));
   }
 
   if (RowsAtCompileTime != -1 and RowsAtCompileTime != m) {

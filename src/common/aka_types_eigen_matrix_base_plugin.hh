@@ -127,7 +127,7 @@ doubleDot(const MatrixBase<OtherDerived> & other) const {
   eigen_assert(rows() == cols() and rows() == other.rows() and
                cols() == other.cols());
 
-  this->cwiseProduct(other).sum();
+  return this->cwiseProduct(other).sum();
 }
 
 template <typename OtherDerived>
