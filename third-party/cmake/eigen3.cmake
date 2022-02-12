@@ -14,10 +14,12 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/third-party/eigen3/CMakeLists.txt)
     ERROR_FILE ${_working_dir}/build-error.log)
 endif()
 
+set(CMAKE_BUILD_TYPE Release)
+set(BUILD_TESTING OFF)
 add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/eigen3)
 
 set(Eigen3_FOUND TRUE CACHE INTERNAL "" FORCE)
-set(EIGEN3_INCLUDE_DIR "${EIGEN3_INCLUDE_DIR};${PYTHON_INCLUDE_DIRS}" CACHE INTERNAL "")
-set(EIGEN3_LIBRARIES "${PYTHON_LIBRARIES}" CACHE INTERNAL "")
+set(EIGEN3_LIBRARIES eigen CACHE INTERNAL "")
 
 mask_package_options(EIGEN3)
+mask_package_options(EIGEN)
