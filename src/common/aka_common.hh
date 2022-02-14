@@ -120,6 +120,7 @@ enum EventHandlerPriority {
   (solid_mechanics_model)                                               \
   (solid_mechanics_model_cohesive)                                      \
   (heat_transfer_model)                                                 \
+  (fluid_diffusion_model)                                               \
   (structural_mechanics_model)						\
   (embedded_model)							\
   (phase_field_model)							\
@@ -305,6 +306,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (htm_gradient_temperature)                    \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
+  (fdm_pressure)                                \
+  (fdm_gradient_pressure)                       \
   (pfm_damage)					\
   (pfm_driving)					\
   (pfm_history)					\
@@ -370,21 +373,26 @@ enum class SynchronizationTag {
   _htm_gradient_temperature, ///< synchronization of the element gradient
                              /// temperature
 
+  // --- FluidDiffusion tags ---
+  _fdm_pressure,          ///< synchronization of the nodal pressure
+  _fdm_gradient_pressure, ///< synchronization of the element gradient
+                          /// pressure
+
   // --- PhaseFieldModel tags ---
-  _pfm_damage,          ///< synchronization of the nodal damage
-  _pfm_driving,         ///< synchronization of the driving forces to
-			/// compute the internal
-  _pfm_history,         ///< synchronization of the damage history to
-			///  compute the internal
-  _pfm_energy,          ///< synchronization of the damage energy
-			/// density to compute the internal
+  _pfm_damage,  ///< synchronization of the nodal damage
+  _pfm_driving, ///< synchronization of the driving forces to
+                /// compute the internal
+  _pfm_history, ///< synchronization of the damage history to
+                ///  compute the internal
+  _pfm_energy,  ///< synchronization of the damage energy
+                /// density to compute the internal
 
   // --- CouplerSolidPhaseField tags ---
-  _csp_damage,        ///< synchronization of the damage from phase
-		      /// model to solid model
-  _csp_strain,        ///< synchronization of the strain from solid
-		      /// model to phase model  
-  
+  _csp_damage, ///< synchronization of the damage from phase
+               /// model to solid model
+  _csp_strain, ///< synchronization of the strain from solid
+               /// model to phase model
+
   // --- LevelSet tags ---
   _htm_phi,          ///< synchronization of the nodal level set value phi
   _htm_gradient_phi, ///< synchronization of the element gradient phi

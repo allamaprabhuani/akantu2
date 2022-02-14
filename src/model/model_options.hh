@@ -105,6 +105,20 @@ struct HeatTransferModelOptions : public ModelOptions {
 };
 #endif
 
+#ifdef AKANTU_FLUID_DIFFUSION
+/* --------------------------------------------------------------------------
+ */
+struct FluidDiffusionModelOptions : public ModelOptions {
+  explicit FluidDiffusionModelOptions(AnalysisMethod analysis_method = _static)
+      : ModelOptions(analysis_method) {}
+
+  template <typename... pack>
+  FluidDiffusionModelOptions(use_named_args_t, pack &&... _pack)
+      : FluidDiffusionModelOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _static)) {}
+};
+#endif
+
 #ifdef AKANTU_PHASE_FIELD
 /* -------------------------------------------------------------------------- */
 struct PhaseFieldModelOptions : public ModelOptions {

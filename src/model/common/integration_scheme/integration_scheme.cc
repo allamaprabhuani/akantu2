@@ -38,7 +38,8 @@ namespace akantu {
 IntegrationScheme::IntegrationScheme(DOFManager & dof_manager,
                                      const ID & dof_id, UInt order)
     : Parsable(ParserType::_integration_scheme, dof_id),
-      dof_manager(dof_manager), dof_id(dof_id), order(order), u_store(order + 1) {}
+      dof_manager(dof_manager), dof_id(dof_id), order(order),
+      u_store(order + 1) {}
 
 /* -------------------------------------------------------------------------- */
 /// standard input stream operator for SolutionType
@@ -54,6 +55,10 @@ std::istream & operator>>(std::istream & stream,
     type = IntegrationScheme::_velocity;
   } else if (str == "temperature_rate") {
     type = IntegrationScheme::_temperature_rate;
+  } else if (str == "pressure") {
+    type = IntegrationScheme::_pressure;
+  } else if (str == "pressure_rate") {
+    type = IntegrationScheme::_pressure_rate;
   } else if (str == "acceleration") {
     type = IntegrationScheme::_acceleration;
   } else if (str == "damage") {
@@ -87,6 +92,5 @@ void IntegrationScheme::restore() {
     u_o.copy(*u_store[o]);
   }
 }
-
 
 } // namespace akantu

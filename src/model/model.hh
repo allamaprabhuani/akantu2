@@ -93,12 +93,18 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_FLUID_DIFFUSION
+    case ModelType::_fluid_diffusion_model:
+      this->initFullImpl(FluidDiffusionModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
 #ifdef AKANTU_PHASE_FIELD
     case ModelType::_phase_field_model:
       this->initFullImpl(PhaseFieldModelOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
-#endif      
+#endif
 #ifdef AKANTU_EMBEDDED
     case ModelType::_embedded_model:
       this->initFullImpl(EmbeddedInterfaceModelOptions{
@@ -208,7 +214,7 @@ public:
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
 
   /* ------------------------------------------------------------------------ */
-  /* Pack and unpack hexlper functions                                         */
+  /* Pack and unpack hexlper functions */
   /* ------------------------------------------------------------------------ */
 public:
   inline UInt getNbIntegrationPoints(const Array<Element> & elements,
@@ -293,19 +299,15 @@ public:
     return nullptr;
   }
 
-  virtual std::shared_ptr<dumpers::Field>
-  createElementalField(const std::string & /*field_name*/,
-                       const std::string & /*group_name*/,
-                       bool /*padding_flag*/,
-                       UInt /*spatial_dimension*/,
-                       ElementKind /*kind*/) {
+  virtual std::shared_ptr<dumpers::Field> createElementalField(
+      const std::string & /*field_name*/, const std::string & /*group_name*/,
+      bool /*padding_flag*/, UInt /*spatial_dimension*/, ElementKind /*kind*/) {
     return nullptr;
   }
 
   void setDirectory(const std::string & directory);
   void setDirectoryToDumper(const std::string & dumper_name,
                             const std::string & directory);
-
 
   /* ------------------------------------------------------------------------ */
   virtual void dump(const std::string & dumper_name);

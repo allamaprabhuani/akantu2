@@ -55,30 +55,27 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
 
-  /// create a Mesh and SolidMechanicsModel on each integration point of the
-  /// material
-  auto C_it = this->C(this->el_type).begin(voigt_h::size, voigt_h::size);
-
-  for (auto && data :
-       enumerate(make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
-    auto q = std::get<0>(data);
-    auto & C = std::get<1>(data);
+  // create a Mesh and SolidMechanicsModel on each integration point of the
+  // material
+  auto & mesh = this->model.getMesh();
+  auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
+  auto const & element_filter = this->getElementFilter()(this->el_type);
+  for (auto && data : zip(element_filter)) {
+    UInt proc_el_id = std::get<0>(data);
+    UInt gl_el_id = g_ids(proc_el_id);
 
     meshes.emplace_back(std::make_unique<Mesh>(
-        spatial_dimension, "RVE_mesh_" + std::to_string(q), q + 1));
+        spatial_dimension, "RVE_mesh_" + std::to_string(gl_el_id)));
 
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,
-        "SMM_RVE_" + std::to_string(q), q + 1));
+        "SMM_RVE_" + std::to_string(gl_el_id)));
 
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
-
-    /// compute intial stiffness of the RVE
-    RVE.homogenizeStiffness(C);
   }
   AKANTU_DEBUG_OUT();
 }
@@ -142,8 +139,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<Real>::const_matrix_iterator C_it =

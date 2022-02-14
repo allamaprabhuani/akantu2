@@ -9,13 +9,21 @@
  * @brief  Compilation time configuration of Akantu
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the terms  of the  GNU Lesser  General Public  License as published by  the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more details.
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -23,18 +31,18 @@
 #ifndef AKANTU_AKA_CONFIG_HH_
 #define AKANTU_AKA_CONFIG_HH_
 
+// clang-format off
 #define AKANTU_VERSION_MAJOR @AKANTU_MAJOR_VERSION@
 #define AKANTU_VERSION_MINOR @AKANTU_MINOR_VERSION@
 #define AKANTU_VERSION_PATCH @AKANTU_PATCH_VERSION@
-#define AKANTU_VERSION (AKANTU_VERSION_MAJOR * 10000 \
-                        + AKANTU_VERSION_MINOR * 100 \
-                        + AKANTU_VERSION_PATCH)
+#define AKANTU_VERSION                                                         \
+  (AKANTU_VERSION_MAJOR * 10000 + AKANTU_VERSION_MINOR * 100 +                 \
+   AKANTU_VERSION_PATCH)
 
-@AKANTU_TYPES_EXTRA_INCLUDES@
-namespace akantu {
-using Real = @AKANTU_FLOAT_TYPE@;
-using Int = @AKANTU_SIGNED_INTEGER_TYPE@;
-using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
+@AKANTU_TYPES_EXTRA_INCLUDES@ namespace akantu {
+  using Real = @AKANTU_FLOAT_TYPE@;
+  using Int = @AKANTU_SIGNED_INTEGER_TYPE@;
+  using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
 } // akantu
 
 #define AKANTU_INTEGER_SIZE @AKANTU_INTEGER_SIZE@
@@ -71,6 +79,7 @@ using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
 #cmakedefine AKANTU_SOLID_MECHANICS
 #cmakedefine AKANTU_STRUCTURAL_MECHANICS
 #cmakedefine AKANTU_HEAT_TRANSFER
+#cmakedefine AKANTU_FLUID_DIFFUSION
 #cmakedefine AKANTU_PHASE_FIELD
 #cmakedefine AKANTU_PYTHON_INTERFACE
 
@@ -89,5 +98,6 @@ using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
 #cmakedefine AKANTU_DEBUG_TOOLS
 #cmakedefine READLINK_COMMAND @READLINK_COMMAND@
 #cmakedefine ADDR2LINE_COMMAND @ADDR2LINE_COMMAND@
+// clang-format on
 
 #endif /* AKANTU_AKA_CONFIG_HH_ */
