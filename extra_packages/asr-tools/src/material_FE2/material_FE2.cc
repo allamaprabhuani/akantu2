@@ -93,7 +93,6 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   // material
   auto & mesh = this->model.getMesh();
   auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
-  // AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
   auto const & element_filter = this->getElementFilter()(this->el_type);
 
   for (auto && data :

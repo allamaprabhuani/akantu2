@@ -48,9 +48,7 @@ namespace akantu {
           mesh.getSpatialDimension() ||                                        \
       kind != _ek_regular)                                                     \
     precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
-// TODO: at this stage precomputing derivatives should not be done for the fluid
-// diffusion model
-// id.find("fluid_diffusion_model") != std::string::npos)
+
 template <ElementKind kind>
 inline void ShapeLagrange<kind>::initShapeFunctions(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
@@ -255,73 +253,6 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
-template <ElementKind kind>
-template <ElementType type>
-void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints1DIn2D(
-    const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shape_derivatives, const GhostType & ghost_type,
-    const Array<UInt> & filter_elements) const {
-  AKANTU_DEBUG_IN();
-
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt element_dimension = ElementClass<type>::getNaturalSpaceDimension();
-
-  UInt nb_nodes_per_element =
-      ElementClass<type>::getNbNodesPerInterpolationElement();
-
-  UInt nb_points = integration_points.cols();
-  UInt nb_element = mesh.getConnectivity(type, ghost_type).size();
-
-  UInt size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
-  AKANTU_DEBUG_ASSERT(shape_derivatives.getNbComponent() == size_of_shapesd,
-                      "The shapes_derivatives array does not have the correct "
-                          << "number of component");
-  shape_derivatives.resize(nb_element * nb_points);
-
-  Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type,
-                                       filter_elements);
-
-  Real * shapesd_val = shape_derivatives.storage();
-  Array<Real>::matrix_iterator x_it =
-      x_el.begin(spatial_dimension, nb_nodes_per_element);
-
-  /// array of equivalent coordinates (works for 1D element in 2D only)
-  Array<Real> x_el_equiv(nb_element, element_dimension * nb_nodes_per_element);
-  for (auto && data :
-       zip(make_view(x_el, spatial_dimension, nb_nodes_per_element),
-           make_view(x_el_equiv, element_dimension, nb_nodes_per_element))) {
-    const Matrix<Real> & x = std::get<0>(data);
-    auto & x_eq = std::get<1>(data);
-    for (auto node_nb : arange(1, nb_nodes_per_element)) {
-      Vector<Real> delta_x = Vector<Real>(x(node_nb)) - Vector<Real>(x(0));
-      x_eq(element_dimension - 1, node_nb) = delta_x.norm();
-    }
-  }
-
-  if (filter_elements != empty_filter)
-    nb_element = filter_elements.size();
-
-  for (auto && data : enumerate(
-           make_view(x_el_equiv, element_dimension, nb_nodes_per_element))) {
-    auto & elem = std::get<0>(data);
-    const auto & X = std::get<1>(data);
-    if (filter_elements != empty_filter)
-      shapesd_val = shape_derivatives.storage() +
-                    filter_elements(elem) * size_of_shapesd * nb_points;
-
-    Tensor3<Real> B(shapesd_val, element_dimension, nb_nodes_per_element,
-                    nb_points);
-    computeShapeDerivativesOnCPointsByElement<type>(X, integration_points, B);
-
-    if (filter_elements == empty_filter)
-      shapesd_val += size_of_shapesd * nb_points;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
 /* --------------------------------------------------------------------------
  */
 template <ElementKind kind>
@@ -368,18 +299,11 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnIntegrationPoints(
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
   Matrix<Real> & natural_coords = integration_points(type, ghost_type);
   UInt size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt natural_dimension = ElementClass<type>::getNaturalSpaceDimension();
 
   Array<Real> & shapes_derivatives_tmp =
       shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
-  if (spatial_dimension != natural_dimension) {
-    this->computeShapeDerivativesOnIntegrationPoints1DIn2D<type>(
-        nodes, natural_coords, shapes_derivatives_tmp, ghost_type);
-  } else {
-    this->computeShapeDerivativesOnIntegrationPoints<type>(
-        nodes, natural_coords, shapes_derivatives_tmp, ghost_type);
-  }
+  this->computeShapeDerivativesOnIntegrationPoints<type>(
+      nodes, natural_coords, shapes_derivatives_tmp, ghost_type);
   AKANTU_DEBUG_OUT();
 }
 
@@ -465,8 +389,7 @@ void ShapeLagrange<kind>::computeBtD(
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
 
-  // auto spatial_dimension = mesh.getSpatialDimension();
-  auto spatial_dimension = ElementClass<type>::getNaturalSpaceDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
   auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
   Array<Real> shapes_derivatives_filtered(0,

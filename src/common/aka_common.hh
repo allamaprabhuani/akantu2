@@ -120,7 +120,6 @@ enum EventHandlerPriority {
   (solid_mechanics_model)                                               \
   (solid_mechanics_model_cohesive)                                      \
   (heat_transfer_model)                                                 \
-  (fluid_diffusion_model)                                               \
   (structural_mechanics_model)						\
   (embedded_model)							\
   (phase_field_model)							\
@@ -304,8 +303,6 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (gm_clusters)                                 \
   (htm_temperature)                             \
   (htm_gradient_temperature)                    \
-  (fdm_pressure)                                \
-  (fdm_gradient_pressure)                       \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
   (pfm_damage)					\
@@ -374,11 +371,6 @@ enum class SynchronizationTag {
   _htm_temperature,          ///< synchronization of the nodal temperature
   _htm_gradient_temperature, ///< synchronization of the element gradient
                              /// temperature
-
-  // --- FluidDiffusion tags ---
-  _htm_pressure,          ///< synchronization of the nodal pressure
-  _htm_gradient_pressure, ///< synchronization of the element gradient
-                          /// pressure
 
   // --- PhaseFieldModel tags ---
   _pfm_damage,  ///< synchronization of the nodal damage

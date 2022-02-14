@@ -57,8 +57,7 @@ public:
   /// initialization function for structural elements not yet implemented
   inline void initShapeFunctions(const Array<Real> & nodes,
                                  const Matrix<Real> & integration_points,
-                                 ElementType type,
-                                 GhostType ghost_type);
+                                 ElementType type, GhostType ghost_type);
 
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
@@ -69,16 +68,8 @@ public:
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type,
-      GhostType ghost_type,
+      Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
       const Array<UInt> & filter_elements) const override;
-
-  /// computes the shape functions variations for spatial dim != natural dim
-  template <ElementType type>
-  void computeShapeDerivativesOnIntegrationPoints1DIn2D(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
-      Array<Real> & shape_derivatives, const GhostType & ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const;
 
   /// pre compute all shapes on the element integration points from natural
   /// coordinates
@@ -89,9 +80,8 @@ public:
   /// pre compute all shape derivatives on the element integration points from
   /// natural coordinates
   template <ElementType type>
-  void
-  precomputeShapeDerivativesOnIntegrationPoints(const Array<Real> & nodes,
-                                                GhostType ghost_type);
+  void precomputeShapeDerivativesOnIntegrationPoints(const Array<Real> & nodes,
+                                                     GhostType ghost_type);
 
   /// interpolate nodal values on the integration points
   template <ElementType type>
@@ -110,8 +100,7 @@ public:
   template <ElementType type>
   void interpolate(const Vector<Real> & real_coords, UInt elem,
                    const Matrix<Real> & nodal_values,
-                   Vector<Real> & interpolated,
-                   GhostType ghost_type) const;
+                   Vector<Real> & interpolated, GhostType ghost_type) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>
