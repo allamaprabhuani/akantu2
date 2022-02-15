@@ -12,13 +12,13 @@
 #
 #===============================================================================
 
-package_declare(asr_tools
-  DESCRIPTION "ASR stuffs materials, model FE2, toolboxes"
-  DEPENDS extra_materials)
+package_declare(rve_tools
+  DESCRIPTION "Multi-scale model package"
+  DEPENDS extra_materials cohesive_element)
 
-package_declare_sources(asr_tools
-  asr_tools.cc
-  asr_tools.hh
+package_declare_sources(rve_tools
+  rve_tools.cc
+  rve_tools.hh
   material_FE2/material_FE2.hh
   material_FE2/material_FE2.cc
   solid_mechanics_model_RVE.hh

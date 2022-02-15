@@ -33,7 +33,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_grid_dynamic.hh"
-#include "asr_tools.hh"
+#include "rve_tools.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 //#include <unordered_set>
@@ -41,15 +41,16 @@
 
 namespace akantu {
 
-class SolidMechanicsModelRVE : public SolidMechanicsModel, public ASRTools {
+class SolidMechanicsModelRVE : public SolidMechanicsModel, public RVETools {
 
   /* ----------------------------------------------------------------- */
   /* Constructors/Destructors                                          */
   /* ----------------------------------------------------------------- */
 
 public:
-  SolidMechanicsModelRVE(Mesh & mesh, bool use_RVE_mat_selector = true,
-                         UInt nb_gel_pockets = 400, UInt dim = _all_dimensions,
+  SolidMechanicsModelRVE(Mesh & mesh, UInt nb_expanding_elements,
+                         bool use_RVE_mat_selector = true,
+                         UInt dim = _all_dimensions,
                          const ID & id = "solid_mechanics_model");
 
   virtual ~SolidMechanicsModelRVE();
@@ -66,8 +67,10 @@ protected:
   void initMaterials() override;
 
 public:
-  /// advance the reactions -> grow gel and apply homogenized properties
-  void advanceASR(const Matrix<Real> & prestrain);
+  /// advance expansion by applying eigen strain at certain material and apply
+  /// homogenized properties
+  void advanceExpansion(const Matrix<Real> & prestrain,
+                        const ID & material_name = "gel");
 
   /// correct the rigid boundary movement and assemble internal forces
   void assembleInternalForces() override;
@@ -94,8 +97,8 @@ private:
   /// standard mat selector or user one
   bool use_RVE_mat_selector;
 
-  /// the number of gel pockets inside the RVE
-  UInt nb_gel_pockets;
+  /// the number of expanding finite elements inside the RVE
+  UInt nb_expanding_elements;
 
   /// the number of gel pockets inside the RVE
   bool stiffness_changed;

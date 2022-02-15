@@ -41,15 +41,14 @@ template <UInt spatial_dimension>
 MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), C("material_stiffness", *this),
-      gelstrain("gelstrain",
-                *this), /*non_reacted_gel("non_reacted_gel", *this),*/
+      expansion("expansion", *this),
       crack_volume_ratio("crack_volume_ratio", *this),
       crack_volume_ratio_paste("crack_volume_ratio_paste", *this),
       crack_volume_ratio_agg("crack_volume_ratio_agg", *this) {
   AKANTU_DEBUG_IN();
 
   this->C.initialize(voigt_h::size * voigt_h::size);
-  this->gelstrain.initialize(spatial_dimension * spatial_dimension);
+  this->expansion.initialize(spatial_dimension * spatial_dimension);
   this->crack_volume_ratio.initialize(1);
   this->crack_volume_ratio_paste.initialize(1);
   this->crack_volume_ratio_agg.initialize(1);
@@ -68,10 +67,11 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
                       "element type in RVE mesh");
   this->registerParam("mesh_file", mesh_file, _pat_parsmod,
                       "the mesh file for the RVE");
-  this->registerParam("nb_gel_pockets", nb_gel_pockets, _pat_parsmod,
-                      "the number of gel pockets in each RVE");
+  this->registerParam("nb_expanding_elements", nb_expanding_elements,
+                      _pat_parsmod,
+                      "the number of expanding elements in each RVE");
   this->registerParam("eps_inf", eps_inf, _pat_parsmod,
-                      "asymptotic value of ASR expansion");
+                      "asymptotic value of expansion");
   this->registerParam("U_C", U_C, _pat_parsmod, "thermal activation energy C");
   this->registerParam("U_L", U_L, _pat_parsmod, "thermal activation energy L");
   this->registerParam("T_ref", T_ref, _pat_parsmod, "reference temperature");
@@ -109,7 +109,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     mesh.read(mesh_file);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
-        mesh, true, this->nb_gel_pockets, _all_dimensions,
+        mesh, true, this->nb_expanding_elements, _all_dimensions,
         "SMM_RVE_" + std::to_string(gl_el_id)));
 
     auto & RVE = *RVEs.back();
@@ -137,7 +137,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
                      spatial_dimension),
            this->sigma_th(el_type),
            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-           make_view(this->gelstrain(this->el_type), spatial_dimension,
+           make_view(this->expansion(this->el_type), spatial_dimension,
                      spatial_dimension),
            this->delta_T(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
@@ -154,8 +154,8 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
     // gradient
     RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
-    // advance the ASR in every RVE based on the new gel strain
-    RVE.advanceASR(std::get<5>(data));
+    // advance expansion in every RVE based on the strain
+    RVE.advanceExpansion(std::get<5>(data));
 
     // compute the average average rVE stress
     RVE.homogenizeStressField(std::get<2>(data));
@@ -171,35 +171,36 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 
 /* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
+void MaterialFE2<spatial_dimension>::increaseExpansion(Real & dt_day) {
   for (auto && data : zip(RVEs, this->delta_T(this->el_type),
-                          make_view(this->gelstrain(this->el_type),
+                          make_view(this->expansion(this->el_type),
                                     spatial_dimension, spatial_dimension))) {
     auto & RVE = *(std::get<0>(data));
     auto & strain_matrix = std::get<2>(data);
-    Real ASRStrain = strain_matrix(0, 0);
-    RVE.computeASRStrainLarive(
-        dt_day, std::get<1>(data), ASRStrain, this->eps_inf, this->time_ch_ref,
+    Real Expansion = strain_matrix(0, 0);
+    RVE.computeChemExpansionLarive(
+        dt_day, std::get<1>(data), Expansion, this->eps_inf, this->time_ch_ref,
         this->time_lat_ref, this->U_C, this->U_L, this->T_ref);
 
     for (UInt i = 0; i != spatial_dimension; ++i)
-      strain_matrix(i, i) = ASRStrain;
+      strain_matrix(i, i) = Expansion;
   }
 }
 /* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::increaseGelStrainArrhenius(
+void MaterialFE2<spatial_dimension>::increaseExpansionArrhenius(
     Real & dt_day, const Real & k, const Real & Ea) {
   for (auto && data : zip(RVEs, this->delta_T(this->el_type),
-                          make_view(this->gelstrain(this->el_type),
+                          make_view(this->expansion(this->el_type),
                                     spatial_dimension, spatial_dimension))) {
     auto & RVE = *(std::get<0>(data));
     auto & strain_matrix = std::get<2>(data);
-    Real ASRStrain = strain_matrix(0, 0);
-    RVE.computeASRStrainArrhenius(dt_day, std::get<1>(data), ASRStrain, k, Ea);
+    Real Expansion = strain_matrix(0, 0);
+    RVE.computeChemExpansionArrhenius(dt_day, std::get<1>(data), Expansion, k,
+                                      Ea);
 
     for (UInt i = 0; i != spatial_dimension; ++i)
-      strain_matrix(i, i) = ASRStrain;
+      strain_matrix(i, i) = Expansion;
   }
 }
 /* ------------------------------------------------------------------*/
@@ -259,23 +260,23 @@ void MaterialFE2<spatial_dimension>::computeTangentModuli(
 
 /* ----------------------------------------------------------- */
 template <UInt spatial_dimension>
-Real MaterialFE2<spatial_dimension>::computeAverageGelStrain() {
+Real MaterialFE2<spatial_dimension>::computeAverageExpansion() {
   AKANTU_DEBUG_IN();
 
-  Real av_gelstrain = 0;
+  Real av_expansion = 0;
   UInt nb_RVEs = 0;
 
   for (auto && data :
-       enumerate(make_view(this->gelstrain(this->el_type), spatial_dimension,
+       enumerate(make_view(this->expansion(this->el_type), spatial_dimension,
                            spatial_dimension))) {
-    av_gelstrain += std::get<1>(data)(0, 0);
+    av_expansion += std::get<1>(data)(0, 0);
     nb_RVEs = std::get<0>(data) + 1;
   }
   auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(av_gelstrain, SynchronizerOperation::_sum);
+  comm.allReduce(av_expansion, SynchronizerOperation::_sum);
   comm.allReduce(nb_RVEs, SynchronizerOperation::_sum);
 
-  return av_gelstrain /= nb_RVEs;
+  return av_expansion /= nb_RVEs;
 
   AKANTU_DEBUG_OUT();
 }

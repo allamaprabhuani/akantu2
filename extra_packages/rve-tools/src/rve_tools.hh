@@ -1,10 +1,10 @@
 /**
- * @file   asr_tools.hh
+ * @file   rve_tools.hh
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Tue Jan 16 10:26:53 2014
  * @update Tue Feb 8  2022
- * @brief  tools for the analysis of ASR samples
+ * @brief  tools for the analysis of multiscale problems and single RVEs
  *
  * @section LICENSE
  *
@@ -38,16 +38,14 @@
 /* -------------------------------------------------------------------------- */
 #include "material_cohesive_linear_sequential.hh"
 #include "solid_mechanics_model.hh"
-#ifdef AKANTU_COHESIVE_ELEMENT
 #include "solid_mechanics_model_cohesive.hh"
-#endif
 #ifdef AKANTU_FLUID_DIFFUSION
 #include "fluid_diffusion_model.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ASR_TOOLS_HH__
-#define __AKANTU_ASR_TOOLS_HH__
+#ifndef __AKANTU_RVE_TOOLS_HH__
+#define __AKANTU_RVE_TOOLS_HH__
 
 namespace akantu {
 class NodeGroup;
@@ -56,11 +54,11 @@ class SolidMechanicsModel;
 
 namespace akantu {
 
-class ASRTools : public MeshEventHandler {
+class RVETools : public MeshEventHandler {
 public:
-  ASRTools(SolidMechanicsModel & model);
+  RVETools(SolidMechanicsModel & model);
 
-  virtual ~ASRTools() = default;
+  virtual ~RVETools() = default;
 
   /// This function is used in case of uni-axial boundary conditions:
   /// It detects the nodes, on which a traction needs to be applied and stores
@@ -71,7 +69,7 @@ public:
   /// compute volumes of each phase
   void computePhaseVolumes();
 
-  /// compute volume of the model passed to ASRTools (RVE if FE2_mat)
+  /// compute volume of the model passed to RVETools (RVE if FE2_mat)
   void computeModelVolume();
 
   /// Apply free expansion boundary conditions
@@ -126,7 +124,7 @@ public:
   /// compute the volume occupied by a given material
   Real computePhaseVolume(const ID & mat_name);
 
-  /// apply eigenstrain in cracks, that are filled with gel
+  /// apply eigenstrain in cracks
   void applyEigenGradUinCracks(const Matrix<Real> prescribed_eigen_grad_u,
                                const ID & material_name);
 
@@ -135,58 +133,51 @@ public:
                                const ElementTypeMapUInt & critical_elements,
                                bool to_add = false);
 
-  /// fill fully cracked elements with gel
-  void fillCracks(ElementTypeMapReal & saved_damage);
-
-  /// drain the gel in fully cracked elements
-  void drainCracks(const ElementTypeMapReal & saved_damage);
-
   Real computeSmallestElementSize();
 
   // /// apply homogeneous temperature on Solid Mechanics Model
   // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
 
-  /// compute ASR strain by a sigmoidal rule (Larive, 1998)
-  void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
-                              Real & ASRStrain, const Real & eps_inf,
-                              const Real & time_ch_ref,
-                              const Real & time_lat_ref, const Real & U_C,
-                              const Real & U_L, const Real & T_ref);
+  /// compute chemical expandion by a sigmoidal rule (Larive, 1998)
+  void computeChemExpansionLarive(const Real & delta_time_day, const Real & T,
+                                  Real & expansion, const Real & eps_inf,
+                                  const Real & time_ch_ref,
+                                  const Real & time_lat_ref, const Real & U_C,
+                                  const Real & U_L, const Real & T_ref);
 
-  /// compute ASR strain based on the Arrhenius equation
-  void computeASRStrainArrhenius(const Real & delta_time_day, const Real & T,
-                                 Real & ASRStrain, const Real & k,
-                                 const Real & Ea);
+  /// compute chemical expansion based on the Arrhenius equation
+  void computeChemExpansionArrhenius(const Real & delta_time_day,
+                                     const Real & T, Real & expansion,
+                                     const Real & k, const Real & Ea);
 
-  /// compute increase in gel strain within 1 timestep
-  Real computeDeltaGelStrainThermal(const Real delta_time_day, const Real k,
-                                    const Real activ_energy, const Real R,
-                                    const Real T,
-                                    Real & amount_reactive_particles,
-                                    const Real saturation_const);
+  /// compute increase in eigen strain within 1 timestep
+  Real computeDeltaEigenStrainThermal(const Real delta_time_day, const Real k,
+                                      const Real activ_energy, const Real R,
+                                      const Real T,
+                                      Real & amount_reactive_particles,
+                                      const Real saturation_const);
 
-  /// compute linear increase in gel strain
-  Real computeDeltaGelStrainLinear(const Real delta_time, const Real k);
+  /// compute linear increase in eigen strain
+  Real computeDeltaEigenStrainLinear(const Real delta_time, const Real k);
 
   /// insert multiple blocks of cohesive elements
-  void insertASRCohesivesRandomly(const UInt & nb_coh_elem,
-                                  std::string matrix_mat_name, Real gap_ratio);
+  void insertCohesivesRandomly(const UInt & nb_coh_elem,
+                               std::string matrix_mat_name, Real gap_ratio);
   /// insert multiple blocks of cohesive elements
-  void insertASRCohesivesRandomly3D(const UInt & nb_coh_elem,
-                                    std::string matrix_mat_name,
-                                    Real gap_ratio);
+  void insertCohesivesRandomly3D(const UInt & nb_coh_elem,
+                                 std::string matrix_mat_name, Real gap_ratio);
 
-  /// ASR insertion for 1st order 3D elements
-  void insertASRCohesiveLoops3D(const UInt & nb_insertions,
-                                std::string facet_mat_name, Real gap_ratio);
+  /// crack insertion for 1st order 3D elements
+  void insertCohesiveLoops3D(const UInt & nb_insertions,
+                             std::string facet_mat_name, Real gap_ratio);
 
   /// insert pre cracks and output number of successful insertions
   template <UInt dim>
   UInt insertPreCracks(const UInt & nb_insertions, std::string facet_mat_name);
 
   /// insert block of cohesive elements based on the coord of the central
-  void insertASRCohesivesByCoords(const Matrix<Real> & positions,
-                                  Real gap_ratio = 0);
+  void insertCohesivesByCoords(const Matrix<Real> & positions,
+                               Real gap_ratio = 0);
 
   /// communicates crack numbers from not ghosts to ghosts cohesive elements
   void communicateCrackNumbers();
@@ -206,7 +197,7 @@ protected:
   void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name);
 
   /// build closed facets loop around random point of specified material and
-  /// returns number of successfully inserted ASR sites
+  /// returns number of successfully inserted loops
   UInt closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
 
   /// finds facet loops around a point and insert cohesives
@@ -216,7 +207,7 @@ protected:
   /// builds a facet loop around a point from starting to ending segm-s
   Array<Element> findFacetsLoopFromSegment2Segment(
       Element starting_facet, Element starting_segment, Element ending_segment,
-      UInt cent_node, Real max_dot, UInt material_id, bool check_asr_facets);
+      UInt cent_node, Real max_dot, UInt material_id, bool check_crack_facets);
 
   /// builds a facet loop around a point from starting to ending segment using
   /// the Dijkstra shortest path algorithm in boost library
@@ -245,9 +236,9 @@ protected:
                                      const UInt & cent_node);
 
   /// check if the cohesive can be inserted and nodes are not on the partition
-  /// border and ASR nodes
+  /// border and crack
   bool isFacetAndNodesGood(const Element & facet, UInt material_id = UInt(-1),
-                           bool check_asr_facets = false);
+                           bool check_crack_facets = false);
 
   /// check if 2 facets are bounding a common solid element
   bool belong2SameElement(const Element & facet1, const Element & facet2);
@@ -255,10 +246,7 @@ protected:
   /// check if the node is surrounded by the material
   bool isNodeWithinMaterial(Element & node, UInt material_id);
 
-  /// pick two neighbors of a central facet in 2D: returns true if success
-  bool pickFacetNeighborsOld(Element & cent_facet);
-
-  /// version working for both 2d and 3d
+  /// pick two neighbors of a central facet: returns true if success
   bool pickFacetNeighbors(Element & cent_facet);
 
   /// optimise doubled facets group, insert facets, and cohesive elements,
@@ -284,16 +272,6 @@ public:
   /// update the element group in case connectivity changed after cohesive
   /// elements insertion
   void updateElementGroup(const std::string group_name);
-
-  /// works only for the MaterialCohesiveLinearSequential
-  template <UInt dim> UInt insertCohesiveElementsSelectively();
-
-  /// insert multiple cohesives on contour
-  template <UInt dim> UInt insertCohesiveElementsOnContour();
-
-  /// insert multiple cohesives on contour by looping on contour nodes
-  template <UInt dim>
-  UInt insertCohesiveElementsOnContourByNodes(Real av_stress_threshold);
 
   /// insert cohesives on closed loops of stressed facets
   template <UInt dim> UInt insertLoopsOfStressedCohesives(Real min_dot);
@@ -325,15 +303,11 @@ public:
   /// apply eigen opening at all cohesives (including ghosts)
   void applyEigenOpening(Real eigen_strain);
 
-  /// distribute total ASR gel volume along existing crack surface
-  void applyEigenOpeningGelVolumeBased(Real gel_volume_ratio);
+  /// distribute total fluid volume along existing crack surface
+  void applyEigenOpeningFluidVolumeBased(Real fluid_volume_ratio);
 
-  /// distribute total ASR gel volume along initial crack surface
-  void
-  applyEigenOpeningToInitialCrack(Real gel_volume_ratio,
-                                  const Array<Array<Element>> & ASR_facets);
   /// apply pairs of equal opposite forces at the central nodes of pre-cracks
-  void applyPointForceToAsrCentralNodes(Real force_norm);
+  void applyPointForceToCrackCentralNodes(Real force_norm);
 
   /// apply forces as before but with certain delay defined per crack
   void applyPointForceDelayed(Real loading_rate,
@@ -351,17 +325,18 @@ public:
   /// output individual crack volumes
   void outputCrackVolumes(std::ofstream & file_output, Real time);
 
-  /// computes crack area and volume per material and ASR volume
+  /// computes crack area and volume per material
   std::tuple<Real, Real> computeCrackData(const ID & material_name);
 
-  /// computes normal openings between asr central nodes and outputs them
+  /// computes normal openings between crack central nodes and outputs them
   void outputCrackOpenings(std::ofstream & file_output, Real time);
 
-  /// computes normal openings between asr central nodes and outputs them
+  /// computes normal openings between crack central nodes and outputs them per
+  /// processor
   void outputCrackOpeningsPerProc(std::ofstream & file_output, Real time);
 
-  /// splits asr central nodes into pairs and computes averaged normals
-  void identifyASRCentralNodePairsAndNormals();
+  /// splits crack central nodes into pairs and computes averaged normals
+  void identifyCrackCentralNodePairsAndNormals();
 
   /// compute crack contour segments, surface segments, contour nodes and
   /// surface nodes
@@ -386,8 +361,9 @@ public:
   /// apply delta u on nodes
   void applyDeltaU(Real delta_u);
 
-  /// apply eigenstrain on gel material
-  void applyGelStrain(const Matrix<Real> & prestrain);
+  /// apply eigenstrain on a specific material
+  void applyEigenStrain(const Matrix<Real> & prestrain,
+                        const ID & material_name = "gel");
 
   /// sets all facets within specified material to not be considered for
   /// insertion
@@ -407,7 +383,7 @@ public:
   /// RVEs
   virtual void applyHomogeneousTemperature(const Real & temperature);
 
-  /// remove temperature from RVE on the end of ASR advancement
+  /// remove temperature from RVE
   virtual void removeTemperature();
 
   /// averages scalar field over the WHOLE!!! volume of a model
@@ -479,13 +455,15 @@ public:
                              Matrix<Real> & eff_strains, const UInt test_no);
 
   /// clear the eigenstrain (to exclude stresses due to internal pressure)
-  void clearASREigenStrain();
+  void clearEigenStrain(const ID & material_name = "gel");
 
   /// store elemental eigenstrain in an array
-  void storeASREigenStrain(Array<Real> & stored_eig);
+  void storeEigenStrain(Array<Real> & stored_eig,
+                        const ID & material_name = "gel");
 
-  /// restore eigenstrain in ASR sites from previously stored values
-  void restoreASREigenStrain(Array<Real> & stored_eig);
+  /// restore eigenstrain  from previously stored values
+  void restoreEigenStrain(Array<Real> & stored_eig,
+                          const ID & material_name = "gel");
   /* ----------------------------------------------------------------  */
 public:
   // Accessors
@@ -493,9 +471,9 @@ public:
 
   /// phase volumes
   Real getPhaseVolume(const std::string & material_name) {
-    if (not this->phase_volumes.size())
+    if (not this->phase_volumes.size()) {
       computePhaseVolumes();
-
+    }
     return this->phase_volumes.find(material_name)->second;
   };
 
@@ -506,12 +484,13 @@ public:
   /// get the corner nodes
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
 
-  AKANTU_GET_MACRO(ASRFacets, asr_facets, const Array<Array<Element>> &);
-  AKANTU_GET_MACRO(ASRFacetsFromMesh, ASR_facets_from_mesh,
+  AKANTU_GET_MACRO(CrackFacets, crack_facets, const Array<Array<Element>> &);
+  AKANTU_GET_MACRO(CrackFacetsFromMesh, crack_facets_from_mesh,
                    const Array<Array<Element>> &);
-  AKANTU_GET_MACRO(ASRCentralNodes, asr_central_nodes, const Array<UInt> &);
-  AKANTU_GET_MACRO(ASRCentralNodePairs, asr_central_node_pairs, const auto &);
-  AKANTU_GET_MACRO(ASRNormalsPairs, asr_normals_pairs, const auto &);
+  AKANTU_GET_MACRO(CrackCentralNodes, crack_central_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO(CrackCentralNodePairs, crack_central_node_pairs,
+                   const auto &);
+  AKANTU_GET_MACRO(CrackNormalsPairs, crack_normals_pairs, const auto &);
 
   /* --------------------------------------------------------------------- */
   /* Members */
@@ -536,12 +515,12 @@ protected:
   /// dump counter
   UInt nb_dumps;
 
-  /// flag to activate ASR expansion through cohesive elements
+  /// flag to activate expansion through cohesive elements
   bool cohesive_insertion;
 
   /// booleans for applying delta u
   bool doubled_facets_ready;
-  bool asr_central_nodes_ready;
+  bool crack_central_nodes_ready;
 
   // arrays to store nodal values during virtual tests
   Array<Real> disp_stored;
@@ -563,47 +542,50 @@ protected:
   /// average eff stress on facet loops around a node
   Array<Real> nodes_eff_stress;
 
-  /// array to store flags on nodes where ASR elements are inserted
-  Array<bool> ASR_nodes;
+  /// array to store flags on nodes where cracks are inserted
+  Array<bool> crack_nodes;
 
-  /// Vector to store the initially inserted facets per asr site
-  Array<Array<Element>> asr_facets;
-  Array<Array<Element>> ASR_facets_from_mesh;
+  /// Vector to store the initially inserted facets per single crack
+  Array<Array<Element>> crack_facets;
+  Array<Array<Element>> crack_facets_from_mesh;
   /// duplicated nodes. first 1/2 - initialnodes, second - duplicated
-  Array<UInt> asr_central_nodes;
-  /// asr central nodes devided into pairs
-  Array<std::pair<UInt, UInt>> asr_central_node_pairs;
-  /// normals per node averaged per asr_facets of each site
-  Array<std::pair<Vector<Real>, Vector<Real>>> asr_normals_pairs;
+  Array<UInt> crack_central_nodes;
+  /// crack central nodes devided into pairs
+  Array<std::pair<UInt, UInt>> crack_central_node_pairs;
+  /// normals per node averaged per crack of each site
+  Array<std::pair<Vector<Real>, Vector<Real>>> crack_normals_pairs;
 };
 
 /* ------------------------------------------------------------------ */
 /* ASR material selector */
 /* ------------------------------------------------------------------ */
-class GelMaterialSelector : public MeshDataMaterialSelector<std::string> {
+class ExpandingMaterialSelector : public MeshDataMaterialSelector<std::string> {
 public:
-  GelMaterialSelector(SolidMechanicsModel & model, std::string gel_material,
-                      const UInt nb_gel_pockets,
-                      std::string aggregate_material = "aggregate",
-                      bool gel_pairs = false)
+  ExpandingMaterialSelector(SolidMechanicsModel & model,
+                            std::string expanding_material,
+                            const UInt nb_expanding_elements,
+                            std::string surrounding_material = "aggregate",
+                            bool expanding_element_pairs = false)
       : MeshDataMaterialSelector<std::string>("physical_names", model),
-        model(model), gel_material(gel_material),
-        nb_gel_pockets(nb_gel_pockets), nb_placed_gel_pockets(0),
-        aggregate_material(aggregate_material), gel_pairs(gel_pairs) {}
+        model(model), expanding_material(expanding_material),
+        nb_expanding_elements(nb_expanding_elements),
+        nb_placed_expanding_elements(0),
+        surrounding_material(surrounding_material),
+        expanding_element_pairs(expanding_element_pairs) {}
 
-  void initGelPocket() {
-    aggregate_material_id = model.getMaterialIndex(aggregate_material);
+  void initExpandingElements() {
+    surrounding_material_id = model.getMaterialIndex(surrounding_material);
 
     Mesh & mesh = this->model.getMesh();
     UInt dim = model.getSpatialDimension();
-    for (auto el_type : model.getMaterial(aggregate_material)
+    for (auto el_type : model.getMaterial(surrounding_material)
                             .getElementFilter()
                             .elementTypes(dim)) {
 
       const auto & filter =
-          model.getMaterial(aggregate_material).getElementFilter()(el_type);
+          model.getMaterial(surrounding_material).getElementFilter()(el_type);
       if (!filter.size() == 0)
-        AKANTU_EXCEPTION("Check the element type for aggregate material");
+        AKANTU_EXCEPTION("Check the element type for the surrounding material");
 
       Element el{el_type, 0, _not_ghost};
       UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
@@ -615,43 +597,45 @@ public:
         mesh.getBarycenter(el, bary);
       }
 
-      /// generate the gel pockets
+      /// generate the expanding elements
       UInt seed = RandomGenerator<UInt>::seed();
       std::mt19937 random_generator(seed);
       std::uniform_int_distribution<> dis(0, nb_element - 1);
 
       Vector<Real> center(dim);
       std::set<int> checked_baries;
-      while (nb_placed_gel_pockets != nb_gel_pockets) {
+      while (nb_placed_expanding_elements != nb_expanding_elements) {
         // get a random bary center
         auto bary_id = dis(random_generator);
-        if (checked_baries.find(bary_id) != checked_baries.end())
+        if (checked_baries.find(bary_id) != checked_baries.end()) {
           continue;
+        }
         checked_baries.insert(bary_id);
         el.element = bary_id;
         if (MeshDataMaterialSelector<std::string>::operator()(el) ==
-            aggregate_material_id) {
-          gel_pockets.push_back(el);
-          nb_placed_gel_pockets += 1;
+            surrounding_material_id) {
+          expanding_elements.push_back(el);
+          nb_placed_expanding_elements += 1;
         }
       }
     }
-    is_gel_initialized = true;
-    std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
+    is_expanding_mat_initialized = true;
+    std::cout << nb_placed_expanding_elements << " expanding elements placed"
+              << std::endl;
   }
 
-  void initGelPocketPairs() {
-    aggregate_material_id = model.getMaterialIndex(aggregate_material);
+  void initExpandingElementPairs() {
+    surrounding_material_id = model.getMaterialIndex(surrounding_material);
 
     Mesh & mesh = this->model.getMesh();
     auto & mesh_facets = mesh.getMeshFacets();
     UInt dim = model.getSpatialDimension();
-    for (auto el_type : model.getMaterial(aggregate_material)
+    for (auto el_type : model.getMaterial(surrounding_material)
                             .getElementFilter()
                             .elementTypes(dim)) {
 
       const auto & filter =
-          model.getMaterial(aggregate_material).getElementFilter()(el_type);
+          model.getMaterial(surrounding_material).getElementFilter()(el_type);
       if (!filter.size() == 0)
         AKANTU_EXCEPTION("Check the element type for aggregate material");
 
@@ -665,14 +649,14 @@ public:
         mesh.getBarycenter(el, bary);
       }
 
-      /// generate the gel pockets
+      /// generate the expanding elements
       UInt seed = RandomGenerator<UInt>::seed();
       std::mt19937 random_generator(seed);
       std::uniform_int_distribution<> dis(0, nb_element - 1);
 
       Vector<Real> center(dim);
       std::set<int> checked_baries;
-      while (nb_placed_gel_pockets != nb_gel_pockets) {
+      while (nb_placed_expanding_elements != nb_expanding_elements) {
         // get a random bary center
         auto bary_id = dis(random_generator);
         if (checked_baries.find(bary_id) != checked_baries.end())
@@ -680,7 +664,7 @@ public:
         checked_baries.insert(bary_id);
         el.element = bary_id;
         if (MeshDataMaterialSelector<std::string>::operator()(el) ==
-            aggregate_material_id) {
+            surrounding_material_id) {
           auto & sub_to_element =
               mesh_facets.getSubelementToElement(el.type, el.ghost_type);
           auto sub_to_el_it =
@@ -695,10 +679,10 @@ public:
               if (connected_element.element == el.element)
                 continue;
               if (MeshDataMaterialSelector<std::string>::operator()(
-                      connected_element) == aggregate_material_id) {
-                gel_pockets.push_back(el);
-                gel_pockets.push_back(connected_element);
-                nb_placed_gel_pockets += 1;
+                      connected_element) == surrounding_material_id) {
+                expanding_elements.push_back(el);
+                expanding_elements.push_back(connected_element);
+                nb_placed_expanding_elements += 1;
                 successful_placement = true;
                 break;
               }
@@ -709,58 +693,60 @@ public:
         }
       }
     }
-    is_gel_initialized = true;
-    std::cout << nb_placed_gel_pockets << " ASR-pocket pairs placed"
-              << std::endl;
+    is_expanding_mat_initialized = true;
+    std::cout << nb_placed_expanding_elements
+              << " expanding element pairs placed" << std::endl;
   }
 
   UInt operator()(const Element & elem) {
 
-    if (not is_gel_initialized) {
-      if (this->gel_pairs) {
-        initGelPocketPairs();
+    if (not is_expanding_mat_initialized) {
+      if (this->expanding_element_pairs) {
+        initExpandingElementPairs();
       } else {
-        initGelPocket();
+        initExpandingElements();
       }
     }
 
     UInt temp_index = MeshDataMaterialSelector<std::string>::operator()(elem);
-    if (temp_index != aggregate_material_id)
+    if (temp_index != surrounding_material_id)
       return temp_index;
-    auto iit = gel_pockets.begin();
-    auto eit = gel_pockets.end();
+    auto iit = expanding_elements.begin();
+    auto eit = expanding_elements.end();
     if (std::find(iit, eit, elem) != eit) {
-      return model.getMaterialIndex(gel_material);
+      return model.getMaterialIndex(expanding_material);
     }
     return temp_index;
   }
 
 protected:
   SolidMechanicsModel & model;
-  std::string gel_material;
-  std::vector<Element> gel_pockets;
-  UInt nb_gel_pockets;
-  UInt nb_placed_gel_pockets;
-  std::string aggregate_material{"aggregate"};
-  UInt aggregate_material_id{1};
-  bool is_gel_initialized{false};
-  bool gel_pairs{false};
+  std::string expanding_material;
+  std::vector<Element> expanding_elements;
+  UInt nb_expanding_elements;
+  UInt nb_placed_expanding_elements;
+  std::string surrounding_material{"aggregate"};
+  UInt surrounding_material_id{1};
+  bool is_expanding_mat_initialized{false};
+  bool expanding_element_pairs{false};
 };
+
 /* ------------------------------------------------------------------ */
 using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
 
-class GelMaterialCohesiveRulesSelector : public MaterialSelector {
+class ExpandingMaterialCohesiveRulesSelector : public MaterialSelector {
 public:
-  GelMaterialCohesiveRulesSelector(SolidMechanicsModelCohesive & model,
-                                   const MaterialCohesiveRules & rules,
-                                   std::string gel_material,
-                                   const UInt nb_gel_pockets,
-                                   std::string aggregate_material = "aggregate",
-                                   bool gel_pairs = false)
+  ExpandingMaterialCohesiveRulesSelector(
+      SolidMechanicsModelCohesive & model, const MaterialCohesiveRules & rules,
+      std::string expanding_material, const UInt nb_expanding_elements,
+      std::string surrounding_material = "aggregate",
+      bool expanding_element_pairs = false)
       : model(model), mesh_data_id("physical_names"), mesh(model.getMesh()),
         mesh_facets(model.getMeshFacets()), dim(model.getSpatialDimension()),
-        rules(rules), gel_selector(model, gel_material, nb_gel_pockets,
-                                   aggregate_material, gel_pairs),
+        rules(rules),
+        expanding_material_selector(model, expanding_material,
+                                    nb_expanding_elements, surrounding_material,
+                                    expanding_element_pairs),
         default_cohesive(model) {}
 
   UInt operator()(const Element & element) {
@@ -773,10 +759,10 @@ public:
       const Element & el1 = element_to_subelement[0];
       const Element & el2 = element_to_subelement[1];
 
-      ID id1 = model.getMaterial(gel_selector(el1)).getName();
+      ID id1 = model.getMaterial(expanding_material_selector(el1)).getName();
       ID id2 = id1;
       if (el2 != ElementNull) {
-        id2 = model.getMaterial(gel_selector(el2)).getName();
+        id2 = model.getMaterial(expanding_material_selector(el2)).getName();
       }
 
       auto rit = rules.find(std::make_pair(id1, id2));
@@ -793,7 +779,7 @@ public:
       return default_cohesive(element);
     }
 
-    return gel_selector(element);
+    return expanding_material_selector(element);
   }
 
 private:
@@ -804,10 +790,9 @@ private:
   UInt dim;
   MaterialCohesiveRules rules;
 
-  GelMaterialSelector gel_selector;
+  ExpandingMaterialSelector expanding_material_selector;
   DefaultMaterialCohesiveSelector default_cohesive;
 };
-
 /* ------------------------------------------------------------------- */
 /* Boundary conditions functors */
 /* ------------------------------------------------------------------- */
@@ -955,10 +940,10 @@ protected:
 class PressureVolumeDependent : public BC::Neumann::NeumannFunctor {
 public:
   PressureVolumeDependent(SolidMechanicsModel & model,
-                          const Real ASR_volume_ratio,
+                          const Real fluid_volume_ratio,
                           const std::string group_name,
                           const Real compressibility)
-      : model(model), ASR_volume_ratio(ASR_volume_ratio),
+      : model(model), fluid_volume_ratio(fluid_volume_ratio),
         group_name(group_name), compressibility(compressibility) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
@@ -1037,22 +1022,22 @@ public:
     Vector<Real> AB = A_pos - B_pos;
     Vector<Real> AB_0 = Vector<Real>(pos_it[A]) - Vector<Real>(pos_it[B]);
 
-    // ASR volume computed as AB * thickness (AB * ratio)
-    Real ASR_volume = AB_0.norm() * AB_0.norm() * ASR_volume_ratio;
+    // fluid volume computed as AB * thickness (AB * ratio)
+    Real fluid_volume = AB_0.norm() * AB_0.norm() * fluid_volume_ratio;
     Real current_volume = AB.norm() * MN.norm();
     current_volume =
         Math::are_float_equal(current_volume, 0.) ? 0 : current_volume;
-    Real volume_change = current_volume - ASR_volume;
+    Real volume_change = current_volume - fluid_volume;
     Real pressure_change{0};
     if (volume_change < 0) {
-      pressure_change = -volume_change / ASR_volume / this->compressibility;
+      pressure_change = -volume_change / fluid_volume / this->compressibility;
     }
     dual = pressure_change * normal_corrected;
   }
 
 protected:
   SolidMechanicsModel & model;
-  const Real ASR_volume_ratio;
+  const Real fluid_volume_ratio;
   const std::string group_name;
   const Real compressibility;
 };
@@ -1061,12 +1046,12 @@ protected:
 class PressureVolumeDependent3D : public BC::Neumann::NeumannFunctor {
 public:
   PressureVolumeDependent3D(SolidMechanicsModelCohesive & model,
-                            const Real ASR_volume_ratio,
+                            const Real fluid_volume_ratio,
                             const Real compressibility,
-                            const Array<Array<Element>> ASR_facets_from_mesh)
-      : model(model), ASR_volume_ratio(ASR_volume_ratio),
+                            const Array<Array<Element>> crack_facets_from_mesh)
+      : model(model), fluid_volume_ratio(fluid_volume_ratio),
         compressibility(compressibility),
-        ASR_facets_from_mesh(ASR_facets_from_mesh) {}
+        crack_facets_from_mesh(crack_facets_from_mesh) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
@@ -1092,19 +1077,19 @@ public:
     auto normals_it = quad_normals.begin(dim);
     Vector<Real> normal(
         normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
-    // search for this facet in the ASR facets array
-    UInt ASR_site_nb(-1);
+    // search for this facet in the crack facets array
+    UInt loading_site_nb(-1);
     UInt id_in_array(-1);
-    for (auto && data : enumerate(this->ASR_facets_from_mesh)) {
+    for (auto && data : enumerate(this->crack_facets_from_mesh)) {
       auto & one_site_facets = std::get<1>(data);
       id_in_array = one_site_facets.find(facet);
       if (id_in_array != UInt(-1)) {
-        ASR_site_nb = std::get<0>(data);
+        loading_site_nb = std::get<0>(data);
         break;
       }
     }
-    AKANTU_DEBUG_ASSERT(ASR_site_nb != UInt(-1),
-                        "Quad point doesn't belong to the ASR facets");
+    AKANTU_DEBUG_ASSERT(loading_site_nb != UInt(-1),
+                        "Quad point doesn't belong to the loading facets");
 
     // find connected solid element
     auto && facet_neighbors = mesh.getElementToSubelement(facet);
@@ -1143,14 +1128,14 @@ public:
       normal *= -1;
     }
 
-    // compute volume (area * normal_opening) of current ASR site
+    // compute volume (area * normal_opening) of current fluid body
     // form cohesive element filter from the 1st half of facet filter
     std::set<Element> site_cohesives;
-    for (auto & ASR_facet : this->ASR_facets_from_mesh(ASR_site_nb)) {
-      if (ASR_facet.type == facet.type and
-          ASR_facet.ghost_type == facet.ghost_type) {
+    for (auto & crack_facet : this->crack_facets_from_mesh(loading_site_nb)) {
+      if (crack_facet.type == facet.type and
+          crack_facet.ghost_type == facet.ghost_type) {
         // find connected cohesive
-        auto & connected_els = mesh.getElementToSubelement(ASR_facet);
+        auto & connected_els = mesh.getElementToSubelement(crack_facet);
         for (auto & connected_el : connected_els) {
           if (connected_el.type == type_cohesive) {
             site_cohesives.emplace(connected_el);
@@ -1188,15 +1173,15 @@ public:
                                        single_el_array);
     }
 
-    Real ASR_volume = site_area * ASR_volume_ratio;
-    Real volume_change = site_volume - ASR_volume;
+    Real fluid_volume = site_area * fluid_volume_ratio;
+    Real volume_change = site_volume - fluid_volume;
 
     Real pressure_change{0};
     if (volume_change < 0) {
-      pressure_change = -volume_change / ASR_volume / this->compressibility;
+      pressure_change = -volume_change / fluid_volume / this->compressibility;
     }
-    std::cout << "ASR volume = " << site_area << " x " << ASR_volume_ratio
-              << " = " << ASR_volume << " site volume " << site_volume
+    std::cout << " volume = " << site_area << " x " << fluid_volume_ratio
+              << " = " << fluid_volume << " site volume " << site_volume
               << " volume change " << volume_change << " pressure delta "
               << pressure_change << std::endl;
     dual = pressure_change * normal;
@@ -1204,9 +1189,9 @@ public:
 
 protected:
   SolidMechanicsModelCohesive & model;
-  const Real ASR_volume_ratio;
+  const Real fluid_volume_ratio;
   const Real compressibility;
-  const Array<Array<Element>> ASR_facets_from_mesh;
+  const Array<Array<Element>> crack_facets_from_mesh;
 };
 
 /* ------------------------------------------------------------------ */
@@ -1294,7 +1279,7 @@ protected:
 };
 
 /* ------------------------------------------------------------------ */
-/* solid mechanics model cohesive + delta d at the ASR nodes */
+/* solid mechanics model cohesive + delta d at the crack nodes */
 /* ------------------------------------------------------------------ */
 class SolidMechanicsModelCohesiveDelta : public SolidMechanicsModelCohesive {
 public:
@@ -1318,7 +1303,7 @@ public:
     auto it_disp = make_view(disp, dim).begin();
     auto it_boun = make_view(boun, dim).begin();
 
-    for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+    for (auto && data : zip(crack_central_node_pairs, crack_normals_pairs)) {
       auto && node_pair = std::get<0>(data);
       auto && normals_pair = std::get<1>(data);
 
@@ -1344,18 +1329,18 @@ public:
   // Acessors
   AKANTU_GET_MACRO_NOT_CONST(DeltaU, delta_u, Real &);
   using NodePairsArray = Array<std::pair<UInt, UInt>>;
-  AKANTU_SET_MACRO(ASRNodePairs, asr_central_node_pairs, NodePairsArray);
+  AKANTU_SET_MACRO(CrackNodePairs, crack_central_node_pairs, NodePairsArray);
   using NormalPairsArray = Array<std::pair<Vector<Real>, Vector<Real>>>;
-  AKANTU_SET_MACRO(ASRNormalsPairs, asr_normals_pairs, NormalPairsArray);
+  AKANTU_SET_MACRO(CrackNormalsPairs, crack_normals_pairs, NormalPairsArray);
 
 protected:
   Mesh & mesh;
   Real delta_u;
-  Array<std::pair<UInt, UInt>> asr_central_node_pairs;
-  Array<std::pair<Vector<Real>, Vector<Real>>> asr_normals_pairs;
+  Array<std::pair<UInt, UInt>> crack_central_node_pairs;
+  Array<std::pair<Vector<Real>, Vector<Real>>> crack_normals_pairs;
 };
 /* ------------------------------------------------------------------ */
 
 } // namespace akantu
 
-#endif /* __AKANTU_ASR_TOOLS_HH__ */
+#endif /* __AKANTU_RVE_TOOLS_HH__ */

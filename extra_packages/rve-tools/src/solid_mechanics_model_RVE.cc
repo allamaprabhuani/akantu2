@@ -44,13 +44,14 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
+                                               UInt nb_expanding_elements,
                                                bool use_RVE_mat_selector,
-                                               UInt nb_gel_pockets, UInt dim,
-                                               const ID & id)
+
+                                               UInt dim, const ID & id)
     : SolidMechanicsModel(mesh, dim, id),
-      ASRTools(dynamic_cast<SolidMechanicsModel &>(*this)),
+      RVETools(dynamic_cast<SolidMechanicsModel &>(*this)),
       use_RVE_mat_selector(use_RVE_mat_selector),
-      nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
+      nb_expanding_elements(nb_expanding_elements), stiffness_changed(true) {
   AKANTU_DEBUG_IN();
   // seed is fixed to the same value for all the processors
   // It is done to generate same random internal fields
@@ -156,16 +157,17 @@ void SolidMechanicsModelRVE::assembleInternalForces() {
 
 /* --------------------------------------------------------------------------
  */
-void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
+void SolidMechanicsModelRVE::advanceExpansion(const Matrix<Real> & prestrain,
+                                              const ID & material_name) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(spatial_dimension == 2, "This is 2D only!");
 
   // apply the new eigenstrain
   for (auto element_type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
-    Array<Real> & prestrain_vect =
-        const_cast<Array<Real> &>(this->getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
+    Array<Real> & prestrain_vect = const_cast<Array<Real> &>(
+        this->getMaterial(material_name)
+            .getInternal<Real>("eigen_grad_u")(element_type));
     auto prestrain_it =
         prestrain_vect.begin(spatial_dimension, spatial_dimension);
     auto prestrain_end =
@@ -242,8 +244,8 @@ void SolidMechanicsModelRVE::initMaterials() {
   }
 
   if (use_RVE_mat_selector) {
-    auto tmp = std::make_shared<GelMaterialSelector>(
-        *this, "gel", this->nb_gel_pockets, "aggregate");
+    auto tmp = std::make_shared<ExpandingMaterialSelector>(
+        *this, "gel", this->nb_expanding_elements, "aggregate");
     tmp->setFallback(material_selector);
     material_selector = tmp;
   }

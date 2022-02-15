@@ -2,8 +2,8 @@
  * @file   nodes_flag_updater.hh
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date Tue Feb 8  2022
- * @brief  inline implementation of the synchronizer for the ASR-employed nodes
- * flag
+ * @brief  inline implementation of the synchronizer for the crack-employed
+ * nodes flag
  *
  * @section LICENSE
  *

@@ -77,15 +77,17 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  /// advance alkali-silica reaction by the user-provided gel strain
-  void advanceASR(const Matrix<Real> & prestrain);
+  // /// advance expansion by the user-provided gel strain
+  // void advanceExpansion(const Matrix<Real> & prestrain,
+  //                       const ID & material_name = "gel");
 
-  /// advance alkali-silica reaction based on delta time and temperature-
-  /// dependent reaction rate
-  void advanceASR(const Real & delta_time);
+  // /// advance expansion based on delta time and temperature-
+  // /// dependent reaction rate
+  // void advanceExpansion(const Real & delta_time,
+  //                       const ID & material_name = "gel");
 
   /// compute amount of gel strain averaged across all RVEs
-  Real computeAverageGelStrain();
+  Real computeAverageExpansion();
 
   /// set default dumper directory to all rves
   void setDirectoryToRveDumper(const std::string & directory);
@@ -100,10 +102,10 @@ public:
   void dump(UInt dump_nb);
 
   /// increase gel strain according to time step
-  void increaseGelStrain(Real & dt);
+  void increaseExpansion(Real & dt);
 
   /// increase gel strain according to time step by Arrhenius law
-  void increaseGelStrainArrhenius(Real & dt, const Real & k,
+  void increaseExpansionArrhenius(Real & dt, const Real & k,
                                   const Real & Eactivation);
 
   /// set time step to all RVEs
@@ -146,13 +148,13 @@ protected:
   InternalField<Real> C;
 
   /// number of gel pockets in each underlying RVE
-  UInt nb_gel_pockets;
+  UInt nb_expanding_elements;
 
   /// parameters of sigmoidal expansion law (Larive, 1998)
   Real eps_inf, U_C, U_L, T_ref, time_lat_ref, time_ch_ref;
 
-  /// current gelstrain due to ASR at each Gauss point
-  InternalField<Real> gelstrain;
+  /// current expansion due to ASR at each Gauss point
+  InternalField<Real> expansion;
 
   /// ratio between area of damaged elements weighted by damage value
   /// and the materials' areas

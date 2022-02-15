@@ -2,7 +2,7 @@
  * @file   nodes_flag_updater.hh
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date Tue Feb 8  2022
- * @brief  synchronizer for the ASR-employed nodes flag
+ * @brief  synchronizer for the crack-employed nodes flag
  *
  * @section LICENSE
  *
@@ -80,7 +80,7 @@ private:
   /// Tells if a reduction is taking place or not
   bool reduce{false};
 
-  /// tells at which nodes ASR segments shouldn't be inserted
+  /// tells at which nodes crack segments shouldn't be inserted
   Array<bool> & prevent_insertion;
 };
 

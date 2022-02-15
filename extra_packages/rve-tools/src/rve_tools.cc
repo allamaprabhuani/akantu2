@@ -1,11 +1,11 @@
 /**
- * @file   ASR_tools.cc
+ * @file   RVE_tools.cc
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Tue Jan 16 10:26:53 2014
  * @update Tue Feb 8  2022
  *
- * @brief  implementation tools for the analysis of ASR samples
+ * @brief  implementation tools for the analysis of RVEs
  *
  * @section LICENSE
  *
@@ -36,7 +36,6 @@
 #include <fstream>
 /* -------------------------------------------------------------------------- */
 #include "aka_voigthelper.hh"
-#include "asr_tools.hh"
 #include "communicator.hh"
 #include "crack_numbers_updater.hh"
 #include "material_FE2.hh"
@@ -48,6 +47,7 @@
 #include "nodes_eff_stress_updater.hh"
 #include "nodes_flag_updater.hh"
 #include "non_linear_solver.hh"
+#include "rve_tools.hh"
 #include "solid_mechanics_model.hh"
 #include "solid_mechanics_model_RVE.hh"
 #include "solid_mechanics_model_cohesive.hh"
@@ -58,16 +58,16 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-ASRTools::ASRTools(SolidMechanicsModel & model)
+RVETools::RVETools(SolidMechanicsModel & model)
     : model(model), volume(0.), nb_dumps(0), cohesive_insertion(false),
-      doubled_facets_ready(false), asr_central_nodes_ready(false),
+      doubled_facets_ready(false), crack_central_nodes_ready(false),
       disp_stored(0, model.getSpatialDimension()),
       ext_force_stored(0, model.getSpatialDimension()),
       boun_stored(0, model.getSpatialDimension()),
       tensile_homogenization(false), modified_pos(false),
-      partition_border_nodes(false), nodes_eff_stress(0), ASR_nodes(false) {
+      partition_border_nodes(false), nodes_eff_stress(0), crack_nodes(false) {
 
-  // register event handler for asr tools
+  // register event handler for rve tools
   auto & mesh = model.getMesh();
   mesh.registerEventHandler(*this, _ehp_synchronizer);
   // mesh.registerEventHandler(*this, _ehp_lowest);
@@ -87,11 +87,11 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   partition_border_nodes.set(false);
   nodes_eff_stress.resize(nb_nodes);
   nodes_eff_stress.set(0);
-  ASR_nodes.resize(nb_nodes);
-  ASR_nodes.set(false);
+  crack_nodes.resize(nb_nodes);
+  crack_nodes.set(false);
 }
 /* -------------------------------------------------------------------------- */
-void ASRTools::computePhaseVolumes() {
+void RVETools::computePhaseVolumes() {
   // compute volume of each phase and save it into a map
   for (auto && mat : model.getMaterials()) {
     this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
@@ -102,7 +102,7 @@ void ASRTools::computePhaseVolumes() {
   }
 }
 /* -------------------------------------------------------------------------- */
-void ASRTools::computeModelVolume() {
+void RVETools::computeModelVolume() {
   auto const dim = model.getSpatialDimension();
   auto & mesh = model.getMesh();
   auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
@@ -122,7 +122,7 @@ void ASRTools::computeModelVolume() {
   }
 }
 /* ------------------------------------------------------------------------- */
-void ASRTools::applyFreeExpansionBC(Real offset) {
+void RVETools::applyFreeExpansionBC(Real offset) {
   // boundary conditions
   const auto & mesh = model.getMesh();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
@@ -188,7 +188,7 @@ void ASRTools::applyFreeExpansionBC(Real offset) {
 }
 
 /* ------------------------------------------------------------------- */
-void ASRTools::applyLoadedBC(const Vector<Real> & traction,
+void RVETools::applyLoadedBC(const Vector<Real> & traction,
                              const ID & element_group, bool multi_axial) {
 
   // boundary conditions
@@ -259,7 +259,7 @@ void ASRTools::applyLoadedBC(const Vector<Real> & traction,
 }
 
 /* ------------------------------------------------------------------- */
-void ASRTools::applyExternalTraction(Real traction,
+void RVETools::applyExternalTraction(Real traction,
                                      SpatialDirection direction) {
 
   // boundary conditions
@@ -279,7 +279,7 @@ void ASRTools::applyExternalTraction(Real traction,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir,
+void RVETools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir,
                              Real offset) {
   const auto & mesh = model.getMesh();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
@@ -296,7 +296,7 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, SpatialDirection dir,
 }
 
 /* ------------------------------------------------------------------- */
-Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
+Real RVETools::computeAverageStrain(SpatialDirection direction, Real offset) {
 
   Real av_displ{0};
   const auto & mesh = model.getMesh();
@@ -378,7 +378,7 @@ Real ASRTools::computeAverageStrain(SpatialDirection direction, Real offset) {
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
+Real RVETools::computeVolumetricExpansion(SpatialDirection direction) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   UInt tensor_component = 0;
@@ -459,7 +459,7 @@ Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::computeDamagedVolume(const ID & mat_name) {
+Real RVETools::computeDamagedVolume(const ID & mat_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   Real total_damage = 0;
@@ -492,7 +492,7 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
+void RVETools::computeStiffnessReduction(std::ofstream & file_output, Real time,
                                          bool tension) {
 
   const auto & mesh = model.getMesh();
@@ -530,7 +530,7 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
 }
 
 /* -------------------------------------------------------------------------- */
-void ASRTools::storeNodalFields() {
+void RVETools::storeNodalFields() {
   auto & disp = this->model.getDisplacement();
   auto & boun = this->model.getBlockedDOFs();
   auto & ext_force = this->model.getExternalForce();
@@ -540,7 +540,7 @@ void ASRTools::storeNodalFields() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ASRTools::restoreNodalFields() {
+void RVETools::restoreNodalFields() {
   auto & disp = this->model.getDisplacement();
   auto & boun = this->model.getBlockedDOFs();
   auto & ext_force = this->model.getExternalForce();
@@ -550,7 +550,7 @@ void ASRTools::restoreNodalFields() {
 }
 
 /* ---------------------------------------------------------------------- */
-void ASRTools::resetNodalFields() {
+void RVETools::resetNodalFields() {
   auto & disp = this->model.getDisplacement();
   auto & boun = this->model.getBlockedDOFs();
   auto & ext_force = this->model.getExternalForce();
@@ -560,21 +560,21 @@ void ASRTools::resetNodalFields() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ASRTools::restoreInternalFields() {
+void RVETools::restoreInternalFields() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     mat.restorePreviousState();
   }
 }
 /* -------------------------------------------------------------------------- */
-void ASRTools::resetInternalFields() {
+void RVETools::resetInternalFields() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     mat.resetInternalsWithHistory();
   }
 }
 /* -------------------------------------------------------------------------- */
-void ASRTools::storeDamageField() {
+void RVETools::storeDamageField() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
@@ -597,7 +597,7 @@ void ASRTools::storeDamageField() {
   }
 }
 /* -------------------------------------------------------------------------- */
-void ASRTools::restoreDamageField() {
+void RVETools::restoreDamageField() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
@@ -621,7 +621,7 @@ void ASRTools::restoreDamageField() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
+Real RVETools::performLoadingTest(SpatialDirection direction, bool tension) {
   UInt dir;
 
   if (direction == _x) {
@@ -764,7 +764,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeAverageProperties(std::ofstream & file_output) {
+void RVETools::computeAverageProperties(std::ofstream & file_output) {
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -807,7 +807,7 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeAverageProperties(std::ofstream & file_output,
+void RVETools::computeAverageProperties(std::ofstream & file_output,
                                         Real time) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -848,38 +848,9 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
                   << "," << crack_paste << std::endl;
   }
 }
-/* ----------------------------------------------------------------- */
-void ASRTools::computeAveragePropertiesCohesiveModel(
-    std::ofstream & file_output, Real time, Real offset) {
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-
-  AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
-
-  Real av_strain_x = computeAverageStrain(_x, offset);
-  Real av_strain_y = computeAverageStrain(_y, offset);
-
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
-  if (dim == 2) {
-
-    if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << std::endl;
-  }
-
-  else {
-    Real av_strain_z = computeAverageStrain(_z, offset);
-
-    if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_strain_z << std::endl;
-  }
-}
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
+void RVETools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
                                                    Real time) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -917,7 +888,7 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
 }
 
 /* ------------------------------------------------------------------- */
-void ASRTools::saveState(UInt current_step) {
+void RVETools::saveState(UInt current_step) {
 
   // variables for parallel execution
   auto && comm = akantu::Communicator::getWorldCommunicator();
@@ -979,7 +950,7 @@ void ASRTools::saveState(UInt current_step) {
 }
 
 /* ------------------------------------------------------------------ */
-bool ASRTools::loadState(UInt & current_step) {
+bool RVETools::loadState(UInt & current_step) {
   current_step = 0;
   bool restart = false;
 
@@ -1090,7 +1061,7 @@ bool ASRTools::loadState(UInt & current_step) {
   return restart;
 }
 /* ------------------------------------------------------------------- */
-Real ASRTools::computePhaseVolume(const ID & mat_name) {
+Real RVETools::computePhaseVolume(const ID & mat_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   Real total_volume = 0;
@@ -1122,7 +1093,7 @@ Real ASRTools::computePhaseVolume(const ID & mat_name) {
 }
 /* --------------------------------------------------------------------------
  */
-void ASRTools::applyEigenGradUinCracks(
+void RVETools::applyEigenGradUinCracks(
     const Matrix<Real> prescribed_eigen_grad_u, const ID & material_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1153,7 +1124,7 @@ void ASRTools::applyEigenGradUinCracks(
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::applyEigenGradUinCracks(
+void RVETools::applyEigenGradUinCracks(
     const Matrix<Real> prescribed_eigen_grad_u,
     const ElementTypeMapUInt & critical_elements, bool to_add) {
   GhostType gt = _not_ghost;
@@ -1186,7 +1157,7 @@ void ASRTools::applyEigenGradUinCracks(
 
 // code of Aurelia Cuba Ramos
 // /*------------------------------------------------------------------------*/
-//   void ASRTools<dim>::fillCracks(ElementTypeMapReal & saved_damage) {
+//   void RVETools<dim>::fillCracks(ElementTypeMapReal & saved_damage) {
 //   const UInt dim = model.getSpatialDimension();
 //   const Material & mat_gel = model.getMaterial("gel");
 //   const Real E_gel = mat_gel.getParam("E");
@@ -1215,7 +1186,7 @@ void ASRTools::applyEigenGradUinCracks(
 // }
 
 // /*------------------------------------------------------------------------*/
-// void ASRTools<dim>::drainCracks(const ElementTypeMapReal &
+// void RVETools<dim>::drainCracks(const ElementTypeMapReal &
 // saved_damage) {
 //   // model.dump();
 //   const UInt dim = model.getSpatialDimension();
@@ -1247,7 +1218,7 @@ void ASRTools::applyEigenGradUinCracks(
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::computeSmallestElementSize() {
+Real RVETools::computeSmallestElementSize() {
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1283,14 +1254,14 @@ Real ASRTools::computeSmallestElementSize() {
 }
 
 /* ----------------------------------------------------------------------- */
-void ASRTools::computeASRStrainLarive(
-    const Real & delta_time_day, const Real & T, Real & ASRStrain,
+void RVETools::computeChemExpansionLarive(
+    const Real & delta_time_day, const Real & T, Real & expansion,
     const Real & eps_inf, const Real & time_ch_ref, const Real & time_lat_ref,
     const Real & U_C, const Real & U_L, const Real & T_ref) {
   AKANTU_DEBUG_IN();
 
   Real time_ch, time_lat, lambda, ksi, exp_ref;
-  ksi = ASRStrain / eps_inf;
+  ksi = expansion / eps_inf;
   if (T == 0) {
     ksi += 0;
   } else {
@@ -1301,32 +1272,32 @@ void ASRTools::computeASRStrainLarive(
     ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
   }
 
-  ASRStrain = ksi * eps_inf;
+  expansion = ksi * eps_inf;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* ----------------------------------------------------------------------- */
-void ASRTools::computeASRStrainArrhenius(const Real & delta_time_day,
-                                         const Real & T, Real & ASRStrain,
-                                         const Real & k, const Real & Ea) {
+void RVETools::computeChemExpansionArrhenius(const Real & delta_time_day,
+                                             const Real & T, Real & expansion,
+                                             const Real & k, const Real & Ea) {
   AKANTU_DEBUG_IN();
 
   if (T != 0) {
     const Real R = 8.3145; // J / mol / K
-    ASRStrain += delta_time_day * k * std::exp(-Ea / R / T);
+    expansion += delta_time_day * k * std::exp(-Ea / R / T);
   }
 
   AKANTU_DEBUG_OUT();
 }
 /* ----------------------------------------------------------------------- */
-Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day,
-                                            const Real k,
-                                            const Real activ_energy,
-                                            const Real R, const Real T,
-                                            Real & amount_reactive_particles,
-                                            const Real saturation_const) {
-  // compute increase in gel strain value for interval of time delta_time
+Real RVETools::computeDeltaEigenStrainThermal(const Real delta_time_day,
+                                              const Real k,
+                                              const Real activ_energy,
+                                              const Real R, const Real T,
+                                              Real & amount_reactive_particles,
+                                              const Real saturation_const) {
+  // compute increase in the eigen strain value for interval of time delta_time
   // as temperatures are stored in C, conversion to K is done
 
   Real delta_strain = amount_reactive_particles * k *
@@ -1341,9 +1312,9 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day,
 }
 
 /* -----------------------------------------------------------------------*/
-Real ASRTools::computeDeltaGelStrainLinear(const Real delta_time,
-                                           const Real k) {
-  // compute increase in gel strain value for dt simply by deps = k *
+Real RVETools::computeDeltaEigenStrainLinear(const Real delta_time,
+                                             const Real k) {
+  // compute increase in the eigen strain value for dt simply by deps = k *
   // delta_time
 
   Real delta_strain = k * delta_time;
@@ -1352,7 +1323,7 @@ Real ASRTools::computeDeltaGelStrainLinear(const Real delta_time,
 }
 
 /* ---------------------------------------------------------------------- */
-void ASRTools::applyBoundaryConditionsRve(
+void RVETools::applyBoundaryConditionsRve(
     const Matrix<Real> & displacement_gradient) {
   AKANTU_DEBUG_IN();
 
@@ -1384,7 +1355,7 @@ void ASRTools::applyBoundaryConditionsRve(
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::applyHomogeneousTemperature(const Real & temperature) {
+void RVETools::applyHomogeneousTemperature(const Real & temperature) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
 
@@ -1408,7 +1379,7 @@ void ASRTools::applyHomogeneousTemperature(const Real & temperature) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::removeTemperature() {
+void RVETools::removeTemperature() {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
 
@@ -1432,7 +1403,7 @@ void ASRTools::removeTemperature() {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::findCornerNodes() {
+void RVETools::findCornerNodes() {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1535,7 +1506,7 @@ void ASRTools::findCornerNodes() {
 }
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::averageScalarField(const ID & field_name) {
+Real RVETools::averageScalarField(const ID & field_name) {
   AKANTU_DEBUG_IN();
   auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
   Real average = 0;
@@ -1572,7 +1543,7 @@ Real ASRTools::averageScalarField(const ID & field_name) {
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
+Real RVETools::averageTensorField(UInt row_index, UInt col_index,
                                   const ID & field_type) {
   AKANTU_DEBUG_IN();
   auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
@@ -1646,7 +1617,7 @@ Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
+void RVETools::homogenizeStressField(Matrix<Real> & stress) {
   AKANTU_DEBUG_IN();
   stress(0, 0) = averageTensorField(0, 0, "stress");
   stress(1, 1) = averageTensorField(1, 1, "stress");
@@ -1657,7 +1628,7 @@ void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::setStiffHomogenDir(Matrix<Real> & stress) {
+void RVETools::setStiffHomogenDir(Matrix<Real> & stress) {
   AKANTU_DEBUG_IN();
   auto dim = stress.rows();
   Vector<Real> eigenvalues(dim);
@@ -1673,7 +1644,7 @@ void ASRTools::setStiffHomogenDir(Matrix<Real> & stress) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
+void RVETools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1686,8 +1657,8 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   // store and clear the eigenstrain
   // (to exclude stresses due to internal pressure)
   Array<Real> stored_eig(0, dim * dim, 0);
-  storeASREigenStrain(stored_eig);
-  clearASREigenStrain();
+  storeEigenStrain(stored_eig);
+  clearEigenStrain();
 
   // save nodal values before tests
   storeNodalFields();
@@ -1754,16 +1725,16 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
     }
   }
 
-  // return the nodal values and the ASR eigenstrain
+  // return the nodal values and the eigenstrain
   restoreNodalFields();
-  restoreASREigenStrain(stored_eig);
+  restoreEigenStrain(stored_eig);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::performVirtualTesting(const Matrix<Real> & H,
+void RVETools::performVirtualTesting(const Matrix<Real> & H,
                                      Matrix<Real> & eff_stresses,
                                      Matrix<Real> & eff_strains,
                                      const UInt test_no) {
@@ -1794,7 +1765,7 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
 }
 
 /* --------------------------------------------------- */
-void ASRTools::homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro) {
+void RVETools::homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro) {
   AKANTU_DEBUG_IN();
   eigen_gradu_macro(0, 0) = averageTensorField(0, 0, "eigen_grad_u");
   eigen_gradu_macro(1, 1) = averageTensorField(1, 1, "eigen_grad_u");
@@ -1803,78 +1774,9 @@ void ASRTools::homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------
- */
-void ASRTools::fillCracks(ElementTypeMapReal & saved_damage) {
-  const auto & mat_gel = model.getMaterial("gel");
-  Real E_gel = mat_gel.get("E");
-  Real E_homogenized = 0.;
-
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
-    Material & mat = model.getMaterial(m);
-    if (mat.getName() == "gel" || mat.getName() == "FE2_mat")
-      continue;
-
-    Real E = mat.get("E");
-    auto & damage = mat.getInternal<Real>("damage");
-
-    GhostType gt = _not_ghost;
-    for (auto && type : damage.elementTypes(gt)) {
-      const auto & elem_filter = mat.getElementFilter(type);
-      auto nb_integration_point =
-          model.getFEEngine().getNbIntegrationPoints(type);
-
-      auto sav_dam_it =
-          make_view(saved_damage(type), nb_integration_point).begin();
-      for (auto && data :
-           zip(elem_filter, make_view(damage(type), nb_integration_point))) {
-        auto el = std::get<0>(data);
-        auto & dam = std::get<1>(data);
-        Vector<Real> sav_dam = sav_dam_it[el];
-
-        sav_dam = dam;
-
-        for (auto q : arange(dam.size())) {
-          E_homogenized = (E_gel - E) * dam(q) + E;
-          dam(q) = 1. - (E_homogenized / E);
-        }
-      }
-    }
-  }
-}
-
 /* --------------------------------------------------------------------------
  */
-void ASRTools::drainCracks(const ElementTypeMapReal & saved_damage) {
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
-    Material & mat = model.getMaterial(m);
-    if (mat.getName() == "gel" || mat.getName() == "FE2_mat")
-      continue;
-    auto & damage = mat.getInternal<Real>("damage");
-
-    GhostType gt = _not_ghost;
-    for (auto && type : damage.elementTypes(gt)) {
-      const auto & elem_filter = mat.getElementFilter(type);
-      auto nb_integration_point =
-          model.getFEEngine().getNbIntegrationPoints(type);
-
-      auto sav_dam_it =
-          make_view(saved_damage(type), nb_integration_point).begin();
-      for (auto && data :
-           zip(elem_filter, make_view(damage(type), nb_integration_point))) {
-        auto el = std::get<0>(data);
-        auto & dam = std::get<1>(data);
-        Vector<Real> sav_dam = sav_dam_it[el];
-
-        dam = sav_dam;
-      }
-    }
-  }
-}
-
-/* --------------------------------------------------------------------------
- */
-void ASRTools::computeDamageRatio(Real & damage_ratio) {
+void RVETools::computeDamageRatio(Real & damage_ratio) {
   damage_ratio = 0.;
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1915,7 +1817,7 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
 }
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
+void RVETools::computeDamageRatioPerMaterial(Real & damage_ratio,
                                              const ID & material_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1951,7 +1853,7 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeCrackVolume(Real & crack_volume_ratio) {
+void RVETools::computeCrackVolume(Real & crack_volume_ratio) {
   crack_volume_ratio = 0.;
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1990,7 +1892,7 @@ void ASRTools::computeCrackVolume(Real & crack_volume_ratio) {
 }
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
+void RVETools::computeCrackVolumePerMaterial(Real & crack_volume,
                                              const ID & material_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -2025,14 +1927,247 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
 }
 
 /* ------------------------------------------------------------------ */
-void ASRTools::dumpRve() { model.dump(); }
+void RVETools::dumpRve() { model.dump(); }
 /* ------------------------------------------------------------------ */
-void ASRTools::dumpRve(UInt dump_nb) { model.dump(dump_nb); }
+void RVETools::dumpRve(UInt dump_nb) { model.dump(dump_nb); }
 
+/* -------------------------------------------------------------------------
+ */
+void RVETools::communicateFlagsOnNodes() {
+  auto & mesh = model.getMesh();
+  auto & synch = mesh.getElementSynchronizer();
+  NodesFlagUpdater nodes_flag_updater(mesh, synch,
+                                      this->partition_border_nodes);
+  nodes_flag_updater.fillPreventInsertion();
+}
 /* ------------------------------------------------------------------- */
-void ASRTools::insertASRCohesivesRandomly(const UInt & nb_insertions,
-                                          std::string facet_mat_name,
-                                          Real gap_ratio) {
+void RVETools::communicateEffStressesOnNodes() {
+  auto & mesh = model.getMesh();
+  auto & synch = mesh.getElementSynchronizer();
+  NodesEffStressUpdater nodes_eff_stress_updater(mesh, synch,
+                                                 this->nodes_eff_stress);
+  nodes_eff_stress_updater.updateMaxEffStressAtNodes();
+}
+
+/* ------------------------------------------------------------------ */
+void RVETools::onNodesAdded(const Array<UInt> & new_nodes,
+                            const NewNodesEvent &) {
+  AKANTU_DEBUG_IN();
+  if (new_nodes.size() == 0)
+    return;
+  // increase the internal arrays by the number of new_nodes
+  UInt new_nb_nodes = this->modified_pos.size() + new_nodes.size();
+  this->modified_pos.resize(new_nb_nodes);
+  this->partition_border_nodes.resize(new_nb_nodes);
+  this->nodes_eff_stress.resize(new_nb_nodes);
+  this->crack_nodes.resize(new_nb_nodes);
+
+  // function is activated only when expanding cohesive elements is on
+  if (not this->cohesive_insertion)
+    return;
+  if (this->crack_central_nodes_ready)
+    return;
+  auto & mesh = model.getMesh();
+
+  auto pos_it = make_view(mesh.getNodes(), mesh.getSpatialDimension()).begin();
+
+  for (auto & new_node : new_nodes) {
+    const Vector<Real> & new_node_coord = pos_it[new_node];
+    auto central_nodes = this->crack_central_nodes;
+    for (auto & central_node : central_nodes) {
+      const Vector<Real> & central_node_coord = pos_it[central_node];
+      if (new_node_coord == central_node_coord) {
+        this->crack_central_nodes.push_back(new_node);
+        break;
+      }
+    }
+  }
+
+  this->crack_central_nodes_ready = true;
+  AKANTU_DEBUG_OUT();
+}
+
+/* ------------------------------------------------------------------------ */
+void RVETools::updateElementGroup(const std::string group_name) {
+  AKANTU_DEBUG_IN();
+  auto & mesh = model.getMesh();
+  AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
+                      "Element group is not registered in the mesh");
+  auto dim = mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto && group = mesh.getElementGroup(group_name);
+  auto && pos = mesh.getNodes();
+  const auto pos_it = make_view(pos, dim).begin();
+
+  for (auto & type : group.elementTypes(dim - 1)) {
+    auto & facet_conn = mesh.getConnectivity(type, gt);
+    const UInt nb_nodes_facet = facet_conn.getNbComponent();
+    const auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
+    AKANTU_DEBUG_ASSERT(
+        type == _segment_2,
+        "Currently update group works only for el type _segment_2");
+    const auto element_ids = group.getElements(type, gt);
+    for (auto && el_id : element_ids) {
+      const auto connected_els = mesh.getElementToSubelement(type, gt)(el_id);
+      for (auto && connected_el : connected_els) {
+
+        auto type_solid = connected_el.type;
+        auto & solid_conn = mesh.getConnectivity(type_solid, gt);
+        const UInt nb_nodes_solid_el = solid_conn.getNbComponent();
+        const auto solid_nodes_it =
+            make_view(solid_conn, nb_nodes_solid_el).begin();
+        Vector<UInt> facet_nodes = facet_nodes_it[el_id];
+        Vector<UInt> solid_nodes = solid_nodes_it[connected_el.element];
+
+        // check only the corner nodes of facets -central will not change
+        for (auto f : arange(2)) {
+          auto facet_node = facet_nodes(f);
+          const Vector<Real> & facet_node_coords = pos_it[facet_node];
+          for (auto s : arange(nb_nodes_solid_el)) {
+            auto solid_node = solid_nodes(s);
+            const Vector<Real> & solid_node_coords = pos_it[solid_node];
+            if (solid_node_coords == facet_node_coords) {
+              if (solid_node != facet_node) {
+                // group.removeNode(facet_node);
+                facet_conn(el_id, f) = solid_node;
+                // group.addNode(solid_node, true);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  group.optimize();
+  AKANTU_DEBUG_OUT();
+}
+
+/* ------------------------------------------------------------------ */
+void RVETools::applyEigenStrain(const Matrix<Real> & prestrain,
+                                const ID & material_name) {
+  AKANTU_DEBUG_IN();
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
+
+  // apply the new eigenstrain
+  for (auto element_type :
+       mesh.elementTypes(dim, _not_ghost, _ek_not_defined)) {
+    Array<Real> & prestrain_vect = const_cast<Array<Real> &>(
+        model.getMaterial(material_name)
+            .getInternal<Real>("eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it)
+      (*prestrain_it) = prestrain;
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* ------------------------------------------------------------------ */
+void RVETools::clearEigenStrain(const ID & material_name) {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  Matrix<Real> zero_eigenstrain(dim, dim, 0.);
+  GhostType gt = _not_ghost;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect = const_cast<Array<Real> &>(
+        model.getMaterial(material_name)
+            .getInternal<Real>("eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it)
+      (*prestrain_it) = zero_eigenstrain;
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* ------------------------------------------------------------------ */
+void RVETools::storeEigenStrain(Array<Real> & stored_eig,
+                                const ID & material_name) {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  UInt nb_quads = 0;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    const UInt nb_gp = model.getFEEngine().getNbIntegrationPoints(element_type);
+    nb_quads +=
+        model.getMaterial(material_name).getElementFilter(element_type).size() *
+        nb_gp;
+  }
+  stored_eig.resize(nb_quads);
+  auto stored_eig_it = stored_eig.begin(dim, dim);
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect = const_cast<Array<Real> &>(
+        model.getMaterial(material_name)
+            .getInternal<Real>("eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
+      (*stored_eig_it) = (*prestrain_it);
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* ------------------------------------------------------------------ */
+void RVETools::restoreEigenStrain(Array<Real> & stored_eig,
+                                  const ID & material_name) {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  auto stored_eig_it = stored_eig.begin(dim, dim);
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect = const_cast<Array<Real> &>(
+        model.getMaterial(material_name)
+            .getInternal<Real>("eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
+      (*prestrain_it) = (*stored_eig_it);
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* ----------------------------------------------------------------- */
+void RVETools::computeAveragePropertiesCohesiveModel(
+    std::ofstream & file_output, Real time, Real offset) {
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+
+  AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
+
+  Real av_strain_x = computeAverageStrain(_x, offset);
+  Real av_strain_y = computeAverageStrain(_y, offset);
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
+  if (dim == 2) {
+
+    if (prank == 0)
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
+                  << std::endl;
+  }
+
+  else {
+    Real av_strain_z = computeAverageStrain(_z, offset);
+
+    if (prank == 0)
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
+                  << av_strain_z << std::endl;
+  }
+}
+/* ------------------------------------------------------------------- */
+void RVETools::insertCohesivesRandomly(const UInt & nb_insertions,
+                                       std::string facet_mat_name,
+                                       Real gap_ratio) {
   AKANTU_DEBUG_IN();
 
   // fill in the partition_border_nodes array
@@ -2052,9 +2187,9 @@ void ASRTools::insertASRCohesivesRandomly(const UInt & nb_insertions,
   AKANTU_DEBUG_OUT();
 }
 /* ------------------------------------------------------------------- */
-void ASRTools::insertASRCohesivesRandomly3D(const UInt & nb_insertions,
-                                            std::string facet_mat_name,
-                                            Real /*gap_ratio*/) {
+void RVETools::insertCohesivesRandomly3D(const UInt & nb_insertions,
+                                         std::string facet_mat_name,
+                                         Real /*gap_ratio*/) {
   AKANTU_DEBUG_IN();
 
   // fill in the partition_border_nodes array
@@ -2075,9 +2210,9 @@ void ASRTools::insertASRCohesivesRandomly3D(const UInt & nb_insertions,
 }
 
 /* ------------------------------------------------------------------- */
-void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
-                                        std::string facet_mat_name,
-                                        Real /*gap_ratio*/) {
+void RVETools::insertCohesiveLoops3D(const UInt & nb_insertions,
+                                     std::string facet_mat_name,
+                                     Real /*gap_ratio*/) {
   AKANTU_DEBUG_IN();
 
   // fill in the partition_border_nodes array
@@ -2088,7 +2223,8 @@ void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(inserted, SynchronizerOperation::_sum);
-  AKANTU_DEBUG_ASSERT(inserted, "No ASR sites were inserted across the domain");
+  AKANTU_DEBUG_ASSERT(inserted,
+                      "No loading sites were inserted across the domain");
 
   insertOppositeFacetsAndCohesives();
 
@@ -2105,7 +2241,7 @@ void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
 
 /* ------------------------------------------------------------------- */
 template <UInt dim>
-UInt ASRTools::insertPreCracks(const UInt & nb_insertions,
+UInt RVETools::insertPreCracks(const UInt & nb_insertions,
                                std::string facet_mat_name) {
   AKANTU_DEBUG_IN();
 
@@ -2118,7 +2254,7 @@ UInt ASRTools::insertPreCracks(const UInt & nb_insertions,
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(totally_inserted, SynchronizerOperation::_sum);
   AKANTU_DEBUG_ASSERT(totally_inserted,
-                      "No ASR sites were inserted across the domain");
+                      "No loading sites were inserted across the domain");
 
   communicateCrackNumbers();
 
@@ -2126,14 +2262,14 @@ UInt ASRTools::insertPreCracks(const UInt & nb_insertions,
   return inserted;
 }
 
-template UInt ASRTools::insertPreCracks<2>(const UInt & nb_insertions,
+template UInt RVETools::insertPreCracks<2>(const UInt & nb_insertions,
                                            std::string mat_name);
-template UInt ASRTools::insertPreCracks<3>(const UInt & nb_insertions,
+template UInt RVETools::insertPreCracks<3>(const UInt & nb_insertions,
                                            std::string mat_name);
 /* -------------------------------------------------------------------------
  */
-void ASRTools::insertASRCohesivesByCoords(const Matrix<Real> & positions,
-                                          Real gap_ratio) {
+void RVETools::insertCohesivesByCoords(const Matrix<Real> & positions,
+                                       Real gap_ratio) {
   AKANTU_DEBUG_IN();
 
   // fill in the border_nodes array
@@ -2152,25 +2288,8 @@ void ASRTools::insertASRCohesivesByCoords(const Matrix<Real> & positions,
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------
- */
-void ASRTools::communicateFlagsOnNodes() {
-  auto & mesh = model.getMesh();
-  auto & synch = mesh.getElementSynchronizer();
-  NodesFlagUpdater nodes_flag_updater(mesh, synch,
-                                      this->partition_border_nodes);
-  nodes_flag_updater.fillPreventInsertion();
-}
 /* ------------------------------------------------------------------- */
-void ASRTools::communicateEffStressesOnNodes() {
-  auto & mesh = model.getMesh();
-  auto & synch = mesh.getElementSynchronizer();
-  NodesEffStressUpdater nodes_eff_stress_updater(mesh, synch,
-                                                 this->nodes_eff_stress);
-  nodes_eff_stress_updater.updateMaxEffStressAtNodes();
-}
-/* ------------------------------------------------------------------- */
-void ASRTools::communicateCrackNumbers() {
+void RVETools::communicateCrackNumbers() {
   AKANTU_DEBUG_IN();
 
   if (model.getMesh().getCommunicator().getNbProc() == 1)
@@ -2183,7 +2302,7 @@ void ASRTools::communicateCrackNumbers() {
   AKANTU_DEBUG_OUT();
 }
 /* ----------------------------------------------------------------------- */
-void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
+void RVETools::pickFacetsByCoord(const Matrix<Real> & positions) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -2244,16 +2363,16 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
       continue;
     }
 
-    // eliminate possibility of intersecting existing ASR element
+    // eliminate possibility of intersecting existing crack element
     bool intersection{false};
     for (auto node : facet_nodes) {
-      if (this->ASR_nodes(node))
+      if (this->crack_nodes(node))
         intersection = true;
     }
     if (intersection) {
       std::cout
           << "Facet at the position " << position(0) << "," << position(1)
-          << " is intersecting another ASR element. Skipping this position"
+          << " is intersecting another crack element. Skipping this position"
           << std::endl;
       continue;
     } else {
@@ -2264,9 +2383,9 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
         // add all facet nodes to the group
         for (auto node : arange(nb_nodes_facet)) {
           doubled_nodes.add(facet_conn(cent_facet.element, node));
-          this->ASR_nodes(facet_conn(cent_facet.element, node)) = true;
+          this->crack_nodes(facet_conn(cent_facet.element, node)) = true;
         }
-        std::cout << "Proc " << prank << " placed 1 ASR site" << std::endl;
+        std::cout << "Proc " << prank << " placed 1 loading site" << std::endl;
         continue;
       } else
         continue;
@@ -2274,7 +2393,7 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
   }
 }
 /* ------------------------------------------------------------------- */
-void ASRTools::pickFacetsRandomly(UInt nb_insertions,
+void RVETools::pickFacetsRandomly(UInt nb_insertions,
                                   std::string facet_mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2322,7 +2441,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
 
   if (not nb_element) {
     std::cout << "Proc " << prank << " couldn't place " << nb_insertions
-              << " ASR sites" << std::endl;
+              << " loading sites" << std::endl;
     return;
   }
 
@@ -2340,7 +2459,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
     bool border_facets{false};
     Vector<UInt> facet_nodes = facet_conn_it[cent_facet.element];
     for (auto node : facet_nodes) {
-      if (this->partition_border_nodes(node) or this->ASR_nodes(node))
+      if (this->partition_border_nodes(node) or this->crack_nodes(node))
         border_facets = true;
     }
     if (border_facets)
@@ -2354,9 +2473,9 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
         // add all facet nodes to the group
         for (auto node : arange(nb_nodes_facet)) {
           doubled_nodes.add(facet_conn(cent_facet.element, node));
-          this->ASR_nodes(facet_conn(cent_facet.element, node)) = true;
+          this->crack_nodes(facet_conn(cent_facet.element, node)) = true;
         }
-        std::cout << "Proc " << prank << " placed 1 ASR site" << std::endl;
+        std::cout << "Proc " << prank << " placed 1 loading site" << std::endl;
         continue;
       } else
         continue;
@@ -2364,7 +2483,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
   }
 }
 /* ------------------------------------------------------------------- */
-UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
+UInt RVETools::closedFacetsLoopAroundPoint(UInt nb_insertions,
                                            std::string mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2422,7 +2541,7 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
 
   if (not nb_nodes) {
     std::cout << "Proc " << prank << " couldn't place " << nb_insertions
-              << " ASR sites" << std::endl;
+              << " loading sites" << std::endl;
     return 0;
   }
 
@@ -2432,7 +2551,7 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
 
     if (not left_nodes.size()) {
       std::cout << "Proc " << prank << " inserted " << already_inserted
-                << " ASR sites out of " << nb_insertions << std::endl;
+                << " loading sites out of " << nb_insertions << std::endl;
       return already_inserted;
     }
     auto id = dis(random_generator);
@@ -2443,7 +2562,7 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     left_nodes.erase(*it);
 
     // not touching other cracks
-    if (this->ASR_nodes(cent_node))
+    if (this->crack_nodes(cent_node))
       continue;
 
     // поехали
@@ -2510,22 +2629,20 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       // add all facet nodes to the group
       for (auto node : arange(nb_nodes_facet)) {
         doubled_nodes.add(facet_conn(facet.element, node));
-        this->ASR_nodes(facet_conn(facet.element, node)) = true;
+        this->crack_nodes(facet_conn(facet.element, node)) = true;
       }
     }
-    this->asr_central_nodes.push_back(cent_node);
+    this->crack_central_nodes.push_back(cent_node);
 
-    // store the asr facets
-    // this->ASR_facets_from_mesh_facets.push_back(facets_in_loop);
     already_inserted++;
   }
-  std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
-            << std::endl;
+  std::cout << "Proc " << prank << " placed " << already_inserted
+            << " loading site" << std::endl;
   return already_inserted;
 }
 /* ------------------------------------------------------------------- */
 template <UInt dim>
-UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
+UInt RVETools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -2595,7 +2712,7 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
     left_nodes.erase(*it);
 
     // not touching other cracks
-    if (this->ASR_nodes(cent_node))
+    if (this->crack_nodes(cent_node))
       continue;
 
     // поехали
@@ -2661,10 +2778,10 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
     for (auto & facet : facets_in_loop) {
       // add all facet nodes to the group
       for (auto node : arange(nb_nodes_facet)) {
-        this->ASR_nodes(facet_conn(facet.element, node)) = true;
+        this->crack_nodes(facet_conn(facet.element, node)) = true;
       }
     }
-    this->asr_central_nodes.push_back(cent_node);
+    this->crack_central_nodes.push_back(cent_node);
 
     already_inserted++;
   }
@@ -2697,11 +2814,11 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
 
   inserter.insertElements();
 
-  // fill up ASR facets vector
-  this->asr_facets.resize(loops.size());
-  for (auto && data : zip(loops, this->asr_facets)) {
+  // fill up crack facets vector
+  this->crack_facets.resize(loops.size());
+  for (auto && data : zip(loops, this->crack_facets)) {
     auto && facet_loop = std::get<0>(data);
-    auto && asr_facet_loop = std::get<1>(data);
+    auto && crack_facet_loop = std::get<1>(data);
     for (auto & facet : facet_loop) {
       Element cohesive{ElementNull};
       auto & connected_els = mesh_facets.getElementToSubelement(facet);
@@ -2717,27 +2834,27 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
       for (auto & connected_subel : connected_subels) {
         if (connected_subel.type != facet.type)
           continue;
-        asr_facet_loop.push_back(connected_subel);
+        crack_facet_loop.push_back(connected_subel);
       }
     }
   }
 
   // split nodes into pairs and compute averaged normals
-  identifyASRCentralNodePairsAndNormals();
+  identifyCrackCentralNodePairsAndNormals();
 
-  std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
-            << std::endl;
+  std::cout << "Proc " << prank << " placed " << already_inserted
+            << " loading site" << std::endl;
   return already_inserted;
 }
 
-template UInt ASRTools::insertCohesiveLoops<2>(UInt nb_insertions,
+template UInt RVETools::insertCohesiveLoops<2>(UInt nb_insertions,
                                                std::string mat_name);
-template UInt ASRTools::insertCohesiveLoops<3>(UInt nb_insertions,
+template UInt RVETools::insertCohesiveLoops<3>(UInt nb_insertions,
                                                std::string mat_name);
 /* ------------------------------------------------------------------- */
-Array<Element> ASRTools::findFacetsLoopFromSegment2Segment(
+Array<Element> RVETools::findFacetsLoopFromSegment2Segment(
     Element directional_facet, Element starting_segment, Element ending_segment,
-    UInt cent_node, Real max_dot, UInt material_id, bool check_asr_nodes) {
+    UInt cent_node, Real max_dot, UInt material_id, bool check_crack_nodes) {
 
   auto & mesh = model.getMesh();
   auto & mesh_facets = mesh.getMeshFacets();
@@ -2797,7 +2914,8 @@ Array<Element> ASRTools::findFacetsLoopFromSegment2Segment(
     for (auto neighbor_facet : neighbor_facets) {
       if (neighbor_facet == current_facet)
         continue;
-      if (not isFacetAndNodesGood(neighbor_facet, material_id, check_asr_nodes))
+      if (not isFacetAndNodesGood(neighbor_facet, material_id,
+                                  check_crack_nodes))
         continue;
       // first check if it has the ending segment -> loop closed
       bool ending_segment_touched{false};
@@ -2892,7 +3010,7 @@ Array<Element> ASRTools::findFacetsLoopFromSegment2Segment(
 }
 /* ------------------------------------------------------------------- */
 Array<Element>
-ASRTools::findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
+RVETools::findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
                                       const Array<Element> & limit_segments,
                                       const UInt & cent_node) {
 
@@ -3075,7 +3193,7 @@ ASRTools::findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
   return facets_in_loop;
 }
 /* ------------------------------------------------------------------- */
-Array<Element> ASRTools::findFacetsLoopByGraphByArea(
+Array<Element> RVETools::findFacetsLoopByGraphByArea(
     const Array<Element> & limit_facets, const Array<Element> & limit_segments,
     const Array<Element> & preinserted_facets, const UInt & cent_node) {
 
@@ -3179,8 +3297,6 @@ Array<Element> ASRTools::findFacetsLoopByGraphByArea(
       graph_t;
   typedef graph_t::vertex_descriptor vertex_descriptor_t;
   typedef graph_t::edge_descriptor edge_descriptor_t;
-  // typedef boost::graph_traits<graph_t>::edge_iterator edge_iter;
-  // typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iter;
   graph_t g;
 
   // prepare the list of facets sharing the central node
@@ -3345,7 +3461,7 @@ Array<Element> ASRTools::findFacetsLoopByGraphByArea(
   return facets_in_loop;
 }
 /* ------------------------------------------------------------------- */
-Array<Element> ASRTools::findStressedFacetLoopAroundNode(
+Array<Element> RVETools::findStressedFacetLoopAroundNode(
     const Array<Element> & limit_facets, const Array<Element> & limit_segments,
     const UInt & cent_node, Real min_dot) {
 
@@ -3611,7 +3727,7 @@ Array<Element> ASRTools::findStressedFacetLoopAroundNode(
 }
 /* ------------------------------------------------------------------- */
 Array<Element>
-ASRTools::findSingleFacetLoop(const Array<Element> & limit_facets,
+RVETools::findSingleFacetLoop(const Array<Element> & limit_facets,
                               const Array<Element> & limit_segments,
                               const UInt & cent_node) {
 
@@ -3710,8 +3826,8 @@ ASRTools::findSingleFacetLoop(const Array<Element> & limit_facets,
   return facets_in_loop;
 }
 /* ------------------------------------------------------------------- */
-bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id,
-                                   bool check_asr_nodes) {
+bool RVETools::isFacetAndNodesGood(const Element & facet, UInt material_id,
+                                   bool check_crack_nodes) {
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -3732,8 +3848,8 @@ bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id,
     if (model.getMesh().isPureGhostNode(facet_node))
       return false;
 
-    // check if the facet's nodes are asr nodes
-    if (check_asr_nodes and this->ASR_nodes(facet_node))
+    // check if the facet's nodes are the crack nodes
+    if (check_crack_nodes and this->crack_nodes(facet_node))
       return false;
   }
 
@@ -3748,7 +3864,7 @@ bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id,
   return true;
 }
 /* ------------------------------------------------------------------- */
-bool ASRTools::belong2SameElement(const Element & facet1,
+bool RVETools::belong2SameElement(const Element & facet1,
                                   const Element & facet2) {
 
   auto & mesh = model.getMesh();
@@ -3813,7 +3929,7 @@ bool ASRTools::belong2SameElement(const Element & facet1,
   return true;
 }
 /* ------------------------------------------------------------------- */
-bool ASRTools::isNodeWithinMaterial(Element & node, UInt material_id) {
+bool RVETools::isNodeWithinMaterial(Element & node, UInt material_id) {
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -3832,100 +3948,8 @@ bool ASRTools::isNodeWithinMaterial(Element & node, UInt material_id) {
 
   return true;
 }
-
-/* ------------------------------------------------------------------- */
-bool ASRTools::pickFacetNeighborsOld(Element & cent_facet) {
-  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-  auto & inserter = coh_model.getElementInserter();
-  auto & mesh = model.getMesh();
-  auto & mesh_facets = inserter.getMeshFacets();
-  auto dim = mesh.getSpatialDimension();
-  const auto & pos = mesh.getNodes();
-  const auto pos_it = make_view(pos, dim).begin();
-  auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
-  auto & facet_conn =
-      mesh_facets.getConnectivity(cent_facet.type, cent_facet.ghost_type);
-  auto & cent_facet_material = coh_model.getFacetMaterial(
-      cent_facet.type, cent_facet.ghost_type)(cent_facet.element);
-  CSR<Element> nodes_to_segments;
-  MeshUtils::buildNode2Elements(mesh_facets, nodes_to_segments, dim - 1);
-  Array<Element> two_neighbors(2);
-  two_neighbors.set(ElementNull);
-
-  for (auto node : arange(2)) {
-    // vector of the central facet
-    Vector<Real> cent_facet_dir(pos_it[facet_conn(cent_facet.element, !node)],
-                                true);
-    cent_facet_dir -=
-        Vector<Real>(pos_it[facet_conn(cent_facet.element, node)]);
-    cent_facet_dir /= cent_facet_dir.norm();
-    // dot product less than -0.5 discards any < 120 deg
-    Real min_dot = -0.5;
-    // Real min_dot = std::numeric_limits<Real>::max();
-    Vector<Real> neighbor_facet_dir(dim);
-    for (auto & elem :
-         nodes_to_segments.getRow(facet_conn(cent_facet.element, node))) {
-      if (elem.element == cent_facet.element)
-        continue;
-      if (elem.type != cent_facet.type)
-        continue;
-      if (elem.ghost_type != cent_facet.ghost_type)
-        continue;
-      if (not inserter.getCheckFacets(elem.type, elem.ghost_type)(elem.element))
-        continue;
-      // discard neighbors from different materials
-      auto & candidate_facet_material =
-          coh_model.getFacetMaterial(elem.type, elem.ghost_type)(elem.element);
-      if (candidate_facet_material != cent_facet_material)
-        continue;
-
-      // decide which node of the neighbor is the second
-      UInt first_node{facet_conn(cent_facet.element, node)};
-      UInt second_node(-1);
-      if (facet_conn(elem.element, 0) == first_node) {
-        second_node = facet_conn(elem.element, 1);
-      } else if (facet_conn(elem.element, 1) == first_node) {
-        second_node = facet_conn(elem.element, 0);
-      } else
-        AKANTU_EXCEPTION(
-            "Neighboring facet"
-            << elem << " with nodes " << facet_conn(elem.element, 0) << " and "
-            << facet_conn(elem.element, 1)
-            << " doesn't have node in common with the central facet "
-            << cent_facet << " with nodes " << facet_conn(cent_facet.element, 0)
-            << " and " << facet_conn(cent_facet.element, 1));
-
-      // discard facets intersecting other ASR elements
-      if (this->ASR_nodes(second_node))
-        continue;
-
-      neighbor_facet_dir = pos_it[second_node];
-      neighbor_facet_dir -= Vector<Real>(pos_it[first_node]);
-
-      neighbor_facet_dir /= neighbor_facet_dir.norm();
-
-      Real dot = cent_facet_dir.dot(neighbor_facet_dir);
-      if (dot < min_dot) {
-        min_dot = dot;
-        two_neighbors(node) = elem;
-      }
-    }
-  }
-
-  // insert neighbors only if two of them were identified
-  if (two_neighbors.find(ElementNull) == UInt(-1)) {
-    for (auto & neighbor : two_neighbors) {
-      doubled_facets.add(neighbor);
-      for (UInt node : arange(2)) {
-        this->ASR_nodes(facet_conn(neighbor.element, node)) = true;
-      }
-    }
-    return true;
-  } else
-    return false;
-}
 /* ----------------------------------------------------------------------- */
-bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
+bool RVETools::pickFacetNeighbors(Element & cent_facet) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -3975,14 +3999,14 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
                                       connected_element.ghost_type)(
               connected_element.element))
         continue;
-      // discard facets intersecting other ASR elements
-      bool ASR_node{false};
+      // discard facets intersecting other crack elements
+      bool crack_node{false};
       for (UInt j : arange(facet_conn.getNbComponent())) {
         auto node = facet_conn(connected_element.element, j);
-        if (this->ASR_nodes(node))
-          ASR_node = true;
+        if (this->crack_nodes(node))
+          crack_node = true;
       }
-      if (ASR_node)
+      if (crack_node)
         continue;
 
       // get inscribed diameter
@@ -4017,7 +4041,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
       for (auto & neighbor : neighbors) {
         doubled_facets.add(neighbor);
         for (UInt node : arange(2)) {
-          this->ASR_nodes(facet_conn(neighbor.element, node)) = true;
+          this->crack_nodes(facet_conn(neighbor.element, node)) = true;
         }
       }
       return true;
@@ -4034,7 +4058,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
       doubled_facets.add(neighbor);
       for (UInt node : arange(facet_conn.getNbComponent())) {
         doubled_nodes.add(facet_conn(neighbor.element, node));
-        this->ASR_nodes(facet_conn(neighbor.element, node)) = true;
+        this->crack_nodes(facet_conn(neighbor.element, node)) = true;
       }
       return true;
     } else
@@ -4045,7 +4069,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
   }
 }
 /* ------------------------------------------------------------------ */
-void ASRTools::preventCohesiveInsertionInNeighbors() {
+void RVETools::preventCohesiveInsertionInNeighbors() {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -4054,25 +4078,11 @@ void ASRTools::preventCohesiveInsertionInNeighbors() {
   const GhostType gt = _not_ghost;
   auto el_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
   auto facet_type = Mesh::getFacetType(el_type);
-  // auto subfacet_type = Mesh::getFacetType(facet_type);
 
-  // auto & facet_conn = mesh.getConnectivity(facet_type, gt);
-  // auto facet_conn_it = facet_conn.begin(facet_conn.getNbComponent());
   auto & subfacets_to_facets =
       mesh_facets.getSubelementToElement(facet_type, gt);
   auto nb_subfacet = subfacets_to_facets.getNbComponent();
   auto subf_to_fac_it = subfacets_to_facets.begin(nb_subfacet);
-  // auto & doubled_nodes = mesh.getNodeGroup("doubled_nodes");
-
-  // CSR<Element> nodes_to_elements;
-  // MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
-  // for (auto node : doubled_nodes.getNodes()) {
-  //   for (auto & elem : nodes_to_elements.getRow(node)) {
-  //     if (elem.type != facet_type)
-  //       continue;
-  //     inserter.getCheckFacets(elem.type, gt)(elem.element) = false;
-  //   }
-  // }
 
   auto & el_group = mesh_facets.getElementGroup("doubled_facets");
   Array<UInt> element_ids = el_group.getElements(facet_type);
@@ -4106,7 +4116,7 @@ void ASRTools::preventCohesiveInsertionInNeighbors() {
 }
 
 /* ------------------------------------------------------------------- */
-void ASRTools::insertOppositeFacetsAndCohesives() {
+void RVETools::insertOppositeFacetsAndCohesives() {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & insertion = inserter.getInsertionFacetsByElement();
@@ -4161,10 +4171,10 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
   MeshUtils::fillElementToSubElementsData(mesh);
   mesh.sendEvent(new_facets_event);
 
-  // fill up ASR facets vector
-  this->ASR_facets_from_mesh.resize(this->asr_facets.size());
-  for (UInt i = 0; i != this->asr_facets.size(); i++) {
-    auto single_site_facets = this->asr_facets(i);
+  // fill up crack facets vector
+  this->crack_facets_from_mesh.resize(this->crack_facets.size());
+  for (UInt i = 0; i != this->crack_facets.size(); i++) {
+    auto single_site_facets = this->crack_facets(i);
     for (auto & facet : single_site_facets) {
       Element cohesive{ElementNull};
       auto & connected_els = mesh_facets.getElementToSubelement(facet);
@@ -4180,7 +4190,7 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
       for (auto & connected_subel : connected_subels) {
         if (connected_subel.type != facet.type)
           continue;
-        this->ASR_facets_from_mesh(i).push_back(connected_subel);
+        this->crack_facets_from_mesh(i).push_back(connected_subel);
       }
     }
   }
@@ -4196,7 +4206,7 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
   model.getFEEngineBoundary().computeNormalsOnIntegrationPoints(_ghost);
 }
 /* ----------------------------------------------------------------------- */
-void ASRTools::assignCrackNumbers() {
+void RVETools::assignCrackNumbers() {
   auto & mesh = model.getMesh();
   auto & mesh_facets = mesh.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
@@ -4237,22 +4247,9 @@ void ASRTools::assignCrackNumbers() {
                                    nod_2.end(), common_nodes.begin());
         common_nodes.resize(it - common_nodes.begin());
 
-        // switch (dim) {
-        // case 2: {
-        //   // 1 common node between 2 segments
-        //   if (common_nodes.size() == 1) {
-        //     boost::add_edge(i, j, graph);
-        //   }
-        //   break;
-        // }
-        // case 3: {
-        // 2 or 3 common nodes between 2 triangles
         if (common_nodes.size() > 1) {
           boost::add_edge(i, j, graph);
         }
-        //   break;
-        // }
-        // }
       }
     }
 
@@ -4275,7 +4272,7 @@ void ASRTools::assignCrackNumbers() {
   }
 }
 /* ------------------------------------------------------------------- */
-void ASRTools::insertGap(const Real gap_ratio) {
+void RVETools::insertGap(const Real gap_ratio) {
   AKANTU_DEBUG_IN();
   if (gap_ratio == 0)
     return;
@@ -4333,7 +4330,7 @@ void ASRTools::insertGap(const Real gap_ratio) {
   AKANTU_DEBUG_OUT();
 }
 /* ------------------------------------------------------------------- */
-void ASRTools::insertGap3D(const Real gap_ratio) {
+void RVETools::insertGap3D(const Real gap_ratio) {
   AKANTU_DEBUG_IN();
   if (gap_ratio == 0)
     return;
@@ -4460,194 +4457,9 @@ void ASRTools::insertGap3D(const Real gap_ratio) {
   AKANTU_DEBUG_OUT();
 }
 
-/* ------------------------------------------------------------------ */
-void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
-                            const NewNodesEvent &) {
-  AKANTU_DEBUG_IN();
-  if (new_nodes.size() == 0)
-    return;
-  // increase the internal arrays by the number of new_nodes
-  UInt new_nb_nodes = this->modified_pos.size() + new_nodes.size();
-  this->modified_pos.resize(new_nb_nodes);
-  this->partition_border_nodes.resize(new_nb_nodes);
-  this->nodes_eff_stress.resize(new_nb_nodes);
-  this->ASR_nodes.resize(new_nb_nodes);
-
-  // function is activated only when expanding cohesive elements is on
-  if (not this->cohesive_insertion)
-    return;
-  if (this->asr_central_nodes_ready)
-    return;
-  auto & mesh = model.getMesh();
-
-  // auto & node_group = mesh.getNodeGroup("doubled_nodes");
-  // auto & central_nodes = node_group.getNodes();
-  auto pos_it = make_view(mesh.getNodes(), mesh.getSpatialDimension()).begin();
-
-  for (auto & new_node : new_nodes) {
-    const Vector<Real> & new_node_coord = pos_it[new_node];
-    auto central_nodes = this->asr_central_nodes;
-    for (auto & central_node : central_nodes) {
-      const Vector<Real> & central_node_coord = pos_it[central_node];
-      if (new_node_coord == central_node_coord) {
-        // node_group.add(new_node);
-        this->asr_central_nodes.push_back(new_node);
-        break;
-      }
-    }
-  }
-
-  this->asr_central_nodes_ready = true;
-  AKANTU_DEBUG_OUT();
-}
-
-/* ------------------------------------------------------------------------ */
-void ASRTools::updateElementGroup(const std::string group_name) {
-  AKANTU_DEBUG_IN();
-  auto & mesh = model.getMesh();
-  AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
-                      "Element group is not registered in the mesh");
-  auto dim = mesh.getSpatialDimension();
-  const GhostType gt = _not_ghost;
-  auto && group = mesh.getElementGroup(group_name);
-  auto && pos = mesh.getNodes();
-  const auto pos_it = make_view(pos, dim).begin();
-
-  for (auto & type : group.elementTypes(dim - 1)) {
-    auto & facet_conn = mesh.getConnectivity(type, gt);
-    const UInt nb_nodes_facet = facet_conn.getNbComponent();
-    const auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
-    AKANTU_DEBUG_ASSERT(
-        type == _segment_2,
-        "Currently update group works only for el type _segment_2");
-    const auto element_ids = group.getElements(type, gt);
-    for (auto && el_id : element_ids) {
-      const auto connected_els = mesh.getElementToSubelement(type, gt)(el_id);
-      for (auto && connected_el : connected_els) {
-
-        auto type_solid = connected_el.type;
-        auto & solid_conn = mesh.getConnectivity(type_solid, gt);
-        const UInt nb_nodes_solid_el = solid_conn.getNbComponent();
-        const auto solid_nodes_it =
-            make_view(solid_conn, nb_nodes_solid_el).begin();
-        Vector<UInt> facet_nodes = facet_nodes_it[el_id];
-        Vector<UInt> solid_nodes = solid_nodes_it[connected_el.element];
-
-        // check only the corner nodes of facets -central will not change
-        for (auto f : arange(2)) {
-          auto facet_node = facet_nodes(f);
-          const Vector<Real> & facet_node_coords = pos_it[facet_node];
-          for (auto s : arange(nb_nodes_solid_el)) {
-            auto solid_node = solid_nodes(s);
-            const Vector<Real> & solid_node_coords = pos_it[solid_node];
-            if (solid_node_coords == facet_node_coords) {
-              if (solid_node != facet_node) {
-                // group.removeNode(facet_node);
-                facet_conn(el_id, f) = solid_node;
-                // group.addNode(solid_node, true);
-              }
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  group.optimize();
-  AKANTU_DEBUG_OUT();
-}
-
-/* ------------------------------------------------------------------ */
-void ASRTools::applyGelStrain(const Matrix<Real> & prestrain) {
-  AKANTU_DEBUG_IN();
-  auto & mesh = model.getMesh();
-  auto dim = mesh.getSpatialDimension();
-  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
-
-  // apply the new eigenstrain
-  for (auto element_type :
-       mesh.elementTypes(dim, _not_ghost, _ek_not_defined)) {
-    Array<Real> & prestrain_vect =
-        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
-    auto prestrain_it = prestrain_vect.begin(dim, dim);
-    auto prestrain_end = prestrain_vect.end(dim, dim);
-
-    for (; prestrain_it != prestrain_end; ++prestrain_it)
-      (*prestrain_it) = prestrain;
-  }
-  AKANTU_DEBUG_OUT();
-}
-
-/* ------------------------------------------------------------------ */
-void ASRTools::clearASREigenStrain() {
-  AKANTU_DEBUG_IN();
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-  Matrix<Real> zero_eigenstrain(dim, dim, 0.);
-  GhostType gt = _not_ghost;
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-    auto & prestrain_vect =
-        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
-    auto prestrain_it = prestrain_vect.begin(dim, dim);
-    auto prestrain_end = prestrain_vect.end(dim, dim);
-
-    for (; prestrain_it != prestrain_end; ++prestrain_it)
-      (*prestrain_it) = zero_eigenstrain;
-  }
-  AKANTU_DEBUG_OUT();
-}
-/* ------------------------------------------------------------------ */
-void ASRTools::storeASREigenStrain(Array<Real> & stored_eig) {
-  AKANTU_DEBUG_IN();
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-  GhostType gt = _not_ghost;
-  UInt nb_quads = 0;
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-    const UInt nb_gp = model.getFEEngine().getNbIntegrationPoints(element_type);
-    nb_quads +=
-        model.getMaterial("gel").getElementFilter(element_type).size() * nb_gp;
-  }
-  stored_eig.resize(nb_quads);
-  auto stored_eig_it = stored_eig.begin(dim, dim);
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-    auto & prestrain_vect =
-        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
-    auto prestrain_it = prestrain_vect.begin(dim, dim);
-    auto prestrain_end = prestrain_vect.end(dim, dim);
-
-    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
-      (*stored_eig_it) = (*prestrain_it);
-  }
-  AKANTU_DEBUG_OUT();
-}
-/* ------------------------------------------------------------------ */
-void ASRTools::restoreASREigenStrain(Array<Real> & stored_eig) {
-  AKANTU_DEBUG_IN();
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-  GhostType gt = _not_ghost;
-  auto stored_eig_it = stored_eig.begin(dim, dim);
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-    auto & prestrain_vect =
-        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
-    auto prestrain_it = prestrain_vect.begin(dim, dim);
-    auto prestrain_end = prestrain_vect.end(dim, dim);
-
-    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
-      (*prestrain_it) = (*stored_eig_it);
-  }
-  AKANTU_DEBUG_OUT();
-}
-
 /* ------------------------------------------------------------------- */
 template <UInt dim>
-UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
+UInt RVETools::insertLoopsOfStressedCohesives(Real min_dot) {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -4725,11 +4537,11 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
   return nb_new_elements;
 }
 
-template UInt ASRTools::insertLoopsOfStressedCohesives<2>(Real min_dot);
-template UInt ASRTools::insertLoopsOfStressedCohesives<3>(Real min_dot);
+template UInt RVETools::insertLoopsOfStressedCohesives<2>(Real min_dot);
+template UInt RVETools::insertLoopsOfStressedCohesives<3>(Real min_dot);
 
 /* ------------------------------------------------------------------- */
-template <UInt dim> UInt ASRTools::insertStressedCohesives() {
+template <UInt dim> UInt RVETools::insertStressedCohesives() {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -4801,11 +4613,11 @@ template <UInt dim> UInt ASRTools::insertStressedCohesives() {
   return nb_new_elements;
 }
 
-template UInt ASRTools::insertStressedCohesives<2>();
-template UInt ASRTools::insertStressedCohesives<3>();
+template UInt RVETools::insertStressedCohesives<2>();
+template UInt RVETools::insertStressedCohesives<3>();
 
 /* --------------------------------------------------------------- */
-std::map<UInt, std::map<UInt, UInt>> ASRTools::findStressedFacetsLoops(
+std::map<UInt, std::map<UInt, UInt>> RVETools::findStressedFacetsLoops(
     const std::map<Element, Element> & contour_subfacets_coh_el,
     const std::map<Element, UInt> & /*surface_subfacets_crack_nb*/,
     const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
@@ -4884,7 +4696,7 @@ std::map<UInt, std::map<UInt, UInt>> ASRTools::findStressedFacetsLoops(
   return mat_index_facet_nbs_crack_nbs;
 }
 /* --------------------------------------------------------------- */
-Real ASRTools::averageEffectiveStressInMultipleFacets(
+Real RVETools::averageEffectiveStressInMultipleFacets(
     Array<Element> & facet_loop) {
 
   if (not facet_loop.size())
@@ -4931,7 +4743,7 @@ Real ASRTools::averageEffectiveStressInMultipleFacets(
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::decomposeFacetLoopPerMaterial(
+void RVETools::decomposeFacetLoopPerMaterial(
     const Array<Element> & facet_loop, UInt crack_nb,
     std::map<UInt, std::map<UInt, UInt>> & mat_index_facet_nbs_crack_nbs) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -4947,7 +4759,7 @@ void ASRTools::decomposeFacetLoopPerMaterial(
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::applyEigenOpening(Real eigen_strain) {
+void RVETools::applyEigenOpening(Real eigen_strain) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
 
   if (not coh_model.getIsExtrinsic()) {
@@ -5007,9 +4819,76 @@ void ASRTools::applyEigenOpening(Real eigen_strain) {
     }
   }
 }
-
 /* --------------------------------------------------------------- */
-void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
+void RVETools::applyEigenOpeningFluidVolumeBased(Real fluid_volume_ratio) {
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+
+  if (not coh_model.getIsExtrinsic()) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  const Mesh & mesh_facets = coh_model.getMeshFacets();
+  const UInt dim = model.getSpatialDimension();
+  // compute total asr gel volume
+  if (!this->volume)
+    computeModelVolume();
+  Real fluid_volume = this->volume * fluid_volume_ratio;
+
+  // compute total area of existing cracks
+  auto data_agg = computeCrackData("agg-agg");
+  auto data_agg_mor = computeCrackData("agg-mor");
+  auto data_mor = computeCrackData("mor-mor");
+  auto area_agg = std::get<0>(data_agg);
+  auto area_agg_mor = std::get<0>(data_agg_mor);
+  auto area_mor = std::get<0>(data_mor);
+  Real total_area = area_agg + area_agg_mor + area_mor;
+
+  // compute necessary opening to cover fit gel volume by crack area
+  Real average_opening = fluid_volume / total_area;
+
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+
+    for (auto gt : ghost_types) {
+      for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
+        ElementType type_cohesive =
+            FEEngine::getCohesiveElementType(type_facet);
+        UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                    .getNbIntegrationPoints(type_cohesive);
+        if (not model.getMesh().getNbElement(type_cohesive, gt))
+          continue;
+
+        const Array<UInt> & elem_filter =
+            mat_coh->getElementFilter(type_cohesive, gt);
+
+        if (not elem_filter.size()) {
+          continue;
+        }
+
+        // access openings of cohesive elements
+        auto & eig_opening = mat_coh->getEigenOpening(type_cohesive, gt);
+        auto & normals = mat_coh->getNormals(type_cohesive, gt);
+        auto eig_op_it = eig_opening.begin(dim);
+        auto normals_it = normals.begin(dim);
+
+        // apply average opening directly as eigen
+        for (auto el_order : arange(elem_filter.size())) {
+          Vector<Real> normal(normals_it[el_order * nb_quad_cohesive]);
+          for (UInt i : arange(nb_quad_cohesive)) {
+            auto eig_op = eig_op_it[el_order * nb_quad_cohesive + i];
+            eig_op = normal * average_opening;
+          }
+        }
+      }
+    }
+  }
+}
+/* --------------------------------------------------------------- */
+void RVETools::applyPointForceToCrackCentralNodes(Real force_norm) {
   auto && mesh = model.getMesh();
   auto dim = mesh.getSpatialDimension();
   auto & forces = model.getExternalForce();
@@ -5017,7 +4896,7 @@ void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
   auto it_force = make_view(forces, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
 
-  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+  for (auto && data : zip(crack_central_node_pairs, crack_normals_pairs)) {
     auto && node_pair = std::get<0>(data);
     auto && normals_pair = std::get<1>(data);
     auto node1 = node_pair.first;
@@ -5031,7 +4910,7 @@ void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
   }
 }
 /* --------------------------------------------------------------- */
-void ASRTools::applyPointForceDelayed(Real loading_rate,
+void RVETools::applyPointForceDelayed(Real loading_rate,
                                       const Array<Real> loading_times,
                                       Real time, Real multiplier) {
   auto && mesh = model.getMesh();
@@ -5040,12 +4919,12 @@ void ASRTools::applyPointForceDelayed(Real loading_rate,
   auto & pos = mesh.getNodes();
   auto it_force = make_view(forces, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
-  AKANTU_DEBUG_ASSERT(loading_times.size() == asr_central_node_pairs.size(),
+  AKANTU_DEBUG_ASSERT(loading_times.size() == crack_central_node_pairs.size(),
                       "Number of starting loading times does not correspond to "
                       "the number of node pairs");
 
   for (auto && data :
-       zip(asr_central_node_pairs, asr_normals_pairs, loading_times)) {
+       zip(crack_central_node_pairs, crack_normals_pairs, loading_times)) {
     auto && node_pair = std::get<0>(data);
     auto && normals_pair = std::get<1>(data);
     auto && loading_time = std::get<2>(data);
@@ -5064,8 +4943,9 @@ void ASRTools::applyPointForceDelayed(Real loading_rate,
   }
 }
 /* --------------------------------------------------------------- */
-void ASRTools::applyPointForceDistributed(Real radius, Real F) {
-  AKANTU_DEBUG_ASSERT(radius != 0, "ASR pocket radius could not be equal to 0");
+void RVETools::applyPointForceDistributed(Real radius, Real F) {
+  AKANTU_DEBUG_ASSERT(radius != 0,
+                      "Expanding pocket radius could not be equal to 0");
   auto && mesh = model.getMesh();
   auto & mesh_facets = mesh.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
@@ -5075,7 +4955,7 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
   auto it_force = make_view(forces, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
 
-  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+  for (auto && data : zip(crack_central_node_pairs, crack_normals_pairs)) {
     std::map<std::pair<UInt, UInt>, std::pair<Real, Vector<Real>>>
         loaded_nodes_distance_normal;
     auto central_node_pair = std::get<0>(data);
@@ -5210,7 +5090,7 @@ void ASRTools::applyPointForceDistributed(Real radius, Real F) {
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::applyPointForcesFacetLoop(Real load) {
+void RVETools::applyPointForcesFacetLoop(Real load) {
 
   auto && mesh = model.getMesh();
   auto dim = mesh.getSpatialDimension();
@@ -5220,7 +5100,7 @@ void ASRTools::applyPointForcesFacetLoop(Real load) {
   CSR<Element> nodes_to_cohesives;
   MeshUtils::buildNode2Elements(mesh, nodes_to_cohesives, dim, _ek_cohesive);
 
-  for (auto && data : zip(asr_central_node_pairs)) {
+  for (auto && data : zip(crack_central_node_pairs)) {
     std::map<std::pair<UInt, UInt>, Vector<Real>> loaded_nodes_normals;
     std::set<std::pair<UInt, UInt>> loaded_nodes;
     auto central_node_pair = std::get<0>(data);
@@ -5293,7 +5173,7 @@ void ASRTools::applyPointForcesFacetLoop(Real load) {
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
+void RVETools::outputCrackData(std::ofstream & file_output, Real time) {
 
   auto data_agg = computeCrackData("agg-agg");
   auto data_agg_mor = computeCrackData("agg-mor");
@@ -5319,7 +5199,7 @@ void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 }
 
 /* --------------------------------------------------------------- */
-std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
+std::tuple<Real, Real> RVETools::computeCrackData(const ID & material_name) {
   const auto & mesh = model.getMesh();
   const auto & mesh_facets = mesh.getMeshFacets();
   const auto dim = mesh.getSpatialDimension();
@@ -5404,7 +5284,6 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
   }
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
-  // comm.allReduce(ASR_volume, SynchronizerOperation::_sum);
   comm.allReduce(crack_volume, SynchronizerOperation::_sum);
   comm.allReduce(crack_area, SynchronizerOperation::_sum);
 
@@ -5412,11 +5291,11 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
+void RVETools::outputCrackVolumes(std::ofstream & file_output, Real time) {
   const Communicator & comm = Communicator::getWorldCommunicator();
   UInt prank = comm.whoAmI();
   // shift crack numbers by the number of cracks on lower processors
-  UInt tot_nb_cracks{asr_central_node_pairs.size()};
+  UInt tot_nb_cracks{crack_central_node_pairs.size()};
   comm.allReduce(tot_nb_cracks, SynchronizerOperation::_sum);
   Array<Real> crack_volumes(tot_nb_cracks, 1, 0.);
 
@@ -5507,16 +5386,16 @@ void ASRTools::outputCrackVolumes(std::ofstream & file_output, Real time) {
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
+void RVETools::outputCrackOpenings(std::ofstream & file_output, Real time) {
   const Communicator & comm = Communicator::getWorldCommunicator();
   UInt prank = comm.whoAmI();
   UInt nb_proc = comm.getNbProc();
-  Real global_nb_openings(asr_central_node_pairs.size());
+  Real global_nb_openings(crack_central_node_pairs.size());
   comm.allReduce(global_nb_openings, SynchronizerOperation::_sum);
   // shift crack numbers by the number of cracks on lower processors
-  UInt nb_cracks{asr_central_node_pairs.size()};
+  UInt nb_cracks{crack_central_node_pairs.size()};
   comm.exclusiveScan(nb_cracks);
-  UInt max_nb_cracks{asr_central_node_pairs.size()};
+  UInt max_nb_cracks{crack_central_node_pairs.size()};
   comm.allReduce(max_nb_cracks, SynchronizerOperation::_max);
   Array<Real> openings(nb_proc, max_nb_cracks, -1.);
 
@@ -5529,9 +5408,9 @@ void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
   auto it_open = make_view(openings, max_nb_cracks).begin();
   auto open_end = make_view(openings, max_nb_cracks).end();
 
-  for (UInt i = 0; i < asr_central_node_pairs.size(); i++) {
-    auto && node_pair = asr_central_node_pairs(i);
-    auto && normals_pair = asr_normals_pairs(i);
+  for (UInt i = 0; i < crack_central_node_pairs.size(); i++) {
+    auto && node_pair = crack_central_node_pairs(i);
+    auto && normals_pair = crack_normals_pairs(i);
 
     auto node1 = node_pair.first;
     auto node2 = node_pair.second;
@@ -5558,10 +5437,10 @@ void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::outputCrackOpeningsPerProc(std::ofstream & file_output,
+void RVETools::outputCrackOpeningsPerProc(std::ofstream & file_output,
                                           Real time) {
 
-  Array<Real> openings(asr_central_node_pairs.size());
+  Array<Real> openings(crack_central_node_pairs.size());
   auto && mesh = model.getMesh();
   auto dim = mesh.getSpatialDimension();
   auto & disp = model.getDisplacement();
@@ -5569,9 +5448,9 @@ void ASRTools::outputCrackOpeningsPerProc(std::ofstream & file_output,
   auto it_disp = make_view(disp, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
 
-  for (UInt i = 0; i < asr_central_node_pairs.size(); i++) {
-    auto && node_pair = asr_central_node_pairs(i);
-    auto && normals_pair = asr_normals_pairs(i);
+  for (UInt i = 0; i < crack_central_node_pairs.size(); i++) {
+    auto && node_pair = crack_central_node_pairs(i);
+    auto && normals_pair = crack_normals_pairs(i);
 
     auto node1 = node_pair.first;
     auto node2 = node_pair.second;
@@ -5591,7 +5470,7 @@ void ASRTools::outputCrackOpeningsPerProc(std::ofstream & file_output,
 }
 
 /* --------------------------------------------------------------- */
-void ASRTools::identifyASRCentralNodePairsAndNormals() {
+void RVETools::identifyCrackCentralNodePairsAndNormals() {
   auto && mesh = model.getMesh();
   auto && mesh_facets = mesh.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
@@ -5610,19 +5489,19 @@ void ASRTools::identifyASRCentralNodePairsAndNormals() {
   auto it_force = make_view(forces, dim).begin();
   auto it_pos = make_view(pos, dim).begin();
 
-  this->asr_central_node_pairs.resize(asr_facets.size());
-  this->asr_normals_pairs.resize(asr_facets.size());
+  this->crack_central_node_pairs.resize(crack_facets.size());
+  this->crack_normals_pairs.resize(crack_facets.size());
   for (auto && data :
-       zip(asr_facets, asr_central_node_pairs, asr_normals_pairs)) {
+       zip(crack_facets, crack_central_node_pairs, crack_normals_pairs)) {
     auto && facets_per_site = std::get<0>(data);
     auto & node_pair = std::get<1>(data);
     node_pair = std::make_pair(UInt(-1), UInt(-1));
-    auto & asr_normals_pair = std::get<2>(data);
+    auto & crack_normals_pair = std::get<2>(data);
 
     // find first node
     auto && facet_conn = mesh_facets.getConnectivity(facets_per_site(0));
     for (auto && node : facet_conn) {
-      auto ret = asr_central_nodes.find(node);
+      auto ret = crack_central_nodes.find(node);
       if (ret != UInt(-1)) {
         node_pair.first = node;
         break;
@@ -5685,16 +5564,16 @@ void ASRTools::identifyASRCentralNodePairsAndNormals() {
       }
       normal += facet_normal;
     }
-    asr_normals_pair.first = normal / normal.norm();
-    asr_normals_pair.second = normal / normal.norm() * (-1.);
+    crack_normals_pair.first = normal / normal.norm();
+    crack_normals_pair.second = normal / normal.norm() * (-1.);
 
     // find the second one
     Vector<Real> first_node_pos = it_pos[node_pair.first];
-    for (auto && asr_central_node : asr_central_nodes) {
-      Vector<Real> node_pos = it_pos[asr_central_node];
+    for (auto && crack_central_node : crack_central_nodes) {
+      Vector<Real> node_pos = it_pos[crack_central_node];
       if ((first_node_pos == node_pos) &&
-          (asr_central_node != node_pair.first)) {
-        node_pair.second = asr_central_node;
+          (crack_central_node != node_pair.first)) {
+        node_pair.second = crack_central_node;
         break;
       }
     }
@@ -5706,7 +5585,7 @@ void ASRTools::identifyASRCentralNodePairsAndNormals() {
 /* ----------------------------------------------------------------- */
 std::tuple<std::map<Element, Element>, std::map<Element, UInt>, std::set<UInt>,
            std::map<UInt, std::set<Element>>>
-ASRTools::determineCrackSurface() {
+RVETools::determineCrackSurface() {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model.getMesh();
@@ -5743,7 +5622,7 @@ ASRTools::determineCrackSurface() {
                          surface_nodes, contour_nodes_subfacets);
 }
 /* ----------------------------------------------------------------- */
-void ASRTools::searchCrackSurfaceInSingleFacet(
+void RVETools::searchCrackSurfaceInSingleFacet(
     Element & facet, std::map<Element, Element> & contour_subfacets_coh_el,
     std::map<Element, UInt> & /*surface_subfacets_crack_nb*/,
     std::set<UInt> & /*surface_nodes*/,
@@ -5802,7 +5681,7 @@ void ASRTools::searchCrackSurfaceInSingleFacet(
 }
 
 /* ------------------------------------------------------------------- */
-template <UInt dim> UInt ASRTools::updateDeltaMax() {
+template <UInt dim> UInt RVETools::updateDeltaMax() {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -5834,12 +5713,12 @@ template <UInt dim> UInt ASRTools::updateDeltaMax() {
   return nb_updated_quads;
 }
 
-template UInt ASRTools::updateDeltaMax<2>();
-template UInt ASRTools::updateDeltaMax<3>();
+template UInt RVETools::updateDeltaMax<2>();
+template UInt RVETools::updateDeltaMax<3>();
 
 /* ------------------------------------------------------------------- */
 template <UInt dim>
-std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
+std::tuple<Real, Element, UInt> RVETools::getMaxDeltaMaxExcess() {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -5888,11 +5767,11 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
                          global_nb_penetr_quads);
 }
 
-template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<2>();
-template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<3>();
+template std::tuple<Real, Element, UInt> RVETools::getMaxDeltaMaxExcess<2>();
+template std::tuple<Real, Element, UInt> RVETools::getMaxDeltaMaxExcess<3>();
 
 /* ------------------------------------------------------------------ */
-Real ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
+Real RVETools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -5920,7 +5799,7 @@ Real ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
 }
 
 /* ------------------------------------------------------------------- */
-template <UInt dim> void ASRTools::setUpdateStiffness(bool update_stiffness) {
+template <UInt dim> void RVETools::setUpdateStiffness(bool update_stiffness) {
   AKANTU_DEBUG_IN();
 
   for (auto && mat : model.getMaterials()) {
@@ -5936,7 +5815,7 @@ template <UInt dim> void ASRTools::setUpdateStiffness(bool update_stiffness) {
   AKANTU_DEBUG_OUT();
 }
 
-template void ASRTools::setUpdateStiffness<2>(bool update_stiffness);
-template void ASRTools::setUpdateStiffness<3>(bool update_stiffness);
+template void RVETools::setUpdateStiffness<2>(bool update_stiffness);
+template void RVETools::setUpdateStiffness<3>(bool update_stiffness);
 
 } // namespace akantu

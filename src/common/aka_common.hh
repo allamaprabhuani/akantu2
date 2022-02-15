@@ -414,8 +414,8 @@ enum class SynchronizationTag {
   _solver_solution, ///< synchronization of the solution obained with the
                     /// PETSc solver
 
-  // --- ASRTools tags ---
-  _crack_nb         ///< synchronization for crack numbers in asr tools
+  // --- RVETools tags ---
+  _crack_nb         ///< synchronization for crack numbers in rve tools
       _border_nodes ///< synchronization for the nodes at the partition border
 };
 #endif
