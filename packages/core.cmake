@@ -46,6 +46,11 @@ else()
   package_set_compile_flags(core "-Wall")
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0.0)
+  package_set_compile_flags(core "-Wall -Wextra -pedantic -Wno-attributes")
+endif()
+
+
 package_declare_sources(core
   common/aka_array.cc
   common/aka_array.hh

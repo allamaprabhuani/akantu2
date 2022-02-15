@@ -53,29 +53,29 @@ public:
 public:
   inline constexpr ElementKind kind() const;
 
-  inline constexpr bool operator==(const Element & elem) const {
-    return std::tie(type, element, ghost_type) ==
-           std::tie(elem.type, elem.element, elem.ghost_type);
+  inline constexpr bool operator==(const Element &elem) const {
+    return std::make_tuple(type, element, ghost_type) ==
+           std::make_tuple(elem.type, elem.element, elem.ghost_type);
   }
 
-  inline constexpr bool operator!=(const Element & elem) const {
-    return std::tie(type, element, ghost_type) !=
-           std::tie(elem.type, elem.element, elem.ghost_type);
+  inline constexpr bool operator!=(const Element &elem) const {
+    return std::make_tuple(type, element, ghost_type) !=
+           std::make_tuple(elem.type, elem.element, elem.ghost_type);
   }
 
-  inline constexpr bool operator<(const Element & rhs) const;
+  inline constexpr bool operator<(const Element &rhs) const;
 };
 
 #if __cplusplus < 201703L
 namespace {
-  const Element ElementNull{_not_defined, Idx(-1), _casper};
+const Element ElementNull{_not_defined, -1, _casper};
 } // namespace
 #else
-  inline constexpr Element ElementNull{_not_defined, Idx(-1), _casper};
+inline constexpr Element ElementNull{_not_defined, -1, _casper};
 #endif
 
 /* -------------------------------------------------------------------------- */
-inline constexpr bool Element::operator<(const Element & rhs) const {
+inline constexpr bool Element::operator<(const Element &rhs) const {
   return ((rhs == ElementNull) ||
           std::tie(ghost_type, type, element) <
               std::tie(rhs.ghost_type, rhs.type, rhs.element));
@@ -84,7 +84,7 @@ inline constexpr bool Element::operator<(const Element & rhs) const {
 } // namespace akantu
 
 namespace std {
-inline string to_string(const akantu::Element & _this) {
+inline string to_string(const akantu::Element &_this) {
   if (_this == akantu::ElementNull) {
     return "ElementNull";
   }
@@ -99,7 +99,7 @@ inline string to_string(const akantu::Element & _this) {
 namespace akantu {
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const Element & _this) {
+inline std::ostream &operator<<(std::ostream &stream, const Element &_this) {
   stream << std::to_string(_this);
   return stream;
 }

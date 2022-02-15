@@ -218,12 +218,18 @@ namespace details {
     using Ret = decltype(function(std::tuple_element_t<0, Tuple>{}));
     using TableEntry = Ret (*)(FunctionPointer);
 
+    // needed since gcc 5.4.1 does not understand the expansion other why
+    auto unpack = [&](auto I) {
+      using type = std::tuple_element_t<decltype(I)::value, Tuple>;
+      return std::make_pair(type::value,
+                            [](FunctionPointer function_pointer) -> Ret {
+                              return (*function_pointer)(type{});
+                            });
+    };
+
     static constexpr std::array<std::pair<DynamicType, TableEntry>,
                                 sizeof...(Is)>
-        data{{{std::tuple_element_t<Is, Tuple>::value,
-               [](FunctionPointer function_pointer) -> Ret {
-                 return (*function_pointer)(std::tuple_element_t<Is, Tuple>{});
-               }}...}};
+        data{unpack(std::integral_constant<std::size_t, Is>{})...};
 
     static constexpr auto map =
         ConstexprMap<DynamicType, TableEntry, data.size()>{{data}};
