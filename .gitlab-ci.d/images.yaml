@@ -30,6 +30,7 @@
       - .ccache/
       - third-party/google-test
       - third-party/pybind11
+      - third-party/eigen3
   before_script:
     - ccache --zero-stats || true
   after_script:
