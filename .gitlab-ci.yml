@@ -36,13 +36,13 @@ docker build:manylinux:
 configure:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
+    - .build_release
     - .configure
 
 build:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
+    - .build_release
     - .build_all
   needs:
     - job: configure:debian_bullseye_gcc
@@ -50,7 +50,7 @@ build:debian_bullseye_gcc:
 test:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
+    - .build_release
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
@@ -62,13 +62,13 @@ test:debian_bullseye_gcc:
 configure:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
+    - .build_release
     - .configure
 
 build:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
+    - .build_release
     - .build_all
   needs:
     - job: configure:debian_bullseye_clang
@@ -76,7 +76,7 @@ build:debian_bullseye_clang:
 test:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
+    - .build_release
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
