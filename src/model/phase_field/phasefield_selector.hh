@@ -104,7 +104,7 @@ public:
         phasefield_index(element.type, element.ghost_type);
     if (element.element < phase_indexes.size()) {
       auto && tmp_phase = phase_indexes(element.element);
-      if (tmp_phase != UInt(-1)) {
+      if (tmp_phase != -1) {
         return tmp_phase;
       }
     }

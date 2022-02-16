@@ -53,8 +53,8 @@ protected:
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
-  void computeDrivingForce(ElementType /*el_type*/,
-                           GhostType /*ghost_type*/) override;
+  void computeDrivingForce(ElementType /*el_type*/, GhostType /*ghost_type*/)
+  override;
 
   inline void computeDrivingForceOnQuad(const Real & /*phi_quad*/,
                                         Real & /*driving_force_quad*/);
@@ -92,7 +92,7 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 
   Vector<Real> strain_values(spatial_dimension);
 
-  Real trace_plus, trace_minus;
+  Real trace_plus;
 
   strain_plus.zero();
   // strain_minus.zero();

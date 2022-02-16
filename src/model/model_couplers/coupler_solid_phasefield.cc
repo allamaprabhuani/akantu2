@@ -470,7 +470,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
                                               Array<Real> & d_old) {
 
   const Array<bool> & blocked_dofs = solid->getBlockedDOFs();
-  UInt nb_degree_of_freedom = u_new.size();
+  Int nb_degree_of_freedom = u_new.size();
 
   auto u_n_it = u_new.begin();
   auto u_o_it = u_old.begin();
