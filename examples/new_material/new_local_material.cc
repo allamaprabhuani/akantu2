@@ -43,10 +43,10 @@ using namespace akantu;
 #define bar_height 4.
 akantu::Real eps = 1e-10;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   akantu::initialize("material.dat", argc, argv);
 
-  UInt max_steps = 10000;
+  Int max_steps = 10000;
   Real epot, ekin;
 
   const Int spatial_dimension = 2;

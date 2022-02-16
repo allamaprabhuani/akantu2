@@ -42,7 +42,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
   /*
     In this example, we present dumpers::Dumpable which is an interface
@@ -80,31 +80,31 @@ int main(int argc, char * argv[]) {
    */
 
   // Grouping nodes and elements belonging to train wheels (=four mesh data).
-  ElementGroup & wheels_elements =
+  ElementGroup &wheels_elements =
       mesh.createElementGroup("wheels", spatial_dimension);
   wheels_elements.append(mesh.getElementGroup("lwheel_1"));
   wheels_elements.append(mesh.getElementGroup("lwheel_2"));
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<Idx> & lnode_1 =
+  const Array<Idx> &lnode_1 =
       (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> & lnode_2 =
+  const Array<Idx> &lnode_2 =
       (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
-  const Array<Idx> & rnode_1 =
+  const Array<Idx> &rnode_1 =
       (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> & rnode_2 =
+  const Array<Idx> &rnode_2 =
       (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
-  Array<Real> & node = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  Array<Real> &node = mesh.getNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   // This time a 2D Array is created and a padding size of 3 is passed to
   // NodalField in order to warp train deformation on Paraview.
   Array<Real> displacement(nb_nodes, spatial_dimension);
 
   // Create an ElementTypeMapArray for the colour
-  ElementTypeMapArray<UInt> colour("colour");
+  ElementTypeMapArray<Int> colour("colour");
   colour.initialize(mesh, _with_nb_element = true);
 
   /* ------------------------------------------------------------------------ */
@@ -112,14 +112,14 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
 
   // Create dumper for the complete mesh and register it as default dumper.
-  auto && dumper =
+  auto &&dumper =
       std::make_shared<DumperParaview>("train", "./paraview/dumpable", false);
   mesh.registerExternalDumper(dumper, "train", true);
   mesh.addDumpMesh(mesh);
 
   // The dumper for the filtered mesh can be directly taken from the
   // ElementGroup and then registered as "wheels_elements" dumper.
-  auto && wheels = mesh.getGroupDumper("paraview_wheels", "wheels");
+  auto &&wheels = mesh.getGroupDumper("paraview_wheels", "wheels");
 
   mesh.registerExternalDumper(wheels.shared_from_this(), "wheels");
   mesh.setDirectoryToDumper("wheels", "./paraview/dumpable");
@@ -127,11 +127,11 @@ int main(int argc, char * argv[]) {
   // Arrays and ElementTypeMapArrays can be added as external fields directly
   mesh.addDumpFieldExternal("displacement", displacement);
 
-  ElementTypeMapArrayFilter<UInt> filtered_colour(
-      colour, wheels_elements.getElements());
+  ElementTypeMapArrayFilter<Int> filtered_colour(colour,
+                                                 wheels_elements.getElements());
 
   auto colour_field_wheel =
-      std::make_shared<dumpers::ElementalField<UInt, Vector, true>>(
+      std::make_shared<dumpers::ElementalField<Int, Vector<Int>, true>>(
           filtered_colour);
   mesh.addDumpFieldExternal("color", colour_field_wheel);
 

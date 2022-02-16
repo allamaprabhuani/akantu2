@@ -49,13 +49,13 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline auto Material::addElement(ElementType type, Int element,
                                  GhostType ghost_type) {
-  auto & el_filter = this->element_filter(type, ghost_type);
+  auto &el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Material::addElement(const Element & element) {
+inline auto Material::addElement(const Element &element) {
   return this->addElement(element.type, element.element, element.ghost_type);
 }
 
@@ -66,11 +66,11 @@ constexpr inline Int Material::getCauchyStressMatrixSize(Int dim) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
-constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
-                                         Eigen::MatrixBase<D2> & F) {
-  AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim * dim,
-                      "The dimension of the tensor F should be greater or "
-                      "equal to the dimension of the tensor grad_u.");
+constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> &grad_u,
+                                         Eigen::MatrixBase<D2> &F) {
+  assert(F.size() >= grad_u.size() && grad_u.size() == dim * dim &&
+         "The dimension of the tensor F should be greater or "
+         "equal to the dimension of the tensor grad_u.");
 
   F.Identity();
   F.template block<dim, dim>(0, 0) += grad_u;
@@ -79,7 +79,7 @@ constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1>
 constexpr inline decltype(auto)
-Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u) {
+Material::gradUToF(const Eigen::MatrixBase<D1> &grad_u) {
   Matrix<Real, dim, dim> F;
   gradUToF<dim>(grad_u, F);
   return F;
@@ -87,10 +87,10 @@ Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2, typename D3>
-constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
-                                          const Eigen::MatrixBase<D2> & S,
-                                          Eigen::MatrixBase<D3> & sigma,
-                                          const Real & C33) {
+constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> &F,
+                                          const Eigen::MatrixBase<D2> &S,
+                                          Eigen::MatrixBase<D3> &sigma,
+                                          const Real &C33) {
   Real J = F.determinant() * sqrt(C33);
 
   Matrix<Real, dim, dim> F_S;
@@ -102,23 +102,23 @@ constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
 constexpr inline decltype(auto)
-Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
-                    const Eigen::MatrixBase<D2> & S, const Real & C33) {
+Material::StoCauchy(const Eigen::MatrixBase<D1> &F,
+                    const Eigen::MatrixBase<D2> &S, const Real &C33) {
   Matrix<Real, dim, dim> sigma;
   Material::StoCauchy<dim>(F, S, sigma, C33);
   return sigma;
 }
 /* -------------------------------------------------------------------------- */
 template <typename D1, typename D2>
-constexpr inline void Material::rightCauchy(const Eigen::MatrixBase<D1> & F,
-                                            Eigen::MatrixBase<D2> & C) {
+constexpr inline void Material::rightCauchy(const Eigen::MatrixBase<D1> &F,
+                                            Eigen::MatrixBase<D2> &C) {
   C = F.transpose() * F;
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D>
 constexpr inline decltype(auto)
-Material::rightCauchy(const Eigen::MatrixBase<D> & F) {
+Material::rightCauchy(const Eigen::MatrixBase<D> &F) {
   Matrix<Real, dim, dim> C;
   rightCauchy(F, C);
   return C;
@@ -126,15 +126,15 @@ Material::rightCauchy(const Eigen::MatrixBase<D> & F) {
 
 /* -------------------------------------------------------------------------- */
 template <typename D1, typename D2>
-constexpr inline void Material::leftCauchy(const Eigen::MatrixBase<D1> & F,
-                                           Eigen::MatrixBase<D2> & B) {
+constexpr inline void Material::leftCauchy(const Eigen::MatrixBase<D1> &F,
+                                           Eigen::MatrixBase<D2> &B) {
   B = F * F.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D>
 constexpr inline decltype(auto)
-Material::leftCauchy(const Eigen::MatrixBase<D> & F) {
+Material::leftCauchy(const Eigen::MatrixBase<D> &F) {
   Matrix<Real, dim, dim> B;
   rightCauchy(F, B);
   return B;
@@ -143,15 +143,15 @@ Material::leftCauchy(const Eigen::MatrixBase<D> & F) {
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
 constexpr inline void
-Material::gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u,
-                         Eigen::MatrixBase<D2> & epsilon) {
+Material::gradUToEpsilon(const Eigen::MatrixBase<D1> &grad_u,
+                         Eigen::MatrixBase<D2> &epsilon) {
   epsilon = .5 * (grad_u.transpose() + grad_u);
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1>
 inline decltype(auto) constexpr Material::gradUToEpsilon(
-    const Eigen::MatrixBase<D1> & grad_u) {
+    const Eigen::MatrixBase<D1> &grad_u) {
   Matrix<Real, dim, dim> epsilon;
   Material::gradUToEpsilon<dim>(grad_u, epsilon);
   return epsilon;
@@ -159,15 +159,15 @@ inline decltype(auto) constexpr Material::gradUToEpsilon(
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
-constexpr inline void Material::gradUToE(const Eigen::MatrixBase<D1> & grad_u,
-                                         Eigen::MatrixBase<D2> & E) {
+constexpr inline void Material::gradUToE(const Eigen::MatrixBase<D1> &grad_u,
+                                         Eigen::MatrixBase<D2> &E) {
   E = (grad_u.transpose() * grad_u + grad_u.transpose() + grad_u) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1>
 constexpr inline decltype(auto)
-Material::gradUToE(const Eigen::MatrixBase<D1> & grad_u) {
+Material::gradUToE(const Eigen::MatrixBase<D1> &grad_u) {
   Matrix<Real, dim, dim> E;
   gradUToE<dim>(grad_u, E);
   return E;
@@ -175,10 +175,10 @@ Material::gradUToE(const Eigen::MatrixBase<D1> & grad_u) {
 
 /* -------------------------------------------------------------------------- */
 template <typename D1>
-inline Real Material::stressToVonMises(const Eigen::MatrixBase<D1> & stress) {
+inline Real Material::stressToVonMises(const Eigen::MatrixBase<D1> &stress) {
   // compute deviatoric stress
   auto dim = stress.cols();
-  auto && deviatoric_stress =
+  auto &&deviatoric_stress =
       stress - Matrix<Real>::Identity(dim, dim) * stress.trace() / 3.;
 
   // return Von Mises stress
@@ -188,10 +188,8 @@ inline Real Material::stressToVonMises(const Eigen::MatrixBase<D1> & stress) {
 /* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
 constexpr inline void
-Material::setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
-                                Eigen::MatrixBase<D2> & sigma) {
-  AKANTU_DEBUG_IN();
-
+Material::setCauchyStressMatrix(const Eigen::MatrixBase<D1> &S_t,
+                                Eigen::MatrixBase<D2> &sigma) {
   sigma.zero();
 
   /// see Finite ekement formulations for large deformation dynamic analysis,
@@ -203,13 +201,11 @@ Material::setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
       }
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 inline Element
-Material::convertToLocalElement(const Element & global_element) const {
+Material::convertToLocalElement(const Element &global_element) const {
   auto ge = global_element.element;
 #ifndef AKANTU_NDEBUG
   auto model_mat_index = this->model.getMaterialByElement(
@@ -230,7 +226,7 @@ Material::convertToLocalElement(const Element & global_element) const {
 
 /* -------------------------------------------------------------------------- */
 inline Element
-Material::convertToGlobalElement(const Element & local_element) const {
+Material::convertToGlobalElement(const Element &local_element) const {
   auto le = local_element.element;
   auto ge =
       this->element_filter(local_element.type, local_element.ghost_type)(le);
@@ -241,18 +237,18 @@ Material::convertToGlobalElement(const Element & local_element) const {
 
 /* -------------------------------------------------------------------------- */
 inline IntegrationPoint
-Material::convertToLocalPoint(const IntegrationPoint & global_point) const {
-  const FEEngine & fem = this->model.getFEEngine();
-  auto && nb_quad = fem.getNbIntegrationPoints(global_point.type);
-  auto && el =
+Material::convertToLocalPoint(const IntegrationPoint &global_point) const {
+  const FEEngine &fem = this->model.getFEEngine();
+  auto &&nb_quad = fem.getNbIntegrationPoints(global_point.type);
+  auto &&el =
       this->convertToLocalElement(static_cast<const Element &>(global_point));
   return IntegrationPoint(el, global_point.num_point, nb_quad);
 }
 
 /* -------------------------------------------------------------------------- */
 inline IntegrationPoint
-Material::convertToGlobalPoint(const IntegrationPoint & local_point) const {
-  const FEEngine & fem = this->model.getFEEngine();
+Material::convertToGlobalPoint(const IntegrationPoint &local_point) const {
+  const FEEngine &fem = this->model.getFEEngine();
   auto nb_quad = fem.getNbIntegrationPoints(local_point.type);
   Element el =
       this->convertToGlobalElement(static_cast<const Element &>(local_point));
@@ -261,8 +257,8 @@ Material::convertToGlobalPoint(const IntegrationPoint & local_point) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int Material::getNbData(const Array<Element> & elements,
-                               const SynchronizationTag & tag) const {
+inline Int Material::getNbData(const Array<Element> &elements,
+                               const SynchronizationTag &tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *
            spatial_dimension * sizeof(Real) *
@@ -272,9 +268,9 @@ inline Int Material::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::packData(CommunicationBuffer & buffer,
-                               const Array<Element> & elements,
-                               const SynchronizationTag & tag) const {
+inline void Material::packData(CommunicationBuffer &buffer,
+                               const Array<Element> &elements,
+                               const SynchronizationTag &tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
       packElementDataHelper(piola_kirchhoff_2, buffer, elements);
@@ -285,9 +281,9 @@ inline void Material::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::unpackData(CommunicationBuffer & buffer,
-                                 const Array<Element> & elements,
-                                 const SynchronizationTag & tag) {
+inline void Material::unpackData(CommunicationBuffer &buffer,
+                                 const Array<Element> &elements,
+                                 const SynchronizationTag &tag) {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
       unpackElementDataHelper(piola_kirchhoff_2, buffer, elements);
@@ -298,7 +294,7 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Parameter & Material::getParam(const ID & param) const {
+inline const Parameter &Material::getParam(const ID &param) const {
   try {
     return get(param);
   } catch (...) {
@@ -308,8 +304,7 @@ inline const Parameter & Material::getParam(const ID & param) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void Material::setParam(const ID & param, T value) {
+template <typename T> inline void Material::setParam(const ID &param, T value) {
   try {
     set<T>(param, value);
   } catch (...) {
@@ -322,8 +317,8 @@ inline void Material::setParam(const ID & param, T value) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline void Material::packElementDataHelper(
-    const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & elements, const ID & fem_id) const {
+    const ElementTypeMapArray<T> &data_to_pack, CommunicationBuffer &buffer,
+    const Array<Element> &elements, const ID &fem_id) const {
   DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements, true,
                                            model.getFEEngine(fem_id));
 }
@@ -331,41 +326,41 @@ inline void Material::packElementDataHelper(
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline void Material::unpackElementDataHelper(
-    ElementTypeMapArray<T> & data_to_unpack, CommunicationBuffer & buffer,
-    const Array<Element> & elements, const ID & fem_id) {
+    ElementTypeMapArray<T> &data_to_unpack, CommunicationBuffer &buffer,
+    const Array<Element> &elements, const ID &fem_id) {
   DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements,
                                              true, model.getFEEngine(fem_id));
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void Material::registerInternal<Real>(InternalField<Real> & vect) {
+inline void Material::registerInternal<Real>(InternalField<Real> &vect) {
   internal_vectors_real[vect.getID()] = &vect;
 }
 
 template <>
-inline void Material::registerInternal<Int>(InternalField<Int> & vect) {
+inline void Material::registerInternal<Int>(InternalField<Int> &vect) {
   internal_vectors_int[vect.getID()] = &vect;
 }
 
 template <>
-inline void Material::registerInternal<bool>(InternalField<bool> & vect) {
+inline void Material::registerInternal<bool>(InternalField<bool> &vect) {
   internal_vectors_bool[vect.getID()] = &vect;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void Material::unregisterInternal<Real>(InternalField<Real> & vect) {
+inline void Material::unregisterInternal<Real>(InternalField<Real> &vect) {
   internal_vectors_real.erase(vect.getID());
 }
 
 template <>
-inline void Material::unregisterInternal<Int>(InternalField<Int> & vect) {
+inline void Material::unregisterInternal<Int>(InternalField<Int> &vect) {
   internal_vectors_int.erase(vect.getID());
 }
 
 template <>
-inline void Material::unregisterInternal<bool>(InternalField<bool> & vect) {
+inline void Material::unregisterInternal<bool>(InternalField<bool> &vect) {
   internal_vectors_bool.erase(vect.getID());
 }
 
@@ -377,7 +372,7 @@ inline bool Material::isInternal(const ID & /*id*/,
 }
 
 template <>
-inline bool Material::isInternal<Real>(const ID & id,
+inline bool Material::isInternal<Real>(const ID &id,
                                        ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
@@ -388,7 +383,7 @@ inline bool Material::isInternal<Real>(const ID & id,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline ElementTypeMap<Int>
-Material::getInternalDataPerElem(const ID & field_id,
+Material::getInternalDataPerElem(const ID &field_id,
                                  ElementKind element_kind) const {
 
   if (!this->template isInternal<T>(field_id, element_kind)) {
@@ -396,14 +391,14 @@ Material::getInternalDataPerElem(const ID & field_id,
                                                    << this->name);
   }
 
-  const InternalField<T> & internal_field =
+  const InternalField<T> &internal_field =
       this->template getInternal<T>(field_id);
-  const auto & fe_engine = internal_field.getFEEngine();
+  const auto &fe_engine = internal_field.getFEEngine();
   auto nb_data_per_quad = internal_field.getNbComponent();
 
   ElementTypeMap<Int> res;
   for (auto ghost_type : ghost_types) {
-    for (auto && type : internal_field.elementTypes(ghost_type)) {
+    for (auto &&type : internal_field.elementTypes(ghost_type)) {
       auto nb_quadrature_points =
           fe_engine.getNbIntegrationPoints(type, ghost_type);
       res(type, ghost_type) = nb_data_per_quad * nb_quadrature_points;
@@ -415,8 +410,8 @@ Material::getInternalDataPerElem(const ID & field_id,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void Material::flattenInternal(const std::string & field_id,
-                               ElementTypeMapArray<T> & internal_flat,
+void Material::flattenInternal(const std::string &field_id,
+                               ElementTypeMapArray<T> &internal_flat,
                                const GhostType ghost_type,
                                ElementKind element_kind) const {
 
@@ -425,14 +420,14 @@ void Material::flattenInternal(const std::string & field_id,
                                                    << this->name);
   }
 
-  const auto & internal_field = this->template getInternal<T>(field_id);
+  const auto &internal_field = this->template getInternal<T>(field_id);
 
-  const auto & fe_engine = internal_field.getFEEngine();
-  const auto & mesh = fe_engine.getMesh();
+  const auto &fe_engine = internal_field.getFEEngine();
+  const auto &mesh = fe_engine.getMesh();
 
-  for (auto && type : internal_field.filterTypes(ghost_type)) {
-    const auto & src_vect = internal_field(type, ghost_type);
-    const auto & filter = internal_field.getFilter(type, ghost_type);
+  for (auto &&type : internal_field.filterTypes(ghost_type)) {
+    const auto &src_vect = internal_field(type, ghost_type);
+    const auto &filter = internal_field.getFilter(type, ghost_type);
 
     // total number of elements in the corresponding mesh
     auto nb_element_dst = mesh.getNbElement(type, ghost_type);
@@ -455,12 +450,12 @@ void Material::flattenInternal(const std::string & field_id,
     // number of data per element
     auto nb_data = nb_quad_per_elem * nb_data_per_quad;
 
-    auto & dst_vect = internal_flat(type, ghost_type);
+    auto &dst_vect = internal_flat(type, ghost_type);
     dst_vect.resize(nb_element_dst * nb_quad_per_elem);
 
     auto it_dst = make_view(dst_vect, nb_data).begin();
 
-    for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
+    for (auto &&data : zip(filter, make_view(src_vect, nb_data))) {
       it_dst[std::get<0>(data)] = std::get<1>(data);
     }
   }
@@ -475,14 +470,14 @@ Material::getInternal(const ID & /*int_id*/) const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline InternalField<T> & Material::getInternal(const ID & /*int_id*/) {
+inline InternalField<T> &Material::getInternal(const ID & /*int_id*/) {
   AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 inline const InternalField<Real> &
-Material::getInternal(const ID & int_id) const {
+Material::getInternal(const ID &int_id) const {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -495,7 +490,7 @@ Material::getInternal(const ID & int_id) const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline InternalField<Real> & Material::getInternal(const ID & int_id) {
+inline InternalField<Real> &Material::getInternal(const ID &int_id) {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -508,8 +503,7 @@ inline InternalField<Real> & Material::getInternal(const ID & int_id) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline const InternalField<Int> &
-Material::getInternal(const ID & int_id) const {
+inline const InternalField<Int> &Material::getInternal(const ID &int_id) const {
   auto it = internal_vectors_int.find(getID() + ":" + int_id);
   if (it == internal_vectors_int.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -521,8 +515,7 @@ Material::getInternal(const ID & int_id) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline InternalField<Int> & Material::getInternal(const ID & int_id) {
+template <> inline InternalField<Int> &Material::getInternal(const ID &int_id) {
   auto it = internal_vectors_int.find(getID() + ":" + int_id);
   if (it == internal_vectors_int.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -535,11 +528,11 @@ inline InternalField<Int> & Material::getInternal(const ID & int_id) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline const Array<T> & Material::getArray(const ID & vect_id, ElementType type,
-                                           GhostType ghost_type) const {
+inline const Array<T> &Material::getArray(const ID &vect_id, ElementType type,
+                                          GhostType ghost_type) const {
   try {
     return this->template getInternal<T>(vect_id)(type, ghost_type);
-  } catch (debug::Exception & e) {
+  } catch (debug::Exception &e) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
                                             << ") does not contain a vector "
                                             << vect_id << " [" << e << "]");
@@ -548,11 +541,11 @@ inline const Array<T> & Material::getArray(const ID & vect_id, ElementType type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline Array<T> & Material::getArray(const ID & vect_id, ElementType type,
-                                     GhostType ghost_type) {
+inline Array<T> &Material::getArray(const ID &vect_id, ElementType type,
+                                    GhostType ghost_type) {
   try {
     return this->template getInternal<T>(vect_id)(type, ghost_type);
-  } catch (debug::Exception & e) {
+  } catch (debug::Exception &e) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
                                             << ") does not contain a vector "
                                             << vect_id << " [" << e << "]");

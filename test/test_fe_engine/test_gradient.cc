@@ -52,11 +52,11 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
   const auto dim = this->dim;
   const auto type = this->type;
 
-  const auto & position = this->fem->getMesh().getNodes();
+  const auto &position = this->fem->getMesh().getNodes();
   Array<Real> const_val(this->fem->getMesh().getNbNodes(), 2, "const_val");
-  for (auto && pair : zip(make_view(position, dim), make_view(const_val, 2))) {
-    auto & pos = std::get<0>(pair);
-    auto & const_ = std::get<1>(pair);
+  for (auto &&pair : zip(make_view(position, dim), make_view(const_val, 2))) {
+    auto &pos = std::get<0>(pair);
+    auto &const_ = std::get<1>(pair);
 
     const_.set(0.);
 
@@ -72,7 +72,7 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
   this->fem->gradientOnIntegrationPoints(const_val, grad_on_quad, 2, type);
 
   /// check the results
-  for (auto && grad : make_view(grad_on_quad, 2, dim)) {
+  for (auto &&grad : make_view(grad_on_quad, 2, dim)) {
     for (Int d = 0; d < dim; ++d) {
       EXPECT_NEAR(grad(0, d), alpha[0][d], 5e-13);
       EXPECT_NEAR(grad(1, d), alpha[1][d], 5e-13);
@@ -82,21 +82,21 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
 TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->initShapeFunctions();
-  const auto dim = this->dim;
-  const auto type = this->type;
+  const auto dim = TestFixture::dim;
+  const auto type = TestFixture::type;
 
   UInt nb_quadrature_points =
       this->fem->getNbIntegrationPoints(type) * this->nb_element;
   Array<Real> grad_coord_on_quad(nb_quadrature_points, dim * dim,
                                  "grad_coord_on_quad");
 
-  const auto & position = this->mesh->getNodes();
+  const auto &position = this->mesh->getNodes();
   this->fem->gradientOnIntegrationPoints(position, grad_coord_on_quad, dim,
                                          type);
 
   auto I = Matrix<Real, dim, dim>::Identity();
 
-  for (auto && grad : make_view(grad_coord_on_quad, dim, dim)) {
+  for (auto &&grad : make_view(grad_coord_on_quad, dim, dim)) {
     auto diff = (I - grad).template lpNorm<Eigen::Infinity>();
 
     EXPECT_NEAR(0., diff, 2e-14);

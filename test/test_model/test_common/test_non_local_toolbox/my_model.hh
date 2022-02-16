@@ -44,7 +44,7 @@ class MyModel : public Model, public NonLocalManagerCallback {
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 public:
-  MyModel(Mesh & mesh, Int spatial_dimension)
+  MyModel(Mesh &mesh, Int spatial_dimension)
       : Model(mesh, ModelType::_model, spatial_dimension),
         manager(*this, *this) {
     registerFEEngineObject<MyFEEngineType>("FEEngine", mesh, spatial_dimension);
@@ -92,14 +92,13 @@ public:
     q.ghost_type = ghost_type;
     q.global_num = 0;
 
-    auto & neighborhood = manager.getNeighborhood("test_region");
+    auto &neighborhood = manager.getNeighborhood("test_region");
 
-    for (const auto & type : quadrature_points_coordinates.elementTypes(
+    for (const auto &type : quadrature_points_coordinates.elementTypes(
              spatial_dimension, ghost_type)) {
       q.type = type;
 
-      auto nb_quads_per_elem = this->getFEEngine().getNbIntegrationPoints(type);
-      auto & quads = quadrature_points_coordinates(type, ghost_type);
+      auto &quads = quadrature_points_coordinates(type, ghost_type);
       this->getFEEngine().computeIntegrationPointsCoordinates(quads, type,
                                                               ghost_type);
       auto quad_it = quads.begin(quads.getNbComponent());
@@ -113,16 +112,15 @@ public:
     }
   }
 
-  void computeNonLocalStresses(GhostType)
-  override {}
+  void computeNonLocalStresses(GhostType) override {}
 
-  void updateLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
-  override {}
+  void updateLocalInternal(ElementTypeMapReal &, GhostType,
+                           ElementKind) override {}
 
-  void updateNonLocalInternal(ElementTypeMapReal &, GhostType, ElementKind)
-  override {}
+  void updateNonLocalInternal(ElementTypeMapReal &, GhostType,
+                              ElementKind) override {}
 
-  const auto & getNonLocalManager() const { return manager; }
+  const auto &getNonLocalManager() const { return manager; }
 
 private:
   NonLocalManager manager;

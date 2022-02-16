@@ -108,7 +108,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
-    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   Real c0 =
       1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
@@ -126,8 +126,7 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
-    const Eigen::MatrixBase<D1> & natural_coords,
-    Eigen::MatrixBase<D2> & dnds) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &dnds) {
 
   /**
    * @f[
@@ -175,9 +174,9 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_triangle_6>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
-  UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
+inline Real GeometricalElement<_gt_triangle_6>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  Int triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 
   Real inradius = std::numeric_limits<Real>::max();
   for (Int t = 0; t < 4; t++) {

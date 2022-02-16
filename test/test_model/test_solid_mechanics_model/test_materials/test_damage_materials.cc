@@ -51,11 +51,13 @@ using namespace akantu;
 namespace py = pybind11;
 using namespace py::literals;
 
+template <Int dim> using MaterialMazars_ = MaterialMazars<dim, MaterialElastic>;
+
 using mat_types = ::testing::Types<
     // Traits<MaterialMarigo, 1>, Traits<MaterialMarigo, 2>,
     // Traits<MaterialMarigo, 3>,
-    Traits<MaterialMazars, 1>, Traits<MaterialMazars, 2>,
-    Traits<MaterialMazars, 3>>;
+    Traits<MaterialMazars_, 1>, Traits<MaterialMazars_, 2>,
+    Traits<MaterialMazars_, 3>>;
 
 /*****************************************************************/
 
@@ -103,7 +105,7 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto && data : enumerate(epsilons)) {
+  for (auto &&data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -124,7 +126,7 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto && epsilon : epsilons) {
+  for (auto &&epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
 
@@ -147,7 +149,7 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto && data : enumerate(epsilons)) {
+  for (auto &&data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -169,7 +171,7 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto && epsilon : epsilons) {
+  for (auto &&epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = -this->nu * epsilon;
@@ -193,7 +195,7 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto && data : enumerate(epsilons)) {
+  for (auto &&data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -215,7 +217,7 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto && epsilon : epsilons) {
+  for (auto &&epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = strain(2, 2) = -this->nu * epsilon;

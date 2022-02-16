@@ -75,6 +75,7 @@ template <typename tag> struct named_tag_proxy {
 #if (defined(__GNUC__) || defined(__GNUG__))
 #pragma GCC diagnostic pop
 #endif
+
 } // namespace details
 
 /* ------------------------------------------------------------------------ */
@@ -87,6 +88,7 @@ struct is_named_tag<named_tag<tag, type>> : public std::true_type {};
 
 template <class... Params>
 struct named_tuple : public std::tuple<typename Params::_type...> {
+  using Index = int;
   using Names_t = std::tuple<typename Params::_tag...>;
   using parent = std::tuple<typename Params::_type...>;
 
@@ -96,64 +98,59 @@ struct named_tuple : public std::tuple<typename Params::_type...> {
   named_tuple(typename Params::_type &&...args)
       : parent(std::forward<typename Params::_type>(args)...) {}
 
-private:
-  template <typename tag, std::size_t Idx,
-            std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
-  static constexpr auto get_element_index_() noexcept -> std::size_t {
-    return -1;
-  }
+  template <typename tag, Index Idx>
+  struct get_element_index_helper
+      : public std::integral_constant<
+            Index,
+            (std::is_same<std::tuple_element_t<Idx, Names_t>, tag>::value)
+                ? Idx
+                : get_element_index_helper<tag, Idx + 1>()> {};
 
-  template <typename tag, std::size_t Idx,
-            std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
-  static constexpr auto get_element_index_() noexcept -> std::size_t {
-    using _tag = std::tuple_element_t<Idx, Names_t>;
-    return (std::is_same<_tag, tag>::value)
-               ? Idx
-               : get_element_index_<tag, Idx + 1>();
-  }
+  template <typename tag>
+  struct get_element_index_helper<tag, sizeof...(Params)>
+      : public std::integral_constant<Index, -1> {};
 
-public:
   template <typename NT>
-  static constexpr auto get_element_index() noexcept -> std::size_t {
-    return get_element_index_<typename NT::_tag, 0>();
+  static constexpr auto get_element_index() noexcept -> Index {
+    return get_element_index_helper<typename NT::_tag, 0>::value;
   }
 
   template <typename NT>
-  static constexpr auto get_element_index(NT && /*unused*/) noexcept
-      -> std::size_t {
-    return get_element_index_<typename NT::_tag, 0>();
+  static constexpr auto get_element_index(NT && /*unused*/) noexcept -> Index {
+    return get_element_index_helper<typename NT::_tag, 0>::value;
   }
 
   template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
   constexpr auto get(NT && /*unused*/) noexcept -> decltype(auto) {
     const auto index = get_element_index<NT>();
-    static_assert((index != std::size_t(-1)), "wrong named_tag");
+    static_assert((index != Index(-1)), "wrong named_tag");
     return (std::get<index>(*this));
   }
 
   template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
   constexpr auto get(NT && /*unused*/) const noexcept -> decltype(auto) {
     const auto index = get_element_index<NT>();
-    static_assert((index != std::size_t(-1)), "wrong named_tag");
+    static_assert((index != Index(-1)), "wrong named_tag");
     return (std::get<index>(*this));
   }
 
   template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
   constexpr auto has(NT && /*unused*/) const noexcept -> bool {
     const auto index = get_element_index<NT>();
-    return (index != std::size_t(-1));
+    return (index != Index(-1));
   }
 
   template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
   static constexpr auto has() noexcept -> bool {
     constexpr auto index = get_element_index<NT>();
-    return (index != std::size_t(-1));
+    return (index != Index(-1));
   }
 
   template <hash_type HashCode> static constexpr auto has() noexcept -> bool {
     constexpr auto index =
-        get_element_index_<std::integral_constant<hash_type, HashCode>, 0>();
-    return (index != std::size_t(-1));
+        get_element_index_helper<std::integral_constant<hash_type, HashCode>,
+                                 0>::value;
+    return (index != Index(-1));
   }
 };
 

@@ -42,13 +42,13 @@ using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("test_material_elasto_plastic_linear_isotropic_hardening.dat",
              argc, argv);
 
   const Int spatial_dimension = 2;
   const Real u_increment = 0.1;
-  const UInt steps = 20;
+  const Int steps = 20;
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_material_elasto_plastic_linear_isotropic_hardening.msh");
@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
   SolidMechanicsModel model(mesh);
   model.initFull(_analysis_method = _static);
 
-  auto & solver = model.getNonLinearSolver("static");
+  auto &solver = model.getNonLinearSolver("static");
   solver.set("max_iterations", 300);
   solver.set("threshold", 1e-5);
 
@@ -70,15 +70,15 @@ int main(int argc, char * argv[]) {
 
     try {
       model.solveStep();
-    } catch (debug::NLSNotConvergedException & e) {
+    } catch (debug::NLSNotConvergedException &e) {
       std::cout << e.niter << " " << e.error << std::endl;
       throw;
     }
     Real strainxx = i * u_increment / 10.;
 
-    const auto & edge_nodes =
+    const auto &edge_nodes =
         mesh.getElementGroup("right").getNodeGroup().getNodes();
-    auto & residual = model.getInternalForce();
+    auto &residual = model.getInternalForce();
     Real reaction = 0;
 
     for (Int n = 0; n < edge_nodes.size(); n++) {

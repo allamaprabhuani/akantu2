@@ -44,7 +44,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
   /* This example aims at illustrating how to manipulate low-level methods of
      DumperIOHelper.
@@ -58,8 +58,8 @@ int main(int argc, char * argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("swiss_train.msh");
 
-  Array<Real> & nodes = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  Array<Real> &nodes = mesh.getNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /* swiss_train.msh has the following physical groups that can be viewed with
     GMSH:
@@ -79,20 +79,20 @@ int main(int argc, char * argv[]) {
    */
 
   // Grouping nodes and elements belonging to train wheels (=four mesh data)
-  ElementGroup & wheels_elements =
+  ElementGroup &wheels_elements =
       mesh.createElementGroup("wheels", spatial_dimension);
   wheels_elements.append(mesh.getElementGroup("lwheel_1"));
   wheels_elements.append(mesh.getElementGroup("lwheel_2"));
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<Idx> & lnode_1 =
+  const Array<Idx> &lnode_1 =
       (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> & lnode_2 =
+  const Array<Idx> &lnode_2 =
       (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
-  const Array<Idx> & rnode_1 =
+  const Array<Idx> &rnode_1 =
       (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> & rnode_2 =
+  const Array<Idx> &rnode_2 =
       (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
   /* Note this Array is constructed with three components in order to warp train
@@ -101,7 +101,7 @@ int main(int argc, char * argv[]) {
   Array<Real> displacement(nb_nodes, 3);
 
   // ElementalField are constructed with an ElementTypeMapArray.
-  ElementTypeMapArray<UInt> colour;
+  ElementTypeMapArray<Int> colour;
   colour.initialize(mesh, _with_nb_element = true);
 
   /* ------------------------------------------------------------------------ */
@@ -134,7 +134,7 @@ int main(int argc, char * argv[]) {
 
   // NodalField are constructed with an Array.
   auto displ_field = std::make_shared<dumpers::NodalField<Real>>(displacement);
-  auto colour_field = std::make_shared<dumpers::ElementalField<UInt>>(colour);
+  auto colour_field = std::make_shared<dumpers::ElementalField<Int>>(colour);
 
   // Register the freshly created fields to our dumper.
   dumper.registerField("displacement", displ_field);
@@ -148,11 +148,11 @@ int main(int argc, char * argv[]) {
   wheels.registerField("displacement", displ_field_wheel);
 
   // For the ElementalField, an ElementTypeMapArrayFilter has to be created.
-  ElementTypeMapArrayFilter<UInt> filtered_colour(
-      colour, wheels_elements.getElements());
+  ElementTypeMapArrayFilter<Int> filtered_colour(colour,
+                                                 wheels_elements.getElements());
 
   auto colour_field_wheel =
-      std::make_shared<dumpers::ElementalField<UInt, Vector, true>>(
+      std::make_shared<dumpers::ElementalField<Int, Vector<Int>, true>>(
           filtered_colour);
   wheels.registerField("colour", colour_field_wheel);
 
@@ -166,7 +166,7 @@ int main(int argc, char * argv[]) {
   // Apply displacement and wheels rotation.
   Real tot_displacement = 50.;
   Real radius = 1.;
-  UInt nb_steps = 100;
+  Int nb_steps = 100;
   Real theta = tot_displacement / radius;
 
   Vector<Real> l_center(3);

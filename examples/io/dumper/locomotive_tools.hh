@@ -30,11 +30,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-void applyRotation(const ::akantu::Vector<::akantu::Real> & center,
+void applyRotation(const ::akantu::Vector<::akantu::Real> &center,
                    ::akantu::Real angle,
-                   const ::akantu::Array<::akantu::Real> & nodes,
-                   ::akantu::Array<::akantu::Real> & displacement,
-                   const ::akantu::Array<::akantu::UInt> & node_group);
+                   const ::akantu::Array<::akantu::Real> &nodes,
+                   ::akantu::Array<::akantu::Real> &displacement,
+                   const ::akantu::Array<::akantu::Idx> &node_group);
 
-void fillColour(const ::akantu::Mesh & mesh,
-                ::akantu::ElementTypeMapArray<::akantu::UInt> & colour);
+void fillColour(const ::akantu::Mesh &mesh,
+                ::akantu::ElementTypeMapArray<::akantu::Int> &colour);

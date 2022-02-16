@@ -148,7 +148,7 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
+inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
     const Eigen::MatrixBase<D> &coord) {
   auto &&u0 = coord.col(0);
   auto &&u1 = coord.col(1);

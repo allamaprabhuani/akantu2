@@ -113,7 +113,7 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_triangle_3>::getInradius(
+inline Real GeometricalElement<_gt_triangle_3>::getInradius(
     const Eigen::MatrixBase<D> &coord) {
   auto &&coord1 = coord.col(0);
   auto &&coord2 = coord.col(1);

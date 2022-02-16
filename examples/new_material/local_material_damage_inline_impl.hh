@@ -38,9 +38,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                     Matrix<Real> & sigma,
-                                                     Real & dam) {
+template <typename D1, typename D2>
+inline void LocalMaterialDamage::computeStressOnQuad(
+    Eigen::MatrixBase<D1> &grad_u, Eigen::MatrixBase<D2> &sigma, Real &dam) {
 
   Real trace = grad_u.trace();
 
@@ -71,8 +71,9 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & epot) {
+    Eigen::MatrixBase<D1> &grad_u, Eigen::MatrixBase<D2> &sigma, Real &epot) {
   epot = 0.;
   for (Int i = 0, t = 0; i < spatial_dimension; ++i)
     for (Int j = 0; j < spatial_dimension; ++j, ++t)
@@ -82,7 +83,7 @@ inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
 
 /* -------------------------------------------------------------------------- */
 inline Real LocalMaterialDamage::getCelerity(__attribute__((unused))
-                                             const Element & element) const {
+                                             const Element &element) const {
   // Here the fastest celerity is the push wave speed
   return (std::sqrt((2 * mu + lambda) / rho));
 }

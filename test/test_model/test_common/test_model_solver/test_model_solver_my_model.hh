@@ -58,8 +58,8 @@ class MyModel : public ModelSolver,
                 public BoundaryCondition<MyModel>,
                 public DataAccessor<Element> {
 public:
-  MyModel(Real F, Mesh & mesh, bool lumped,
-          const ID & dof_manager_type = "default")
+  MyModel(Real F, Mesh &mesh, bool lumped,
+          const ID &dof_manager_type = "default")
       : ModelSolver(mesh, ModelType::_model, "model_solver"),
         nb_dofs(mesh.getNbNodes()), nb_elements(mesh.getNbElement(_segment_2)),
         lumped(lumped), E(1.), A(1.), rho(1.), mesh(mesh),
@@ -86,8 +86,8 @@ public:
     forces.set(0.);
     blocked.set(false);
 
-    UInt global_nb_nodes = mesh.getNbGlobalNodes();
-    for (auto && n : arange(nb_dofs)) {
+    Int global_nb_nodes = mesh.getNbGlobalNodes();
+    for (auto &&n : arange(nb_dofs)) {
       auto global_id = mesh.getNodeGlobalId(n);
       if (global_id == (global_nb_nodes - 1))
         forces(n, _x) = F;
@@ -101,7 +101,7 @@ public:
     auto L_it = this->initial_lengths.begin();
 
     for (; cit != cend; ++cit, ++L_it) {
-      auto && conn = *cit;
+      auto &&conn = *cit;
       auto n1 = conn(0);
       auto n2 = conn(1);
       auto p1 = this->mesh.getNodes()(n1, _x);
@@ -117,7 +117,7 @@ public:
   }
 
   void assembleLumpedMass() {
-    auto & M = this->getDOFManager().getLumpedMatrix("M");
+    auto &M = this->getDOFManager().getLumpedMatrix("M");
     M.zero();
 
     this->assembleLumpedMass(_not_ghost);
@@ -132,14 +132,13 @@ public:
 
     Array<Real> m_all_el(this->mesh.getNbElement(_segment_2, ghost_type), 2);
 
-    for (auto && data :
-         zip(make_view(this->mesh.getConnectivity(_segment_2), 2),
-             make_view(m_all_el, 2))) {
-      const auto & conn = std::get<0>(data);
-      auto & m_el = std::get<1>(data);
+    for (auto &&data : zip(make_view(this->mesh.getConnectivity(_segment_2), 2),
+                           make_view(m_all_el, 2))) {
+      const auto &conn = std::get<0>(data);
+      auto &m_el = std::get<1>(data);
 
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+      Int n1 = conn(0);
+      Int n2 = conn(1);
 
       Real p1 = this->mesh.getNodes()(n1, _x);
       Real p2 = this->mesh.getNodes()(n2, _x);
@@ -157,7 +156,7 @@ public:
   }
 
   void assembleMass() {
-    SparseMatrix & M = this->getDOFManager().getMatrix("M");
+    SparseMatrix &M = this->getDOFManager().getMatrix("M");
     M.zero();
 
     Array<Real> m_all_el(this->nb_elements, 4);
@@ -175,13 +174,12 @@ public:
     // m(1, 1) += m(1, 0);
     // m(0, 1) = m(1, 0) = 0;
 
-    for (auto && data :
-         zip(make_view(this->mesh.getConnectivity(_segment_2), 2),
-             make_view(m_all_el, 2, 2))) {
-      const auto & conn = std::get<0>(data);
-      auto & m_el = std::get<1>(data);
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+    for (auto &&data : zip(make_view(this->mesh.getConnectivity(_segment_2), 2),
+                           make_view(m_all_el, 2, 2))) {
+      const auto &conn = std::get<0>(data);
+      auto &m_el = std::get<1>(data);
+      Int n1 = conn(0);
+      Int n2 = conn(1);
 
       Real p1 = this->mesh.getNodes()(n1, _x);
       Real p2 = this->mesh.getNodes()(n2, _x);
@@ -200,7 +198,7 @@ public:
 
   MatrixType getMatrixType(const ID &) const override { return _symmetric; }
 
-  void assembleMatrix(const ID & matrix_id) override {
+  void assembleMatrix(const ID &matrix_id) override {
     if (matrix_id == "K") {
       if (not is_stiffness_assembled)
         this->assembleStiffness();
@@ -215,7 +213,7 @@ public:
     }
   }
 
-  void assembleLumpedMatrix(const ID & matrix_id) override {
+  void assembleLumpedMatrix(const ID &matrix_id) override {
     if (matrix_id == "M") {
       if (not is_lumped_mass_assembled)
         this->assembleLumpedMass();
@@ -226,7 +224,7 @@ public:
   }
 
   void assembleStiffness() {
-    SparseMatrix & K = this->getDOFManager().getMatrix("K");
+    SparseMatrix &K = this->getDOFManager().getMatrix("K");
     K.zero();
 
     Matrix<Real> k(2, 2);
@@ -240,16 +238,16 @@ public:
     auto cend = this->mesh.getConnectivity(_segment_2).end(2);
 
     for (; cit != cend; ++cit, ++k_it) {
-      const auto & conn = *cit;
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+      const auto &conn = *cit;
+      auto n1 = conn(0);
+      auto n2 = conn(1);
 
-      Real p1 = this->mesh.getNodes()(n1, _x);
-      Real p2 = this->mesh.getNodes()(n2, _x);
+      auto p1 = this->mesh.getNodes()(n1, _x);
+      auto p2 = this->mesh.getNodes()(n2, _x);
 
-      Real L = std::abs(p2 - p1);
+      auto L = std::abs(p2 - p1);
 
-      auto & k_el = *k_it;
+      auto &k_el = *k_it;
       k_el = k;
       k_el *= E * A / L;
     }
@@ -274,27 +272,26 @@ public:
   void assembleResidualInternal(GhostType ghost_type) {
     Array<Real> forces_internal_el(
         this->mesh.getNbElement(_segment_2, ghost_type), 2);
-    const auto & connectivity =
+    const auto &connectivity =
         this->mesh.getConnectivity(_segment_2, ghost_type);
-    for (auto && data :
-         zip(make_view<2>(connectivity), strains, stresses, initial_lengths,
-             make_view<2>(forces_internal_el))) {
-      const auto & conn = std::get<0>(data);
+    for (auto &&data : zip(make_view<2>(connectivity), strains, stresses,
+                           initial_lengths, make_view<2>(forces_internal_el))) {
+      const auto &conn = std::get<0>(data);
       auto n1 = conn(0);
       auto n2 = conn(1);
 
       auto u1 = this->displacement(n1, _x);
       auto u2 = this->displacement(n2, _x);
 
-      auto & strain = std::get<1>(data);
-      auto & stress = std::get<2>(data);
-      const auto & L = std::get<3>(data);
+      auto &strain = std::get<1>(data);
+      auto &stress = std::get<2>(data);
+      const auto &L = std::get<3>(data);
 
       strain = (u2 - u1) / L;
       stress = E * strain;
 
       auto f_n = A * stress;
-      auto & f = std::get<4>(data);
+      auto &f = std::get<4>(data);
 
       f(0) = -f_n;
       f(1) = f_n;
@@ -310,10 +307,10 @@ public:
     if (not lumped) {
       res = this->mulVectMatVect(this->displacement, "K", this->displacement);
     } else {
-      for (auto && data : zip(strains, stresses, initial_lengths)) {
-        auto & strain = std::get<0>(data);
-        auto & stress = std::get<1>(data);
-        const auto & L = std::get<2>(data);
+      for (auto &&data : zip(strains, stresses, initial_lengths)) {
+        auto &strain = std::get<0>(data);
+        auto &stress = std::get<1>(data);
+        const auto &L = std::get<2>(data);
 
         res += strain * stress * A * L;
       }
@@ -329,7 +326,7 @@ public:
     if (not lumped) {
       res = this->mulVectMatVect(this->velocity, "M", this->velocity);
     } else {
-      Array<Real> & m = dynamic_cast<SolverVectorDefault &>(
+      Array<Real> &m = dynamic_cast<SolverVectorDefault &>(
           this->getDOFManager().getLumpedMatrix("M"));
       auto it = velocity.begin();
       auto end = velocity.end();
@@ -365,13 +362,13 @@ public:
     return res * this->getTimeStep();
   }
 
-  Real mulVectMatVect(const Array<Real> & x, const ID & A_id,
-                      const Array<Real> & y) {
+  Real mulVectMatVect(const Array<Real> &x, const ID &A_id,
+                      const Array<Real> &y) {
     Array<Real> Ay(nb_dofs);
     this->getDOFManager().assembleMatMulVectToArray("disp", A_id, y, Ay);
 
     Real res = 0.;
-    for (auto && data : zip(arange(nb_dofs), make_view(Ay), make_view(x))) {
+    for (auto &&data : zip(arange(nb_dofs), make_view(Ay), make_view(x))) {
       res += std::get<2>(data) * std::get<1>(data) *
              mesh.isLocalOrMasterNode(std::get<0>(data));
     }
@@ -381,47 +378,47 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  Int getNbData(const Array<Element> & elements,
+  Int getNbData(const Array<Element> &elements,
                 const SynchronizationTag &) const override {
     return elements.size() * sizeof(Real);
   }
 
-  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                const SynchronizationTag & tag) const override {
+  void packData(CommunicationBuffer &buffer, const Array<Element> &elements,
+                const SynchronizationTag &tag) const override {
     if (tag == SynchronizationTag::_user_1) {
-      for (const auto & el : elements) {
+      for (const auto &el : elements) {
         buffer << this->stresses(el.element);
       }
     }
   }
 
-  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                  const SynchronizationTag & tag) override {
+  void unpackData(CommunicationBuffer &buffer, const Array<Element> &elements,
+                  const SynchronizationTag &tag) override {
     if (tag == SynchronizationTag::_user_1) {
       auto cit = this->mesh.getConnectivity(_segment_2, _ghost).begin(2);
 
-      for (const auto & el : elements) {
+      for (const auto &el : elements) {
         Real stress;
         buffer >> stress;
 
         Real f = A * stress;
 
-        auto && conn = cit[el.element];
+        auto &&conn = cit[el.element];
         this->internal_forces(conn(0), _x) += -f;
         this->internal_forces(conn(1), _x) += f;
       }
     }
   }
 
-  const Mesh & getMesh() const { return mesh; }
+  const Mesh &getMesh() const { return mesh; }
 
   Int getSpatialDimension() const { return 1; }
 
-  auto & getBlockedDOFs() { return blocked; }
+  auto &getBlockedDOFs() { return blocked; }
 
 private:
-  UInt nb_dofs;
-  UInt nb_elements;
+  Int nb_dofs;
+  Int nb_elements;
 
   bool lumped;
 
@@ -432,7 +429,7 @@ private:
 public:
   Real E, A, rho;
 
-  Mesh & mesh;
+  Mesh &mesh;
   Array<Real> displacement;
   Array<Real> velocity;
   Array<Real> acceleration;

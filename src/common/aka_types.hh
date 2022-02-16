@@ -43,19 +43,21 @@
 #ifndef AKANTU_AKA_TYPES_HH
 #define AKANTU_AKA_TYPES_HH
 
-namespace Eigen {
-template <typename PlainObjectType, int MapOptions, typename StrideType>
-struct Map;
-
-template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows,
-          int _MaxCols>
-struct Matrix;
-
-template <typename Derived> struct MatrixBase;
-
-} // namespace Eigen
-
 /* -------------------------------------------------------------------------- */
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
+#define EIGEN_DEFAULT_IO_FORMAT                                                \
+  Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ",    \
+                  "[", "]", "[", "]")
+/* -------------------------------------------------------------------------- */
+#define EIGEN_MATRIXBASE_PLUGIN "aka_types_eigen_matrix_base_plugin.hh"
+#define EIGEN_MATRIX_PLUGIN "aka_types_eigen_matrix_plugin.hh"
+#define EIGEN_PLAINOBJECTBASE_PLUGIN                                           \
+  "aka_types_eigen_plain_object_base_plugin.hh"
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+/* -------------------------------------------------------------------------- */
+
 namespace aka {
 template <typename T> struct is_eigen_map : public std::false_type {};
 
@@ -79,20 +81,6 @@ template <typename Derived>
 struct is_eigen_matrix_base<Eigen::MatrixBase<Derived>>
     : public std::true_type {};
 } // namespace aka
-
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
-#define EIGEN_DEFAULT_IO_FORMAT                                                \
-  Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ",    \
-                  "[", "]", "[", "]")
-/* -------------------------------------------------------------------------- */
-#define EIGEN_MATRIXBASE_PLUGIN "aka_types_eigen_matrix_base_plugin.hh"
-#define EIGEN_MATRIX_PLUGIN "aka_types_eigen_matrix_plugin.hh"
-#define EIGEN_PLAINOBJECTBASE_PLUGIN                                           \
-  "aka_types_eigen_plain_object_base_plugin.hh"
-#include <Eigen/Dense>
-#include <Eigen/Eigenvalues>
-/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -199,114 +187,113 @@ class ArrayBase;
 
 /* -------------------------------------------------------------------------- */
 namespace details {
-  template <typename T> struct MapPlainObjectType { using type = T; };
+template <typename T> struct MapPlainObjectType { using type = T; };
 
-  template <typename PlainObjectType, int MapOptions, typename StrideType>
-  struct MapPlainObjectType<
-      Eigen::Map<PlainObjectType, MapOptions, StrideType>> {
-    using type = PlainObjectType;
-  };
+template <typename PlainObjectType, int MapOptions, typename StrideType>
+struct MapPlainObjectType<Eigen::Map<PlainObjectType, MapOptions, StrideType>> {
+  using type = PlainObjectType;
+};
 
-  template <typename T>
-  using MapPlainObjectType_t = typename MapPlainObjectType<T>::type;
+template <typename T>
+using MapPlainObjectType_t = typename MapPlainObjectType<T>::type;
 
-  template <typename Scalar, Idx...> struct EigenMatrixViewHelper {};
+template <typename Scalar, Idx...> struct EigenMatrixViewHelper {};
 
-  template <typename Scalar, Idx RowsAtCompileTime>
-  struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime> {
-    using type = Eigen::Matrix<Scalar, RowsAtCompileTime, 1>;
-  };
+template <typename Scalar, Idx RowsAtCompileTime>
+struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime> {
+  using type = Eigen::Matrix<Scalar, RowsAtCompileTime, 1>;
+};
 
-  template <typename Scalar, Idx RowsAtCompileTime, Idx ColsAtCompileTime>
-  struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime, ColsAtCompileTime> {
-    using type = Eigen::Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>;
-  };
+template <typename Scalar, Idx RowsAtCompileTime, Idx ColsAtCompileTime>
+struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime, ColsAtCompileTime> {
+  using type = Eigen::Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>;
+};
 
-  template <typename Scalar, Idx... sizes>
-  using EigenMatrixViewHelper_t =
-      typename EigenMatrixViewHelper<Scalar, sizes...>::type;
+template <typename Scalar, Idx... sizes>
+using EigenMatrixViewHelper_t =
+    typename EigenMatrixViewHelper<Scalar, sizes...>::type;
 
-  template <typename Array, Idx... sizes> class EigenView {
-    static_assert(sizeof...(sizes) == 1 or sizeof...(sizes) == 2,
-                  "Eigen only supports Vector and Matrices");
+template <typename Array, Idx... sizes> class EigenView {
+  static_assert(sizeof...(sizes) == 1 or sizeof...(sizes) == 2,
+                "Eigen only supports Vector and Matrices");
 
-  public:
-    using size_type = typename std::decay_t<Array>::size_type;
-    using value_type = typename std::decay_t<Array>::value_type;
+public:
+  using size_type = typename std::decay_t<Array>::size_type;
+  using value_type = typename std::decay_t<Array>::value_type;
 
-    EigenView(Array && array, decltype(sizes)... sizes_)
-        : array(array), sizes_(sizes_...) {}
+  EigenView(Array &&array, decltype(sizes)... sizes_)
+      : array(array), sizes_(sizes_...) {}
 
-    EigenView(Array && array) : array(array), sizes_(sizes...) {}
+  EigenView(Array &&array) : array(array), sizes_(sizes...) {}
 
-    EigenView(const EigenView & other) = default;
-    EigenView(EigenView && other) noexcept = default;
+  EigenView(const EigenView &other) = default;
+  EigenView(EigenView &&other) noexcept = default;
 
-    auto operator=(const EigenView & other) -> EigenView & = default;
-    auto operator=(EigenView && other) noexcept -> EigenView & = default;
+  auto operator=(const EigenView &other) -> EigenView & = default;
+  auto operator=(EigenView &&other) noexcept -> EigenView & = default;
 
-    template <typename T = std::remove_reference_t<
-                  decltype(*std::declval<Array>().data())>,
-              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
-    decltype(auto) begin() {
-      return aka::make_from_tuple<::akantu::view_iterator<
-          Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
-          std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
-    }
+  template <typename T = std::remove_reference_t<
+                decltype(*std::declval<Array>().data())>,
+            std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+  decltype(auto) begin() {
+    return aka::make_from_tuple<::akantu::view_iterator<
+        Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+        std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
+  }
 
-    template <typename T = std::remove_reference_t<
-                  decltype(*std::declval<Array>().data())>,
-              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
-    decltype(auto) end() {
-      return aka::make_from_tuple<::akantu::view_iterator<
-          Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
-          std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
-                         sizes_));
-    }
+  template <typename T = std::remove_reference_t<
+                decltype(*std::declval<Array>().data())>,
+            std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+  decltype(auto) end() {
+    return aka::make_from_tuple<::akantu::view_iterator<
+        Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+        std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
+                       sizes_));
+  }
 
-    decltype(auto) begin() const {
-      return aka::make_from_tuple<::akantu::view_iterator<
-          Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
-          std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
-    }
-    decltype(auto) end() const {
-      return aka::make_from_tuple<::akantu::view_iterator<
-          Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
-          std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
-                         sizes_));
-    }
+  decltype(auto) begin() const {
+    return aka::make_from_tuple<::akantu::view_iterator<
+        Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+        std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
+  }
+  decltype(auto) end() const {
+    return aka::make_from_tuple<::akantu::view_iterator<
+        Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+        std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
+                       sizes_));
+  }
 
-  private:
-    template <
-        class A = Array,
-        std::enable_if_t<std::is_base_of<ArrayBase, std::decay_t<A>>::value> * =
-            nullptr>
-    auto array_size() {
-      return array.get().size() * array.get().getNbComponent();
-    }
+private:
+  template <class A = Array,
+            std::enable_if_t<std::is_base_of<ArrayBase, std::decay_t<A>>::value>
+                * = nullptr>
+  auto array_size() {
+    return array.get().size() * array.get().getNbComponent();
+  }
 
-    template <class A = Array,
-              std::enable_if_t<not std::is_base_of<
-                  ArrayBase, std::decay_t<A>>::value> * = nullptr>
-    auto array_size() {
-      return array.get().size();
-    }
+  template <
+      class A = Array,
+      std::enable_if_t<not std::is_base_of<ArrayBase, std::decay_t<A>>::value>
+          * = nullptr>
+  auto array_size() {
+    return array.get().size();
+  }
 
-  private:
-    std::reference_wrapper<std::remove_reference_t<Array>> array;
-    std::tuple<decltype(sizes)...> sizes_;
-  };
+private:
+  std::reference_wrapper<std::remove_reference_t<Array>> array;
+  std::tuple<decltype(sizes)...> sizes_;
+};
 
 } // namespace details
 
 template <Idx RowsAtCompileTime, typename Array>
-decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime) {
+decltype(auto) make_view(Array &&array, Idx rows = RowsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime>(
       std::forward<Array>(array), rows);
 }
 
 template <Idx RowsAtCompileTime, Idx ColsAtCompileTime, typename Array>
-decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime,
+decltype(auto) make_view(Array &&array, Idx rows = RowsAtCompileTime,
                          Idx cols = ColsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime, ColsAtCompileTime>(
       std::forward<Array>(array), rows, cols);
@@ -410,7 +397,7 @@ MatrixBase<Derived>::end() const {
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) const {
+MatrixBase<Derived>::eig(MatrixBase<OtherDerived> &values) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
   using OtherScalar = typename OtherDerived::Scalar;
@@ -418,15 +405,15 @@ MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) const {
   // as advised by the Eigen developers even though this is a UB
   // auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
   akantu::static_if(std::is_floating_point<OtherScalar>{})
-      .then([&](auto && solver) { values = solver.eigenvalues().real(); })
-      .else_([&](auto && solver) { values = solver.eigenvalues(); })(
+      .then([&](auto &&solver) { values = solver.eigenvalues().real(); })
+      .else_([&](auto &&solver) { values = solver.eigenvalues(); })(
           std::forward<decltype(solver)>(solver));
 }
 
 template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
+MatrixBase<Derived>::eig(MatrixBase<D1> &values, MatrixBase<D2> &vectors,
                          bool sort) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, true);
@@ -447,11 +434,11 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
 
   if (not sort) {
     akantu::static_if(std::is_floating_point<OtherScalar>{})
-        .then([&](auto && solver) {
+        .then([&](auto &&solver) {
           values = solver.eigenvalues().real();
           vectors = solver.eigenvectors().real();
         })
-        .else_([&](auto && solver) {
+        .else_([&](auto &&solver) {
           values = solver.eigenvalues();
           vectors = solver.eigenvectors();
         })(std::forward<decltype(solver)>(solver));
@@ -468,12 +455,12 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
   P.setIdentity();
 
   std::sort(P.indices().data(), P.indices().data() + P.indices().size(),
-            [&values](const Index & a, const Index & b) {
+            [&values](const Index &a, const Index &b) {
               return (values(a) - values(b)) > 0;
             });
 
   akantu::static_if(std::is_floating_point<OtherScalar>{})
-      .then([&](auto && solver) {
+      .then([&](auto &&solver) {
         values = P.transpose() * values;
         vectors = solver.eigenvectors().real() * P;
       })(std::forward<decltype(solver)>(solver));
@@ -483,27 +470,27 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> & values_) const {
+MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> &values_) const {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, EigenvaluesOnly);
   // as advised by the Eigen developers even though this is a UB
-  auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
+  auto &values = const_cast<MatrixBase<OtherDerived> &>(values_);
   values = solver.eigenvalues();
 }
 
 template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
-                          const MatrixBase<D2> & vectors_, bool sort) const {
+MatrixBase<Derived>::eigh(const MatrixBase<D1> &values_,
+                          const MatrixBase<D2> &vectors_, bool sort) const {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, ComputeEigenvectors);
 
   // as advised by the Eigen developers, even though this is a UB
-  auto & values = const_cast<MatrixBase<D1> &>(values_);
-  auto & vectors = const_cast<MatrixBase<D2> &>(vectors_);
+  auto &values = const_cast<MatrixBase<D1> &>(values_);
+  auto &vectors = const_cast<MatrixBase<D2> &>(vectors_);
 
   if (not sort) {
     values = solver.eigenvalues();
@@ -516,7 +503,7 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
   P.setIdentity();
 
   std::sort(P.indices().data(), P.indices().data() + P.indices().size(),
-            [&values](const Index & a, const Index & b) {
+            [&values](const Index &a, const Index &b) {
               return (values(a) - values(b)) > 0;
             });
 

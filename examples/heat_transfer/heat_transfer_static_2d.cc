@@ -44,7 +44,7 @@ using namespace akantu;
 Int spatial_dimension = 2;
 std::string base_name;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   // create mesh
@@ -56,9 +56,9 @@ int main(int argc, char * argv[]) {
   model.initFull(_analysis_method = _static);
 
   // boundary conditions
-  const Array<Real> & nodes = mesh.getNodes();
-  Array<bool> & blocked_dofs = model.getBlockedDOFs();
-  Array<Real> & temperature = model.getTemperature();
+  const Array<Real> &nodes = mesh.getNodes();
+  Array<bool> &blocked_dofs = model.getBlockedDOFs();
+  Array<Real> &temperature = model.getTemperature();
   double length = 1.;
   UInt nb_nodes = nodes.size();
   for (Int i = 0; i < nb_nodes; ++i) {
@@ -68,7 +68,7 @@ int main(int argc, char * argv[]) {
     Real dy = nodes(i, 1);
 
     Vector<Real> dX = {dx, dy};
-    dX -= length / 4.;
+    dX.array() -= length / 4.;
     Real d = dX.norm();
     if (d < 0.1) {
       blocked_dofs(i) = true;

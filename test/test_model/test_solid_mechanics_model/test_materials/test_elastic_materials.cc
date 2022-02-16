@@ -337,7 +337,7 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<2>>::setParams() {
 /* -------------------------------------------------------------------------- */
 template <>
 void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
-  UInt Dim = 2;
+  Int Dim = 2;
   // material frame of reference is rotate by rotation_matrix starting from
   // canonical basis
   Matrix<Real> rotation_matrix = getRandomRotation();

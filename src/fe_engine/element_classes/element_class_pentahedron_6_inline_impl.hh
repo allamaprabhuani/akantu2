@@ -80,7 +80,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   N(0) = 0.5 * c(1) * (1 - c(0));              // N1(q)
   N(1) = 0.5 * c(2) * (1 - c(0));              // N2(q)
@@ -93,7 +93,7 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
   dnds(0, 0) = -0.5 * c(1);
   dnds(0, 1) = -0.5 * c(2);
   dnds(0, 2) = -0.5 * (1 - c(1) - c(2));
@@ -119,14 +119,14 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_pentahedron_6>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
-  auto && u0 = coord.col(0);
-  auto && u1 = coord.col(1);
-  auto && u2 = coord.col(2);
-  auto && u3 = coord.col(3);
-  auto && u4 = coord.col(4);
-  auto && u5 = coord.col(5);
+inline Real GeometricalElement<_gt_pentahedron_6>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&u0 = coord.col(0);
+  auto &&u1 = coord.col(1);
+  auto &&u2 = coord.col(2);
+  auto &&u3 = coord.col(3);
+  auto &&u4 = coord.col(4);
+  auto &&u5 = coord.col(5);
 
   auto inradius_triangle_1 = Math::triangle_inradius(u0, u1, u2);
   auto inradius_triangle_2 = Math::triangle_inradius(u3, u4, u5);

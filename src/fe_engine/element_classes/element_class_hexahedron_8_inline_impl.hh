@@ -125,7 +125,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   N(0) = .125 * (1 - c(0)) * (1 - c(1)) * (1 - c(2)); /// N1(q_0)
   N(1) = .125 * (1 + c(0)) * (1 - c(1)) * (1 - c(2)); /// N2(q_0)
@@ -140,7 +140,7 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -204,20 +204,20 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
-    const Eigen::MatrixBase<D> & X) {
-  auto && a = (X(0) - X(1)).norm();
-  auto && b = (X(1) - X(2)).norm();
-  auto && c = (X(2) - X(3)).norm();
-  auto && d = (X(3) - X(0)).norm();
-  auto && e = (X(0) - X(4)).norm();
-  auto && f = (X(1) - X(5)).norm();
-  auto && g = (X(2) - X(6)).norm();
-  auto && h = (X(3) - X(7)).norm();
-  auto && i = (X(4) - X(5)).norm();
-  auto && j = (X(5) - X(6)).norm();
-  auto && k = (X(6) - X(7)).norm();
-  auto && l = (X(7) - X(4)).norm();
+inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
+    const Eigen::MatrixBase<D> &X) {
+  auto &&a = (X(0) - X(1)).norm();
+  auto &&b = (X(1) - X(2)).norm();
+  auto &&c = (X(2) - X(3)).norm();
+  auto &&d = (X(3) - X(0)).norm();
+  auto &&e = (X(0) - X(4)).norm();
+  auto &&f = (X(1) - X(5)).norm();
+  auto &&g = (X(2) - X(6)).norm();
+  auto &&h = (X(3) - X(7)).norm();
+  auto &&i = (X(4) - X(5)).norm();
+  auto &&j = (X(5) - X(6)).norm();
+  auto &&k = (X(6) - X(7)).norm();
+  auto &&l = (X(7) - X(4)).norm();
 
   auto p = std::min({a, b, c, d, e, f, g, h, i, j, k, l});
 

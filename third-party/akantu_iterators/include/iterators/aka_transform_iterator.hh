@@ -151,11 +151,9 @@ auto make_dereference_adaptor(container_t &&cont) -> decltype(auto) {
       [](auto &&value) -> decltype(*value) { return *value; });
 }
 
-template <typename Type, typename Size>
-auto broadcast(Type &&data, Size size) -> decltype(auto) {
-  return make_transform_adaptor(
-      arange(size),
-      [data](auto && /*value*/) -> decltype(auto) { return data; });
+template <typename Type, typename Size> auto broadcast(Type &&data, Size size) {
+  return make_transform_adaptor(arange(size),
+                                [data](auto && /*value*/) { return data; });
 }
 
 } // namespace AKANTU_ITERATORS_NAMESPACE

@@ -40,11 +40,11 @@
 
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
-  const UInt max_steps = 1000;
+  const Int max_steps = 1000;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
@@ -59,16 +59,16 @@ int main(int argc, char * argv[]) {
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
 
-  CohesiveElementInserter & inserter = model.getElementInserter();
+  CohesiveElementInserter &inserter = model.getElementInserter();
   inserter.setLimit(_y, 0.30, 0.20);
   model.updateAutomaticInsertion();
 
-  Array<Real> & position = mesh.getNodes();
-  Array<Real> & velocity = model.getVelocity();
-  Array<bool> & boundary = model.getBlockedDOFs();
-  Array<Real> & displacement = model.getDisplacement();
+  Array<Real> &position = mesh.getNodes();
+  Array<Real> &velocity = model.getVelocity();
+  Array<bool> &boundary = model.getBlockedDOFs();
+  Array<Real> &displacement = model.getDisplacement();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
   for (Int n = 0; n < nb_nodes; ++n) {

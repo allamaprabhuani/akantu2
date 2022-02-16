@@ -36,17 +36,17 @@
 
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   Int spatial_dimension = 2;
-  UInt max_steps = 10000;
+  Int max_steps = 10000;
   Real time_factor = 0.8;
   Real max_disp = 1e-6;
 
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto &comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
   if (prank == 0) {
     // Read the mesh
@@ -70,9 +70,9 @@ int main(int argc, char * argv[]) {
 
   /// boundary conditions
   Real eps = 1e-16;
-  const Array<Real> & pos = mesh.getNodes();
-  Array<Real> & disp = model.getDisplacement();
-  Array<bool> & boun = model.getBlockedDOFs();
+  const Array<Real> &pos = mesh.getNodes();
+  Array<Real> &disp = model.getDisplacement();
+  Array<bool> &boun = model.getBlockedDOFs();
 
   Real left_side = mesh.getLowerBounds()(0);
   Real right_side = mesh.getUpperBounds()(0);

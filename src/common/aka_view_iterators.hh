@@ -169,7 +169,7 @@ public:
   constexpr internal_view_iterator(scalar_pointer data, Idx rows)
       : dims({rows, 1}), _offset(rows), initial(data), ret_ptr(data),
         proxy(data, rows, 1) {
-    AKANTU_DEBUG_ASSERT(rows == 1, "1x1 Matrix");
+    assert(rows == 1 && "1x1 Matrix");
   }
 
   /// Specific constructor for Eigen::Map<Matrix> that look like
@@ -181,7 +181,7 @@ public:
                                    [[gnu::unused]] Idx cols)
       : dims({rows}), _offset(rows), initial(data), ret_ptr(data),
         proxy(data, rows, 1) {
-    AKANTU_DEBUG_ASSERT(cols == 1, "nx1 Matrix");
+    assert(cols == 1 && "nx1 Matrix");
   }
 
   /// Default constructor for Eigen::Map<Vector>

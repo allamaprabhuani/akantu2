@@ -1,8 +1,7 @@
 
 template <bool _is_vector = IsVectorAtCompileTime, typename _Derived = Derived,
-          std::enable_if_t<_is_vector and
-                           aka::is_eigen_matrix<_Derived>::value> * = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+          std::enable_if_t<_is_vector> * = nullptr>
+EIGEN_DEVICE_FUNC constexpr EIGEN_STRONG_INLINE
 PlainObjectBase(std::initializer_list<Scalar> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
@@ -16,9 +15,8 @@ PlainObjectBase(std::initializer_list<Scalar> list) {
 }
 
 template <bool _is_vector = IsVectorAtCompileTime, typename _Derived = Derived,
-          std::enable_if_t<not _is_vector and
-                           aka::is_eigen_matrix<_Derived>::value> * = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+          std::enable_if_t<not _is_vector> * = nullptr>
+EIGEN_DEVICE_FUNC constexpr EIGEN_STRONG_INLINE
 PlainObjectBase(std::initializer_list<std::initializer_list<Scalar>> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
@@ -29,12 +27,12 @@ PlainObjectBase(std::initializer_list<std::initializer_list<Scalar>> list) {
   }
 
   if (RowsAtCompileTime != -1 and RowsAtCompileTime != m) {
-    AKANTU_EXCEPTION(
+    throw std::range_error(
         "The size of the matrix does not correspond to the initializer_list");
   }
 
   if (ColsAtCompileTime != -1 and ColsAtCompileTime != n) {
-    AKANTU_EXCEPTION(
+    throw std::range_error(
         "The size of the matrix does not correspond to the initializer_list");
   }
 
@@ -43,8 +41,8 @@ PlainObjectBase(std::initializer_list<std::initializer_list<Scalar>> list) {
   this->fill(Scalar{});
 
   Index i = 0, j = 0;
-  for (auto & row : list) {
-    for (auto & val : row) {
+  for (auto &row : list) {
+    for (auto &val : row) {
       this->operator()(i, j++) = val;
     }
     ++i;

@@ -50,14 +50,14 @@ public:
 
   void applyBC() override {
     parent::applyBC();
-    auto & displacement = this->model->getDisplacement();
+    auto &displacement = this->model->getDisplacement();
     this->applyBConDOFs(displacement);
   }
 
   void checkForces() {
-    auto & mat = this->model->getMaterial(0);
-    auto & internal_forces = this->model->getInternalForce();
-    auto & external_forces = this->model->getExternalForce();
+    auto &mat = this->model->getMaterial(0);
+    auto &internal_forces = this->model->getInternalForce();
+    auto &external_forces = this->model->getExternalForce();
     auto dim = this->dim;
 
     Matrix<Real> sigma =
@@ -65,7 +65,7 @@ public:
 
     external_forces.zero();
     if (dim > 1) {
-      for (auto & eg : this->mesh->iterateElementGroups()) {
+      for (auto &eg : this->mesh->iterateElementGroups()) {
         this->model->applyBC(BC::Neumann::FromHigherDim(sigma), eg.getName());
       }
     } else {
@@ -78,7 +78,7 @@ public:
     Vector<Real> total_force(dim);
     total_force.zero();
 
-    for (auto && f : make_view(internal_forces, dim)) {
+    for (auto &&f : make_view(internal_forces, dim)) {
       total_force += f;
       force_norm_inf =
           std::max(force_norm_inf, f.template lpNorm<Eigen::Infinity>());
@@ -88,10 +88,10 @@ public:
                 total_force.template lpNorm<Eigen::Infinity>() / force_norm_inf,
                 1e-9);
 
-    for (auto && tuple : zip(make_view(internal_forces, dim),
-                             make_view(external_forces, dim))) {
-      auto && f_int = std::get<0>(tuple);
-      auto && f_ext = std::get<1>(tuple);
+    for (auto &&tuple : zip(make_view(internal_forces, dim),
+                            make_view(external_forces, dim))) {
+      auto &&f_int = std::get<0>(tuple);
+      auto &&f_ext = std::get<1>(tuple);
       auto f = f_int + f_ext;
       EXPECT_NEAR(0, f.template lpNorm<Eigen::Infinity>() / force_norm_inf,
                   1e-9);
@@ -99,17 +99,17 @@ public:
   }
 
   void checkAll() {
-    auto & displacement = this->model->getDisplacement();
-    auto & mat = this->model->getMaterial(0);
+    auto &displacement = this->model->getDisplacement();
+    auto &mat = this->model->getMaterial(0);
 
     this->checkDOFs(displacement);
     this->checkGradient(mat.getGradU(this->type), displacement);
     this->checkResults(
-        [&](const Matrix<Real> & pstrain) {
+        [&](const Matrix<Real> &pstrain) {
           Real nu = this->model->getMaterial(0).get("nu");
           Real E = this->model->getMaterial(0).get("E");
 
-          Matrix<Real, this->dim, this->dim> strain =
+          Matrix<Real, parent::dim, parent::dim> strain =
               (pstrain + pstrain.transpose()) / 2.;
           auto trace = strain.trace();
 
@@ -120,13 +120,13 @@ public:
             lambda = nu * E / (1 - nu * nu);
           }
 
-          Matrix<Real, this->dim, this->dim> stress;
+          Matrix<Real, parent::dim, parent::dim> stress;
 
-          if (this->dim == 1) {
+          if (parent::dim == 1) {
             stress = E * strain;
           } else {
-            stress = Matrix<Real, this->dim, this->dim>::Identity() * lambda *
-                         trace +
+            stress = Matrix<Real, parent::dim, parent::dim>::Identity() *
+                         lambda * trace +
                      2 * mu * strain;
           }
 

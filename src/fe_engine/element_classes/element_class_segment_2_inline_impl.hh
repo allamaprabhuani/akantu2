@@ -63,7 +63,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
-    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
 
   /// natural coordinate
   Real c = natural_coords(0);
@@ -77,7 +77,7 @@ template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
     const Eigen::MatrixBase<D1> & /*natural_coords*/,
-    Eigen::MatrixBase<D2> & dnds) {
+    Eigen::MatrixBase<D2> &dnds) {
 
   /// dN1/de
   dnds(0, 0) = -.5;
@@ -89,25 +89,25 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
 template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
-    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+    const vector_type & /*natural_coords*/, matrix_type &d2nds2) {
   d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_segment_2>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
+inline Real GeometricalElement<_gt_segment_2>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
   return (coord.col(1) - coord.col(0)).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D1, class D2>
-inline void GeometricalElement<_gt_segment_2>::getNormal(
-    const Eigen::MatrixBase<D1> & coord, Eigen::MatrixBase<D2> & normal) {
-  AKANTU_DEBUG_ASSERT(normal.size() == 2,
-                      "The normal is only uniquely defined in 2D");
+inline void
+GeometricalElement<_gt_segment_2>::getNormal(const Eigen::MatrixBase<D1> &coord,
+                                             Eigen::MatrixBase<D2> &normal) {
+  assert(normal.size() == 2 && "The normal is only uniquely defined in 2D");
   Math::normal(coord.col(0) - coord.col(1), normal);
 }
 

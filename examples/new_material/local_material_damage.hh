@@ -45,7 +45,7 @@ class LocalMaterialDamage : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
+  LocalMaterialDamage(SolidMechanicsModel &model, const ID &id = "");
 
   virtual ~LocalMaterialDamage(){};
 
@@ -64,19 +64,22 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-                                  Real & damage);
+  template <typename D1, typename D2>
+  inline void computeStressOnQuad(Eigen::MatrixBase<D1> &grad_u,
+                                  Eigen::MatrixBase<D2> &sigma, Real &damage);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
-                                           Matrix<Real> & sigma, Real & epot);
+  template <typename D1, typename D2>
+  inline void computePotentialEnergyOnQuad(Eigen::MatrixBase<D1> &grad_u,
+                                           Eigen::MatrixBase<D2> &sigma,
+                                           Real &epot);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the celerity of the fastest wave in the material
-  inline Real getCelerity(const Element & element) const override;
+  inline Real getCelerity(const Element &element) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

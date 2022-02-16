@@ -44,11 +44,11 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
                                const ElementGroup &, Real);
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
-  const UInt max_steps = 350;
+  const Int max_steps = 350;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
@@ -64,9 +64,9 @@ int main(int argc, char * argv[]) {
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
 
-  Array<bool> & boundary = model.getBlockedDOFs();
+  Array<bool> &boundary = model.getBlockedDOFs();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
   for (Int dim = 0; dim < spatial_dimension; ++dim) {
@@ -86,12 +86,12 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   /// update displacement
-  auto && elements = mesh.createElementGroup("diplacement");
+  auto &&elements = mesh.createElementGroup("diplacement");
   Vector<Real> barycenter(spatial_dimension);
 
   for_each_element(
       mesh,
-      [&](auto && el) {
+      [&](auto &&el) {
         mesh.getBarycenter(el, barycenter);
         if (barycenter(_x) > -0.25)
           elements.add(el, true);
@@ -129,11 +129,11 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-static void updateDisplacement(SolidMechanicsModelCohesive & model,
-                               const ElementGroup & group, Real increment) {
-  Array<Real> & displacement = model.getDisplacement();
+static void updateDisplacement(SolidMechanicsModelCohesive &model,
+                               const ElementGroup &group, Real increment) {
+  Array<Real> &displacement = model.getDisplacement();
 
-  for (auto && node : group.getNodeGroup().getNodes()) {
+  for (auto &&node : group.getNodeGroup().getNodes()) {
     displacement(node, 0) += increment;
   }
 }

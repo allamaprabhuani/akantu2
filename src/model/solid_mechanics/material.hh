@@ -717,13 +717,17 @@ inline std::ostream &operator<<(std::ostream &stream, const Material &_this) {
 /// functions such as computeStress. This macro in addition to write the loop
 /// provides two tensors (matrices) sigma and grad_u
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type)       \
-  auto &&grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type));  \
+  auto &&grad_u_view =                                                         \
+      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
+                this->spatial_dimension);                                      \
                                                                                \
-  auto stress_view = make_view<dim, dim>(this->stress(el_type, ghost_type));   \
+  auto stress_view =                                                           \
+      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
+                this->spatial_dimension);                                      \
                                                                                \
   if (this->isFiniteDeformation()) {                                           \
-    stress_view =                                                              \
-        make_view<dim, dim>(this->piola_kirchhoff_2(el_type, ghost_type));     \
+    stress_view = make_view(this->piola_kirchhoff_2(el_type, ghost_type),      \
+                            this->spatial_dimension, this->spatial_dimension); \
   }                                                                            \
                                                                                \
   for (auto &&data : zip(grad_u_view, stress_view)) {                          \
@@ -737,13 +741,18 @@ inline std::ostream &operator<<(std::ostream &stream, const Material &_this) {
 /// loop provides two tensors (matrices) sigma_tensor, grad_u, and a matrix
 /// where the elemental tangent moduli should be stored in Voigt Notation
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)              \
-  auto &&grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type));  \
+  auto &&grad_u_view =                                                         \
+      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
+                this->spatial_dimension);                                      \
                                                                                \
-  auto &&stress_view = make_view<dim, dim>(this->stress(el_type, ghost_type)); \
+  auto &&stress_view =                                                         \
+      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
+                this->spatial_dimension);                                      \
                                                                                \
-  constexpr auto tangent_size = this->getTangentStiffnessVoigtSize(dim);       \
+  auto tangent_size =                                                          \
+      Material::getTangentStiffnessVoigtSize(this->spatial_dimension);         \
                                                                                \
-  auto &&tangent_view = make_view<tangent_size, tangent_size>(tangent_mat);    \
+  auto &&tangent_view = make_view(tangent_mat, tangent_size, tangent_size);    \
                                                                                \
   for (auto &&data : zip(grad_u_view, stress_view, tangent_view)) {            \
     [[gnu::unused]] auto &&grad_u = std::get<0>(data);                         \

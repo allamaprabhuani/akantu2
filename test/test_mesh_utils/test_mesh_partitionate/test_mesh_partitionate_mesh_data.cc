@@ -43,7 +43,7 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 /* Main                                                                       */
 /* -------------------------------------------------------------------------- */
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
   Int dim = 2;
@@ -55,10 +55,10 @@ int main(int argc, char * argv[]) {
   UInt nb_component = 1;
 
   GhostType gt = _not_ghost;
-  for (const auto & type : mesh.elementTypes(dim, gt)) {
+  for (const auto &type : mesh.elementTypes(dim, gt)) {
     Int nb_element = mesh.getNbElement(type, gt);
     partition.alloc(nb_element, nb_component, type, gt);
-    auto & type_partition_reference = partition(type, gt);
+    auto &type_partition_reference = partition(type, gt);
     for (Int i(0); i < nb_element; ++i) {
       Vector<Real> barycenter(dim);
       Element element{type, i, gt};
@@ -79,14 +79,14 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  auto * partitioner = new akantu::MeshPartitionMeshData(mesh, dim);
+  auto *partitioner = new akantu::MeshPartitionMeshData(mesh, dim);
   partitioner->setPartitionMapping(partition);
   partitioner->partitionate(nb_partitions);
 
-  for (const auto & type : mesh.elementTypes(dim, gt)) {
-    UInt nb_element = mesh.getNbElement(type, gt);
-    const auto & type_partition_reference = partition(type, gt);
-    const auto & type_partition = partitioner->getPartitions()(type, gt);
+  for (const auto &type : mesh.elementTypes(dim, gt)) {
+    auto nb_element = mesh.getNbElement(type, gt);
+    const auto &type_partition_reference = partition(type, gt);
+    const auto &type_partition = partitioner->getPartitions()(type, gt);
     for (Int i(0); i < nb_element; ++i) {
       if (not(type_partition(i) == type_partition_reference(i))) {
         std::cout << "Incorrect partitioning" << std::endl;
@@ -97,9 +97,9 @@ int main(int argc, char * argv[]) {
 
 #ifdef DEBUG_TEST
   DumperParaview dumper("test-mesh-data-partition");
-  dumpers::Field * field1 =
+  dumpers::Field *field1 =
       new dumpers::ElementalField<UInt>(partitioner->getPartitions(), dim);
-  dumpers::Field * field2 = new dumpers::ElementalField<Int>(partition, dim);
+  dumpers::Field *field2 = new dumpers::ElementalField<Int>(partition, dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field1);
   dumper.registerField("partitions_ref", field2);

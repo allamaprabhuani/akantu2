@@ -152,7 +152,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
-    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   Real xi = natural_coords(0);
   Real eta = natural_coords(1);
@@ -181,8 +181,7 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
-    const Eigen::MatrixBase<D1> & natural_coords,
-    Eigen::MatrixBase<D2> & dnds) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &dnds) {
   /**
    * \f[
    * dnds = \left(
@@ -268,8 +267,8 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
+inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
   // Only take the four corner tetrahedra
 
   Matrix<Idx, 4, 4> tetrahedra{

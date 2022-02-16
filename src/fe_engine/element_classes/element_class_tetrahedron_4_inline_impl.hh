@@ -75,7 +75,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(
-    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
 
   Real c0 = 1 - natural_coords(0) - natural_coords(1) -
             natural_coords(2); /// @f$ c0 = 1 - \xi - \eta - \zeta @f$
@@ -93,7 +93,7 @@ template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(
     const Eigen::MatrixBase<D1> & /*natural_coords*/,
-    Eigen::MatrixBase<D2> & dnds) {
+    Eigen::MatrixBase<D2> &dnds) {
 
   /**
    * @f[
@@ -136,8 +136,8 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-constexpr inline Real GeometricalElement<_gt_tetrahedron_4>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
+inline Real GeometricalElement<_gt_tetrahedron_4>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
   return 2. * Math::tetrahedron_inradius(coord.col(0), coord.col(1),
                                          coord.col(2), coord.col(3));
 }

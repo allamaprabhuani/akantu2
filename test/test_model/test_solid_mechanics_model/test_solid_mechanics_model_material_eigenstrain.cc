@@ -38,20 +38,17 @@
 
 using namespace akantu;
 
-Real alpha[3][4] = {{0.01, 0.02, 0.03, 0.04},
-                    {0.05, 0.06, 0.07, 0.08},
-                    {0.09, 0.10, 0.11, 0.12}};
+Matrix<Real, 3, 4> alpha{{0.01, 0.02, 0.03, 0.04},
+                         {0.05, 0.06, 0.07, 0.08},
+                         {0.09, 0.10, 0.11, 0.12}};
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type> static Matrix<Real> prescribed_strain() {
   Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> strain(spatial_dimension, spatial_dimension);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      strain(i, j) = alpha[i][j + 1];
-    }
-  }
+  strain = alpha.block(0, 1, spatial_dimension, spatial_dimension);
+
   return strain;
 }
 
@@ -69,25 +66,21 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
   Real trace = 0;
 
   /// symetric part of the strain tensor
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      strain(i, j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
+  strain = (pstrain + pstrain.transpose()) / 2.;
 
   // elastic strain is equal to elastic strain minus the eigenstrain
   strain -= prescribed_eigengradu;
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    trace += strain(i, i);
+  trace = strain.trace();
 
   Real lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
   Real mu = E / (2 * (1 + nu));
 
   if (spatial_dimension == 1) {
-    stress(0, 0) = E * strain(0, 0);
+    stress = E * strain;
   } else {
-    for (UInt i = 0; i < spatial_dimension; ++i)
-      for (UInt j = 0; j < spatial_dimension; ++j) {
-        stress(i, j) = (i == j) * lambda * trace + 2 * mu * strain(i, j);
-      }
+    auto I = Matrix<Real>::Identity(spatial_dimension, spatial_dimension);
+
+    stress = I * trace * lambda + 2. * mu * strain;
   }
 
   return stress;
@@ -96,7 +89,7 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material_elastic_plane_strain.dat", argc, argv);
 
   Int dim = 3;
@@ -116,26 +109,26 @@ int main(int argc, char * argv[]) {
 
   // model.getNewSolver("static", TimeStepSolverType::_static,
   // NonLinearSolverType::_newton_raphson_modified);
-  auto & solver = model.getNonLinearSolver("static");
+  auto &solver = model.getNonLinearSolver("static");
   solver.set("threshold", 2e-4);
   solver.set("max_iterations", 2);
   solver.set("convergence_type", SolveConvergenceCriteria::_residual);
 
-  const Array<Real> & coordinates = mesh.getNodes();
-  Array<Real> & displacement = model.getDisplacement();
-  Array<bool> & boundary = model.getBlockedDOFs();
+  const Array<Real> &coordinates = mesh.getNodes();
+  Array<Real> &displacement = model.getDisplacement();
+  Array<bool> &boundary = model.getBlockedDOFs();
   MeshUtils::buildFacets(mesh);
 
   mesh.createBoundaryGroupFromGeometry();
 
   // Loop over (Sub)Boundar(ies)
-  for (auto & group : mesh.iterateElementGroups()) {
-    for (const auto & n : group.getNodeGroup()) {
+  for (auto &group : mesh.iterateElementGroups()) {
+    for (const auto &n : group.getNodeGroup()) {
       std::cout << "Node " << n << std::endl;
       for (Int i = 0; i < dim; ++i) {
-        displacement(n, i) = alpha[i][0];
+        displacement(n, i) = alpha(i, 0);
         for (Int j = 0; j < dim; ++j) {
-          displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+          displacement(n, i) += alpha(i, j + 1) * coordinates(n, j);
         }
         boundary(n, i) = true;
       }
@@ -145,7 +138,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Apply eigenstrain in each element */
   /* ------------------------------------------------------------------------ */
-  Array<Real> & eigengradu_vect =
+  Array<Real> &eigengradu_vect =
       model.getMaterial(0).getInternal<Real>("eigen_grad_u")(element_type);
   auto eigengradu_it = eigengradu_vect.begin(dim, dim);
   auto eigengradu_end = eigengradu_vect.end(dim, dim);
@@ -165,8 +158,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
-  const Array<Real> & stress_vect =
-      model.getMaterial(0).getStress(element_type);
+  const Array<Real> &stress_vect = model.getMaterial(0).getStress(element_type);
 
   auto stress_it = stress_vect.begin(dim, dim);
   auto stress_end = stress_vect.end(dim, dim);
@@ -177,7 +169,7 @@ int main(int argc, char * argv[]) {
   Real stress_tolerance = 1e-13;
 
   for (; stress_it != stress_end; ++stress_it) {
-    const auto & stress = *stress_it;
+    const auto &stress = *stress_it;
     Matrix<Real> diff(dim, dim);
 
     diff = stress;

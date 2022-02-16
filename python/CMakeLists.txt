@@ -120,6 +120,11 @@ set_target_properties(py11_akantu PROPERTIES
   DEBUG_POSTFIX ""
   LIBRARY_OUTPUT_DIRECTORY akantu)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(py11_akantu PUBLIC -fsized-deallocation)
+endif()
+
+
 file(COPY akantu DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 if(NOT Python_MAJOR)

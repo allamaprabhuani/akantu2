@@ -48,7 +48,7 @@ template <typename T> class FriendMaterial : public T {
 public:
   ~FriendMaterial() = default;
 
-  FriendMaterial(SolidMechanicsModel & model, const ID & id = "material")
+  FriendMaterial(SolidMechanicsModel &model, const ID &id = "material")
       : T(model, id) {
     gen.seed(::testing::GTEST_FLAG(random_seed));
   }
@@ -134,7 +134,7 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
   const auto dim = this->spatial_dimension;
 
   Matrix<Real> rotation(dim, dim);
-  auto && v1 = rotation(0);
+  auto &&v1 = rotation(0);
   v1 = getRandomVector().normalized();
   if (dim == 2) {
     Vector<Real, 3> v1{v1(0), v1(1), 0};
@@ -199,9 +199,9 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template <template <UInt> class T, UInt _Dim> struct Traits {
+template <template <Int> class T, Int _Dim> struct Traits {
   using mat_class = T<_Dim>;
-  static constexpr UInt Dim = _Dim;
+  static constexpr Int Dim = _Dim;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -129,15 +129,15 @@ class GeometricalElement {
 public:
   /// compute the in-radius: \todo should be renamed for characteristic length
   template <class D>
-  static constexpr inline Real getInradius(const Eigen::MatrixBase<D> & /*X*/) {
-    AKANTU_TO_IMPLEMENT();
+  static inline Real getInradius(const Eigen::MatrixBase<D> & /*X*/) {
+    return 0.;
   }
 
   /// compute the normal to the element
   template <class D1, class D2>
-  static constexpr inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
-                                         Eigen::MatrixBase<D2> & /*n*/) {
-    AKANTU_TO_IMPLEMENT();
+  static inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
+                               Eigen::MatrixBase<D2> &n) {
+    n.zero();
   }
 
   /// true if the natural coordinates are in the element

@@ -76,7 +76,7 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   Matrix<Real, 3, 3> previous_sigma = Matrix<Real, 3, 3>::Zero();
   Matrix<Real, 3, 3> previous_sigma_rot = Matrix<Real, 3, 3>::Zero();
   Matrix<Real, 3, 3> inelastic_strain_rot = Matrix<Real, 3, 3>::Zero();
-  Matrix<Real, 3, 3> inelastic_strain = Matrix<Real, 3, 3>::Zero();
+  // Matrix<Real, 3, 3> inelastic_strain = Matrix<Real, 3, 3>::Zero();
   Matrix<Real, 3, 3> previous_inelastic_strain = Matrix<Real, 3, 3>::Zero();
   Matrix<Real, 3, 3> previous_inelastic_strain_rot = Matrix<Real, 3, 3>::Zero();
   Matrix<Real, 3, 3> sigma_rot = Matrix<Real, 3, 3>::Zero();
@@ -85,7 +85,7 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   Real previous_iso_hardening = 0.;
 
   // hydrostatic loading (should not plastify)
-  for (auto && i : steps) {
+  for (auto &&i : steps) {
     auto t = i * dt;
 
     auto grad_u = this->getHydrostaticStrain(t);
@@ -124,7 +124,7 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   Real t_P = sigma_0 / 2. / shear_modulus_mu / beta;
   Matrix<Real> sigma_P = sigma_0 / beta * this->getDeviatoricStrain(1.);
 
-  for (auto && i : steps) {
+  for (auto &&i : steps) {
 
     auto t = i * dt;
     auto grad_u = this->getDeviatoricStrain(t);

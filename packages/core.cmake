@@ -51,7 +51,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
-  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template")
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template -Wno-unknown-attributes")
 endif()
 
 

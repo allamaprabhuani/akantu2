@@ -41,7 +41,7 @@
 
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   Math::setTolerance(1e-14);
@@ -73,8 +73,8 @@ int main(int argc, char * argv[]) {
   Real disp_increment = strain_rate * L / 2. * time_step;
   model.assembleMassLumped();
 
-  Array<Real> & velocity = model.getVelocity();
-  const Array<Real> & position = mesh.getNodes();
+  Array<Real> &velocity = model.getVelocity();
+  const Array<Real> &position = mesh.getNodes();
   Int nb_nodes = mesh.getNbNodes();
 
   /// initial conditions
@@ -85,16 +85,16 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Left_side");
   model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Right_side");
 
-  UInt cohesive_index = 1;
+  Int cohesive_index = 1;
 
-  UInt nb_quad_per_facet =
+  Int nb_quad_per_facet =
       model.getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
-  MaterialCohesive & mat_cohesive =
+  MaterialCohesive &mat_cohesive =
       dynamic_cast<MaterialCohesive &>(model.getMaterial(cohesive_index));
-  const Array<Real> & damage = mat_cohesive.getDamage(type_cohesive);
+  const Array<Real> &damage = mat_cohesive.getDamage(type_cohesive);
 
   FragmentManager fragment_manager(model, false);
-  const Array<Real> & fragment_mass = fragment_manager.getMass();
+  const Array<Real> &fragment_mass = fragment_manager.getMass();
 
   /// Main loop
   for (Int s = 1; s <= max_steps; ++s) {
@@ -114,13 +114,13 @@ int main(int argc, char * argv[]) {
       fragment_manager.computeAllData();
 
       /// check number of fragments
-      auto nb_fragment_num = fragment_manager.getNbFragment();
+      Int nb_fragment_num = fragment_manager.getNbFragment();
 
       auto nb_cohesive_elements = mesh.getNbElement(type_cohesive);
 
       Int nb_fragment = 1;
       for (Int el = 0; el < nb_cohesive_elements; ++el) {
-        UInt q = 0;
+        Int q = 0;
         while (q < nb_quad_per_facet &&
                Math::are_float_equal(damage(el * nb_quad_per_facet + q), 1))
           ++q;
@@ -151,9 +151,9 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   /// check velocities
-  auto nb_fragment = fragment_manager.getNbFragment();
-  const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
-  const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
+  Int nb_fragment = fragment_manager.getNbFragment();
+  const Array<Real> &fragment_velocity = fragment_manager.getVelocity();
+  const Array<Real> &fragment_center = fragment_manager.getCenterOfMass();
 
   Real fragment_length = L / nb_fragment;
   Real initial_position = -L / 2. + fragment_length / 2.;
