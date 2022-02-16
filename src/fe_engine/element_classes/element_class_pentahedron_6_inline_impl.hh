@@ -119,7 +119,7 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_pentahedron_6>::getInradius(
+constexpr inline Real GeometricalElement<_gt_pentahedron_6>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   auto && u0 = coord.col(0);
   auto && u1 = coord.col(1);

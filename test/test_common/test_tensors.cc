@@ -47,13 +47,13 @@ namespace {
 class TensorConstructorFixture : public ::testing::Test {
 public:
   void SetUp() override {
-    for (auto & r : reference) {
+    for (auto &r : reference) {
       r = rand(); // google-test seeds srand()
     }
   }
   void TearDown() override {}
 
-  template <typename V> void compareToRef(const V & v) {
+  template <typename V> void compareToRef(const V &v) {
     for (int i = 0; i < size_; ++i) {
       EXPECT_DOUBLE_EQ(reference[i], v.data()[i]);
     }
@@ -287,7 +287,6 @@ TEST_F(TensorConstructorFixture, MatrixDefaultConstruct) {
 }
 
 TEST_F(TensorConstructorFixture, MatrixConstruct1) {
-  double r = rand();
   Matrix<double> m(mat_size[0], mat_size[1]);
   EXPECT_EQ(size_, m.size());
   EXPECT_EQ(mat_size[0], m.rows());
@@ -383,7 +382,7 @@ TEST_F(TensorFixture, MatrixEqualSlice) {
   Matrix<double> m(mat_size[0], mat_size[1]);
   m.zero();
 
-  for (unsigned int i = 0; i < m.cols(); ++i) {
+  for (Int i = 0; i < m.cols(); ++i) {
     m(i) = mref(i);
   }
 
@@ -505,7 +504,7 @@ TEST_F(TensorFixture, MatrixIterator) {
   Matrix<double> m(mref);
 
   UInt col_count = 0;
-  for (auto && col : m) {
+  for (auto &&col : m) {
     VectorProxy<Real> col_hand(m.data() + col_count * m.rows(), m.rows());
     Vector<Real> col_wrap(col);
 
@@ -520,7 +519,7 @@ TEST_F(TensorFixture, MatrixIteratorZip) {
   Matrix<double> m2(mref);
 
   UInt col_count = 0;
-  for (auto && col : zip(m1, m2)) {
+  for (auto &&col : zip(m1, m2)) {
     Vector<Real> col1(std::get<0>(col));
     Vector<Real> col2(std::get<1>(col));
 
@@ -537,6 +536,8 @@ TEST_F(TensorFixture, MatrixEigs) {
 
   Matrix<double, 4, 4> v;
   Vector<double, 4> lambda;
+  lambda.zero();
+  v.zero();
   A.eig(lambda, v);
 
   Vector<double> eigs_ref{2, 1., -1., -2};

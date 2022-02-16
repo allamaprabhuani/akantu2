@@ -96,7 +96,7 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_segment_3>::getInradius(
+constexpr inline Real GeometricalElement<_gt_segment_3>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   auto dist1 = (coord(1) - coord(0)).norm();
   auto dist2 = (coord(2) - coord(1)).norm();

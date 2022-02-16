@@ -44,11 +44,11 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <>
 void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(
-    Array<Real> & tangent_moduli) {
-  UInt nb_element = getFEEngine().getMesh().getNbElement(_bernoulli_beam_3);
-  UInt nb_quadrature_points =
+    Array<Real> &tangent_moduli) {
+  Int nb_element = getFEEngine().getMesh().getNbElement(_bernoulli_beam_3);
+  Int nb_quadrature_points =
       getFEEngine().getNbIntegrationPoints(_bernoulli_beam_3);
-  UInt tangent_size = 4;
+  Int tangent_size = 4;
 
   tangent_moduli.zero();
   Array<Real>::matrix_iterator D_it =
@@ -62,7 +62,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(
     Real Iy = materials[mat].Iy;
     Real GJ = materials[mat].GJ;
     for (Int q = 0; q < nb_quadrature_points; ++q, ++D_it) {
-      auto & D = *D_it;
+      auto &D = *D_it;
       D(0, 0) = E * A;
       D(1, 1) = E * Iz;
       D(2, 2) = E * Iy;

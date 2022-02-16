@@ -79,7 +79,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1000;
+  Int nbSteps = 1000;
   Real increment = 1e-4;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);

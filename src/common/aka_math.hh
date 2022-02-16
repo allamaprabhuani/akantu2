@@ -77,22 +77,25 @@ namespace Math {
 
   /// radius of the in-circle of a triangle in 2d space
   template <class D1, class D2, class D3>
-  static inline Real triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                       const Eigen::MatrixBase<D2> & coord2,
-                                       const Eigen::MatrixBase<D3> & coord3);
+  static constexpr inline Real
+  triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
+                    const Eigen::MatrixBase<D2> & coord2,
+                    const Eigen::MatrixBase<D3> & coord3);
 
   /// radius of the in-circle of a tetrahedron
   template <class D1, class D2, class D3, class D4>
-  static inline Real tetrahedron_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                          const Eigen::MatrixBase<D2> & coord2,
-                                          const Eigen::MatrixBase<D3> & coord3,
-                                          const Eigen::MatrixBase<D4> & coord4);
+  static constexpr inline Real
+  tetrahedron_inradius(const Eigen::MatrixBase<D1> & coord1,
+                       const Eigen::MatrixBase<D2> & coord2,
+                       const Eigen::MatrixBase<D3> & coord3,
+                       const Eigen::MatrixBase<D4> & coord4);
   /// volume of a tetrahedron
   template <class D1, class D2, class D3, class D4>
-  static inline Real tetrahedron_volume(const Eigen::MatrixBase<D1> & coord1,
-                                        const Eigen::MatrixBase<D2> & coord2,
-                                        const Eigen::MatrixBase<D3> & coord3,
-                                        const Eigen::MatrixBase<D4> & coord4);
+  static constexpr inline Real
+  tetrahedron_volume(const Eigen::MatrixBase<D1> & coord1,
+                     const Eigen::MatrixBase<D2> & coord2,
+                     const Eigen::MatrixBase<D3> & coord3,
+                     const Eigen::MatrixBase<D4> & coord4);
 
   /// compute the barycenter of n points
   template <class D1, class D2>

@@ -131,11 +131,11 @@ doubleDot(const MatrixBase<OtherDerived> & other) const {
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(const MatrixBase<OtherDerived> & other) const;
+eig(MatrixBase<OtherDerived> & other) const;
 
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(const MatrixBase<D1> & values, const MatrixBase<D2> & vectors,
+eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
     bool sort = std::is_floating_point<typename D1::Scalar>::value) const;
 
 template <typename OtherDerived>

@@ -410,13 +410,13 @@ MatrixBase<Derived>::end() const {
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(const MatrixBase<OtherDerived> & values_) const {
+MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
   using OtherScalar = typename OtherDerived::Scalar;
 
   // as advised by the Eigen developers even though this is a UB
-  auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
+  // auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
   akantu::static_if(std::is_floating_point<OtherScalar>{})
       .then([&](auto && solver) { values = solver.eigenvalues().real(); })
       .else_([&](auto && solver) { values = solver.eigenvalues(); })(
@@ -426,14 +426,14 @@ MatrixBase<Derived>::eig(const MatrixBase<OtherDerived> & values_) const {
 template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(const MatrixBase<D1> & values_,
-                         const MatrixBase<D2> & vectors_, bool sort) const {
+MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
+                         bool sort) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, true);
 
   // as advised by the Eigen developers even though this is a UB
-  auto & values = const_cast<MatrixBase<D1> &>(values_);
-  auto & vectors = const_cast<MatrixBase<D2> &>(vectors_);
+  // auto & values = const_cast<MatrixBase<D1> &>(values_);
+  // auto & vectors = const_cast<MatrixBase<D2> &>(vectors_);
 
   auto norm = this->norm();
 

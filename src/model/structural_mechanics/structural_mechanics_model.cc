@@ -60,7 +60,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline UInt StructuralMechanicsModel::getNbDegreeOfFreedom(ElementType type) {
   return tuple_dispatch<ElementTypes_t<_ek_structural>>(
-      [&](auto && enum_type) {
+      [&](auto &&enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getNbDegreeOfFreedom();
       },
@@ -68,8 +68,8 @@ inline UInt StructuralMechanicsModel::getNbDegreeOfFreedom(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, Int dim,
-                                                   const ID & id)
+StructuralMechanicsModel::StructuralMechanicsModel(Mesh &mesh, Int dim,
+                                                   const ID &id)
     : Model(mesh, ModelType::_structural_mechanics_model, dim, id), f_m2a(1.0),
       stress("stress", id), element_material("element_material", id),
       set_ID("beam sets", id) {
@@ -106,15 +106,15 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, Int dim,
 StructuralMechanicsModel::~StructuralMechanicsModel() = default;
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::initFullImpl(const ModelOptions & options) {
+void StructuralMechanicsModel::initFullImpl(const ModelOptions &options) {
   Model::initFullImpl(options);
 
   // Initializing stresses
   ElementTypeMap<UInt> stress_components;
 
   /// TODO this is ugly af, maybe add a function to FEEngine
-  for (auto && type : mesh.elementTypes(_spatial_dimension = _all_dimensions,
-                      _element_kind = _ek_structural)) {
+  for (auto &&type : mesh.elementTypes(_spatial_dimension = _all_dimensions,
+                     _element_kind = _ek_structural)) {
     UInt nb_components = 0;
 
 // Getting number of components for each element type
@@ -143,7 +143,7 @@ void StructuralMechanicsModel::initFEEngineBoundary() {
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::setTimeStep(Real time_step,
-                                           const ID & solver_id) {
+                                           const ID &solver_id) {
   Model::setTimeStep(time_step, solver_id);
   this->mesh.getDumper().setTimeStep(time_step);
 }
@@ -161,7 +161,7 @@ void StructuralMechanicsModel::initSolver(
   this->allocNodalField(internal_force, nb_degree_of_freedom, "internal_force");
   this->allocNodalField(blocked_dofs, nb_degree_of_freedom, "blocked_dofs");
 
-  auto & dof_manager = this->getDOFManager();
+  auto &dof_manager = this->getDOFManager();
 
   if (not dof_manager.hasDOFs("displacement")) {
     dof_manager.registerDOFs("displacement", *displacement_rotation,
@@ -207,7 +207,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   this->getDOFManager().zeroMatrix("K");
 
-  for (const auto & type :
+  for (const auto &type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
 #define ASSEMBLE_STIFFNESS_MATRIX(type) assembleStiffnessMatrix<type>();
 
@@ -224,7 +224,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 void StructuralMechanicsModel::computeStresses() {
   AKANTU_DEBUG_IN();
 
-  for (const auto & type :
+  for (const auto &type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
 #define COMPUTE_STRESS_ON_QUAD(type) computeStressOnQuad<type>();
 
@@ -237,7 +237,7 @@ void StructuralMechanicsModel::computeStresses() {
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(
-    const std::string & field_name, const std::string & group_name,
+    const std::string &field_name, const std::string &group_name,
     __attribute__((unused)) bool padding_flag) {
 
   std::map<std::string, Array<bool> *> uint_nodal_fields;
@@ -248,8 +248,8 @@ std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
-                                               const std::string & group_name,
+StructuralMechanicsModel::createNodalFieldReal(const std::string &field_name,
+                                               const std::string &group_name,
                                                bool padding_flag) {
 
   UInt n;
@@ -316,7 +316,7 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createElementalField(
-    const std::string & field_name, const std::string & group_name,
+    const std::string &field_name, const std::string &group_name,
     bool /*unused*/, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
@@ -345,7 +345,7 @@ MatrixType StructuralMechanicsModel::getMatrixType(const ID & /*id*/) const {
 }
 
 /// callback to assemble a Matrix
-void StructuralMechanicsModel::assembleMatrix(const ID & id) {
+void StructuralMechanicsModel::assembleMatrix(const ID &id) {
   if (id == "K") {
     assembleStiffnessMatrix();
   } else if (id == "M") {
@@ -360,7 +360,7 @@ void StructuralMechanicsModel::assembleLumpedMatrix(const ID & /*id*/) {}
 void StructuralMechanicsModel::assembleResidual() {
   AKANTU_DEBUG_IN();
 
-  auto & dof_manager = getDOFManager();
+  auto &dof_manager = getDOFManager();
 
   assembleInternalForce();
 
@@ -371,7 +371,7 @@ void StructuralMechanicsModel::assembleResidual() {
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
+void StructuralMechanicsModel::assembleResidual(const ID &residual_part) {
   AKANTU_DEBUG_IN();
 
   if ("external" == residual_part) {
@@ -400,7 +400,7 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
 /* -------------------------------------------------------------------------- */
 /// get some default values for derived classes
 std::tuple<ID, TimeStepSolverType>
-StructuralMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
+StructuralMechanicsModel::getDefaultSolverID(const AnalysisMethod &method) {
   switch (method) {
   case _static: {
     return std::make_tuple("static", TimeStepSolverType::_static);
@@ -415,7 +415,7 @@ StructuralMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
 /* ------------------------------------------------------------------------ */
 ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
-    const TimeStepSolverType & type) const {
+    const TimeStepSolverType &type) const {
   ModelSolverOptions options;
 
   switch (type) {
@@ -455,8 +455,8 @@ void StructuralMechanicsModel::assembleInternalForce() {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleInternalForce(ElementType type,
                                                      GhostType gt) {
-  auto & fem = getFEEngine();
-  auto & sigma = stress(type, gt);
+  auto &fem = getFEEngine();
+  auto &sigma = stress(type, gt);
   auto ndof = getNbDegreeOfFreedom(type);
   auto nb_nodes = mesh.getNbNodesPerElement(type);
   auto ndof_per_elem = ndof * nb_nodes;
@@ -486,8 +486,8 @@ Real StructuralMechanicsModel::getKineticEnergy() {
   this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
                                                   *this->velocity, Mv);
 
-  for (auto && data : zip(arange(nb_nodes), make_view(Mv, nb_degree_of_freedom),
-                          make_view(*this->velocity, nb_degree_of_freedom))) {
+  for (auto &&data : zip(arange(nb_nodes), make_view(Mv, nb_degree_of_freedom),
+                         make_view(*this->velocity, nb_degree_of_freedom))) {
     ekin += std::get<2>(data).dot(std::get<1>(data)) *
             static_cast<Real>(mesh.isLocalOrMasterNode(std::get<0>(data)));
   }
@@ -506,7 +506,7 @@ Real StructuralMechanicsModel::getPotentialEnergy() {
   this->getDOFManager().assembleMatMulVectToArray(
       "displacement", "K", *this->displacement_rotation, Ku);
 
-  for (auto && data :
+  for (auto &&data :
        zip(arange(nb_nodes), make_view(Ku, nb_degree_of_freedom),
            make_view(*this->displacement_rotation, nb_degree_of_freedom))) {
     epot += std::get<2>(data).dot(std::get<1>(data)) *
@@ -519,7 +519,7 @@ Real StructuralMechanicsModel::getPotentialEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real StructuralMechanicsModel::getEnergy(const ID & energy) {
+Real StructuralMechanicsModel::getEnergy(const ID &energy) {
   if (energy == "kinetic") {
     return getKineticEnergy();
   }
@@ -533,7 +533,7 @@ Real StructuralMechanicsModel::getEnergy(const ID & energy) {
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeForcesByLocalTractionArray(
-    const Array<Real> & tractions, ElementType type) {
+    const Array<Real> &tractions, ElementType type) {
   AKANTU_DEBUG_IN();
 
   auto nb_element = getFEEngine().getMesh().getNbElement(type);
@@ -561,7 +561,7 @@ void StructuralMechanicsModel::computeForcesByLocalTractionArray(
   Array<Real> Ntbs(nb_element * nb_quad,
                    nb_degree_of_freedom * nb_nodes_per_element);
 
-  auto & fem = getFEEngine();
+  auto &fem = getFEEngine();
   fem.computeNtb(tractions, Ntbs, type);
 
   // allocate the vector that will contain the integrated values
@@ -582,11 +582,11 @@ void StructuralMechanicsModel::computeForcesByLocalTractionArray(
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeForcesByGlobalTractionArray(
-    const Array<Real> & traction_global, ElementType type) {
+    const Array<Real> &traction_global, ElementType type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = mesh.getNbElement(type);
-  UInt nb_quad = getFEEngine().getNbIntegrationPoints(type);
+  auto nb_element = mesh.getNbElement(type);
+  auto nb_quad = getFEEngine().getNbIntegrationPoints(type);
 
   Array<Real> traction_local(nb_element * nb_quad, nb_degree_of_freedom,
                              id + ":structuralmechanics:imposed_linear_load");

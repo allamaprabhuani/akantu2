@@ -133,28 +133,26 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
   }
 
   // make sure the vectors form a right-handed base
-  Vector<Real, 3> v1, v2, v3;
-  v3.zero();
-
+  Vector<Real, 3> test_axis = Vector<Real, 3>::Zero();
   if (Dim == 2) {
-    for (auto i : arange(Dim)) {
-      v1[i] = this->rot_mat(0, i);
-      v2[i] = this->rot_mat(1, i);
-    }
+    Vector<Real, 3> v1 = Vector<Real, 3>::Zero();
+    Vector<Real, 3> v2 = Vector<Real, 3>::Zero();
+    v1.block<Dim, 1>(0, 0) = this->rot_mat(0);
+    v2.block<Dim, 1>(0, 0) = this->rot_mat(1);
 
-    v3 = v1.cross(v2);
+    Vector<Real, 3> v3 = v1.cross(v2);
     if (v3.norm() < 8 * std::numeric_limits<Real>::epsilon()) {
       AKANTU_ERROR("The axis vectors parallel.");
     }
 
     v3.normalize();
+    test_axis = v1.cross(v2) - v3;
   } else if (Dim == 3) {
-    v1 = this->rot_mat(0);
-    v2 = this->rot_mat(1);
-    v3 = this->rot_mat(2);
+    Vector<Real, 3> v1 = this->rot_mat(0);
+    Vector<Real, 3> v2 = this->rot_mat(1);
+    Vector<Real, 3> v3 = this->rot_mat(2);
+    test_axis = v1.cross(v2) - v3;
   }
-
-  Vector<Real, 3> test_axis = v1.cross(v2) - v3;
 
   if (test_axis.norm() > 8 * std::numeric_limits<Real>::epsilon()) {
     AKANTU_ERROR("The axis vectors do not form a right-handed coordinate "

@@ -179,7 +179,7 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_pentahedron_15>::getInradius(
+constexpr inline Real GeometricalElement<_gt_pentahedron_15>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   return GeometricalElement<_gt_pentahedron_6>::getInradius(coord) * 0.5;
 }

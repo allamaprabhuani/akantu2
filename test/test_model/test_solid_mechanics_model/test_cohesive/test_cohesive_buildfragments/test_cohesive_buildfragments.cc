@@ -47,7 +47,7 @@ int main(int argc, char * argv[]) {
   Math::setTolerance(1e-14);
 
   const Int spatial_dimension = 2;
-  const UInt max_steps = 200;
+  const Int max_steps = 200;
   Real strain_rate = 1.e5;
   ElementType type = _quadrangle_4;
 
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
 
   Array<Real> & velocity = model.getVelocity();
   const Array<Real> & position = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /// initial conditions
   for (Int n = 0; n < nb_nodes; ++n)
@@ -114,11 +114,11 @@ int main(int argc, char * argv[]) {
       fragment_manager.computeAllData();
 
       /// check number of fragments
-      UInt nb_fragment_num = fragment_manager.getNbFragment();
+      auto nb_fragment_num = fragment_manager.getNbFragment();
 
-      UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
+      auto nb_cohesive_elements = mesh.getNbElement(type_cohesive);
 
-      UInt nb_fragment = 1;
+      Int nb_fragment = 1;
       for (Int el = 0; el < nb_cohesive_elements; ++el) {
         UInt q = 0;
         while (q < nb_quad_per_facet &&
@@ -151,7 +151,7 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   /// check velocities
-  UInt nb_fragment = fragment_manager.getNbFragment();
+  auto nb_fragment = fragment_manager.getNbFragment();
   const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
   const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
 

@@ -64,9 +64,9 @@ protected:
     csr.endInsertions();
   }
 
-  std::vector<UInt> nb_cols_per_row;
-  CSR<UInt> csr;
-  size_t N = 1000;
+  std::vector<Int> nb_cols_per_row;
+  CSR<Idx> csr;
+  Int N = 1000;
 };
 
 TEST_F(TestCsrFixture, CheckInsertion) { EXPECT_EQ(N, this->csr.getNbRows()); }

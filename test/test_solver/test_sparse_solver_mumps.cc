@@ -53,7 +53,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes);
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
   const Int spatial_dimension = 1;
-  const UInt nb_global_dof = 11;
+  const Int nb_global_dof = 11;
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();

@@ -85,7 +85,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("blocked_dofs");
   model.dump();
 
-  UInt nbSteps = 1000;
+  Int nbSteps = 1000;
   Real increment = 1e-4;
 
   for (Int s = 0; s < nbSteps; ++s) {

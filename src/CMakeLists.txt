@@ -173,13 +173,12 @@ target_include_directories(akantu SYSTEM
 
 target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 
-message("cxx_flags: ${_cxx_flags}")
+separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
+target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
 
 set_target_properties(akantu
   PROPERTIES
     ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
-    COMPILE_FLAGS "${_cxx_flags}"
-    #PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS}
 )
 
 if(NOT AKANTU_SHARED)

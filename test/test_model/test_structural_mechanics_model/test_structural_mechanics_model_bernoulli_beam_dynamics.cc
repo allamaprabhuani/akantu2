@@ -51,7 +51,7 @@ static Real analytical_solution(Real time, Real L, Real rho, Real E,
                                 Real F) {
   Real omega = M_PI * M_PI / L / L * sqrt(E * I / rho);
   Real sum = 0.;
-  UInt i = 5;
+  Int i = 5;
   for (Int n = 1; n <= i; n += 2) {
     sum += (1. - cos(n * n * omega * time)) / pow(n, 4);
   }

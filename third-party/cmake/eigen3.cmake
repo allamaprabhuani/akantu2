@@ -15,11 +15,12 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/third-party/eigen3/CMakeLists.txt)
 endif()
 
 set(CMAKE_BUILD_TYPE Release)
-set(BUILD_TESTING OFF)
+set(BUILD_TESTING OFF CACHE BOOL "Eigen Tests" FORCE)
 add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/eigen3)
 
 set(Eigen3_FOUND TRUE CACHE INTERNAL "" FORCE)
 set(EIGEN3_LIBRARIES eigen CACHE INTERNAL "")
 
+mark_as_advanced(BUILD_TESTING)
 mask_package_options(EIGEN3)
 mask_package_options(EIGEN)

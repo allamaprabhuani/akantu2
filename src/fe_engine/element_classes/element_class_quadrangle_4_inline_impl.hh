@@ -142,7 +142,7 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_quadrangle_4>::getInradius(
+constexpr inline Real GeometricalElement<_gt_quadrangle_4>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   auto && u0 = coord.col(0);
   auto && u1 = coord.col(1);

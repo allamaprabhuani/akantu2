@@ -49,7 +49,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
+PhaseFieldModel::PhaseFieldModel(Mesh &mesh, Int dim, const ID &id,
                                  ModelType model_type)
     : Model(mesh, model_type, dim, id),
       phasefield_index("phasefield index", id),
@@ -72,7 +72,7 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
   this->registerDataAccessor(*this);
 
   if (this->mesh.isDistributed()) {
-    auto & synchronizer = this->mesh.getElementSynchronizer();
+    auto &synchronizer = this->mesh.getElementSynchronizer();
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_driving);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_history);
@@ -86,7 +86,7 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
 PhaseFieldModel::~PhaseFieldModel() = default;
 
 /* -------------------------------------------------------------------------- */
-MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
+MatrixType PhaseFieldModel::getMatrixType(const ID &matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }
@@ -95,13 +95,13 @@ MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initModel() {
-  auto & fem = this->getFEEngine();
+  auto &fem = this->getFEEngine();
   fem.initShapeFunctions(_not_ghost);
   fem.initShapeFunctions(_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
+void PhaseFieldModel::initFullImpl(const ModelOptions &options) {
   phasefield_index.initialize(mesh, _element_kind = _ek_not_defined,
                               _default_value = UInt(-1),
                               _with_nb_element = true);
@@ -121,7 +121,7 @@ void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 PhaseField &
-PhaseFieldModel::registerNewPhaseField(const ParserSection & section) {
+PhaseFieldModel::registerNewPhaseField(const ParserSection &section) {
   std::string phase_name;
   std::string phase_type = section.getName();
   std::string opt_param = section.getOption();
@@ -137,7 +137,7 @@ PhaseFieldModel::registerNewPhaseField(const ParserSection & section) {
                  << phase_type
                  << "\' in the input file has been defined without a name!");
   }
-  PhaseField & phase =
+  PhaseField &phase =
       this->registerNewPhaseField(phase_name, phase_type, opt_param);
 
   phase.parseSection(section);
@@ -146,9 +146,9 @@ PhaseFieldModel::registerNewPhaseField(const ParserSection & section) {
 }
 
 /* -------------------------------------------------------------------------- */
-PhaseField & PhaseFieldModel::registerNewPhaseField(const ID & phase_name,
-                                                    const ID & phase_type,
-                                                    const ID & opt_param) {
+PhaseField &PhaseFieldModel::registerNewPhaseField(const ID &phase_name,
+                                                   const ID &phase_type,
+                                                   const ID &opt_param) {
   AKANTU_DEBUG_ASSERT(phasefields_names_to_id.find(phase_name) ==
                           phasefields_names_to_id.end(),
                       "A phasefield with this name '"
@@ -180,13 +180,13 @@ void PhaseFieldModel::instantiatePhaseFields() {
   if (not is_empty) {
     auto model_phasefields =
         model_section.getSubSections(ParserType::_phasefield);
-    for (const auto & section : model_phasefields) {
+    for (const auto &section : model_phasefields) {
       this->registerNewPhaseField(section);
     }
   }
 
   auto sub_sections = this->parser.getSubSections(ParserType::_phasefield);
-  for (const auto & section : sub_sections) {
+  for (const auto &section : sub_sections) {
     this->registerNewPhaseField(section);
   }
 
@@ -207,7 +207,7 @@ void PhaseFieldModel::initPhaseFields() {
 
   this->assignPhaseFieldToElements();
 
-  for (auto & phasefield : phasefields) {
+  for (auto &phasefield : phasefields) {
     /// init internals properties
     phasefield->initPhaseField();
   }
@@ -217,14 +217,14 @@ void PhaseFieldModel::initPhaseFields() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<Idx> * filter) {
+    const ElementTypeMapArray<Idx> *filter) {
 
   for_each_element(
       mesh,
-      [&](auto && element) {
+      [&](auto &&element) {
         Int phase_index = (*phasefield_selector)(element);
         AKANTU_DEBUG_ASSERT(
-            phase_index < phasefields.size(),
+            phase_index < Int(phasefields.size()),
             "The phasefield selector returned an index that does not exists");
         phasefield_index(element) = phase_index;
       },
@@ -232,7 +232,7 @@ void PhaseFieldModel::assignPhaseFieldToElements(
 
   for_each_element(
       mesh,
-      [&](auto && element) {
+      [&](auto &&element) {
         auto phase_index = phasefield_index(element);
         auto index = phasefields[phase_index]->addElement(element);
         phasefield_local_numbering(element) = index;
@@ -244,7 +244,7 @@ void PhaseFieldModel::assignPhaseFieldToElements(
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::assembleMatrix(const ID & matrix_id) {
+void PhaseFieldModel::assembleMatrix(const ID &matrix_id) {
 
   if (matrix_id == "K") {
     this->assembleStiffnessMatrix();
@@ -266,7 +266,7 @@ void PhaseFieldModel::corrector() {
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initSolver(TimeStepSolverType time_step_solver_type,
                                  NonLinearSolverType /*unused*/) {
-  DOFManager & dof_manager = this->getDOFManager();
+  DOFManager &dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->damage, 1, "damage");
   this->allocNodalField(this->external_force, 1, "external_force");
@@ -286,13 +286,13 @@ void PhaseFieldModel::initSolver(TimeStepSolverType time_step_solver_type,
 }
 
 /* -------------------------------------------------------------------------- */
-FEEngine & PhaseFieldModel::getFEEngineBoundary(const ID & name) {
+FEEngine &PhaseFieldModel::getFEEngineBoundary(const ID &name) {
   return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<FEEngineType>(name));
 }
 
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
-PhaseFieldModel::getDefaultSolverID(const AnalysisMethod & method) {
+PhaseFieldModel::getDefaultSolverID(const AnalysisMethod &method) {
   switch (method) {
   case _explicit_lumped_mass: {
     return std::make_tuple("explicit_lumped",
@@ -313,8 +313,8 @@ PhaseFieldModel::getDefaultSolverID(const AnalysisMethod & method) {
 }
 
 /* -------------------------------------------------------------------------- */
-ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
-    const TimeStepSolverType & type) const {
+ModelSolverOptions
+PhaseFieldModel::getDefaultSolverOptions(const TimeStepSolverType &type) const {
   ModelSolverOptions options;
 
   switch (type) {
@@ -348,7 +348,7 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::beforeSolveStep() {
-  for (auto & phasefield : phasefields) {
+  for (auto &phasefield : phasefields) {
     phasefield->beforeSolveStep();
   }
 }
@@ -359,9 +359,9 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     return;
   }
 
-  for (auto && values : zip(*damage, *previous_damage)) {
-    auto & dam = std::get<0>(values);
-    auto & prev_dam = std::get<1>(values);
+  for (auto &&values : zip(*damage, *previous_damage)) {
+    auto &dam = std::get<0>(values);
+    auto &prev_dam = std::get<1>(values);
 
     dam -= prev_dam;
     prev_dam = dam;
@@ -378,7 +378,7 @@ void PhaseFieldModel::assembleStiffnessMatrix() {
 
   this->getDOFManager().zeroMatrix("K");
 
-  for (auto & phasefield : phasefields) {
+  for (auto &phasefield : phasefields) {
     phasefield->assembleStiffnessMatrix(_not_ghost);
   }
 }
@@ -403,7 +403,7 @@ void PhaseFieldModel::assembleInternalForces() {
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
-  for (auto & phasefield : phasefields) {
+  for (auto &phasefield : phasefields) {
     phasefield->assembleInternalForces(_not_ghost);
   }
 
@@ -419,19 +419,19 @@ void PhaseFieldModel::assembleInternalForces() {
 void PhaseFieldModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {}
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
+void PhaseFieldModel::setTimeStep(Real time_step, const ID &solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
   this->mesh.getDumper("phase_field").setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
-Int PhaseFieldModel::getNbData(const Array<Element> & elements,
-                               const SynchronizationTag & tag) const {
+Int PhaseFieldModel::getNbData(const Array<Element> &elements,
+                               const SynchronizationTag &tag) const {
   Int size = 0;
   Int nb_nodes_per_element = 0;
 
-  for (const Element & el : elements) {
+  for (const Element &el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
@@ -462,23 +462,23 @@ Int PhaseFieldModel::getNbData(const Array<Element> & elements,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::packData(__attribute__((unused))
-                               CommunicationBuffer & buffer,
+                               CommunicationBuffer &buffer,
                                __attribute__((unused))
-                               const Array<Element> & elements,
+                               const Array<Element> &elements,
                                __attribute__((unused))
-                               const SynchronizationTag & tag) const {}
+                               const SynchronizationTag &tag) const {}
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(__attribute__((unused))
-                                 CommunicationBuffer & buffer,
+                                 CommunicationBuffer &buffer,
                                  __attribute__((unused))
-                                 const Array<Element> & elements,
+                                 const Array<Element> &elements,
                                  __attribute__((unused))
-                                 const SynchronizationTag & tag) {}
+                                 const SynchronizationTag &tag) {}
 
 /* -------------------------------------------------------------------------- */
-Int PhaseFieldModel::getNbData(const Array<Idx> & indexes,
-                               const SynchronizationTag & tag) const {
+Int PhaseFieldModel::getNbData(const Array<Idx> &indexes,
+                               const SynchronizationTag &tag) const {
   UInt size = 0;
   UInt nb_nodes = indexes.size();
 
@@ -495,9 +495,9 @@ Int PhaseFieldModel::getNbData(const Array<Idx> & indexes,
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::packData(CommunicationBuffer & buffer,
-                               const Array<Idx> & indexes,
-                               const SynchronizationTag & tag) const {
+void PhaseFieldModel::packData(CommunicationBuffer &buffer,
+                               const Array<Idx> &indexes,
+                               const SynchronizationTag &tag) const {
   for (auto index : indexes) {
     switch (tag) {
     case SynchronizationTag::_pfm_damage: {
@@ -512,9 +512,9 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
-                                 const Array<Idx> & indexes,
-                                 const SynchronizationTag & tag) {
+void PhaseFieldModel::unpackData(CommunicationBuffer &buffer,
+                                 const Array<Idx> &indexes,
+                                 const SynchronizationTag &tag) {
   for (auto index : indexes) {
     switch (tag) {
     case SynchronizationTag::_pfm_damage: {
@@ -530,8 +530,8 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
-                                      const std::string & group_name,
+PhaseFieldModel::createNodalFieldBool(const std::string &field_name,
+                                      const std::string &group_name,
                                       bool /*unused*/) {
 
   std::map<std::string, Array<bool> *> uint_nodal_fields;
@@ -545,8 +545,8 @@ PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
-                                      const std::string & group_name,
+PhaseFieldModel::createNodalFieldReal(const std::string &field_name,
+                                      const std::string &group_name,
                                       bool /*unused*/) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
@@ -562,7 +562,7 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
-    const std::string & field_name, const std::string & group_name,
+    const std::string &field_name, const std::string &group_name,
     bool /*unused*/, Int /*unused*/, ElementKind element_kind) {
 
   if (field_name == "partitions") {
@@ -576,7 +576,7 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
+void PhaseFieldModel::printself(std::ostream &stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
   stream << space << "Phase Field Model [" << std::endl;

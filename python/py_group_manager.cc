@@ -59,10 +59,8 @@ void register_group_manager(py::module & mod) {
             return py::make_iterator(self.begin(), self.end());
           },
           py::keep_alive<0, 1>())
-      .def("__contains__",
-           [](const NodeGroup & self, UInt node) {
-             return self.find(node) != UInt(-1);
-           })
+      .def("__contains__", [](const NodeGroup & self,
+                              UInt node) { return self.find(node) != -1; })
       .def("getName", &NodeGroup::getName)
       .def("clear", &NodeGroup::clear)
       .def("empty", &NodeGroup::empty)

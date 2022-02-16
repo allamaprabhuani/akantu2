@@ -268,16 +268,12 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
+constexpr inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   // Only take the four corner tetrahedra
-  Matrix<Idx, 4, 4> tetrahedra;
-  // clang-format off
-  tetrahedra << 0, 4, 6, 7,
-                4, 1, 5, 8,
-                6, 5, 2, 9,
-                7, 8, 9, 3;
-  // clang-format on
+
+  Matrix<Idx, 4, 4> tetrahedra{
+      {0, 4, 6, 7}, {4, 1, 5, 8}, {6, 5, 2, 9}, {7, 8, 9, 3}};
 
   auto inradius = std::numeric_limits<Real>::max();
   for (Int t = 0; t < 4; t++) {

@@ -236,14 +236,14 @@ public:
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
 
   /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, Int);
 
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack hexlper functions */
   /* ------------------------------------------------------------------------ */
 public:
   inline Int getNbIntegrationPoints(const Array<Element> & elements,
-                                     const ID & fem_id = ID()) const;
+                                    const ID & fem_id = ID()) const;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -312,8 +312,8 @@ public:
 
   virtual std::shared_ptr<dumpers::Field>
   createNodalFieldInt(const std::string & /*field_name*/,
-                       const std::string & /*group_name*/,
-                       bool /*padding_flag*/) {
+                      const std::string & /*group_name*/,
+                      bool /*padding_flag*/) {
     return nullptr;
   }
 

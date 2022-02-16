@@ -47,7 +47,6 @@ else()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0.0)
-  message(blip)
   package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-attributes")
 endif()
 

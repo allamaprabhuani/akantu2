@@ -795,8 +795,10 @@ void Material::interpolateStressOnFacets(
         nb_interpolation_points_per_elem / nb_facet_per_elem;
     Element element_for_comparison{type, 0, ghost_type};
     const Array<std::vector<Element>> * element_to_facet = nullptr;
-    auto current_ghost_type = _casper;
-    Array<Real>::matrix_iterator result_vec_it;
+    auto current_ghost_type = _not_ghost;
+    auto result_vec_it =
+        make_view(result(type_facet, current_ghost_type), stress_size, 2)
+            .begin();
 
     auto result_it =
         make_view(by_elem_res, stress_size, nb_interpolation_points_per_elem)

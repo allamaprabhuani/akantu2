@@ -54,11 +54,12 @@ namespace akantu {
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_lagrange_point_1,
                                      _ek_regular, 0, _git_point, 1);
 
-template<>
+template <>
 template <class D1, class D2, class D3>
-inline void ElementClass<_point_1, _ek_regular>::computeNormalsOnNaturalCoordinates(
-const Eigen::MatrixBase<D1> & /*coord*/, const Eigen::MatrixBase<D2> & /*f*/,
-Eigen::MatrixBase<D3> & /*normals*/) { }
+inline void
+ElementClass<_point_1, _ek_regular>::computeNormalsOnNaturalCoordinates(
+    const Eigen::MatrixBase<D1> & /*coord*/,
+    const Eigen::MatrixBase<D2> & /*f*/, Eigen::MatrixBase<D3> & /*normals*/) {}
 
 /* --------------r------------------------------------------------------------
  */
@@ -88,7 +89,7 @@ inline Real InterpolationElement<_itp_lagrange_point_1>::computeSpecialJacobian(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_point>::getInradius(
+constexpr inline Real GeometricalElement<_gt_point>::getInradius(
     const Eigen::MatrixBase<D> & /*coord*/) {
   return 0.;
 }

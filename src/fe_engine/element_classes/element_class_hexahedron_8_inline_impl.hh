@@ -122,7 +122,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_8, _gt_hexahedron_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
     const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
   /// Natural coordinates
@@ -203,7 +204,7 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
+constexpr inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
     const Eigen::MatrixBase<D> & X) {
   auto && a = (X(0) - X(1)).norm();
   auto && b = (X(1) - X(2)).norm();

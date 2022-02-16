@@ -175,7 +175,7 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_triangle_6>::getInradius(
+constexpr inline Real GeometricalElement<_gt_triangle_6>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 

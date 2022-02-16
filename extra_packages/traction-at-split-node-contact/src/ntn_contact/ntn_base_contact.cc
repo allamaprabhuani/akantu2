@@ -164,7 +164,7 @@ void NTNBaseContact::findBoundaryElements(const Array<Idx> & interface_nodes,
       decltype(nb_nodes) nb_found_nodes = 0;
 
       for (auto & nn : conn) {
-        if (interface_nodes.find(nn) != UInt(-1)) {
+        if (interface_nodes.find(nn) != -1) {
           nb_found_nodes++;
         } else {
           break;
@@ -175,7 +175,7 @@ void NTNBaseContact::findBoundaryElements(const Array<Idx> & interface_nodes,
       // and is not already in the elements
       if ((nb_found_nodes == nb_nodes) &&
           (elements(element.type, element.ghost_type).find(element.element) ==
-           UInt(-1))) {
+           -1)) {
         elements(element.type, element.ghost_type).push_back(element.element);
       }
     }
@@ -368,9 +368,9 @@ void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
 void NTNBaseContact::computeContactPressure() {
   AKANTU_DEBUG_IN();
 
-  Int dim = this->model.getSpatialDimension();
-  Real delta_t = this->model.getTimeStep();
-  UInt nb_contact_nodes = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
+  auto delta_t = this->model.getTimeStep();
+  auto nb_contact_nodes = getNbContactNodes();
 
   AKANTU_DEBUG_ASSERT(delta_t > 0.,
                       "Cannot compute contact pressure if no time step is set");

@@ -84,8 +84,8 @@ protected:
   using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
 
 public:
-  SolidMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
-                      const ID & id = "solid_mechanics_model",
+  SolidMechanicsModel(Mesh &mesh, Int dim = _all_dimensions,
+                      const ID &id = "solid_mechanics_model",
                       std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
@@ -97,7 +97,7 @@ public:
 protected:
   /// initialize completely the model
   void initFullImpl(
-      const ModelOptions & options = SolidMechanicsModelOptions()) override;
+      const ModelOptions &options = SolidMechanicsModelOptions()) override;
 
 public:
   /// initialize all internal arrays for materials
@@ -108,11 +108,11 @@ protected:
   void initModel() override;
 
   /// function to print the containt of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
+  void printself(std::ostream &stream, int indent = 0) const override;
 
   /// get some default values for derived classes
   std::tuple<ID, TimeStepSolverType>
-  getDefaultSolverID(const AnalysisMethod & method) override;
+  getDefaultSolverID(const AnalysisMethod &method) override;
 
   /* ------------------------------------------------------------------------ */
   /* Solver interface                                                         */
@@ -128,17 +128,17 @@ protected:
   void assembleResidual() override;
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
-  void assembleResidual(const ID & residual_part) override;
+  void assembleResidual(const ID &residual_part) override;
   bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override;
+  MatrixType getMatrixType(const ID &matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
-  void assembleMatrix(const ID & matrix_id) override;
+  void assembleMatrix(const ID &matrix_id) override;
 
   /// callback for the solver, this assembles the stiffness matrix
-  void assembleLumpedMatrix(const ID & matrix_id) override;
+  void assembleLumpedMatrix(const ID &matrix_id) override;
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
@@ -159,7 +159,7 @@ protected:
   TimeStepSolverType getDefaultSolverType() const override;
   /* ------------------------------------------------------------------------ */
   ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
+  getDefaultSolverOptions(const TimeStepSolverType &type) const override;
 
 public:
   bool isDefaultSolverExplicit() {
@@ -176,27 +176,27 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty material of a given type
-  Material & registerNewMaterial(const ID & mat_name, const ID & mat_type,
-                                 const ID & opt_param);
+  Material &registerNewMaterial(const ID &mat_name, const ID &mat_type,
+                                const ID &opt_param);
 
   /// reassigns materials depending on the material selector
   virtual void reassignMaterial();
 
   /// apply a constant eigen_grad_u on all quadrature points of a given material
-  virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
-                               const ID & material_name,
+  virtual void applyEigenGradU(const Matrix<Real> &prescribed_eigen_grad_u,
+                               const ID &material_name,
                                GhostType ghost_type = _not_ghost);
 
 protected:
   /// register a material in the dynamic database
-  Material & registerNewMaterial(const ParserSection & mat_section);
+  Material &registerNewMaterial(const ParserSection &mat_section);
 
   /// read the material files to instantiate all the materials
   void instantiateMaterials();
 
   /// set the element_id_by_material and add the elements to the good materials
   virtual void
-  assignMaterialToElements(const ElementTypeMapArray<Idx> * filter = nullptr);
+  assignMaterialToElements(const ElementTypeMapArray<Idx> *filter = nullptr);
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -217,7 +217,7 @@ public:
 
 protected:
   /// fill a vector of rho
-  void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
+  void computeRho(Array<Real> &rho, ElementType type, GhostType ghost_type);
 
   /// compute the kinetic energy
   Real getKineticEnergy();
@@ -227,7 +227,7 @@ protected:
     return getKineticEnergy({type, index, _not_ghost});
   }
 
-  Real getKineticEnergy(const Element & element);
+  Real getKineticEnergy(const Element &element);
 
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
@@ -239,64 +239,64 @@ protected:
 protected:
   void initializeNonLocal() override;
 
-  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) override;
+  void updateDataForNonLocalCriterion(ElementTypeMapReal &criterion) override;
 
   void computeNonLocalStresses(GhostType ghost_type) override;
 
   void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
 
   /// update the values of the non local internal
-  void updateLocalInternal(ElementTypeMapReal & internal_flat,
+  void updateLocalInternal(ElementTypeMapReal &internal_flat,
                            GhostType ghost_type, ElementKind kind) override;
 
   /// copy the results of the averaging in the materials
-  void updateNonLocalInternal(ElementTypeMapReal & internal_flat,
+  void updateNonLocalInternal(ElementTypeMapReal &internal_flat,
                               GhostType ghost_type, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> &elements,
+                const SynchronizationTag &tag) const override;
 
-  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  void packData(CommunicationBuffer &buffer, const Array<Element> &elements,
+                const SynchronizationTag &tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                  const SynchronizationTag & tag) override;
+  void unpackData(CommunicationBuffer &buffer, const Array<Element> &elements,
+                  const SynchronizationTag &tag) override;
 
-  Int getNbData(const Array<Idx> & dofs,
-                const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Idx> &dofs,
+                const SynchronizationTag &tag) const override;
 
-  void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
-                const SynchronizationTag & tag) const override;
+  void packData(CommunicationBuffer &buffer, const Array<Idx> &dofs,
+                const SynchronizationTag &tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
-                  const SynchronizationTag & tag) override;
+  void unpackData(CommunicationBuffer &buffer, const Array<Idx> &dofs,
+                  const SynchronizationTag &tag) override;
 
 protected:
   void
-  splitElementByMaterial(const Array<Element> & elements,
-                         std::vector<Array<Element>> & elements_per_mat) const;
+  splitElementByMaterial(const Array<Element> &elements,
+                         std::vector<Array<Element>> &elements_per_mat) const;
 
   template <typename Operation>
-  void splitByMaterial(const Array<Element> & elements, Operation && op) const;
+  void splitByMaterial(const Array<Element> &elements, Operation &&op) const;
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  void onNodesAdded(const Array<Idx> & nodes_list,
-                    const NewNodesEvent & event) override;
-  void onNodesRemoved(const Array<Idx> & element_list,
-                      const Array<Idx> & new_numbering,
-                      const RemovedNodesEvent & event) override;
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const RemovedElementsEvent & event) override;
+  void onNodesAdded(const Array<Idx> &nodes_list,
+                    const NewNodesEvent &event) override;
+  void onNodesRemoved(const Array<Idx> &element_list,
+                      const Array<Idx> &new_numbering,
+                      const RemovedNodesEvent &event) override;
+  void onElementsAdded(const Array<Element> &element_list,
+                       const NewElementsEvent &event) override;
+  void onElementsRemoved(const Array<Element> &element_list,
+                         const ElementTypeMapArray<Idx> &new_numbering,
+                         const RemovedElementsEvent &event) override;
   void onElementsChanged(const Array<Element> &, const Array<Element> &,
                          const ElementTypeMapArray<Idx> &,
                          const ChangedElementsEvent &) override{};
@@ -308,38 +308,36 @@ public:
   virtual void onDump();
 
   //! decide wether a field is a material internal or not
-  bool isInternal(const std::string & field_name, ElementKind element_kind);
+  bool isInternal(const std::string &field_name, ElementKind element_kind);
   //! give the amount of data per element
   virtual ElementTypeMap<Int>
-  getInternalDataPerElem(const std::string & field_name,
-                         ElementKind kind);
+  getInternalDataPerElem(const std::string &field_name, ElementKind kind);
 
   //! flatten a given material internal field
-  ElementTypeMapArray<Real> &
-  flattenInternal(const std::string & field_name, ElementKind kind,
-                  GhostType ghost_type = _not_ghost);
+  ElementTypeMapArray<Real> &flattenInternal(const std::string &field_name,
+                                             ElementKind kind,
+                                             GhostType ghost_type = _not_ghost);
   //! flatten all the registered material internals
   void flattenAllRegisteredInternals(ElementKind kind);
 
   std::shared_ptr<dumpers::Field>
-  createNodalFieldReal(const std::string & field_name,
-                       const std::string & group_name,
+  createNodalFieldReal(const std::string &field_name,
+                       const std::string &group_name,
                        bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
-  createNodalFieldBool(const std::string & field_name,
-                       const std::string & group_name,
+  createNodalFieldBool(const std::string &field_name,
+                       const std::string &group_name,
                        bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
-  createElementalField(const std::string & field_name,
-                       const std::string & group_name, bool padding_flag,
-                       Int spatial_dimension,
-                       ElementKind kind) override;
+  createElementalField(const std::string &field_name,
+                       const std::string &group_name, bool padding_flag,
+                       Int spatial_dimension, ElementKind kind) override;
 
-  void dump(const std::string & dumper_name) override;
-  void dump(const std::string & dumper_name, Int step) override;
-  void dump(const std::string & dumper_name, Real time, Int step) override;
+  void dump(const std::string &dumper_name) override;
+  void dump(const std::string &dumper_name, Int step) override;
+  void dump(const std::string &dumper_name, Real time, Int step) override;
 
   void dump() override;
   void dump(Int step) override;
@@ -350,7 +348,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// set the value of the time step
-  void setTimeStep(Real time_step, const ID & solver_id = "") override;
+  void setTimeStep(Real time_step, const ID &solver_id = "") override;
 
   /// get the value of the conversion from forces/ mass to acceleration
   AKANTU_GET_MACRO(F_M2A, f_m2a, Real);
@@ -367,7 +365,7 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(PreviousDisplacement, previous_displacement);
 
   /// get the SolidMechanicsModel::current_position array
-  const Array<Real> & getCurrentPosition();
+  const Array<Real> &getCurrentPosition();
 
   /// get  the SolidMechanicsModel::displacement_increment  array
   AKANTU_GET_MACRO_DEREF_PTR(Increment, displacement_increment);
@@ -415,25 +413,25 @@ public:
   inline decltype(auto) getMaterials() const;
 
   /// get a particular material (by numerical material index)
-  inline Material & getMaterial(UInt mat_index);
+  inline Material &getMaterial(UInt mat_index);
 
   /// get a particular material (by numerical material index)
-  inline const Material & getMaterial(UInt mat_index) const;
+  inline const Material &getMaterial(UInt mat_index) const;
 
   /// get a particular material (by material name)
-  inline Material & getMaterial(const std::string & name);
+  inline Material &getMaterial(const std::string &name);
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const std::string & name) const;
+  inline const Material &getMaterial(const std::string &name) const;
 
   /// get a particular material id from is name
-  inline Int getMaterialIndex(const std::string & name) const;
+  inline Int getMaterialIndex(const std::string &name) const;
 
   /// give the number of materials
-  inline UInt getNbMaterials() const { return materials.size(); }
+  inline Int getNbMaterials() const { return materials.size(); }
 
   /// give the material internal index from its id
-  Int getInternalIndexFromID(const ID & id) const;
+  Int getInternalIndexFromID(const ID &id) const;
 
   /// compute the stable time step
   Real getStableTimeStep();
@@ -449,19 +447,18 @@ public:
    * define a `potential` energy type. For additional energy types, see material
    * documentation.
    */
-  Real getEnergy(const std::string & energy_id);
+  Real getEnergy(const std::string &energy_id);
 
   /// compute the energy for one element
-  Real getEnergy(const std::string & energy_id, const Element & element);
+  Real getEnergy(const std::string &energy_id, const Element &element);
 
   [[gnu::deprecated("Use the interface with an Element")]] Real
-  getEnergy(const std::string & energy_id, ElementType type,
-            Int index) {
+  getEnergy(const std::string &energy_id, ElementType type, Int index) {
     return getEnergy(energy_id, Element{type, index, _not_ghost});
   }
 
   /// Compute energy for an element group
-  Real getEnergy(const ID & energy_id, const ID & group_id);
+  Real getEnergy(const ID &energy_id, const ID &group_id);
 
   AKANTU_GET_MACRO_AUTO(MaterialByElement, material_index);
   AKANTU_GET_MACRO_AUTO(MaterialLocalNumbering, material_local_numbering);
@@ -487,7 +484,7 @@ public:
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
 
   /// get the FEEngine object to integrate or interpolate on the boundary
-  FEEngine & getFEEngineBoundary(const ID & name = "") override;
+  FEEngine &getFEEngineBoundary(const ID &name = "") override;
 
 protected:
   /// compute the stable time step
@@ -578,10 +575,10 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 namespace BC {
-  namespace Neumann {
-    using FromStress = FromHigherDim;
-    using FromTraction = FromSameDim;
-  } // namespace Neumann
+namespace Neumann {
+using FromStress = FromHigherDim;
+using FromTraction = FromSameDim;
+} // namespace Neumann
 } // namespace BC
 
 } // namespace akantu

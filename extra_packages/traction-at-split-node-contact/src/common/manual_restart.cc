@@ -51,7 +51,7 @@ void dumpArray(const Array<Real> & array, const std::string & fname) {
   outFile << nb_component << std::endl;
 
   for (auto && v : make_view(array, nb_component)) {
-    for (UInt c = 0; c < nb_component; ++c) {
+    for (Int c = 0; c < nb_component; ++c) {
       if (c != 0) {
         outFile << " ";
       }

@@ -42,20 +42,20 @@
 namespace akantu {
 
 namespace {
-  /// Extract nodal coordinates per elements
-  template <ElementType type>
-  std::unique_ptr<Array<Real>> getNodesPerElement(const Mesh & mesh,
-                                                  const Array<Real> & nodes,
-                                                  GhostType ghost_type) {
-    const auto dim = ElementClass<type>::getSpatialDimension();
-    const auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+/// Extract nodal coordinates per elements
+template <ElementType type>
+std::unique_ptr<Array<Real>> getNodesPerElement(const Mesh &mesh,
+                                                const Array<Real> &nodes,
+                                                GhostType ghost_type) {
+  const auto dim = ElementClass<type>::getSpatialDimension();
+  const auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    auto nodes_per_element =
-        std::make_unique<Array<Real>>(0, dim * nb_nodes_per_element);
-    FEEngine::extractNodalToElementField(mesh, nodes, *nodes_per_element, type,
-                                         ghost_type);
-    return nodes_per_element;
-  }
+  auto nodes_per_element =
+      std::make_unique<Array<Real>>(0, dim * nb_nodes_per_element);
+  FEEngine::extractNodalToElementField(mesh, nodes, *nodes_per_element, type,
+                                       ghost_type);
+  return nodes_per_element;
+}
 } // namespace
 
 template <ElementKind kind>
@@ -67,10 +67,10 @@ inline void ShapeStructural<kind>::initShapeFunctions(
 
 template <>
 inline void ShapeStructural<_ek_structural>::initShapeFunctions(
-    const Array<Real> & nodes, const Matrix<Real> & integration_points,
+    const Array<Real> &nodes, const Matrix<Real> &integration_points,
     ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<_ek_structural>>(
-      [&](auto && enum_type) {
+      [&](auto &&enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         this->setIntegrationPointsByType<type>(integration_points, ghost_type);
         this->precomputeRotationMatrices<type>(nodes, ghost_type);
@@ -85,9 +85,9 @@ inline void ShapeStructural<_ek_structural>::initShapeFunctions(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
-    const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shapes, GhostType ghost_type,
-    const Array<Idx> & filter_elements, bool mass) const {
+    const Array<Real> &nodes, const Matrix<Real> &integration_points,
+    Array<Real> &shapes, GhostType ghost_type,
+    const Array<Idx> &filter_elements, bool mass) const {
 
   auto nb_points = integration_points.cols();
   auto nb_element = mesh.getConnectivity(type, ghost_type).size();
@@ -102,7 +102,7 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
   }
 
 #if !defined(AKANTU_NDEBUG)
-  UInt size_of_shapes = nb_rows * nb_dofs * nb_nodes_per_element;
+  Int size_of_shapes = nb_rows * nb_dofs * nb_nodes_per_element;
   AKANTU_DEBUG_ASSERT(shapes.getNbComponent() == size_of_shapes,
                       "The shapes array does not have the correct "
                           << "number of component");
@@ -136,9 +136,9 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
     }
 
     Tensor3<Real> N = *shapes_it;
-    auto & real_coord = *nodes_it;
+    auto &real_coord = *nodes_it;
 
-    auto & RDOFs = *rot_matrix_it;
+    auto &RDOFs = *rot_matrix_it;
 
     Matrix<Real> T(N.size(1), N.size(1));
     T.zero();
@@ -164,8 +164,8 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeStructural<kind>::precomputeRotationMatrices(
-    const Array<Real> & nodes, GhostType ghost_type) {
+void ShapeStructural<kind>::precomputeRotationMatrices(const Array<Real> &nodes,
+                                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const auto spatial_dimension = mesh.getSpatialDimension();
@@ -177,7 +177,7 @@ void ShapeStructural<kind>::precomputeRotationMatrices(
     this->rotation_matrices.alloc(0, nb_dof * nb_dof, type, ghost_type);
   }
 
-  auto & rot_matrices = this->rotation_matrices(type, ghost_type);
+  auto &rot_matrices = this->rotation_matrices(type, ghost_type);
   rot_matrices.resize(nb_element);
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
@@ -190,12 +190,12 @@ void ShapeStructural<kind>::precomputeRotationMatrices(
                        .begin(spatial_dimension);
   }
 
-  for (auto && tuple :
+  for (auto &&tuple :
        zip(make_view(x_el, spatial_dimension, nb_nodes_per_element),
            make_view(rot_matrices, nb_dof, nb_dof))) {
     // compute shape derivatives
-    auto & X = std::get<0>(tuple);
-    auto & R = std::get<1>(tuple);
+    auto &X = std::get<0>(tuple);
+    auto &R = std::get<1>(tuple);
 
     if (has_extra_normal) {
       ElementClass<type>::computeRotationMatrix(R, X, *extra_normal);
@@ -214,10 +214,10 @@ void ShapeStructural<kind>::precomputeRotationMatrices(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::precomputeShapesOnIntegrationPoints(
-    const Array<Real> & nodes, GhostType ghost_type) {
+    const Array<Real> &nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const auto & natural_coords = integration_points(type, ghost_type);
+  const auto &natural_coords = integration_points(type, ghost_type);
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   auto nb_points = integration_points(type, ghost_type).cols();
   auto nb_element = mesh.getNbElement(type, ghost_type);
@@ -233,19 +233,19 @@ void ShapeStructural<kind>::precomputeShapesOnIntegrationPoints(
     this->shapes.alloc(0, size_of_shapes, itp_type, ghost_type);
   }
 
-  auto & rot_matrices = this->rotation_matrices(type, ghost_type);
-  auto & shapes_ = this->shapes(itp_type, ghost_type);
+  auto &rot_matrices = this->rotation_matrices(type, ghost_type);
+  auto &shapes_ = this->shapes(itp_type, ghost_type);
   shapes_.resize(nb_element * nb_points);
 
   auto nodes_per_element = getNodesPerElement<type>(mesh, nodes, ghost_type);
 
-  for (auto && tuple :
+  for (auto &&tuple :
        zip(make_view(shapes_, nb_dof, nb_dof * nb_nodes_per_element, nb_points),
            make_view(*nodes_per_element, dim, nb_nodes_per_element),
            make_view(rot_matrices, nb_dof, nb_dof))) {
-    auto && N = std::get<0>(tuple);
-    auto && X = std::get<1>(tuple);
-    auto && RDOFs = std::get<2>(tuple);
+    auto &&N = std::get<0>(tuple);
+    auto &&X = std::get<1>(tuple);
+    auto &&RDOFs = std::get<2>(tuple);
 
     Matrix<Real> T(N.size(1), N.size(1));
     T.zero();
@@ -270,10 +270,10 @@ void ShapeStructural<kind>::precomputeShapesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, GhostType ghost_type) {
+    const Array<Real> &nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const auto & natural_coords = integration_points(type, ghost_type);
+  const auto &natural_coords = integration_points(type, ghost_type);
   const auto spatial_dimension = mesh.getSpatialDimension();
   const auto natural_spatial_dimension =
       ElementClass<type>::getNaturalSpaceDimension();
@@ -289,23 +289,23 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
     this->shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
   }
 
-  auto & rot_matrices = this->rotation_matrices(type, ghost_type);
+  auto &rot_matrices = this->rotation_matrices(type, ghost_type);
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
-  auto & shapesd = this->shapes_derivatives(itp_type, ghost_type);
+  auto &shapesd = this->shapes_derivatives(itp_type, ghost_type);
   shapesd.resize(nb_element * nb_points);
 
-  for (auto && tuple :
+  for (auto &&tuple :
        zip(make_view(x_el, spatial_dimension, nb_nodes_per_element),
            make_view(shapesd, nb_stress_components,
                      nb_nodes_per_element * nb_dof, nb_points),
            make_view(rot_matrices, nb_dof, nb_dof))) {
     // compute shape derivatives
-    auto & X = std::get<0>(tuple);
-    auto & B = std::get<1>(tuple);
-    auto & RDOFs = std::get<2>(tuple);
+    auto &X = std::get<0>(tuple);
+    auto &B = std::get<1>(tuple);
+    auto &RDOFs = std::get<2>(tuple);
 
     Tensor3<Real> dnds(natural_spatial_dimension,
                        ElementClass<type>::interpolation_property::dnds_columns,
@@ -316,7 +316,7 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
                     natural_coords.cols());
 
     // Computing the coordinates of the element in the natural space
-    auto && R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
+    auto &&R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
     Matrix<Real> T(B.size(1), B.size(1));
     T.fill(0);
 
@@ -340,15 +340,15 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::interpolateOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_uq, Int nb_dof,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    const Array<Real> &in_u, Array<Real> &out_uq, Int nb_dof,
+    GhostType ghost_type, const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_dof,
                       "The output array shape is not correct");
 
   auto itp_type = FEEngine::getInterpolationType(type);
-  const auto & shapes_ = shapes(itp_type, ghost_type);
+  const auto &shapes_ = shapes(itp_type, ghost_type);
 
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement();
@@ -370,12 +370,12 @@ void ShapeStructural<kind>::interpolateOnIntegrationPoints(
                         nb_quad_points_per_element)
                   .begin();
 
-  for_each_element(nb_element, filter_elements, [&](auto && el) {
-    auto & uq = *out_it;
-    const auto & u = *u_it;
-    auto && N = shapes_it[el];
+  for_each_element(nb_element, filter_elements, [&](auto &&el) {
+    auto &uq = *out_it;
+    const auto &u = *u_it;
+    auto &&N = shapes_it[el];
 
-    for (auto && q : arange(uq.size(2))) {
+    for (auto &&q : arange(uq.size(2))) {
       uq(q) = N(q) * u(q);
     }
 
@@ -389,12 +389,12 @@ void ShapeStructural<kind>::interpolateOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::gradientOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_nablauq, Int nb_dof,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    const Array<Real> &in_u, Array<Real> &out_nablauq, Int nb_dof,
+    GhostType ghost_type, const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto itp_type = FEEngine::getInterpolationType(type);
-  const auto & shapesd = shapes_derivatives(itp_type, ghost_type);
+  const auto &shapesd = shapes_derivatives(itp_type, ghost_type);
 
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto element_dimension = ElementClass<type>::getSpatialDimension();
@@ -419,12 +419,12 @@ void ShapeStructural<kind>::gradientOnIntegrationPoints(
                         nb_quad_points_per_element)
                   .begin();
 
-  for_each_element(nb_element, filter_elements, [&](auto && el) {
-    auto & nablau = *out_it;
-    const auto & u = *u_it;
+  for_each_element(nb_element, filter_elements, [&](auto &&el) {
+    auto &nablau = *out_it;
+    const auto &u = *u_it;
     auto B = shapesd_it[el];
 
-    for (auto && q : arange(nablau.size(2))) {
+    for (auto &&q : arange(nablau.size(2))) {
       nablau(q) = B(q) * u(q);
     }
 
@@ -439,20 +439,20 @@ void ShapeStructural<kind>::gradientOnIntegrationPoints(
 template <>
 template <ElementType type>
 void ShapeStructural<_ek_structural>::computeBtD(
-    const Array<Real> & Ds, Array<Real> & BtDs, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &Ds, Array<Real> &BtDs, GhostType ghost_type,
+    const Array<Idx> &filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
 
   auto nb_stress = ElementClass<type>::getNbStressComponents();
   auto nb_dof_per_element = ElementClass<type>::getNbDegreeOfFreedom() *
                             mesh.getNbNodesPerElement(type);
 
-  const auto & shapes_derivatives =
+  const auto &shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
 
   Array<Real> shapes_derivatives_filtered(0,
                                           shapes_derivatives.getNbComponent());
-  auto && view = make_view(shapes_derivatives, nb_stress, nb_dof_per_element);
+  auto &&view = make_view(shapes_derivatives, nb_stress, nb_dof_per_element);
   auto B_it = view.begin();
   auto B_end = view.end();
 
@@ -460,17 +460,17 @@ void ShapeStructural<_ek_structural>::computeBtD(
     FEEngine::filterElementalData(this->mesh, shapes_derivatives,
                                   shapes_derivatives_filtered, type, ghost_type,
                                   filter_elements);
-    auto && view =
+    auto &&view =
         make_view(shapes_derivatives_filtered, nb_stress, nb_dof_per_element);
     B_it = view.begin();
     B_end = view.end();
   }
 
-  for (auto && values : zip(range(B_it, B_end), make_view(Ds, nb_stress),
-                            make_view(BtDs, BtDs.getNbComponent()))) {
-    const auto & B = std::get<0>(values);
-    const auto & D = std::get<1>(values);
-    auto & Bt_D = std::get<2>(values);
+  for (auto &&values : zip(range(B_it, B_end), make_view(Ds, nb_stress),
+                           make_view(BtDs, BtDs.getNbComponent()))) {
+    const auto &B = std::get<0>(values);
+    const auto &D = std::get<1>(values);
+    auto &Bt_D = std::get<2>(values);
     Bt_D = B.transpose() * D;
   }
 }
@@ -479,34 +479,34 @@ void ShapeStructural<_ek_structural>::computeBtD(
 template <>
 template <ElementType type>
 void ShapeStructural<_ek_structural>::computeNtb(
-    const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &bs, Array<Real> &Ntbs, GhostType ghost_type,
+    const Array<Idx> &filter_elements) const {
   constexpr auto itp_type = ElementClassProperty<type>::interpolation_type;
   constexpr auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
 
   auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-  const auto & shapes = this->shapes(itp_type, ghost_type);
+  const auto &shapes = this->shapes(itp_type, ghost_type);
 
   Array<Real> shapes_filtered(0, shapes.getNbComponent());
-  auto && view = make_view(shapes, nb_dof, nb_dof * nb_nodes_per_element);
+  auto &&view = make_view(shapes, nb_dof, nb_dof * nb_nodes_per_element);
   auto N_it = view.begin();
   auto N_end = view.end();
 
   if (filter_elements != empty_filter) {
     FEEngine::filterElementalData(this->mesh, shapes, shapes_filtered, type,
                                   ghost_type, filter_elements);
-    auto && view =
+    auto &&view =
         make_view(shapes_filtered, nb_dof, nb_dof * nb_nodes_per_element);
     N_it = view.begin();
     N_end = view.end();
   }
 
-  for (auto && values : zip(range(N_it, N_end), make_view(bs, nb_dof),
-                            make_view(Ntbs, nb_dof * nb_nodes_per_element))) {
-    const auto & N = std::get<0>(values);
-    const auto & b = std::get<1>(values);
-    auto & Nt_b = std::get<2>(values);
+  for (auto &&values : zip(range(N_it, N_end), make_view(bs, nb_dof),
+                           make_view(Ntbs, nb_dof * nb_nodes_per_element))) {
+    const auto &N = std::get<0>(values);
+    const auto &b = std::get<1>(values);
+    auto &Nt_b = std::get<2>(values);
     Nt_b = N.transpose() * b;
   }
 }

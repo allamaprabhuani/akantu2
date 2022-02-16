@@ -67,7 +67,7 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
   auto & lower = this->mesh->getLowerBounds();
   auto & upper = this->mesh->getUpperBounds();
 
-  UInt i = 0;
+  Int i = 0;
   for (auto && data : zip(make_view(pos, spatial_dimension),
                           make_view(flags, spatial_dimension))) {
     const auto & posv = std::get<0>(data);

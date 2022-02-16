@@ -96,7 +96,7 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_segment_2>::getInradius(
+constexpr inline Real GeometricalElement<_gt_segment_2>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   return (coord.col(1) - coord.col(0)).norm();
 }

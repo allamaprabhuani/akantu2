@@ -81,9 +81,10 @@ namespace Math {
 
   /* ------------------------------------------------------------------------ */
   template <class D1, class D2, class D3>
-  static inline Real triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                       const Eigen::MatrixBase<D2> & coord2,
-                                       const Eigen::MatrixBase<D3> & coord3) {
+  constexpr inline Real
+  triangle_inradius(const Eigen::MatrixBase<D1> & coord1,
+                    const Eigen::MatrixBase<D2> & coord2,
+                    const Eigen::MatrixBase<D3> & coord3) {
     auto a = coord1.distance(coord2);
     auto b = coord2.distance(coord3);
     auto c = coord1.distance(coord3);
@@ -95,10 +96,11 @@ namespace Math {
 
   /* ------------------------------------------------------------------------ */
   template <class D1, class D2, class D3, class D4>
-  inline Real tetrahedron_volume(const Eigen::MatrixBase<D1> & coord1,
-                                 const Eigen::MatrixBase<D2> & coord2,
-                                 const Eigen::MatrixBase<D3> & coord3,
-                                 const Eigen::MatrixBase<D4> & coord4) {
+  constexpr inline Real
+  tetrahedron_volume(const Eigen::MatrixBase<D1> & coord1,
+                     const Eigen::MatrixBase<D2> & coord2,
+                     const Eigen::MatrixBase<D3> & coord3,
+                     const Eigen::MatrixBase<D4> & coord4) {
     Matrix<Real, 3, 3> xx;
 
     xx.col(0) = coord2;
@@ -122,10 +124,11 @@ namespace Math {
 
   /* ------------------------------------------------------------------------ */
   template <class D1, class D2, class D3, class D4>
-  inline Real tetrahedron_inradius(const Eigen::MatrixBase<D1> & coord1,
-                                   const Eigen::MatrixBase<D2> & coord2,
-                                   const Eigen::MatrixBase<D3> & coord3,
-                                   const Eigen::MatrixBase<D4> & coord4) {
+  constexpr inline Real
+  tetrahedron_inradius(const Eigen::MatrixBase<D1> & coord1,
+                       const Eigen::MatrixBase<D2> & coord2,
+                       const Eigen::MatrixBase<D3> & coord3,
+                       const Eigen::MatrixBase<D4> & coord4) {
     auto l12 = coord1.distance(coord2);
     auto l13 = coord1.distance(coord3);
     auto l14 = coord1.distance(coord4);
