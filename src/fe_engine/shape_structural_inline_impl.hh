@@ -72,10 +72,11 @@ inline void ShapeStructural<_ek_structural>::initShapeFunctions(
   tuple_dispatch<ElementTypes_t<_ek_structural>>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
-        setIntegrationPointsByType<type>(integration_points, ghost_type);
-        precomputeRotationMatrices<type>(nodes, ghost_type);
-        precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
-        precomputeShapeDerivativesOnIntegrationPoints<type>(nodes, ghost_type);
+        this->setIntegrationPointsByType<type>(integration_points, ghost_type);
+        this->precomputeRotationMatrices<type>(nodes, ghost_type);
+        this->precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
+        this->precomputeShapeDerivativesOnIntegrationPoints<type>(nodes,
+                                                                  ghost_type);
       },
       type);
 }

@@ -37,9 +37,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeShapeFunctionMatric(
-    const ContactElement & element, const Vector<Real> & projection,
-    Matrix<Real> & shape_matric) {
+void ResolutionUtils::computeShapeFunctionMatric(const ContactElement &element,
+                                                 const Vector<Real> &projection,
+                                                 Matrix<Real> &shape_matric) {
 
   shape_matric.zero();
 
@@ -47,14 +47,14 @@ void ResolutionUtils::computeShapeFunctionMatric(
 
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
-  UInt nb_nodes_per_contact = element.getNbNodes();
+  Int nb_nodes_per_contact = element.getNbNodes();
 
   AKANTU_DEBUG_ASSERT(spatial_dimension == shape_matric.rows() &&
                           spatial_dimension * nb_nodes_per_contact ==
                               shape_matric.cols(),
-                      "Shape Matric dimensions are not correct");
+                      "Shape Matrix dimensions are not correct");
 
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
+  auto &&shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   for (auto i : arange(nb_nodes_per_contact)) {
     for (auto j : arange(spatial_dimension)) {
