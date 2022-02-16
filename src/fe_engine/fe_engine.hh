@@ -316,8 +316,8 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Mesh, mesh, Mesh &);
 
   /// get the in-radius of an element
-  static inline constexpr Real
-  getElementInradius(const Ref<const MatrixXr> &coord, ElementType type);
+  static inline Real getElementInradius(const Ref<const MatrixXr> &coord,
+                                        ElementType type);
 
   inline Real getElementInradius(const Element &element) const;
 
