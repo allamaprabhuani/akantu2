@@ -368,9 +368,6 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::multiplyJacobiansByWeights(
     Array<Real> & jacobians, const Array<Int> & filter_elements) const {
   constexpr auto nb_quadrature_points =
       GaussIntegrationElement<type, polynomial_degree>::getNbQuadraturePoints();
-
-  const auto dimension = ElementClass<type>::getSpatialDimension();
-
   auto && weights =
       GaussIntegrationElement<type, polynomial_degree>::getWeights();
 

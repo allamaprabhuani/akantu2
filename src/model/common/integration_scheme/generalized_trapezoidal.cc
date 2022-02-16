@@ -40,8 +40,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-GeneralizedTrapezoidal::GeneralizedTrapezoidal(DOFManager & dof_manager,
-                                               const ID & dof_id, Real alpha)
+GeneralizedTrapezoidal::GeneralizedTrapezoidal(DOFManager &dof_manager,
+                                               const ID &dof_id, Real alpha)
     : IntegrationScheme1stOrder(dof_manager, dof_id), alpha(alpha) {
 
   this->registerParam("alpha", this->alpha, alpha, _pat_parsmod,
@@ -49,17 +49,17 @@ GeneralizedTrapezoidal::GeneralizedTrapezoidal(DOFManager & dof_manager,
 }
 
 /* -------------------------------------------------------------------------- */
-void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> & u,
-                                       Array<Real> & u_dot,
-                                       const Array<bool> & blocked_dofs) const {
+void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> &u,
+                                       Array<Real> &u_dot,
+                                       const Array<bool> &blocked_dofs) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = u.size();
-  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
+  Int nb_nodes = u.size();
+  Int nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real * u_val = u.data();
-  Real * u_dot_val = u_dot.data();
-  bool * blocked_dofs_val = blocked_dofs.data();
+  Real *u_val = u.data();
+  Real *u_dot_val = u_dot.data();
+  bool *blocked_dofs_val = blocked_dofs.data();
 
   for (Int d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
@@ -74,10 +74,10 @@ void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> & u,
 }
 
 /* -------------------------------------------------------------------------- */
-void GeneralizedTrapezoidal::corrector(const SolutionType & type, Real delta_t,
-                                       Array<Real> & u, Array<Real> & u_dot,
-                                       const Array<bool> & blocked_dofs,
-                                       const Array<Real> & delta) const {
+void GeneralizedTrapezoidal::corrector(const SolutionType &type, Real delta_t,
+                                       Array<Real> &u, Array<Real> &u_dot,
+                                       const Array<bool> &blocked_dofs,
+                                       const Array<Real> &delta) const {
   AKANTU_DEBUG_IN();
 
   switch (type) {
@@ -97,8 +97,8 @@ void GeneralizedTrapezoidal::corrector(const SolutionType & type, Real delta_t,
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-Real GeneralizedTrapezoidal::getTemperatureCoefficient(
-    const SolutionType & type, Real delta_t) const {
+Real GeneralizedTrapezoidal::getTemperatureCoefficient(const SolutionType &type,
+                                                       Real delta_t) const {
   switch (type) {
   case _temperature:
     return 1.;
@@ -113,7 +113,7 @@ Real GeneralizedTrapezoidal::getTemperatureCoefficient(
 
 /* -------------------------------------------------------------------------- */
 Real GeneralizedTrapezoidal::getTemperatureRateCoefficient(
-    const SolutionType & type, Real delta_t) const {
+    const SolutionType &type, Real delta_t) const {
   switch (type) {
   case _temperature:
     return 1. / (alpha * delta_t);
@@ -128,22 +128,22 @@ Real GeneralizedTrapezoidal::getTemperatureRateCoefficient(
 
 /* -------------------------------------------------------------------------- */
 template <IntegrationScheme::SolutionType type>
-void GeneralizedTrapezoidal::allCorrector(Real delta_t, Array<Real> & u,
-                                          Array<Real> & u_dot,
-                                          const Array<bool> & blocked_dofs,
-                                          const Array<Real> & delta) const {
+void GeneralizedTrapezoidal::allCorrector(Real delta_t, Array<Real> &u,
+                                          Array<Real> &u_dot,
+                                          const Array<bool> &blocked_dofs,
+                                          const Array<Real> &delta) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = u.size();
-  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
+  Int nb_nodes = u.size();
+  Int nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
   Real e = getTemperatureCoefficient(type, delta_t);
   Real d = getTemperatureRateCoefficient(type, delta_t);
 
-  Real * u_val = u.data();
-  Real * u_dot_val = u_dot.data();
-  Real * delta_val = delta.data();
-  bool * blocked_dofs_val = blocked_dofs.data();
+  Real *u_val = u.data();
+  Real *u_dot_val = u_dot.data();
+  Real *delta_val = delta.data();
+  bool *blocked_dofs_val = blocked_dofs.data();
 
   for (Int dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {
@@ -160,14 +160,14 @@ void GeneralizedTrapezoidal::allCorrector(Real delta_t, Array<Real> & u,
 }
 
 /* -------------------------------------------------------------------------- */
-void GeneralizedTrapezoidal::assembleJacobian(const SolutionType & type,
+void GeneralizedTrapezoidal::assembleJacobian(const SolutionType &type,
                                               Real delta_t) {
   AKANTU_DEBUG_IN();
 
-  SparseMatrix & J = this->dof_manager.getMatrix("J");
+  SparseMatrix &J = this->dof_manager.getMatrix("J");
 
-  const SparseMatrix & M = this->dof_manager.getMatrix("M");
-  const SparseMatrix & K = this->dof_manager.getMatrix("K");
+  const SparseMatrix &M = this->dof_manager.getMatrix("M");
+  const SparseMatrix &K = this->dof_manager.getMatrix("K");
 
   bool does_j_need_update = false;
   does_j_need_update |= M.getRelease() != m_release;

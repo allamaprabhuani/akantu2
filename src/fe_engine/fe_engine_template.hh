@@ -128,10 +128,10 @@ private:
   template <ElementKind kind_ = kind, typename D1, typename D2, typename D3,
             std::enable_if_t<aka::are_vectors<D1, D3>::value and
                              kind_ != _ek_regular> * = nullptr>
-  inline void interpolateImpl(const Eigen::MatrixBase<D1> & real_coords,
-                              const Eigen::MatrixBase<D2> & nodal_values,
-                              Eigen::MatrixBase<D3> & interpolated,
-                              const Element & element) const {
+  inline void interpolateImpl(const Eigen::MatrixBase<D1> & /*real_coords*/,
+                              const Eigen::MatrixBase<D2> & /*nodal_values*/,
+                              Eigen::MatrixBase<D3> & /*interpolated*/,
+                              const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -271,10 +271,10 @@ private:
   template <ElementKind kind_ = kind, typename D1, typename D2,
             std::enable_if_t<aka::are_vectors<D1, D2>::value and
                              kind_ == _ek_cohesive> * = nullptr>
-  inline void computeShapesImpl(const Eigen::MatrixBase<D1> & real_coords,
-                                Int element, ElementType type,
-                                Eigen::MatrixBase<D2> & shapes,
-                                GhostType ghost_type = _not_ghost) const {
+  inline void computeShapesImpl(const Eigen::MatrixBase<D1> & /*real_coords*/,
+                                Int /*element*/, ElementType /*type*/,
+                                Eigen::MatrixBase<D2> & /*shapes*/,
+                                GhostType /*ghost_type*/ = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -291,10 +291,10 @@ private:
             std::enable_if_t<aka::is_vector<D1>::value and
                              kind_ == _ek_cohesive> * = nullptr>
   inline void
-  computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real__coords,
-                              Int element, ElementType type,
-                              Eigen::MatrixBase<D2> & shape_derivatives,
-                              GhostType ghost_type = _not_ghost) const {
+  computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & /*real_coords*/,
+                              Int /*element*/, ElementType /*type*/,
+                              Eigen::MatrixBase<D2> & /*shape_derivatives*/,
+                              GhostType /*ghost_type*/ = _not_ghost) const {
     AKANTU_TO_IMPLEMENT();
   }
 

@@ -276,7 +276,7 @@ void ContactDetector::createContactElements(
     // if a valid projection is not found on the patch of elements
     // index is -1 or if not a valid self contact, the contact element
     // is not created
-    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) {
+    if (index == -1 or !isValidSelfContact(slave_node, gap, normal)) {
       gap *= 0;
       normal *= 0;
       projection *= 0;

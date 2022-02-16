@@ -96,8 +96,8 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
   Matrix<Real> n_outer_n(spatial_dimension, spatial_dimension);
   n_outer_n = normal * normal.transpose();
 
-  k_main =
-      (A.transpose() * n_outer_n * A) * epsilon_n * heaviside(gap) * (2 * gap + 1)* nodal_area;
+  k_main = (A.transpose() * n_outer_n * A) * epsilon_n * heaviside(gap) *
+           (2 * gap + 1) * nodal_area;
 
   // construct the rotational part of the normal matrix
   auto & tangents = model.getTangents();
@@ -139,7 +139,7 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
     auto & tangent = std::get<1>(values1);
 
     auto n_outer_t = normal * tangent.transpose();
-    auto t_outer_n = tangent * normal.transpose();
+    // auto t_outer_n = tangent * normal.transpose();
 
     for (auto && values2 : enumerate(shape_derivatives.transpose())) {
       auto & beta = std::get<0>(values2);
@@ -156,9 +156,10 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
     }
   }
 
-  k_rot1 *= -epsilon_n * heaviside(gap) * (gap*gap+gap) * nodal_area;
-  k_rot2 *= -epsilon_n * heaviside(gap) * (gap*gap+gap) * nodal_area;
+  k_rot1 *= -epsilon_n * heaviside(gap) * (gap * gap + gap) * nodal_area;
+  k_rot2 *= -epsilon_n * heaviside(gap) * (gap * gap + gap) * nodal_area;
 
+  stiffness += k_main + k_rot1 + k_rot2;
 }
 
 INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyQuadratic);

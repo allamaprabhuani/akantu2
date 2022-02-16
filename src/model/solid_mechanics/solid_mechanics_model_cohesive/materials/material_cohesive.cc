@@ -490,8 +490,8 @@ Real MaterialCohesive::getContactEnergy() {
            spatial_dimension, _not_ghost, _ek_cohesive)) {
 
     auto & el_filter = element_filter(type, _not_ghost);
-    UInt nb_quad_per_el = fem_cohesive.getNbIntegrationPoints(type, _not_ghost);
-    UInt nb_quad_points = el_filter.size() * nb_quad_per_el;
+    auto nb_quad_per_el = fem_cohesive.getNbIntegrationPoints(type, _not_ghost);
+    auto nb_quad_points = el_filter.size() * nb_quad_per_el;
     Array<Real> contact_energy(nb_quad_points);
 
     auto contact_traction_it =

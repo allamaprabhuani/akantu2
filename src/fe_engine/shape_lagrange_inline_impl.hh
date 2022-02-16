@@ -55,17 +55,17 @@ inline void ShapeLagrange<kind>::initShapeFunctions(
 template <>
 template <typename D>
 inline void ShapeLagrange<_ek_regular>::initShapeFunctions(
-    const Array<Real> & nodes, const Eigen::MatrixBase<D> & integration_points,
+    const Array<Real> &nodes, const Eigen::MatrixBase<D> &integration_points,
     ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<_ek_regular>>(
-      [&](auto && enum_type) {
+      [&](auto &&enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
-        setIntegrationPointsByType<type>(integration_points, ghost_type);
-        precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
+        this->setIntegrationPointsByType<type>(integration_points, ghost_type);
+        this->precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
         if (ElementClass<type>::getNaturalSpaceDimension() ==
             mesh.getSpatialDimension()) {
-          precomputeShapeDerivativesOnIntegrationPoints<type>(nodes,
-                                                              ghost_type);
+          this->precomputeShapeDerivativesOnIntegrationPoints<type>(nodes,
+                                                                    ghost_type);
         }
       },
       type);
@@ -75,9 +75,9 @@ inline void ShapeLagrange<_ek_regular>::initShapeFunctions(
 template <ElementKind kind>
 template <ElementType type, typename D1, typename D2>
 inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
-    const Eigen::MatrixBase<D1> & node_coords,
-    const Eigen::MatrixBase<D2> & natural_coords,
-    Tensor3Base<Real> & shapesd) const {
+    const Eigen::MatrixBase<D1> &node_coords,
+    const Eigen::MatrixBase<D2> &natural_coords,
+    Tensor3Base<Real> &shapesd) const {
   AKANTU_DEBUG_IN();
 
   // compute dnds
@@ -99,18 +99,18 @@ inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
 template <ElementKind kind>
 template <ElementType type, typename D1, typename D2>
 void ShapeLagrange<kind>::inverseMap(
-    const Eigen::MatrixBase<D1> & real_coords, Int elem,
-    const Eigen::MatrixBase<D2> & natural_coords_, GhostType ghost_type) const {
+    const Eigen::MatrixBase<D1> &real_coords, Int elem,
+    const Eigen::MatrixBase<D2> &natural_coords_, GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
   // as advised by the Eigen developers even though this is a UB
-  auto & natural_coords = const_cast<Eigen::MatrixBase<D2> &>(natural_coords_);
+  auto &natural_coords = const_cast<Eigen::MatrixBase<D2> &>(natural_coords_);
 
   Int spatial_dimension = mesh.getSpatialDimension();
   constexpr Int nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  auto * elem_val = mesh.getConnectivity(type, ghost_type).data();
+  auto *elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real, Eigen::Dynamic, nb_nodes_per_element> nodes_coord(
       spatial_dimension, nb_nodes_per_element);
 
@@ -127,7 +127,7 @@ void ShapeLagrange<kind>::inverseMap(
 template <ElementKind kind>
 template <ElementType type, typename D,
           std::enable_if_t<aka::is_vector<D>::value> *>
-bool ShapeLagrange<kind>::contains(const Eigen::MatrixBase<D> & real_coords,
+bool ShapeLagrange<kind>::contains(const Eigen::MatrixBase<D> &real_coords,
                                    Idx elem, GhostType ghost_type) const {
   auto spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
@@ -140,10 +140,11 @@ bool ShapeLagrange<kind>::contains(const Eigen::MatrixBase<D> & real_coords,
 template <ElementKind kind>
 template <ElementType type, typename D1, typename D2, typename D3,
           std::enable_if_t<aka::are_vectors<D1, D3>::value> *>
-void ShapeLagrange<kind>::interpolate(
-    const Eigen::MatrixBase<D1> & real_coords, Idx elem,
-    const Eigen::MatrixBase<D2> & nodal_values,
-    Eigen::MatrixBase<D3> & interpolated, GhostType ghost_type) const {
+void ShapeLagrange<kind>::interpolate(const Eigen::MatrixBase<D1> &real_coords,
+                                      Idx elem,
+                                      const Eigen::MatrixBase<D2> &nodal_values,
+                                      Eigen::MatrixBase<D3> &interpolated,
+                                      GhostType ghost_type) const {
   constexpr auto nb_shapes = ElementClass<type>::getShapeSize();
   Vector<Real, nb_shapes> shapes;
   computeShapes<type>(real_coords, elem, shapes, ghost_type);
@@ -154,8 +155,8 @@ void ShapeLagrange<kind>::interpolate(
 template <ElementKind kind>
 template <ElementType type, typename D1, typename D2>
 void ShapeLagrange<kind>::computeShapes(
-    const Eigen::MatrixBase<D1> & real_coords, Idx elem,
-    Eigen::MatrixBase<D2> & shapes, GhostType ghost_type) const {
+    const Eigen::MatrixBase<D1> &real_coords, Idx elem,
+    Eigen::MatrixBase<D2> &shapes, GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -171,8 +172,8 @@ void ShapeLagrange<kind>::computeShapes(
 template <ElementKind kind>
 template <ElementType type, typename D>
 void ShapeLagrange<kind>::computeShapeDerivatives(
-    const Eigen::MatrixBase<D> & real_coords, Idx elem,
-    Tensor3Base<Real> & shapesd, GhostType ghost_type) const {
+    const Eigen::MatrixBase<D> &real_coords, Idx elem,
+    Tensor3Base<Real> &shapesd, GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -193,7 +194,7 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
     inverseMap<type>(real_coords(i), elem, natural_coords(i), ghost_type);
   }
 
-  auto * elem_val = mesh.getConnectivity(type, ghost_type).data();
+  auto *elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
@@ -208,17 +209,17 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-ShapeLagrange<kind>::ShapeLagrange(const Mesh & mesh, Int spatial_dimension,
-                                   const ID & id)
+ShapeLagrange<kind>::ShapeLagrange(const Mesh &mesh, Int spatial_dimension,
+                                   const ID &id)
     : ShapeLagrangeBase(mesh, spatial_dimension, kind, id) {}
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type, typename D>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, const Eigen::MatrixBase<D> & integration_points,
-    Array<Real> & shape_derivatives, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &nodes, const Eigen::MatrixBase<D> &integration_points,
+    Array<Real> &shape_derivatives, GhostType ghost_type,
+    const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -239,7 +240,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type,
                                        filter_elements);
 
-  auto * shapesd_val = shape_derivatives.data();
+  auto *shapesd_val = shape_derivatives.data();
   auto x_it = x_el.begin(spatial_dimension, nb_nodes_per_element);
 
   if (filter_elements != empty_filter) {
@@ -252,7 +253,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
                     filter_elements(elem) * size_of_shapesd * nb_points;
     }
 
-    auto & X = *x_it;
+    auto &X = *x_it;
     Tensor3Proxy<Real> B(shapesd_val, spatial_dimension, nb_nodes_per_element,
                          nb_points);
     computeShapeDerivativesOnCPointsByElement<type>(X, integration_points, B);
@@ -268,9 +269,9 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
-    Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &nodes, const Ref<const MatrixXr> integration_points,
+    Array<Real> &shape_derivatives, ElementType type, GhostType ghost_type,
+    const Array<Idx> &filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -285,14 +286,14 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::precomputeShapesOnIntegrationPoints(
-    const Array<Real> & nodes, GhostType ghost_type) {
+    const Array<Real> &nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
-  Matrix<Real> & natural_coords = integration_points(type, ghost_type);
+  Matrix<Real> &natural_coords = integration_points(type, ghost_type);
   auto size_of_shapes = ElementClass<type>::getShapeSize();
 
-  Array<Real> & shapes_tmp =
+  Array<Real> &shapes_tmp =
       shapes.alloc(0, size_of_shapes, itp_type, ghost_type);
 
   this->computeShapesOnIntegrationPoints<type>(nodes, natural_coords,
@@ -304,14 +305,14 @@ void ShapeLagrange<kind>::precomputeShapesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::precomputeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, GhostType ghost_type) {
+    const Array<Real> &nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
-  Matrix<Real> & natural_coords = integration_points(type, ghost_type);
+  Matrix<Real> &natural_coords = integration_points(type, ghost_type);
   auto size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
 
-  Array<Real> & shapes_derivatives_tmp =
+  Array<Real> &shapes_derivatives_tmp =
       shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
 
   this->computeShapeDerivativesOnIntegrationPoints<type>(
@@ -325,9 +326,9 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_uq, Int nb_degree_of_freedom,
-    const Array<Real> & shapes, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &in_u, Array<Real> &out_uq, Int nb_degree_of_freedom,
+    const Array<Real> &shapes, GhostType ghost_type,
+    const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes_per_element =
@@ -347,8 +348,8 @@ void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_uq, Int nb_degree_of_freedom,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+    const Array<Real> &in_u, Array<Real> &out_uq, Int nb_degree_of_freedom,
+    GhostType ghost_type, const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -367,9 +368,8 @@ void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::gradientOnIntegrationPoints(
-    const Array<Real> & in_u, Array<Real> & out_nablauq,
-    Int nb_degree_of_freedom, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+    const Array<Real> &in_u, Array<Real> &out_nablauq, Int nb_degree_of_freedom,
+    GhostType ghost_type, const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -395,11 +395,11 @@ void ShapeLagrange<kind>::gradientOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
+void ShapeLagrange<kind>::computeBtD(const Array<Real> &Ds, Array<Real> &BtDs,
                                      GhostType ghost_type,
-                                     const Array<Idx> & filter_elements) const {
+                                     const Array<Idx> &filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
-  const auto & shapes_derivatives =
+  const auto &shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -419,15 +419,15 @@ void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
                   spatial_dimension, nb_nodes_per_element);
   }
 
-  for (auto && values :
+  for (auto &&values :
        zip(view,
            make_view(Ds, Ds.getNbComponent() / spatial_dimension,
                      spatial_dimension),
            make_view(BtDs, BtDs.getNbComponent() / nb_nodes_per_element,
                      nb_nodes_per_element))) {
-    const auto & B = std::get<0>(values);
-    const auto & D = std::get<1>(values);
-    auto & Bt_D = std::get<2>(values);
+    const auto &B = std::get<0>(values);
+    const auto &D = std::get<1>(values);
+    auto &Bt_D = std::get<2>(values);
     // transposed due to the storage layout of B
     Bt_D.noalias() = D * B;
   }
@@ -438,11 +438,11 @@ template <ElementKind kind>
 template <
     ElementType type,
     std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() != 0> *>
-void ShapeLagrange<kind>::computeBtDB(
-    const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
-    GhostType ghost_type, const Array<Idx> & filter_elements) const {
+void ShapeLagrange<kind>::computeBtDB(const Array<Real> &Ds, Array<Real> &BtDBs,
+                                      Int order_d, GhostType ghost_type,
+                                      const Array<Idx> &filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
-  const auto & shapes_derivatives =
+  const auto &shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
 
   constexpr auto dim = ElementClass<type>::getSpatialDimension();
@@ -450,7 +450,7 @@ void ShapeLagrange<kind>::computeBtDB(
 
   Array<Real> shapes_derivatives_filtered(0,
                                           shapes_derivatives.getNbComponent());
-  auto && view = make_view(shapes_derivatives, dim, nb_nodes_per_element);
+  auto &&view = make_view(shapes_derivatives, dim, nb_nodes_per_element);
   auto B_it = view.begin();
   auto B_end = view.end();
 
@@ -458,7 +458,7 @@ void ShapeLagrange<kind>::computeBtDB(
     FEEngine::filterElementalData(this->mesh, shapes_derivatives,
                                   shapes_derivatives_filtered, type, ghost_type,
                                   filter_elements);
-    auto && view =
+    auto &&view =
         make_view(shapes_derivatives_filtered, dim, nb_nodes_per_element);
     B_it = view.begin();
     B_end = view.end();
@@ -468,25 +468,25 @@ void ShapeLagrange<kind>::computeBtDB(
     auto tangent_size = VoigtHelper<dim>::size;
     Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
 
-    for (auto && values :
+    for (auto &&values :
          zip(range(B_it, B_end), make_view(Ds, tangent_size, tangent_size),
              make_view(BtDBs, dim * nb_nodes_per_element,
                        dim * nb_nodes_per_element))) {
-      const auto & Bfull = std::get<0>(values);
-      const auto & D = std::get<1>(values);
-      auto & Bt_D_B = std::get<2>(values);
+      const auto &Bfull = std::get<0>(values);
+      const auto &D = std::get<1>(values);
+      auto &Bt_D_B = std::get<2>(values);
 
       VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(Bfull, B,
                                                          nb_nodes_per_element);
       Bt_D_B = B.transpose() * D * B;
     }
   } else if (order_d == 2) {
-    for (auto && values :
+    for (auto &&values :
          zip(range(B_it, B_end), make_view(Ds, dim, dim),
              make_view(BtDBs, nb_nodes_per_element, nb_nodes_per_element))) {
-      const auto & B = std::get<0>(values);
-      const auto & D = std::get<1>(values);
-      auto & Bt_D_B = std::get<2>(values);
+      const auto &B = std::get<0>(values);
+      const auto &D = std::get<1>(values);
+      auto &Bt_D_B = std::get<2>(values);
       Bt_D_B = B.transpose() * D * B;
     }
   }
@@ -495,9 +495,9 @@ void ShapeLagrange<kind>::computeBtDB(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeNtbN(
-    const Array<Real> & bs, Array<Real> & NtbNs, GhostType ghost_type,
-    const Array<Idx> & filter_elements) const {
+void ShapeLagrange<kind>::computeNtbN(const Array<Real> &bs, Array<Real> &NtbNs,
+                                      GhostType ghost_type,
+                                      const Array<Idx> &filter_elements) const {
 
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   auto size_of_shapes = ElementClass<type>::getShapeSize();
@@ -506,7 +506,7 @@ void ShapeLagrange<kind>::computeNtbN(
   auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   Array<Real> shapes_filtered(0, size_of_shapes);
 
-  auto && view = make_view(shapes(itp_type, ghost_type), 1, size_of_shapes);
+  auto &&view = make_view(shapes(itp_type, ghost_type), 1, size_of_shapes);
   auto N_it = view.begin();
   auto N_end = view.end();
 
@@ -514,18 +514,18 @@ void ShapeLagrange<kind>::computeNtbN(
     FEEngine::filterElementalData(this->mesh, shapes(itp_type, ghost_type),
                                   shapes_filtered, type, ghost_type,
                                   filter_elements);
-    auto && view = make_view(shapes_filtered, 1, size_of_shapes);
+    auto &&view = make_view(shapes_filtered, 1, size_of_shapes);
     N_it = view.begin();
     N_end = view.end();
   }
 
   Matrix<Real> Nt_b(nb_nodes_per_element, nb_degree_of_freedom);
-  for (auto && values :
+  for (auto &&values :
        zip(range(N_it, N_end), make_view(bs, nb_degree_of_freedom, 1),
            make_view(NtbNs, nb_nodes_per_element, nb_nodes_per_element))) {
-    const auto & N = std::get<0>(values);
-    const auto & b = std::get<1>(values);
-    auto & Nt_b_N = std::get<2>(values);
+    const auto &N = std::get<0>(values);
+    const auto &b = std::get<1>(values);
+    auto &Nt_b_N = std::get<2>(values);
 
     Nt_b_N = N.transpose() * b * N;
   }
@@ -534,9 +534,9 @@ void ShapeLagrange<kind>::computeNtbN(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
+void ShapeLagrange<kind>::computeNtb(const Array<Real> &bs, Array<Real> &Ntbs,
                                      GhostType ghost_type,
-                                     const Array<Idx> & filter_elements) const {
+                                     const Array<Idx> &filter_elements) const {
   AKANTU_DEBUG_IN();
 
   Ntbs.resize(bs.size());
@@ -546,7 +546,7 @@ void ShapeLagrange<kind>::computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
   auto nb_degree_of_freedom = bs.getNbComponent();
 
   Array<Real> shapes_filtered(0, size_of_shapes);
-  auto && view = make_view(shapes(itp_type, ghost_type), 1, size_of_shapes);
+  auto &&view = make_view(shapes(itp_type, ghost_type), 1, size_of_shapes);
   auto N_it = view.begin();
   auto N_end = view.end();
 
@@ -554,17 +554,17 @@ void ShapeLagrange<kind>::computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
     FEEngine::filterElementalData(this->mesh, shapes(itp_type, ghost_type),
                                   shapes_filtered, type, ghost_type,
                                   filter_elements);
-    auto && view = make_view(shapes_filtered, 1, size_of_shapes);
+    auto &&view = make_view(shapes_filtered, 1, size_of_shapes);
     N_it = view.begin();
     N_end = view.end();
   }
 
-  for (auto && values :
+  for (auto &&values :
        zip(make_view(bs, nb_degree_of_freedom, 1), range(N_it, N_end),
            make_view(Ntbs, nb_degree_of_freedom, size_of_shapes))) {
-    const auto & b = std::get<0>(values);
-    const auto & N = std::get<1>(values);
-    auto & Ntb = std::get<2>(values);
+    const auto &b = std::get<0>(values);
+    const auto &N = std::get<1>(values);
+    auto &Ntb = std::get<2>(values);
 
     Ntb = b * N;
   }

@@ -99,7 +99,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
 
   /// Natural coordinates
   const Real xi = c(0);
@@ -119,7 +119,7 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
-    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
 
   const Real xi = c(0);
   const Real eta = c(1);
@@ -148,22 +148,20 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
-  Real a, b, h;
+constexpr inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&u0 = coord.col(0);
+  auto &&u1 = coord.col(1);
+  auto &&u2 = coord.col(2);
+  auto &&u3 = coord.col(3);
+  auto &&u4 = coord.col(4);
+  auto &&u5 = coord.col(5);
+  auto &&u6 = coord.col(6);
+  auto &&u7 = coord.col(7);
 
-  auto && u0 = coord.col(0);
-  auto && u1 = coord.col(1);
-  auto && u2 = coord.col(2);
-  auto && u3 = coord.col(3);
-  auto && u4 = coord.col(4);
-  auto && u5 = coord.col(5);
-  auto && u6 = coord.col(6);
-  auto && u7 = coord.col(7);
-
-  a = (u0 - u4).norm();
-  b = (u4 - u1).norm();
-  h = std::min(a, b);
+  Real a = (u0 - u4).norm();
+  Real b = (u4 - u1).norm();
+  Real h = std::min(a, b);
 
   a = (u1 - u5).norm();
   b = (u5 - u2).norm();

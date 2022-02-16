@@ -62,7 +62,7 @@ namespace Math {
 
   template <class D1,
             aka::enable_if_t<not aka::is_vector<D1>::value> * = nullptr>
-  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & vec) {
+  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & /*vec*/) {
     AKANTU_TO_IMPLEMENT();
   }
 

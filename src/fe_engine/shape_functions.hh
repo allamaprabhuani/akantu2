@@ -112,9 +112,9 @@ protected:
             std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() ==
                              0> * = nullptr>
   void gradientElementalFieldOnIntegrationPoints(
-      const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
-      const Array<Real> & shapes_derivatives,
-      const Array<Idx> & filter_elements) const {
+      const Array<Real> & /*u_el*/, Array<Real> & out_nablauq,
+      GhostType ghost_type, const Array<Real> & /*shapes_derivatives*/,
+      const Array<Idx> & /*filter_elements*/) const {
     auto nb_points = integration_points(type, ghost_type).cols();
     auto nb_element = mesh.getNbElement(type, ghost_type);
 

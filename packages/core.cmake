@@ -41,13 +41,18 @@ package_declare(core NOT_OPTIONAL
   )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  package_set_compile_flags(core "-Wall -Wextra -pedantic")
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic")
 else()
-  package_set_compile_flags(core "-Wall")
+  package_set_compile_flags(core CXX "-Wall")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0.0)
-  package_set_compile_flags(core "-Wall -Wextra -pedantic -Wno-attributes")
+  message(blip)
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-attributes")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template")
 endif()
 
 
@@ -438,7 +443,3 @@ package_declare_extra_files_to_package(core
     common/aka_element_classes_info.hh.in
     common/aka_config.hh.in
   )
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
-  package_set_compile_flags(core CXX "-Wno-undefined-var-template")
-endif()

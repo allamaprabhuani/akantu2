@@ -83,8 +83,8 @@ namespace dumpers {
 
           const array_type & vect = field(*tit, ghost_type);
           auto _nb_data_per_elem = getNbDataPerElem(*tit);
-          auto nb_component = vect.getNbComponent();
-          auto size = (vect.size() * nb_component) / _nb_data_per_elem;
+          // auto nb_component = vect.getNbComponent();
+          // auto size = (vect.size() * nb_component) / _nb_data_per_elem;
 
           auto view = make_view(vect, _nb_data_per_elem);
           array_it = view.begin();

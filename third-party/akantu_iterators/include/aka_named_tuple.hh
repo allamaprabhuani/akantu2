@@ -44,187 +44,182 @@
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 namespace tuple {
-  using hash_type = uint64_t;
+using hash_type = uint64_t;
 
-  /* ------------------------------------------------------------------------ */
-  template <typename tag, typename type> struct named_tag {
-    using _tag = tag;   ///< key
-    using _type = type; ///< value type
+/* ------------------------------------------------------------------------ */
+template <typename tag, typename type> struct named_tag {
+  using _tag = tag;   ///< key
+  using _type = type; ///< value type
 
-    template <
-        typename T,
-        std::enable_if_t<not std::is_same<named_tag, T>::value> * = nullptr>
-    named_tag(T && value) // NOLINT
-        : _value(std::forward<T>(value)) {}
+  template <typename T,
+            std::enable_if_t<not std::is_same<named_tag, T>::value> * = nullptr>
+  named_tag(T &&value) // NOLINT
+      : _value(std::forward<T>(value)) {}
 
-    type _value;
-  };
+  type _value;
+};
 
-  namespace details {
+namespace details {
 /* -------------------------------------------------------------------------- */
 #if (defined(__GNUC__) || defined(__GNUG__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #endif
-    template <typename tag> struct named_tag_proxy {
-      using _tag = tag;
+template <typename tag> struct named_tag_proxy {
+  using _tag = tag;
 
-      template <typename T> auto operator=(T && value) -> decltype(auto) {
-        return named_tag<_tag, T>{std::forward<T>(value)};
-      }
-    };
+  template <typename T> auto operator=(T &&value) -> decltype(auto) {
+    return named_tag<_tag, T>{std::forward<T>(value)};
+  }
+};
 #if (defined(__GNUC__) || defined(__GNUG__))
 #pragma GCC diagnostic pop
 #endif
-  } // namespace details
+} // namespace details
 
-  /* ------------------------------------------------------------------------ */
-  template <typename T> struct is_named_tag : public std::false_type {};
-  template <typename tag>
-  struct is_named_tag<details::named_tag_proxy<tag>> : public std::true_type {};
-  template <typename tag, typename type>
-  struct is_named_tag<named_tag<tag, type>> : public std::true_type {};
-  /* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+template <typename T> struct is_named_tag : public std::false_type {};
+template <typename tag>
+struct is_named_tag<details::named_tag_proxy<tag>> : public std::true_type {};
+template <typename tag, typename type>
+struct is_named_tag<named_tag<tag, type>> : public std::true_type {};
+/* ------------------------------------------------------------------------ */
 
-  template <class... Params>
-  struct named_tuple : public std::tuple<typename Params::_type...> {
-    using Names_t = std::tuple<typename Params::_tag...>;
-    using parent = std::tuple<typename Params::_type...>;
+template <class... Params>
+struct named_tuple : public std::tuple<typename Params::_type...> {
+  using Names_t = std::tuple<typename Params::_tag...>;
+  using parent = std::tuple<typename Params::_type...>;
 
-    named_tuple(Params &&... params)
-        : parent(std::forward<typename Params::_type>(params._value)...) {}
+  named_tuple(Params &&...params)
+      : parent(std::forward<typename Params::_type>(params._value)...) {}
 
-    named_tuple(typename Params::_type &&... args)
-        : parent(std::forward<typename Params::_type>(args)...) {}
+  named_tuple(typename Params::_type &&...args)
+      : parent(std::forward<typename Params::_type>(args)...) {}
 
-  private:
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
-    static constexpr auto get_element_index_() noexcept -> std::size_t {
-      return -1;
-    }
-
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
-    static constexpr auto get_element_index_() noexcept -> std::size_t {
-      using _tag = std::tuple_element_t<Idx, Names_t>;
-      return (std::is_same<_tag, tag>::value)
-                 ? Idx
-                 : get_element_index_<tag, Idx + 1>();
-    }
-
-  public:
-    template <typename NT>
-    static constexpr auto get_element_index() noexcept -> std::size_t {
-      return get_element_index_<typename NT::_tag, 0>();
-    }
-
-    template <typename NT>
-    static constexpr auto get_element_index(NT && /*unused*/) noexcept
-        -> std::size_t {
-      return get_element_index_<typename NT::_tag, 0>();
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr auto get(NT && /*unused*/) noexcept -> decltype(auto) {
-      const auto index = get_element_index<NT>();
-      static_assert((index != std::size_t(-1)), "wrong named_tag");
-      return (std::get<index>(*this));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr auto get(NT && /*unused*/) const noexcept -> decltype(auto) {
-      const auto index = get_element_index<NT>();
-      static_assert((index != std::size_t(-1)), "wrong named_tag");
-      return (std::get<index>(*this));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr auto has(NT && /*unused*/) const noexcept -> bool {
-      const auto index = get_element_index<NT>();
-      return (index != std::size_t(-1));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    static constexpr auto has() noexcept -> bool {
-      constexpr auto index = get_element_index<NT>();
-      return (index != std::size_t(-1));
-    }
-
-    template <hash_type HashCode> static constexpr auto has() noexcept -> bool {
-      constexpr auto index =
-          get_element_index_<std::integral_constant<hash_type, HashCode>, 0>();
-      return (index != std::size_t(-1));
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  template <typename T> struct is_named_tuple : public std::false_type {};
-  template <typename... Params>
-  struct is_named_tuple<named_tuple<Params...>> : public std::true_type {};
-  /* ---------------------------------------------------------------------- */
-
-  template <typename... Params>
-  constexpr auto make_named_tuple(Params &&... params) noexcept
-      -> decltype(auto) {
-    return named_tuple<Params...>(std::forward<Params>(params)...);
+private:
+  template <typename tag, std::size_t Idx,
+            std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
+  static constexpr auto get_element_index_() noexcept -> std::size_t {
+    return -1;
   }
 
-  template <typename tag>
-  constexpr auto make_named_tag() noexcept -> decltype(auto) {
-    return details::named_tag_proxy<tag>{};
+  template <typename tag, std::size_t Idx,
+            std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
+  static constexpr auto get_element_index_() noexcept -> std::size_t {
+    using _tag = std::tuple_element_t<Idx, Names_t>;
+    return (std::is_same<_tag, tag>::value)
+               ? Idx
+               : get_element_index_<tag, Idx + 1>();
   }
 
-  template <hash_type HashCode> constexpr auto get() -> decltype(auto) {
-    return make_named_tag<std::integral_constant<hash_type, HashCode>>();
+public:
+  template <typename NT>
+  static constexpr auto get_element_index() noexcept -> std::size_t {
+    return get_element_index_<typename NT::_tag, 0>();
   }
 
-  template <hash_type HashCode, class Tuple>
-  constexpr auto get(Tuple && tuple) -> decltype(auto) {
-    return tuple.get(get<HashCode>());
+  template <typename NT>
+  static constexpr auto get_element_index(NT && /*unused*/) noexcept
+      -> std::size_t {
+    return get_element_index_<typename NT::_tag, 0>();
   }
 
-  template <hash_type HashCode, class Tuple> struct has_helper {
-    using type =
-        aka::bool_constant<std::decay_t<Tuple>::template has<HashCode>()>;
-  };
-
-  template <hash_type HashCode, class Tuple>
-  using has_t = typename has_helper<HashCode, Tuple>::type;
-
-  template <hash_type HashCode, class Tuple>
-  constexpr auto has(Tuple && /*tuple*/) -> bool {
-    return has_t<HashCode, Tuple>::value;
+  template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
+  constexpr auto get(NT && /*unused*/) noexcept -> decltype(auto) {
+    const auto index = get_element_index<NT>();
+    static_assert((index != std::size_t(-1)), "wrong named_tag");
+    return (std::get<index>(*this));
   }
 
-  template <hash_type HashCode, class Tuple> constexpr auto has() -> bool {
-    return has_t<HashCode, Tuple>::value;
+  template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
+  constexpr auto get(NT && /*unused*/) const noexcept -> decltype(auto) {
+    const auto index = get_element_index<NT>();
+    static_assert((index != std::size_t(-1)), "wrong named_tag");
+    return (std::get<index>(*this));
   }
 
-  template <typename Param, typename Tuple,
-            std::enable_if_t<is_named_tag<Param>::value> * = nullptr>
-  constexpr auto get(Tuple && tuple) noexcept -> decltype(auto) {
-    return tuple.template get<typename Param::hash>();
+  template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
+  constexpr auto has(NT && /*unused*/) const noexcept -> bool {
+    const auto index = get_element_index<NT>();
+    return (index != std::size_t(-1));
   }
 
-  template <std::size_t I, class Tuple> struct tuple_name_tag {
-    using type = std::decay_t<
-        std::tuple_element_t<I, typename std::decay_t<Tuple>::Names_t>>;
-  };
+  template <typename NT, std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
+  static constexpr auto has() noexcept -> bool {
+    constexpr auto index = get_element_index<NT>();
+    return (index != std::size_t(-1));
+  }
 
-  template <std::size_t I, class Tuple>
-  using tuple_name_tag_t = typename tuple_name_tag<I, Tuple>::type;
+  template <hash_type HashCode> static constexpr auto has() noexcept -> bool {
+    constexpr auto index =
+        get_element_index_<std::integral_constant<hash_type, HashCode>, 0>();
+    return (index != std::size_t(-1));
+  }
+};
 
-  template <std::size_t I, class Tuple> struct tuple_element {
-    using type = std::tuple_element_t<I, typename Tuple::parent>;
-  };
+/* ---------------------------------------------------------------------- */
+template <typename T> struct is_named_tuple : public std::false_type {};
+template <typename... Params>
+struct is_named_tuple<named_tuple<Params...>> : public std::true_type {};
+/* ---------------------------------------------------------------------- */
 
-  template <std::size_t I, class Tuple>
-  using tuple_element_t = typename tuple_element<I, Tuple>::type;
+template <typename... Params>
+constexpr auto make_named_tuple(Params &&...params) noexcept
+    -> named_tuple<Params...> {
+  return named_tuple<Params...>(std::forward<Params>(params)...);
+}
+
+template <typename tag>
+constexpr auto make_named_tag() noexcept -> decltype(auto) {
+  return details::named_tag_proxy<tag>{};
+}
+
+template <hash_type HashCode> constexpr auto get() -> decltype(auto) {
+  return make_named_tag<std::integral_constant<hash_type, HashCode>>();
+}
+
+template <hash_type HashCode, class Tuple>
+constexpr auto get(Tuple &&tuple) -> decltype(auto) {
+  return tuple.get(get<HashCode>());
+}
+
+template <hash_type HashCode, class Tuple> struct has_helper {
+  using type =
+      aka::bool_constant<std::decay_t<Tuple>::template has<HashCode>()>;
+};
+
+template <hash_type HashCode, class Tuple>
+using has_t = typename has_helper<HashCode, Tuple>::type;
+
+template <hash_type HashCode, class Tuple>
+constexpr auto has(Tuple && /*tuple*/) -> bool {
+  return has_t<HashCode, Tuple>::value;
+}
+
+template <hash_type HashCode, class Tuple> constexpr auto has() -> bool {
+  return has_t<HashCode, Tuple>::value;
+}
+
+template <typename Param, typename Tuple,
+          std::enable_if_t<is_named_tag<Param>::value> * = nullptr>
+constexpr auto get(Tuple &&tuple) noexcept -> decltype(auto) {
+  return tuple.template get<typename Param::hash>();
+}
+
+template <std::size_t I, class Tuple> struct tuple_name_tag {
+  using type = std::decay_t<
+      std::tuple_element_t<I, typename std::decay_t<Tuple>::Names_t>>;
+};
+
+template <std::size_t I, class Tuple>
+using tuple_name_tag_t = typename tuple_name_tag<I, Tuple>::type;
+
+template <std::size_t I, class Tuple> struct tuple_element {
+  using type = std::tuple_element_t<I, typename Tuple::parent>;
+};
+
+template <std::size_t I, class Tuple>
+using tuple_element_t = typename tuple_element<I, Tuple>::type;
 
 #if defined(__INTEL_COMPILER)
 // intel warnings here
@@ -237,13 +232,13 @@ namespace tuple {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-  /// this is a GNU exstension
-  /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
-  template <class CharT, CharT... chars>
-  constexpr auto operator"" _n() -> decltype(auto) {
-    return make_named_tag<std::integral_constant<
-        std::size_t, string_literal<CharT, chars...>::hash>>();
-  }
+/// this is a GNU exstension
+/// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
+template <class CharT, CharT... chars>
+constexpr auto operator"" _n() -> decltype(auto) {
+  return make_named_tag<std::integral_constant<
+      std::size_t, string_literal<CharT, chars...>::hash>>();
+}
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #elif (defined(__GNUC__) || defined(__GNUG__))

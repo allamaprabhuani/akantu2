@@ -33,6 +33,7 @@
 #include <boost/preprocessor.hpp>
 /* -------------------------------------------------------------------------- */
 
+// clang-format off
 #ifndef AKANTU_AKA_ELEMENT_CLASSES_INFO_HH_
 #define AKANTU_AKA_ELEMENT_CLASSES_INFO_HH_
 
@@ -41,7 +42,6 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /* Element Types                                                              */
 /* -------------------------------------------------------------------------- */
-
 /// @enum ElementType type of elements
 enum ElementType {
   _not_defined,
@@ -56,9 +56,7 @@ enum ElementType {
 /* -------------------------------------------------------------------------- */
 /* Element Kinds                                                              */
 /* -------------------------------------------------------------------------- */
-@AKANTU_ELEMENT_KINDS_BOOST_SEQ@
-
-@AKANTU_ELEMENT_KIND_BOOST_SEQ@
+#define AKANTU_ELEMENT_KIND (_ek_regular)(_ek_cohesive)(_ek_structural)
 
 enum ElementKind {
   BOOST_PP_SEQ_ENUM(AKANTU_ELEMENT_KIND),
@@ -137,5 +135,6 @@ enum InterpolationKind {
 } // akantu
 
 #endif /* AKANTU_AKA_ELEMENT_CLASSES_INFO_HH_ */
+// clang-format on
 
 #include "aka_element_classes_info_inline_impl.hh"

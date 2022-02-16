@@ -202,7 +202,7 @@ Communications<Entity>::waitAny(const SynchronizationTag & tag,
   }
 
   auto req_id = Communicator::waitAny(requests);
-  if (req_id != UInt(-1)) {
+  if (req_id != -1) {
     auto & request = requests[req_id];
     auto proc = sr == _recv ? request.getSource() : request.getDestination();
 

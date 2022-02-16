@@ -503,8 +503,6 @@ FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolateImpl(
     const Eigen::MatrixBase<D2> & nodal_values,
     Eigen::MatrixBase<D3> & interpolated, const Element & element) const {
   /// add sfinea to call only on _ek_regular
-  auto type = element.type;
-
   auto && call = [&](auto && enum_type) {
     constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
     shape_functions.template interpolate<type>(real_coords, element.element,
@@ -599,7 +597,7 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 template <ElementType type, ElementKind kind_,
           std::enable_if_t<kind_ == _ek_regular and type == _point_1> *>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    computeNormalsOnIntegrationPoints(const Array<Real> & field,
+    computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
                                       Array<Real> & normal,
                                       GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
@@ -827,7 +825,7 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsRemoved(
     const Array<Element> & removed_elements,
     const ElementTypeMapArray<Idx> & new_numbering,
-    const RemovedElementsEvent & event) {
+    const RemovedElementsEvent & /*event*/) {
   integrator.onElementsRemoved(removed_elements, new_numbering);
   shape_functions.onElementsRemoved(removed_elements, new_numbering);
 }

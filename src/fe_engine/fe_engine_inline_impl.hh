@@ -80,7 +80,8 @@ inline constexpr auto FEEngine::getInterpolationType(ElementType type) {
 /// @todo rewrite this function in order to get the cohesive element
 /// type directly from the facet
 #if defined(AKANTU_COHESIVE_ELEMENT)
-inline constexpr auto FEEngine::getCohesiveElementType(ElementType type) {
+inline constexpr ElementType
+FEEngine::getCohesiveElementType(ElementType type) {
 #define GET_COHESIVE_TYPE(type)                                                \
   return CohesiveFacetProperty<type>::cohesive_type;
 
@@ -89,8 +90,7 @@ inline constexpr auto FEEngine::getCohesiveElementType(ElementType type) {
 }
 #else
 inline constexpr ElementType
-FEEngine::getCohesiveElementType(__attribute__((unused))
-                                 ElementType type_facet) {
+FEEngine::getCohesiveElementType(ElementType /*type_facet*/) {
   return _not_defined;
 }
 #endif

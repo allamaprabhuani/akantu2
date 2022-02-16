@@ -106,8 +106,8 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   auto & projections = model.getProjections();
   auto && projection = projections.begin(surface_dimension)[element.slave];
 
-  auto & normals = model.getNormals();
-  auto && normal = normals.begin(spatial_dimension)[element.slave];
+  // auto & normals = model.getNormals();
+  // auto && normal = normals.begin(spatial_dimension)[element.slave];
 
   auto & tangents = model.getTangents();
   auto && covariant_basis =
@@ -416,7 +416,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
     auto & tangent = std::get<1>(values1);
 
     auto n_outer_t = normal * tangent.transpose();
-    auto t_outer_n = tangent * normal.transpose();
+    // auto t_outer_n = tangent * normal.transpose();
 
     for (auto && values2 : enumerate(shape_derivatives.transpose())) {
       auto & beta = std::get<0>(values2);

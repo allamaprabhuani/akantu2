@@ -537,7 +537,7 @@ inline void ElementClass<type, kind>::inverseMap(
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
-  UInt iterations{0};
+  Int iterations{0};
   while (tolerance < inverse_map_error and iterations < max_iterations) {
     // compute J^t
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,

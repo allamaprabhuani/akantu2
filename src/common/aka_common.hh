@@ -62,13 +62,12 @@ namespace akantu {
 /* Constants                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace {
-  [[gnu::unused]] constexpr Int _all_dimensions{
-      std::numeric_limits<Int>::max()};
+[[gnu::unused]] constexpr Int _all_dimensions{std::numeric_limits<Int>::max()};
 #ifdef AKANTU_NDEBUG
-  [[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
+[[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
 #else
-  [[gnu::unused]] constexpr Real REAL_INIT_VALUE{
-      std::numeric_limits<Real>::quiet_NaN()};
+[[gnu::unused]] constexpr Real REAL_INIT_VALUE{
+    std::numeric_limits<Real>::quiet_NaN()};
 #endif
 } // namespace
 
@@ -132,9 +131,9 @@ enum EventHandlerPriority {
 // clang-format on
 
 /// enum ModelType defines which type of physics is solved
-AKANTU_CLASS_ENUM_DECLARE(ModelType, AKANTU_MODEL_TYPES);
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(ModelType, AKANTU_MODEL_TYPES);
-AKANTU_CLASS_ENUM_INPUT_STREAM(ModelType, AKANTU_MODEL_TYPES);
+AKANTU_CLASS_ENUM_DECLARE(ModelType, AKANTU_MODEL_TYPES)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
+AKANTU_CLASS_ENUM_INPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
 #else
 enum class ModelType {
   model,
@@ -173,11 +172,11 @@ enum DOFSupportType { _dst_nodal, _dst_generic };
   (newton_raphson_contact)                                             \
   (auto)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(NonLinearSolverType, AKANTU_NON_LINEAR_SOLVER_TYPES);
+AKANTU_CLASS_ENUM_DECLARE(NonLinearSolverType, AKANTU_NON_LINEAR_SOLVER_TYPES)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(NonLinearSolverType,
-                                AKANTU_NON_LINEAR_SOLVER_TYPES);
+                                AKANTU_NON_LINEAR_SOLVER_TYPES)
 AKANTU_CLASS_ENUM_INPUT_STREAM(NonLinearSolverType,
-                               AKANTU_NON_LINEAR_SOLVER_TYPES);
+                               AKANTU_NON_LINEAR_SOLVER_TYPES)
 #else
 /// Type of non linear resolution available in akantu
 enum class NonLinearSolverType {
@@ -203,11 +202,10 @@ enum class NonLinearSolverType {
   (dynamic_lumped)                                                     \
   (not_defined)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE);
+AKANTU_CLASS_ENUM_DECLARE(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(TimeStepSolverType,
-                                AKANTU_TIME_STEP_SOLVER_TYPE);
-AKANTU_CLASS_ENUM_INPUT_STREAM(TimeStepSolverType,
-                               AKANTU_TIME_STEP_SOLVER_TYPE);
+                                AKANTU_TIME_STEP_SOLVER_TYPE)
+AKANTU_CLASS_ENUM_INPUT_STREAM(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE)
 #else
 /// Type of time stepping solver
 enum class TimeStepSolverType {
@@ -232,12 +230,11 @@ enum class TimeStepSolverType {
   (newmark_beta)                                                       \
   (generalized_trapezoidal)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(IntegrationSchemeType,
-                          AKANTU_INTEGRATION_SCHEME_TYPE);
+AKANTU_CLASS_ENUM_DECLARE(IntegrationSchemeType, AKANTU_INTEGRATION_SCHEME_TYPE)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(IntegrationSchemeType,
-                                AKANTU_INTEGRATION_SCHEME_TYPE);
+                                AKANTU_INTEGRATION_SCHEME_TYPE)
 AKANTU_CLASS_ENUM_INPUT_STREAM(IntegrationSchemeType,
-                               AKANTU_INTEGRATION_SCHEME_TYPE);
+                               AKANTU_INTEGRATION_SCHEME_TYPE)
 #else
 /// Type of integration scheme
 enum class IntegrationSchemeType {
@@ -264,11 +261,11 @@ enum class IntegrationSchemeType {
   (residual_mass_wgh)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(SolveConvergenceCriteria,
-                          AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                          AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(SolveConvergenceCriteria,
-                                AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                                AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 AKANTU_CLASS_ENUM_INPUT_STREAM(SolveConvergenceCriteria,
-                               AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                               AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 #else
 /// enum SolveConvergenceCriteria different convergence criteria
 enum class SolveConvergenceCriteria {
@@ -295,9 +292,9 @@ enum DetectionType { _explicit, _implicit };
   (stick)                                         \
   (slip)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(ContactState, AKANTU_CONTACT_STATE);
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState, AKANTU_CONTACT_STATE);
-AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState, AKANTU_CONTACT_STATE);
+AKANTU_CLASS_ENUM_DECLARE(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
 #else
 /// @enum no contact or stick or slip state
 enum class ContactState {
@@ -357,8 +354,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (cf_incr)                                     \
   (solver_solution)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG);
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG);
+AKANTU_CLASS_ENUM_DECLARE(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
 #else
 /// @enum SynchronizationTag type of synchronizations
 enum class SynchronizationTag {
@@ -470,36 +467,36 @@ enum class NodeFlag : std::uint8_t {
   _local_master_mask = 0xCC, // ~(_master & _periodic_mask)
 };
 
-inline NodeFlag operator&(const NodeFlag & a, const NodeFlag & b) {
+inline NodeFlag operator&(const NodeFlag &a, const NodeFlag &b) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(under(a) & under(b));
 }
 
-inline NodeFlag operator|(const NodeFlag & a, const NodeFlag & b) {
+inline NodeFlag operator|(const NodeFlag &a, const NodeFlag &b) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(under(a) | under(b));
 }
 
-inline NodeFlag & operator|=(NodeFlag & a, const NodeFlag & b) {
+inline NodeFlag &operator|=(NodeFlag &a, const NodeFlag &b) {
   a = a | b;
   return a;
 }
 
-inline NodeFlag & operator&=(NodeFlag & a, const NodeFlag & b) {
+inline NodeFlag &operator&=(NodeFlag &a, const NodeFlag &b) {
   a = a & b;
   return a;
 }
 
-inline NodeFlag operator~(const NodeFlag & a) {
+inline NodeFlag operator~(const NodeFlag &a) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(~under(a));
 }
 
-std::ostream & operator<<(std::ostream & stream, NodeFlag flag);
+std::ostream &operator<<(std::ostream &stream, NodeFlag flag);
 
 } // namespace akantu
 
-AKANTU_ENUM_HASH(GhostType);
+AKANTU_ENUM_HASH(GhostType)
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
@@ -511,7 +508,7 @@ struct GhostType_def {
 
 using ghost_type_t = safe_enum<GhostType_def>;
 namespace {
-  constexpr ghost_type_t ghost_types{_casper};
+constexpr ghost_type_t ghost_types{_casper};
 }
 
 /// standard output stream operator for GhostType
@@ -542,7 +539,7 @@ namespace {
   inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
-  inline const auto & get##name() const {                                      \
+  inline const auto &get##name() const {                                       \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -558,7 +555,7 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline auto get##name(const support & el_type,                               \
+  inline auto get##name(const support &el_type,                                \
                         GhostType ghost_type = _not_ghost)                     \
       con->con Array<type> & {                                                 \
     return variable(el_type, ghost_type);                                      \
@@ -576,24 +573,24 @@ namespace {
 
 /* -------------------------------------------------------------------------- */
 /// initialize the static part of akantu
-void initialize(int & argc, char **& argv);
+void initialize(int &argc, char **&argv);
 /// initialize the static part of akantu and read the global input_file
-void initialize(const std::string & input_file, int & argc, char **& argv);
+void initialize(const std::string &input_file, int &argc, char **&argv);
 /* -------------------------------------------------------------------------- */
 /// finilize correctly akantu and clean the memory
 void finalize();
 /* -------------------------------------------------------------------------- */
 /// Read an new input file
-void readInputFile(const std::string & input_file);
+void readInputFile(const std::string &input_file);
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /* string manipulation */
 /* -------------------------------------------------------------------------- */
-inline auto to_lower(const std::string & str) -> std::string;
+inline auto to_lower(const std::string &str) -> std::string;
 /* -------------------------------------------------------------------------- */
-inline auto trim(const std::string & to_trim) -> std::string;
-inline auto trim(const std::string & to_trim, char c) -> std::string;
+inline auto trim(const std::string &to_trim) -> std::string;
+inline auto trim(const std::string &to_trim, char c) -> std::string;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -613,7 +610,7 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference<T>::value> * = nullptr>
-auto is_of_type(T && t) -> bool {
+auto is_of_type(T &&t) -> bool {
   return (
       dynamic_cast<std::add_pointer_t<
           std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
@@ -622,7 +619,7 @@ auto is_of_type(T && t) -> bool {
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-auto is_of_type(std::unique_ptr<T> & t) -> bool {
+auto is_of_type(std::unique_ptr<T> &t) -> bool {
   return (
       dynamic_cast<std::add_pointer_t<
           std::conditional_t<std::is_const<T>::value, std::add_const_t<R>, R>>>(
@@ -632,7 +629,7 @@ auto is_of_type(std::unique_ptr<T> & t) -> bool {
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference<T>::value> * = nullptr>
-decltype(auto) as_type(T && t) {
+decltype(auto) as_type(T &&t) {
   static_assert(
       disjunction<
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
@@ -647,13 +644,13 @@ decltype(auto) as_type(T && t) {
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-decltype(auto) as_type(T && t) {
+decltype(auto) as_type(T &&t) {
   return &as_type<R>(*t);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-decltype(auto) as_type(const std::shared_ptr<T> & t) {
+decltype(auto) as_type(const std::shared_ptr<T> &t) {
   return std::dynamic_pointer_cast<R>(t);
 }
 
@@ -665,13 +662,13 @@ decltype(auto) as_type(const std::shared_ptr<T> & t) {
 
 namespace akantu {
 /// get access to the internal argument parser
-cppargparse::ArgumentParser & getStaticArgumentParser();
+cppargparse::ArgumentParser &getStaticArgumentParser();
 
 /// get access to the internal input file parser
-Parser & getStaticParser();
+Parser &getStaticParser();
 
 /// get access to the user part of the internal input file parser
-const ParserSection & getUserParser();
+const ParserSection &getUserParser();
 
 #define AKANTU_CURRENT_FUNCTION                                                \
   (std::string(__func__) + "():" + std::to_string(__LINE__))
@@ -695,7 +692,7 @@ namespace std {
  */
 template <typename a, typename b> struct hash<std::pair<a, b>> {
   hash() = default;
-  auto operator()(const std::pair<a, b> & p) const -> std::size_t {
+  auto operator()(const std::pair<a, b> &p) const -> std::size_t {
     size_t seed = ah(p.first);
     return bh(p.second) + AKANTU_HASH_COMBINE_MAGIC_NUMBER + (seed << 6) +
            (seed >> 2);

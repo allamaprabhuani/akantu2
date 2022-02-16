@@ -302,7 +302,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
     // update material data for the new elements
     auto old_nb_quad_points = sig_c_eff.size();
-    auto new_nb_quad_points = new_sigmas.size();
+    Int new_nb_quad_points = new_sigmas.size();
     sig_c_eff.resize(old_nb_quad_points + new_nb_quad_points);
     ins_stress.resize(old_nb_quad_points + new_nb_quad_points);
     trac_old.resize(old_nb_quad_points + new_nb_quad_points);

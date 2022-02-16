@@ -57,21 +57,21 @@ public:
 
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
-  static UInt
+  static Idx
   orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
                        const Vector<Real> & slave,
                        const Array<Element> & elements, Real & gap,
                        Vector<Real> & natural_projection, Vector<Real> & normal,
-                       Real alpha, UInt max_iterations = 100,
+                       Real alpha, Int max_iterations = 100,
                        Real tolerance = 1e-10, Real extension_tolerance = 1e-5);
 
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
-  static UInt orthogonalProjection(
+  static Idx orthogonalProjection(
       const Mesh & mesh, const Array<Real> & positions,
       const Vector<Real> & slave, const Array<Element> & elements, Real & gap,
       Vector<Real> & natural_projection, Vector<Real> & normal,
-      Matrix<Real> & tangent, Real alpha, UInt max_iterations = 100,
+      Matrix<Real> & tangent, Real alpha, Int max_iterations = 100,
       Real tolerance = 1e-10, Real extension_tolerance = 1e-5);
 
   /// computes the natural projection on an element
@@ -79,8 +79,8 @@ public:
   naturalProjection(const Mesh & mesh, const Array<Real> & positions,
                     const Element & element, const Vector<Real> & slave_coords,
                     Vector<Real> & master_coords,
-                    Vector<Real> & natural_projection,
-                    UInt max_iterations = 100, Real tolerance = 1e-10);
+                    Vector<Real> & natural_projection, Int max_iterations = 100,
+                    Real tolerance = 1e-10);
 
   /// computes the real projection on an element
   static void realProjection(const Mesh & mesh, const Array<Real> & positions,

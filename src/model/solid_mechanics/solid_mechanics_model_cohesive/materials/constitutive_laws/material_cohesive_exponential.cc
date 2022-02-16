@@ -112,10 +112,9 @@ void MaterialCohesiveExponential<dim>::computeTraction(
      * @f$ \delta = \sqrt{
      * \beta^2 \Delta_t^2 + \Delta_n^2 } @f$
      */
-    Real delta = tangential_opening_norm * delta * beta2 +
-                 normal_opening_norm * normal_opening_norm;
-
-    delta = sqrt(delta);
+    Real delta =
+        std::sqrt(tangential_opening_norm * tangential_opening_norm * beta2 +
+                  normal_opening_norm * normal_opening_norm);
 
     if ((normal_opening_norm < 0) &&
         (std::abs(normal_opening_norm) > Math::getTolerance())) {

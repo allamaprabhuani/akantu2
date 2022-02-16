@@ -173,6 +173,8 @@ target_include_directories(akantu SYSTEM
 
 target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 
+message("cxx_flags: ${_cxx_flags}")
+
 set_target_properties(akantu
   PROPERTIES
     ${AKANTU_LIBRARY_PROPERTIES} # this contains the version

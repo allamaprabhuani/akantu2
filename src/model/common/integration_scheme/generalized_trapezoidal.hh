@@ -76,36 +76,36 @@ class GeneralizedTrapezoidal : public IntegrationScheme1stOrder {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  GeneralizedTrapezoidal(DOFManager & dof_manager, const ID & dof_id,
+  GeneralizedTrapezoidal(DOFManager &dof_manager, const ID &dof_id,
                          Real alpha = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
-                 const Array<bool> & blocked_dofs) const override;
+  void predictor(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                 const Array<bool> &blocked_dofs) const override;
 
-  void corrector(const SolutionType & type, Real delta_t, Array<Real> & u,
-                 Array<Real> & u_dot, const Array<bool> & blocked_dofs,
-                 const Array<Real> & delta) const override;
+  void corrector(const SolutionType &type, Real delta_t, Array<Real> &u,
+                 Array<Real> &u_dot, const Array<bool> &blocked_dofs,
+                 const Array<Real> &delta) const override;
 
-  void assembleJacobian(const SolutionType & type, Real delta_t) override;
+  void assembleJacobian(const SolutionType &type, Real delta_t) override;
 
 public:
   /// the coeffichent \f$ b \f$ in the description
-  Real getTemperatureCoefficient(const SolutionType & type,
+  Real getTemperatureCoefficient(const SolutionType &type,
                                  Real delta_t) const override;
 
   /// the coeffichent \f$ a \f$ in the description
-  Real getTemperatureRateCoefficient(const SolutionType & type,
+  Real getTemperatureRateCoefficient(const SolutionType &type,
                                      Real delta_t) const override;
 
 private:
   template <SolutionType type>
-  void allCorrector(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
-                    const Array<bool> & blocked_dofs,
-                    const Array<Real> & delta) const;
+  void allCorrector(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                    const Array<bool> &blocked_dofs,
+                    const Array<Real> &delta) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -121,7 +121,7 @@ private:
   Real alpha;
 
   /// last release of K matrix
-  UInt k_release;
+  Int k_release;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -132,7 +132,7 @@ private:
  */
 class ForwardEuler : public GeneralizedTrapezoidal {
 public:
-  ForwardEuler(DOFManager & dof_manager, const ID & dof_id)
+  ForwardEuler(DOFManager &dof_manager, const ID &dof_id)
       : GeneralizedTrapezoidal(dof_manager, dof_id, 0.){};
 
   std::vector<std::string> getNeededMatrixList() override { return {"M"}; }
@@ -143,7 +143,7 @@ public:
  */
 class TrapezoidalRule1 : public GeneralizedTrapezoidal {
 public:
-  TrapezoidalRule1(DOFManager & dof_manager, const ID & dof_id)
+  TrapezoidalRule1(DOFManager &dof_manager, const ID &dof_id)
       : GeneralizedTrapezoidal(dof_manager, dof_id, .5){};
 };
 
@@ -152,7 +152,7 @@ public:
  */
 class BackwardEuler : public GeneralizedTrapezoidal {
 public:
-  BackwardEuler(DOFManager & dof_manager, const ID & dof_id)
+  BackwardEuler(DOFManager &dof_manager, const ID &dof_id)
       : GeneralizedTrapezoidal(dof_manager, dof_id, 1.){};
 };
 

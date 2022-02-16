@@ -190,7 +190,7 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
     Int c = 0;
     auto i = std::get<0>(data);
     const auto & id = std::get<1>(data);
-    for (; c < id.size(); ++c) {
+    for (; c < Int(id.size()); ++c) {
       buffer(i + starting_index, c) = id[c];
     }
 

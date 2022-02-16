@@ -123,7 +123,6 @@ distance(const MatrixBase<OtherDerived> & other) const {
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
 doubleDot(const MatrixBase<OtherDerived> & other) const {
-  Scalar sum = 0;
   eigen_assert(rows() == cols() and rows() == other.rows() and
                cols() == other.cols());
 

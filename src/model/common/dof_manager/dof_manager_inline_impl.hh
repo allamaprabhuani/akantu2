@@ -132,7 +132,8 @@ inline Array<Real> & DOFManager::getDOFsDerivatives(const ID & dofs_id,
   }
 
   auto & derivatives = this->getDOFData(dofs_id).dof_derivatives;
-  if ((order > derivatives.size()) || (derivatives[order - 1] == nullptr)) {
+  if ((order > Int(derivatives.size())) ||
+      (derivatives[order - 1] == nullptr)) {
     AKANTU_EXCEPTION("No derivatives of order " << order << " present in "
                                                 << this->id << " for dof "
                                                 << dofs_id);

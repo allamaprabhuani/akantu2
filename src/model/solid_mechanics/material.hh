@@ -91,15 +91,15 @@ class Material : public DataAccessor<Element>,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Material(const Material & mat) = delete;
-  Material & operator=(const Material & mat) = delete;
+  Material(const Material &mat) = delete;
+  Material &operator=(const Material &mat) = delete;
 
   /// Initialize material with defaults
-  Material(SolidMechanicsModel & model, const ID & id = "");
+  Material(SolidMechanicsModel &model, const ID &id = "");
 
   /// Initialize material with custom mesh & fe_engine
-  Material(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
-           FEEngine & fe_engine, const ID & id = "");
+  Material(SolidMechanicsModel &model, Int dim, const Mesh &mesh,
+           FEEngine &fe_engine, const ID &id = "");
 
   /// Destructor
   ~Material() override;
@@ -155,9 +155,9 @@ protected:
 
 public:
   /// extrapolate internal values
-  virtual void extrapolateInternal(const ID & id, const Element & element,
-                                   const Matrix<Real> & points,
-                                   Matrix<Real> & extrapolated);
+  virtual void extrapolateInternal(const ID &id, const Element &element,
+                                   const Matrix<Real> &points,
+                                   Matrix<Real> &extrapolated);
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed(const Element & /*element*/) const {
@@ -171,7 +171,7 @@ public:
 
   /// get a material celerity to compute the stable time step (default: is the
   /// push wave speed)
-  virtual Real getCelerity(const Element & element) const {
+  virtual Real getCelerity(const Element &element) const {
     return getPushWaveSpeed(element);
   }
 
@@ -216,22 +216,22 @@ public:
 
   /// add an element to the local mesh filter
   inline auto addElement(ElementType type, Int element, GhostType ghost_type);
-  inline auto addElement(const Element & element);
+  inline auto addElement(const Element &element);
 
   /// add many elements at once
-  void addElements(const Array<Element> & elements_to_add);
+  void addElements(const Array<Element> &elements_to_add);
 
   /// remove many element at once
-  void removeElements(const Array<Element> & elements_to_remove);
+  void removeElements(const Array<Element> &elements_to_remove);
 
   /// function to print the contain of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
+  void printself(std::ostream &stream, int indent = 0) const override;
 
   /**
    * interpolate stress on given positions for each element by means
    * of a geometrical interpolation on quadrature points
    */
-  void interpolateStress(ElementTypeMapArray<Real> & result,
+  void interpolateStress(ElementTypeMapArray<Real> &result,
                          GhostType ghost_type = _not_ghost);
 
   /**
@@ -239,8 +239,8 @@ public:
    * of a geometrical interpolation on quadrature points and store the
    * results per facet
    */
-  void interpolateStressOnFacets(ElementTypeMapArray<Real> & result,
-                                 ElementTypeMapArray<Real> & by_elem_result,
+  void interpolateStressOnFacets(ElementTypeMapArray<Real> &result,
+                                 ElementTypeMapArray<Real> &by_elem_result,
                                  GhostType ghost_type = _not_ghost);
 
   /**
@@ -248,7 +248,7 @@ public:
    * function by inverting the quadrature points' coordinates
    */
   void initElementalFieldInterpolation(
-      const ElementTypeMapArray<Real> & interpolation_points_coordinates);
+      const ElementTypeMapArray<Real> &interpolation_points_coordinates);
 
   /* ------------------------------------------------------------------------ */
   /* Common part                                                              */
@@ -272,7 +272,7 @@ protected:
 
   template <Int dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    auto && args =
+    auto &&args =
         zip(tuple::get<"grad_u"_h>() =
                 make_view<dim, dim>(this->gradu(el_type, ghost_type)),
             tuple::get<"previous_sigma"_h>() =
@@ -290,7 +290,7 @@ protected:
   }
 
   template <Int dim>
-  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+  decltype(auto) getArgumentsTangent(Array<Real> &tangent_matrix,
                                      ElementType el_type,
                                      GhostType ghost_type) {
     constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
@@ -330,34 +330,33 @@ protected:
 public:
   /// Size of the Stress matrix for the case of finite deformation see: Bathe et
   /// al, IJNME, Vol 9, 353-386, 1975
-  constexpr inline Int getCauchyStressMatrixSize(Int dim);
+  static constexpr inline Int getCauchyStressMatrixSize(Int dim);
 
   /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
   /// 1975
   template <Int dim, typename D1, typename D2>
   static constexpr inline void
-  setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
-                        Eigen::MatrixBase<D2> & sigma);
+  setCauchyStressMatrix(const Eigen::MatrixBase<D1> &S_t,
+                        Eigen::MatrixBase<D2> &sigma);
 
   /// write the stress tensor in the Voigt notation.
   template <Int dim, typename D1>
   static constexpr inline decltype(auto)
-  stressToVoigt(const Eigen::MatrixBase<D1> & stress) {
+  stressToVoigt(const Eigen::MatrixBase<D1> &stress) {
     return VoigtHelper<dim>::matrixToVoigt(stress);
   }
 
   /// write the strain tensor in the Voigt notation.
   template <Int dim, typename D1>
   static constexpr inline decltype(auto)
-  strainToVoigt(const Eigen::MatrixBase<D1> & strain) {
+  strainToVoigt(const Eigen::MatrixBase<D1> &strain) {
     return VoigtHelper<dim>::matrixToVoigtWithFactors(strain);
   }
 
   /// write a voigt vector to stress
   template <Int dim, typename D1, typename D2>
-  static constexpr inline void
-  voigtToStress(const Eigen::MatrixBase<D1> & voigt,
-                Eigen::MatrixBase<D2> & stress) {
+  static constexpr inline void voigtToStress(const Eigen::MatrixBase<D1> &voigt,
+                                             Eigen::MatrixBase<D2> &stress) {
     VoigtHelper<dim>::voigtToMatrix(voigt, stress);
   }
 
@@ -370,110 +369,110 @@ public:
   /// gradient
   template <Int dim, typename D1, typename D2, typename D3>
   static constexpr inline void
-  StoCauchy(const Eigen::MatrixBase<D1> & F, const Eigen::MatrixBase<D2> & S,
-            Eigen::MatrixBase<D3> & sigma, const Real & C33 = 1.0);
+  StoCauchy(const Eigen::MatrixBase<D1> &F, const Eigen::MatrixBase<D2> &S,
+            Eigen::MatrixBase<D3> &sigma, const Real &C33 = 1.0);
 
   template <Int dim, typename D1, typename D2>
   static constexpr inline decltype(auto)
-  StoCauchy(const Eigen::MatrixBase<D1> & F, const Eigen::MatrixBase<D2> & S,
-            const Real & C33 = 1.0);
+  StoCauchy(const Eigen::MatrixBase<D1> &F, const Eigen::MatrixBase<D2> &S,
+            const Real &C33 = 1.0);
 
   template <Int dim, typename D1, typename D2>
-  static constexpr inline void gradUToF(const Eigen::MatrixBase<D1> & grad_u,
-                                        Eigen::MatrixBase<D2> & F);
+  static constexpr inline void gradUToF(const Eigen::MatrixBase<D1> &grad_u,
+                                        Eigen::MatrixBase<D2> &F);
 
   template <Int dim, typename D>
   static constexpr inline decltype(auto)
-  gradUToF(const Eigen::MatrixBase<D> & grad_u);
-
-  template <typename D1, typename D2>
-  static constexpr inline void rightCauchy(const Eigen::MatrixBase<D1> & F,
-                                           Eigen::MatrixBase<D2> & C);
-  template <Int dim, typename D>
-  static constexpr inline decltype(auto)
-  rightCauchy(const Eigen::MatrixBase<D> & F);
+  gradUToF(const Eigen::MatrixBase<D> &grad_u);
 
   template <typename D1, typename D2>
-  static constexpr inline void leftCauchy(const Eigen::MatrixBase<D1> & F,
-                                          Eigen::MatrixBase<D2> & B);
+  static constexpr inline void rightCauchy(const Eigen::MatrixBase<D1> &F,
+                                           Eigen::MatrixBase<D2> &C);
   template <Int dim, typename D>
   static constexpr inline decltype(auto)
-  leftCauchy(const Eigen::MatrixBase<D> & F);
+  rightCauchy(const Eigen::MatrixBase<D> &F);
+
+  template <typename D1, typename D2>
+  static constexpr inline void leftCauchy(const Eigen::MatrixBase<D1> &F,
+                                          Eigen::MatrixBase<D2> &B);
+  template <Int dim, typename D>
+  static constexpr inline decltype(auto)
+  leftCauchy(const Eigen::MatrixBase<D> &F);
 
   template <Int dim, typename D1, typename D2>
   static constexpr inline void
-  gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u,
-                 Eigen::MatrixBase<D2> & epsilon);
+  gradUToEpsilon(const Eigen::MatrixBase<D1> &grad_u,
+                 Eigen::MatrixBase<D2> &epsilon);
   template <Int dim, typename D1>
   static constexpr inline decltype(auto)
-  gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u);
+  gradUToEpsilon(const Eigen::MatrixBase<D1> &grad_u);
 
   template <Int dim, typename D1, typename D2>
-  static constexpr inline void gradUToE(const Eigen::MatrixBase<D1> & grad_u,
-                                        Eigen::MatrixBase<D2> & epsilon);
+  static constexpr inline void gradUToE(const Eigen::MatrixBase<D1> &grad_u,
+                                        Eigen::MatrixBase<D2> &epsilon);
 
   template <Int dim, typename D1>
   static constexpr inline decltype(auto)
-  gradUToE(const Eigen::MatrixBase<D1> & grad_u);
+  gradUToE(const Eigen::MatrixBase<D1> &grad_u);
 
   template <Int dim, typename D1, typename D2>
   static constexpr inline void
-  computeDeviatoric(const Eigen::MatrixBase<D1> & sigma,
-                    Eigen::MatrixBase<D2> & sigma_dev) {
+  computeDeviatoric(const Eigen::MatrixBase<D1> &sigma,
+                    Eigen::MatrixBase<D2> &sigma_dev) {
     sigma_dev =
         sigma - Matrix<Real, dim, dim>::Identity() * sigma.trace() / dim;
   }
 
   template <Int dim, typename D>
   static constexpr inline decltype(auto)
-  computeDeviatoric(const Eigen::MatrixBase<D> & sigma) {
+  computeDeviatoric(const Eigen::MatrixBase<D> &sigma) {
     Matrix<Real, dim, dim> sigma_dev;
     Material::computeDeviatoric<dim>(sigma, sigma_dev);
     return sigma_dev;
   }
 
   template <typename D1>
-  static inline Real stressToVonMises(const Eigen::MatrixBase<D1> & stress);
+  static inline Real stressToVonMises(const Eigen::MatrixBase<D1> &stress);
 
 protected:
   /// converts global element to local element
-  inline Element convertToLocalElement(const Element & global_element) const;
+  inline Element convertToLocalElement(const Element &global_element) const;
   /// converts local element to global element
-  inline Element convertToGlobalElement(const Element & local_element) const;
+  inline Element convertToGlobalElement(const Element &local_element) const;
 
   /// converts global quadrature point to local quadrature point
   inline IntegrationPoint
-  convertToLocalPoint(const IntegrationPoint & global_point) const;
+  convertToLocalPoint(const IntegrationPoint &global_point) const;
   /// converts local quadrature point to global quadrature point
   inline IntegrationPoint
-  convertToGlobalPoint(const IntegrationPoint & local_point) const;
+  convertToGlobalPoint(const IntegrationPoint &local_point) const;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> &elements,
+                       const SynchronizationTag &tag) const override;
 
-  inline void packData(CommunicationBuffer & buffer,
-                       const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  inline void packData(CommunicationBuffer &buffer,
+                       const Array<Element> &elements,
+                       const SynchronizationTag &tag) const override;
 
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<Element> & elements,
-                         const SynchronizationTag & tag) override;
-
-  template <typename T>
-  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
-                                    CommunicationBuffer & buffer,
-                                    const Array<Element> & elements,
-                                    const ID & fem_id = ID()) const;
+  inline void unpackData(CommunicationBuffer &buffer,
+                         const Array<Element> &elements,
+                         const SynchronizationTag &tag) override;
 
   template <typename T>
-  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      const ID & fem_id = ID());
+  inline void packElementDataHelper(const ElementTypeMapArray<T> &data_to_pack,
+                                    CommunicationBuffer &buffer,
+                                    const Array<Element> &elements,
+                                    const ID &fem_id = ID()) const;
+
+  template <typename T>
+  inline void unpackElementDataHelper(ElementTypeMapArray<T> &data_to_unpack,
+                                      CommunicationBuffer &buffer,
+                                      const Array<Element> &elements,
+                                      const ID &fem_id = ID());
 
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler inherited members                                       */
@@ -483,11 +482,11 @@ public:
   void onNodesAdded(const Array<Idx> &, const NewNodesEvent &) override{};
   void onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
                       const RemovedNodesEvent &) override{};
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const RemovedElementsEvent & event) override;
+  void onElementsAdded(const Array<Element> &element_list,
+                       const NewElementsEvent &event) override;
+  void onElementsRemoved(const Array<Element> &element_list,
+                         const ElementTypeMapArray<Idx> &new_numbering,
+                         const RemovedElementsEvent &event) override;
   void onElementsChanged(const Array<Element> &, const Array<Element> &,
                          const ElementTypeMapArray<Idx> &,
                          const ChangedElementsEvent &) override{};
@@ -522,20 +521,19 @@ public:
   Real getPotentialEnergy();
 
   /// return the potential energy for the provided element
-  Real getPotentialEnergy(const Element & element);
+  Real getPotentialEnergy(const Element &element);
 
   [[gnu::deprecated("Use the interface with an Element")]] Real
   getPotentialEnergy(ElementType type, Int index);
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
-  virtual Real getEnergy(const std::string & type);
+  virtual Real getEnergy(const std::string &type);
   /// return the energy (identified by id) for the provided element
-  virtual Real getEnergy(const std::string & energy_id,
-                         const Element & element);
+  virtual Real getEnergy(const std::string &energy_id, const Element &element);
 
   [[gnu::deprecated("Use the interface with an Element")]] virtual Real
-  getEnergy(const std::string & energy_id, ElementType type, Idx index) final {
+  getEnergy(const std::string &energy_id, ElementType type, Idx index) final {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }
 
@@ -553,40 +551,39 @@ public:
   bool isNonLocal() const { return is_non_local; }
 
   template <typename T>
-  const Array<T> & getArray(const ID & id, ElementType type,
-                            GhostType ghost_type = _not_ghost) const;
+  const Array<T> &getArray(const ID &id, ElementType type,
+                           GhostType ghost_type = _not_ghost) const;
   template <typename T>
-  Array<T> & getArray(const ID & id, ElementType type,
-                      GhostType ghost_type = _not_ghost);
+  Array<T> &getArray(const ID &id, ElementType type,
+                     GhostType ghost_type = _not_ghost);
+
+  template <typename T> const InternalField<T> &getInternal(const ID &id) const;
+  template <typename T> InternalField<T> &getInternal(const ID &id);
 
   template <typename T>
-  const InternalField<T> & getInternal(const ID & id) const;
-  template <typename T> InternalField<T> & getInternal(const ID & id);
+  inline bool isInternal(const ID &id, ElementKind element_kind) const;
 
   template <typename T>
-  inline bool isInternal(const ID & id, ElementKind element_kind) const;
-
-  template <typename T>
-  ElementTypeMap<Int> getInternalDataPerElem(const ID & id,
+  ElementTypeMap<Int> getInternalDataPerElem(const ID &id,
                                              ElementKind element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
 
-  template <typename T> inline void setParam(const ID & param, T value);
-  inline const Parameter & getParam(const ID & param) const;
+  template <typename T> inline void setParam(const ID &param, T value);
+  inline const Parameter &getParam(const ID &param) const;
 
   template <typename T>
-  void flattenInternal(const std::string & field_id,
-                       ElementTypeMapArray<T> & internal_flat,
+  void flattenInternal(const std::string &field_id,
+                       ElementTypeMapArray<T> &internal_flat,
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
   /// apply a constant eigengrad_u everywhere in the material
-  virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
+  virtual void applyEigenGradU(const Matrix<Real> &prescribed_eigen_grad_u,
                                GhostType /*ghost_type*/ = _not_ghost);
 
-  bool hasMatrixChanged(const ID & id) {
+  bool hasMatrixChanged(const ID &id) {
     if (id == "K") {
       return hasStiffnessMatrixChanged() or finite_deformation;
     }
@@ -594,7 +591,7 @@ public:
     return true;
   }
 
-  MatrixType getMatrixType(const ID & id) {
+  MatrixType getMatrixType(const ID &id) {
     if (id == "K") {
       return getTangentType();
     }
@@ -614,7 +611,7 @@ public:
   virtual MatrixType getTangentType() { return _mt_not_defined; }
 
   /// static method to reteive the material factory
-  static MaterialFactory & getFactory();
+  static MaterialFactory &getFactory();
 
 protected:
   bool isInit() const { return is_init; }
@@ -634,7 +631,7 @@ protected:
   ID id;
 
   /// Link to the fem object in the model
-  FEEngine & fem;
+  FEEngine &fem;
 
   /// Finite deformation
   bool finite_deformation{false};
@@ -646,7 +643,7 @@ protected:
   std::string name;
 
   /// The model to witch the material belong
-  SolidMechanicsModel & model;
+  SolidMechanicsModel &model;
 
   /// density : rho
   Real rho{0.};
@@ -701,8 +698,7 @@ private:
 };
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const Material & _this) {
+inline std::ostream &operator<<(std::ostream &stream, const Material &_this) {
   _this.printself(stream);
   return stream;
 }
@@ -721,7 +717,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 /// functions such as computeStress. This macro in addition to write the loop
 /// provides two tensors (matrices) sigma and grad_u
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type)       \
-  auto && grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type)); \
+  auto &&grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type));  \
                                                                                \
   auto stress_view = make_view<dim, dim>(this->stress(el_type, ghost_type));   \
                                                                                \
@@ -730,9 +726,9 @@ inline std::ostream & operator<<(std::ostream & stream,
         make_view<dim, dim>(this->piola_kirchhoff_2(el_type, ghost_type));     \
   }                                                                            \
                                                                                \
-  for (auto && data : zip(grad_u_view, stress_view)) {                         \
-    [[gnu::unused]] auto && grad_u = std::get<0>(data);                        \
-    [[gnu::unused]] auto && sigma = std::get<1>(data)
+  for (auto &&data : zip(grad_u_view, stress_view)) {                          \
+    [[gnu::unused]] auto &&grad_u = std::get<0>(data);                         \
+    [[gnu::unused]] auto &&sigma = std::get<1>(data)
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END }
 
@@ -741,19 +737,18 @@ inline std::ostream & operator<<(std::ostream & stream,
 /// loop provides two tensors (matrices) sigma_tensor, grad_u, and a matrix
 /// where the elemental tangent moduli should be stored in Voigt Notation
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)              \
-  auto && grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type)); \
+  auto &&grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type));  \
                                                                                \
-  auto && stress_view =                                                        \
-      make_view<dim, dim>(this->stress(el_type, ghost_type));                  \
+  auto &&stress_view = make_view<dim, dim>(this->stress(el_type, ghost_type)); \
                                                                                \
   constexpr auto tangent_size = this->getTangentStiffnessVoigtSize(dim);       \
                                                                                \
-  auto && tangent_view = make_view<tangent_size, tangent_size>(tangent_mat);   \
+  auto &&tangent_view = make_view<tangent_size, tangent_size>(tangent_mat);    \
                                                                                \
-  for (auto && data : zip(grad_u_view, stress_view, tangent_view)) {           \
-    [[gnu::unused]] auto && grad_u = std::get<0>(data);                        \
-    [[gnu::unused]] auto && sigma = std::get<1>(data);                         \
-    auto && tangent = std::get<2>(data);
+  for (auto &&data : zip(grad_u_view, stress_view, tangent_view)) {            \
+    [[gnu::unused]] auto &&grad_u = std::get<0>(data);                         \
+    [[gnu::unused]] auto &&sigma = std::get<1>(data);                          \
+    auto &&tangent = std::get<2>(data);
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END }
 
@@ -765,8 +760,8 @@ inline std::ostream & operator<<(std::ostream & stream,
   template class mat_name<3>  /* NOLINT */
 
 #define MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name)                       \
-  [](Int dim, const ID &, SolidMechanicsModel & model,                         \
-     const ID & id) /* NOLINT */                                               \
+  [](Int dim, const ID &, SolidMechanicsModel &model,                          \
+     const ID &id) /* NOLINT */                                                \
       -> std::unique_ptr<                                                      \
           Material> { /* NOLINT */                                             \
                       switch (dim) {                                           \

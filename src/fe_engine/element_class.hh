@@ -86,7 +86,7 @@ template <GeometricalType geometrical_type> struct GeometricalShape {
 template <GeometricalShapeType shape> struct GeometricalShapeContains {
   /// Check if the point (vector in 2 and 3D) at natural coordinate coord
   template <class D>
-  static inline bool contains(const Eigen::MatrixBase<D> & coord);
+  static inline bool contains(const Eigen::MatrixBase<D> &coord);
 };
 
 #if !defined(DOXYGEN)
@@ -129,20 +129,20 @@ class GeometricalElement {
 public:
   /// compute the in-radius: \todo should be renamed for characteristic length
   template <class D>
-  static inline Real getInradius(const Eigen::MatrixBase<D> & /*X*/) {
+  static constexpr inline Real getInradius(const Eigen::MatrixBase<D> & /*X*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the normal to the element
   template <class D1, class D2>
-  static inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
-                               Eigen::MatrixBase<D2> & /*n*/) {
+  static constexpr inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
+                                         Eigen::MatrixBase<D2> & /*n*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// true if the natural coordinates are in the element
   template <class D>
-  static inline bool contains(const Eigen::MatrixBase<D> & coord);
+  static inline bool contains(const Eigen::MatrixBase<D> &coord);
 
 public:
   static constexpr auto getSpatialDimension() {
@@ -207,8 +207,8 @@ public:
   /// compute the shape values for a given set of points in natural coordinates
   template <class D1, class D2,
             aka::enable_if_t<aka::are_matrices<D1, D2>::value> * = nullptr>
-  static inline void computeShapes(const Eigen::MatrixBase<D1> & Xs,
-                                   const Eigen::MatrixBase<D2> & N_);
+  static inline void computeShapes(const Eigen::MatrixBase<D1> &Xs,
+                                   const Eigen::MatrixBase<D2> &N_);
 
   /// compute the shape values for a given point in natural coordinates
   template <class D1, class D2,
@@ -224,8 +224,8 @@ public:
    * of points in natural coordinates
    */
   template <class D>
-  static inline void computeDNDS(const Eigen::MatrixBase<D> & Xs,
-                                 Tensor3Base<Real> & dnds);
+  static inline void computeDNDS(const Eigen::MatrixBase<D> &Xs,
+                                 Tensor3Base<Real> &dnds);
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the variation of
    * shape functions along with
@@ -242,8 +242,8 @@ public:
    * compute @f$ @f$
 
    **/
-  static inline void computeD2NDS2(const Matrix<Real> & natural_coord,
-                                   Tensor3<Real> & d2nds2);
+  static inline void computeD2NDS2(const Matrix<Real> &natural_coord,
+                                   Tensor3<Real> &d2nds2);
 
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
@@ -268,8 +268,8 @@ public:
   /// interpolate a field given (arbitrary) natural coordinates
   template <class Derived1, class Derived2>
   static inline decltype(auto) interpolateOnNaturalCoordinates(
-      const Eigen::MatrixBase<Derived1> & natural_coords,
-      const Eigen::MatrixBase<Derived2> & nodal_values) {
+      const Eigen::MatrixBase<Derived1> &natural_coords,
+      const Eigen::MatrixBase<Derived2> &nodal_values) {
     using interpolation = InterpolationProperty<interpolation_type>;
     Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
     computeShapes(natural_coords, shapes);
@@ -283,22 +283,22 @@ public:
   /// interpolate a field given the shape functions on the interpolation point
   template <class Derived1, class Derived2>
   static inline auto
-  interpolate(const Eigen::MatrixBase<Derived1> & nodal_values,
-              const Eigen::MatrixBase<Derived2> & shapes);
+  interpolate(const Eigen::MatrixBase<Derived1> &nodal_values,
+              const Eigen::MatrixBase<Derived2> &shapes);
 
   /// interpolate a field given the shape functions on the interpolations points
   template <class Derived1, class Derived2, class Derived3>
   static inline void
-  interpolate(const Eigen::MatrixBase<Derived1> & nodal_values,
-              const Eigen::MatrixBase<Derived2> & Ns,
-              const Eigen::MatrixBase<Derived3> & interpolated);
+  interpolate(const Eigen::MatrixBase<Derived1> &nodal_values,
+              const Eigen::MatrixBase<Derived2> &Ns,
+              const Eigen::MatrixBase<Derived3> &interpolated);
 
   /// compute the gradient of a given field on the given natural coordinates
   template <class D1, class D2, class D3>
   static inline void
-  gradientOnNaturalCoordinates(const Eigen::MatrixBase<D1> & natural_coords,
-                               const Eigen::MatrixBase<D2> & f,
-                               const Eigen::MatrixBase<D3> & dfds);
+  gradientOnNaturalCoordinates(const Eigen::MatrixBase<D1> &natural_coords,
+                               const Eigen::MatrixBase<D2> &f,
+                               const Eigen::MatrixBase<D3> &dfds);
 
 public:
   static constexpr auto getShapeSize() {
@@ -372,8 +372,8 @@ public:
    */
   template <class D1, class D2>
   static inline decltype(auto)
-  computeJMat(const Eigen::MatrixBase<D1> & dnds,
-              const Eigen::MatrixBase<D2> & node_coords);
+  computeJMat(const Eigen::MatrixBase<D1> &dnds,
+              const Eigen::MatrixBase<D2> &node_coords);
 
   /**
    * compute the Jacobian matrix by computing the variation of real coordinates
@@ -381,61 +381,61 @@ public:
    * natural coordinates
    */
   template <class D>
-  static inline void computeJMat(const Tensor3Base<Real> & dnds,
-                                 const Eigen::MatrixBase<D> & node_coords,
-                                 Tensor3Base<Real> & J);
+  static inline void computeJMat(const Tensor3Base<Real> &dnds,
+                                 const Eigen::MatrixBase<D> &node_coords,
+                                 Tensor3Base<Real> &J);
 
   /// compute the jacobians of a serie of natural coordinates
   template <class D1, class D2, class D3>
   static inline void
-  computeJacobian(const Eigen::MatrixBase<D1> & natural_coords,
-                  const Eigen::MatrixBase<D2> & node_coords,
-                  Eigen::MatrixBase<D3> & jacobians);
+  computeJacobian(const Eigen::MatrixBase<D1> &natural_coords,
+                  const Eigen::MatrixBase<D2> &node_coords,
+                  Eigen::MatrixBase<D3> &jacobians);
 
   /// compute jacobian (or integration variable change factor) for a set of
   /// points
   template <class D>
-  static inline void computeJacobian(const Tensor3Base<Real> & J,
-                                     Eigen::MatrixBase<D> & jacobians);
+  static inline void computeJacobian(const Tensor3Base<Real> &J,
+                                     Eigen::MatrixBase<D> &jacobians);
 
   /// compute jacobian (or integration variable change factor) for a given point
   template <class D>
-  static inline Real computeJacobian(const Eigen::MatrixBase<D> & J);
+  static inline Real computeJacobian(const Eigen::MatrixBase<D> &J);
 
   /// compute shape derivatives (input is dxds) for a set of points
-  static inline void computeShapeDerivatives(const Tensor3Base<Real> & J,
-                                             const Tensor3Base<Real> & dnds,
-                                             Tensor3Base<Real> & shape_deriv);
+  static inline void computeShapeDerivatives(const Tensor3Base<Real> &J,
+                                             const Tensor3Base<Real> &dnds,
+                                             Tensor3Base<Real> &shape_deriv);
 
   /// compute shape derivatives (input is dxds) for a given point
   template <class D1, class D2, class D3>
   static inline void
-  computeShapeDerivatives(const Eigen::MatrixBase<D1> & J,
-                          const Eigen::MatrixBase<D2> & dnds,
-                          Eigen::MatrixBase<D3> & shape_deriv);
+  computeShapeDerivatives(const Eigen::MatrixBase<D1> &J,
+                          const Eigen::MatrixBase<D2> &dnds,
+                          Eigen::MatrixBase<D3> &shape_deriv);
 
   /// compute the normal of a surface defined by the function f
   template <class D1, class D2, class D3>
   static inline void
-  computeNormalsOnNaturalCoordinates(const Eigen::MatrixBase<D1> & coord,
-                                     const Eigen::MatrixBase<D2> & f,
-                                     Eigen::MatrixBase<D3> & normals);
+  computeNormalsOnNaturalCoordinates(const Eigen::MatrixBase<D1> &coord,
+                                     const Eigen::MatrixBase<D2> &f,
+                                     Eigen::MatrixBase<D3> &normals);
 
   /// get natural coordinates from real coordinates
   template <class D1, class D2, class D3,
             aka::enable_if_vectors_t<D1, D3> * = nullptr>
-  static inline void inverseMap(const Eigen::MatrixBase<D1> & real_coords,
-                                const Eigen::MatrixBase<D2> & node_coords,
-                                const Eigen::MatrixBase<D3> & natural_coords,
+  static inline void inverseMap(const Eigen::MatrixBase<D1> &real_coords,
+                                const Eigen::MatrixBase<D2> &node_coords,
+                                const Eigen::MatrixBase<D3> &natural_coords,
                                 Int max_iterations = 100,
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
   template <class D1, class D2, class D3,
             aka::enable_if_matrices_t<D1, D3> * = nullptr>
-  static inline void inverseMap(const Eigen::MatrixBase<D1> & real_coords,
-                                const Eigen::MatrixBase<D2> & node_coords,
-                                const Eigen::MatrixBase<D3> & natural_coords_,
+  static inline void inverseMap(const Eigen::MatrixBase<D1> &real_coords,
+                                const Eigen::MatrixBase<D2> &node_coords,
+                                const Eigen::MatrixBase<D3> &natural_coords_,
                                 Int max_iterations = 100,
                                 Real tolerance = 1e-10);
 

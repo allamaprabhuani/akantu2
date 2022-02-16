@@ -88,39 +88,39 @@ class NewmarkBeta : public IntegrationScheme2ndOrder {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  NewmarkBeta(DOFManager & dof_manager, const ID & dof_id, Real alpha = 0.,
+  NewmarkBeta(DOFManager &dof_manager, const ID &dof_id, Real alpha = 0.,
               Real beta = 0.);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
-                 Array<Real> & u_dot_dot,
-                 const Array<bool> & blocked_dofs) const override;
+  void predictor(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                 Array<Real> &u_dot_dot,
+                 const Array<bool> &blocked_dofs) const override;
 
-  void corrector(const SolutionType & type, Real delta_t, Array<Real> & u,
-                 Array<Real> & u_dot, Array<Real> & u_dot_dot,
-                 const Array<bool> & blocked_dofs,
-                 const Array<Real> & delta) const override;
+  void corrector(const SolutionType &type, Real delta_t, Array<Real> &u,
+                 Array<Real> &u_dot, Array<Real> &u_dot_dot,
+                 const Array<bool> &blocked_dofs,
+                 const Array<Real> &delta) const override;
 
-  void assembleJacobian(const SolutionType & type, Real delta_t) override;
+  void assembleJacobian(const SolutionType &type, Real delta_t) override;
 
 public:
-  Real getAccelerationCoefficient(const SolutionType & type,
+  Real getAccelerationCoefficient(const SolutionType &type,
                                   Real delta_t) const override;
 
-  Real getVelocityCoefficient(const SolutionType & type,
+  Real getVelocityCoefficient(const SolutionType &type,
                               Real delta_t) const override;
 
-  Real getDisplacementCoefficient(const SolutionType & type,
+  Real getDisplacementCoefficient(const SolutionType &type,
                                   Real delta_t) const override;
 
 private:
   template <SolutionType type>
-  void allCorrector(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
-                    Array<Real> & u_dot_dot, const Array<bool> & blocked_dofs,
-                    const Array<Real> & delta) const;
+  void allCorrector(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                    Array<Real> &u_dot_dot, const Array<bool> &blocked_dofs,
+                    const Array<Real> &delta) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -139,17 +139,14 @@ protected:
   /// the \f$\alpha\f$ parameter
   Real alpha;
 
-  Real k;
-  Real h;
-
-  /// last release of M matrix
-  UInt m_release;
+  Real k{0};
+  Real h{0};
 
   /// last release of K matrix
-  UInt k_release;
+  Int k_release{0};
 
   /// last release of C matrix
-  UInt c_release;
+  Int c_release{0};
 };
 
 /**
@@ -161,7 +158,7 @@ protected:
  */
 class CentralDifference : public NewmarkBeta {
 public:
-  CentralDifference(DOFManager & dof_manager, const ID & dof_id)
+  CentralDifference(DOFManager &dof_manager, const ID &dof_id)
       : NewmarkBeta(dof_manager, dof_id, 0., 1. / 2.){};
 
   std::vector<std::string> getNeededMatrixList() override { return {"M", "C"}; }
@@ -172,21 +169,21 @@ public:
 /// undamped trapezoidal rule (implicit)
 class TrapezoidalRule2 : public NewmarkBeta {
 public:
-  TrapezoidalRule2(DOFManager & dof_manager, const ID & dof_id)
+  TrapezoidalRule2(DOFManager &dof_manager, const ID &dof_id)
       : NewmarkBeta(dof_manager, dof_id, 1. / 2., 1. / 2.){};
 };
 
 /// Fox-Goodwin rule (implicit)
 class FoxGoodwin : public NewmarkBeta {
 public:
-  FoxGoodwin(DOFManager & dof_manager, const ID & dof_id)
+  FoxGoodwin(DOFManager &dof_manager, const ID &dof_id)
       : NewmarkBeta(dof_manager, dof_id, 1. / 6., 1. / 2.){};
 };
 
 /// Linear acceleration (implicit)
 class LinearAceleration : public NewmarkBeta {
 public:
-  LinearAceleration(DOFManager & dof_manager, const ID & dof_id)
+  LinearAceleration(DOFManager &dof_manager, const ID &dof_id)
       : NewmarkBeta(dof_manager, dof_id, 1. / 3., 1. / 2.){};
 };
 

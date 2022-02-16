@@ -71,7 +71,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
-    const Eigen::MatrixBase<D1> & X, Eigen::MatrixBase<D2> & N) {
+    const Eigen::MatrixBase<D1> &X, Eigen::MatrixBase<D2> &N) {
   N(0) = 1 - X(0) - X(1); /// @f$ c0 = 1 - \xi - \eta @f$
   N(1) = X(0);            /// @f$ c1 = \xi @f$
   N(2) = X(1);            /// @f$ c2 = \eta @f$
@@ -81,7 +81,7 @@ template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
     const Eigen::MatrixBase<D1> & /*natural_coords*/,
-    Eigen::MatrixBase<D2> & dnds) {
+    Eigen::MatrixBase<D2> &dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -106,18 +106,18 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
-    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+    const vector_type & /*natural_coords*/, matrix_type &d2nds2) {
   d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real GeometricalElement<_gt_triangle_3>::getInradius(
-    const Eigen::MatrixBase<D> & coord) {
-  auto && coord1 = coord.col(0);
-  auto && coord2 = coord.col(1);
-  auto && coord3 = coord.col(2);
+constexpr inline Real GeometricalElement<_gt_triangle_3>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&coord1 = coord.col(0);
+  auto &&coord2 = coord.col(1);
+  auto &&coord3 = coord.col(2);
 
   return 2. * Math::triangle_inradius(coord1, coord2, coord3);
 }

@@ -196,7 +196,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
   tangents = dnds * nodes_coord.transpose();
 
   auto temp_tangents = tangents.transpose();
-  for (UInt i = 0; i < spatial_dimension - 1; ++i) {
+  for (Int i = 0; i < spatial_dimension - 1; ++i) {
     temp_tangents(i).normalize();
   }
 
@@ -300,13 +300,13 @@ void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt GeometryUtils::orthogonalProjection(
+Idx GeometryUtils::orthogonalProjection(
     const Mesh & mesh, const Array<Real> & positions,
     const Vector<Real> & slave, const Array<Element> & elements, Real & gap,
     Vector<Real> & natural_projection, Vector<Real> & normal, Real alpha,
-    UInt max_iterations, Real projection_tolerance, Real extension_tolerance) {
+    Int max_iterations, Real projection_tolerance, Real extension_tolerance) {
 
-  Int index = -1;
+  Idx index = -1;
   auto min_gap = std::numeric_limits<Real>::max();
 
   auto spatial_dimension = mesh.getSpatialDimension();
@@ -326,7 +326,7 @@ UInt GeometryUtils::orthogonalProjection(
     // returnas UInt(-1)
 
     const auto & elements_of_type = contact_group.getElements(element.type);
-    if (elements_of_type.find(element.element) == UInt(-1)) {
+    if (elements_of_type.find(element.element) == -1) {
       continue;
     }
 
@@ -401,18 +401,18 @@ UInt GeometryUtils::orthogonalProjection(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt GeometryUtils::orthogonalProjection(
+Idx GeometryUtils::orthogonalProjection(
     const Mesh & mesh, const Array<Real> & positions,
     const Vector<Real> & slave, const Array<Element> & elements, Real & gap,
     Vector<Real> & natural_projection, Vector<Real> & normal,
-    Matrix<Real> & tangent, Real /*alpha*/, UInt max_iterations,
+    Matrix<Real> & tangent, Real /*alpha*/, Int max_iterations,
     Real projection_tolerance, Real extension_tolerance) {
 
-  UInt index = UInt(-1);
+  Idx index = -1;
   Real min_gap = std::numeric_limits<Real>::max();
 
   Int spatial_dimension = mesh.getSpatialDimension();
-  UInt surface_dimension = spatial_dimension - 1;
+  Int surface_dimension = spatial_dimension - 1;
 
   const auto & contact_group = mesh.getElementGroup("contact_surface");
 
@@ -425,7 +425,7 @@ UInt GeometryUtils::orthogonalProjection(
     // returnas UInt(-1)
 
     const auto & elements_of_type = contact_group.getElements(element.type);
-    if (elements_of_type.find(element.element) == UInt(-1)) {
+    if (elements_of_type.find(element.element) == -1) {
       continue;
     }
 
@@ -532,7 +532,7 @@ void GeometryUtils::realProjection(const Mesh & mesh,
 void GeometryUtils::naturalProjection(
     const Mesh & mesh, const Array<Real> & positions, const Element & element,
     const Vector<Real> & slave_coords, Vector<Real> & master_coords,
-    Vector<Real> & natural_projection, UInt max_iterations,
+    Vector<Real> & natural_projection, Int max_iterations,
     Real projection_tolerance) {
 
   auto spatial_dimension = mesh.getSpatialDimension();

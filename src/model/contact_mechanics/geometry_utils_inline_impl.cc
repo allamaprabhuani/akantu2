@@ -82,7 +82,7 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
 inline bool GeometryUtils::isValidProjection(const Vector<Real> & projection,
                                              Real extension_tolerance) {
 
-  UInt nb_xi_inside = 0;
+  Int nb_xi_inside = 0;
 
   for (auto xi : projection) {
     if (xi >= -1.0 - extension_tolerance and xi <= 1.0 + extension_tolerance) {

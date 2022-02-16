@@ -635,7 +635,7 @@ void Mesh::eraseElements(const Array<Element> & elements) {
   auto find_first_deleted = [](auto && array, Int start) -> Int {
     auto begin = array.begin();
     auto it = std::find_if(begin + start, array.end(),
-                           [](auto & el) { return el == UInt(-1); });
+                           [](auto & el) { return el == -1; });
     return Int(it - begin);
   };
 

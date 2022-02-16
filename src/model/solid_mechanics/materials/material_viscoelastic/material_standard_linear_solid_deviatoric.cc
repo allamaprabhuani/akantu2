@@ -40,8 +40,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialStandardLinearSolidDeviatoric<
-    dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
-                                                const ID & id)
+    dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel &model,
+                                                const ID &id)
     : MaterialElastic<dim>(model, id), stress_dev("stress_dev", *this),
       history_integral("history_integral", *this),
       dissipated_energy("dissipated_energy", *this) {
@@ -86,10 +86,10 @@ template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
     ElementType el_type, GhostType ghost_type) {
   /// Loop on all quadrature points
-  for (auto && args : this->getArguments(el_type, ghost_type)) {
-    const auto & grad_u = tuple::get<"grad_u"_h>(args);
-    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto & h = tuple::get<"history"_h>(args);
+  for (auto &&args : this->getArguments(el_type, ghost_type)) {
+    const auto &grad_u = tuple::get<"grad_u"_h>(args);
+    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto &h = tuple::get<"history"_h>(args);
 
     /// Compute the first invariant of strain
     Real Theta = grad_u.trace();
@@ -116,11 +116,11 @@ void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
   Matrix<Real, dim, dim> epsilon_d;
 
   /// Loop on all quadrature points
-  for (auto && args : this->getArguments(el_type, ghost_type)) {
-    const auto & grad_u = tuple::get<"grad_u"_h>(args);
-    auto & sigma = tuple::get<"sigma"_h>(args);
-    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto & h = tuple::get<"history"_h>(args);
+  for (auto &&args : this->getArguments(el_type, ghost_type)) {
+    const auto &grad_u = tuple::get<"grad_u"_h>(args);
+    auto &sigma = tuple::get<"sigma"_h>(args);
+    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto &h = tuple::get<"history"_h>(args);
 
     s.zero();
     sigma.zero();
@@ -161,14 +161,13 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
   auto gamma_v = Ev / this->E;
   auto alpha = 1. / (2. * this->mu * gamma_v);
 
-  for (auto && data : zip(this->getArguments(el_type, ghost_type),
-                          dissipated_energy(el_type, ghost_type))) {
-    auto && args = std::get<0>(data);
-    auto & dis_energy = std::get<1>(data);
-    const auto & grad_u = tuple::get<"grad_u"_h>(args);
-    auto & sigma = tuple::get<"sigma"_h>(args);
-    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto & h = tuple::get<"history"_h>(args);
+  for (auto &&data : zip(this->getArguments(el_type, ghost_type),
+                         dissipated_energy(el_type, ghost_type))) {
+    auto &&args = std::get<0>(data);
+    auto &dis_energy = std::get<1>(data);
+    const auto &grad_u = tuple::get<"grad_u"_h>(args);
+    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto &h = tuple::get<"history"_h>(args);
 
     /// Compute the first invariant of strain
     epsilon_d = Material::gradUToEpsilon<dim>(grad_u);
@@ -191,7 +190,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (const auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (const auto &type : this->element_filter.elementTypes(dim, _not_ghost)) {
     de +=
         this->fem.integrate(dissipated_energy(type, _not_ghost), type,
                             _not_ghost, this->element_filter(type, _not_ghost));
@@ -204,13 +203,12 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
-    const Element & element) const {
+    const Element &element) const {
   AKANTU_DEBUG_IN();
 
   auto nb_quadrature_points = this->fem.getNbIntegrationPoints(element.type);
   auto it = this->dissipated_energy(element.type, _not_ghost)
                 .begin(nb_quadrature_points);
-  auto gindex = this->element_filter(element);
 
   AKANTU_DEBUG_OUT();
   return this->fem.integrate(it[element.element], element);
@@ -219,7 +217,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
-    const std::string & type) {
+    const std::string &type) {
   if (type == "dissipated") {
     return getDissipatedEnergy();
   }
@@ -232,7 +230,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
-    const std::string & energy_id, const Element & element) {
+    const std::string &energy_id, const Element &element) {
   if (energy_id == "dissipated") {
     return getDissipatedEnergy(element);
   }

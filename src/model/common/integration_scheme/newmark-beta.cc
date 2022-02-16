@@ -41,10 +41,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-NewmarkBeta::NewmarkBeta(DOFManager & dof_manager, const ID & dof_id,
-                         Real alpha, Real beta)
-    : IntegrationScheme2ndOrder(dof_manager, dof_id), beta(beta), alpha(alpha),
-      k(0.), h(0.), m_release(0), k_release(0), c_release(0) {
+NewmarkBeta::NewmarkBeta(DOFManager &dof_manager, const ID &dof_id, Real alpha,
+                         Real beta)
+    : IntegrationScheme2ndOrder(dof_manager, dof_id), beta(beta), alpha(alpha) {
 
   this->registerParam("alpha", this->alpha, alpha, _pat_parsmod,
                       "The alpha parameter");
@@ -59,18 +58,18 @@ NewmarkBeta::NewmarkBeta(DOFManager & dof_manager, const ID & dof_id,
  * @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  \Delta t \ddot{u}_{n} @f$
  * @f$ \tilde{\ddot{u}_{n}} = \ddot{u}_{n} @f$
  */
-void NewmarkBeta::predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
-                            Array<Real> & u_dot_dot,
-                            const Array<bool> & blocked_dofs) const {
+void NewmarkBeta::predictor(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                            Array<Real> &u_dot_dot,
+                            const Array<bool> &blocked_dofs) const {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes = u.size();
   auto nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  auto * u_val = u.data();
-  auto * u_dot_val = u_dot.data();
-  auto * u_dot_dot_val = u_dot_dot.data();
-  auto * blocked_dofs_val = blocked_dofs.data();
+  auto *u_val = u.data();
+  auto *u_dot_val = u_dot.data();
+  auto *u_dot_dot_val = u_dot_dot.data();
+  auto *blocked_dofs_val = blocked_dofs.data();
 
   for (Int d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
@@ -91,11 +90,11 @@ void NewmarkBeta::predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
 }
 
 /* -------------------------------------------------------------------------- */
-void NewmarkBeta::corrector(const SolutionType & type, Real delta_t,
-                            Array<Real> & u, Array<Real> & u_dot,
-                            Array<Real> & u_dot_dot,
-                            const Array<bool> & blocked_dofs,
-                            const Array<Real> & delta) const {
+void NewmarkBeta::corrector(const SolutionType &type, Real delta_t,
+                            Array<Real> &u, Array<Real> &u_dot,
+                            Array<Real> &u_dot_dot,
+                            const Array<bool> &blocked_dofs,
+                            const Array<Real> &delta) const {
   AKANTU_DEBUG_IN();
 
   switch (type) {
@@ -124,7 +123,7 @@ void NewmarkBeta::corrector(const SolutionType & type, Real delta_t,
 }
 
 /* -------------------------------------------------------------------------- */
-Real NewmarkBeta::getAccelerationCoefficient(const SolutionType & type,
+Real NewmarkBeta::getAccelerationCoefficient(const SolutionType &type,
                                              Real delta_t) const {
   switch (type) {
   case _acceleration:
@@ -141,7 +140,7 @@ Real NewmarkBeta::getAccelerationCoefficient(const SolutionType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-Real NewmarkBeta::getVelocityCoefficient(const SolutionType & type,
+Real NewmarkBeta::getVelocityCoefficient(const SolutionType &type,
                                          Real delta_t) const {
   switch (type) {
   case _acceleration:
@@ -158,7 +157,7 @@ Real NewmarkBeta::getVelocityCoefficient(const SolutionType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-Real NewmarkBeta::getDisplacementCoefficient(const SolutionType & type,
+Real NewmarkBeta::getDisplacementCoefficient(const SolutionType &type,
                                              Real delta_t) const {
   switch (type) {
   case _acceleration:
@@ -176,10 +175,10 @@ Real NewmarkBeta::getDisplacementCoefficient(const SolutionType & type,
 
 /* -------------------------------------------------------------------------- */
 template <IntegrationScheme::SolutionType type>
-void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
-                               Array<Real> & u_dot, Array<Real> & u_dot_dot,
-                               const Array<bool> & blocked_dofs,
-                               const Array<Real> & delta) const {
+void NewmarkBeta::allCorrector(Real delta_t, Array<Real> &u, Array<Real> &u_dot,
+                               Array<Real> &u_dot_dot,
+                               const Array<bool> &blocked_dofs,
+                               const Array<Real> &delta) const {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes = u.size();
@@ -189,11 +188,11 @@ void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
   auto d = getVelocityCoefficient(type, delta_t);
   auto e = getDisplacementCoefficient(type, delta_t);
 
-  auto * u_val = u.data();
-  auto * u_dot_val = u_dot.data();
-  auto * u_dot_dot_val = u_dot_dot.data();
-  auto * delta_val = delta.data();
-  auto * blocked_dofs_val = blocked_dofs.data();
+  auto *u_val = u.data();
+  auto *u_dot_val = u_dot.data();
+  auto *u_dot_dot_val = u_dot_dot.data();
+  auto *delta_val = delta.data();
+  auto *blocked_dofs_val = blocked_dofs.data();
 
   for (Int dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {
@@ -212,19 +211,19 @@ void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
 }
 
 /* -------------------------------------------------------------------------- */
-void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
+void NewmarkBeta::assembleJacobian(const SolutionType &type, Real delta_t) {
   AKANTU_DEBUG_IN();
 
-  auto & J = this->dof_manager.getMatrix("J");
+  auto &J = this->dof_manager.getMatrix("J");
 
-  const auto & M = this->dof_manager.getMatrix("M");
-  const auto & K = this->dof_manager.getMatrix("K");
+  const auto &M = this->dof_manager.getMatrix("M");
+  const auto &K = this->dof_manager.getMatrix("K");
 
   bool does_j_need_update = false;
   does_j_need_update |= M.getRelease() != m_release;
   does_j_need_update |= K.getRelease() != k_release;
   if (this->dof_manager.hasMatrix("C")) {
-    const auto & C = this->dof_manager.getMatrix("C");
+    const auto &C = this->dof_manager.getMatrix("C");
     does_j_need_update |= C.getRelease() != c_release;
   }
 
@@ -252,7 +251,7 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
 
   if (this->dof_manager.hasMatrix("C")) {
     auto d = this->getVelocityCoefficient(type, delta_t);
-    const auto & C = this->dof_manager.getMatrix("C");
+    const auto &C = this->dof_manager.getMatrix("C");
     J.add(C, d);
     c_release = C.getRelease();
   }
