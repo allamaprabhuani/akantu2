@@ -3,26 +3,28 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Feb 23 2018
+ * @date creation: Fri Mar 16 2018
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  implementation of ntn base contact
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -185,7 +187,7 @@ void NTNBaseContact::findBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseContact::addSplitNode(UInt node, UInt) {
+void NTNBaseContact::addSplitNode(UInt node, UInt /*unused*/) {
   AKANTU_DEBUG_IN();
 
   UInt dim = this->model.getSpatialDimension();
@@ -308,7 +310,7 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
   const Mesh & mesh = this->model.getMesh();
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
       UInt nb_elements = mesh.getNbElement(type, ghost_type);
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
       const Array<UInt> & connectivity = mesh.getConnectivity(type, ghost_type);
@@ -319,7 +321,7 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
       boundary_fem.integrate(shapes, area, nb_nodes_per_element, type,
                              ghost_type);
 
-      if (this->contact_surfaces.size() == 0) {
+      if (this->contact_surfaces.empty()) {
         AKANTU_DEBUG_WARNING(
             "No surfaces in ntn base contact."
             << " You have to define the lumped boundary by yourself.");
@@ -358,7 +360,7 @@ void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
 
   Array<bool> blocked_dofs_bool(blocked_dofs.size());
   for (auto && data : zip(blocked_dofs, blocked_dofs_bool)) {
-    std::get<1>(data) = std::get<0>(data);
+    std::get<1>(data) = (std::get<0>(data) != 0);
   }
 
   // pre-compute the acceleration
@@ -428,8 +430,9 @@ void NTNBaseContact::computeContactPressure() {
       }
       this->is_in_contact(n) = true;
     } else {
-      for (UInt d = 0; d < dim; ++d)
+      for (UInt d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) = 0.;
+      }
       this->is_in_contact(n) = false;
     }
   }
@@ -469,8 +472,9 @@ Int NTNBaseContact::getNodeIndex(UInt node) const {
 void NTNBaseContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNBaseContact [" << std::endl;
   stream << space << " + id            : " << id << std::endl;
@@ -505,7 +509,6 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
                                           const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_IOHELPER
   const Array<UInt> & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)                                       \
@@ -557,7 +560,6 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
   }
 
 #undef ADD_FIELD
-#endif
 
   AKANTU_DEBUG_OUT();
 }

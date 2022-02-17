@@ -21,121 +21,130 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-/* -------------------------------------------------------------------------- */
-template <class _types, template <class> class iterator_type>
-class IGFEMGenericElementalField
-    : public GenericElementalField<_types, iterator_type> {
+  /* --------------------------------------------------------------------------
+   */
+  template <class _types, template <class> class iterator_type>
+  class IGFEMGenericElementalField
+      : public GenericElementalField<_types, iterator_type> {
 
-  /* ------------------------------------------------------------------------ */
-  /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------
+     */
+    /* Typedefs */
+    /* ------------------------------------------------------------------------
+     */
 
-public:
-  typedef _types types;
-  typedef typename types::data_type data_type;
-  typedef typename types::it_type it_type;
-  typedef typename types::field_type field_type;
-  typedef typename types::array_type array_type;
-  typedef typename types::array_iterator array_iterator;
-  typedef typename field_type::type_iterator field_type_iterator;
-  typedef iterator_type<types> iterator;
+  public:
+    typedef _types types;
+    typedef typename types::data_type data_type;
+    typedef typename types::it_type it_type;
+    typedef typename types::field_type field_type;
+    typedef typename types::array_type array_type;
+    typedef typename types::array_iterator array_iterator;
+    typedef typename field_type::type_iterator field_type_iterator;
+    typedef iterator_type<types> iterator;
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------
+     */
+    /* Constructors/Destructors */
+    /* ------------------------------------------------------------------------
+     */
 
-public:
-  IGFEMGenericElementalField(const field_type & field,
-                             UInt spatial_dimension = _all_dimensions,
-                             GhostType ghost_type = _not_ghost,
-                             ElementKind kind = _ek_igfem)
-      :
+  public:
+    IGFEMGenericElementalField(const field_type & field,
+                               UInt spatial_dimension = _all_dimensions,
+                               GhostType ghost_type = _not_ghost,
+                               ElementKind kind = _ek_igfem)
+        :
 
-        GenericElementalField<types, iterator_type>(field, spatial_dimension,
-                                                    ghost_type, kind) {
-    this->checkHomogeneity();
-  }
-
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-
-public:
-  /// return the size of the contained data: i.e. the number of elements ?
-  virtual UInt size() {
-    this->checkHomogeneity();
-    return ((this->nb_total_element) * 2);
-  }
-
-  virtual iterator begin() {
-    field_type_iterator tit;
-    field_type_iterator end;
-    UInt sub_element = 0;
-
-    /// type iterators on the elemental field
-    tit = this->field.firstType(this->spatial_dimension, this->ghost_type,
-                                this->element_kind);
-    end = this->field.lastType(this->spatial_dimension, this->ghost_type,
-                               this->element_kind);
-
-    /// skip all types without data
-    ElementType type = *tit;
-    for (; tit != end && this->field(*tit, this->ghost_type).getSize() == 0;
-         ++tit) {
+          GenericElementalField<types, iterator_type>(field, spatial_dimension,
+                                                      ghost_type, kind) {
+      this->checkHomogeneity();
     }
-    type = *tit;
 
-    if (tit == end)
-      return this->end();
+    /* ------------------------------------------------------------------------
+     */
+    /* Methods */
+    /* ------------------------------------------------------------------------
+     */
 
-    /// getting information for the field of the given type
-    const array_type & vect = this->field(type, this->ghost_type);
-    UInt nb_data_per_elem = this->getNbDataPerElem(type);
-    UInt nb_component = vect.getNbComponent();
-    UInt size = (vect.getSize() * nb_component) / nb_data_per_elem;
+  public:
+    /// return the size of the contained data: i.e. the number of elements ?
+    virtual UInt size() {
+      this->checkHomogeneity();
+      return ((this->nb_total_element) * 2);
+    }
 
-    /// define element-wise iterator
-    array_iterator it = vect.begin_reinterpret(nb_data_per_elem, size);
-    array_iterator it_end = vect.end_reinterpret(nb_data_per_elem, size);
-    /// define data iterator
-    iterator rit = iterator(this->field, tit, end, it, it_end, this->ghost_type,
-                            sub_element);
-    rit.setNbDataPerElem(this->nb_data_per_elem);
-    return rit;
-  }
+    virtual iterator begin() {
+      field_type_iterator tit;
+      field_type_iterator end;
+      UInt sub_element = 0;
 
-  virtual iterator end() {
-    field_type_iterator tit;
-    field_type_iterator end;
-    UInt sub_element = 0;
+      /// type iterators on the elemental field
+      tit = this->field.firstType(this->spatial_dimension, this->ghost_type,
+                                  this->element_kind);
+      end = this->field.lastType(this->spatial_dimension, this->ghost_type,
+                                 this->element_kind);
 
-    tit = this->field.firstType(this->spatial_dimension, this->ghost_type,
-                                this->element_kind);
-    end = this->field.lastType(this->spatial_dimension, this->ghost_type,
-                               this->element_kind);
-
-    ElementType type = *tit;
-    for (; tit != end; ++tit)
+      /// skip all types without data
+      ElementType type = *tit;
+      for (; tit != end && this->field(*tit, this->ghost_type).getSize() == 0;
+           ++tit) {
+      }
       type = *tit;
 
-    const array_type & vect = this->field(type, this->ghost_type);
-    UInt nb_data = this->getNbDataPerElem(type);
-    UInt nb_component = vect.getNbComponent();
-    UInt size = (vect.getSize() * nb_component) / nb_data;
-    array_iterator it = vect.end_reinterpret(nb_data, size);
+      if (tit == end)
+        return this->end();
 
-    iterator rit =
-        iterator(this->field, end, end, it, it, this->ghost_type, sub_element);
-    rit.setNbDataPerElem(this->nb_data_per_elem);
-    return rit;
-  }
+      /// getting information for the field of the given type
+      const array_type & vect = this->field(type, this->ghost_type);
+      UInt nb_data_per_elem = this->getNbDataPerElem(type);
+      UInt nb_component = vect.getNbComponent();
+      UInt size = (vect.getSize() * nb_component) / nb_data_per_elem;
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+      /// define element-wise iterator
+      array_iterator it = vect.begin_reinterpret(nb_data_per_elem, size);
+      array_iterator it_end = vect.end_reinterpret(nb_data_per_elem, size);
+      /// define data iterator
+      iterator rit = iterator(this->field, tit, end, it, it_end,
+                              this->ghost_type, sub_element);
+      rit.setNbDataPerElem(this->nb_data_per_elem);
+      return rit;
+    }
 
-protected:
-};
+    virtual iterator end() {
+      field_type_iterator tit;
+      field_type_iterator end;
+      UInt sub_element = 0;
+
+      tit = this->field.firstType(this->spatial_dimension, this->ghost_type,
+                                  this->element_kind);
+      end = this->field.lastType(this->spatial_dimension, this->ghost_type,
+                                 this->element_kind);
+
+      ElementType type = *tit;
+      for (; tit != end; ++tit)
+        type = *tit;
+
+      const array_type & vect = this->field(type, this->ghost_type);
+      UInt nb_data = this->getNbDataPerElem(type);
+      UInt nb_component = vect.getNbComponent();
+      UInt size = (vect.getSize() * nb_component) / nb_data;
+      array_iterator it = vect.end_reinterpret(nb_data, size);
+
+      iterator rit = iterator(this->field, end, end, it, it, this->ghost_type,
+                              sub_element);
+      rit.setNbDataPerElem(this->nb_data_per_elem);
+      return rit;
+    }
+
+    /* ------------------------------------------------------------------------
+     */
+    /* Class Members */
+    /* ------------------------------------------------------------------------
+     */
+
+  protected:
+  };
 
 } // namespace dumpers
 } // namespace akantu

@@ -3,29 +3,32 @@
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Dana Christen <dana.christen@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Thu Jul 15 2010
- * @date last modification: Mon Dec 18 2017
+ * @date last modification: Fri Dec 11 2020
  *
  * @brief  Implementation of the inline functions of the mesh class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -68,21 +71,7 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
-  this->nodes_to_elements.resize(nodes->size());
-  for (const auto & elem : event.getList()) {
-    const Array<UInt> & conn = connectivities(elem.type, elem.ghost_type);
-
-    UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(elem.type);
-
-    for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
-      UInt node = conn(elem.element, n);
-      if (not nodes_to_elements[node]) {
-        nodes_to_elements[node] = std::make_unique<std::set<Element>>();
-      }
-      nodes_to_elements[node]->insert(elem);
-    }
-  }
-
+  this->fillNodesToElements();
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
@@ -275,7 +264,7 @@ Mesh::getSubelementToElement(const Element & element) const {
 
 /* -------------------------------------------------------------------------- */
 inline VectorProxy<Element>
-Mesh::getSubelementToElementNC(const Element & element) {
+Mesh::getSubelementToElementNC(const Element & element) const {
   return this->getSubelementToElement().get(element);
 }
 
@@ -430,8 +419,18 @@ inline UInt Mesh::getSpatialDimension(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetTypes(ElementType type,
-                                  __attribute__((unused)) UInt t) {
+inline UInt Mesh::getNaturalSpaceDimension(const ElementType & type) {
+  UInt natural_dimension = 0;
+#define GET_NATURAL_DIMENSION(type)                                            \
+  natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_DIMENSION);
+#undef GET_NATURAL_DIMENSION
+
+  return natural_dimension;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbFacetTypes(ElementType type, UInt /*t*/) {
   UInt nb = 0;
 #define GET_NB_FACET_TYPE(type) nb = ElementClass<type>::getNbFacetTypes()
 
@@ -731,6 +730,7 @@ public:
       return *this;
     }
     bool operator!=(const const_iterator & other) { return other.it != it; }
+    bool operator==(const const_iterator & other) { return other.it == it; }
     auto operator*() { return it->second; }
   };
 

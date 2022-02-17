@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Sep 01 2010
- * @date last modification: Sun Feb 04 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Interface of accessors for pack_unpack system
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -203,7 +205,6 @@ public:
 };
 /* -------------------------------------------------------------------------- */
 
-
 /* -------------------------------------------------------------------------- */
 template <class Entity, template <class> class Op, class T>
 class ReduceDataAccessor : public virtual DataAccessor<Entity> {
@@ -271,7 +272,6 @@ protected:
   Op<Vector<T>> oper;
 };
 
-
 /* -------------------------------------------------------------------------- */
 template <class T>
 using SimpleUIntDataAccessor = ReduceDataAccessor<UInt, IdentityOperation, T>;
@@ -284,7 +284,7 @@ class SimpleElementDataAccessor : public virtual DataAccessor<Element> {
   /* ------------------------------------------------------------------------ */
 public:
   SimpleElementDataAccessor(ElementTypeMapArray<T> & data,
-                          const SynchronizationTag & tag)
+                            const SynchronizationTag & tag)
       : data(data), tag(tag) {}
 
   ~SimpleElementDataAccessor() override = default;
@@ -296,12 +296,13 @@ public:
   /* ------------------------------------------------------------------------ */
   UInt getNbData(const Array<Element> & elements,
                  const SynchronizationTag & tag) const override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return 0;
+    }
 
     Int size = 0;
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       size += sizeof(T) * data_type.getNbComponent();
     }
@@ -312,10 +313,11 @@ public:
   /* ------------------------------------------------------------------------ */
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return;
+    }
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       for (auto c : arange(data_type.getNbComponent())) {
         const auto & data_per_element = data_type(el.element, c);
@@ -327,10 +329,11 @@ public:
   /* ------------------------------------------------------------------------ */
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override {
-    if (tag != this->tag)
+    if (tag != this->tag) {
       return;
+    }
 
-    for (auto & el : elements) {
+    for (const auto & el : elements) {
       auto && data_type = data(el.type, el.ghost_type);
       for (auto c : arange(data_type.getNbComponent())) {
         auto & data_per_element = data_type(el.element, c);

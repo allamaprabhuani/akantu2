@@ -8,25 +8,27 @@
  * @author Rui Wang <rui.wang@epfl.ch>
  *
  * @date creation: Sun May 01 2011
- * @date last modification: Mon Feb 05 2018
+ * @date last modification: Mon Mar 15 2021
  *
  * @brief  Model of Heat Transfer
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -60,7 +62,8 @@ public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
   HeatTransferModel(Mesh & mesh, UInt dim = _all_dimensions,
-                    const ID & id = "heat_transfer_model");
+                    const ID & id = "heat_transfer_model",
+                    std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   ~HeatTransferModel() override;
 
@@ -87,7 +90,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & matrix_id) override;
@@ -191,8 +194,6 @@ public:
 public:
   AKANTU_GET_MACRO(Density, density, Real);
   AKANTU_GET_MACRO(Capacity, capacity, Real);
-  /// get the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// get the assembled heat flux

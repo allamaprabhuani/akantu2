@@ -1,30 +1,34 @@
 /**
  * @file   element_class.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Dec 11 2020
  *
  * @brief  Declaration of the ElementClass main class and the
  * Integration and Interpolation elements
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -207,6 +211,26 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  /**
+   * compute @f$ @f$
+
+   **/
+  static inline void computeD2NDS2(const Matrix<Real> & natural_coord,
+                                   Tensor3<Real> & d2nds2);
+
+  /**
+   * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
+   * second variation of
+   * shape functions along with
+   * variation of natural coordinates on a given point in natural
+   * coordinates
+   */
+  template <class vector_type, class matrix_type>
+  static inline void computeD2NDS2(const vector_type & /*unused*/,
+                                   matrix_type & /*unused*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
   static inline void computeSpecialJacobian(const Matrix<Real> & /*unused*/,
@@ -344,12 +368,14 @@ public:
   static inline void inverseMap(const Vector<Real> & real_coords,
                                 const Matrix<Real> & node_coords,
                                 Vector<Real> & natural_coords,
+                                UInt max_iterations = 100,
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
   static inline void inverseMap(const Matrix<Real> & real_coords,
                                 const Matrix<Real> & node_coords,
                                 Matrix<Real> & natural_coords,
+                                UInt max_iterations = 100,
                                 Real tolerance = 1e-10);
 
 public:

@@ -1,28 +1,31 @@
 /**
  * @file   time_step_solver.cc
  *
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Tue Sep 08 2020
  *
  * @brief  Implementation of common part of TimeStepSolvers
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -40,9 +43,9 @@ TimeStepSolver::TimeStepSolver(DOFManager & dof_manager,
                                const TimeStepSolverType & type,
                                NonLinearSolver & non_linear_solver,
                                SolverCallback & solver_callback, const ID & id)
-    : SolverCallback(dof_manager), id(id),
-      _dof_manager(dof_manager), type(type), time_step(0.),
-      solver_callback(&solver_callback), non_linear_solver(non_linear_solver) {
+    : SolverCallback(dof_manager), id(id), _dof_manager(dof_manager),
+      type(type), time_step(0.), solver_callback(&solver_callback),
+      non_linear_solver(non_linear_solver) {
   this->registerSubRegistry("non_linear_solver", non_linear_solver);
 }
 
@@ -53,7 +56,15 @@ TimeStepSolver::~TimeStepSolver() = default;
 void TimeStepSolver::setIntegrationScheme(
     const ID & dof_id, const IntegrationSchemeType & type,
     IntegrationScheme::SolutionType solution_type) {
-  this->setIntegrationSchemeInternal(dof_id, type, solution_type);
+  auto scheme = this->getIntegrationSchemeInternal(dof_id, type, solution_type);
+  this->setIntegrationScheme(dof_id, scheme, solution_type);
+}
+
+/* -------------------------------------------------------------------------- */
+void TimeStepSolver::setIntegrationScheme(
+    const ID & dof_id, std::unique_ptr<IntegrationScheme> & scheme,
+    IntegrationScheme::SolutionType solution_type) {
+  this->setIntegrationSchemeInternal(dof_id, scheme, solution_type);
 
   for (auto & pair : needed_matrices) {
     auto & mat_type = pair.second;

@@ -1,3 +1,36 @@
+/**
+ * @file   py_aka_common.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Wed Oct 31 2018
+ * @date last modification: Tue Mar 02 2021
+ *
+ * @brief  pybind11 interface to aka_common.hh
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include <aka_common.hh>
 /* -------------------------------------------------------------------------- */
@@ -17,8 +50,9 @@ namespace akantu {
 
 #define PY_AKANTU_REGISTER_ENUM_(type_name, list, prefix, mod)                 \
   py::enum_<type_name>(mod, BOOST_PP_STRINGIZE(type_name))                     \
-      BOOST_PP_SEQ_FOR_EACH(PY_AKANTU_PP_VALUE, prefix, list)                  \
-          .export_values()
+                                BOOST_PP_SEQ_FOR_EACH(PY_AKANTU_PP_VALUE,      \
+                                                      prefix, list)            \
+                                    .export_values()
 
 #define PY_AKANTU_REGISTER_CLASS_ENUM(type_name, list, mod)                    \
   PY_AKANTU_REGISTER_ENUM_(type_name, list, type_name::_, mod)
@@ -48,8 +82,9 @@ void register_enums(py::module & mod) {
       .value("_explicit_lumped_mass", _explicit_lumped_mass)
       .value("_explicit_lumped_capacity", _explicit_lumped_capacity)
       .value("_explicit_consistent_mass", _explicit_consistent_mass)
+      .value("_explicit_contact", _explicit_contact)
+      .value("_implicit_contact", _implicit_contact)
       .export_values();
-  
 
   PY_AKANTU_REGISTER_CLASS_ENUM(ModelType, AKANTU_MODEL_TYPES, mod);
   PY_AKANTU_REGISTER_CLASS_ENUM(NonLinearSolverType,

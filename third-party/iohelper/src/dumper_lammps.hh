@@ -65,8 +65,8 @@ public:
   //! set mode for file creation : TEXT, BASE64, COMPRESSED
   void setMode(int mode) override { Dumper::setMode(mode); }
   void dumpAdd(int grain_id = 1);
-  void setEmbeddedValue(__attribute__((unused)) const std::string & name,
-			__attribute__((unused)) int value){}
+  void setEmbeddedValue(const std::string & /*name*/, int /*value*/
+){}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

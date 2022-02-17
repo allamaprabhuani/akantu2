@@ -8,25 +8,27 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Wed Mar 04 2020
  *
  * @brief  Main element synchronizer
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -104,8 +106,7 @@ protected:
   template <typename T>
   void fillTagBufferTemplated(const MeshData & mesh_data,
                               DynamicCommunicationBuffer * buffers,
-                              const std::string & tag_name,
-                              ElementType el_type,
+                              const std::string & tag_name, ElementType el_type,
                               const Array<UInt> & partition_num,
                               const CSR<UInt> & ghost_partition);
 
@@ -117,22 +118,19 @@ protected:
 
   /// function that handels the MeshData to be split (root side)
   static void synchronizeTagsSend(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags,
-                                  ElementType type,
+                                  Mesh & mesh, UInt nb_tags, ElementType type,
                                   const Array<UInt> & partition_num,
                                   const CSR<UInt> & ghost_partition,
                                   UInt nb_local_element, UInt nb_ghost_element);
 
   /// function that handles the MeshData to be split (other nodes)
   static void synchronizeTagsRecv(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags,
-                                  ElementType type,
+                                  Mesh & mesh, UInt nb_tags, ElementType type,
                                   UInt nb_local_element, UInt nb_ghost_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh,
-                                       ElementType type,
+                                       UInt root, Mesh & mesh, ElementType type,
                                        const Array<UInt> & partition_num,
                                        const CSR<UInt> & ghost_partition,
                                        UInt nb_element);

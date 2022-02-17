@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Feb 19 2016
- * @date last modification: Wed Jan 31 2018
+ * @date last modification: Wed Mar 27 2019
  *
  * @brief  Implementation of a really simple integration scheme
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -67,14 +69,18 @@ void PseudoTime::assembleJacobian(const SolutionType & /*type*/,
   SparseMatrix & J = this->dof_manager.getMatrix("J");
   const SparseMatrix & K = this->dof_manager.getMatrix("K");
 
-  if (K.getRelease() == k_release) {
+  bool does_j_need_update = false;
+  does_j_need_update |= K.getRelease() != k_release;
+  does_j_need_update |= this->dof_manager.hasBlockedDOFsChanged();
+
+  if (not does_j_need_update) {
+    AKANTU_DEBUG_OUT();
     return;
   }
 
   J.copyProfile(K);
   // J.zero();
   J.add(K);
-
   k_release = K.getRelease();
 }
 

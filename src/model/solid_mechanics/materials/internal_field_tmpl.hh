@@ -1,28 +1,31 @@
 /**
  * @file   internal_field_tmpl.hh
  *
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Apr 02 2021
  *
  * @brief  Material internal properties
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -38,19 +41,20 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id, Material & material)
-  : ElementTypeMapArray<T>(id, material.getID()), 
-  material(material), fem(&(material.getModel().getFEEngine())),
-  element_filter(material.getElementFilter()),
-  spatial_dimension(material.getModel().getSpatialDimension()) {}
+InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id,
+                                                  Material & material)
+    : ElementTypeMapArray<T>(id, material.getID()), material(material),
+      fem(&(material.getModel().getFEEngine())),
+      element_filter(material.getElementFilter()),
+      spatial_dimension(material.getModel().getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, FEEngine & fem,
     const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()),
-      material(material), fem(&fem), element_filter(element_filter),
+    : ElementTypeMapArray<T>(id, material.getID()), material(material),
+      fem(&fem), element_filter(element_filter),
       spatial_dimension(material.getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
@@ -58,14 +62,13 @@ template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, UInt dim, FEEngine & fem,
     const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()),
-      material(material), fem(&fem), element_filter(element_filter),
-      spatial_dimension(dim) {}
+    : ElementTypeMapArray<T>(id, material.getID()), material(material),
+      fem(&fem), element_filter(element_filter), spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id,
-						  const InternalFieldTmpl<Material, T> & other)
+InternalFieldTmpl<Material, T>::InternalFieldTmpl(
+    const ID & id, const InternalFieldTmpl<Material, T> & other)
     : ElementTypeMapArray<T>(id, other.material.getID()),
       material(other.material), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
@@ -106,15 +109,16 @@ void InternalFieldTmpl<Material, T>::initialize(UInt nb_component) {
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::initializeHistory() {
-  if (!previous_values)
-    previous_values =
-      std::make_unique<InternalFieldTmpl<Material, T>>("previous_" + this->getID(), *this);
+  if (!previous_values) {
+    previous_values = std::make_unique<InternalFieldTmpl<Material, T>>(
+        "previous_" + this->getID(), *this);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::resize() {
-  if (!this->is_init){
+  if (!this->is_init) {
     return;
   }
 
@@ -154,10 +158,10 @@ void InternalFieldTmpl<Material, T>::setDefaultValue(const T & value) {
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::reset() {
-  for (auto ghost_type : ghost_types){
+  for (auto ghost_type : ghost_types) {
     for (const auto & type : this->elementTypes(ghost_type)) {
       Array<T> & vect = (*this)(type, ghost_type);
-      //vect.zero();
+      // vect.zero();
       this->setArrayValues(
           vect.storage(), vect.storage() + vect.size() * vect.getNbComponent());
     }
@@ -198,7 +202,7 @@ void InternalFieldTmpl<Material, T>::internalInitialize(UInt nb_component) {
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::setArrayValues(T * begin, T * end) {
-  for (; begin < end; ++begin){
+  for (; begin < end; ++begin) {
     *begin = this->default_value;
   }
 }
@@ -293,8 +297,8 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::printself(std::ostream & stream,
-                                 int indent [[gnu::unused]]) const {
+void InternalFieldTmpl<Material, T>::printself(std::ostream & stream, int indent
+                                               [[gnu::unused]]) const {
   stream << "InternalField [ " << this->getID();
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {

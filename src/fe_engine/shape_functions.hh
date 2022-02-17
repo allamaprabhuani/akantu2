@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  shape function class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -38,7 +40,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ShapeFunctions  {
+class ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -101,8 +103,8 @@ protected:
   /// gradient of nodal values stored by element on the control points
   template <ElementType type>
   void gradientElementalFieldOnIntegrationPoints(
-      const Array<Real> & u_el, Array<Real> & out_nablauq,
-      GhostType ghost_type, const Array<Real> & shapes_derivatives,
+      const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
+      const Array<Real> & shapes_derivatives,
       const Array<UInt> & filter_elements) const;
 
 protected:
@@ -124,8 +126,8 @@ protected:
       const Array<Real> & interpolation_points_coordinates,
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-      const Array<Real> & quadrature_points_coordinates,
-      GhostType ghost_type, const Array<UInt> & element_filter) const;
+      const Array<Real> & quadrature_points_coordinates, GhostType ghost_type,
+      const Array<UInt> & element_filter) const;
 
   /// build matrix for the interpolation of field form integration points
   template <ElementType type>
@@ -137,8 +139,8 @@ protected:
   /// build the so called interpolation matrix (first collumn is 1, then the
   /// other collumns are the traansposed coordinates)
   static inline void buildInterpolationMatrix(const Matrix<Real> & coordinates,
-                                       Matrix<Real> & coordMatrix,
-                                       UInt integration_order);
+                                              Matrix<Real> & coordMatrix,
+                                              UInt integration_order);
 
 public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/) {
@@ -158,9 +160,8 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(ElementType type);
 
-  inline const Matrix<Real> &
-  getIntegrationPoints(ElementType type,
-                       GhostType ghost_type) const {
+  inline const Matrix<Real> & getIntegrationPoints(ElementType type,
+                                                   GhostType ghost_type) const {
     return integration_points(type, ghost_type);
   }
 
@@ -169,9 +170,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get a the shapes vector
-  inline const Array<Real> &
-  getShapes(ElementType el_type,
-            GhostType ghost_type = _not_ghost) const;
+  inline const Array<Real> & getShapes(ElementType el_type,
+                                       GhostType ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
   inline const Array<Real> &

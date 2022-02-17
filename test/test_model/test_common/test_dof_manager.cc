@@ -1,30 +1,34 @@
 /**
  * @file   test_dof_manager.cc
  *
- * @author Nicolas Richart
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date creation  Wed Jan 30 2019
+ * @date creation: Tue Feb 26 2019
+ * @date last modification:  Wed Nov 18 2020
  *
- * @brief test the dof managers
+ * @brief  test the dof managers
  *
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "test_gtest_utils.hh"
 /* -------------------------------------------------------------------------- */
@@ -125,7 +129,7 @@ public:
 
   decltype(auto) alloc() {
     std::unordered_map<DOFManagerType, std::string> types{
-      {_dmt_default, "default"}, {_dmt_petsc, "petsc"}};
+        {_dmt_default, "default"}, {_dmt_petsc, "petsc"}};
 
     return DOFManagerTester(DOFManagerFactory::getInstance().allocate(
         types[T::value], *mesh, "dof_manager"));

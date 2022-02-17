@@ -3,29 +3,32 @@
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Tue Feb 09 2021
  *
  * @brief  class handling meshes
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -50,11 +53,8 @@
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
 #include "dumper_field.hh"
 #include "dumper_internal_material_field.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <sstream>
@@ -239,9 +239,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
           tolerance *= norm_barycenter;
         }
 
-        const auto & element_to_facet = mesh_facets->getElementToSubelement(
-            element.type, element.ghost_type);
-
         Vector<Real> barycenter_facet(spatial_dimension);
 
         auto range = enumerate(make_view(
@@ -252,11 +249,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         // this is a spacial search coded the most inefficient way.
         auto facet =
             std::find_if(range.begin(), range.end(), [&](auto && data) {
-              auto facet = std::get<0>(data);
-              if (element_to_facet(facet)[1] == ElementNull) {
-                return false;
-              }
-
               auto norm_distance = barycenter.distance(std::get<1>(data));
 #ifndef AKANTU_NDEBUG
               min_dist = std::min(min_dist, norm_distance);
@@ -447,7 +439,6 @@ template ElementTypeMap<UInt>
 Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 template <typename T>
 std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData(const std::string & field_id,
@@ -480,7 +471,6 @@ template std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
                                         const std::string & group_name,
                                         ElementKind element_kind);
-#endif
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distributeImpl(
@@ -528,7 +518,7 @@ void Mesh::distributeImpl(
 
 /* -------------------------------------------------------------------------- */
 void Mesh::getAssociatedElements(const Array<UInt> & node_list,
-                                 Array<Element> & elements) {
+                                 Array<Element> & elements) const {
   for (const auto & node : node_list) {
     for (const auto & element : *nodes_to_elements[node]) {
       elements.push_back(element);
@@ -537,10 +527,20 @@ void Mesh::getAssociatedElements(const Array<UInt> & node_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::fillNodesToElements() {
+void Mesh::getAssociatedElements(const UInt & node,
+                                 Array<Element> & elements) const {
+  for (const auto & element : *nodes_to_elements[node]) {
+    elements.push_back(element);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Mesh::fillNodesToElements(UInt dimension) {
   Element e;
 
   UInt nb_nodes = nodes->size();
+  this->nodes_to_elements.resize(nb_nodes);
+
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n]) {
       this->nodes_to_elements[n]->clear();
@@ -552,19 +552,18 @@ void Mesh::fillNodesToElements() {
   for (auto ghost_type : ghost_types) {
     e.ghost_type = ghost_type;
     for (const auto & type :
-         elementTypes(spatial_dimension, ghost_type, _ek_not_defined)) {
+         elementTypes(dimension, ghost_type, _ek_not_defined)) {
       e.type = type;
 
       UInt nb_element = this->getNbElement(type, ghost_type);
-      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
-          connectivities(type, ghost_type)
-              .begin(Mesh::getNbNodesPerElement(type));
+      auto connectivity = connectivities(type, ghost_type);
+      auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
       for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
         e.element = el;
         const Vector<UInt> & conn = *conn_it;
-        for (UInt n = 0; n < conn.size(); ++n) {
-          nodes_to_elements[conn(n)]->insert(e);
+        for (auto node : conn) {
+          nodes_to_elements[node]->insert(e);
         }
       }
     }

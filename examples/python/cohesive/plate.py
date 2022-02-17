@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+"""plate.py: Python example: plate with a hole breaking with cohesive
+elements"""
+
+__author__ = "Guillaume Anciaux"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 import akantu as aka
 import numpy as np
 
@@ -29,7 +41,7 @@ def solve(material_file, mesh_file, traction):
     model.setBaseNameToDumper('cohesive elements', 'cohesive')
     model.addDumpFieldVectorToDumper('cohesive elements', 'displacement')
     model.addDumpFieldToDumper('cohesive elements', 'damage')
-    model.addDumpFieldVectorToDumper('cohesive elements', 'traction')
+    model.addDumpFieldVectorToDumper('cohesive elements', 'tractions')
     model.addDumpFieldVectorToDumper('cohesive elements', 'opening')
 
     # -------------------------------------------------------------------------

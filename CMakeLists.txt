@@ -5,28 +5,28 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Mon Jun 14 2010
-# @date last modification: Fri Jan 22 2016
+# @date last modification: Sat Mar 13 2021
 #
 # @brief  main configuration file
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 # @section DESCRIPTION
 #-------------------------------------------------------------------------------
@@ -38,6 +38,7 @@
 #                \__,_|_|\_\__,_|_| |_|\__|\__,_|
 #
 #===============================================================================
+
 
 #===============================================================================
 # CMake Project
@@ -52,9 +53,6 @@ if(CMAKE_VERSION VERSION_GREATER 3.12)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(AKANTU_MAJOR_VERSION 4)
-set(AKANTU_MINOR_VERSION 0)
-set(AKANTU_PATCH_VERSION 0)
 set(AKANTU_COPYRIGHT "2010-2021, EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)")
 set(AKANTU_MAINTAINER "Nicolas Richart")
 set(AKANTU_HOMEPAGE_URL "https://akantu.ch")
@@ -75,7 +73,6 @@ set(AKANTU_CMAKE_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/Modules")
 
-set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL
   "Enable/Disable output of compile commands during generation" FORCE)
 
@@ -104,43 +101,39 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #===============================================================================
 # Version Number
 #===============================================================================
-# AKANTU version number.  An even minor number corresponds to releases.
+# AKANTU version number.
 define_project_version()
+if(NOT AKANTU_BYPASS_AKANTU_TARGET)
+  configure_file("cmake/akantu_version.py.in"
+    "${PROJECT_BINARY_DIR}/akantu_version.py"
+    @ONLY)
+endif()
 
 #===============================================================================
 # Options
 #===============================================================================
-# Debug
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
-  CACHE STRING "Flags used by the compiler during release builds" FORCE)
-
-#add_flags(cxx "-Wall -Wextra -pedantic -Werror")
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  add_flags(cxx "-Wall -Wextra -pedantic") # -Weffc++
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
-    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
-    CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-
-  option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
-  mark_as_advanced(FORCE_COLORED_OUTPUT)
-  if(FORCE_COLORED_OUTPUT)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      add_flags(cxx "-fcolor-diagnostics")
-    else()
-      add_flags(cxx "-fdiagnostics-color=always")
-    endif()
-  endif()
-else()
-  add_flags(cxx "-Wall")
-endif()
-
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
+option(AKANTU_SHARED "Build Akantu as a shared library" ON)
+option(AKANTU_POSITION_INDEPENDENT "Build with -fPIC when static" ON)
 
 option(AKANTU_RUN_IN_DOCKER "Set the approriate flage tu run in docker" OFF)
-set(AKANTU_PREFERRED_PYTHON_VERSION 3 CACHE STRING "Preferred version for python related things")
-mark_as_advanced(AKANTU_PREFERRED_PYTHON_VERSION AKANTU_RUN_IN_DOCKER)
+set(AKANTU_PREFERRED_PYTHON_VERSION 3
+  CACHE STRING "Preferred version for python related things")
+mark_as_advanced(
+  AKANTU_PREFERRED_PYTHON_VERSION
+  AKANTU_RUN_IN_DOCKER
+  AKANTU_POSITION_INDEPENDENT
+  AKANTU_SHARED
+  )
+
+if (AKANTU_SHARED)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
+else()
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries.")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 
 include(AkantuExtraCompilationProfiles)
 #===============================================================================
@@ -152,24 +145,18 @@ package_list_packages(${PROJECT_SOURCE_DIR}/packages
   EXTRA_PACKAGES_FOLDER ${PROJECT_SOURCE_DIR}/extra_packages
   NO_AUTO_COMPILE_FLAGS)
 
-## meta option \todo better way to do it when multiple package give enable the
-## same feature
-if(AKANTU_SCOTCH)
-  set(AKANTU_PARTITIONER ON)
-else()
-  set(AKANTU_PARTITIONER OFF)
-endif()
-
-if(AKANTU_MUMPS)
-  set(AKANTU_SOLVER ON)
-else()
-  set(AKANTU_SOLVER OFF)
-endif()
-
 #===============================================================================
 # Akantu library
 #===============================================================================
-add_subdirectory(src)
+if (NOT AKANTU_BYPASS_AKANTU_TARGET)
+  add_subdirectory(src)
+else()
+  find_package(Akantu REQUIRED)
+  if (Akantu_FOUND)
+    get_target_property(_lib akantu INTERFACE_LINK_LIBRARIES)
+    message(STATUS "Found Akantu: ${_lib} (found version ${AKANTU_VERSION})")
+  endif()
+endif()
 
 #===============================================================================
 # Documentation
@@ -185,6 +172,7 @@ endif()
 #===============================================================================
 package_is_activated(python_interface _python_act)
 if(_python_act)
+  include(AkantuNeedPybind11)
   if(IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
     set(AKANTU_PYTHON_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
   else()
@@ -200,6 +188,7 @@ include(AkantuTestsMacros)
 include(AkantuExampleMacros)
 
 if(AKANTU_TESTS)
+  include(AkantuNeedPybind11)
   option(AKANTU_BUILD_ALL_TESTS "Build all tests" ON)
   find_package(GMSH REQUIRED)
 endif()
@@ -218,11 +207,13 @@ endif()
 #===============================================================================
 # Install and Packaging
 #===============================================================================
-include(AkantuInstall)
+if (NOT AKANTU_BYPASS_AKANTU_TARGET)
+  include(AkantuInstall)
 
-option(AKANTU_DISABLE_CPACK
-  "This option commands the generation of extra info for the \"make package\" target" ON)
-mark_as_advanced(AKANTU_DISABLE_CPACK)
-if(NOT AKANTU_DISABLE_CPACK)
-  include(AkantuCPack)
+  option(AKANTU_DISABLE_CPACK
+    "This option commands the generation of extra info for the \"make package\" target" ON)
+  mark_as_advanced(AKANTU_DISABLE_CPACK)
+  if(NOT AKANTU_DISABLE_CPACK)
+    include(AkantuCPack)
+  endif()
 endif()

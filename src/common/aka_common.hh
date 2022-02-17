@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Jun 14 2010
- * @date last modification: Mon Feb 12 2018
+ * @date last modification: Sat May 01 2021
  *
  * @brief  common type descriptions for akantu
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -115,15 +117,18 @@ enum EventHandlerPriority {
 
 #if !defined(DOXYGEN)
 // clang-format off
-#define AKANTU_MODEL_TYPES                                              \
-  (model)                                                               \
-  (solid_mechanics_model)                                               \
-  (solid_mechanics_model_cohesive)                                      \
-  (heat_transfer_model)                                                 \
-  (fluid_diffusion_model)                                               \
-  (structural_mechanics_model)						\
-  (embedded_model)							\
-  (phase_field_model)							\
+#define AKANTU_MODEL_TYPES                      \
+  (model)                                       \
+  (solid_mechanics_model)                       \
+  (solid_mechanics_model_cohesive)              \
+  (heat_transfer_model)                         \
+  (fluid_diffusion_model)                       \
+  (structural_mechanics_model)                  \
+  (embedded_model)                              \
+  (contact_mechanics_model)                     \
+  (coupler_solid_contact)                       \
+  (coupler_solid_cohesive_contact)              \
+  (phase_field_model)                           \
   (coupler_solid_phasefield)
 // clang-format on
 
@@ -148,7 +153,9 @@ enum AnalysisMethod {
   _implicit_dynamic = 1,
   _explicit_lumped_mass = 2,
   _explicit_lumped_capacity = 2,
-  _explicit_consistent_mass = 3
+  _explicit_consistent_mass = 3,
+  _explicit_contact = 4,
+  _implicit_contact = 5
 };
 
 /// enum DOFSupportType defines which kind of dof that can exists
@@ -164,6 +171,7 @@ enum DOFSupportType { _dst_nodal, _dst_generic };
   (gmres)                                                              \
   (bfgs)                                                               \
   (cg)                                                                 \
+  (newton_raphson_contact)                                             \
   (auto)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(NonLinearSolverType, AKANTU_NON_LINEAR_SOLVER_TYPES)
@@ -181,8 +189,10 @@ enum class NonLinearSolverType {
   _gmres,
   _bfgs,
   _cg,
-  _auto ///< This will take a default value that make sense in case of
-        ///  model::getNewSolver
+  _newton_raphson_contact, ///< Regular Newton-Raphson modified
+                           /// for contact problem
+  _auto, ///< This will take a default value that make sense in case of
+         ///  model::getNewSolver
 };
 #endif
 
@@ -210,7 +220,7 @@ enum class TimeStepSolverType {
 
 #if !defined(DOXYGEN)
 // clang-format off
-#define AKANTU_INTEGRATION_SCHEME_TYPE                                  \
+#define AKANTU_INTEGRATION_SCHEME_TYPE                                 \
   (pseudo_time)                                                        \
   (forward_euler)                                                      \
   (trapezoidal_rule_1)                                                 \
@@ -274,6 +284,28 @@ enum CohesiveMethod { _intrinsic, _extrinsic };
 /// @enum MatrixType type of sparse matrix used
 enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
+/// @enum Type of contact detection
+enum DetectionType { _explicit, _implicit };
+
+#if !defined(DOXYGEN)
+// clang-format off
+#define AKANTU_CONTACT_STATE                      \
+  (no_contact)                                    \
+  (stick)                                         \
+  (slip)
+// clang-format on
+AKANTU_CLASS_ENUM_DECLARE(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
+#else
+/// @enum no contact or stick or slip state
+enum class ContactState {
+  _no_contact = 0,
+  _stick = 1,
+  _slip = 2,
+};
+#endif
+
 /* -------------------------------------------------------------------------- */
 /* Ghosts handling                                                            */
 /* -------------------------------------------------------------------------- */
@@ -308,12 +340,12 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (htm_gradient_phi)                            \
   (fdm_pressure)                                \
   (fdm_gradient_pressure)                       \
-  (pfm_damage)					\
-  (pfm_driving)					\
-  (pfm_history)					\
-  (pfm_energy)					\
-  (csp_damage)					\
-  (csp_strain)					\
+  (pfm_damage)                                  \
+  (pfm_driving)                                 \
+  (pfm_history)                                 \
+  (pfm_energy)                                  \
+  (csp_damage)                                  \
+  (csp_strain)                                  \
   (mnl_for_average)                             \
   (mnl_weight)                                  \
   (nh_criterion)                                \

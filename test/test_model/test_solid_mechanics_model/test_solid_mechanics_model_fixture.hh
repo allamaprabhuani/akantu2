@@ -4,34 +4,36 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Nov 14 2017
- * @date last modification: Tue Feb 20 2018
+ * @date last modification:  Wed Nov 18 2020
  *
  * @brief  Main solif mechanics test file
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
+#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
 #include "test_gtest_utils.hh"
-#include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <vector>
@@ -54,7 +56,8 @@ public:
     auto prank = Communicator::getStaticCommunicator().whoAmI();
     if (prank == 0) {
       this->mesh->read(this->mesh_file);
-      if(spatial_dimension > 1 and mesh->getNbElement(spatial_dimension - 1) == 0) {
+      if (spatial_dimension > 1 and
+          mesh->getNbElement(spatial_dimension - 1) == 0) {
         MeshUtils::buildFacets(*this->mesh);
       }
     }

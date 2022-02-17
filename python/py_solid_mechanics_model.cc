@@ -1,3 +1,36 @@
+/**
+ * @file   py_solid_mechanics_model.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Sun Jun 16 2019
+ * @date last modification: Sat Mar 13 2021
+ *
+ * @brief  pybind11 interface to SolidMechanicsModel
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
@@ -27,8 +60,8 @@ namespace akantu {
   def(#func_name, [](SolidMechanicsModel & self) -> decltype(auto) {           \
     return self.func_name();                                                   \
   })
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModelOptions>(mod, "SolidMechanicsModelOptions")
@@ -37,10 +70,11 @@ void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModel, Model>(mod, "SolidMechanicsModel",
                                          py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &,
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
                     const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model",
+           py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_solid_mechanics_model)
       .def(
           "initFull",
@@ -70,14 +104,19 @@ void register_solid_mechanics_model(py::module & mod) {
            })
       .def("setTimeStep", &SolidMechanicsModel::setTimeStep,
            py::arg("time_step"), py::arg("solver_id") = "")
-      .def("getEnergy",
-           py::overload_cast<const std::string &>(
-               &SolidMechanicsModel::getEnergy),
-           py::arg("energy_id"))
-      .def("getEnergy",
-           py::overload_cast<const std::string &, const std::string &>(
-               &SolidMechanicsModel::getEnergy),
-           py::arg("energy_id"), py::arg("group_id"))
+      .def(
+          "getEnergy",
+          [](SolidMechanicsModel & self, const std::string & energy_id) {
+            return self.getEnergy(energy_id);
+          },
+          py::arg("energy_id"))
+      .def(
+          "getEnergy",
+          [](SolidMechanicsModel & self, const std::string & energy_id,
+             const std::string & group_id) {
+            return self.getEnergy(energy_id, group_id);
+          },
+          py::arg("energy_id"), py::arg("group_id"))
 
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
@@ -96,15 +135,30 @@ void register_solid_mechanics_model(py::module & mod) {
       .def_function_nocopy(getInternalForce)
       .def_function_nocopy(getBlockedDOFs)
       .def_function_nocopy(getMesh)
-      .def("getMaterial",
-           py::overload_cast<UInt>(&SolidMechanicsModel::getMaterial),
-           py::return_value_policy::reference)
-      .def("getMaterial",
-           py::overload_cast<const std::string &>(
-               &SolidMechanicsModel::getMaterial),
-           py::return_value_policy::reference)
+      .def(
+          "getMaterial",
+          [](SolidMechanicsModel & self, UInt material_id) -> decltype(auto) {
+            return self.getMaterial(material_id);
+          },
+          py::arg("material_id"), py::return_value_policy::reference)
+      .def(
+          "getMaterial",
+          [](SolidMechanicsModel & self, const ID & material_name)
+              -> decltype(auto) { return self.getMaterial(material_name); },
+          py::arg("material_name"), py::return_value_policy::reference)
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
-      .def("setMaterialSelector", &SolidMechanicsModel::setMaterialSelector)
+      // .def(
+      //     "setMaterialSelector",
+      //     [](SolidMechanicsModel & self, MaterialSelector &
+      //     material_selector) {
+      //       self.setMaterialSelector(material_selector.shared_from_this());
+      //     })
+      .def("setMaterialSelector",
+           [](SolidMechanicsModel & self,
+              std::shared_ptr<MaterialSelector> material_selector) {
+             std::cout << (*material_selector)(ElementNull) << std::endl;
+             self.setMaterialSelector(material_selector);
+           })
       .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector);
 }
 

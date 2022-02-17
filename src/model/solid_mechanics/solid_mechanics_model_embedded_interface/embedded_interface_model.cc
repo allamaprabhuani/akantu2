@@ -9,38 +9,36 @@
  * @brief  Model of Solid Mechanics with embedded interfaces
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "embedded_interface_model.hh"
 #include "integrator_gauss.hh"
 #include "material_elastic.hh"
 #include "material_reinforcement.hh"
 #include "mesh_iterators.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -107,11 +105,9 @@ void EmbeddedInterfaceModel::initFullImpl(const ModelOptions & options) {
 
   SolidMechanicsModel::initFullImpl(options);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("reinforcement", id);
   this->mesh.addDumpMeshToDumper("reinforcement", *interface_mesh, 1,
                                  _not_ghost, _ek_regular);
-#endif
 }
 
 void EmbeddedInterfaceModel::initModel() {
@@ -130,14 +126,15 @@ void EmbeddedInterfaceModel::assignMaterialToElements(
       new InterfaceMeshDataMaterialSelector<std::string>("physical_names",
                                                          *this);
 
-  for_each_element(getInterfaceMesh(),
-                   [&](auto && element) {
-                     auto mat_index = (*interface_material_selector)(element);
-                     // material_index(element) = mat_index;
-                     materials[mat_index]->addElement(element);
-                     // this->material_local_numbering(element) = index;
-                   },
-                   _element_filter = filter, _spatial_dimension = 1);
+  for_each_element(
+      getInterfaceMesh(),
+      [&](auto && element) {
+        auto mat_index = (*interface_material_selector)(element);
+        // material_index(element) = mat_index;
+        materials[mat_index]->addElement(element);
+        // this->material_local_numbering(element) = index;
+      },
+      _element_filter = filter, _spatial_dimension = 1);
 
   SolidMechanicsModel::assignMaterialToElements(filter);
 }
@@ -147,7 +144,6 @@ void EmbeddedInterfaceModel::addDumpGroupFieldToDumper(
     const std::string & dumper_name, const std::string & field_id,
     const std::string & group_name, ElementKind element_kind,
     bool padding_flag) {
-#ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
 
   // If dumper is reinforcement, create a 1D elemental field
@@ -165,8 +161,6 @@ void EmbeddedInterfaceModel::addDumpGroupFieldToDumper(
     DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
     Model::addDumpGroupFieldToDumper(field_id, field, dumper);
   }
-
-#endif
 }
 
 } // namespace akantu

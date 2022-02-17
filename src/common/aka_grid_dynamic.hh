@@ -2,28 +2,31 @@
  * @file   aka_grid_dynamic.hh
  *
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Feb 21 2013
- * @date last modification: Wed Nov 08 2017
+ * @date last modification: Tue Feb 09 2021
  *
  * @brief  Grid that is auto balanced
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -291,7 +294,7 @@ public:
       for (UInt i = 0; i < dimension; ++i) {
         Real posl = center(i) + cell_id.getID(i) * spacing(i);
         Real posu = posl + spacing(i);
-        if (posl < lower(i)) {
+        if (posl <= lower(i)) {
           lower(i) = posl;
         }
         if (posu > upper(i)) {
@@ -408,6 +411,9 @@ public:
   AKANTU_GET_MACRO(LowerBounds, lower, const Vector<Real> &);
   AKANTU_GET_MACRO(UpperBounds, upper, const Vector<Real> &);
   AKANTU_GET_MACRO(Spacing, spacing, const Vector<Real> &);
+  AKANTU_SET_MACRO(Spacing, spacing, Vector<Real> &);
+  AKANTU_GET_MACRO(Center, center, const Vector<Real> &);
+  AKANTU_SET_MACRO(Center, center, Vector<Real> &);
 
 protected:
   UInt dimension;

@@ -28,8 +28,7 @@ namespace akantu {
 template <>
 inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
-    initShapeFunctions(const Array<Real> & nodes,
-                       GhostType ghost_type) {
+    initShapeFunctions(const Array<Real> & nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Mesh::type_iterator it =
@@ -65,8 +64,7 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
         Array<Real> & quadrature_points_coordinates, ElementType type,
-        GhostType ghost_type,
-        const Array<UInt> & filter_elements) const {
+        GhostType ghost_type, const Array<UInt> & filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
   UInt spatial_dimension = mesh.getSpatialDimension();

@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 25 2015
- * @date last modification: Tue Feb 20 2018
+ * @date last modification:  Fri Jul 10 2020
  *
  * @brief  test the weight computation with and without grid
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -77,17 +79,21 @@ int main(int argc, char * argv[]) {
   computePairs(model, pair_list.data());
 
   const auto & pairs_mat_1_not_ghost =
-      model.getNonLocalManager().getNeighborhood("mat_1").getPairLists(_not_ghost);
+      model.getNonLocalManager().getNeighborhood("mat_1").getPairLists(
+          _not_ghost);
   const auto & pairs_mat_1_ghost =
       model.getNonLocalManager().getNeighborhood("mat_1").getPairLists(_ghost);
   const auto & pairs_mat_2_not_ghost =
-      model.getNonLocalManager().getNeighborhood("mat_2").getPairLists(_not_ghost);
+      model.getNonLocalManager().getNeighborhood("mat_2").getPairLists(
+          _not_ghost);
   const auto & pairs_mat_2_ghost =
       model.getNonLocalManager().getNeighborhood("mat_2").getPairLists(_ghost);
 
   /// compare the number of pairs
-  UInt nb_not_ghost_pairs_grid = pairs_mat_1_not_ghost.size() + pairs_mat_2_not_ghost.size();
-  UInt nb_ghost_pairs_grid = pairs_mat_1_ghost.size() + pairs_mat_2_ghost.size();
+  UInt nb_not_ghost_pairs_grid =
+      pairs_mat_1_not_ghost.size() + pairs_mat_2_not_ghost.size();
+  UInt nb_ghost_pairs_grid =
+      pairs_mat_1_ghost.size() + pairs_mat_2_ghost.size();
   UInt nb_not_ghost_pairs_no_grid = pair_list[0].size();
   UInt nb_ghost_pairs_no_grid = pair_list[1].size();
 

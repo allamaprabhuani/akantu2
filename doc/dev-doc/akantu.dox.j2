@@ -1,0 +1,52 @@
+PROJECT_NAME           = Akantu
+PROJECT_NUMBER         = {{ akantu_version }}
+STRIP_FROM_PATH        = {{ akantu_source_path }}
+STRIP_FROM_INC_PATH    = {{ akantu_source_path }}
+TAB_SIZE               = 4
+ALIASES                = "rst=\verbatim embed:rst" \
+                         "endrst=\endverbatim"
+QUIET                  = NO
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = NO
+WARN_AS_ERROR          = NO
+INPUT                  = {{ akantu_source_path }}/src \
+                         {{ akantu_source_path }}/test/ci/includes_for_ci
+FILE_PATTERNS          = *.c *.cc *.hh *.py
+EXCLUDE                = {{ akantu_source_path }}/src/common/aka_fwd.hh \
+                         {{ akantu_source_path }}/src/io/dumper/dumpable_dummy.hh
+                         {{ akantu_source_path }}/src/common/aka_config.hh.in
+RECURSIVE              = YES
+EXAMPLE_PATH           = {{ akantu_source_path }}/examples
+EXAMPLE_RECURSIVE      = YES
+SOURCE_BROWSER         = NO
+GENERATE_HTML          = NO
+GENERATE_HTMLHELP      = NO
+USE_MATHJAX            = YES
+GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+DOXYGEN_INCLUDE_PATH   = {{ akantu_source_path }}/src/common \
+                         {{ akantu_source_path }}/src/fe_engine \
+                         {{ akantu_source_path }}/src/mesh \
+                         {{ akantu_source_path }}/src/model \
+                         {{ akantu_source_path }}/test/ci/includes_for_ci
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+PREDEFINED             = DOXYGEN \
+                         __cplusplus=201402L \
+                         "AKANTU_GET_MACRO(name, value, type) = type get##name() const;" \
+                         "AKANTU_GET_MACRO_NOT_CONST(name, value, type) = type get##name();"
+EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
+                         __END_AKANTU__ \
+                         __BEGIN_AKANTU_DUMPER__ \
+                         __END_AKANTU_DUMPER__ \
+                         AKANTU_SET_MACRO \
+                         AKANTU_GET_MACRO_DEREF_PTR \
+                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE \
+                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST
+COLLABORATION_GRAPH    = NO
+UML_LOOK               = YES
+TEMPLATE_RELATIONS     = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+LOOKUP_CACHE_SIZE      = 0

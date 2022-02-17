@@ -1,3 +1,34 @@
+/**
+ * @file   py_solid_mechanics_model_cohesive.cc
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Tue Jul 21 2020
+ * @date last modification: Tue Sep 29 2020
+ *
+ * @brief  pybind11 interface to SolidMechanicsModelCohesive
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
@@ -40,8 +71,8 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
 
   py::class_<SolidMechanicsModelCohesive, SolidMechanicsModel>(
       mod, "SolidMechanicsModelCohesive")
-      .def(py::init<Mesh &, UInt, const ID &>(),
-           py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
+      .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
+           py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model")
       .def(
           "initFull",
@@ -58,7 +89,7 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
            &SolidMechanicsModelCohesive::getElementInserter,
            py::return_value_policy::reference)
       .def("updateAutomaticInsertion",
-       &SolidMechanicsModelCohesive::updateAutomaticInsertion);
+           &SolidMechanicsModelCohesive::updateAutomaticInsertion);
 }
 
 } // namespace akantu

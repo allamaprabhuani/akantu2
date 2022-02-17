@@ -4,25 +4,28 @@
  * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date creation: Mon Jan 18 2016
+ * @date creation: Tue May 08 2012
+ * @date last modification: Fri Jul 19 2019
  *
- * @brief  Test for cohesive elements
+ * @brief  Cohesive element example in intrinsic
  *
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -86,13 +89,14 @@ int main(int argc, char * argv[]) {
   auto && elements = mesh.createElementGroup("diplacement");
   Vector<Real> barycenter(spatial_dimension);
 
-  for_each_element(mesh,
-                   [&](auto && el) {
-                     mesh.getBarycenter(el, barycenter);
-                     if (barycenter(_x) > -0.25)
-                       elements.add(el, true);
-                   },
-                   _element_kind = _ek_regular);
+  for_each_element(
+      mesh,
+      [&](auto && el) {
+        mesh.getBarycenter(el, barycenter);
+        if (barycenter(_x) > -0.25)
+          elements.add(el, true);
+      },
+      _element_kind = _ek_regular);
 
   Real increment = 0.01;
 

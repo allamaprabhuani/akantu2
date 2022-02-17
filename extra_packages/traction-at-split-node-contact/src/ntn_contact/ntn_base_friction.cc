@@ -3,26 +3,28 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Feb 23 2018
+ * @date creation: Fri Mar 16 2018
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  implementation of ntn base friction
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -39,8 +41,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 NTNBaseFriction::NTNBaseFriction(NTNBaseContact & contact, const ID & id)
-    : Parsable(ParserType::_friction, id), Dumpable(),
-      contact(contact),
+    : Parsable(ParserType::_friction, id), contact(contact),
       is_sticking(0, 1, true, id + ":is_sticking", true, "is_sticking"),
       frictional_strength(0, 1, 0., id + ":frictional_strength", 0.,
                           "frictional_strength"),
@@ -109,7 +110,7 @@ void NTNBaseFriction::computeFrictionTraction() {
   const SynchronizedArray<bool> & is_in_contact =
       this->contact.getIsInContact();
 
-  Array<Real> & traction =
+  auto & traction =
       const_cast<Array<Real> &>(this->friction_traction.getArray());
   Array<Real>::iterator<Vector<Real>> it_fric_trac = traction.begin(dim);
 
@@ -128,8 +129,9 @@ void NTNBaseFriction::computeFrictionTraction() {
         // larger -> sliding
         if (alpha < 1.) {
           fric_trac *= alpha;
-        } else
+        } else {
           this->is_sticking(n) = true;
+        }
       } else {
         // frictional traction is already zero
         this->is_sticking(n) = true;
@@ -186,7 +188,7 @@ void NTNBaseFriction::computeStickTraction() {
   }
 
   // compute friction traction to stop sliding
-  Array<Real> & traction =
+  auto & traction =
       const_cast<Array<Real> &>(this->friction_traction.getArray());
   auto it_fric_trac = traction.begin(dim);
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
@@ -199,8 +201,9 @@ void NTNBaseFriction::computeStickTraction() {
     // node pair is in contact
     else {
       // compute friction traction
-      for (UInt d = 0; d < dim; ++d)
+      for (UInt d = 0; d < dim; ++d) {
         fric_trac(d) = impedance(n) * gap_dot(n, d) / 2.;
+      }
     }
   }
 
@@ -273,8 +276,7 @@ void NTNBaseFriction::setParam(const std::string & name, UInt node,
                                Real value) {
   AKANTU_DEBUG_IN();
 
-  SynchronizedArray<Real> & array =
-      this->get(name).get<SynchronizedArray<Real>>();
+  auto & array = this->get(name).get<SynchronizedArray<Real>>();
   Int index = this->contact.getNodeIndex(node);
   if (index < 0) {
     AKANTU_DEBUG_WARNING("Node "
@@ -319,8 +321,9 @@ UInt NTNBaseFriction::getNbStickingNodes() const {
 void NTNBaseFriction::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNBaseFriction [" << std::endl;
   Parsable::printself(stream, indent);
@@ -333,10 +336,6 @@ void NTNBaseFriction::printself(std::ostream & stream, int indent) const {
 void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
                                            const std::string & field_id) {
   AKANTU_DEBUG_IN();
-
-#ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
 
   if (field_id == "is_sticking") {
     this->internalAddDumpFieldToDumper(
@@ -370,8 +369,6 @@ void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
   } else {
     this->contact.addDumpFieldToDumper(dumper_name, field_id);
   }
-
-#endif
 
   AKANTU_DEBUG_OUT();
 }

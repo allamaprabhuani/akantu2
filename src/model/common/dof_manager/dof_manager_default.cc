@@ -1,28 +1,31 @@
 /**
  * @file   dof_manager_default.cc
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Thu Feb 08 2018
+ * @date last modification: Tue Mar 30 2021
  *
  * @brief  Implementation of the default DOFManager
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -211,6 +214,7 @@ DOFManagerDefault::getNewNonLinearSolver(const ID & id,
   case NonLinearSolverType::_newton_raphson:
     /* FALLTHRU */
     /* [[fallthrough]]; un-comment when compiler will get it */
+  case NonLinearSolverType::_newton_raphson_contact:
   case NonLinearSolverType::_newton_raphson_modified: {
     return this->registerNonLinearSolver<NonLinearSolverNewtonRaphson>(
         *this, id, type);
@@ -303,10 +307,9 @@ void DOFManagerDefault::assembleElementalMatricesToMatrix(
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assemblePreassembledMatrix(
-    const ID & dof_id_m, const ID & dof_id_n, const ID & matrix_id,
-    const TermsToAssemble & terms) {
+    const ID & matrix_id, const TermsToAssemble & terms) {
   auto & A = getMatrix(matrix_id);
-  DOFManager::assemblePreassembledMatrix_(A, dof_id_m, dof_id_n, terms);
+  DOFManager::assemblePreassembledMatrix_(A, terms);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -470,17 +473,16 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered [[gnu::unused]] =
+static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 
-static bool dof_manager_is_registered_mumps [[gnu::unused]] =
+static bool dof_manager_is_registered_mumps =
     DOFManagerFactory::getInstance().registerAllocator(
-        "mumps",
-        [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
+        "mumps", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 

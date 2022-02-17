@@ -1042,7 +1042,8 @@ std::shared_ptr<dumpers::Field> FluidDiffusionModel::createElementalField(
     __attribute__((unused)) const std::string & field_name,
     __attribute__((unused)) const std::string & group_name,
     __attribute__((unused)) bool padding_flag,
-    __attribute__((unused)) const ElementKind & element_kind) {
+    __attribute__((unused)) UInt spatial_dimension,
+    __attribute__((unused)) ElementKind element_kind) {
   return nullptr;
 }
 

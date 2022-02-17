@@ -9,26 +9,28 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Apr 07 2014
- * @date last modification: Sat Dec 02 2017
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Specialization of the material class for isotropic finite deformation
  * linear hardening plasticity
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -112,7 +114,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
     this->template gradUToE<spatial_dimension>(grad_u, green_strain);
     Matrix<Real> previous_green_strain(spatial_dimension, spatial_dimension);
     this->template gradUToE<spatial_dimension>(previous_grad_u,
-                                                         previous_green_strain);
+                                               previous_green_strain);
     Matrix<Real> F_tensor(spatial_dimension, spatial_dimension);
     this->template gradUToF<spatial_dimension>(grad_u, F_tensor);
 
@@ -167,8 +169,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto previous_gradu_it = this->gradu.previous(el_type, ghost_type)

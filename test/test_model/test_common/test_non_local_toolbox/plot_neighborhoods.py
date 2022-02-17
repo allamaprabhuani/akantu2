@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-# ------------------------------------------------------------------------------
+""" plot_neighborhoods.py: plot the neighborhoods in non local manager"""
+
 __author__ = "Aurelia Isabel Cuba Ramos"
-__copyright__ = "Copyright (C) 2016-2018, EPFL (Ecole Polytechnique Fédérale" \
+__credits__ = [
+    "Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale" \
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
-__credits__ = ["Aurelia Isabel Cuba Ramos"]
-__license__ = "L-GPLv3"
-__maintainer__ = "Nicolas Richart"
-__email__ = "nicolas.richart@epfl.ch"
-# ------------------------------------------------------------------------------
+__license__ = "LGPLv3"
 
+import sys
 from matplotlib import rc
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import sys
 from matplotlib.backends.backend_pdf import PdfPages
 
 

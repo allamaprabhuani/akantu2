@@ -4,28 +4,31 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Jan 10 2018
- * @date last modification: Tue Feb 20 2018
+ * @date last modification:  Wed Nov 18 2020
  *
  * @brief  Coehsive element test fixture
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "solid_mechanics_model_cohesive.hh"
@@ -75,10 +78,10 @@ public:
   static constexpr size_t dim =
       ElementClass<cohesive_type>::getSpatialDimension();
 
-  void SetUp()  {
+  void SetUp() {
     mesh = std::make_unique<Mesh>(this->dim);
     if (Communicator::getStaticCommunicator().whoAmI() == 0) {
-       mesh->read(this->mesh_name);
+      mesh->read(this->mesh_name);
     }
     mesh->distribute();
   }
@@ -108,14 +111,11 @@ public:
     const auto & group = mesh->getElementGroup("insertion");
     group_size = group.size(_ghost_type = _not_ghost);
     const auto & elements = group.getElements(facet_type);
-    Array<Real> ones(fe_engine.getNbIntegrationPoints(facet_type) *
-                     group_size);
+    Array<Real> ones(fe_engine.getNbIntegrationPoints(facet_type) * group_size);
     ones.set(1.);
 
     surface = fe_engine.integrate(ones, facet_type, _not_ghost, elements);
     mesh->getCommunicator().allReduce(surface, SynchronizerOperation::_sum);
-
-
 
     mesh->getCommunicator().allReduce(group_size, SynchronizerOperation::_sum);
 

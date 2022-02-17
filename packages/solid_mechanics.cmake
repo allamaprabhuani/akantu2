@@ -4,31 +4,33 @@
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date creation: Mon Nov 21 2011
-# @date last modification: Mon Jan 18 2016
+# @date creation: Mon Dec 04 2017
+# @date last modification: Fri Mar 26 2021
 #
 # @brief  package description for core
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
+
 package_declare(solid_mechanics DEFAULT ON
   DESCRIPTION "Solid mechanics model"
   DEPENDS core lapack
@@ -86,9 +88,15 @@ package_declare_sources(solid_mechanics
   model/solid_mechanics/materials/material_plastic/material_plastic.cc
   model/solid_mechanics/materials/material_plastic/material_plastic.hh
   model/solid_mechanics/materials/material_plastic/material_plastic_inline_impl.hh
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager.cc
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager.hh
+  model/solid_mechanics/materials/material_plastic/material_drucker_prager_inline_impl.hh
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.cc
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.hh
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening_inline_impl.hh
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars.cc
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars.hh
+  model/solid_mechanics/materials/material_damage/material_von_mises_mazars_inline_impl.hh
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
   model/solid_mechanics/materials/material_viscoelastic/material_viscoelastic_maxwell.cc
@@ -102,33 +110,6 @@ package_declare_sources(solid_mechanics
 package_declare_material_infos(solid_mechanics
   LIST AKANTU_CORE_MATERIAL_LIST
   INCLUDE material_core_includes.hh
-  )
-
-package_declare_documentation_files(solid_mechanics
-  manual-solidmechanicsmodel.tex
-  manual-constitutive-laws.tex
-  manual-lumping.tex
-  manual-appendix-materials.tex
-
-  figures/dynamic_analysis.png
-  figures/explicit_dynamic.pdf
-  figures/explicit_dynamic.svg
-  figures/static.pdf
-  figures/static.svg
-  figures/hooke_law.pdf
-  figures/implicit_dynamic.pdf
-  figures/implicit_dynamic.svg
-  figures/problemDomain.pdf_tex
-  figures/problemDomain.pdf
-  figures/static_analysis.png
-  figures/stress_strain_el.pdf
-  figures/tangent.pdf
-  figures/tangent.svg
-
-  figures/stress_strain_neo.pdf
-  figures/visco_elastic_law.pdf
-  figures/isotropic_hardening_plasticity.pdf
-  figures/stress_strain_visco.pdf
   )
 
 package_declare_extra_files_to_package(solid_mechanics

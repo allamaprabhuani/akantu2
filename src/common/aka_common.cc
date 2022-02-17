@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Jun 14 2010
- * @date last modification: Mon Feb 05 2018
+ * @date last modification: Wed Dec 09 2020
  *
  * @brief  Initialization of global variables
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -117,7 +119,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
 }
 
 /* -------------------------------------------------------------------------- */
-void finalize() { }
+void finalize() {}
 
 /* -------------------------------------------------------------------------- */
 void readInputFile(const std::string & input_file) {
@@ -141,7 +143,8 @@ std::unique_ptr<Communicator> Communicator::static_communicator;
 
 std::ostream & operator<<(std::ostream & stream, NodeFlag flag) {
   using under = std::underlying_type_t<NodeFlag>;
-  auto digits = static_cast<int>(std::log(std::numeric_limits<under>::max() + 1) / std::log(16));
+  auto digits = static_cast<int>(
+      std::log(std::numeric_limits<under>::max() + 1) / std::log(16));
   std::ios_base::fmtflags ff;
   ff = stream.flags();
   auto value = static_cast<std::common_type_t<under, unsigned int>>(flag);

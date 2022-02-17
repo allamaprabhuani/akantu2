@@ -4,27 +4,29 @@
  * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date creation: Mon Jan 18 2016
+ * @date creation: Sun Oct 19 2014
+ * @date last modification: Tue Jan 19 2021
  *
- * @brief  Test for considering different cohesive properties for intergranular
- * (IG) and
- * transgranular (TG) fractures in extrinsic cohesive elements
+ * @brief  Cohesive element examples in extrinsic with 2 different bulk
+ * materials
  *
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -75,14 +77,17 @@ int main(int argc, char * argv[]) {
                               {{"bbottom", "bbottom"}, "ig_cohesive"}};
 
   /// model initialization
-  auto material_selector =
+  auto cohesive_material_selector =
       std::make_shared<MaterialCohesiveRulesSelector>(model, rules);
-  auto && current_selector = model.getMaterialSelector();
-  material_selector->setFallback(current_selector);
-  current_selector.setFallback(
+  auto bulk_material_selector =
       std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
-                                                              model));
-  model.setMaterialSelector(material_selector);
+                                                              model);
+  auto && current_selector = model.getMaterialSelector();
+
+  cohesive_material_selector->setFallback(bulk_material_selector);
+  bulk_material_selector->setFallback(current_selector);
+
+  model.setMaterialSelector(cohesive_material_selector);
 
   model.initFull(_analysis_method = _explicit_lumped_mass,
                  _is_extrinsic = true);

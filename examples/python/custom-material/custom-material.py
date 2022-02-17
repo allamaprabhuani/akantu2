@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+
+""" custom-material.py: Custom material example"""
+
+__author__ = "Guillaume Anciaux"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 import numpy as np
 import akantu as aka
 

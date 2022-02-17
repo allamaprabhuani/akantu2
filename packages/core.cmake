@@ -5,41 +5,51 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Mon Nov 21 2011
-# @date last modification: Mon Jan 18 2016
+# @date last modification: Fri Apr 09 2021
 #
 # @brief  package description for core
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
+
 package_declare(core NOT_OPTIONAL
   DESCRIPTION "core package for Akantu"
   FEATURES_PUBLIC cxx_strong_enums cxx_defaulted_functions
                   cxx_deleted_functions cxx_auto_type cxx_decltype_auto
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
-		   cxx_delegating_constructors
-  DEPENDS INTERFACE akantu_iterators Boost)
+                   cxx_delegating_constructors
+  DEPENDS INTERFACE akantu_iterators Boost
+  )
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  package_set_compile_flags(core "-Wall -Wextra -pedantic")
+else()
+  package_set_compile_flags(core "-Wall")
+endif()
 
 package_declare_sources(core
   common/aka_array.cc
   common/aka_array.hh
+  common/aka_array_filter.hh
   common/aka_array_tmpl.hh
   common/aka_array_printer.hh
   common/aka_bbox.hh
@@ -65,9 +75,7 @@ package_declare_sources(core
   common/aka_named_argument.hh
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
-  common/aka_typelist.hh
   common/aka_types.hh
-  common/aka_visitor.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh
   common/aka_voigthelper.cc
@@ -75,6 +83,7 @@ package_declare_sources(core
   common/aka_warning_restore.hh
   
   fe_engine/element_class.hh
+  fe_engine/element_class_helper.hh
   fe_engine/element_class_tmpl.hh
   fe_engine/element_classes/element_class_hexahedron_8_inline_impl.hh
   fe_engine/element_classes/element_class_hexahedron_20_inline_impl.hh
@@ -262,7 +271,6 @@ package_declare_sources(core
   model/model_options.hh
 
   solver/solver_vector.hh
-  solver/solver_vector_default.cc
   solver/solver_vector_default.hh
   solver/solver_vector_default_tmpl.hh
   solver/solver_vector_distributed.cc
@@ -399,91 +407,13 @@ package_declare_elements(core
   contains
   compute_shapes
   compute_shapes_derivatives
+  get_N
+  compute_dnds
+  compute_d2nds2
+  compute_jmat
   get_shapes_derivatives
   lagrange_base
   assemble_fields
-  )
-
-package_declare_documentation_files(core
-  manual.sty
-  manual.cls
-  manual.tex
-  manual-macros.sty
-  manual-titlepages.tex
-  manual-authors.tex
-  manual-changelog.tex
-  manual-introduction.tex
-  manual-gettingstarted.tex
-  manual-io.tex
-  manual-feengine.tex
-  manual-elements.tex
-  manual-appendix-elements.tex
-  manual-appendix-packages.tex
-  manual-backmatter.tex
-  manual-bibliography.bib
-  manual-bibliographystyle.bst
-
-  figures/bc_and_ic_example.pdf
-  figures/boundary.pdf
-  figures/boundary.svg
-  figures/dirichlet.pdf
-  figures/dirichlet.svg
-#  figures/doc_wheel.pdf
-#  figures/doc_wheel.svg
-  figures/hot-point-1.png
-  figures/hot-point-2.png
-  figures/insertion.pdf
-  figures/interpolate.pdf
-  figures/interpolate.svg
-  figures/vectors.pdf
-  figures/vectors.svg
-
-  figures/elements/hexahedron_8.pdf
-  figures/elements/hexahedron_8.svg
-  figures/elements/quadrangle_4.pdf
-  figures/elements/quadrangle_4.svg
-  figures/elements/quadrangle_8.pdf
-  figures/elements/quadrangle_8.svg
-  figures/elements/segment_2.pdf
-  figures/elements/segment_2.svg
-  figures/elements/segment_3.pdf
-  figures/elements/segment_3.svg
-  figures/elements/tetrahedron_10.pdf
-  figures/elements/tetrahedron_10.svg
-  figures/elements/tetrahedron_4.pdf
-  figures/elements/tetrahedron_4.svg
-  figures/elements/triangle_3.pdf
-  figures/elements/triangle_3.svg
-  figures/elements/triangle_6.pdf
-  figures/elements/triangle_6.svg
-  figures/elements/xtemp.pdf
-  )
-
-package_declare_documentation(core
-  "This package is the core engine of \\akantu. It depends on:"
-  "\\begin{itemize}"
-  "\\item A C++ compiler (\\href{http://gcc.gnu.org/}{GCC} >= 4, or \\href{https://software.intel.com/en-us/intel-compilers}{Intel})."
-  "\\item The cross-platform, open-source \\href{http://www.cmake.org/}{CMake} build system."
-  "\\item The \\href{http://www.boost.org/}{Boost} C++ portable libraries."
-  "\\item The \\href{http://www.zlib.net/}{zlib} compression library."
-  "\\end{itemize}"
-  ""
-  "Under Ubuntu (14.04 LTS) the installation can be performed using the commands:"
-  "\\begin{command}"
-  "  > sudo apt-get install cmake libboost-dev zlib1g-dev g++"
-  "\\end{command}"
-  ""
-  "Under Mac OS X the installation requires the following steps:"
-  "\\begin{itemize}"
-  "\\item Install Xcode"
-  "\\item Install the command line tools."
-  "\\item Install the MacPorts project which allows to automatically"
-  "download and install opensource packages."
-  "\\end{itemize}"
-  "Then the following commands should be typed in a terminal:"
-  "\\begin{command}"
-  "  > sudo port install cmake gcc48 boost"
-  "\\end{command}"
   )
 
 find_program(READLINK_COMMAND readlink)
@@ -500,23 +430,4 @@ package_declare_extra_files_to_package(core
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
   package_set_compile_flags(core CXX "-Wno-undefined-var-template")
-endif()
-
-if(DEFINED AKANTU_CXX11_FLAGS)
-  package_declare(core_cxx11 NOT_OPTIONAL
-    DESCRIPTION "C++ 11 additions for Akantu core"
-    COMPILE_FLAGS CXX "${AKANTU_CXX11_FLAGS}")
-
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.6")
-      set(AKANTU_CORE_CXX11 OFF CACHE BOOL "C++ 11 additions for Akantu core - not supported by the selected compiler" FORCE)
-    endif()
-  endif()
-
-  package_declare_documentation(core_cxx11
-    "This option activates some features of the C++11 standard. This is usable with GCC>=4.7 or Intel>=13.")
-else()
-  if(CMAKE_VERSION VERSION_LESS 3.1)
-    message(FATAL_ERROR "Since version 3.0 Akantu requires at least c++11 capable compiler")
-  endif()
 endif()

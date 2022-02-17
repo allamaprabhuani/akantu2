@@ -6,25 +6,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Jan 06 2015
- * @date last modification: Sun Dec 03 2017
+ * @date last modification: Fri Feb 28 2020
  *
  * @brief  Interface for object who wants to dump themselves
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -85,13 +87,14 @@ public:
                            ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered mesh and provides a name
-  void addDumpFilteredMeshToDumper(
-      const std::string & dumper_name, const Mesh & mesh,
-      const ElementTypeMapArray<UInt> & elements_filter,
-      const Array<UInt> & nodes_filter,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined);
+  void
+  addDumpFilteredMeshToDumper(const std::string & dumper_name,
+                              const Mesh & mesh,
+                              const ElementTypeMapArray<UInt> & elements_filter,
+                              const Array<UInt> & nodes_filter,
+                              UInt spatial_dimension = _all_dimensions,
+                              GhostType ghost_type = _not_ghost,
+                              ElementKind element_kind = _ek_not_defined);
 
   /// to implement
   virtual void addDumpField(const std::string & field_id);
@@ -114,19 +117,19 @@ public:
                                            const std::string & field_id,
                                            const Array<T> & field);
   template <typename T>
-  inline void
-  addDumpFieldExternal(const std::string & field_id,
-                       const ElementTypeMapArray<T> & field,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined);
+  inline void addDumpFieldExternal(const std::string & field_id,
+                                   const ElementTypeMapArray<T> & field,
+                                   UInt spatial_dimension = _all_dimensions,
+                                   GhostType ghost_type = _not_ghost,
+                                   ElementKind element_kind = _ek_not_defined);
   template <typename T>
-  inline void addDumpFieldExternalToDumper(
-      const std::string & dumper_name, const std::string & field_id,
-      const ElementTypeMapArray<T> & field,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined);
+  inline void
+  addDumpFieldExternalToDumper(const std::string & dumper_name,
+                               const std::string & field_id,
+                               const ElementTypeMapArray<T> & field,
+                               UInt spatial_dimension = _all_dimensions,
+                               GhostType ghost_type = _not_ghost,
+                               ElementKind element_kind = _ek_not_defined);
 
   void removeDumpField(const std::string & field_id);
   void removeDumpFieldFromDumper(const std::string & dumper_name,

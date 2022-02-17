@@ -7,28 +7,31 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue May 08 2012
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Solid mechanics model for cohesive elements
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "aka_iterators.hh"
@@ -45,9 +48,8 @@
 #include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -64,7 +66,7 @@ public:
   std::tuple<UInt, UInt>
   updateData(NewNodesEvent & nodes_event,
              NewElementsEvent & elements_event) override {
-    auto *cohesive_nodes_event =
+    auto * cohesive_nodes_event =
         dynamic_cast<CohesiveNewNodesEvent *>(&nodes_event);
     if (cohesive_nodes_event == nullptr) {
       return std::make_tuple(nodes_event.getList().size(),
@@ -95,20 +97,19 @@ public:
       nb_new_nodes = global_ids_updater.updateGlobalIDs(new_nodes.size());
     }
 
-    Vector<UInt> nb_new_stuff = {nb_new_nodes, elements_event.getList().size()};
+    auto nb_new_elements = elements_event.getList().size();
     const auto & comm = mesh.getCommunicator();
-    comm.allReduce(nb_new_stuff, SynchronizerOperation::_sum);
+    comm.allReduce(nb_new_elements, SynchronizerOperation::_sum);
 
-    if (nb_new_stuff(1) > 0) {
+    if (nb_new_elements > 0) {
       mesh.sendEvent(elements_event);
     }
 
-    if (nb_new_stuff(0) > 0) {
+    if (nb_new_nodes > 0) {
       mesh.sendEvent(nodes_event);
-      // mesh.sendEvent(global_ids_updater.getChangedNodeEvent());
     }
 
-    return std::make_tuple(nb_new_stuff(0), nb_new_stuff(1));
+    return std::make_tuple(nb_new_nodes, nb_new_elements);
   }
 
 private:
@@ -119,8 +120,9 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id)
-    : SolidMechanicsModel(mesh, dim, id,
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager)
+    : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
       facet_material("facet_material", id) {
@@ -135,12 +137,10 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
   tmp_material_selector->setFallback(this->material_selector);
   this->material_selector = tmp_material_selector;
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("cohesive elements", id);
   this->mesh.addDumpMeshToDumper("cohesive elements", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_cohesive);
-#endif
 
   if (this->mesh.isDistributed()) {
     /// create the distributed synchronizer for cohesive elements
@@ -176,10 +176,7 @@ SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() = default;
 void SolidMechanicsModelCohesive::setTimeStep(Real time_step,
                                               const ID & solver_id) {
   SolidMechanicsModel::setTimeStep(time_step, solver_id);
-
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper("cohesive elements").setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -259,7 +256,6 @@ void SolidMechanicsModelCohesive::initMaterials() {
 
   // set the facet information in the material in case of dynamic insertion
   // to know what material to call for stress checks
-
   const Mesh & mesh_facets = inserter->getMeshFacets();
   facet_material.initialize(
       mesh_facets, _spatial_dimension = spatial_dimension - 1,
@@ -387,7 +383,8 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   //                              Model::spatial_dimension);
 
   for (auto elem_gt : ghost_types) {
-    for (const auto & type : mesh.elementTypes(Model::spatial_dimension, elem_gt)) {
+    for (const auto & type :
+         mesh.elementTypes(Model::spatial_dimension, elem_gt)) {
       UInt nb_element = mesh.getNbElement(type, elem_gt);
       if (nb_element == 0) {
         continue;
@@ -425,16 +422,6 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
                 .begin()[global_facet.element];
 
         el_q = quad_f;
-
-        // for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-        //   for (UInt s = 0; s < Model::spatial_dimension; ++s) {
-        //     el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet +
-        //                    f * nb_quad_per_facet + q,
-        //                s) = quad_f(global_facet * nb_quad_per_facet + q,
-        //                s);
-        //   }
-        // }
-        //}
       }
     }
   }
@@ -621,6 +608,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
     copy(*displacement_increment);
   }
 
+  copy(getDOFManager().getSolution("displacement"));
+  // this->assembleMassLumped();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -665,21 +655,6 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
                                     2 * spatial_dimension * spatial_dimension,
                                 _spatial_dimension = spatial_dimension - 1);
 
-  // for (auto && ghost_type : ghost_types) {
-  //   for (const const auto & type :
-  //        mesh_facets.elementTypes(spatial_dimension - 1, ghost_type)) {
-  //     UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
-
-  //     UInt nb_quadrature_points = getFEEngine("FacetsFEEngine")
-  //                                     .getNbIntegrationPoints(type,
-  //                                     ghost_type);
-
-  //     UInt new_size = nb_facet * nb_quadrature_points;
-
-  //     facet_stress(type, ghost_type).resize(new_size);
-  //   }
-  // }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -697,6 +672,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
   } else if (dumper_name == "facets") {
     spatial_dimension = Model::spatial_dimension - 1;
   }
+
   SolidMechanicsModel::addDumpGroupFieldToDumper(dumper_name, field_id,
                                                  group_name, spatial_dimension,
                                                  _element_kind, padding_flag);

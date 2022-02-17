@@ -1,4 +1,5 @@
 [flake8]
+exclude = build*,__pycache__,third-party
 max-line-length = 99
 per-file-ignores =
-  py_engine.py:E201,E202,E203,E501
+   py_engine.py:E201,E202,E203,E501

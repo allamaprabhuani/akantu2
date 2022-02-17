@@ -5,25 +5,27 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue Sep 02 2014
- * @date last modification: Wed Nov 29 2017
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Material padders for plane stress/ plane strain
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -35,25 +37,20 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class MaterialFunctor {
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
   public:
     MaterialFunctor(const SolidMechanicsModel & model)
         : model(model), material_index(model.getMaterialByElement()),
           nb_data_per_element("nb_data_per_element", model.getID()),
           spatial_dimension(model.getSpatialDimension()) {}
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Methods                                                                */
+    /* ---------------------------------------------------------------------- */
     /// return the material from the global element index
     const Material & getMaterialFromGlobalIndex(Element global_index) {
       UInt index = global_index.element;
@@ -70,11 +67,9 @@ namespace dumpers {
     }
 
   protected:
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
 
     /// all material padders probably need access to solid mechanics model
     const SolidMechanicsModel & model;
@@ -89,8 +84,7 @@ namespace dumpers {
     UInt spatial_dimension;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class T, class R>
   class MaterialPadder : public MaterialFunctor,
                          public PadderGeneric<Vector<T>, R> {
@@ -99,8 +93,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   template <UInt spatial_dimension>
   class StressPadder : public MaterialPadder<Real, Matrix<Real>> {
@@ -142,8 +135,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <UInt spatial_dimension>
   class StrainPadder : public MaterialFunctor,
                        public PadderGeneric<Matrix<Real>, Matrix<Real>> {
@@ -180,8 +172,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <bool green_strain>
   class ComputeStrain : public MaterialFunctor,
                         public ComputeFunctor<Vector<Real>, Matrix<Real>> {
@@ -227,8 +218,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <bool green_strain>
   class ComputePrincipalStrain
       : public MaterialFunctor,
@@ -277,8 +267,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class ComputeVonMisesStress
       : public MaterialFunctor,
         public ComputeFunctor<Vector<Real>, Vector<Real>> {
@@ -310,8 +299,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
 } // namespace dumpers
 } // namespace akantu

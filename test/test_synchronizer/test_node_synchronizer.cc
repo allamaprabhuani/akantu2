@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu May 11 2017
- * @date last modification: Fri Jan 26 2018
+ * @date last modification:  Wed Jan 15 2020
  *
  * @brief  test the default node synchronizer present in the mesh
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -187,7 +189,7 @@ TEST_F(TestNodeSynchronizerFixture, Gather) {
 TEST_F(TestNodeSynchronizerFixture, Scatter) {
   Array<int> local_data(this->mesh->getNbNodes(), 1, this->max_int);
   auto & synchronizer = this->mesh->getNodeSynchronizer();
-  
+
   if (prank == 0) {
     Array<int> all_data(this->mesh->getNbGlobalNodes());
     for (auto && data : enumerate(all_data)) {
@@ -202,7 +204,7 @@ TEST_F(TestNodeSynchronizerFixture, Scatter) {
     auto && n = std::get<0>(data);
     auto && d = std::get<1>(data);
     UInt gn = this->mesh->getNodeGlobalId(n);
-    if(this->mesh->isPureGhostNode(n)) {
+    if (this->mesh->isPureGhostNode(n)) {
       EXPECT_EQ(d, this->max_int);
     } else {
       EXPECT_EQ(d, gn);

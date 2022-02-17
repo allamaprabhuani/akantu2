@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Sep 15 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Tue Mar 30 2021
  *
  * @brief  Implementation of the default NonLinearSolver
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -43,11 +45,11 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager),
-      solver(std::make_unique<SparseSolverMumps>(
-          dof_manager, "J", id + ":sparse_solver")) {
+      dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
+                                    dof_manager, "J", id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
+  this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson);
   this->supported_type.insert(NonLinearSolverType::_linear);
 
@@ -113,7 +115,9 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   }
 
   do {
-    if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson) {
+    if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
+        this->non_linear_solver_type ==
+            NonLinearSolverType::_newton_raphson_contact) {
       solver_callback.assembleMatrix("J");
     }
 
@@ -136,7 +140,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
         not this->converged) {
       this->assembleResidual(solver_callback);
     }
-    // this->dump();
 
     this->n_iter++;
     AKANTU_DEBUG_INFO(
@@ -144,7 +147,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
             << std::setw(std::log10(this->max_iterations)) << this->n_iter
             << ": error " << this->error << (this->converged ? " < " : " > ")
             << this->convergence_criteria);
-
   } while (not this->converged and this->n_iter <= this->max_iterations);
 
   // this makes sure that you have correct strains and stresses after the
@@ -154,7 +156,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   }
 
   this->converged =
-      this->converged  and not (this->n_iter > this->max_iterations);
+      this->converged and not(this->n_iter > this->max_iterations);
 
   solver_callback.afterSolveStep(this->converged);
 
@@ -168,7 +170,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
                              << this->n_iter << " iteration"
                              << (this->n_iter == 1 ? "" : "s") << "!");
   }
-
 }
 
 /* -------------------------------------------------------------------------- */

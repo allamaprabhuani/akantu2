@@ -4,30 +4,33 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
+ * @author Philip Mueller <philip.paul.mueller@bluemail.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Damien Spielmann <damien.spielmann@epfl.ch>
  *
  * @date creation: Fri Jul 15 2011
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Thu Apr 01 2021
  *
  * @brief  Particular implementation of the structural elements in the
  * StructuralMechanicsModel
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -89,7 +92,7 @@ public:
   /* Virtual methods from SolverCallback                                      */
   /* ------------------------------------------------------------------------ */
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & matrix_id) override;
@@ -102,7 +105,9 @@ public:
 
   void assembleResidual(const ID & residual_part) override;
 
-  bool canSplitResidual() override { return false; }
+  bool canSplitResidual() const override { return true; }
+
+  void afterSolveStep(bool converged) override;
 
   /// compute kinetic energy
   Real getKineticEnergy();
@@ -193,9 +198,6 @@ public:
   /// set the value of the time step
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-
   /// get the StructuralMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement_rotation, Array<Real> &);
 
@@ -225,7 +227,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Set_ID, set_ID, UInt);
 
   /**
-   * \brief	This function adds the `StructuralMaterial` material to the list of
+   * \brief This function adds the `StructuralMaterial` material to the list of
    * materials managed by *this.
    *
    * It is important that this function might invalidate all references to
@@ -243,15 +245,15 @@ public:
   getMaterialByElement(const Element & element) const;
 
   /**
-   * \brief	Returns the ith material of *this.
-   * \param  i		The ith material
+   * \brief Returns the ith material of *this.
+   * \param i The ith material
    */
   const StructuralMaterial & getMaterial(UInt material_index) const;
 
   const StructuralMaterial & getMaterial(const ID & name) const;
 
   /**
-   * \brief	Returns the number of the different materials inside *this.
+   * \brief Returns the number of the different materials inside *this.
    */
   UInt getNbMaterials() const { return materials.size(); }
 
@@ -266,11 +268,6 @@ public:
   /// Compute Linear load function set in local axis
   void computeForcesByLocalTractionArray(const Array<Real> & tractions,
                                          ElementType type);
-
-  /// compute force vector from a function(x,y,momentum) that describe stresses
-  // template <ElementType type>
-  // void computeForcesFromFunction(BoundaryFunction in_function,
-  //                                BoundaryFunctionType function_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -6,25 +6,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Sun Jul 09 2017
- * @date last modification: Sun Dec 03 2017
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Dumpable part of the SolidMechnicsModel
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -37,7 +39,7 @@
 #include "group_manager_inline_impl.hh"
 
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_field.hh"
@@ -46,7 +48,7 @@
 #include "dumper_iohelper.hh"
 #include "dumper_material_padders.hh"
 #include "dumper_paraview.hh"
-#endif
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -68,7 +70,6 @@ bool SolidMechanicsModel::isInternal(const std::string & field_name,
 ElementTypeMap<UInt>
 SolidMechanicsModel::getInternalDataPerElem(const std::string & field_name,
                                             ElementKind element_kind) {
-
   if (!(this->isInternal(field_name, element_kind))) {
     AKANTU_EXCEPTION("unknown internal " << field_name);
   }
@@ -93,8 +94,8 @@ SolidMechanicsModel::flattenInternal(const std::string & field_name,
 
   auto it = this->registered_internals.find(key);
   if (it == this->registered_internals.end()) {
-    auto internal = std::make_unique<ElementTypeMapArray<Real>>(
-        field_name, this->id);
+    auto internal =
+        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
 
     internal_flat = internal.get();
     this->registered_internals[key] = std::move(internal);
@@ -120,8 +121,7 @@ SolidMechanicsModel::flattenInternal(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::flattenAllRegisteredInternals(
-    ElementKind kind) {
+void SolidMechanicsModel::flattenAllRegisteredInternals(ElementKind kind) {
   ElementKind _kind;
   ID _id;
 
@@ -139,11 +139,9 @@ void SolidMechanicsModel::onDump() {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension,
-    ElementKind kind) {
+    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
@@ -191,7 +189,7 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
 
       if (func) {
         field = dumpers::FieldComputeProxy::createFieldCompute(field,
-                                                              std::move(func));
+                                                               std::move(func));
       }
       // treat the paddings
       if (padding_flag) {
@@ -266,32 +264,7 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
   field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
   return field;
 }
-/* -------------------------------------------------------------------------- */
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-SolidMechanicsModel::createElementalField(const std::string &,
-                                          const std::string &, bool,
-                                          const UInt &, ElementKind) {
-  return nullptr;
-}
-/* --------------------------------------------------------------------------
- */
-std::shaed_ptr<dumpers::Field>
-SolidMechanicsModel::createNodalFieldReal(const std::string &,
-                                          const std::string &, bool) {
-  return nullptr;
-}
 
-/* --------------------------------------------------------------------------
- */
-std::shared_ptr<dumpers::Field>
-SolidMechanicsModel::createNodalFieldBool(const std::string &,
-                                          const std::string &, bool) {
-  return nullptr;
-}
-
-#endif
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
   this->onDump();

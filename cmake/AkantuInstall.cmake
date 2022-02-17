@@ -4,31 +4,32 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Wed Oct 17 2012
-# @date last modification: Fri Jan 22 2016
+# @date last modification: Fri Jan 15 2021
 #
 # @brief  Create the files that allows users to link with Akantu in an other
 # cmake project
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 #===============================================================================
 # Config gen for external packages
@@ -107,7 +108,7 @@ set(AKANTU_EXTRA_CXX_FLAGS \"${AKANTU_EXTRA_CXX_FLAGS}\")
 # Create the AkantuConfig.cmake and AkantuConfigVersion files
 get_filename_component(CONF_REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
-configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
+#configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
 configure_file(cmake/AkantuUse.cmake "${PROJECT_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
 
 package_is_activated(pybind11 _is_pybind11_activated)
@@ -119,8 +120,8 @@ configure_file(cmake/akantu_environement.csh.in
   ${PROJECT_BINARY_DIR}/akantu_environement.csh @ONLY)
 
 include(GNUInstallDirs)
-package_is_activated(python_interface _is_acticated)
-if(_is_acticated)
+package_is_activated(python_interface _is_activated)
+if(_is_activated)
   find_package(PythonInterp ${AKANTU_PREFERRED_PYTHON_VERSION})
   configure_file(cmake/akantu_install_environement.sh.in
     ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh  @ONLY)
@@ -137,7 +138,7 @@ include(CMakePackageConfigHelpers)
 
 configure_package_config_file(cmake/AkantuConfig.cmake.in
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME}
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
   )
 
 write_basic_package_version_file(${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
@@ -159,5 +160,5 @@ install(FILES
   ${PROJECT_SOURCE_DIR}/cmake/AkantuUse.cmake
   ${PROJECT_SOURCE_DIR}/cmake/AkantuSimulationMacros.cmake
   ${PROJECT_SOURCE_DIR}/cmake/Modules/FindGMSH.cmake
-  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME}
+  DESTINATION lib/cmake/${PROJECT_NAME}
   COMPONENT dev)

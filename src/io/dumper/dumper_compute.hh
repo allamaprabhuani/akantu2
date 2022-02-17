@@ -2,27 +2,30 @@
  * @file   dumper_compute.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Sep 02 2014
- * @date last modification: Sun Dec 03 2017
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Field that map a function to another field
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -34,13 +37,17 @@
 #include "dumper_field.hh"
 #include "dumper_iohelper.hh"
 #include "dumper_type_traits.hh"
+/* -------------------------------------------------------------------------- */
+#include <aka_iterators.hh>
+/* -------------------------------------------------------------------------- */
 #include <io_helper.hh>
-
+/* -------------------------------------------------------------------------- */
+#include <type_traits>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 namespace dumpers {
-
+  /* ------------------------------------------------------------------------ */
   class ComputeFunctorInterface {
   public:
     virtual ~ComputeFunctorInterface() = default;
@@ -49,8 +56,7 @@ namespace dumpers {
     virtual UInt getNbComponent(UInt old_nb_comp) = 0;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   template <typename return_type>
   class ComputeFunctorOutput : public ComputeFunctorInterface {
@@ -59,40 +65,160 @@ namespace dumpers {
     ~ComputeFunctorOutput() override = default;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <typename input_type, typename return_type>
   class ComputeFunctor : public ComputeFunctorOutput<return_type> {
   public:
     ComputeFunctor() = default;
     ~ComputeFunctor() override = default;
 
-    virtual return_type func(const input_type & d, Element global_index) = 0;
+    virtual return_type func(const input_type & /*d*/,
+                             Element /*global_index*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
+    virtual return_type func(const input_type & /*d*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
   };
 
-  /* --------------------------------------------------------------------------
-   */
-  template <typename SubFieldCompute, typename _return_type>
-  class FieldCompute : public Field {
-    /* ------------------------------------------------------------------------
-     */
-    /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+  /* ------------------------------------------------------------------------ */
+  template <class EnumType>
+  class ComputeUIntFromEnum
+      : public ComputeFunctor<Vector<EnumType>, Vector<UInt>> {
   public:
+    ComputeUIntFromEnum() = default;
+
+    inline Vector<UInt> func(const Vector<EnumType> & in) override {
+      Vector<UInt> out(in.size());
+      for (auto && data : zip(in, out)) {
+        std::get<1>(data) =
+            static_cast<std::underlying_type_t<EnumType>>(std::get<0>(data));
+      }
+
+      return out;
+    }
+
+    UInt getDim() override { return 1; };
+    UInt getNbComponent(UInt old_nb_comp) override { return old_nb_comp; };
+  };
+
+  /* ------------------------------------------------------------------------ */
+  template <typename SubFieldCompute, typename _return_type,
+            class support_type_ = typename SubFieldCompute::support_type>
+  class FieldCompute : public Field {
+    /* ---------------------------------------------------------------------- */
+    /* Typedefs                                                               */
+    /* ---------------------------------------------------------------------- */
+  public:
+    using return_type = _return_type;
+    using support_type = support_type_;
+
     using sub_iterator = typename SubFieldCompute::iterator;
     using sub_types = typename SubFieldCompute::types;
     using sub_return_type = typename sub_types::return_type;
+    using data_type = typename return_type::value_type;
+    using functor_type = ComputeFunctor<sub_return_type, return_type>;
+
+    using types = TypeTraits<data_type, return_type, Array<data_type>>;
+
+  public:
+    class iterator {
+    public:
+      iterator(const sub_iterator & it, functor_type & func)
+          : it(it), func(func) {}
+
+      bool operator!=(const iterator & it) const { return it.it != this->it; }
+
+      iterator operator++() {
+        ++this->it;
+        return *this;
+      }
+
+      return_type operator*() { return func.func(*it); }
+
+      /// Do to IOHelper the needs it...
+      UInt element_type() { return this->it.element_type(); }
+
+    protected:
+      sub_iterator it;
+      functor_type & func;
+    };
+
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
+  public:
+    FieldCompute(SubFieldCompute & cont,
+                 std::unique_ptr<ComputeFunctorInterface> func)
+        : sub_field(aka::as_type<SubFieldCompute>(cont.shared_from_this())),
+          func(aka::as_type<functor_type>(func.release())) {
+      this->checkHomogeneity();
+    };
+
+    void registerToDumper(const std::string & id,
+                          iohelper::Dumper & dumper) override {
+      dumper.addNodeDataField(id, *this);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
+  public:
+    iterator begin() { return iterator(sub_field->begin(), *func); }
+    iterator end() { return iterator(sub_field->end(), *func); }
+
+    UInt getDim() { return func->getDim(); }
+
+    UInt size() {
+      throw;
+      // return Functor::size();
+      return 0;
+    }
+
+    void checkHomogeneity() override { this->homogeneous = true; };
+
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<data_type>();
+    }
+
+    /// for connection to a FieldCompute
+    inline std::shared_ptr<Field> connect(FieldComputeProxy & proxy) override;
+
+    /// for connection to a FieldCompute
+    std::unique_ptr<ComputeFunctorInterface>
+    connect(HomogenizerProxy & proxy) override;
+
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
+  public:
+    std::shared_ptr<SubFieldCompute> sub_field;
+    std::unique_ptr<functor_type> func;
+  };
+
+  /* ------------------------------------------------------------------------ */
+  template <typename SubFieldCompute, typename _return_type>
+  class FieldCompute<SubFieldCompute, _return_type, Element> : public Field {
+    /* ---------------------------------------------------------------------- */
+    /* Typedefs                                                               */
+    /* ---------------------------------------------------------------------- */
+  public:
     using return_type = _return_type;
+    using support_type = Element;
+
+    using sub_iterator = typename SubFieldCompute::iterator;
+    using sub_types = typename SubFieldCompute::types;
+    using sub_return_type = typename sub_types::return_type;
     using data_type = typename sub_types::data_type;
+    using functor_type = ComputeFunctor<sub_return_type, return_type>;
 
     using types =
         TypeTraits<data_type, return_type, ElementTypeMapArray<data_type>>;
 
+  public:
     class iterator {
     public:
-      iterator(const sub_iterator & it,
-               ComputeFunctor<sub_return_type, return_type> & func)
+      iterator(const sub_iterator & it, functor_type & func)
           : it(it), func(func) {}
 
       bool operator!=(const iterator & it) const { return it.it != this->it; }
@@ -111,20 +237,17 @@ namespace dumpers {
 
     protected:
       sub_iterator it;
-      ComputeFunctor<sub_return_type, return_type> & func;
+      functor_type & func;
     };
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
   public:
     FieldCompute(SubFieldCompute & cont,
                  std::unique_ptr<ComputeFunctorInterface> func)
         : sub_field(aka::as_type<SubFieldCompute>(cont.shared_from_this())),
-          func(aka::as_type<ComputeFunctor<sub_return_type, return_type>>(
-              func.release())) {
+          func(aka::as_type<functor_type>(func.release())) {
       this->checkHomogeneity();
     };
 
@@ -135,11 +258,9 @@ namespace dumpers {
       dumper.addElemDataField(id, *this);
     }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
   public:
     iterator begin() { return iterator(sub_field->begin(), *func); }
     iterator end() { return iterator(sub_field->end(), *func); }
@@ -154,6 +275,14 @@ namespace dumpers {
 
     void checkHomogeneity() override { this->homogeneous = true; };
 
+    template <class T1 = data_type,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = data_type,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
       return iohelper::getDataType<data_type>();
     }
@@ -181,28 +310,19 @@ namespace dumpers {
     std::unique_ptr<ComputeFunctorInterface>
     connect(HomogenizerProxy & proxy) override;
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
   public:
     std::shared_ptr<SubFieldCompute> sub_field;
-    std::unique_ptr<ComputeFunctor<sub_return_type, return_type>> func;
+    std::unique_ptr<functor_type> func;
   };
 
-  /* --------------------------------------------------------------------------
-   */
-
-  /* --------------------------------------------------------------------------
-   */
-
+  /* ------------------------------------------------------------------------ */
   class FieldComputeProxy {
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
   public:
     FieldComputeProxy(std::unique_ptr<ComputeFunctorInterface> func)
         : func(std::move(func)){};
@@ -260,27 +380,31 @@ namespace dumpers {
       return nullptr;
     }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
   public:
     std::unique_ptr<ComputeFunctorInterface> func;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   /// for connection to a FieldCompute
-  template <typename SubFieldCompute, typename return_type>
+  template <typename SubFieldCompute, typename return_type,
+            typename support_type_>
   inline std::shared_ptr<Field>
-  FieldCompute<SubFieldCompute, return_type>::connect(
+  FieldCompute<SubFieldCompute, return_type, support_type_>::connect(
       FieldComputeProxy & proxy) {
     return proxy.connectToField(this);
   }
 
-  /* --------------------------------------------------------------------------
-   */
+  template <typename SubFieldCompute, typename return_type>
+  inline std::shared_ptr<Field>
+  FieldCompute<SubFieldCompute, return_type, Element>::connect(
+      FieldComputeProxy & proxy) {
+    return proxy.connectToField(this);
+  }
+
+  /* ------------------------------------------------------------------------ */
 } // namespace dumpers
 } // namespace akantu
 

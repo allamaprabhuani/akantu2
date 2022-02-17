@@ -3,27 +3,28 @@
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Sun Jul 30 2018
- * @date last modification: Mon Feb 05 2018
+ * @date creation: Tue Sep 04 2018
+ * @date last modification: Wed Jun 23 2021
  *
  * @brief  Model class for Phase Field problem
  *
+ *
  * @section LICENSE
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -43,8 +44,7 @@
 namespace akantu {
 class PhaseField;
 class PhaseFieldSelector;
-template <ElementKind kind, class IntegrationOrderFuntor>
-class IntegratorGauss;
+template <ElementKind kind, class IntegrationOrderFuntor> class IntegratorGauss;
 template <ElementKind kind> class ShapeLagrange;
 } // namespace akantu
 
@@ -52,21 +52,19 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class PhaseFieldModel
-  : public Model,
-    public DataAccessor<Element>,
-    public DataAccessor<UInt>,
-    public BoundaryCondition<PhaseFieldModel> {
-
+class PhaseFieldModel : public Model,
+                        public DataAccessor<Element>,
+                        public DataAccessor<UInt>,
+                        public BoundaryCondition<PhaseFieldModel> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
-  PhaseFieldModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+  PhaseFieldModel(Mesh & mesh, UInt dim = _all_dimensions,
                   const ID & id = "phase_field_model",
-		  const ModelType model_type = ModelType::_phase_field_model);
+                  ModelType model_type = ModelType::_phase_field_model);
 
   ~PhaseFieldModel() override;
 
@@ -81,7 +79,8 @@ protected:
   void initPhaseFields();
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
+  void initSolver(TimeStepSolverType /*unused*/,
+                  NonLinearSolverType /*unused*/) override;
 
   /// initialize the model
   void initModel() override;
@@ -96,13 +95,13 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID &) override;
+  MatrixType getMatrixType(const ID & /*unused*/) const override;
 
   /// callback to assemble a Matrix
-  void assembleMatrix(const ID &) override;
+  void assembleMatrix(const ID & /*unused*/) override;
 
   /// callback to assemble a lumped Matrix
-  void assembleLumpedMatrix(const ID &) override;
+  void assembleLumpedMatrix(const ID & /*unused*/) override;
 
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
@@ -113,13 +112,14 @@ protected:
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
- /* ------------------------------------------------------------------------ */
-  /* Materials (phase_field_model.cc)                            */
+  /* ------------------------------------------------------------------------ */
+  /* Materials (phase_field_model.cc)                                         */
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty phasefield of a given type
-  PhaseField & registerNewPhaseField(const ID & mat_name, const ID & mat_type,
-				   const ID & opt_param);
+  PhaseField & registerNewPhaseField(const ID & phase_name,
+                                     const ID & phase_type,
+                                     const ID & opt_param);
 
   /// reassigns phasefields depending on the phasefield selector
   void reassignPhaseField();
@@ -131,11 +131,11 @@ protected:
   /// read the phasefield files to instantiate all the phasefields
   void instantiatePhaseFields();
 
-  /// set the element_id_by_phasefield and add the elements to the good phasefields
-  void
-  assignPhaseFieldToElements(const ElementTypeMapArray<UInt> * filter = nullptr);
+  /// set the element_id_by_phasefield and add the elements to the good
+  /// phasefields
+  void assignPhaseFieldToElements(
+      const ElementTypeMapArray<UInt> * filter = nullptr);
 
- 
   /* ------------------------------------------------------------------------ */
   /* Methods for static                                                       */
   /* ------------------------------------------------------------------------ */
@@ -148,7 +148,7 @@ public:
 
   // compute the internal forces
   void assembleInternalForces(const GhostType & ghost_type);
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods for dynamic                                                      */
   /* ------------------------------------------------------------------------ */
@@ -178,34 +178,31 @@ public:
   UInt getNbData(const Array<UInt> & indexes,
                  const SynchronizationTag & tag) const override;
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void packData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
                   const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// return the damage array
   AKANTU_GET_MACRO_DEREF_PTR(Damage, damage);
 
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Damage, damage);
-  
+
   /// get the PhaseFieldModel::internal_force vector (internal forces)
   AKANTU_GET_MACRO_DEREF_PTR(InternalForce, internal_force);
 
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);
-  
+
   /// get the PhaseFieldModel::external_force vector (external forces)
   AKANTU_GET_MACRO_DEREF_PTR(ExternalForce, external_force);
 
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ExternalForce, external_force);
-  
+
   /// get the PhaseFieldModel::force vector (external forces)
   Array<Real> & getForce() {
     AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
@@ -216,7 +213,6 @@ public:
   /// get the PhaseFieldModel::blocked_dofs vector
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
-  
   /// get an iterable on the phasefields
   inline decltype(auto) getPhaseFields();
 
@@ -267,7 +263,6 @@ public:
 
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
-
   /* ------------------------------------------------------------------------ */
   /* Dumpable Interface                                                       */
   /* ------------------------------------------------------------------------ */
@@ -285,20 +280,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension,
-                       ElementKind kind) override;
-
-  virtual void dump(const std::string & dumper_name) override;
-
-  virtual void dump(const std::string & dumper_name, UInt step) override;
-
-  virtual void dump(const std::string & dumper_name, Real time, UInt step) override;
-
-  void dump() override;
-
-  virtual void dump(UInt step) override;
-
-  virtual void dump(Real time, UInt step) override;
+                       UInt spatial_dimension, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -313,7 +295,7 @@ private:
   /// damage array at the previous time step
   std::unique_ptr<Array<Real>> previous_damage;
 
-  /// boundary vector 
+  /// boundary vector
   std::unique_ptr<Array<bool>> blocked_dofs;
 
   /// external force vector
@@ -331,10 +313,10 @@ private:
 
   /// class defining of to choose a phasefield
   std::shared_ptr<PhaseFieldSelector> phasefield_selector;
-  
+
   /// mapping between phasefield name and phasefield internal id
   std::map<std::string, UInt> phasefields_names_to_id;
-  
+
   /// list of used phasefields
   std::vector<std::unique_ptr<PhaseField>> phasefields;
 
@@ -344,12 +326,11 @@ private:
 
 } // namespace akantu
 
-
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "phasefield.hh"
 #include "parser.hh"
+#include "phasefield.hh"
 
 #include "phase_field_model_inline_impl.cc"
 /* -------------------------------------------------------------------------- */

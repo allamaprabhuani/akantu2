@@ -10,25 +10,27 @@
  * @author Rui Wang <rui.wang@epfl.ch>
  *
  * @date creation: Sun May 01 2011
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Implementation of HeatTransferModel class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -44,15 +46,13 @@
 #include "mesh.hh"
 #include "parser.hh"
 #include "shape_lagrange.hh"
-
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
-#endif
-
 /* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 namespace heat_transfer {
@@ -72,8 +72,9 @@ namespace heat_transfer {
 } // namespace heat_transfer
 
 /* -------------------------------------------------------------------------- */
-HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id)
-    : Model(mesh, ModelType::_heat_transfer_model, dim, id),
+HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
+                                     std::shared_ptr<DOFManager> dof_manager)
+    : Model(mesh, ModelType::_heat_transfer_model, dof_manager, dim, id),
       temperature_gradient("temperature_gradient", id),
       temperature_on_qpoints("temperature_on_qpoints", id),
       conductivity_on_qpoints("conductivity_on_qpoints", id),
@@ -81,8 +82,6 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id)
   AKANTU_DEBUG_IN();
 
   conductivity = Matrix<Real>(this->spatial_dimension, this->spatial_dimension);
-
-  this->initDOFManager();
 
   this->registerDataAccessor(*this);
 
@@ -96,10 +95,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id)
 
   registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
 
-#ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("heat_transfer", id, true);
   this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
-#endif
 
   this->registerParam("conductivity", conductivity, _pat_parsmod);
   this->registerParam("conductivity_variation", conductivity_variation, 0.,
@@ -149,7 +146,7 @@ void HeatTransferModel::assembleCapacityLumped(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) {
+MatrixType HeatTransferModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K" or matrix_id == "M") {
     return _symmetric;
   }
@@ -495,9 +492,7 @@ Real HeatTransferModel::getStableTimeStep() {
 void HeatTransferModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -679,9 +674,6 @@ Real HeatTransferModel::getEnergy(const std::string & id, ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-
 std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag) {
@@ -747,32 +739,6 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
 
   return field;
 }
-
-/* -------------------------------------------------------------------------- */
-#else
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
-    const std::string & /* field_name*/, const std::string & /*group_name*/,
-    bool /*padding_flag*/, ElementKind /*element_kind*/) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-HeatTransferModel::createNodalFieldBool(const std::string & /*field_name*/,
-                                        const std::string & /*group_name*/,
-                                        bool /*padding_flag*/) {
-  return nullptr;
-}
-
-/* -------------------------------------------------------------------------- */
-std::shared_ptr<dumpers::Field>
-HeatTransferModel::createNodalFieldReal(const std::string & /*field_name*/,
-                                        const std::string & /*group_name*/,
-                                        bool /*padding_flag*/) {
-  return nullptr;
-}
-#endif
 
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,

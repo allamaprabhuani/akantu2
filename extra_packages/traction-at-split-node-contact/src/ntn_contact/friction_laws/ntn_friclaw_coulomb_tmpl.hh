@@ -3,26 +3,28 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Feb 23 2018
+ * @date creation: Fri Mar 16 2018
+ * @date last modification: Fri Jul 19 2019
  *
  * @brief  implementation of coulomb friction
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -36,8 +38,7 @@ namespace akantu {
 template <class Regularisation>
 NTNFricLawCoulomb<Regularisation>::NTNFricLawCoulomb(NTNBaseContact & contact,
                                                      const ID & id)
-    : Regularisation(contact, id),
-      mu(0, 1, 0., id + ":mu", 0., "mu") {
+    : Regularisation(contact, id), mu(0, 1, 0., id + ":mu", 0., "mu") {
   AKANTU_DEBUG_IN();
 
   Regularisation::registerSynchronizedArray(this->mu);
@@ -63,11 +64,11 @@ void NTNFricLawCoulomb<Regularisation>::computeFrictionalStrength() {
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n))
+    if (!is_in_contact(n)) {
       strength(n) = 0.;
 
-    // node pair is in contact
-    else {
+      // node pair is in contact
+    } else {
       // compute frictional strength
       strength(n) = this->mu(n) * pressure(n);
     }
@@ -121,8 +122,9 @@ void NTNFricLawCoulomb<Regularisation>::printself(std::ostream & stream,
                                                   int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNFricLawCoulomb [" << std::endl;
   Regularisation::printself(stream, ++indent);
@@ -136,10 +138,6 @@ template <class Regularisation>
 void NTNFricLawCoulomb<Regularisation>::addDumpFieldToDumper(
     const std::string & dumper_name, const std::string & field_id) {
   AKANTU_DEBUG_IN();
-
-#ifdef AKANTU_USE_IOHELPER
-  //  const SynchronizedArray<UInt> * nodal_filter =
-  //  &(this->contact.getSlaves());
 
   if (field_id == "mu") {
     this->internalAddDumpFieldToDumper(
@@ -157,8 +155,6 @@ void NTNFricLawCoulomb<Regularisation>::addDumpFieldToDumper(
   else {
     Regularisation::addDumpFieldToDumper(dumper_name, field_id);
   }
-
-#endif
 
   AKANTU_DEBUG_OUT();
 }
