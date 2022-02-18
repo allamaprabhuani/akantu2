@@ -134,6 +134,18 @@ void SolidMechanicsModel::flattenAllRegisteredInternals(ElementKind kind) {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::inflateInternal(
+    const std::string & field_name, const ElementTypeMapArray<Real> & field,
+    ElementKind kind, GhostType ghost_type) {
+
+  for (auto & material : materials) {
+    if (material->isInternal<Real>(field_name, kind)) {
+      material->inflateInternal(field_name, field, ghost_type, kind);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onDump() {
   this->flattenAllRegisteredInternals(_ek_regular);
 }

@@ -1,7 +1,7 @@
 set(_working_dir ${PROJECT_BINARY_DIR}/third-party/src/pybind11-download)
 configure_file(${PROJECT_SOURCE_DIR}/third-party/pybind11.cmake.in ${_working_dir}/CMakeLists.txt)
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/third-party/pybind11)
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/third-party/pybind11/CMakeLists.txt)
   message(STATUS "Downloading pybind11")
   execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result WORKING_DIRECTORY ${_working_dir}

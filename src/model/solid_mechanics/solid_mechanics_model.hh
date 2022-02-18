@@ -315,6 +315,11 @@ public:
   //! flatten all the registered material internals
   void flattenAllRegisteredInternals(ElementKind kind);
 
+  //! inverse operation of the flatten
+  void inflateInternal(const std::string & field_name,
+                       const ElementTypeMapArray<Real> & field,
+                       ElementKind kind, GhostType ghost_type = _not_ghost);
+
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
@@ -418,6 +423,9 @@ public:
 
   /// get a particular material (by material name)
   inline const Material & getMaterial(const std::string & name) const;
+
+  /// get a particular material (by material name)
+  inline const Material & getMaterial(const Element & element) const;
 
   /// get a particular material id from is name
   inline UInt getMaterialIndex(const std::string & name) const;

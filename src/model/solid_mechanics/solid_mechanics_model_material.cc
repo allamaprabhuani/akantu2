@@ -80,13 +80,11 @@ Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
   UInt mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
-  std::stringstream sstr_mat;
-  sstr_mat << this->id << ":" << mat_count << ":" << mat_type;
-  ID mat_id = sstr_mat.str();
+  ID mat_id = this->id + ":" + std::to_string(mat_count) + ":" + mat_type;
 
   std::unique_ptr<Material> material = MaterialFactory::getInstance().allocate(
       mat_type, spatial_dimension, opt_param, *this, mat_id);
-
+  material->setName(mat_name);
   materials.push_back(std::move(material));
 
   return *(materials.back());
@@ -207,14 +205,17 @@ void SolidMechanicsModel::reassignMaterial() {
   std::vector<Array<Element>> element_to_add(materials.size());
   std::vector<Array<Element>> element_to_remove(materials.size());
 
-  for_each_element(mesh, [&](auto && element) {
-    auto old_material = material_index(element);
-    auto new_material = (*material_selector)(element);
-    if (old_material != new_material) {
-      element_to_add[new_material].push_back(element);
-      element_to_remove[old_material].push_back(element);
-    }
-  });
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        auto old_material = material_index(element);
+        auto new_material = (*material_selector)(element);
+        if (old_material != new_material) {
+          element_to_add[new_material].push_back(element);
+          element_to_remove[old_material].push_back(element);
+        }
+      },
+      _spatial_dimension = spatial_dimension);
 
   for (auto && data : enumerate(materials)) {
     auto mat_index = std::get<0>(data);

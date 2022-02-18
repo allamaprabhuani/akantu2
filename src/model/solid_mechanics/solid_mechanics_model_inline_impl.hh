@@ -83,6 +83,13 @@ inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline const Material &
+SolidMechanicsModel::getMaterial(const Element & element) const {
+  auto mat_id = material_index(element);
+  return *materials[mat_id];
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt
 SolidMechanicsModel::getMaterialIndex(const std::string & name) const {
   auto it = materials_names_to_id.find(name);

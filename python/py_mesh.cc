@@ -52,10 +52,14 @@ namespace akantu {
 namespace {
   /* ------------------------------------------------------------------------ */
   template <typename T>
-  void register_element_type_map_array(py::module & mod,
-                                       const std::string & name) {
-    py::class_<ElementTypeMapArray<T>, std::shared_ptr<ElementTypeMapArray<T>>>(
-        mod, ("ElementTypeMapArray" + name).c_str())
+  decltype(auto) register_element_type_map_array(py::module & mod,
+                                                 const std::string & name) {
+    return py::class_<ElementTypeMapArray<T>,
+                      std::shared_ptr<ElementTypeMapArray<T>>>(
+               mod, ("ElementTypeMapArray" + name).c_str())
+        .def(py::init<const ID &, const ID &>(),
+             py::arg("id") = "by_element_type_array",
+             py::arg("parent_id") = "no_parent")
         .def(
             "__call__",
             [](ElementTypeMapArray<T> & self, ElementType type,
@@ -63,7 +67,7 @@ namespace {
               return self(type, ghost_type);
             },
             py::arg("type"), py::arg("ghost_type") = _not_ghost,
-            py::return_value_policy::reference)
+            py::return_value_policy::reference, py::keep_alive<0, 1>())
         .def(
             "elementTypes",
             [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
@@ -76,16 +80,38 @@ namespace {
               return _types;
             },
             py::arg("dim") = _all_dimensions,
-            py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular);
+            py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular)
+        .def(
+            "initialize",
+            [](ElementTypeMapArray<T> & self, const Mesh & mesh,
+               GhostType ghost_type = _casper, UInt nb_component = 1,
+               UInt spatial_dimension = UInt(-2),
+               ElementKind element_kind = _ek_not_defined,
+               bool with_nb_element = false,
+               bool with_nb_nodes_per_element = false, T default_value = T(),
+               bool do_not_default = false) {
+              self.initialize(
+                  mesh, _ghost_type = ghost_type, _nb_component = nb_component,
+                  _spatial_dimension = (spatial_dimension == UInt(-2)
+                                            ? mesh.getSpatialDimension()
+                                            : spatial_dimension),
+                  _element_kind = element_kind,
+                  _with_nb_element = with_nb_element,
+                  _with_nb_nodes_per_element = with_nb_nodes_per_element,
+                  _default_value = default_value,
+                  _do_not_default = do_not_default);
+            },
+            py::arg("mesh"), py::arg("ghost_type") = _casper,
+            py::arg("nb_component") = 1,
+            py::arg("spatial_dimension") = UInt(-2),
+            py::arg("element_kind") = _ek_not_defined,
+            py::arg("with_nb_element") = false,
+            py::arg("with_nb_nodes_per_element") = false,
+            py::arg("default_value") = T(), py::arg("do_not_default") = false);
   }
 } // namespace
 /* -------------------------------------------------------------------------- */
 void register_mesh(py::module & mod) {
-
-  register_element_type_map_array<Real>(mod, "Real");
-  register_element_type_map_array<UInt>(mod, "UInt");
-  // register_element_type_map_array<std::string>(mod, "String");
-
   py::class_<Mesh::PeriodicSlaves>(mod, "PeriodicSlaves")
       .def(
           "__iter__",
@@ -203,5 +229,9 @@ void register_mesh(py::module & mod) {
           },
           py::arg("new_size"))
       .def("makeReady", &MeshAccessor::makeReady);
+
+  register_element_type_map_array<Real>(mod, "Real");
+  register_element_type_map_array<UInt>(mod, "UInt");
+  // register_element_type_map_array<std::string>(mod, "String");
 }
 } // namespace akantu
