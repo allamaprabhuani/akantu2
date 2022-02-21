@@ -155,7 +155,16 @@ void register_structural_mechanics_model(pybind11::module & mod) {
       .def("getPotentialEnergy", &StructuralMechanicsModel::getPotentialEnergy,
            "Compute potential energy")
       .def("getEnergy", &StructuralMechanicsModel::getEnergy,
-           "Compute the specified energy");
+           "Compute the specified energy")
+      .def("getLumpedMass",
+       	   [](StructuralMechanicsModel& self) -> decltype(auto) {
+     	   	return self.getLumpedMass(); },
+       	   py::return_value_policy::reference_internal)
+      .def("getLumpedMassMutable",
+       	   [](StructuralMechanicsModel& self) -> decltype(auto) {
+      	   	return self.getLumpedMassMutable(); },
+       	   py::return_value_policy::reference_internal)
+      ;
 
 } // End: register structural mechanical model
 

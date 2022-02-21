@@ -218,6 +218,19 @@ public:
   /// get the StructuralMechanicsModel::boundary vector
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
 
+   ///Get the lumped mass
+  inline Array<Real>& getLumpedMassMutable()
+  {
+     if(this->mass == nullptr) { AKANTU_EXCEPTION("The pointer to the mass was not allocated."); };
+     return *(this->mass);
+  };
+
+  inline const Array<Real>& getLumpedMass() const
+  {
+     if(this->mass == nullptr) { AKANTU_EXCEPTION("The pointer to the mass was not allocated."); };
+     return *(this->mass);
+  };
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
@@ -294,7 +307,16 @@ private:
   /// forces array
   std::unique_ptr<Array<Real>> external_force;
 
-  /// lumped mass array
+  /**
+   * \brief	This is the "lumped" mass array.
+   *
+   * It is a bit special, since it is not a one dimensional array, bit it is actually a matrix.
+   * The number of rows equals the number of nodes.
+   * The number of colums equals the number of degrees of freedoms per node.
+   * This layout makes the thing a bit more simple.
+   *
+   * Note that it is only allocated in case, the "Lumped" mode is enabled.
+   */
   std::unique_ptr<Array<Real>> mass;
 
   /// boundaries array

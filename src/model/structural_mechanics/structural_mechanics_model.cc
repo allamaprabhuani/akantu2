@@ -179,6 +179,14 @@ void StructuralMechanicsModel::initSolver(
       dof_manager.registerDOFsDerivative("displacement", 2,
                                          *this->acceleration);
     }
+
+    /* Only allocate the mass if the "lumped" mode is ennabled.
+     *  Also it is not a 1D array, but has an element for every
+     *  DOF, which are most of the time equal, but makes handling
+     *  some operations a bit simpler. */
+    if(time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
+      this->allocNodalField(this->mass, this->nb_degree_of_freedom, "mass");
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -309,6 +317,10 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
     return mesh.createStridedNodalField(internal_force.get(), group_name,
                                         nb_degree_of_freedom - n, n,
                                         padding_size);
+  }
+
+  if (field_name == "mass") {
+    return mesh.createStridedNodalField(this->mass.get(), group_name, n, 0, padding_size);
   }
 
   return nullptr;
