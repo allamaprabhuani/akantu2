@@ -218,18 +218,38 @@ public:
   /// get the StructuralMechanicsModel::boundary vector
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
 
-   ///Get the lumped mass
+
+  /**
+   * \brief	Returns a modifable reference to the array that stores the lumped mass.
+   *
+   * Note that the reference does not point to the matrix which is stored inside the DOFManager.
+   * But just to the result of the assembled matrix.
+   *
+   * The returned array has dimension `N x d` where `N` is the number of nodes and `d`,
+   * is the number of degrees of freedom per node.
+   *
+   * \note	Currently the array is not assembled.
+   */
   inline Array<Real>& getLumpedMassMutable()
   {
      if(this->mass == nullptr) { AKANTU_EXCEPTION("The pointer to the mass was not allocated."); };
      return *(this->mass);
   };
 
+
+  /**
+   * \brief	Returns a constant reference to the array that stores the lumped mass.
+   *
+   * The array is a member variable and does not point to the array that is stored inside the DOFManager.
+   * 
+   * \sa getLumpedMassMutable()
+   */
   inline const Array<Real>& getLumpedMass() const
   {
      if(this->mass == nullptr) { AKANTU_EXCEPTION("The pointer to the mass was not allocated."); };
      return *(this->mass);
   };
+
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
