@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Nov 08 2017
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  Gauss integration facilities
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -62,8 +64,7 @@ public:
                       GhostType ghost_type);
 
   template <ElementType type>
-  inline void initIntegrator(const Array<Real> & nodes,
-                             GhostType ghost_type);
+  inline void initIntegrator(const Array<Real> & nodes, GhostType ghost_type);
 
   /// integrate f on the element "elem" of type "type"
   template <ElementType type>
@@ -101,11 +102,10 @@ public:
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
   template <ElementType type>
-  void integrateOnIntegrationPoints(const Array<Real> & in_f,
-                                    Array<Real> & intf,
-                                    UInt nb_degree_of_freedom,
-                                    GhostType ghost_type,
-                                    const Array<UInt> & filter_elements) const;
+  void
+  integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
+                               UInt nb_degree_of_freedom, GhostType ghost_type,
+                               const Array<UInt> & filter_elements) const;
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
@@ -131,8 +131,7 @@ protected:
 
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
-      Array<Real> & jacobians, ElementType type,
-      GhostType ghost_type,
+      Array<Real> & jacobians, ElementType type, GhostType ghost_type,
       const Array<UInt> & filter_elements = empty_filter) const;
 
   /// precompute jacobians on elements of type "type"
@@ -152,8 +151,7 @@ protected:
   void computeQuadraturePoints(GhostType ghost_type);
 
   /// check that the jacobians are not negative
-  template <ElementType type>
-  void checkJacobians(GhostType ghost_type) const;
+  template <ElementType type> void checkJacobians(GhostType ghost_type) const;
 
   /// internal integrate partially around a quadrature point (@f$ intf_q = f_q *
   /// J_q *

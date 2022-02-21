@@ -1,3 +1,37 @@
+/**
+ * @file   py_mesh.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Philip Mueller <philip.paul.mueller@bluemail.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Sun Jun 16 2019
+ * @date last modification: Mon Mar 15 2021
+ *
+ * @brief  pybind11 interface to Mesh
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 /* -------------------------------------------------------------------------- */
@@ -15,40 +49,50 @@ namespace py = pybind11;
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-template <typename T>
-void register_element_type_map_array(py::module & mod,
-                                     const std::string & name) {
-  py::class_<ElementTypeMapArray<T>, std::shared_ptr<ElementTypeMapArray<T>>>(
-      mod, ("ElementTypeMapArray" + name).c_str())
-      .def(
-          "__call__",
-          [](ElementTypeMapArray<T> & self, ElementType type,
-             GhostType ghost_type) -> decltype(auto) {
-            return self(type, ghost_type);
-          },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference)
-      .def(
-          "elementTypes",
-          [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
-             ElementKind _kind) -> std::vector<ElementType> {
-            auto types = self.elementTypes(_dim, _ghost_type, _kind);
-            std::vector<ElementType> _types;
-            for (auto && t : types) {
-              _types.push_back(t);
-            }
-            return _types;
-          },
-          py::arg("dim") = _all_dimensions, py::arg("ghost_type") = _not_ghost,
-          py::arg("kind") = _ek_regular);
-}
-
+namespace {
+  /* ------------------------------------------------------------------------ */
+  template <typename T>
+  void register_element_type_map_array(py::module & mod,
+                                       const std::string & name) {
+    py::class_<ElementTypeMapArray<T>, std::shared_ptr<ElementTypeMapArray<T>>>(
+        mod, ("ElementTypeMapArray" + name).c_str())
+        .def(
+            "__call__",
+            [](ElementTypeMapArray<T> & self, ElementType type,
+               GhostType ghost_type) -> decltype(auto) {
+              return self(type, ghost_type);
+            },
+            py::arg("type"), py::arg("ghost_type") = _not_ghost,
+            py::return_value_policy::reference)
+        .def(
+            "elementTypes",
+            [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
+               ElementKind _kind) -> std::vector<ElementType> {
+              auto types = self.elementTypes(_dim, _ghost_type, _kind);
+              std::vector<ElementType> _types;
+              for (auto && t : types) {
+                _types.push_back(t);
+              }
+              return _types;
+            },
+            py::arg("dim") = _all_dimensions,
+            py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular);
+  }
+} // namespace
 /* -------------------------------------------------------------------------- */
 void register_mesh(py::module & mod) {
 
   register_element_type_map_array<Real>(mod, "Real");
   register_element_type_map_array<UInt>(mod, "UInt");
+  // register_element_type_map_array<std::string>(mod, "String");
+
+  py::class_<Mesh::PeriodicSlaves>(mod, "PeriodicSlaves")
+      .def(
+          "__iter__",
+          [](Mesh::PeriodicSlaves & _this) {
+            py::make_iterator(_this.begin(), _this.end());
+          },
+          py::keep_alive<0, 1>());
 
   py::class_<MeshData>(mod, "MeshData")
       .def(
@@ -66,8 +110,8 @@ void register_mesh(py::module & mod) {
 
   py::class_<Mesh, GroupManager, Dumpable, MeshData>(mod, "Mesh",
                                                      py::multiple_inheritance())
-      .def(py::init<UInt, const ID &>(),
-           py::arg("spatial_dimension"), py::arg("id") = "mesh")
+      .def(py::init<UInt, const ID &>(), py::arg("spatial_dimension"),
+           py::arg("id") = "mesh")
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
       .def(
@@ -88,6 +132,16 @@ void register_mesh(py::module & mod) {
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("distribute", [](Mesh & self) { self.distribute(); })
+      .def("fillNodesToElements", &Mesh::fillNodesToElements,
+           py::arg("dimension") = _all_dimensions)
+      .def("getAssociatedElements",
+           [](Mesh & self, const UInt & node, py::list list) {
+             Array<Element> elements;
+             self.getAssociatedElements(node, elements);
+             for (auto && element : elements) {
+               list.append(element);
+             }
+           })
       .def("makePeriodic",
            [](Mesh & self, const SpatialDirection & direction) {
              self.makePeriodic(direction);
@@ -123,7 +177,12 @@ void register_mesh(py::module & mod) {
              GhostType ghost_type) -> bool {
             return _this.hasData<Real>(name, type, ghost_type);
           },
-          py::arg("name"), py::arg("type"), py::arg("ghost_type") = _not_ghost);
+          py::arg("name"), py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def("isPeriodic", [](const Mesh & _this) { return _this.isPeriodic(); })
+      .def("getPeriodicMaster", &Mesh::getPeriodicMaster)
+      .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
+      .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
+      .def("isPeriodicMaster", &Mesh::isPeriodicMaster);
 
   /* ------------------------------------------------------------------------ */
   py::class_<MeshUtils>(mod, "MeshUtils")

@@ -6,25 +6,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Oct 03 2011
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  implementation of model common parts
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -41,16 +43,22 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
+Model::Model(Mesh & mesh, const ModelType & type,
+             std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID & id)
+    : ModelSolver(mesh, type, id, std::move(dof_manager)), mesh(mesh),
+      spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
+                                               : dim),
+      parser(getStaticParser()) {
+  this->mesh.registerEventHandler(*this, _ehp_model);
+}
+
+/* -------------------------------------------------------------------------- */
 Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id)
     : ModelSolver(mesh, type, id), mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
                                                : dim),
       parser(getStaticParser()) {
-  AKANTU_DEBUG_IN();
-
   this->mesh.registerEventHandler(*this, _ehp_model);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -64,6 +72,7 @@ void Model::initFullImpl(const ModelOptions & options) {
   if (!this->hasDefaultSolver()) {
     this->initNewSolver(this->method);
   }
+
   initModel();
 
   initFEEngineBoundary();
@@ -95,12 +104,15 @@ void Model::initNewSolver(const AnalysisMethod & method) {
 
 /* -------------------------------------------------------------------------- */
 void Model::initFEEngineBoundary() {
-  FEEngine & fem_boundary = getFEEngineBoundary();
-  fem_boundary.initShapeFunctions(_not_ghost);
-  fem_boundary.initShapeFunctions(_ghost);
+  try {
+    FEEngine & fem_boundary = getFEEngineBoundary();
+    fem_boundary.initShapeFunctions(_not_ghost);
+    fem_boundary.initShapeFunctions(_ghost);
 
-  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
-  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+    fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+    fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+  } catch (debug::Exception & /*e*/) {
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -156,33 +168,26 @@ DumperIOHelper & Model::getGroupDumper(const std::string & group_name) {
 void Model::addDumpGroupFieldToDumper(const std::string & field_id,
                                       std::shared_ptr<dumpers::Field> field,
                                       DumperIOHelper & dumper) {
-#ifdef AKANTU_USE_IOHELPER
   dumper.registerField(field_id, std::move(field));
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpField(const std::string & field_id) {
-
   this->addDumpFieldToDumper(mesh.getDefaultDumperName(), field_id);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::addDumpFieldVector(const std::string & field_id) {
-
   this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpFieldTensor(const std::string & field_id) {
-
   this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
-
 void Model::setBaseName(const std::string & field_id) {
-
   mesh.setBaseName(field_id);
 }
 /* -------------------------------------------------------------------------- */
@@ -272,8 +277,6 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       UInt spatial_dimension,
                                       ElementKind element_kind,
                                       bool padding_flag) {
-
-#ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
 
   if (!field) {
@@ -307,14 +310,10 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
     DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
     this->addDumpGroupFieldToDumper(field_id, field, dumper);
   }
-
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name) {
-  mesh.dump(dumper_name);
-}
+void Model::dump(const std::string & dumper_name) { mesh.dump(dumper_name); }
 
 /* -------------------------------------------------------------------------- */
 void Model::dump(const std::string & dumper_name, UInt step) {
@@ -322,8 +321,7 @@ void Model::dump(const std::string & dumper_name, UInt step) {
 }
 
 /* ------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name, Real time,
-                             UInt step) {
+void Model::dump(const std::string & dumper_name, Real time, UInt step) {
   mesh.dump(dumper_name, time, step);
 }
 

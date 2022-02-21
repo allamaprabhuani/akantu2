@@ -1,28 +1,31 @@
 /**
  * @file   time_step_solver_default.cc
  *
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Sep 15 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Tue Sep 08 2020
  *
  * @brief  Default implementation of the time step solver
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -45,7 +48,8 @@ TimeStepSolverDefault::TimeStepSolverDefault(
     DOFManager & dof_manager, const TimeStepSolverType & type,
     NonLinearSolver & non_linear_solver, SolverCallback & solver_callback,
     const ID & id)
-    : TimeStepSolver(dof_manager, type, non_linear_solver, solver_callback, id) {
+    : TimeStepSolver(dof_manager, type, non_linear_solver, solver_callback,
+                     id) {
   switch (type) {
   case TimeStepSolverType::_dynamic:
     break;
@@ -61,16 +65,10 @@ TimeStepSolverDefault::TimeStepSolverDefault(
 }
 
 /* -------------------------------------------------------------------------- */
-void TimeStepSolverDefault::setIntegrationSchemeInternal(
+std::unique_ptr<IntegrationScheme>
+TimeStepSolverDefault::getIntegrationSchemeInternal(
     const ID & dof_id, const IntegrationSchemeType & type,
-    IntegrationScheme::SolutionType solution_type) {
-  if (this->integration_schemes.find(dof_id) !=
-      this->integration_schemes.end()) {
-    AKANTU_EXCEPTION("Their DOFs "
-                     << dof_id
-                     << "  have already an integration scheme associated");
-  }
-
+    IntegrationScheme::SolutionType /*solution_type*/) {
   std::unique_ptr<IntegrationScheme> integration_scheme;
   if (this->is_mass_lumped) {
     switch (type) {
@@ -140,6 +138,20 @@ void TimeStepSolverDefault::setIntegrationSchemeInternal(
   AKANTU_DEBUG_ASSERT(integration_scheme,
                       "No integration scheme was found for the provided types");
 
+  return integration_scheme;
+}
+
+/* -------------------------------------------------------------------------- */
+void TimeStepSolverDefault::setIntegrationSchemeInternal(
+    const ID & dof_id, std::unique_ptr<IntegrationScheme> & integration_scheme,
+    IntegrationScheme::SolutionType solution_type) {
+  if (this->integration_schemes.find(dof_id) !=
+      this->integration_schemes.end()) {
+    AKANTU_EXCEPTION("Their DOFs "
+                     << dof_id
+                     << "  have already an integration scheme associated");
+  }
+
   auto && matrices_names = integration_scheme->getNeededMatrixList();
   for (auto && name : matrices_names) {
     needed_matrices.insert({name, _mt_not_defined});
@@ -188,8 +200,6 @@ void TimeStepSolverDefault::predictor() {
 void TimeStepSolverDefault::corrector() {
   AKANTU_DEBUG_IN();
 
-  TimeStepSolver::corrector();
-
   for (auto & pair : this->integration_schemes) {
     const auto & dof_id = pair.first;
     auto & integration_scheme = pair.second;
@@ -218,6 +228,8 @@ void TimeStepSolverDefault::corrector() {
       }
     }
   }
+
+  TimeStepSolver::corrector();
 
   AKANTU_DEBUG_OUT();
 }

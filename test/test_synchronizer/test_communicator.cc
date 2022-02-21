@@ -1,30 +1,34 @@
 /**
  * @file   test_communicator.cc
  *
- * @author Nicolas Richart
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date creation  Thu Feb 21 2019
+ * @date creation: Tue Feb 26 2019
+ * @date last modification:  Tue Nov 17 2020
  *
- * @brief A Documented file.
+ * @brief  Test the communicators
  *
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include <aka_iterators.hh>
 #include <communication_tag.hh>
@@ -92,13 +96,14 @@ TEST(Communicator, ReceiveAny) {
         }
       }
 
-      c.receiveAnyNumber<int>(reqs,
-                              [&](auto && proc, auto && msg) {
-                                EXPECT_EQ(msg[0], sends[proc - 1] + 100 * proc);
-                                EXPECT_LE(proc, sends[proc - 1]);
-                                --nb_recvs;
-                              },
-                              tag);
+      c.receiveAnyNumber<int>(
+          reqs,
+          [&](auto && proc, auto && msg) {
+            EXPECT_EQ(msg[0], sends[proc - 1] + 100 * proc);
+            EXPECT_LE(proc, sends[proc - 1]);
+            --nb_recvs;
+          },
+          tag);
       EXPECT_EQ(nb_recvs, 0);
     } else {
       std::vector<int> recv(size - 1);
@@ -121,13 +126,14 @@ TEST(Communicator, ReceiveAny) {
       }
 
       bool has_recv = false;
-      c.receiveAnyNumber<int>(reqs,
-                              [&](auto && proc, auto && msg) {
-                                EXPECT_EQ(msg[0], recv[rank - 1]);
-                                EXPECT_EQ(proc, 0);
-                                has_recv = true;
-                              },
-                              tag);
+      c.receiveAnyNumber<int>(
+          reqs,
+          [&](auto && proc, auto && msg) {
+            EXPECT_EQ(msg[0], recv[rank - 1]);
+            EXPECT_EQ(proc, 0);
+            has_recv = true;
+          },
+          tag);
 
       bool should_recv = (recv[rank - 1] > 5);
       EXPECT_EQ(has_recv, should_recv);

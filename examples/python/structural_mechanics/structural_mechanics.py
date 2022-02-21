@@ -1,17 +1,27 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+""" structural_mechanics.py: Simple structural mechanics example"""
+
+__author__ = "Nicolas Richart"
+__credits__ = [
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 # # Test of Structural Mechanics
 # In this example a beam, consisting of two elements, three nodes, is created.
 # The left most node is fixed and a force is applied at the right most node.
-import akantu as aka
-import numpy
 import numpy as np
 try:
     import matplotlib.pyplot as plt
     has_matplotlib = True
 except ImportError:
     has_matplotlib = False
+import akantu as aka
 
 # ### Creating the Mesh
 # Create a mesh for the two dimensional case

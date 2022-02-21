@@ -3,6 +3,7 @@
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mauro Corrado <mauro.corrado@epfl.ch>
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
@@ -11,25 +12,27 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue Jul 27 2010
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Implementation of the SolidMechanicsModel class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -46,10 +49,9 @@
 #include "synchronizer_registry.hh"
 
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
-
+/* -------------------------------------------------------------------------- */
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -67,9 +69,11 @@ namespace akantu {
  * @param id an id to identify the model
  * @param model_type this is an internal parameter for inheritance purposes
  */
-SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
-                                         const ModelType model_type)
-    : Model(mesh, model_type, dim, id),
+
+SolidMechanicsModel::SolidMechanicsModel(
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : Model(mesh, model_type, std::move(dof_manager), dim, id),
       material_index("material index", id),
       material_local_numbering("material local numbering", id) {
   AKANTU_DEBUG_IN();
@@ -77,15 +81,11 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);
 
-#if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
-#endif
 
   material_selector = std::make_shared<DefaultMaterialSelector>(material_index);
-
-  this->initDOFManager();
 
   this->registerDataAccessor(*this);
 
@@ -107,9 +107,7 @@ SolidMechanicsModel::~SolidMechanicsModel() = default;
 void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-#if defined(AKANTU_USE_IOHELPER)
-  // this->mesh.getDumper().setTimeStep(time_step);
-#endif
+  this->mesh.getDumper().setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -316,7 +314,7 @@ void SolidMechanicsModel::assembleResidual(const ID & residual_part) {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType SolidMechanicsModel::getMatrixType(const ID & matrix_id) {
+MatrixType SolidMechanicsModel::getMatrixType(const ID & matrix_id) const {
   // \TODO check the materials to know what is the correct answer
   if (matrix_id == "C") {
     return _mt_not_defined;
@@ -416,14 +414,12 @@ void SolidMechanicsModel::assembleInternalForces() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleStiffnessMatrix() {
+void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
 
   // Check if materials need to recompute the matrix
-  bool need_to_reassemble = false;
-
   for (auto & material : materials) {
     need_to_reassemble |= material->hasMatrixChanged("K");
   }
@@ -710,12 +706,11 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const ID & energy_id,
-                                    const ID & group_id) {
+Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
   auto && group = mesh.getElementGroup(group_id);
   auto energy = 0.;
-  for(auto && type : group.elementTypes()) {
-    for(auto el : group.getElementsIterable(type)) {
+  for (auto && type : group.elementTypes()) {
+    for (auto el : group.getElementsIterable(type)) {
       energy += getEnergy(energy_id, el);
     }
   }
@@ -736,8 +731,7 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
                                   _with_nb_element = true,
                                   _default_value = UInt(-1));
   this->material_local_numbering.initialize(
-      mesh,
-      _spatial_dimension = spatial_dimension,
+      mesh, _spatial_dimension = spatial_dimension,
       _element_kind = _ek_not_defined, _with_nb_element = true,
       _default_value = UInt(-1));
 
@@ -990,7 +984,7 @@ void SolidMechanicsModel::splitElementByMaterial(
     const Array<Element> & elements,
     std::vector<Array<Element>> & elements_per_mat) const {
   for (const auto & el : elements) {
-    if(Mesh::getSpatialDimension(el.type) != spatial_dimension) {
+    if (Mesh::getSpatialDimension(el.type) != spatial_dimension) {
       continue;
     }
     Element mat_el = el;
@@ -1059,8 +1053,8 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch (tag) {
   case SynchronizationTag::_material_id: {
-    packElementalDataHelper(
-        material_index, buffer, elements, false, getFEEngine());
+    packElementalDataHelper(material_index, buffer, elements, false,
+                            getFEEngine());
     break;
   }
   case SynchronizationTag::_smm_mass: {

@@ -159,17 +159,16 @@ namespace tuple {
     return tuple.template get<typename Param::hash>();
   }
 
-#if defined(__INTEL_COMPILER)
-// intel warnings here
-#elif defined(__clang__)
+#if !defined(__INTEL_COMPILER)
+#  if defined(__clang__)
 // clang warnings here
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
-#elif (defined(__GNUC__) || defined(__GNUG__))
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
+#  elif (defined(__GNUC__) || defined(__GNUG__))
 // gcc warnings here
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#  endif
   /// this is a GNU exstension
   /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
   template <class CharT, CharT... chars>
@@ -177,13 +176,12 @@ namespace tuple {
     return make_named_tag<std::integral_constant<
         std::size_t, string_literal<CharT, chars...>::hash>>();
   }
-#if defined(__INTEL_COMPILER)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#elif (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic pop
+#  if defined(__clang__)
+#    pragma clang diagnostic pop
+#  elif (defined(__GNUC__) || defined(__GNUG__))
+#    pragma GCC diagnostic pop
+#  endif
 #endif
-
   /* ------------------------------------------------------------------------ */
   namespace details {
     template <std::size_t N> struct Foreach {

@@ -4,25 +4,27 @@
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  * @date creation: Thu Oct 15 2015
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Implementation of class NeighborhoodMaxCriterion
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -39,8 +41,7 @@ NeighborhoodMaxCriterion::NeighborhoodMaxCriterion(
     Model & model, const ElementTypeMapReal & quad_coordinates,
     const ID & criterion_id, const ID & id)
     : NeighborhoodBase(model, quad_coordinates, id),
-      Parsable(ParserType::_non_local, id),
-      is_highest("is_highest", id),
+      Parsable(ParserType::_non_local, id), is_highest("is_highest", id),
       criterion(criterion_id, id) {
 
   AKANTU_DEBUG_IN();

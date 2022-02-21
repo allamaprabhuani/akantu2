@@ -6,25 +6,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Jul 27 2010
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Model of Solid Mechanics
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -84,6 +86,7 @@ protected:
 public:
   SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
+                      std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
@@ -116,7 +119,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// assembles the stiffness matrix,
-  virtual void assembleStiffnessMatrix();
+  virtual void assembleStiffnessMatrix(bool need_to_reassemble = false);
   /// assembles the internal forces in the array internal_forces
   virtual void assembleInternalForces();
 
@@ -126,10 +129,10 @@ protected:
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() override { return true; }
+  bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -212,7 +215,6 @@ public:
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
-  
 protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
@@ -340,9 +342,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// set the value of the time step
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
@@ -471,8 +470,8 @@ public:
   // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
   //                                  material_local_numbering, UInt);
 
-  AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, *material_selector,
-                             MaterialSelector &);
+  AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, material_selector,
+                             std::shared_ptr<MaterialSelector>);
   void
   setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
     this->material_selector = std::move(material_selector);
@@ -560,7 +559,7 @@ protected:
       std::map<std::pair<std::string, ElementKind>,
                std::unique_ptr<ElementTypeMapArray<Real>>>;
 
-  /// map a registered internals to be flattened for dump purposes
+  /// tells if the material are instantiated
   flatten_internal_map registered_internals;
 
   /// non local manager
@@ -570,6 +569,8 @@ protected:
   bool are_materials_instantiated{false};
 
   friend class Material;
+
+  template <class Model_> friend class CouplerSolidContactTemplate;
 };
 
 /* -------------------------------------------------------------------------- */

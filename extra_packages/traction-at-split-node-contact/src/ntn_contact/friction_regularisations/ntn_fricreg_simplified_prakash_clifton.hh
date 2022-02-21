@@ -4,26 +4,28 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Feb 23 2018
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  regularisation that regularizes the frictional strength with one
  * parameter
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -46,31 +48,31 @@ class NTNFricRegSimplifiedPrakashClifton : public NTNFricRegNoRegularisation {
 public:
   NTNFricRegSimplifiedPrakashClifton(
       NTNBaseContact & contact, const ID & id = "simplified_prakash_clifton");
-  virtual ~NTNFricRegSimplifiedPrakashClifton(){};
+  ~NTNFricRegSimplifiedPrakashClifton() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
-  virtual void dumpRestart(const std::string & file_name) const;
-  virtual void readRestart(const std::string & file_name);
+  void registerSynchronizedArray(SynchronizedArrayBase & array) override;
+  void dumpRestart(const std::string & file_name) const override;
+  void readRestart(const std::string & file_name) override;
 
-  virtual void setToSteadyState();
+  void setToSteadyState() override;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// compute frictional strength according to friction law
-  virtual void computeFrictionalStrength();
+  void computeFrictionalStrength() override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-                                    const std::string & field_id);
+  void addDumpFieldToDumper(const std::string & dumper_name,
+                            const std::string & field_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -78,7 +80,7 @@ public:
 public:
 protected:
   /// get the frictional strength array
-  virtual SynchronizedArray<Real> & internalGetFrictionalStrength() {
+  SynchronizedArray<Real> & internalGetFrictionalStrength() override {
     return this->spc_internal;
   };
 

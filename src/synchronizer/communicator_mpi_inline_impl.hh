@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Nov 07 2017
- * @date last modification: Mon Dec 18 2017
+ * @date last modification: Wed Dec 09 2020
  *
  * @brief  StaticCommunicatorMPI implementation
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -159,9 +161,7 @@ namespace {
 /* -------------------------------------------------------------------------- */
 Communicator::Communicator(const private_member & comm)
     : communicator_data(std::make_unique<MPICommunicatorData>(
-          dynamic_cast<const MPIPrivateMember &>(comm).mpi_comm)) {
-}
-
+          dynamic_cast<const MPIPrivateMember &>(comm).mpi_comm)) {}
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
@@ -395,7 +395,7 @@ void Communicator::exclusiveScanImpl(T * values, T * result, int nb_values,
   MPI_Exscan(values, result, nb_values, type, getMPISynchronizerOperation(op),
              communicator);
 
-  if(whoAmI() == 0) {
+  if (whoAmI() == 0) {
     result[0] = T();
   }
 }
@@ -456,8 +456,8 @@ void Communicator::gatherImpl(T * values, int nb_values, T * gathered,
   }
 
   MPI_Datatype type = getMPIDatatype<T>();
-  MPI_Gather(send_buf, nb_values, type, recv_buf, nb_gathered, type,
-             whoAmI(), communicator);
+  MPI_Gather(send_buf, nb_values, type, recv_buf, nb_gathered, type, whoAmI(),
+             communicator);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -517,7 +517,8 @@ Int Communicator::whoAmI() const { return MPIDATA.rank(); }
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getWorldCommunicator() {
   if (not world_communicator) {
-    world_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_WORLD});
+    world_communicator =
+        std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_WORLD});
   }
   return *world_communicator;
 }
@@ -525,7 +526,8 @@ Communicator & Communicator::getWorldCommunicator() {
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getSelfCommunicator() {
   if (not self_communicator) {
-    self_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_SELF});
+    self_communicator =
+        std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_SELF});
   }
   return *self_communicator;
 }

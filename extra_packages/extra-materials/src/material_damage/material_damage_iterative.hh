@@ -95,13 +95,6 @@ public:
                            const Matrix<Real> & rotation_matrix);
 
 protected:
-  inline auto computePrincStrainAndRotMatrix(const Matrix<Real> & sigma,
-                                             const Matrix<Real> & grad_u,
-                                             bool max_strain = true);
-  /// compute smoothening coefficient based on minus delta0 and param K
-  inline Real computeSmoothingFactor(const Real & eps, const Real & sigma_prime,
-                                     const Real & dam, const Real & delta0);
-
   inline UInt updateDamageOnQuad(UInt quad_index, Real /*eq_stress*/,
                                  ElementType el_type, GhostType ghost_type);
 

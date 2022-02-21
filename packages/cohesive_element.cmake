@@ -6,30 +6,31 @@
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
 # @date creation: Tue Oct 16 2012
-# @date last modification: Tue Jan 12 2016
+# @date last modification: Thu Mar 11 2021
 #
 # @brief  package description for cohesive elements
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 package_declare(cohesive_element
   DESCRIPTION "Use cohesive_element package of Akantu"
@@ -114,26 +115,4 @@ package_declare_elements(cohesive_element
 package_declare_material_infos(cohesive_element
   LIST AKANTU_COHESIVE_MATERIAL_LIST
   INCLUDE material_cohesive_includes.hh
-  )
-
-
-package_declare_documentation_files(cohesive_element
-  manual-cohesive_elements.tex
-  manual-cohesive_elements_insertion.tex
-  manual-cohesive_laws.tex
-  manual-appendix-materials-cohesive.tex
-
-  figures/cohesive2d.pdf
-  figures/cohesive_exponential.pdf
-  figures/linear_cohesive_law.pdf
-  figures/bilinear_cohesive_law.pdf
-  )
-
-package_declare_documentation(cohesive_element
-  "This package activates the cohesive elements engine within Akantu."
-  "It depends on:"
-  "\\begin{itemize}"
-  "  \\item A fortran compiler."
-  "  \\item An implementation of BLAS/LAPACK."
-  "\\end{itemize}"
   )

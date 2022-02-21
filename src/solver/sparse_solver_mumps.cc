@@ -1,89 +1,33 @@
 /**
  * @file   sparse_solver_mumps.cc
  *
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Dec 13 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Wed Sep 02 2020
  *
  * @brief  implem of SparseSolverMumps class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * @subsection Ctrl_param Control parameters
- *
- * ICNTL(1),
- * ICNTL(2),
- * ICNTL(3) : output streams for error, diagnostics, and global messages
- *
- * ICNTL(4) : verbose level : 0 no message - 4 all messages
- *
- * ICNTL(5) : type of matrix, 0 assembled, 1 elementary
- *
- * ICNTL(6) : control  the permutation and scaling(default 7)  see mumps doc for
- * more information
- *
- * ICNTL(7) : determine  the pivot  order (default  7) see  mumps doc  for more
- * information
- *
- * ICNTL(8) : describe the scaling method used
- *
- * ICNTL(9) : 1 solve A x = b, 0 solve At x = b
- *
- * ICNTL(10) : number of iterative refinement when NRHS = 1
- *
- * ICNTL(11) : > 0 return statistics
- *
- * ICNTL(12) : only used for SYM = 2, ordering strategy
- *
- * ICNTL(13) :
- *
- * ICNTL(14) : percentage of increase of the estimated working space
- *
- * ICNTL(15-17) : not used
- *
- * ICNTL(18) : only  used if ICNTL(5) = 0, 0 matrix  centralized, 1 structure on
- * host and mumps  give the mapping, 2 structure on  host and distributed matrix
- * for facto, 3 distributed matrix
- *
- * ICNTL(19) : > 0, Shur complement returned
- *
- * ICNTL(20) : 0 rhs dense, 1 rhs sparse
- *
- * ICNTL(21) : 0 solution in rhs, 1 solution distributed in ISOL_loc and SOL_loc
- * allocated by user
- *
- * ICNTL(22) : 0 in-core, 1 out-of-core
- *
- * ICNTL(23) : maximum memory allocatable by mumps pre proc
- *
- * ICNTL(24) : controls the detection of "null pivot rows"
- *
- * ICNTL(25) :
- *
- * ICNTL(26) :
- *
- * ICNTL(27) :
- *
- * ICNTL(28) : 0 automatic choice, 1 sequential analysis, 2 parallel analysis
- *
- * ICNTL(29) : 0 automatic choice, 1 PT-Scotch, 2 ParMetis
  */
 
 /* -------------------------------------------------------------------------- */
@@ -121,8 +65,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SparseSolverMumps::SparseSolverMumps(DOFManagerDefault & dof_manager,
                                      const ID & matrix_id, const ID & id)
-    : SparseSolver(dof_manager, matrix_id, id),
-      dof_manager(dof_manager), master_rhs_solution(0, 1) {
+    : SparseSolver(dof_manager, matrix_id, id), dof_manager(dof_manager),
+      master_rhs_solution(0, 1) {
   AKANTU_DEBUG_IN();
 
   this->prank = communicator.whoAmI();

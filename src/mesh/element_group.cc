@@ -6,26 +6,28 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Mon Jan 22 2018
+ * @date last modification: Wed Dec 09 2020
  *
  * @brief  Stores information relevent to the notion of domain boundary and
  * surfaces.
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -43,9 +45,8 @@
 #include <sstream>
 
 #include "element_group.hh"
-#if defined(AKANTU_USE_IOHELPER)
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 
 namespace akantu {
 
@@ -53,17 +54,14 @@ namespace akantu {
 ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
                            NodeGroup & node_group, UInt dimension,
                            const std::string & id)
-    : mesh(mesh), name(group_name),
-      elements("elements", id), node_group(node_group),
-      dimension(dimension) {
+    : mesh(mesh), name(group_name), elements("elements", id),
+      node_group(node_group), dimension(dimension) {
   AKANTU_DEBUG_IN();
 
-#if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_" + group_name, group_name,
                                        true);
   this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(),
                             _all_dimensions);
-#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -72,9 +70,7 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
 ElementGroup::ElementGroup(const ElementGroup & /*other*/) = default;
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::clear() {
-  elements.free();
-}
+void ElementGroup::clear() { elements.free(); }
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::clear(ElementType type, GhostType ghost_type) {

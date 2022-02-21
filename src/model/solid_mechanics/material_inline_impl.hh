@@ -1,30 +1,36 @@
 /**
  * @file   material_inline_impl.hh
  *
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
+ * @author Enrico Milanese <enrico.milanese@epfl.ch>
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue Jul 27 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Implementation of the inline functions of the class material
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -359,8 +365,8 @@ inline bool Material::isInternal<Real>(const ID & id,
                                        ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
-  return not (internal_array == internal_vectors_real.end() ||
-              internal_array->second->getElementKind() != element_kind);
+  return not(internal_array == internal_vectors_real.end() ||
+             internal_array->second->getElementKind() != element_kind);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -435,10 +441,6 @@ void Material::flattenInternal(const std::string & field_id,
     internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
                         type, ghost_type, T());
 
-    if (nb_element_src == 0) {
-      continue;
-    }
-
     // number of data per element
     UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
 
@@ -449,6 +451,102 @@ void Material::flattenInternal(const std::string & field_id,
     for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
       it_dst[std::get<0>(data)] = std::get<1>(data);
     }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const InternalField<T> &
+Material::getInternal([[gnu::unused]] const ID & int_id) const {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline InternalField<T> &
+Material::getInternal([[gnu::unused]] const ID & int_id) {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalField<Real> &
+Material::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalField<Real> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalField<UInt> &
+Material::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalField<UInt> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                                           GhostType ghost_type) const {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                                     GhostType ghost_type) {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
   }
 }
 

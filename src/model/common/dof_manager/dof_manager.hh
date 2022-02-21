@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Class handling the different types of dofs
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -109,8 +111,7 @@ public:
    **/
   virtual void assembleElementalArrayLocalArray(
       const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-      ElementType type, GhostType ghost_type,
-      Real scale_factor = 1.,
+      ElementType type, GhostType ghost_type, Real scale_factor = 1.,
       const Array<UInt> & filter_elements = empty_filter);
 
   /**
@@ -119,9 +120,8 @@ public:
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalArrayToResidual(
-      const ID & dof_id, const Array<Real> & elementary_vect,
-      ElementType type, GhostType ghost_type,
-      Real scale_factor = 1.,
+      const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
+      GhostType ghost_type, Real scale_factor = 1.,
       const Array<UInt> & filter_elements = empty_filter);
 
   /**
@@ -130,8 +130,8 @@ public:
    */
   virtual void assembleElementalArrayToLumpedMatrix(
       const ID & dof_id, const Array<Real> & elementary_vect,
-      const ID & lumped_mtx, ElementType type,
-      GhostType ghost_type, Real scale_factor = 1.,
+      const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+      Real scale_factor = 1.,
       const Array<UInt> & filter_elements = empty_filter);
 
   /**
@@ -160,9 +160,7 @@ public:
                                                   Real scale_factor = 1) = 0;
 
   /// assemble coupling terms between to dofs
-  virtual void assemblePreassembledMatrix(const ID & dof_id_m,
-                                          const ID & dof_id_n,
-                                          const ID & matrix_id,
+  virtual void assemblePreassembledMatrix(const ID & matrix_id,
                                           const TermsToAssemble & terms) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
@@ -224,16 +222,15 @@ protected:
   /// common function that can be called by derived class with proper matrice
   /// types
   template <typename Mat>
-  void assemblePreassembledMatrix_(Mat & A, const ID & dof_id_m,
-                                   const ID & dof_id_n,
-                                   const TermsToAssemble & terms);
+  void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
-  void assembleElementalMatricesToMatrix_(
-      Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
-      ElementType type, GhostType ghost_type,
-      const MatrixType & elemental_matrix_type,
-      const Array<UInt> & filter_elements);
+  void
+  assembleElementalMatricesToMatrix_(Mat & A, const ID & dof_id,
+                                     const Array<Real> & elementary_mat,
+                                     ElementType type, GhostType ghost_type,
+                                     const MatrixType & elemental_matrix_type,
+                                     const Array<UInt> & filter_elements);
 
   template <typename Vec>
   void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
@@ -267,6 +264,12 @@ public:
 
   /// get the array of dof types (use only if you know what you do...)
   inline NodeFlag getDOFFlag(Int local_id) const;
+
+  /// defines if the boundary changed
+  bool hasBlockedDOFsChanged() const {
+    return this->global_blocked_dofs_release !=
+           this->previous_global_blocked_dofs_release;
+  }
 
   /// Global number of dofs
   AKANTU_GET_MACRO(SystemSize, this->system_size, UInt);
@@ -376,8 +379,8 @@ protected:
   NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
                                             const NonLinearSolverType & type) {
     ID non_linear_solver_id = this->id + ":nls:" + id;
-    std::unique_ptr<NonLinearSolver> nls = std::make_unique<NLSType>(
-        dm, type, non_linear_solver_id);
+    std::unique_ptr<NonLinearSolver> nls =
+        std::make_unique<NLSType>(dm, type, non_linear_solver_id);
     return this->registerNonLinearSolver(non_linear_solver_id, nls);
   }
 
@@ -387,9 +390,8 @@ protected:
                                           NonLinearSolver & non_linear_solver,
                                           SolverCallback & solver_callback) {
     ID time_step_solver_id = this->id + ":tss:" + id;
-    std::unique_ptr<TimeStepSolver> tss =
-        std::make_unique<TSSType>(dm, type, non_linear_solver, solver_callback,
-                                  time_step_solver_id);
+    std::unique_ptr<TimeStepSolver> tss = std::make_unique<TSSType>(
+        dm, type, non_linear_solver, solver_callback, time_step_solver_id);
     return this->registerTimeStepSolver(time_step_solver_id, tss);
   }
 
@@ -706,10 +708,8 @@ private:
   friend class DOFManagerTester;
 };
 
-using DefaultDOFManagerFactory =
-    Factory<DOFManager, ID, const ID &>;
-using DOFManagerFactory =
-    Factory<DOFManager, ID, Mesh &, const ID &>;
+using DefaultDOFManagerFactory = Factory<DOFManager, ID, const ID &>;
+using DOFManagerFactory = Factory<DOFManager, ID, Mesh &, const ID &>;
 
 } // namespace akantu
 

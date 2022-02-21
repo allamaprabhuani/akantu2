@@ -217,7 +217,7 @@ boundary conditions.
    phase.initFull(_analysis_method = _static);
 
  
-The whole proces of coupling the two models at a given time step is
+The whole process of coupling the two models at a given time step is
 made easy by the :cpp:func:`solve <akantu::CouplerSolidPhaseField::solve>`
 function of coupler class.
 

@@ -1,3 +1,34 @@
+/**
+ * @file   test_finite_deformation.cc
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Mon Nov 11 2019
+ * @date last modification:  Wed May 27 2020
+ *
+ * @brief  Test for dinite deformation
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
@@ -6,7 +37,6 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-
 
 TEST(TestFiniteDeformation, NotUnit) {
   getStaticParser().parse("material_finite_deformation.dat");
@@ -34,18 +64,18 @@ TEST(TestFiniteDeformation, NotUnit) {
 
   auto impose_disp = [&] {
     model.getDisplacement().zero();
-    for (auto data :  zip(make_view(mesh.getNodes(), dim),
-                          make_view(model.getDisplacement(), dim),
-                          make_view(model.getBlockedDOFs(), dim))) {
+    for (auto data : zip(make_view(mesh.getNodes(), dim),
+                         make_view(model.getDisplacement(), dim),
+                         make_view(model.getBlockedDOFs(), dim))) {
       auto & pos = std::get<0>(data);
       auto & dis = std::get<1>(data);
       auto & blocked = std::get<2>(data);
 
       blocked.set(true);
-      
+
       dis += Vector<Real>(alpha(0));
       for (auto p : arange(dim)) {
-        dis += Vector<Real>(alpha(1+p)) * pos(p);
+        dis += Vector<Real>(alpha(1 + p)) * pos(p);
       }
     }
   };
@@ -88,23 +118,22 @@ TEST(TestFiniteDeformation, NotUnit) {
 
     refdis += Vector<Real>(alpha(0));
     for (auto p : arange(dim)) {
-      refdis += Vector<Real>(alpha(1+p)) * pos(p);
+      refdis += Vector<Real>(alpha(1 + p)) * pos(p);
     }
 
     auto dis = std::get<1>(data);
     auto dis0 = std::get<2>(data);
 
     auto err = refdis.distance(dis0);
-    EXPECT_NEAR(err, 0,  1e-14);
+    EXPECT_NEAR(err, 0, 1e-14);
 
     auto err1 = dis.distance(R * (pos + dis0) - pos);
-    EXPECT_NEAR(err1, 0,  1e-14);
+    EXPECT_NEAR(err1, 0, 1e-14);
 
     auto f = std::get<3>(data);
     auto f0 = std::get<4>(data);
 
     auto err3 = f.distance(R * f0);
-    EXPECT_NEAR(err3, 0,  1e-5);
-
+    EXPECT_NEAR(err3, 0, 1e-5);
   }
 }

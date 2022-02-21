@@ -1,0 +1,11 @@
+graft src
+graft examples
+graft test
+graft cmake
+graft doc
+graft third-party/akantu_iterators
+graft third-party/iohelper
+graft third-party/cmake
+recursive-include python *.txt *.cc *.hh
+
+include CMakeLists.txt COPYING COPYING.lesser versioneer.py README.md

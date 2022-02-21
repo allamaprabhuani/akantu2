@@ -1,31 +1,37 @@
 /**
  * @file   element_class_triangle_3_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jul 16 2010
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Fri Dec 11 2020
  *
  * @brief  Specialization of the element_class class for the type _triangle_3
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
+ */
+
+/**
  * @verbatim
        \eta
      ^
@@ -49,6 +55,7 @@
  * \xi_{q0}  &=& 1/3 \qquad  \eta_{q0} = 1/3
  * @f}
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */
@@ -103,6 +110,14 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
+inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
+    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+  d2nds2.zero();
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
     const Matrix<Real> & J, Real & jac) {
@@ -139,13 +154,7 @@ namespace {
 template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-
-  const Vector<Real> coord1 = coord(0);
-  const Vector<Real> coord2 = coord(1);
-  const Vector<Real> coord3 = coord(2);
-
-  auto inradius = details::triangle_inradius(coord1, coord2, coord3);
-  return 2. * inradius;
+  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2));
 }
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

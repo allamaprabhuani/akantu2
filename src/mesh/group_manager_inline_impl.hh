@@ -6,26 +6,28 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Sun Dec 03 2017
+ * @date last modification: Tue Mar 03 2020
  *
  * @brief  Stores information relevent to the notion of domain boundary and
  * surfaces.
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -34,7 +36,7 @@
 #include "dumper_field.hh"
 #include "element_group.hh"
 #include "element_type_map_filter.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_nodal_field.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -112,6 +114,7 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
   if (field_ptr == nullptr) {
     return nullptr;
   }
+
   if (group_name != "all") {
     throw;
   }
@@ -137,7 +140,7 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalFilteredField(
     throw;
   }
 
-  using T = typename field_type::type;
+  using T = typename field_type::value_type;
   ElementGroup & group = this->getElementGroup(group_name);
   UInt dim = group.getDimension();
   if (dim != spatial_dimension) {
@@ -191,5 +194,3 @@ GroupManager::createStridedNodalField(const ftype<type, flag> * field,
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu
-
-#endif

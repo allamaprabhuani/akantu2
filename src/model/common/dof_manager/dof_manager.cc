@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Sat Mar 06 2021
  *
  * @brief  Implementation of the common parts of the DOFManagers
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -51,8 +53,7 @@ DOFManager::DOFManager(const ID & id)
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(Mesh & mesh, const ID & id)
-    : id(id), mesh(&mesh),
-      dofs_flag(0, 1, std::string(id + ":dofs_type")),
+    : id(id), mesh(&mesh), dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
       communicator(mesh.getCommunicator()) {
   this->mesh->registerEventHandler(*this, _ehp_dof_manager);
@@ -131,8 +132,8 @@ void DOFManager::assembleElementalArrayLocalArray(
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
-    const ID & dof_id, const Array<Real> & elementary_vect,
-    ElementType type, GhostType ghost_type, Real scale_factor,
+    const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
+    GhostType ghost_type, Real scale_factor,
     const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -156,9 +157,8 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type,
-    GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -355,7 +355,9 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
         dofs_array.size() * dofs_array.getNbComponent();
     break;
   }
-  default: { AKANTU_EXCEPTION("This type of dofs is not handled yet."); }
+  default: {
+    AKANTU_EXCEPTION("This type of dofs is not handled yet.");
+  }
   }
 
   dof_data.local_nb_dofs = nb_local_dofs;
@@ -953,7 +955,7 @@ void DOFManager::updateGlobalBlockedDofs() {
       this->global_blocked_dofs_release;
 
   for (auto & pair : dofs) {
-    if (!this->hasBlockedDOFs(pair.first)) {
+    if (not this->hasBlockedDOFs(pair.first)) {
       continue;
     }
 
@@ -988,12 +990,7 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
   auto & J = this->getMatrix(matrix_id);
 
   if (this->jacobian_release == J.getRelease()) {
-    auto are_equal = this->global_blocked_dofs_release ==
-                     this->previous_global_blocked_dofs_release;
-    // std::equal(global_blocked_dofs.begin(), global_blocked_dofs.end(),
-    //           previous_global_blocked_dofs.begin());
-
-    if (not are_equal) {
+    if (this->hasBlockedDOFsChanged()) {
       J.applyBoundary();
     }
 
@@ -1003,6 +1000,8 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
   }
 
   this->jacobian_release = J.getRelease();
+  this->previous_global_blocked_dofs_release =
+      this->global_blocked_dofs_release;
 }
 
 /* -------------------------------------------------------------------------- */

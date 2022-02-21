@@ -8,25 +8,27 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Mon Feb 19 2018
+ * @date last modification: Thu Nov 12 2020
  *
  * @brief  the class representing the meshes
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -106,8 +108,7 @@ class Mesh : public EventHandlerManager<MeshEventHandler>,
 private:
   /// default constructor used for chaining, the last parameter is just to
   /// differentiate constructors
-  Mesh(UInt spatial_dimension, const ID & id,
-       Communicator & communicator);
+  Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator);
 
 public:
   /// constructor that create nodes coordinates array
@@ -262,12 +263,16 @@ public:
 
 public:
   void getAssociatedElements(const Array<UInt> & node_list,
-                             Array<Element> & elements);
+                             Array<Element> & elements) const;
+
+  void getAssociatedElements(const UInt & node,
+                             Array<Element> & elements) const;
+
+public:
+  /// fills the nodes_to_elements for given dimension elements
+  void fillNodesToElements(UInt dimension = _all_dimensions);
 
 private:
-  /// fills the nodes_to_elements structure
-  void fillNodesToElements();
-
   /// update the global ids, nodes type, ...
   std::tuple<UInt, UInt> updateGlobalData(NewNodesEvent & nodes_event,
                                           NewElementsEvent & elements_event);
@@ -384,9 +389,8 @@ public:
   const auto & getSubelementToElement() const;
 
   /// get the subelement connected to an element
-  const auto &
-  getSubelementToElement(ElementType el_type,
-                         GhostType ghost_type = _not_ghost) const;
+  const auto & getSubelementToElement(ElementType el_type,
+                                      GhostType ghost_type = _not_ghost) const;
 
   /// get the subelement (element of lower dimension) connected to a element
   VectorProxy<Element> getSubelementToElement(const Element & element) const;
@@ -401,7 +405,8 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline VectorProxy<Element> getSubelementToElementNC(const Element & element);
+  inline VectorProxy<Element>
+  getSubelementToElementNC(const Element & element) const;
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
@@ -486,6 +491,9 @@ public:
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(ElementType type);
 
+  /// get the natural space dimension of a type of element
+  static inline UInt getNaturalSpaceDimension(const ElementType & type);
+
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(ElementType type);
 
@@ -515,8 +523,7 @@ public:
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
 
-  using type_iterator [[deprecated]] =
-      ElementTypeMapArray<UInt, ElementType>::type_iterator;
+  using type_iterator = ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;
 

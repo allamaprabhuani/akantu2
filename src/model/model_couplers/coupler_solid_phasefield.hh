@@ -1,29 +1,30 @@
 /**
- * @file   solid_phase_coupler.hh
+ * @file   coupler_solid_phasefield.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Fri Sep 28 2018
- * @date last modification: Fri Sep 28 2018
+ * @date creation: Mon Jun 24 2019
+ * @date last modification: Wed Jun 23 2021
  *
  * @brief  class for coupling of solid mechancis and phasefield model
  *
+ *
  * @section LICENSE
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -70,9 +71,9 @@ class CouplerSolidPhaseField
 
 public:
   CouplerSolidPhaseField(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+      Mesh & mesh, UInt dim = _all_dimensions,
       const ID & id = "coupler_solid_phasefield",
-      const ModelType model_type = ModelType::_coupler_solid_phasefield);
+      ModelType model_type = ModelType::_coupler_solid_phasefield);
 
   ~CouplerSolidPhaseField() override;
 
@@ -103,7 +104,7 @@ public:
 public:
   /// computes damage on quad points for solid mechanics model from
   /// damage array from phasefield model
-  void computeDamageOnQuadPoints(const GhostType &);
+  void computeDamageOnQuadPoints(const GhostType & /*ghost_type*/);
 
   /// computes strain on quadrature points for phasefield model from
   /// displacement gradient from solid mechanics model
@@ -117,8 +118,8 @@ private:
   void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
 
   /// test the convergence criteria
-  bool checkConvergence(Array<Real> &, Array<Real> &, Array<Real> &,
-                        Array<Real> &);
+  bool checkConvergence(Array<Real> & /*u_new*/, Array<Real> & /*u_old*/,
+                        Array<Real> & /*d_new*/, Array<Real> & /*d_old*/);
 
 protected:
   /// callback for the solver, this adds f_{ext} - f_{int} to the residual
@@ -126,10 +127,10 @@ protected:
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() override { return true; }
+  bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -138,8 +139,9 @@ protected:
   void assembleLumpedMatrix(const ID & matrix_id) override;
 
   /// callback for the model to instantiate the matricess when needed
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
-  
+  void initSolver(TimeStepSolverType /*time_step_solver_type*/,
+                  NonLinearSolverType /*non_linear_solver_type*/) override;
+
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
 
@@ -151,14 +153,15 @@ protected:
 
   /// callback for the solver, this is called at end of solve
   void afterSolveStep(bool converged = true) override;
-  
+
   /// solve the coupled model
-  //void solveStep(const ID & solver_id = "") override;
+  // void solveStep(const ID & solver_id = "") override;
 
   /// solve a step using a given pre instantiated time step solver and
   /// non linear solver with a user defined callback instead of the
   /// model itself /!\ This can mess up everything
-  //void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
+  // void solveStep(SolverCallback & callback, const ID & solver_id = "")
+  // override;
 
   /* ------------------------------------------------------------------------ */
   /* Mass matrix for solid mechanics model                                    */
@@ -192,29 +195,33 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
-  
-  UInt getNbData(const Array<Element> &,
-                 const SynchronizationTag &) const override {
+
+  UInt getNbData(const Array<Element> & /*elements*/,
+                 const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer &, const Array<Element> &,
-                const SynchronizationTag &) const override {}
-  void unpackData(CommunicationBuffer &, const Array<Element> &,
-  const SynchronizationTag &) override {}
-  
+  void packData(CommunicationBuffer & /*buffer*/,
+                const Array<Element> & /*element*/,
+                const SynchronizationTag & /*tag*/) const override {}
+  void unpackData(CommunicationBuffer & /*buffer*/,
+                  const Array<Element> & /*element*/,
+                  const SynchronizationTag & /*tag*/) override {}
+
   UInt getNbData(__attribute__((unused)) const Array<UInt> & indexes,
-                 __attribute__((unused)) const SynchronizationTag & tag) const override {
+                 __attribute__((unused))
+                 const SynchronizationTag & tag) const override {
     return 0;
   }
 
   void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-		__attribute__((unused)) const Array<UInt> & dofs,
-                __attribute__((unused)) const SynchronizationTag & tag) const override{}
+                __attribute__((unused)) const Array<UInt> & dofs,
+                __attribute__((unused))
+                const SynchronizationTag & tag) const override {}
 
   void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-		  __attribute__((unused)) const Array<UInt> & dofs,
-                  __attribute__((unused)) const SynchronizationTag & tag) override {}
-  
+                  __attribute__((unused)) const Array<UInt> & dofs,
+                  __attribute__((unused))
+                  const SynchronizationTag & tag) override {}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -226,9 +233,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
-
   /// get the solid mechanics model
   AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
 
@@ -252,20 +256,19 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension,
-                       ElementKind kind) override;
+                       UInt spatial_dimension, ElementKind kind) override;
 
-  virtual void dump(const std::string & dumper_name) override;
+  void dump(const std::string & dumper_name) override;
 
-  virtual void dump(const std::string & dumper_name, UInt step) override;
+  void dump(const std::string & dumper_name, UInt step) override;
 
-  virtual void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Real time, UInt step) override;
 
   void dump() override;
 
-  virtual void dump(UInt step) override;
+  void dump(UInt step) override;
 
-  virtual void dump(Real time, UInt step) override;
+  void dump(Real time, UInt step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */

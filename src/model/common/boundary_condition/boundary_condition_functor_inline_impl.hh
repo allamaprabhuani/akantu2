@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri May 03 2013
- * @date last modification: Mon Feb 19 2018
+ * @date last modification: Sat Dec 22 2018
  *
  * @brief  implementation of the BC::Functors
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -38,32 +40,26 @@
 /* -------------------------------------------------------------------------- */
 #define DIRICHLET_SANITY_CHECK                                                 \
   AKANTU_DEBUG_ASSERT(                                                         \
-      coord.size() <= flags.size(),                                            \
-      "The coordinates and flags vectors given to the boundary"                \
-          << " condition functor have different sizes!");                      \
-  AKANTU_DEBUG_ASSERT(                                                         \
-      primal.size() <= coord.size(),                                           \
-      "The primal vector and coordinates vector given"                         \
+      primal.size() <= flags.size(),                                           \
+      "The primal vector and flags vectors given"                              \
           << " to the boundary condition functor have different sizes!");
 
 #define NEUMANN_SANITY_CHECK                                                   \
   AKANTU_DEBUG_ASSERT(                                                         \
       coord.size() <= normals.size(),                                          \
       "The coordinates and normals vectors given to the"                       \
-          << " boundary condition functor have different sizes!");             \
-  AKANTU_DEBUG_ASSERT(                                                         \
-      dual.size() <= coord.size(),                                             \
-      "The dual vector and coordinates vector given to"                        \
-          << " the boundary condition functor have different sizes!");
+          << " boundary condition functor have different sizes!");
 
 namespace akantu {
 namespace BC {
   /* ---------------------------------------------------------------------- */
   namespace Dirichlet {
-    inline void FlagOnly::
-    operator()(__attribute__((unused)) UInt node, Vector<bool> & flags,
-               __attribute__((unused)) Vector<Real> & primal,
-               __attribute__((unused)) const Vector<Real> & coord) const {
+    inline void FlagOnly::operator()(__attribute__((unused)) UInt node,
+                                     Vector<bool> & flags,
+                                     __attribute__((unused))
+                                     Vector<Real> & primal,
+                                     __attribute__((unused))
+                                     const Vector<Real> & coord) const {
 
       DIRICHLET_SANITY_CHECK;
 
@@ -119,11 +115,10 @@ namespace BC {
   /* ------------------------------------------------------------------------ */
 
   namespace Neumann {
-    inline void FreeBoundary::
-    operator()(__attribute__((unused)) const IntegrationPoint & quad_point,
-               Vector<Real> & dual,
-               __attribute__((unused)) const Vector<Real> & coord,
-               __attribute__((unused)) const Vector<Real> & normals) const {
+    inline void FreeBoundary::operator()(
+        __attribute__((unused)) const IntegrationPoint & quad_point,
+        Vector<Real> & dual, __attribute__((unused)) const Vector<Real> & coord,
+        __attribute__((unused)) const Vector<Real> & normals) const {
       for (UInt i(0); i < dual.size(); ++i) {
         dual(i) = 0.0;
       }
@@ -140,11 +135,10 @@ namespace BC {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void FromSameDim::
-    operator()(__attribute__((unused)) const IntegrationPoint & quad_point,
-               Vector<Real> & dual,
-               __attribute__((unused)) const Vector<Real> & coord,
-               __attribute__((unused)) const Vector<Real> & normals) const {
+    inline void FromSameDim::operator()(
+        __attribute__((unused)) const IntegrationPoint & quad_point,
+        Vector<Real> & dual, __attribute__((unused)) const Vector<Real> & coord,
+        __attribute__((unused)) const Vector<Real> & normals) const {
       dual = this->bc_data;
     }
   } // namespace Neumann

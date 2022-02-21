@@ -5,32 +5,34 @@
 # @author Lucas Frerot <lucas.frerot@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date creation: Fri Sep 03 2010
-# @date last modification: Fri Jan 26 2018
+# @date creation: Sun Oct 19 2014
+# @date last modification:  Tue Jun 30 2020
 #
 # @brief  configuration for FEM tests
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
+# 
 # Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 # @section DESCRIPTION
 #
 #===============================================================================
+
 
 #===============================================================================
 function(register_fem_test operation type)
@@ -47,19 +49,24 @@ endfunction()
 #===============================================================================
 macro(register_mesh_types package)
   package_get_element_types(${package} _types)
-
   foreach(_type ${_types})
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
       list(APPEND _meshes ${_type}.msh)
     else()
       if(NOT ${_type} STREQUAL _point_1)
-	message("The mesh ${_type}.msh is missing, the fe_engine test cannot be activated without it")
+        message("The mesh ${_type}.msh is missing, the fe_engine test cannot be activated without it")
       endif()
+    endif()
+
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.csv)
+      list(APPEND _csvs ${_type}.csv)
     endif()
   endforeach()
 endmacro(register_mesh_types)
 
 set(_meshes)
+set(_csvs)
+
 register_mesh_types(core)
 
 package_is_activated(structural_mechanics has_structural_mechanics)
@@ -97,6 +104,7 @@ register_gtest_sources(
   SOURCES test_fe_engine_precomputation.cc
   PACKAGE core python_interface
   INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/python
+  FILES_TO_COPY
   )
 
 register_gtest_sources(
@@ -104,6 +112,10 @@ register_gtest_sources(
   PACKAGE structural_mechanics
 )
 
+register_gtest_sources(
+  SOURCES test_fe_engine_inradius.cc
+  PACKAGE core
+  )
 
 register_gtest_sources(
   SOURCES test_fe_engine_gauss_integration.cc
@@ -126,4 +138,5 @@ register_gtest_sources(
   )
 
 register_gtest_test(test_fe_engine
-  FILES_TO_COPY ${_meshes})
+  FILES_TO_COPY ${_meshes} ${_csvs}
+  )

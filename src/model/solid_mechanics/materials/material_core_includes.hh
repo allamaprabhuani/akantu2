@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Feb 21 2013
- * @date last modification: Wed Feb 03 2016
+ * @date last modification: Thu Mar 11 2021
  *
  * @brief  List of materials for core package
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -50,11 +52,17 @@
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 
-//phasefield laws
+// phasefield laws
 #include "material_phasefield.hh"
 
 // small-deformation plasticity
 #include "material_linear_isotropic_hardening.hh"
+
+// Drucker-Prager plasticity
+#include "material_drucker_prager.hh"
+
+// von-mises plasticity with damage
+#include "material_von_mises_mazars.hh"
 
 #endif
 
@@ -66,6 +74,8 @@
       (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
       (2, (plastic_linear_isotropic_hardening,                                 \
            MaterialLinearIsotropicHardening)))(                                \
-      (2, (phasefield, MaterialPhaseField)))					       
+      (2, (plastic_drucker_prager, MaterialDruckerPrager)))(                   \
+      (2, (plastic_mazars, MaterialVonMisesMazars)))(                          \
+      (2, (phasefield, MaterialPhaseField)))
 
 #endif /* AKANTU_MATERIAL_CORE_INCLUDES_HH_ */

@@ -1,28 +1,31 @@
 /**
  * @file   model_solver.hh
  *
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Jan 31 2018
+ * @date last modification: Fri May 14 2021
  *
  * @brief  Class regrouping the common solve interface to the different models
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -58,12 +61,20 @@ class ModelSolver : public Parsable,
   /* ------------------------------------------------------------------------ */
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
+  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
+              std::shared_ptr<DOFManager> dof_manager);
+
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
-  void initDOFManager();
+  std::shared_ptr<DOFManager> initDOFManager();
   /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ID & solver_type);
+  std::shared_ptr<DOFManager> initDOFManager(const ID & solver_type);
+
+protected:
+  /// initialize the dof manager based on the used chosen solver type
+  std::shared_ptr<DOFManager> initDOFManager(const ParserSection & section,
+                                             const ID & solver_type);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -77,9 +88,8 @@ public:
   /// model
   std::tuple<ParserSection, bool> getParserSection();
 
-  
   /// solve a step using a given pre instantiated time step solver and
-  /// nondynamic linear solver
+  /// non linear solver
   virtual void solveStep(const ID & solver_id = "");
 
   /// solve a step using a given pre instantiated time step solver and
@@ -100,14 +110,11 @@ public:
                            IntegrationScheme::_not_defined);
 
   /// set an externally instantiated integration scheme
-  void setIntegrationScheme(const ID & solver_id, const ID & dof_id,
-                            IntegrationScheme & integration_scheme,
-                            IntegrationScheme::SolutionType solution_type =
-                                IntegrationScheme::_not_defined);
-
-protected:
-  /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ParserSection & section, const ID & solver_type);
+  void
+  setIntegrationScheme(const ID & solver_id, const ID & dof_id,
+                       std::unique_ptr<IntegrationScheme> & integration_scheme,
+                       IntegrationScheme::SolutionType solution_type =
+                           IntegrationScheme::_not_defined);
 
   /* ------------------------------------------------------------------------ */
   /* SolverCallback interface                                                 */
@@ -173,14 +180,14 @@ private:
 protected:
   ModelType model_type;
 
+  /// Underlying dof_manager (the brain...)
+  std::shared_ptr<DOFManager> dof_manager;
+
 private:
   ID parent_id;
 
   /// Underlying mesh
   Mesh & mesh;
-
-  /// Underlying dof_manager (the brain...)
-  std::unique_ptr<DOFManager> dof_manager;
 
   /// Default time step solver to use
   ID default_solver_id;

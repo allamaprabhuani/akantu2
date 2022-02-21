@@ -4,30 +4,31 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Fri Sep 03 2010
-# @date last modification: Fri Jan 22 2016
+# @date last modification: Tue Jun 30 2020
 #
 # @brief  macros for tests
 #
+#
 # @section LICENSE
 #
-# Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
-# Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
-# Solides)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 #[=======================================================================[.rst:
 AkantuTestsMacros
@@ -334,8 +335,7 @@ endfunction()
 
 # ==============================================================================
 function(akantu_pybind11_add_module target)
-  package_is_activated(pybind11 _pybind11_act)
-  if(_pybind11_act)
+  if(pybind11_FOUND)
     package_get_all_external_informations(
       INTERFACE_INCLUDE AKANTU_INTERFACE_EXTERNAL_INCLUDE_DIR
       )
@@ -549,10 +549,10 @@ function(register_test test_name)
     elseif(CMAKE_VERSION VERSION_GREATER "3.0")
       set(_procs)
       if(MPIEXEC_MAX_NUMPROCS)
-	set(N MPIEXEC_MAX_NUMPROCS)
+        set(N MPIEXEC_MAX_NUMPROCS)
       else()
-	include(ProcessorCount)
-	ProcessorCount(N)
+        include(ProcessorCount)
+        ProcessorCount(N)
       endif()
       
       while(N GREATER 1)
@@ -578,6 +578,10 @@ function(register_test test_name)
 
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
     list(APPEND _arguments -r "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
+  endif()
+
+  if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
+    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
   string(REPLACE ";" " " _command "${_arguments}")

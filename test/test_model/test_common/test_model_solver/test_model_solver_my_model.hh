@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Apr 13 2016
- * @date last modification: Tue Feb 20 2018
+ * @date last modification:  Fri Jun 26 2020
  *
  * @brief  Test default dof manager
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -67,8 +69,11 @@ public:
         internal_forces(nb_dofs, 1, "force_int"),
         stresses(nb_elements, 1, "stress"), strains(nb_elements, 1, "strain"),
         initial_lengths(nb_elements, 1, "L0") {
-    this->initBC(*this, displacement, forces);
+
     this->initDOFManager(dof_manager_type);
+
+    this->initBC(*this, displacement, forces);
+
     this->getDOFManager().registerDOFs("disp", displacement, _dst_nodal);
     this->getDOFManager().registerDOFsDerivative("disp", 1, velocity);
     this->getDOFManager().registerDOFsDerivative("disp", 2, acceleration);
@@ -193,7 +198,7 @@ public:
     is_mass_assembled = true;
   }
 
-  MatrixType getMatrixType(const ID &) override { return _symmetric; }
+  MatrixType getMatrixType(const ID &) const override { return _symmetric; }
 
   void assembleMatrix(const ID & matrix_id) override {
     if (matrix_id == "K") {

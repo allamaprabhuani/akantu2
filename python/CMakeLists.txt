@@ -1,33 +1,37 @@
-
 #===============================================================================
 # @file   CMakeLists.txt
 #
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Fri Dec 12 2014
-# @date last modification: Mon Jan 18 2016
+# @date last modification: Fri May 07 2021
 #
 # @brief  CMake file for the python wrapping of akantu
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
-# (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
+set(PYBIND11_PYTHON_VERSION ${AKANTU_PREFERRED_PYTHON_VERSION} CACHE INTERNAL "")
+
 if(NOT SKBUILD)
   package_get_all_include_directories(
     AKANTU_LIBRARY_INCLUDE_DIRS
@@ -45,27 +49,22 @@ set(PYAKANTU_SRCS
   py_aka_error.cc
   py_akantu.cc
   py_boundary_conditions.cc
+  py_dof_manager.cc
   py_fe_engine.cc
   py_group_manager.cc
   py_mesh.cc
   py_model.cc
   py_parser.cc
   py_solver.cc
+  py_dumpable.cc
   )
-
-package_is_activated(iohelper _is_activated)
-if (_is_activated)
-  list(APPEND PYAKANTU_SRCS
-    py_dumpable.cc
-    )
-endif()
-
 
 package_is_activated(solid_mechanics _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS
     py_solid_mechanics_model.cc
     py_material.cc
+    py_material_selector.cc
     )
 endif()
 
@@ -84,6 +83,15 @@ if (_is_activated)
     )
 endif()
 
+
+package_is_activated(contact_mechanics _is_activated)
+if(_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_contact_mechanics_model.cc
+    py_model_couplers.cc
+    )
+endif()
+
 package_is_activated(phase_field _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS
@@ -91,7 +99,6 @@ if (_is_activated)
     )
 endif()
 
-    
 package_is_activated(structural_mechanics _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS
@@ -106,7 +113,7 @@ target_include_directories(py11_akantu
   SYSTEM BEFORE
   PRIVATE ${PYBIND11_INCLUDE_DIR}
   PRIVATE ${pybind11_INCLUDE_DIR}
-  PRIVATE ${PYTHON_INCLUDE_DIRS})
+  PRIVATE ${Python_INCLUDE_DIRS})
 
 target_link_libraries(py11_akantu PUBLIC akantu)
 set_target_properties(py11_akantu PROPERTIES
@@ -115,11 +122,16 @@ set_target_properties(py11_akantu PROPERTIES
 
 file(COPY akantu DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+if(NOT Python_MAJOR)
+  set(Python_VERSION_MAJOR ${PYTHON_VERSION_MAJOR})
+  set(Python_VERSION_MINOR ${PYTHON_VERSION_MINOR})
+endif()
+
 if(NOT SKBUILD)
   set(_python_install_dir
-    ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+    ${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/akantu)
 else()
-  set(_python_install_dir .)
+  set(_python_install_dir python/akantu)
 endif()
 
 install(TARGETS py11_akantu

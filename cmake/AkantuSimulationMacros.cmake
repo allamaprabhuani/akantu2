@@ -5,31 +5,31 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Mon Jan 18 2016
-# @date last modification: Wed Jan 20 2016
+# @date last modification: Wed Aug 14 2019
 #
 # @brief  macros for examples
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
-# (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
-#
-# @section DESCRIPTION
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 if(__AKANTU_SIMULATION_MACROS)
   return()
@@ -102,13 +102,13 @@ function(_add_akantu_simulation simulation_name)
         ${_simulation_UNPARSED_ARGUMENTS} ${_simulation_SOURCES})
 
       target_link_libraries(${simulation_name}
-	PRIVATE akantu ${_simulation_LIBRARIES})
+        PRIVATE akantu ${_simulation_LIBRARIES})
 
       target_include_directories(${simulation_name}
-	PRIVATE
-	  ${AKANTU_INCLUDE_DIRS}
-	  ${_boost_include_dir}
-	  ${_simulation_INCLUDE_DIRS})
+        PRIVATE
+        ${AKANTU_INCLUDE_DIRS}
+        ${_boost_include_dir}
+        ${_simulation_INCLUDE_DIRS})
 
       if(_simulation_DEPENDS)
         foreach(_deps ${_simulation_DEPENDS})
@@ -135,11 +135,11 @@ function(_add_akantu_simulation simulation_name)
 
     if(_simulation_SCRIPT)
       add_custom_target(${simulation_name} ALL
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_simulation_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${_simulation_SCRIPT}
-	DEPENDS ${_simulation_SCRIPT}
-	)
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_simulation_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${_simulation_SCRIPT}
+        DEPENDS ${_simulation_SCRIPT}
+        )
       
 
       if(_simulation_DEPENDS)
@@ -172,7 +172,7 @@ function(_add_akantu_simulation simulation_name)
     foreach(_file ${_simulation_SCRIPT} ${_simulation_SOURCES}
       ${_simulation_UNPARSED_ARGUMENTS} ${_simulation_FILES_TO_COPY})
       list(APPEND _simulation_files ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
-      endforeach()
+    endforeach()
 
     foreach(_dep ${_simulation_DEPENDS})
       get_target_list_of_associated_files(${_dep} _dep_ressources)

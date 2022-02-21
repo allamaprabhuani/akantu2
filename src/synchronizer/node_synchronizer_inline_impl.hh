@@ -1,33 +1,37 @@
 /**
  * @file   node_synchronizer_inline_impl.hh
  *
- * @author Nicolas Richart
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date creation  mar jan 14 2020
+ * @date creation: Thu Feb 21 2013
+ * @date last modification: Wed Mar 04 2020
  *
- * @brief A Documented file.
+ * @brief  Synchronizer for nodal information
  *
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
-#include "node_synchronizer.hh"
 #include "mesh.hh"
+#include "node_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_NODE_SYNCHRONIZER_INLINE_IMPL_HH_
@@ -36,20 +40,16 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeSynchronizer::canScatterSize() {
-  return mesh.getNbNodes();
-}
+inline UInt NodeSynchronizer::canScatterSize() { return mesh.getNbNodes(); }
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeSynchronizer::gatheredSize() {
-  return mesh.getNbGlobalNodes();
-}
+inline UInt NodeSynchronizer::gatheredSize() { return mesh.getNbGlobalNodes(); }
 
 /* -------------------------------------------------------------------------- */
 inline UInt NodeSynchronizer::localToGlobalEntity(const UInt & local) {
   return mesh.getNodeGlobalId(local);
 }
 
-} // akantu
+} // namespace akantu
 
 #endif // AKANTU_NODE_SYNCHRONIZER_INLINE_IMPL_HH_

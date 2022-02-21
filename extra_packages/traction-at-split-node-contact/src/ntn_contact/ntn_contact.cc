@@ -3,26 +3,28 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Feb 23 2018
+ * @date creation: Fri Mar 16 2018
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  implementation of ntn_contact
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -262,7 +264,7 @@ void NTNContact::updateNormals() {
   const Mesh & mesh = this->model.getMesh();
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
       // compute the normals
       Array<Real> quad_normals(0, dim);
       boundary_fem.computeNormalsOnIntegrationPoints(cur_pos, quad_normals,
@@ -301,10 +303,11 @@ void NTNContact::updateNormals() {
 
   Real * master_normals = this->normals.storage();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    if (dim == 2)
+    if (dim == 2) {
       Math::normalize2(&(master_normals[n * dim]));
-    else if (dim == 3)
+    } else if (dim == 3) {
       Math::normalize3(&(master_normals[n * dim]));
+    }
   }
 
   // // normalize normals
@@ -491,8 +494,9 @@ Int NTNContact::getNodeIndex(UInt node) const {
 void NTNContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
     ;
+  }
 
   stream << space << "NTNContact [" << std::endl;
   NTNBaseContact::printself(stream, indent);
@@ -524,7 +528,6 @@ void NTNContact::addDumpFieldToDumper(const std::string & dumper_name,
   AKANTU_DEBUG_IN();
 
   /*
-#ifdef AKANTU_USE_IOHELPER
   const Array<UInt> & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)				\
@@ -545,7 +548,6 @@ void NTNContact::addDumpFieldToDumper(const std::string & dumper_name,
 
   /*
 #undef ADD_FIELD
-#endif
   */
 
   AKANTU_DEBUG_OUT();

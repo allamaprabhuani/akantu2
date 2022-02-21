@@ -6,25 +6,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Apr 09 2021
  *
  * @brief  Interface of a model
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -47,6 +49,7 @@ namespace akantu {
 class SynchronizerRegistry;
 class Parser;
 class DumperIOHelper;
+class DOFManager;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +60,14 @@ class Model : public ModelSolver, public MeshEventHandler {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// Normal constructor where the DOFManager is created internally
   Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
+        const ID & id = "model");
+
+  /// Model constructor the the dof manager is created externally, for example
+  /// in a ModelCoupler
+  Model(Mesh & mesh, const ModelType & type,
+        std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
         const ID & id = "model");
 
   ~Model() override;
@@ -105,6 +115,22 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_CONTACT_MECHANICS
+    case ModelType::_contact_mechanics_model:
+      this->initFullImpl(ContactMechanicsModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
+#ifdef AKANTU_MODEL_COUPLERS
+    case ModelType::_coupler_solid_contact:
+      this->initFullImpl(CouplerSolidContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+    case ModelType::_coupler_solid_cohesive_contact:
+      this->initFullImpl(CouplerSolidCohesiveContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
     default:
       this->initFullImpl(ModelOptions{use_named_args,
                                       std::forward<decltype(_pack)>(_pack)...});
@@ -125,7 +151,7 @@ protected:
   virtual std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) = 0;
 
-  virtual void initModel() = 0;
+  virtual void initModel(){};
 
   virtual void initFEEngineBoundary();
 
@@ -186,6 +212,8 @@ public:
   /// return the fem boundary object associated with a provided name
   virtual FEEngine & getFEEngineBoundary(const ID & name = "");
 
+  inline bool hasFEEngineBoundary(const ID & name = "");
+
   /// register a fem object associated with name
   template <typename FEEngineClass>
   inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
@@ -206,6 +234,9 @@ public:
 
   /// Get the type of analysis method used
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
+
+  /// return the dimension of the system space
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack hexlper functions */

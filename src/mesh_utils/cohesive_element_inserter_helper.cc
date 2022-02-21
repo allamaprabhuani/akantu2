@@ -1,31 +1,35 @@
 /**
  * @file   cohesive_element_inserter_helper.cc
  *
- * @author Nicolas Richart
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date creation  jeu sep 03 2020
+ * @date creation: Tue Sep 08 2020
+ * @date last modification: Wed Dec 23 2020
  *
- * @brief A Documented file.
+ * @brief  An helper class to handle cohesive element insertion
+ *
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "cohesive_element_inserter_helper.hh"
 /* -------------------------------------------------------------------------- */
@@ -152,7 +156,7 @@ CohesiveElementInserterHelper::CohesiveElementInserterHelper(
     auto & element_to_update = elements_to_facet[1];
     auto el = element_to_update.element;
 
-    auto & facets_to_elements = mesh_facets.getSubelementToElement(
+    const auto & facets_to_elements = mesh_facets.getSubelementToElement(
         element_to_update.type, element_to_update.ghost_type);
     auto facets_to_element = Vector<Element>(
         make_view(facets_to_elements, facets_to_elements.getNbComponent())
@@ -232,7 +236,7 @@ void CohesiveElementInserterHelper::updateElementalConnectivity(
     const std::vector<Element> * facet_list) {
   AKANTU_DEBUG_IN();
 
-  for (auto & element : element_list) {
+  for (const auto & element : element_list) {
     if (element.type == _not_defined) {
       continue;
     }
@@ -349,7 +353,7 @@ void CohesiveElementInserterHelper::updateQuadraticSegments(UInt dim) {
     facet_to_subfacet_double = &elementsOfDimToElementsOfDim(dim + 1, dim);
   }
 
-  auto & element_to_subelement = mesh_facets.getElementToSubelement();
+  const auto & element_to_subelement = mesh_facets.getElementToSubelement();
   std::vector<UInt> middle_nodes;
 
   for (auto && facet_to_double : make_view(facets_to_double, 2)) {
@@ -527,7 +531,7 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
   MeshAccessor mesh_accessor(mesh_facets);
 
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
-  auto & subfacets_to_facets = mesh_facets.getSubelementToElement();
+  const auto & subfacets_to_facets = mesh_facets.getSubelementToElement();
   auto & elements_to_facets = mesh_accessor.getElementToSubelement();
 
   /// loop on every facet
@@ -563,11 +567,11 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
             std::vector<Element> subfacet_list;
 
             /// check if subsubfacet is to be doubled
-            if (findElementsAroundSubfacet(
+            if (!findElementsAroundSubfacet(
                     starting_element, current_facet, subsubfacet_connectivity,
-                    element_list, facet_list, &subfacet_list) == false and
-                removeElementsInVector(
-                    subfacet_list, elements_to_facets(subsubfacet)) == false) {
+                    element_list, facet_list, &subfacet_list) and
+                !removeElementsInVector(subfacet_list,
+                                        elements_to_facets(subsubfacet))) {
               Element new_subsubfacet{
                   subsubfacet.type,
                   nb_new_facets(subsubfacet.type, subsubfacet.ghost_type)++,
@@ -589,11 +593,11 @@ template <UInt dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
               mesh_facets.getConnectivity(subfacet);
 
           /// check if subfacet is to be doubled
-          if (findElementsAroundSubfacet(starting_element, current_facet,
-                                         subfacet_connectivity, element_list,
-                                         facet_list) == false and
-              removeElementsInVector(facet_list,
-                                     elements_to_facets(subfacet)) == false) {
+          if (!findElementsAroundSubfacet(starting_element, current_facet,
+                                          subfacet_connectivity, element_list,
+                                          facet_list) and
+              !removeElementsInVector(facet_list,
+                                      elements_to_facets(subfacet))) {
             Element new_subfacet{
                 subfacet.type,
                 nb_new_facets(subfacet.type, subfacet.ghost_type)++,
@@ -660,7 +664,7 @@ bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
         mesh_facets.getSubelementToElement(current_element);
 
     // for every facet of the element
-    for (auto & current_facet : facets_to_element) {
+    for (const auto & current_facet : facets_to_element) {
       if (current_facet == ElementNull) {
         continue;
       }
@@ -712,7 +716,7 @@ bool CohesiveElementInserterHelper::findElementsAroundSubfacet(
         opposing = 1;
       }
 
-      auto & opposing_element = elements_to_facet[opposing];
+      const auto & opposing_element = elements_to_facet[opposing];
 
       /// skip null elements since they are on a boundary
       if (opposing_element == ElementNull) {
@@ -825,8 +829,10 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     return;
   }
 
+  NewElementsEvent new_facets_event;
+
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
-  auto & element_to_facet = mesh_facets.getElementToSubelement();
+  const auto & element_to_facet = mesh_facets.getElementToSubelement();
   auto & position = mesh.getNodes();
   MeshAccessor mesh_accessor(mesh_facets);
 
@@ -836,10 +842,11 @@ void CohesiveElementInserterHelper::doublePointFacet() {
       auto nb_new_element = nb_new_facets(facet_type, ghost_type);
       auto & connectivities =
           mesh_accessor.getConnectivity(facet_type, ghost_type);
-      connectivities.resize(connectivities.size() + nb_new_element);
+      connectivities.resize(nb_new_element);
     }
   }
 
+  position.reserve(position.size() + facets_to_double.size());
   for (auto facet_to_double : make_view(facets_to_double, 2)) {
     auto & old_facet = facet_to_double[0];
     auto & new_facet = facet_to_double[1];
@@ -862,7 +869,10 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     *it = new_node;
 
     doubled_nodes.push_back(Vector<UInt>{old_node, new_node});
+    new_facets_event.getList().push_back(new_facet);
   }
+
+  mesh_facets.sendEvent(new_facets_event);
 }
 
 /* --------------------------------------------------------------------------
@@ -872,6 +882,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
   if (spatial_dimension == 1) {
     return;
   }
+
+  NewElementsEvent new_facets_event;
 
   std::vector<UInt> nodes_to_double;
   MeshAccessor mesh_accessor(mesh_facets);
@@ -924,6 +936,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
     // auto & old_facet = std::get<0>(data)[0];
     auto & new_facet = std::get<0>(data)[1];
 
+    new_facets_event.getList().push_back(new_facet);
+
     auto & nodes = std::get<1>(data);
     auto old_node = nodes(0);
     auto new_node = nodes(1);
@@ -948,6 +962,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
 
   updateSubelementToElement(0, spatial_dimension == 2);
   updateElementToSubelement(0, spatial_dimension == 2);
+
+  mesh_facets.sendEvent(new_facets_event);
 }
 
 } // namespace akantu

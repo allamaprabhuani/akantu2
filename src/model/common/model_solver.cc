@@ -1,28 +1,31 @@
 /**
  * @file   model_solver.cc
  *
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Feb 21 2018
+ * @date last modification: Tue Mar 30 2021
  *
  * @brief  Implementation of ModelSolver
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -55,7 +58,19 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
     : Parsable(ParserType::_model, id), model_type(type), parent_id(id),
-      mesh(mesh), dof_manager(nullptr) {}
+      mesh(mesh) {}
+
+/* -------------------------------------------------------------------------- */
+ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
+                         std::shared_ptr<DOFManager> dof_manager)
+    : ModelSolver(mesh, type, id) {
+  if (not dof_manager) {
+    this->initDOFManager();
+  } else {
+    this->dof_manager = dof_manager;
+    this->setDOFManager(*this->dof_manager);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::~ModelSolver() = default;
@@ -80,7 +95,7 @@ std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager() {
+std::shared_ptr<DOFManager> ModelSolver::initDOFManager() {
   // default without external solver activated at compilation same as mumps that
   // is the historical solver but with only the lumped solver
   ID solver_type = "default";
@@ -97,14 +112,18 @@ void ModelSolver::initDOFManager() {
 
   if (not is_empty) {
     solver_type = section.getOption(solver_type);
-    this->initDOFManager(section, solver_type);
-  } else {
-    this->initDOFManager(solver_type);
+    return this->initDOFManager(section, solver_type);
   }
+  return this->initDOFManager(solver_type);
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager(const ID & solver_type) {
+std::shared_ptr<DOFManager>
+ModelSolver::initDOFManager(const ID & solver_type) {
+  if (dof_manager) {
+    AKANTU_EXCEPTION("The DOF manager for this model is already initialized !");
+  }
+
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
         solver_type, mesh, this->parent_id + ":dof_manager_" + solver_type);
@@ -116,11 +135,13 @@ void ModelSolver::initDOFManager(const ID & solver_type) {
   }
 
   this->setDOFManager(*this->dof_manager);
+  return this->dof_manager;
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager(const ParserSection & section,
-                                 const ID & solver_type) {
+std::shared_ptr<DOFManager>
+ModelSolver::initDOFManager(const ParserSection & section,
+                            const ID & solver_type) {
   this->initDOFManager(solver_type);
   auto sub_sections = section.getSubSections(ParserType::_time_step_solver);
 
@@ -196,6 +217,8 @@ void ModelSolver::initDOFManager(const ParserSection & section,
           << "\" was not created, it cannot be set as default solver");
     }
   }
+
+  return this->dof_manager;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -334,6 +357,16 @@ void ModelSolver::setIntegrationScheme(
   TimeStepSolver & tss = this->dof_manager->getTimeStepSolver(solver_id);
 
   tss.setIntegrationScheme(dof_id, integration_scheme_type, solution_type);
+}
+
+/* -------------------------------------------------------------------------- */
+void ModelSolver::setIntegrationScheme(
+    const ID & solver_id, const ID & dof_id,
+    std::unique_ptr<IntegrationScheme> & integration_scheme,
+    IntegrationScheme::SolutionType solution_type) {
+  TimeStepSolver & tss = this->dof_manager->getTimeStepSolver(solver_id);
+
+  tss.setIntegrationScheme(dof_id, integration_scheme, solution_type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Jan 31 2018
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Default implementation of the dof manager
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -96,8 +98,7 @@ public:
                                           Real scale_factor = 1) override;
 
   /// assemble coupling terms between to dofs
-  void assemblePreassembledMatrix(const ID & dof_id_m, const ID & dof_id_n,
-                                  const ID & matrix_id,
+  void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & terms) override;
 
 protected:
@@ -145,8 +146,8 @@ private:
                                        const Vector<Int> & equation_numbers,
                                        UInt max_size);
 
-  void addToProfile(const ID & matrix_id, const ID & dof_id,
-                    ElementType type, GhostType ghost_type);
+  void addToProfile(const ID & matrix_id, const ID & dof_id, ElementType type,
+                    GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler interface                                               */

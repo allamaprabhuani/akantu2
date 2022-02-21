@@ -1,28 +1,31 @@
 /**
  * @file   internal_field.hh
  *
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 08 2018
+ * @date last modification: Fri Mar 26 2021
  *
  * @brief  Material internal properties
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -44,7 +47,8 @@ class FEEngine;
  * class for the internal fields of materials
  * to store values for each quadrature
  */
-  template <class Material, typename T> class InternalFieldTmpl : public ElementTypeMapArray<T> {
+template <class Material, typename T>
+class InternalFieldTmpl : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -54,18 +58,17 @@ public:
 
   /// This constructor is only here to let cohesive elements compile
   InternalFieldTmpl(const ID & id, Material & material, FEEngine & fem,
-		    const ElementTypeMapArray<UInt> & element_filter);
+                    const ElementTypeMapArray<UInt> & element_filter);
 
   /// More general constructor
-  InternalFieldTmpl(const ID & id, Material & material, UInt dim, FEEngine & fem,
-		    const ElementTypeMapArray<UInt> & element_filter);
+  InternalFieldTmpl(const ID & id, Material & material, UInt dim,
+                    FEEngine & fem,
+                    const ElementTypeMapArray<UInt> & element_filter);
 
-    InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
+  InternalFieldTmpl(const ID & id,
+                    const InternalFieldTmpl<Material, T> & other);
 
-
-private:
   InternalFieldTmpl operator=(const InternalFieldTmpl &) = delete;
-
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -115,8 +118,6 @@ public:
 
   virtual const FEEngine & getFEEngine() const { return *fem; }
 
-  /// AKANTU_GET_MACRO(FEEngine, *fem, FEEngine &);
-
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
   void internalInitialize(UInt nb_component);
@@ -143,9 +144,8 @@ public:
   }
 
   /// get the array for a given type of the element_filter
-  const Array<UInt> &
-  getFilter(ElementType type,
-            GhostType ghost_type = _not_ghost) const {
+  const Array<UInt> & getFilter(ElementType type,
+                                GhostType ghost_type = _not_ghost) const {
     return this->element_filter(type, ghost_type);
   }
 
@@ -155,9 +155,8 @@ public:
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual const Array<T> &
-  operator()(ElementType type,
-             GhostType ghost_type = _not_ghost) const {
+  virtual const Array<T> & operator()(ElementType type,
+                                      GhostType ghost_type = _not_ghost) const {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
@@ -169,9 +168,8 @@ public:
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual const Array<T> &
-  previous(ElementType type,
-           GhostType ghost_type = _not_ghost) const {
+  virtual const Array<T> & previous(ElementType type,
+                                    GhostType ghost_type = _not_ghost) const {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -185,7 +183,7 @@ public:
     return *(this->previous_values);
   }
 
-    virtual const InternalFieldTmpl<Material, T> & previous() const {
+  virtual const InternalFieldTmpl<Material, T> & previous() const {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -237,7 +235,6 @@ protected:
   std::unique_ptr<InternalFieldTmpl<Material, T>> previous_values;
 };
 
-  
 /// standard output stream operator
 template <class Material, typename T>
 inline std::ostream & operator<<(std::ostream & stream,
@@ -246,8 +243,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-template<typename T>  
-using InternalField = InternalFieldTmpl<Material, T>;  
+template <typename T> using InternalField = InternalFieldTmpl<Material, T>;
 
 } // namespace akantu
 

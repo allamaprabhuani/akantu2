@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri May 03 2013
- * @date last modification: Tue Feb 20 2018
+ * @date last modification: Fri Dec 28 2018
  *
  * @brief  Stores generic data loaded from the mesh file
  *
  *
- * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -119,8 +121,7 @@ inline void MeshData::registerElementalData(const ID & name,
 /// Register new elemental data (and alloc data)
 template <typename T>
 ElementTypeMapArray<T> & MeshData::allocElementalData(const ID & name) {
-  auto dataset =
-      std::make_unique<ElementTypeMapArray<T>>(name, _id);
+  auto dataset = std::make_unique<ElementTypeMapArray<T>>(name, _id);
   auto * dataset_typed = dataset.get();
   elemental_data[name] = std::move(dataset);
   typecode_map[MeshDataType::_elemental][name] = getTypeCode<T>();
@@ -259,9 +260,9 @@ inline bool MeshData::hasData(MeshDataType type) const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-const Array<T> &
-MeshData::getElementalDataArray(const ID & name, ElementType elem_type,
-                                GhostType ghost_type) const {
+const Array<T> & MeshData::getElementalDataArray(const ID & name,
+                                                 ElementType elem_type,
+                                                 GhostType ghost_type) const {
   auto it = elemental_data.find(name);
   if (it == elemental_data.end()) {
     AKANTU_EXCEPTION("Data named " << name
@@ -289,10 +290,9 @@ Array<T> & MeshData::getElementalDataArray(const ID & name,
 /* -------------------------------------------------------------------------- */
 // Get an elemental data array, if it does not exist: allocate it
 template <typename T>
-Array<T> & MeshData::getElementalDataArrayAlloc(const ID & name,
-                                                ElementType elem_type,
-                                                GhostType ghost_type,
-                                                UInt nb_component) {
+Array<T> &
+MeshData::getElementalDataArrayAlloc(const ID & name, ElementType elem_type,
+                                     GhostType ghost_type, UInt nb_component) {
   auto it = elemental_data.find(name);
   ElementTypeMapArray<T> * dataset;
   if (it == elemental_data.end()) {
@@ -318,8 +318,7 @@ Array<T> & MeshData::getElementalDataArrayAlloc(const ID & name,
     break;                                                                     \
   }
 
-inline UInt MeshData::getNbComponent(const ID & name,
-                                     ElementType el_type,
+inline UInt MeshData::getNbComponent(const ID & name, ElementType el_type,
                                      GhostType ghost_type) const {
   auto it = typecode_map.at(MeshDataType::_elemental).find(name);
   UInt nb_comp(0);
@@ -343,9 +342,9 @@ inline UInt MeshData::getNbComponent(const ID & name,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt
-MeshData::getNbComponentTemplated(const ID & name, ElementType el_type,
-                                  GhostType ghost_type) const {
+inline UInt MeshData::getNbComponentTemplated(const ID & name,
+                                              ElementType el_type,
+                                              GhostType ghost_type) const {
   return getElementalDataArray<T>(name, el_type, ghost_type).getNbComponent();
 }
 

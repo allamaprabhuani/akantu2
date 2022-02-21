@@ -3,17 +3,34 @@
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
+# @date creation: Thu Mar 15 2018
+# @date last modification:  Wed Dec 09 2020
 #
 # @brief  package description for extra materials list
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
 
-package_declare(extra_materials
+
+package_declare(extra_materials ADVANCED
   DESCRIPTION "Add the extra list of materials in Akantu"
   DEPENDS lapack)
 
@@ -102,7 +119,7 @@ package_declare_documentation(extra_materials
   "\\end{itemize}"
   )
 
-package_declare(extra_materials_non_local
+package_declare(extra_materials_non_local ADVANCED
   DESCRIPTION "Add the extra list of non local materials in Akantu"
   DEPENDS extra_materials damage_non_local)
 
@@ -127,4 +144,4 @@ package_declare_sources(extra_materials_non_local
 package_declare_material_infos(extra_materials_non_local
   LIST AKANTU_DAMAGE_NON_LOCAL_MATERIAL_EXTRA_LIST
   INCLUDE material_extra_includes.hh
-)
+  )

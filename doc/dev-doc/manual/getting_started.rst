@@ -1,8 +1,42 @@
 Getting Started
 ===============
 
-Compiling ``Akantu``
+Building ``Akantu``
 --------------------
+
+Dependencies
+````````````
+
+In order to compile ``Akantu``  any compiler supporting fully C++14 should work.
+In addition some libraries are required:
+
+ - CMake (>= 3.5.1)
+ - Boost (preprocessor and Spirit)
+ - zlib
+ - blas/lapack
+
+For the python interface:
+
+ - Python (>=3 is recommended)
+ - pybind11 (if not present the build system will try to download it)
+
+To run parallel simulations:
+
+ - MPI
+ - Scotch
+
+To use the static or implicit dynamic solvers at least one of the following libraries is needed:
+
+ - MUMPS (since this is usually compiled in static you also need MUMPS dependencies)
+ - PETSc
+
+To compile the tests and examples:
+
+ - Gmsh
+ - google-test (if not present the build system will try to download it)
+
+Configuring and compilation
+```````````````````````````
 
 ``Akantu`` is a `CMake <https://cmake.org/>`_ project, so to configure it, you can either
 follow the usual way::
@@ -15,7 +49,32 @@ follow the usual way::
   > make
   > make install
 
-All the ``Akantu`` options are documented in Appendix app:package-dependencies.
+Using the python interface
+--------------------------
+
+You can install ``Akantu`` using pip::
+
+  > pip install akantu
+
+You can then import the package in a python script as::
+
+  import akantu
+
+The python API is similar to the C++ one, see :ref:`reference` . If you encouter any problem with the python interface, you are welcome to do a merge request or post an issue on `GitLab <https://gitlab.com/akantu/akantu/-/issues>`_ .
+  
+Tutorials with the python interface
+```````````````````````````````````    
+
+To help getting started, several tutorials using the python interface
+are available as notebooks with pre-installed version of ``Akantu`` on Binder.
+The following tutorials are currently available:
+
+`Plate whith a hole loaded <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=plate-hole/plate-hole.ipynb>`_
+
+`Loaded cohesive crack <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=cohesive-fracture/cohesive-fracture.ipynb>`_
+
+`Making your constitutive law in python <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=constitutive-laws/python_constitutive_law.ipynb>`_
+
 
 Writing a ``main`` function
 ---------------------------
@@ -33,16 +92,16 @@ follows::
     using namespace akantu;
 
     int main(int argc, char *argv[]) {
-  initialize("input_file.dat", argc, argv);
+      initialize("input_file.dat", argc, argv);
 
-  // your code ...
+      // your code ...
 
     }
 
 The :cpp:func:`initialize <akantu::initialize>` function takes the text inpute
-file and the program parameters which can be parsed by ``Akantu`` in due form (see
-sect:parser). Obviously it is necessary to include all files needed in main. In
-this manual all provided code implies the usage of ``akantu`` as
+file and the program parameters which can be parsed by ``Akantu`` in due form
+(see sect:parser). Obviously it is necessary to include all files needed in
+main. In this manual all provided code implies the usage of ``akantu`` as
 namespace.
 
 Compiling your simulation

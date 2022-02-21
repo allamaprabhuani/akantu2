@@ -4,28 +4,31 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Aug 18 2015
- * @date last modification: Wed Jan 31 2018
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  PETSc implementation of the dof manager
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include "dof_manager.hh"
 /* -------------------------------------------------------------------------- */
@@ -100,8 +103,7 @@ public:
   void assembleElementalMatricesToMatrix(
       const ID & /*matrix_id*/, const ID & /*dof_id*/,
       const Array<Real> & /*elementary_mat*/, ElementType /*type*/,
-      GhostType /*ghost_type*/,
-      const MatrixType & /*elemental_matrix_type*/,
+      GhostType /*ghost_type*/, const MatrixType & /*elemental_matrix_type*/,
       const Array<UInt> & /*filter_elements*/) override;
 
   void assembleMatMulVectToArray(const ID & /*dof_id*/, const ID & /*A_id*/,
@@ -116,9 +118,7 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  void assemblePreassembledMatrix(const ID & /* dof_id_m*/,
-                                  const ID & /*dof_id_n*/,
-                                  const ID & /*matrix_id*/,
+  void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & /*terms*/) override;
 
 protected:

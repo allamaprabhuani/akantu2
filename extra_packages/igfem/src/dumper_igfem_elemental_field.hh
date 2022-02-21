@@ -21,34 +21,39 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-/* -------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------
+   */
 
-template <typename T, template <class> class ret = Vector,
-          bool filtered = false>
-class IGFEMElementalField
-    : public IGFEMGenericElementalField<SingleType<T, ret, filtered>,
-                                        igfem_elemental_field_iterator> {
+  template <typename T, template <class> class ret = Vector,
+            bool filtered = false>
+  class IGFEMElementalField
+      : public IGFEMGenericElementalField<SingleType<T, ret, filtered>,
+                                          igfem_elemental_field_iterator> {
 
-public:
-  /* ------------------------------------------------------------------------ */
-  /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */
+  public:
+    /* ------------------------------------------------------------------------
+     */
+    /* Typedefs */
+    /* ------------------------------------------------------------------------
+     */
 
-  typedef SingleType<T, ret, filtered> types;
-  typedef typename types::field_type field_type;
-  typedef elemental_field_iterator<types> iterator;
+    typedef SingleType<T, ret, filtered> types;
+    typedef typename types::field_type field_type;
+    typedef elemental_field_iterator<types> iterator;
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------
+     */
+    /* Constructors/Destructors */
+    /* ------------------------------------------------------------------------
+     */
 
-  IGFEMElementalField(const field_type & field,
-                      UInt spatial_dimension = _all_dimensions,
-                      GhostType ghost_type = _not_ghost,
-                      ElementKind element_kind = _ek_igfem)
-      : IGFEMGenericElementalField<types, igfem_elemental_field_iterator>(
-            field, spatial_dimension, ghost_type, element_kind) {}
-};
+    IGFEMElementalField(const field_type & field,
+                        UInt spatial_dimension = _all_dimensions,
+                        GhostType ghost_type = _not_ghost,
+                        ElementKind element_kind = _ek_igfem)
+        : IGFEMGenericElementalField<types, igfem_elemental_field_iterator>(
+              field, spatial_dimension, ghost_type, element_kind) {}
+  };
 
 } // namespace dumpers
 } // namespace akantu

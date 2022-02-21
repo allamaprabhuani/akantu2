@@ -64,7 +64,7 @@ int main(int argc, char * argv[]) {
   Matrix<Real> prestrain(spatial_dimension, spatial_dimension, 0.);
   for (UInt i = 0; i < spatial_dimension; ++i)
     prestrain(i, i) = 0.02;
-  model.advanceASR(prestrain);
+  model.advanceExpansion(prestrain);
 
   model.dump();
 

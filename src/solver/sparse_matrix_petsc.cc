@@ -2,27 +2,30 @@
  * @file   sparse_matrix_petsc.cc
  *
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Dec 13 2010
- * @date last modification: Sat Feb 03 2018
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Implementation of PETSc matrix class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -271,7 +274,8 @@ void SparseMatrixPETSc::addLocal(const Vector<Int> & rows,
 /* -------------------------------------------------------------------------- */
 void SparseMatrixPETSc::addValues(const Vector<Int> & rows,
                                   const Vector<Int> & cols,
-                                  const Matrix<Real> & values, MatrixType values_type) {
+                                  const Matrix<Real> & values,
+                                  MatrixType values_type) {
   if (values_type == _unsymmetric and matrix_type == _symmetric) {
     PETSc_call(MatSetOption, mat, MAT_SYMMETRIC, PETSC_FALSE);
     PETSc_call(MatSetOption, mat, MAT_STRUCTURALLY_SYMMETRIC, PETSC_FALSE);

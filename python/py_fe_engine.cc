@@ -1,7 +1,40 @@
+/**
+ * @file   py_fe_engine.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Wed Nov 27 2019
+ * @date last modification: Sat Dec 12 2020
+ *
+ * @brief  pybind11 interface to FEEngine
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 #include "py_aka_common.hh"
 /* -------------------------------------------------------------------------- */
+#include <element.hh>
 #include <fe_engine.hh>
 #include <integration_point.hh>
 /* -------------------------------------------------------------------------- */
@@ -14,10 +47,19 @@ namespace py = pybind11;
 
 namespace akantu {
 
-__attribute__((visibility("default"))) void
-register_fe_engine(py::module & mod) {
+void register_fe_engine(py::module & mod) {
+  py::class_<Element>(mod, "Element")
+      .def(py::init([](ElementType type, UInt id) {
+        return new Element{type, id, _not_ghost};
+      }))
+      .def(py::init([](ElementType type, UInt id, GhostType ghost_type) {
+        return new Element{type, id, ghost_type};
+      }))
+      .def("__lt__",
+           [](Element & self, const Element & other) { return (self < other); })
+      .def("__repr__", [](Element & self) { return std::to_string(self); });
 
-  py::class_<Element>(mod, "Element");
+  mod.attr("ElementNull") = ElementNull;
 
   py::class_<FEEngine>(mod, "FEEngine")
       .def(
@@ -30,8 +72,8 @@ register_fe_engine(py::module & mod) {
       .def(
           "gradientOnIntegrationPoints",
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
-             UInt nb_degree_of_freedom, ElementType type,
-             GhostType ghost_type, const Array<UInt> * filter_elements) {
+             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
             if (filter_elements == nullptr) {
               // This is due to the ArrayProxy that looses the
               // empty_filter information
@@ -46,8 +88,8 @@ register_fe_engine(py::module & mod) {
       .def(
           "interpolateOnIntegrationPoints",
           [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
-             UInt nb_degree_of_freedom, ElementType type,
-             GhostType ghost_type, const Array<UInt> * filter_elements) {
+             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
             if (filter_elements == nullptr) {
               // This is due to the ArrayProxy that looses the
               // empty_filter information
@@ -103,7 +145,10 @@ register_fe_engine(py::module & mod) {
           },
           py::arg("field_funct"), py::arg("matrix_id"), py::arg("dof_id"),
           py::arg("dof_manager"), py::arg("type"),
-          py::arg("ghost_type") = _not_ghost);
+          py::arg("ghost_type") = _not_ghost)
+      .def("getElementInradius", [](FEEngine & self, const Element & element) {
+        return self.getElementInradius(element);
+      });
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }

@@ -1,3 +1,15 @@
+""" issue_formatter.py: issue_formater for clang-tidy in codeclimate (inspired
+from cpp-check)"""
+
+__author__ = "Nicolas Richart"
+__credits__ = [
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
 import hashlib
 import os
 
@@ -81,7 +93,7 @@ class IssueFormatter:
                 '\n'.join(self.issue_dict['content']) +
                 '\n```'
             }
-        
+
         issue['fingerprint'] = hashlib.md5(
             '{file}:{line}:{column}:{type}'.format(**self.issue_dict).encode()
         ).hexdigest()

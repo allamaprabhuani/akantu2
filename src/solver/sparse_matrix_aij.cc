@@ -4,25 +4,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Aug 21 2015
- * @date last modification: Mon Dec 04 2017
+ * @date last modification: Fri Jul 24 2020
  *
  * @brief  Implementation of the AIJ sparse matrix
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -75,12 +77,11 @@ void SparseMatrixAIJ::applyBoundary(Real block_val) {
     if (is_blocked(ni) or is_blocked(nj)) {
 
       std::get<2>(ij_a) =
-          std::get<0>(ij_a) != std::get<1>(ij_a)
-              ? 0.
-              : this->dof_manager.isLocalOrMasterDOF(
-                    this->dof_manager.globalToLocalEquationNumber(ni))
-                    ? block_val
-                    : 0.;
+          std::get<0>(ij_a) != std::get<1>(ij_a) ? 0.
+          : this->dof_manager.isLocalOrMasterDOF(
+                this->dof_manager.globalToLocalEquationNumber(ni))
+              ? block_val
+              : 0.;
     }
   }
 

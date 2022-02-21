@@ -5,25 +5,27 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Jul 20 2010
- * @date last modification: Sun Aug 13 2017
+ * @date last modification: Fri Dec 11 2020
  *
  * @brief  Implementation of the inline functions of the FEEngine Class
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -55,8 +57,23 @@ inline Real FEEngine::getElementInradius(const Matrix<Real> & coord,
 }
 
 /* -------------------------------------------------------------------------- */
-inline InterpolationType
-FEEngine::getInterpolationType(ElementType type) {
+inline Real FEEngine::getElementInradius(const Element & element) const {
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto positions = make_view(mesh.getNodes(), spatial_dimension).begin();
+  auto connectivity = mesh.getConnectivities().get(element);
+
+  Matrix<Real> coords(spatial_dimension, connectivity.size());
+
+  for (auto && data : zip(connectivity, coords)) {
+    Vector<Real>(std::get<1>(data)) =
+        Vector<Real>(positions[std::get<0>(data)]);
+  }
+
+  return getElementInradius(coords, element.type);
+}
+
+/* -------------------------------------------------------------------------- */
+inline InterpolationType FEEngine::getInterpolationType(ElementType type) {
   return convertType<ElementType, InterpolationType>(type);
 }
 
@@ -75,9 +92,8 @@ inline ElementType FEEngine::getCohesiveElementType(ElementType type) {
   return ctype;
 }
 #else
-inline ElementType
-FEEngine::getCohesiveElementType(__attribute__((unused))
-                                 ElementType type_facet) {
+inline ElementType FEEngine::getCohesiveElementType(__attribute__((unused))
+                                                    ElementType type_facet) {
   return _not_defined;
 }
 #endif
@@ -88,8 +104,7 @@ FEEngine::getCohesiveElementType(__attribute__((unused))
 #include "igfem_helper.hh"
 namespace akantu {
 
-inline Vector<ElementType>
-FEEngine::getIGFEMElementTypes(ElementType type) {
+inline Vector<ElementType> FEEngine::getIGFEMElementTypes(ElementType type) {
 
 #define GET_IGFEM_ELEMENT_TYPES(type)                                          \
   return IGFEMHelper::getIGFEMElementTypes<type>();
@@ -146,8 +161,7 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
-                                   Array<T> & filtered_f,
-                                   ElementType type,
+                                   Array<T> & filtered_f, ElementType type,
                                    GhostType ghost_type,
                                    const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();

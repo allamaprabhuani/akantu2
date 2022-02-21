@@ -91,12 +91,18 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(
       NbNodesPerInterpolationElement,
       interpolation_property::nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NbSubElements, interpolation_property::nb_sub_elements, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NbSubElements,
+                                    interpolation_property::nb_sub_elements,
+                                    UInt);
   static UInt * getSubElementConnectivity(UInt t = 0) {
     return &(interpolation_property::sub_element_connectivity[t]);
   };
-  static UInt getNbEnrichments() { return interpolation_property::nb_enrichments; };
-  static UInt * getSubElementEnrichments(UInt t = 0) { return &(interpolation_property::enrichments[t]); };
+  static UInt getNbEnrichments() {
+    return interpolation_property::nb_enrichments;
+  };
+  static UInt * getSubElementEnrichments(UInt t = 0) {
+    return &(interpolation_property::enrichments[t]);
+  };
 
 protected:
   /// storage of the subelement local connectivity
@@ -281,6 +287,7 @@ public:
       UInt);
   static ElementType & getFacetType(UInt /*t*/ = 0) { AKANTU_TO_IMPLEMENT(); }
   static ElementType * getFacetTypeInternal() { AKANTU_TO_IMPLEMENT(); }
+
 private:
 };
 
