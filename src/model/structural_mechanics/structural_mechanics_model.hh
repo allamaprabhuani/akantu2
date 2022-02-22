@@ -288,6 +288,28 @@ public:
   };
 
 
+  /**
+   * \brief	Tests if *this has a lumped mass pointer.
+   *
+   * Note that a `true` does not imply that the array has "usfull information" in it.
+   */
+  inline bool hasLumpedMass() const
+  {
+  	  return bool(this->mass != nullptr);
+  };
+
+
+  /**
+   * \brief	This function allows to allocate the mass pointer for the lumped mass.
+   *
+   * It is important that this function does not build up the lumped mass.
+   * For filling it use the `computeShadyLumpedMass()` function.
+   */
+  bool shadyCreateLumpedMass();
+
+
+
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);

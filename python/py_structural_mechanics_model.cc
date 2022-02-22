@@ -169,6 +169,9 @@ void register_structural_mechanics_model(pybind11::module & mod) {
       	   [](StructuralMechanicsModel& self,  GhostType ghost_type) -> void {
       	   	return self.computeShadyLumpedMass(ghost_type); },
            py::arg("ghost_type") = _not_ghost )
+
+      .def("hasLumpedMass", &StructuralMechanicsModel::hasLumpedMass)
+      .def("shadyCreateLumpedMass", &StructuralMechanicsModel::shadyCreateLumpedMass)
       ;
 
 } // End: register structural mechanical model

@@ -244,6 +244,19 @@ void StructuralMechanicsModel::computeStresses() {
 }
 
 /* -------------------------------------------------------------------------- */
+bool StructuralMechanicsModel::shadyCreateLumpedMass()
+{
+	if(this->hasLumpedMass())	//Already allocated, so nothing to do.
+	    { return true; };
+
+	//now allocate it
+      	this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumpedmass");
+
+      	return true;
+};
+
+
+/* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag) {
