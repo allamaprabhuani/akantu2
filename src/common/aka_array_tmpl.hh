@@ -883,10 +883,10 @@ public:
     return ret >= other.ret;
   }
 
-  inline daughter operator-(difference_type n) { return daughter(ret - n); }
-  inline daughter operator+(difference_type n) { return daughter(ret + n); }
+  inline daughter operator-(difference_type n) const { return daughter(ret - n); }
+  inline daughter operator+(difference_type n) const { return daughter(ret + n); }
 
-  inline difference_type operator-(const iterator_internal & b) {
+  inline difference_type operator-(const iterator_internal & b) const {
     return ret - b.ret;
   }
 
@@ -1023,18 +1023,18 @@ public:
     return this->ret_ptr >= other.ret_ptr;
   }
 
-  inline daughter operator+(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
+  inline daughter operator+(difference_type n) const {
+    daughter tmp(static_cast<const daughter &>(*this));
     tmp += n;
     return tmp;
   }
-  inline daughter operator-(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
+  inline daughter operator-(difference_type n) const {
+    daughter tmp(static_cast<const daughter &>(*this));
     tmp -= n;
     return tmp;
   }
 
-  inline difference_type operator-(const iterator_internal & b) {
+  inline difference_type operator-(const iterator_internal & b) const {
     return (this->ret_ptr - b.ret_ptr) / _offset;
   }
 
