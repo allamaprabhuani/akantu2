@@ -135,9 +135,6 @@ public:
 
   Real computeSmallestElementSize();
 
-  // /// apply homogeneous temperature on Solid Mechanics Model
-  // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
-
   /// compute chemical expandion by a sigmoidal rule (Larive, 1998)
   void computeChemExpansionLarive(const Real & delta_time_day, const Real & T,
                                   Real & expansion, const Real & eps_inf,

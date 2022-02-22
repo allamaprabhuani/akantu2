@@ -92,10 +92,6 @@ package_declare_sources(extra_materials
   material_damage/material_orthotropic_damage_iterative.cc
   material_damage/material_orthotropic_damage_iterative.hh
   material_damage/material_orthotropic_damage_iterative_inline_impl.hh
-
-  material_cohesive/material_cohesive_linear_sequential.hh
-  material_cohesive/material_cohesive_linear_sequential.cc
-  material_cohesive/material_cohesive_linear_sequential_inline_impl.hh
 )
 
 package_declare_material_infos(extra_materials
