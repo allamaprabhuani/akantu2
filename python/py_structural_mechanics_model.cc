@@ -163,7 +163,12 @@ void register_structural_mechanics_model(pybind11::module & mod) {
       .def("getLumpedMassMutable",
        	   [](StructuralMechanicsModel& self) -> decltype(auto) {
       	   	return self.getLumpedMassMutable(); },
-       	   py::return_value_policy::reference_internal)
+      	   py::return_value_policy::reference_internal)
+
+      .def("computeShadyLumpedMass",
+      	   [](StructuralMechanicsModel& self,  GhostType ghost_type) -> void {
+      	   	return self.computeShadyLumpedMass(ghost_type); },
+           py::arg("ghost_type") = _not_ghost )
       ;
 
 } // End: register structural mechanical model

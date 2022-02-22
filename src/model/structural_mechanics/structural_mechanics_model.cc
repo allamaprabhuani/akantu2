@@ -185,7 +185,7 @@ void StructuralMechanicsModel::initSolver(
      *  DOF, which are most of the time equal, but makes handling
      *  some operations a bit simpler. */
     if(time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-      this->allocNodalField(this->mass, this->nb_degree_of_freedom, "mass");
+      this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumpedmass");
     }
   }
 
