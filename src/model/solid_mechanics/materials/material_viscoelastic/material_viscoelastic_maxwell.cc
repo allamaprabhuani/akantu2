@@ -61,9 +61,9 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
 
-  // this->dissipated_energy.initialize(1);
-  // this->integral.initialize(1);
-  // this->mechanical_work.initialize(1);
+  this->dissipated_energy.initialize(1);
+  this->integral.initialize(1);
+  this->mechanical_work.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -374,7 +374,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
-    // if (this->update_variable_flag) {
     auto previous_gradu_it = this->gradu.previous(el_type, _not_ghost)
                                  .begin(spatial_dimension, spatial_dimension);
 
@@ -382,21 +381,15 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(
         this->sigma_v(el_type, _not_ghost)
             .begin(spatial_dimension, spatial_dimension, this->Eta.size());
 
-    // auto epsilon_v_it =
-    //     this->epsilon_v(el_type, _not_ghost)
-    //         .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
     updateSigmaViscOnQuad(grad_u, *previous_gradu_it, *sigma_v_it);
 
     ++previous_gradu_it;
     ++sigma_v_it;
-    // ++epsilon_v_it;
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-    // }
-    // this->updateDissipatedEnergy(el_type);
+    this->updateDissipatedEnergy(el_type);
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -444,8 +437,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
   auto integral = this->integral(el_type).begin();
   auto mech_work = this->mechanical_work(el_type).begin();
   auto sigma_v_it = this->sigma_v(el_type).begin(
-      spatial_dimension, spatial_dimension, this->Eta.size());
-  auto epsilon_v_it = this->epsilon_v(el_type).begin(
       spatial_dimension, spatial_dimension, this->Eta.size());
   auto previous_gradu_it =
       this->gradu.previous(el_type).begin(spatial_dimension, spatial_dimension);
@@ -642,8 +633,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeEffectiveModulus(
 
   if (Math::are_float_equal(exp_dt_lambda, 1)) {
     E_ef_v = (1 - dam) * this->Ev(visc_nb);
-    // } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
-    //   E_ef_v = 0.;
   } else {
     E_ef_v = std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(visc_nb) *
                           lambda / dt,
