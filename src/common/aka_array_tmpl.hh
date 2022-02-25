@@ -436,7 +436,7 @@ Array<T, is_scal>::isFinite()
   const
   noexcept
 {
-	static_assert(std::is_same<T, _T>::value);
+	static_assert(std::is_same<T, _T>::value, "Types are different, what are do doing man?!?");
 	using std::isfinite;
 
 	const UInt N = this->size_ * this->nb_component;
