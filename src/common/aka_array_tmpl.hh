@@ -424,6 +424,34 @@ inline auto Array<T, is_scal>::operator[](UInt i) const -> const_reference {
   return this->values[i];
 }
 
+
+/* -------------------------------------------------------------------------- */
+template<
+	class 		T, 
+	bool 		is_scal>
+template<
+	typename 	_T>
+std::enable_if_t<std::is_floating_point<_T>::value, bool>
+Array<T, is_scal>::isFinite()
+  const
+  noexcept
+{
+	static_assert(std::is_same<T, _T>::value);
+	using std::isfinite;
+
+	const UInt N = this->size_ * this->nb_component;
+	for(UInt it = 0; it != N; ++it)
+	{
+		if(not isfinite(this->values[it]))
+		    { return false; };
+	};
+
+	return true;
+};
+
+
+
+
 /* -------------------------------------------------------------------------- */
 /**
  * erase an element. If the erased element is not the last of the array, the

@@ -303,18 +303,7 @@ void SparseMatrixAIJ::set(Real val) {
 bool
 SparseMatrixAIJ::isFinite()
   const
-{
-	using std::isfinite;
-
-	const UInt aSize = this->a.size();
-	for(UInt i = 0; i != aSize; ++i)
-	{
-		if(not isfinite(this->a[i]))
-		    { return false; };
-	};
-
-	return true;
-}
+    { return this->a.isFinite(); };
 
 
 
