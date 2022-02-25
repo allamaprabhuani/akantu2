@@ -78,5 +78,12 @@ void SparseMatrix::add(const SparseMatrix & B, Real alpha) {
 }
 
 /* -------------------------------------------------------------------------- */
+bool
+SparseMatrix::isFinite()
+  const
+    { AKANTU_TO_IMPLEMENT(); };
+
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

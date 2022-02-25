@@ -70,6 +70,12 @@ void register_solvers(py::module & mod) {
             self.add(A, alpha);
           },
           "Add a matrix to the matrix", py::arg("A"), py::arg("alpha") = 1.)
+
+      .def("isFinite", &SparseMatrix::isFinite)
+
+      .def("getRelease",
+      	   [](const SparseMatrix& self) -> UInt
+      		{ return self.getRelease(); })
       .def("__call__",
            [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
       .def("getRelease", &SparseMatrix::getRelease);

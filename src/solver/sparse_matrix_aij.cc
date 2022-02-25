@@ -36,6 +36,7 @@
 #include "dof_synchronizer.hh"
 #include "solver_vector_default.hh"
 #include "terms_to_assemble.hh"
+#include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
@@ -297,5 +298,24 @@ void SparseMatrixAIJ::set(Real val) {
 
   this->value_release++;
 }
+
+/* -------------------------------------------------------------------------- */
+bool
+SparseMatrixAIJ::isFinite()
+  const
+{
+	using std::isfinite;
+
+	const UInt aSize = this->a.size();
+	for(UInt i = 0; i != aSize; ++i)
+	{
+		if(not isfinite(this->a[i]))
+		    { return false; };
+	};
+
+	return true;
+}
+
+
 
 } // namespace akantu
