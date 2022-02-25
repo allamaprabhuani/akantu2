@@ -49,8 +49,25 @@ public:
       : model(model){};
 
   void operator()(Matrix<Real> & rho, const Element & element) const {
-    Real mat_rho = model.getMaterialByElement(element).rho;
-    rho.set(mat_rho);
+#if defined(AKANTU_STRUCTURAL_MECHANICS_OLD_MASS_COMPUTATION)
+    /* Here we assume use the old mass computation.
+     * We assume that `rho` has units of mass per unit length,
+     * and is thus not a real density */
+#   warning "Using the old mass computation for the Bernoulli beams."
+    const auto& mat = model.getMaterialByElement(element);
+    const Real mat_mass_per_length = mat.rho; 	//In the old mode, we assume that `rho` has the right units.
+
+#else
+    /* Here we assume that `rho` has real density units, i.e. `mass per volume`.
+     * Thus to get a mass we must multiply it with the cross section. */
+#   warning "Using the new mode for mass computation for the Bernulli beams."
+    const auto& mat = model.getMaterialByElement(element);
+    const Real mat_rho = mat.rho;		//This is the density
+    const Real mat_A   = mat.A;			//This is the corss section
+    const Real mat_mass_per_length = mat_rho * mat_A;	//Mass of the beam per unit length
+#endif
+
+    rho.set(mat_mass_per_length);  //The integrator _recquiers_ mass per unit length
   }
 
 private:
@@ -238,7 +255,7 @@ StructuralMechanicsModel::computeShadyLumpedMass(
 			const Real BVol   = bLength * bXSurf;		//Volume of the beam
 	
 #			if defined(AKANTU_STRUCTURAL_MECHANICS_CONSISTENT_LUMPED_MASS)
-			/* In the calculation of the consistent mass matrix `bRho` is assumed to be
+			/* In the original calculation of the consistent mass matrix `bRho` is assumed to be
 			 * a "mass per unit length", which means [kg / m^2].
 			 * Which results in shitty units, i.e. the entries inside the consisent mass 
 			 * matrix have different units.
