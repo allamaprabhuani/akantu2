@@ -91,7 +91,8 @@ MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && args) {
   iso_hardening = previous_iso_hardening + this->h * dp;
 
   // Compute inelastic strain (ignore last components in 1-2D)
-  Matrix<Real, dim, dim> delta_inelastic_strain;
+  Matrix<Real, dim, dim> delta_inelastic_strain =
+      Matrix<Real, dim, dim>::Zero();
   if (std::abs(sigma_tr_dev_eff) > sigma_tr_dev.norm() * Math::getTolerance()) {
     delta_inelastic_strain =
         sigma_tr_dev.block<dim, dim>(0, 0) * 3. / 2. * dp / sigma_tr_dev_eff;

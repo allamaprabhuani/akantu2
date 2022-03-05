@@ -1177,6 +1177,11 @@ decltype(auto) make_view(Array && array, const Ns... ns) {
       std::forward<Array>(array), std::move(ns)..., size);
 }
 
+template <typename Array, typename... Ns>
+decltype(auto) make_const_view(const Array & array, const Ns... ns) {
+  return make_view(array, std::move(ns)...);
+}
+
 } // namespace akantu
 
 //#endif /* __AKANTU_AKA_ARRAY_TMPL_HH__ */

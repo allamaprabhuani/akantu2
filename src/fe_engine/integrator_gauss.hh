@@ -180,6 +180,7 @@ public:
   void onElementsAddedByType(const Array<Idx> & new_elements,
                              GhostType ghost_type);
 
+  decltype(auto) getIntegrationPoints() { return (quadrature_points); }
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

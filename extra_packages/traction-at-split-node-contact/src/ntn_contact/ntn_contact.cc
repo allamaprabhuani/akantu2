@@ -248,8 +248,6 @@ void NTNContact::updateNormals() {
 
   // contact information
   auto dim = this->model.getSpatialDimension();
-  auto nb_contact_nodes = this->getNbContactNodes();
-
   this->synch_registry->synchronize(
       SynchronizationTag::_cf_nodal); // synchronize current pos
   const auto & cur_pos = this->model.getCurrentPosition();
@@ -279,9 +277,9 @@ void NTNContact::updateNormals() {
         for (Int q = 0; q < nb_nodes_per_element; ++q) {
           auto node = connectivity(element, q);
           auto node_index = this->masters.find(node);
-          AKANTU_DEBUG_ASSERT(node_index != UInt(-1), "Could not find node "
-                                                          << node
-                                                          << " in the array!");
+          AKANTU_DEBUG_ASSERT(node_index != -1, "Could not find node "
+                                                    << node
+                                                    << " in the array!");
 
           for (Int q = 0; q < nb_quad_points; ++q) {
             // add quad normal to master normal
@@ -328,16 +326,16 @@ void NTNContact::readRestart(const std::string & file_name) {
 void NTNContact::updateImpedance() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_contact_nodes = getNbContactNodes();
+  auto nb_contact_nodes = getNbContactNodes();
   Real delta_t = this->model.getTimeStep();
   AKANTU_DEBUG_ASSERT(delta_t != NAN,
                       "Time step is NAN. Have you set it already?");
 
   const Array<Real> & mass = this->model.getMass();
 
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt master = this->masters(n);
-    UInt slave = this->slaves(n);
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto master = this->masters(n);
+    auto slave = this->slaves(n);
 
     Real imp = (this->lumped_boundary_masters(n) / mass(master)) +
                (this->lumped_boundary_slaves(n) / mass(slave));
@@ -395,11 +393,11 @@ void NTNContact::computeRelativeTangentialField(
   Vector<Real> rfv(dim);
   Vector<Real> np_rfv(dim);
 
-  UInt nb_contact_nodes = this->slaves.size();
+  auto nb_contact_nodes = this->slaves.size();
   for (Int n = 0; n < nb_contact_nodes; ++n) {
     // nodes
-    UInt slave = this->slaves(n);
-    UInt master = this->masters(n);
+    auto slave = this->slaves(n);
+    auto master = this->masters(n);
 
     // relative field vector (slave - master)
     rfv = it_field[slave] - it_field[master];

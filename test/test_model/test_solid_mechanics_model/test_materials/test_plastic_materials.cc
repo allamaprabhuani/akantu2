@@ -85,11 +85,12 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   Real previous_iso_hardening = 0.;
 
   // hydrostatic loading (should not plastify)
-  for (auto &&i : steps) {
+  for (auto && i : steps) {
     auto t = i * dt;
 
-    auto grad_u = this->getHydrostaticStrain(t);
-    auto grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
+    Matrix<Real, 3, 3> grad_u = this->getHydrostaticStrain(t);
+    Matrix<Real, 3, 3> grad_u_rot =
+        this->applyRotation(grad_u, rotation_matrix);
 
     this->computeStressOnQuad(make_named_tuple(
         tuple::get<"grad_u"_h>() = grad_u_rot,
@@ -102,7 +103,8 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
         tuple::get<"iso_hardening"_h>() = iso_hardening,
         tuple::get<"previous_iso_hardening"_h>() = previous_iso_hardening));
 
-    auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
+    Matrix<Real, 3, 3> sigma =
+        this->reverseRotation(sigma_rot, rotation_matrix);
 
     Matrix<Real, 3, 3> sigma_expected =
         t * 3. * bulk_modulus_K * Matrix<Real, 3, 3>::Identity();
@@ -122,9 +124,10 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
   // stress at onset of plastication
   Real beta = sqrt(42);
   Real t_P = sigma_0 / 2. / shear_modulus_mu / beta;
-  Matrix<Real> sigma_P = sigma_0 / beta * this->getDeviatoricStrain(1.);
+  // Matrix<Real, 3, 3> sigma_P = sigma_0 / beta *
+  // this->getDeviatoricStrain(1.);
 
-  for (auto &&i : steps) {
+  for (auto && i : steps) {
 
     auto t = i * dt;
     auto grad_u = this->getDeviatoricStrain(t);
@@ -148,7 +151,7 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
         this->reverseRotation(inelastic_strain_rot, rotation_matrix);
 
     if (t < t_P) {
-      Matrix<Real> sigma_expected =
+      Matrix<Real, 3, 3> sigma_expected =
           shear_modulus_mu * (grad_u + grad_u.transpose());
 
       Real stress_error = (sigma - sigma_expected).lpNorm<Eigen::Infinity>();
@@ -159,19 +162,19 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
 
       auto delta_lambda_expected =
           dt / t * previous_sigma.doubleDot(grad_u + grad_u.transpose()) / 2.;
-      auto delta_inelastic_strain_expected =
+      Matrix<Real, 3, 3> delta_inelastic_strain_expected =
           delta_lambda_expected * 3. / 2. / sigma_0 * previous_sigma;
-      auto inelastic_strain_expected =
+      Matrix<Real, 3, 3> inelastic_strain_expected =
           delta_inelastic_strain_expected + previous_inelastic_strain;
       ASSERT_NEAR((inelastic_strain - inelastic_strain_expected)
                       .lpNorm<Eigen::Infinity>(),
                   0., 1e-13);
-      auto delta_sigma_expected =
+      Matrix<Real, 3, 3> delta_sigma_expected =
           2. * shear_modulus_mu *
           (0.5 * dt / t * (grad_u + grad_u.transpose()) -
            delta_inelastic_strain_expected);
 
-      auto delta_sigma = sigma - previous_sigma;
+      Matrix<Real, 3, 3> delta_sigma = sigma - previous_sigma;
       ASSERT_NEAR(
           (delta_sigma_expected - delta_sigma).lpNorm<Eigen::Infinity>(), 0.,
           1e-13);

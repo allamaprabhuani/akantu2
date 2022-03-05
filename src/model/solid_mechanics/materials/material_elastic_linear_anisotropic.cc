@@ -51,23 +51,13 @@ MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
       symmetric(symmetric), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
 
-  this->dir_vecs.push_back(std::make_unique<Vector<Real, dim>>());
-  (*this->dir_vecs.back())[0] = 1.;
-  this->registerParam("n1", *(this->dir_vecs.back()), _pat_parsmod,
-                      "Direction of main material axis");
-
-  if (dim > 1) {
-    this->dir_vecs.push_back(std::make_unique<Vector<Real, dim>>());
-    (*this->dir_vecs.back())[1] = 1.;
-    this->registerParam("n2", *(this->dir_vecs.back()), _pat_parsmod,
-                        "Direction of secondary material axis");
-  }
-
-  if (dim > 2) {
-    this->dir_vecs.push_back(std::make_unique<Vector<Real, dim>>());
-    (*this->dir_vecs.back())[2] = 1.;
-    this->registerParam("n3", *(this->dir_vecs.back()), _pat_parsmod,
-                        "Direction of tertiary material axis");
+  for (int i : arange(dim)) {
+    this->dir_vecs.emplace_back(std::make_unique<Vector<Real, dim>>());
+    auto && n = *this->dir_vecs.back();
+    n.zero();
+    n[i] = 1.;
+    this->registerParam("n" + std::to_string(i + 1), *(this->dir_vecs.back()),
+                        _pat_parsmod, "Direction of main material axis");
   }
 
   for (auto i : arange(voigt_h::size)) {
@@ -133,7 +123,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
   }
 
   // make sure the vectors form a right-handed base
-  Vector<Real, 3> test_axis = Vector<Real, 3>::Zero();
+  Real test_axis = 0.;
   if (Dim == 2) {
     Vector<Real, 3> v1 = Vector<Real, 3>::Zero();
     Vector<Real, 3> v2 = Vector<Real, 3>::Zero();
@@ -146,18 +136,18 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
     }
 
     v3.normalize();
-    test_axis = v1.cross(v2) - v3;
+    test_axis = (v1.cross(v2) - v3).norm();
   } else if (Dim == 3) {
     Vector<Real, 3> v1 = this->rot_mat(0);
     Vector<Real, 3> v2 = this->rot_mat(1);
     Vector<Real, 3> v3 = this->rot_mat(2);
-    test_axis = v1.cross(v2) - v3;
+    test_axis = (v1.cross(v2) - v3).norm();
   }
 
-  if (test_axis.norm() > 8 * std::numeric_limits<Real>::epsilon()) {
+  if (test_axis > 8 * std::numeric_limits<Real>::epsilon()) {
     AKANTU_ERROR("The axis vectors do not form a right-handed coordinate "
                  << "system. I. e., ||n1 x n2 - n3|| should be zero, but "
-                 << "it is " << test_axis.norm() << ".");
+                 << "it is " << test_axis << ".");
   }
 
   // create the rotator and the reverse rotator

@@ -47,8 +47,8 @@
 
 using namespace akantu;
 
-static void genMesh(Mesh & mesh, UInt nb_nodes);
-static void printResults(MyModel & model, UInt nb_nodes);
+static void genMesh(Mesh & mesh, Int nb_nodes);
+static void printResults(MyModel & model, Int nb_nodes);
 
 Real F = -10;
 
@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
   auto & nodes = mesh_accessor.getNodes();
   auto & conn = mesh_accessor.getConnectivity(_segment_2);
@@ -117,7 +117,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
 }
 
 /* -------------------------------------------------------------------------- */
-void printResults(MyModel & model, UInt /*nb_nodes*/) {
+void printResults(MyModel & model, Int /*nb_nodes*/) {
   // if (model.mesh.isDistributed()) {
   //   UInt prank = model.mesh.getCommunicator().whoAmI();
   //   auto & sync = dynamic_cast<DOFManagerDefault &>(model.getDOFManager())

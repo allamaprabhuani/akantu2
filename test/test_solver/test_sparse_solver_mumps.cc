@@ -46,7 +46,7 @@
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes);
+void genMesh(Mesh & mesh, Int nb_nodes);
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
               << std::endl;
     ++node;
   }
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
@@ -117,7 +117,7 @@ int main(int argc, char * argv[]) {
     std::cout << xs << std::endl;
     debug::setDebugLevel(dblWarning);
 
-    UInt d = 1.;
+    Int d = 1.;
     for (auto x : xs) {
       if (std::abs(x - d) / d > 1e-15)
         AKANTU_EXCEPTION("Error in the solution: " << x << " != " << d << " ["
@@ -148,7 +148,7 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
   Array<Real> & nodes = mesh_accessor.getNodes();
   Array<Idx> & conn = mesh_accessor.getConnectivity(_segment_2);

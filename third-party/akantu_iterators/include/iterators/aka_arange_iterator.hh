@@ -26,6 +26,8 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "aka_iterator_tools.hh"
+/* -------------------------------------------------------------------------- */
 #include <cstddef>
 #include <iterator>
 #include <utility>
@@ -34,17 +36,15 @@
 #ifndef AKA_ARANGE_ITERATOR_HH
 #define AKA_ARANGE_ITERATOR_HH
 
-#ifndef AKANTU_ITERATORS_NAMESPACE
-#define AKANTU_ITERATORS_NAMESPACE akantu
-#endif
-
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace containers {
+namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
 
   template <class Iterator> class Range {
   public:
-    using size_type = std::size_t;//typename std::iterator_traits<Iterator>::difference_type;
+    using size_type =
+        std::size_t; // typename
+                     // std::iterator_traits<Iterator>::difference_type;
     using iterator = Iterator;
     // ugly trick
     using const_iterator = Iterator;
@@ -71,7 +71,7 @@ decltype(auto) range(Iterator && it1, Iterator && it2) {
 /* -------------------------------------------------------------------------- */
 /* Arange                                                                     */
 /* -------------------------------------------------------------------------- */
-namespace iterators {
+namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
   template <class T> class ArangeIterator {
   public:
     using value_type = T;
@@ -104,7 +104,7 @@ namespace iterators {
   };
 } // namespace iterators
 
-namespace containers {
+namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   template <class T> class ArangeContainer {
   public:
     using iterator = iterators::ArangeIterator<T>;

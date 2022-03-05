@@ -154,7 +154,7 @@ using TestCohesiveElementTypes = akantu::ElementTypes_t<akantu::_ek_cohesive>;
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 using TestElementTypesStructural =
     akantu::ElementTypes_t<akantu::_ek_structural>;
-;
+
 #endif
 
 using TestAllDimensions = std::tuple<std::integral_constant<unsigned int, 1>,
@@ -181,14 +181,14 @@ template <size_t degree> class Polynomial {
 public:
   Polynomial() = default;
 
-  Polynomial(std::initializer_list<double> && init) {
-    for (auto && pair : akantu::zip(init, constants))
+  Polynomial(std::initializer_list<double> &&init) {
+    for (auto &&pair : akantu::zip(init, constants))
       std::get<1>(pair) = std::get<0>(pair);
   }
 
   double operator()(double x) {
     double res = 0.;
-    for (auto && vals : akantu::enumerate(constants)) {
+    for (auto &&vals : akantu::enumerate(constants)) {
       double a;
       int k;
       std::tie(k, a) = vals;
@@ -228,7 +228,7 @@ protected:
 };
 
 template <size_t degree>
-std::ostream & operator<<(std::ostream & stream, const Polynomial<degree> & p) {
+std::ostream &operator<<(std::ostream &stream, const Polynomial<degree> &p) {
   for (size_t d = 0; d < degree + 1; ++d) {
     if (d != 0)
       stream << " + ";

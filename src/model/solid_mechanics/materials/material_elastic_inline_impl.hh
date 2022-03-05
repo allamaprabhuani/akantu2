@@ -66,8 +66,10 @@ inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
   auto && sigma = tuple::get<"sigma"_h>(args);
   auto && grad_u = tuple::get<"grad_u"_h>(args);
   Real sigma_th = 0.;
+
   static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
     sigma_th = tuple::get<"sigma_th"_h>(args);
+    std::cout << "blip " << sigma_th << std::endl;
   })(std::forward<Args>(args));
 
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
@@ -79,6 +81,8 @@ template <typename Args>
 inline void
 MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
   auto && tangent = tuple::get<"tangent_moduli"_h>(args);
+  tangent.zero();
+
   constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
 
   // Real Ep = E/((1+nu)*(1-2*nu));

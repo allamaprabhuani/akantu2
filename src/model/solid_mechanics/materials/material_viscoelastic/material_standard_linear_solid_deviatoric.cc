@@ -40,8 +40,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialStandardLinearSolidDeviatoric<
-    dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel &model,
-                                                const ID &id)
+    dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
+                                                const ID & id)
     : MaterialElastic<dim>(model, id), stress_dev("stress_dev", *this),
       history_integral("history_integral", *this),
       dissipated_energy("dissipated_energy", *this) {
@@ -55,7 +55,7 @@ MaterialStandardLinearSolidDeviatoric<
   this->registerParam("Einf", E_inf, Real(1.), _pat_readable,
                       "Stiffness of the elastic element");
 
-  UInt stress_size = dim * dim;
+  auto stress_size = dim * dim;
 
   this->stress_dev.initialize(stress_size);
   this->history_integral.initialize(stress_size);
@@ -86,10 +86,10 @@ template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
     ElementType el_type, GhostType ghost_type) {
   /// Loop on all quadrature points
-  for (auto &&args : this->getArguments(el_type, ghost_type)) {
-    const auto &grad_u = tuple::get<"grad_u"_h>(args);
-    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto &h = tuple::get<"history"_h>(args);
+  for (auto && args : this->getArguments(el_type, ghost_type)) {
+    const auto & grad_u = tuple::get<"grad_u"_h>(args);
+    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto & h = tuple::get<"history"_h>(args);
 
     /// Compute the first invariant of strain
     Real Theta = grad_u.trace();
@@ -114,30 +114,32 @@ void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
 
   Matrix<Real, dim, dim> s;
   Matrix<Real, dim, dim> epsilon_d;
+  Matrix<Real, dim, dim> U_rond_prim;
 
+  /// Compute the first invariant of strain
+  auto gamma_inf = E_inf / this->E;
+  auto gamma_v = Ev / this->E;
+
+  auto && arguments = this->getArguments(el_type, ghost_type);
   /// Loop on all quadrature points
-  for (auto &&args : this->getArguments(el_type, ghost_type)) {
-    const auto &grad_u = tuple::get<"grad_u"_h>(args);
-    auto &sigma = tuple::get<"sigma"_h>(args);
-    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto &h = tuple::get<"history"_h>(args);
+  for (auto && args : arguments) {
+    auto && grad_u = tuple::get<"grad_u"_h>(args);
+    auto && sigma = tuple::get<"sigma"_h>(args);
+    auto && dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto && h = tuple::get<"history"_h>(args);
 
     s.zero();
     sigma.zero();
 
-    /// Compute the first invariant of strain
-    auto gamma_inf = E_inf / this->E;
-    auto gamma_v = Ev / this->E;
-
     epsilon_d = this->template gradUToEpsilon<dim>(grad_u);
     auto Theta = epsilon_d.trace();
 
-    epsilon_d -= Matrix<Real, dim, dim>::Identity() * epsilon_d.trace() / 3.;
+    epsilon_d -= Matrix<Real, dim, dim>::Identity() * Theta / 3.;
 
-    Matrix<Real, dim, dim> U_rond_prim =
+    U_rond_prim =
         Matrix<Real, dim, dim>::Identity() * gamma_inf * this->kpa * Theta;
 
-    s = this->mu * epsilon_d;
+    s = 2 * this->mu * epsilon_d;
     h = exp_dt_tau * h + exp_dt_tau_2 * (s - dev_s);
     dev_s = s;
     sigma = U_rond_prim + gamma_inf * s + gamma_v * h;
@@ -161,13 +163,13 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
   auto gamma_v = Ev / this->E;
   auto alpha = 1. / (2. * this->mu * gamma_v);
 
-  for (auto &&data : zip(this->getArguments(el_type, ghost_type),
-                         dissipated_energy(el_type, ghost_type))) {
-    auto &&args = std::get<0>(data);
-    auto &dis_energy = std::get<1>(data);
-    const auto &grad_u = tuple::get<"grad_u"_h>(args);
-    auto &dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto &h = tuple::get<"history"_h>(args);
+  for (auto && data : zip(this->getArguments(el_type, ghost_type),
+                          dissipated_energy(el_type, ghost_type))) {
+    auto && args = std::get<0>(data);
+    auto & dis_energy = std::get<1>(data);
+    const auto & grad_u = tuple::get<"grad_u"_h>(args);
+    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
+    auto & h = tuple::get<"history"_h>(args);
 
     /// Compute the first invariant of strain
     epsilon_d = Material::gradUToEpsilon<dim>(grad_u);
@@ -190,7 +192,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (const auto &type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (const auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
     de +=
         this->fem.integrate(dissipated_energy(type, _not_ghost), type,
                             _not_ghost, this->element_filter(type, _not_ghost));
@@ -203,7 +205,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
-    const Element &element) const {
+    const Element & element) const {
   AKANTU_DEBUG_IN();
 
   auto nb_quadrature_points = this->fem.getNbIntegrationPoints(element.type);
@@ -217,7 +219,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
-    const std::string &type) {
+    const std::string & type) {
   if (type == "dissipated") {
     return getDissipatedEnergy();
   }
@@ -230,7 +232,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
-    const std::string &energy_id, const Element &element) {
+    const std::string & energy_id, const Element & element) {
   if (energy_id == "dissipated") {
     return getDissipatedEnergy(element);
   }

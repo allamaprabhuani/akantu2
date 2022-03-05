@@ -37,13 +37,9 @@
 #ifndef AKA_CONCATENATE_ITERATOR_H
 #define AKA_CONCATENATE_ITERATOR_H
 
-#ifndef AKANTU_ITERATORS_NAMESPACE
-#define AKANTU_ITERATORS_NAMESPACE akantu
-#endif
-
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace iterators {
+namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
 
   /* ------------------------------------------------------------------------ */
   template <class... Iterators>
@@ -132,7 +128,7 @@ concat_iterator(std::tuple<Iterators...> && iterators_tuple,
 }
 
 /* -------------------------------------------------------------------------- */
-namespace containers {
+namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   template <class... Containers> class ConcatContainer {
     using containers_t = std::tuple<Containers...>;
 

@@ -44,7 +44,7 @@ protected:
     csr.clearRows();
 
     for (Int i = 0; i < N; ++i) {
-      UInt nb_cols(UInt(rand() * double(N) / (RAND_MAX + 1.)));
+      Int nb_cols(Int(rand() * double(N) / (RAND_MAX + 1.)));
       nb_cols_per_row.push_back(nb_cols);
       for (Int j = 0; j < nb_cols; ++j) {
         ++csr.rowOffset(i);
@@ -56,7 +56,7 @@ protected:
 
     csr.beginInsertions();
     for (Int i = 0; i < N; ++i) {
-      UInt nb_cols = nb_cols_per_row[i];
+      Int nb_cols = nb_cols_per_row[i];
       for (Int j = 0; j < nb_cols; ++j) {
         csr.insertInRow(i, nb_cols - j);
       }

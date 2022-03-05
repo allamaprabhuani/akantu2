@@ -40,7 +40,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   //  akantu::initialize("orthotropic.dat", argc, argv);
   akantu::initialize("orthotropic.dat", argc, argv);
-  UInt max_steps = 1000;
+  Int max_steps = 1000;
   Real epot, ekin;
 
   Mesh mesh(2);

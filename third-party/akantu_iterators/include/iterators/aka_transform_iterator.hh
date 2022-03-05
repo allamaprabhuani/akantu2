@@ -26,7 +26,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "aka_compatibilty_with_cpp_standard.hh"
+#include "aka_iterator_tools.hh"
 /* -------------------------------------------------------------------------- */
 #include <utility>
 /* -------------------------------------------------------------------------- */
@@ -34,124 +34,123 @@
 #ifndef AKA_TRANSFORM_ITERATOR_H
 #define AKA_TRANSFORM_ITERATOR_H
 
-#ifndef AKANTU_ITERATORS_NAMESPACE
-#define AKANTU_ITERATORS_NAMESPACE akantu
-#endif
-
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace iterators {
-template <class iterator_t, class operator_t> class transform_adaptor_iterator {
-public:
-  using value_type = decltype(std::declval<operator_t>()(
-      std::declval<typename iterator_t::value_type>()));
-  using difference_type = typename iterator_t::difference_type;
-  using pointer = std::decay_t<value_type> *;
-  using reference = value_type &;
-  using iterator_category = typename iterator_t::iterator_category;
+namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+  template <class iterator_t, class operator_t>
+  class transform_adaptor_iterator {
+  public:
+    using value_type = decltype(std::declval<operator_t>()(
+        std::declval<typename iterator_t::value_type>()));
+    using difference_type = typename iterator_t::difference_type;
+    using pointer = std::decay_t<value_type> *;
+    using reference = value_type &;
+    using iterator_category = typename iterator_t::iterator_category;
 
-  transform_adaptor_iterator(iterator_t it, operator_t op)
-      : it(std::move(it)), op(op) {}
-  transform_adaptor_iterator(const transform_adaptor_iterator &) = default;
+    transform_adaptor_iterator(iterator_t it, operator_t op)
+        : it(std::move(it)), op(op) {}
+    transform_adaptor_iterator(const transform_adaptor_iterator &) = default;
 
-  transform_adaptor_iterator &operator++() {
-    ++it;
-    return *this;
+    transform_adaptor_iterator & operator++() {
+      ++it;
+      return *this;
+    }
+
+    decltype(auto) operator*() { return op(std::forward<decltype(*it)>(*it)); }
+
+    bool operator==(const transform_adaptor_iterator & other) const {
+      return (it == other.it);
+    }
+
+    bool operator!=(const transform_adaptor_iterator & other) const {
+      return not operator==(other);
+    }
+
+    template <class iterator_category_ = iterator_category,
+              std::enable_if_t<aka::is_iterator_category_at_least<
+                  iterator_category_,
+                  std::random_access_iterator_tag>::value> * = nullptr>
+    difference_type operator-(const transform_adaptor_iterator & other) {
+      return other - *this;
+    }
+
+  private:
+    iterator_t it;
+    operator_t op;
+  };
+
+  template <class iterator_t, class operator_t>
+  auto make_transform_adaptor_iterator(iterator_t it, operator_t op)
+      -> decltype(auto) {
+    return transform_adaptor_iterator<iterator_t, operator_t>(
+        it, std::forward<operator_t>(op));
   }
-
-  decltype(auto) operator*() { return op(std::forward<decltype(*it)>(*it)); }
-
-  bool operator==(const transform_adaptor_iterator &other) const {
-    return (it == other.it);
-  }
-
-  bool operator!=(const transform_adaptor_iterator &other) const {
-    return not operator==(other);
-  }
-
-  template <class iterator_category_ = iterator_category,
-            std::enable_if_t<aka::is_iterator_category_at_least<
-                iterator_category_, std::random_access_iterator_tag>::value> * =
-                nullptr>
-  difference_type operator-(const transform_adaptor_iterator &other) {
-    return other - *this;
-  }
-
-private:
-  iterator_t it;
-  operator_t op;
-};
-
-template <class iterator_t, class operator_t>
-auto make_transform_adaptor_iterator(iterator_t it, operator_t op)
-    -> decltype(auto) {
-  return transform_adaptor_iterator<iterator_t, operator_t>(
-      it, std::forward<operator_t>(op));
-}
 
 } // namespace iterators
 
-namespace containers {
-template <class container_t, class operator_t> class TransformIteratorAdaptor {
-public:
-  // using const_iterator = typename
-  // std::decay_t<container_t>::const_iterator; using iterator = typename
-  // std::decay_t<container_t>::iterator;
-  using size_type = typename std::decay_t<container_t>::size_type;
+namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+  template <class container_t, class operator_t>
+  class TransformIteratorAdaptor {
+  public:
+    // using const_iterator = typename
+    // std::decay_t<container_t>::const_iterator; using iterator = typename
+    // std::decay_t<container_t>::iterator;
+    using size_type = typename std::decay_t<container_t>::size_type;
 
-  TransformIteratorAdaptor(container_t &&cont, operator_t op)
-      : cont(std::forward<container_t>(cont)),
-        op(std::forward<operator_t>(op)) {}
+    TransformIteratorAdaptor(container_t && cont, operator_t op)
+        : cont(std::forward<container_t>(cont)),
+          op(std::forward<operator_t>(op)) {}
 
-  auto begin() const -> decltype(auto) {
-    return iterators::make_transform_adaptor_iterator(cont.begin(), op);
-  }
-  auto begin() -> decltype(auto) {
-    return iterators::make_transform_adaptor_iterator(cont.begin(), op);
-  }
+    auto begin() const -> decltype(auto) {
+      return iterators::make_transform_adaptor_iterator(cont.begin(), op);
+    }
+    auto begin() -> decltype(auto) {
+      return iterators::make_transform_adaptor_iterator(cont.begin(), op);
+    }
 
-  auto end() const -> decltype(auto) {
-    return iterators::make_transform_adaptor_iterator(cont.end(), op);
-  }
-  auto end() -> decltype(auto) {
-    return iterators::make_transform_adaptor_iterator(cont.end(), op);
-  }
+    auto end() const -> decltype(auto) {
+      return iterators::make_transform_adaptor_iterator(cont.end(), op);
+    }
+    auto end() -> decltype(auto) {
+      return iterators::make_transform_adaptor_iterator(cont.end(), op);
+    }
 
-private:
-  container_t cont;
-  operator_t op;
-};
+  private:
+    container_t cont;
+    operator_t op;
+  };
 } // namespace containers
 
 template <class container_t, class operator_t>
-auto make_transform_adaptor(container_t &&cont, operator_t &&op)
+auto make_transform_adaptor(container_t && cont, operator_t && op)
     -> decltype(auto) {
   return containers::TransformIteratorAdaptor<container_t, operator_t>(
       std::forward<container_t>(cont), std::forward<operator_t>(op));
 }
 
 template <class container_t>
-auto make_keys_adaptor(container_t &&cont) -> decltype(auto) {
+auto make_keys_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
-      [](auto &&pair) -> const auto & { return pair.first; });
+      [](auto && pair) -> const auto & { return pair.first; });
 }
 
 template <class container_t>
-auto make_values_adaptor(container_t &&cont) -> decltype(auto) {
+auto make_values_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
-      [](auto &&pair) -> auto & { return pair.second; });
+      [](auto && pair) -> auto & { return pair.second; });
 }
 
 template <class container_t>
-auto make_dereference_adaptor(container_t &&cont) -> decltype(auto) {
+auto make_dereference_adaptor(container_t && cont) -> decltype(auto) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
-      [](auto &&value) -> decltype(*value) { return *value; });
+      [](auto && value) -> decltype(*value) { return *value; });
 }
 
-template <typename Type, typename Size> auto broadcast(Type &&data, Size size) {
+template <typename Type, typename Size>
+auto broadcast(Type && data, Size size) {
   return make_transform_adaptor(arange(size),
                                 [data](auto && /*value*/) { return data; });
 }

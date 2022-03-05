@@ -71,7 +71,7 @@ template <> void FriendMaterial<MaterialElastic<1>>::testComputeStress() {
   Real sigma_th = 2;
   this->computeStressOnQuad(make_named_tuple(
       tuple::get<"grad_u"_h>() = eps, tuple::get<"sigma"_h>() = sigma,
-      tuple::get<"sigma"_h>() = sigma_th));
+      tuple::get<"sigma_th"_h>() = sigma_th));
 
   auto solution = E * eps(0, 0) + sigma_th;
   EXPECT_NEAR(sigma(0, 0), solution, 1e-14);
@@ -122,24 +122,27 @@ template <> void FriendMaterial<MaterialElastic<2>>::testComputeStress() {
 
   Matrix<Real> rotation_matrix = getRandomRotation();
 
-  auto grad_u = this->getComposedStrain(1.).block(0, 0, 2, 2);
+  Matrix<Real, 2, 2> grad_u = this->getComposedStrain(1.).block<2, 2>(0, 0);
 
   auto grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
 
-  Matrix<Real> sigma_rot(2, 2);
-  this->computeStressOnQuad(make_named_tuple(
-      tuple::get<"grad_u"_h>() = grad_u_rot,
-      tuple::get<"sigma"_h>() = sigma_rot, tuple::get<"sigma"_h>() = sigma_th));
+  Matrix<Real, 2, 2> sigma_rot;
+  this->computeStressOnQuad(
+      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
+                       tuple::get<"sigma"_h>() = sigma_rot,
+                       tuple::get<"sigma_th"_h>() = sigma_th));
 
   auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
 
-  auto identity = Matrix<Real>::Identity(2, 2);
+  auto identity = Matrix<Real, 2, 2>::Identity();
 
-  auto strain = 0.5 * (grad_u + grad_u.transpose());
-  auto deviatoric_strain = strain - 1. / 3. * strain.trace() * identity;
+  Matrix<Real, 2, 2> strain = 0.5 * (grad_u + grad_u.transpose());
+  Matrix<Real, 2, 2> deviatoric_strain =
+      strain - 1. / 3. * strain.trace() * identity;
 
-  auto sigma_expected = 2 * shear_modulus_mu * deviatoric_strain +
-                        (sigma_th + 2. * bulk_modulus_K) * identity;
+  Matrix<Real, 2, 2> sigma_expected =
+      2 * shear_modulus_mu * deviatoric_strain +
+      (sigma_th + 2. * bulk_modulus_K) * identity;
 
   auto diff = sigma - sigma_expected;
   Real stress_error =
@@ -177,7 +180,7 @@ void FriendMaterial<MaterialElastic<2>>::testComputeTangentModuli() {
 
   this->computeTangentModuliOnQuad(
       make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
-  Real tangent_error = (tangent - solution).norm();
+  Real tangent_error = (tangent - solution).lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
 
   /* Plane Stress */
@@ -194,7 +197,7 @@ void FriendMaterial<MaterialElastic<2>>::testComputeTangentModuli() {
 
   this->computeTangentModuliOnQuad(
       make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
-  tangent_error = (tangent - solution).norm();
+  tangent_error = (tangent - solution).lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
 }
 
@@ -232,27 +235,27 @@ template <> void FriendMaterial<MaterialElastic<3>>::testComputeStress() {
   Real bulk_modulus_K = E / 3. / (1 - 2. * nu);
   Real shear_modulus_mu = 0.5 * E / (1 + nu);
 
-  Matrix<Real> rotation_matrix = getRandomRotation();
+  Matrix<Real, 3, 3> rotation_matrix = getRandomRotation();
+  Matrix<Real, 3, 3> grad_u = this->getComposedStrain(1.);
+  Matrix<Real, 3, 3> grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
 
-  auto grad_u = this->getComposedStrain(1.);
+  Matrix<Real, 3, 3> sigma_rot;
+  this->computeStressOnQuad(
+      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
+                       tuple::get<"sigma"_h>() = sigma_rot,
+                       tuple::get<"sigma_th"_h>() = sigma_th));
 
-  auto grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
+  Matrix<Real, 3, 3> sigma = this->reverseRotation(sigma_rot, rotation_matrix);
 
-  Matrix<Real> sigma_rot(3, 3);
-  this->computeStressOnQuad(make_named_tuple(
-      tuple::get<"grad_u"_h>() = grad_u_rot,
-      tuple::get<"sigma"_h>() = sigma_rot, tuple::get<"sigma"_h>() = sigma_th));
+  Matrix<Real, 3, 3> identity = Matrix<Real, 3, 3>::Identity();
 
-  auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
+  Matrix<Real, 3, 3> strain = 0.5 * (grad_u + grad_u.transpose());
+  Matrix<Real, 3, 3> deviatoric_strain =
+      strain - 1. / 3. * strain.trace() * identity;
 
-  Matrix<Real, 3, 3> identity;
-  identity.eye();
-
-  Matrix<Real> strain = 0.5 * (grad_u + grad_u.transpose());
-  Matrix<Real> deviatoric_strain = strain - 1. / 3. * strain.trace() * identity;
-
-  Matrix<Real> sigma_expected = 2 * shear_modulus_mu * deviatoric_strain +
-                                (sigma_th + 3. * bulk_modulus_K) * identity;
+  Matrix<Real, 3, 3> sigma_expected =
+      2 * shear_modulus_mu * deviatoric_strain +
+      (sigma_th + 3. * bulk_modulus_K) * identity;
 
   auto diff = sigma - sigma_expected;
   Real stress_error = diff.lpNorm<Eigen::Infinity>();
@@ -337,7 +340,7 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<2>>::setParams() {
 /* -------------------------------------------------------------------------- */
 template <>
 void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
-  Int Dim = 2;
+  const Int Dim = 2;
   // material frame of reference is rotate by rotation_matrix starting from
   // canonical basis
   Matrix<Real> rotation_matrix = getRandomRotation();
@@ -353,14 +356,14 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
   this->updateInternalParameters();
 
   // gradient in material frame of reference
-  auto grad_u = this->getComposedStrain(2.).block<2, 2>(0, 0);
+  Matrix<Real, Dim, Dim> grad_u = this->getComposedStrain(2.).block<2, 2>(0, 0);
 
   // gradient in canonical basis (we need to rotate *back* to the canonical
   // basis)
   auto grad_u_rot = this->reverseRotation(grad_u, rotation_matrix);
 
   // stress in the canonical basis
-  Matrix<Real> sigma_rot(2, 2);
+  Matrix<Real, Dim, Dim> sigma_rot;
   this->computeStressOnQuad(
       make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
                        tuple::get<"sigma"_h>() = sigma_rot));
@@ -374,7 +377,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
   Real nu21 = nu12 * E2 / E1;
   Real gamma = 1 / (1 - nu12 * nu21);
 
-  Matrix<Real> C_expected(2 * Dim, 2 * Dim);
+  Matrix<Real, 2 * Dim, 2 * Dim> C_expected;
   C_expected.zero();
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
@@ -383,10 +386,10 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
   C_expected(1, 0) = C_expected(0, 1) = gamma * E1 * nu21;
 
   // epsilon is computed directly in the *material* frame of reference
-  Matrix<Real> epsilon = 0.5 * (grad_u + grad_u.transpose());
+  Matrix<Real, Dim, Dim> epsilon = 0.5 * (grad_u + grad_u.transpose());
 
   // sigma_expected is computed directly in the *material* frame of reference
-  Matrix<Real> sigma_expected(Dim, Dim);
+  Matrix<Real, Dim, Dim> sigma_expected;
   for (Int i = 0; i < Dim; ++i) {
     for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
@@ -426,6 +429,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeTangentModuli() {
   Real gamma = 1 / (1 - nu12 * nu21);
 
   Matrix<Real> C_expected(3, 3);
+  C_expected.zero();
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
   C_expected(2, 2) = G12;
@@ -449,14 +453,14 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<2>>::testCelerity() {
   Real nu21 = nu12 * E2 / E1;
   Real gamma = 1 / (1 - nu12 * nu21);
 
-  Matrix<Real> C_expected(3, 3);
+  Matrix<Real, 3, 3> C_expected;
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
   C_expected(2, 2) = G12;
 
   C_expected(1, 0) = C_expected(0, 1) = gamma * E1 * nu21;
 
-  Vector<Real> eig_expected(3);
+  Vector<Real, 3> eig_expected;
   C_expected.eig(eig_expected);
 
   auto celerity_expected = std::sqrt(eig_expected(0) / rho);
@@ -500,11 +504,11 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<3>>::setParams() {
 /* -------------------------------------------------------------------------- */
 template <>
 void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
-  UInt Dim = 3;
+  const Int Dim = 3;
 
   // material frame of reference is rotate by rotation_matrix starting from
   // canonical basis
-  Matrix<Real> rotation_matrix = getRandomRotation();
+  Matrix<Real, Dim, Dim> rotation_matrix = getRandomRotation();
 
   // canonical basis as expressed in the material frame of reference, as
   // required by MaterialElasticOrthotropic class (it is simply given by the
@@ -518,7 +522,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
   this->updateInternalParameters();
 
   // gradient in material frame of reference
-  auto grad_u = this->getComposedStrain(2.);
+  Matrix<Real, Dim, Dim> grad_u = this->getComposedStrain(2.);
 
   // gradient in canonical basis (we need to rotate *back* to the canonical
   // basis)
@@ -542,7 +546,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
   Real gamma = 1 / (1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 -
                     2 * nu21 * nu32 * nu13);
 
-  Matrix<Real> C_expected(6, 6);
+  Matrix<Real, 2 * Dim, 2 * Dim> C_expected;
   C_expected(0, 0) = gamma * E1 * (1 - nu23 * nu32);
   C_expected(1, 1) = gamma * E2 * (1 - nu13 * nu31);
   C_expected(2, 2) = gamma * E3 * (1 - nu12 * nu21);
@@ -556,10 +560,10 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
   C_expected(5, 5) = G12;
 
   // epsilon is computed directly in the *material* frame of reference
-  Matrix<Real> epsilon = 0.5 * (grad_u + grad_u.transpose());
+  Matrix<Real, Dim, Dim> epsilon = 0.5 * (grad_u + grad_u.transpose());
 
   // sigma_expected is computed directly in the *material* frame of reference
-  Matrix<Real> sigma_expected(Dim, Dim);
+  Matrix<Real, Dim, Dim> sigma_expected;
   for (Int i = 0; i < Dim; ++i) {
     for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
@@ -701,11 +705,12 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testComputeStress() {
   rotation_matrix(1) = *this->dir_vecs[1];
 
   // gradient in material frame of reference
-  auto grad_u = this->getComposedStrain(1.).block<2, 2>(0, 0);
+  Matrix<Real, 2, 2> grad_u = this->getComposedStrain(1.).block<2, 2>(0, 0);
 
   // gradient in canonical basis (we need to rotate *back* to the canonical
   // basis)
-  auto grad_u_rot = this->reverseRotation(grad_u, rotation_matrix);
+  Matrix<Real, 2, 2> grad_u_rot =
+      this->reverseRotation(grad_u, rotation_matrix);
 
   // stress in the canonical basis
   Matrix<Real, 2, 2> sigma_rot;
@@ -780,8 +785,8 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<3>>::setParams() {
       {0.4, 0.1, 1.5, 0.1, 0.4, 0.3}, {0.3, 0.2, 0.1, 2.4, 0.1, 0.4},
       {0.2, 0.3, 0.4, 0.1, 0.9, 0.1}, {0.1, 0.2, 0.3, 0.4, 0.1, 1.2}};
 
-  for (auto i = 0u; i < C.rows(); ++i)
-    for (auto j = 0u; j < C.cols(); ++j)
+  for (auto i = 0; i < C.rows(); ++i)
+    for (auto j = 0; j < C.cols(); ++j)
       this->Cprime(i, j) = C(i, j);
 
   this->rho = 2.9;

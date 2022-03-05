@@ -53,7 +53,7 @@ void NTNFricLawLinearSlipWeakeningNoHealing<
   // get arrays
   const SynchronizedArray<Real> & slip = this->internalGetCumulativeSlip();
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
   for (Int n = 0; n < nb_contact_nodes; ++n) {
     if (slip(n) >= this->d_c(n)) {
       this->mu(n) = this->mu_k(n);

@@ -167,15 +167,14 @@ auto count_if(InputIt first, InputIt last, UnaryPredicate p) ->
 
 namespace detail {
   template <class T, class Tuple, std::size_t... I>
-  constexpr auto make_from_tuple_impl(Tuple && t,
-                                      std::index_sequence<I...> /*unused*/)
-      -> T {
+  constexpr T make_from_tuple_impl(Tuple && t, std::index_sequence<I...>) {
+    static_assert(std::is_constructible_v<T, decltype(std::get<I>(
+                                                 std::declval<Tuple>()))...>);
     return T(std::get<I>(std::forward<Tuple>(t))...);
   }
 } // namespace detail
 
-template <class T, class Tuple>
-constexpr auto make_from_tuple(Tuple && t) -> T {
+template <class T, class Tuple> constexpr T make_from_tuple(Tuple && t) {
   return detail::make_from_tuple_impl<T>(
       std::forward<Tuple>(t),
       std::make_index_sequence<

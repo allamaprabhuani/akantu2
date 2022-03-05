@@ -45,63 +45,18 @@ ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh, Int spatial_dimension,
 ShapeLagrangeBase::~ShapeLagrangeBase() = default;
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_COMPUTE_SHAPES(type)                                            \
-  _this.template computeShapesOnIntegrationPoints<type>(                       \
-      nodes, integration_points, shapes, ghost_type, filter_elements)
-
-namespace shape_lagrange {
-  namespace details {
-    template <ElementKind kind> struct Helper {
-      template <class S>
-      static void call(const S & /*_this*/, const Array<Real> & /*nodes*/,
-                       const Matrix<Real> & /*integration_points*/,
-                       Array<Real> & /*shapes*/, ElementType /*type*/,
-                       GhostType /*ghost_type*/,
-                       const Array<Idx> & /*filter_elements*/) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
-
-#if !defined(DOXYGEN)
-#define AKANTU_COMPUTE_SHAPES_KIND(kind)                                       \
-  template <> struct Helper<kind> {                                            \
-    template <class S>                                                         \
-    static void call(const S & _this, const Array<Real> & nodes,               \
-                     const Matrix<Real> & integration_points,                  \
-                     Array<Real> & shapes, ElementType type,                   \
-                     GhostType ghost_type,                                     \
-                     const Array<Idx> & filter_elements) {                     \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
-    }                                                                          \
-  };
-
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_COMPUTE_SHAPES_KIND,
-                               AKANTU_FE_ENGINE_LIST_LAGRANGE_BASE)
-
-  } // namespace details
-} // namespace shape_lagrange
-#endif
-
-/* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
     Array<Real> & shapes, ElementType type, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
-
-  auto kind = Mesh::getKind(type);
-
-#define AKANTU_COMPUTE_SHAPES_KIND_SWITCH(kind)                                \
-  shape_lagrange::details::Helper<kind>::call(                                 \
-      *this, nodes, integration_points, shapes, type, ghost_type,              \
-      filter_elements);
-
-  AKANTU_BOOST_LIST_SWITCH(
-      AKANTU_COMPUTE_SHAPES_KIND_SWITCH,
-      BOOST_PP_LIST_TO_SEQ(AKANTU_FE_ENGINE_LIST_LAGRANGE_BASE), kind);
-
-#undef AKANTU_COMPUTE_SHAPES
-#undef AKANTU_COMPUTE_SHAPES_KIND
-#undef AKANTU_COMPUTE_SHAPES_KIND_SWITCH
+  auto && call = [&](auto && enum_type) {
+    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
+    this->computeShapesOnIntegrationPoints<type>(
+        nodes, integration_points, shapes, ghost_type, filter_elements);
+  };
+  tuple_dispatch<
+      tuple::cat_t<ElementTypes_t<_ek_regular>, ElementTypes_t<_ek_cohesive>>>(
+      call, type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -67,4 +67,11 @@ class SparseMatrix;
 
 } // namespace akantu
 
+namespace aka {
+
+template <class T> struct is_array : public std::false_type {};
+template <class T> struct is_array<akantu::Array<T>> : public std::true_type {};
+
+} // namespace aka
+
 #endif /* AKANTU_FWD_HH_ */

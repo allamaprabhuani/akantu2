@@ -106,6 +106,9 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION
 
   declare_compilation_profile(SANITIZE
     COMPILER "-g -ggdb3 -O2 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
+
+  declare_compilation_profile(SANITIZE_DEBUG
+    COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -114,6 +117,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     DOC "\"sanitize memory\"")
 endif()
 
-if (CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]")
+string(TOLOWER "${CMAKE_BUILD_TYPE}" _cmake_build_type_lower)
+if (_cmake_build_type_lower MATCHES "valgrind")
   find_program(VALGRIND_EXECUTABLE valgrind)
 endif()

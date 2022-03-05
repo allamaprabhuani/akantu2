@@ -32,22 +32,21 @@
 
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
-#include "mesh.hh"
 #include "integrator.hh"
+#include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 FEEngine::FEEngine(Mesh & mesh, Int element_dimension, const ID & id)
-    : mesh(mesh),
-      normals_on_integration_points("normals_on_quad_points", id) {
+    : mesh(mesh), normals_on_integration_points("normals_on_quad_points", id) {
   AKANTU_DEBUG_IN();
   this->element_dimension = (element_dimension != _all_dimensions)
                                 ? element_dimension
                                 : mesh.getSpatialDimension();
 
-  this->mesh.registerEventHandler(*this, _ehp_fe_engine);
+  mesh.registerEventHandler(*this, _ehp_fe_engine);
 
   init();
 

@@ -48,7 +48,7 @@ template <typename T> class FriendMaterial : public T {
 public:
   ~FriendMaterial() = default;
 
-  FriendMaterial(SolidMechanicsModel &model, const ID &id = "material")
+  FriendMaterial(SolidMechanicsModel & model, const ID & id = "material")
       : T(model, id) {
     gen.seed(::testing::GTEST_FLAG(random_seed));
   }
@@ -70,17 +70,16 @@ public:
   inline Matrix<Real> getHydrostaticStrain(Real intensity);
   inline Matrix<Real> getComposedStrain(Real intensity);
 
-  inline const Matrix<Real> reverseRotation(Matrix<Real> mat,
-                                            Matrix<Real> rotation_matrix) {
-    Matrix<Real> R = rotation_matrix;
-    Matrix<Real> m2 = mat * R;
-    Matrix<Real> m1 = R.transpose();
-    return m1 * m2;
+  inline Matrix<Real> reverseRotation(const Matrix<Real> & A,
+                                      const Matrix<Real> & R) {
+    Matrix<Real> res = R.transpose() * A * R;
+    return res;
   };
 
-  inline const Matrix<Real> applyRotation(Matrix<Real> A,
-                                          const Matrix<Real> R) {
-    return R * A * R.transpose();
+  inline Matrix<Real> applyRotation(const Matrix<Real> & A,
+                                    const Matrix<Real> & R) {
+    Matrix<Real> res = R * A * R.transpose();
+    return res;
   };
 
   inline Vector<Real> getRandomVector();
@@ -123,8 +122,9 @@ template <typename T> Vector<Real> FriendMaterial<T>::getRandomVector() {
   Vector<Real> vector(dim);
   vector.zero();
   while (vector.norm() < 1e-9) {
-    for (auto s : arange(dim))
+    for (auto s : arange(dim)) {
       vector(s) = dis(gen);
+    }
   }
   return vector;
 }
@@ -134,10 +134,10 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
   const auto dim = this->spatial_dimension;
 
   Matrix<Real> rotation(dim, dim);
-  auto &&v1 = rotation(0);
-  v1 = getRandomVector().normalized();
+  auto && v1_ = rotation(0);
+  v1_ = getRandomVector().normalized();
   if (dim == 2) {
-    Vector<Real, 3> v1{v1(0), v1(1), 0};
+    Vector<Real, 3> v1{v1_(0), v1_(1), 0};
     Vector<Real, 3> v3{0, 0, 1};
 
     Vector<Real, 3> v2 = v3.cross(v1);
@@ -147,10 +147,10 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
 
   if (dim == 3) {
     Vector<Real, 3> v2 = getRandomVector();
-    Vector<Real, 3> v1_ = v1;
-    v2 = (v2 - v2.dot(v1_) * v1_).normalized();
+    Vector<Real, 3> v1 = v1_;
+    v2 = (v2 - v2.dot(v1) * v1).normalized();
 
-    Vector<Real, 3> v3 = v1_.cross(v2);
+    Vector<Real, 3> v3 = v1.cross(v2);
 
     rotation(1) = v2;
     rotation(2) = v3;
@@ -164,7 +164,7 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
     rotation = Matrix<Real, 3, 3>{{1., 0., 0.}, {0., 1., 0.}, {0., 0., 1.}};
 #endif
 
-  rotation = rotation.transpose();
+  rotation.transposeInPlace();
 
   return rotation;
 }

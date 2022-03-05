@@ -85,14 +85,14 @@ public:
     auto & mesh = model.getMesh();
     auto spatial_dimension = mesh.getSpatialDimension();
     for (const auto & type : mesh.elementTypes(spatial_dimension)) {
-      auto & mat_indexes = model.getMaterialByElement(type);
+      const auto & mat_indexes = model.getMaterialByElement(type);
       for (auto && data :
            enumerate(make_view(barycenters(type), spatial_dimension))) {
         auto elem = std::get<0>(data);
         auto & bary = std::get<1>(data);
         /// compare element_index_by material to material index that should be
         /// assigned due to the geometry of the interface
-        UInt mat_index;
+        Int mat_index;
         if (bary(horizontal) < pos_interface) {
           mat_index = mat_ids[0];
         } else {

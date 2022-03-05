@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
 
   akantu::initialize("material_damage_non_local.dat", argc, argv);
-  UInt max_steps = 1100;
+  Int max_steps = 1100;
 
   const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);

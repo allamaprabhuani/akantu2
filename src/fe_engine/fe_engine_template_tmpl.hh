@@ -816,6 +816,22 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsAdded(
     const Array<Element> & new_elements, const NewElementsEvent & /*unused*/) {
   integrator.onElementsAdded(new_elements);
+
+  const auto & points = integrator.getIntegrationPoints();
+  // for each distinct type add missing integration points to shape_functions
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : points.elementTypes(_ghost_type = ghost_type)) {
+      tuple_dispatch<ElementTypes_t<kind>>(
+          [&](auto && enum_type) {
+            constexpr ElementType type =
+                std ::decay_t<decltype(enum_type)>::value;
+            shape_functions.template setIntegrationPointsByType<type>(
+                points(type, ghost_type), ghost_type);
+          },
+          type);
+    }
+  }
+
   shape_functions.onElementsAdded(new_elements);
 }
 

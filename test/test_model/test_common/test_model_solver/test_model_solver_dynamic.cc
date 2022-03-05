@@ -53,29 +53,29 @@ using namespace akantu;
 
 class Sinusoidal : public BC::Dirichlet::DirichletFunctor {
 public:
-  Sinusoidal(MyModel &model, Real amplitude, Real pulse_width, Real t)
+  Sinusoidal(MyModel & model, Real amplitude, Real pulse_width, Real t)
       : model(model), A(amplitude), k(2 * M_PI / pulse_width),
         t(t), v{std::sqrt(model.E / model.rho)} {}
 
-  void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> &disp,
-                  const Vector<Real> &coord) const {
+  void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> & disp,
+                  const Vector<Real> & coord) const {
     auto x = coord(_x);
     model.velocity(n, _x) = k * v * A * sin(k * (x - v * t));
     disp(_x) = A * cos(k * (x - v * t));
   }
 
 private:
-  MyModel &model;
+  MyModel & model;
   Real A{1.};
   Real k{2 * M_PI};
   Real t{1.};
   Real v{1.};
 };
 
-static void genMesh(Mesh &mesh, UInt nb_nodes);
+static void genMesh(Mesh & mesh, Int nb_nodes);
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
   Int prank = Communicator::getStaticCommunicator().whoAmI();
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
   Real etot = ekin + epot - wext - einit;
 
   Real max_disp = 0., min_disp = 0.;
-  for (auto &&disp : model.displacement) {
+  for (auto && disp : model.displacement) {
     max_disp = std::max(max_disp, disp);
     min_disp = std::min(min_disp, disp);
   }
@@ -158,12 +158,13 @@ int main(int argc, char *argv[]) {
   }
 
 #if EXPLICIT == false
-  NonLinearSolver &solver = model.getDOFManager().getNonLinearSolver("dynamic");
+  NonLinearSolver & solver =
+      model.getDOFManager().getNonLinearSolver("dynamic");
 
   solver.set("max_iterations", 20);
 #endif
 
-  auto &&dumper = std::make_shared<DumperParaview>("dynamic", "./paraview");
+  auto && dumper = std::make_shared<DumperParaview>("dynamic", "./paraview");
   mesh.registerExternalDumper(dumper, "dynamic", true);
   mesh.addDumpMesh(mesh);
 
@@ -191,7 +192,7 @@ int main(int argc, char *argv[]) {
     etot = ekin + epot - wext - einit;
 
     Real max_disp = 0., min_disp = 0.;
-    for (auto &&disp : model.displacement) {
+    for (auto && disp : model.displacement) {
       max_disp = std::max(max_disp, disp);
       min_disp = std::min(min_disp, disp);
     }
@@ -210,14 +211,14 @@ int main(int argc, char *argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh &mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
-  auto &nodes = mesh_accessor.getNodes();
-  auto &conn = mesh_accessor.getConnectivity(_segment_2);
+  auto & nodes = mesh_accessor.getNodes();
+  auto & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
 
-  auto &all = mesh.createNodeGroup("all_nodes");
+  auto & all = mesh.createNodeGroup("all_nodes");
 
   for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
@@ -232,13 +233,13 @@ void genMesh(Mesh &mesh, UInt nb_nodes) {
     conn(n, 1) = n + 1;
   }
 
-  auto &conn_points = mesh_accessor.getConnectivity(_point_1);
+  auto & conn_points = mesh_accessor.getConnectivity(_point_1);
   conn_points.resize(2);
 
   conn_points(0, 0) = 0;
   conn_points(1, 0) = nb_nodes - 1;
 
-  auto &border = mesh.createElementGroup("border", 0);
+  auto & border = mesh.createElementGroup("border", 0);
   border.add({_point_1, 0, _not_ghost}, true);
   border.add({_point_1, 1, _not_ghost}, true);
 

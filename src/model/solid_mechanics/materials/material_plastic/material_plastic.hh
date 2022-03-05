@@ -81,8 +81,9 @@ protected:
       class Args,
       std::enable_if_t<tuple::has_t<"delta_grad_u"_h, Args>::value> * = nullptr>
   inline void computeStressAndInelasticStrainOnQuad(Args && args) const {
-    auto && delta_grad_u_elastic = tuple::get<"delta_grad_u"_h>(args) -
-                                   tuple::get<"delta_inelastic_strain"_h>(args);
+    Matrix<Real, dim, dim> delta_grad_u_elastic =
+        tuple::get<"delta_grad_u"_h>(args) -
+        tuple::get<"delta_inelastic_strain"_h>(args);
 
     Matrix<Real, dim, dim> sigma_elastic;
     MaterialElastic<dim>::computeStressOnQuad(
@@ -92,7 +93,7 @@ protected:
     tuple::get<"sigma"_h>(args) =
         tuple::get<"previous_sigma"_h>(args) + sigma_elastic;
 
-    tuple::get<"inelastic_strain"_h>(args) +=
+    tuple::get<"inelastic_strain"_h>(args) =
         tuple::get<"previous_inelastic_strain"_h>(args) +
         tuple::get<"delta_inelastic_strain"_h>(args);
   }

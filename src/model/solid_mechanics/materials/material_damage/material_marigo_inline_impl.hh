@@ -51,13 +51,7 @@ inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
 
   MaterialElastic<dim>::computeStressOnQuad(arguments);
 
-  Y = 0;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      Y += sigma(i, j) * (grad_u(i, j) + grad_u(j, i)) / 2.;
-    }
-  }
-  Y *= 0.5;
+  Y = sigma.doubleDot(Material::gradUToEpsilon<dim>(grad_u)) / 2.;
 
   if (this->damage_in_y) {
     Y *= (1 - dam);

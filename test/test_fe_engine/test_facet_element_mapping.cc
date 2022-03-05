@@ -42,7 +42,7 @@
 using namespace akantu;
 using namespace std;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   // Testing the subelement-to-element mappings
   Int spatial_dimension(3);
 
@@ -51,17 +51,16 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension, "my_mesh");
   mesh.read("./cube_physical_names.msh");
 
-  typedef Array<std::vector<Element>> ElemToSubelemMapping;
-  typedef Array<Element> SubelemToElemMapping;
+  using SubelemToElemMapping = Array<Element>;
 
   std::cout << "ELEMENT-SUBELEMENT MAPPING:" << std::endl;
 
   for (auto ghost_type : ghost_types) {
     std::cout << "  "
               << "Ghost type: " << ghost_type << std::endl;
-    for (const auto &type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
 
-      const SubelemToElemMapping &subelement_to_element =
+      const SubelemToElemMapping & subelement_to_element =
           mesh.getSubelementToElement(type, ghost_type);
       std::cout << "  "
                 << "  "
@@ -88,9 +87,9 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    for (const auto &type :
+    for (const auto & type :
          mesh.elementTypes(spatial_dimension - 1, ghost_type)) {
-      const auto &element_to_subelement =
+      const auto & element_to_subelement =
           mesh.getElementToSubelement(type, ghost_type);
       std::cout << "  "
                 << "  "
@@ -103,7 +102,7 @@ int main(int argc, char *argv[]) {
       element_to_subelement.printself(std::cout, 8);
 
       for (Int i(0); i < element_to_subelement.size(); ++i) {
-        const auto &vec = element_to_subelement(i);
+        const auto & vec = element_to_subelement(i);
         std::cout << "          ";
         std::cout << "item " << i << ": [ ";
         if (vec.size() > 0) {

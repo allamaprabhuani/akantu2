@@ -44,10 +44,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline Real FEEngine::getElementInradius(const Ref<const MatrixXr> &coord,
-                                         ElementType type) {
+template <class Derived>
+inline Real
+FEEngine::getElementInradius(const Eigen::MatrixBase<Derived> & coord,
+                             ElementType type) {
   return tuple_dispatch<AllElementTypes>(
-      [&](auto &&enum_type) -> Int {
+      [&coord](auto && enum_type) -> Real {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getInradius(coord);
       },
@@ -55,14 +57,14 @@ inline Real FEEngine::getElementInradius(const Ref<const MatrixXr> &coord,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real FEEngine::getElementInradius(const Element &element) const {
+inline Real FEEngine::getElementInradius(const Element & element) const {
   auto spatial_dimension = mesh.getSpatialDimension();
   auto positions = make_view(mesh.getNodes(), spatial_dimension).begin();
   auto connectivity = mesh.getConnectivities().get(element);
 
   Matrix<Real> coords(spatial_dimension, connectivity.size());
 
-  for (auto &&data : zip(connectivity, coords)) {
+  for (auto && data : zip(connectivity, coords)) {
     std::get<1>(data) = positions[std::get<0>(data)];
   }
 
@@ -80,16 +82,12 @@ inline constexpr auto FEEngine::getInterpolationType(ElementType type) {
 #if defined(AKANTU_COHESIVE_ELEMENT)
 inline constexpr ElementType
 FEEngine::getCohesiveElementType(ElementType type) {
-#define GET_COHESIVE_TYPE(type)                                                \
-  return CohesiveFacetProperty<type>::cohesive_type;
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_COHESIVE_TYPE);
-#undef GET_COHESIVE_TYPE
-}
-#else
-inline constexpr ElementType
-FEEngine::getCohesiveElementType(ElementType /*type_facet*/) {
-  return _not_defined;
+  return tuple_dispatch_with_default<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) -> ElementType {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return CohesiveFacetProperty<type>::cohesive_type;
+      },
+      type, [](auto && /*enum_type*/) { return _not_defined; });
 }
 #endif
 
@@ -112,15 +110,18 @@ inline Vector<ElementType> FEEngine::getIGFEMElementTypes(ElementType type) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void FEEngine::extractNodalToElementField(
-    const Mesh &mesh, const Array<T> &nodal_f, Array<T> &elemental_f,
-    ElementType type, GhostType ghost_type, const Array<Int> &filter_elements) {
+void FEEngine::extractNodalToElementField(const Mesh & mesh,
+                                          const Array<T> & nodal_f,
+                                          Array<T> & elemental_f,
+                                          ElementType type,
+                                          GhostType ghost_type,
+                                          const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   auto nb_degree_of_freedom = nodal_f.getNbComponent();
   auto nb_element = mesh.getNbElement(type, ghost_type);
-  auto *conn_val = mesh.getConnectivity(type, ghost_type).data();
+  auto * conn_val = mesh.getConnectivity(type, ghost_type).data();
 
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
@@ -128,10 +129,10 @@ void FEEngine::extractNodalToElementField(
 
   elemental_f.resize(nb_element);
 
-  T *nodal_f_val = nodal_f.data();
-  T *f_val = elemental_f.data();
+  T * nodal_f_val = nodal_f.data();
+  T * f_val = elemental_f.data();
 
-  Idx *el_conn;
+  Idx * el_conn;
   for (Int el = 0; el < nb_element; ++el) {
     if (filter_elements != empty_filter) {
       el_conn = conn_val + filter_elements(el) * nb_nodes_per_element;
@@ -152,10 +153,10 @@ void FEEngine::extractNodalToElementField(
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void FEEngine::filterElementalData(const Mesh &mesh, const Array<T> &elem_f,
-                                   Array<T> &filtered_f, ElementType type,
+void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
+                                   Array<T> & filtered_f, ElementType type,
                                    GhostType ghost_type,
-                                   const Array<Int> &filter_elements) {
+                                   const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   auto nb_element = mesh.getNbElement(type, ghost_type);
@@ -173,8 +174,8 @@ void FEEngine::filterElementalData(const Mesh &mesh, const Array<T> &elem_f,
 
   filtered_f.resize(nb_element * nb_data_per_element);
 
-  T *elem_f_val = elem_f.data();
-  T *f_val = filtered_f.data();
+  T * elem_f_val = elem_f.data();
+  T * f_val = filtered_f.data();
 
   UInt el_offset;
   for (Idx el = 0; el < nb_element; ++el) {

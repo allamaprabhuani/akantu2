@@ -242,7 +242,7 @@ namespace dumpers {
             [&grad_u, &strain](auto && dim_t) {
               constexpr auto dim = std::decay_t<decltype(dim_t)>::value;
               if (green_strain) {
-                strain = Material::gradUToE<dim>(grad_u);
+                Material::gradUToE<dim>(grad_u, strain);
               } else {
                 strain = Material::gradUToEpsilon<dim>(grad_u);
               }

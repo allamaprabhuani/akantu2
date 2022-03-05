@@ -34,12 +34,14 @@
 #define AKANTU_ITERATORS_NAMESPACE akantu
 #endif
 
+#define AKA_ITERATOR_EXPORT_NAMESPACE [[gnu::visibility("hidden")]]
+
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
 namespace iterators {
 
-  namespace details {
+  namespace AKA_ITERATOR_EXPORT_NAMESPACE details {
     template <bool enable> struct CopyAssignmentEnabler {};
     template <> struct CopyAssignmentEnabler<false> {
       CopyAssignmentEnabler() = default;

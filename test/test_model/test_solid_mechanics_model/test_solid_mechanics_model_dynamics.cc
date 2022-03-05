@@ -287,7 +287,7 @@ protected:
   Real time_step;
   Real wave_velocity;
   Real simulation_time;
-  UInt max_steps;
+  Int max_steps;
   Real max_error{-1};
 };
 

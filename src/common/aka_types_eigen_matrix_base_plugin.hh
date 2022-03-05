@@ -106,10 +106,11 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void set(const Scalar & t) {
   this->fill(t);
 }
 
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eye(const Scalar & t = Scalar()) {
-  (*this) = t * Matrix<Scalar, Derived::RowsAtCompileTime,
-                       Derived::ColsAtCompileTime>::Identity(this->rows(),
-                                                             this->cols());
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eye(const Scalar & t = 1.) {
+  (*this).noalias() =
+      t *
+      Matrix<Scalar, Derived::RowsAtCompileTime,
+             Derived::ColsAtCompileTime>::Identity(this->rows(), this->cols());
 }
 
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void clear() { this->fill(Scalar()); };

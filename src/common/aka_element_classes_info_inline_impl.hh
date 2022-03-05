@@ -194,82 +194,123 @@ using AllElementTypes = tuple::cat_t<BOOST_PP_SEQ_ENUM(
 #undef OP_CAT
 
 namespace details {
-// Author Jason Turner C++ Weekly ep 233
-template <typename Key, typename Value, std::size_t Size> struct ConstexprMap {
-  std::array<std::pair<Key, Value>, Size> data;
-  [[nodiscard]] constexpr Value at(const Key &key) const {
-    const auto it =
-        std::find_if(data.begin(), data.end(),
-                     [&key](const auto &val) { return val.first == key; });
+  // Author Jason Turner C++ Weekly ep 233
+  template <typename Key, typename Value, std::size_t Size>
+  struct ConstexprMap {
+    std::array<std::pair<Key, Value>, Size> data;
+    [[nodiscard]] constexpr Value at(const Key & key) const {
+      const auto it =
+          std::find_if(data.begin(), data.end(),
+                       [&key](const auto & val) { return val.first == key; });
 
-    if (it != data.end()) {
-      return it->second;
-    } else {
-      throw std::range_error("Key not in map");
+      if (it != data.end()) {
+        return it->second;
+      } else {
+        throw std::range_error("Key out of range");
+      }
     }
-  }
-};
+
+    [[nodiscard]] constexpr auto find(const Key & key) const {
+      const auto it =
+          std::find_if(data.begin(), data.end(),
+                       [&key](const auto & val) { return val.first == key; });
+
+      return it;
+    }
+
+    [[nodiscard]] constexpr auto begin() const { return data.begin(); }
+    [[nodiscard]] constexpr auto end() const { return data.end(); }
+  };
 
 // magic_switch from
 // https://stackoverflow.com/questions/39915986/solutions-for-dynamic-dispatch-on-unrelated-types
 #if __cplusplus >= 201703L
-template <class Function, class DynamicType, class Tuple, std::size_t... Is>
-decltype(auto) static_switch_dispatch(const Tuple &, Function &&function,
-                                      const DynamicType &type,
-                                      std::index_sequence<Is...> /*is*/) {
-  auto *function_pointer = std::addressof(function);
-  using FunctionPointer = decltype(function_pointer);
-  using Ret = decltype(function(std::tuple_element_t<0, Tuple>{}));
-  using TableEntry = Ret (*)(FunctionPointer);
+  template <class Function, class DynamicType, class Tuple,
+            class DefaultFunction, std::size_t... Is>
+  [[gnu::visibility("hidden")]] decltype(auto) static_switch_dispatch(
+      const Tuple &, Function && function, const DynamicType & type,
+      DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
+    auto * function_pointer = std::addressof(function);
+    using FunctionPointer = decltype(function_pointer);
+    using Ret = decltype(function(std::tuple_element_t<0, Tuple>{}));
+    using TableEntry = Ret (*)(FunctionPointer);
 
-  static constexpr std::array<std::pair<DynamicType, TableEntry>, sizeof...(Is)>
-      data{{{std::tuple_element_t<Is, Tuple>::value,
-             [](FunctionPointer function_pointer) -> Ret {
-               return (*function_pointer)(std::tuple_element_t<Is, Tuple>{});
-             }}...}};
+    static constexpr std::array<std::pair<DynamicType, TableEntry>,
+                                sizeof...(Is)>
+        data{{{std::tuple_element_t<Is, Tuple>::value,
+               [](FunctionPointer function_pointer) -> Ret {
+                 return (*function_pointer)(std::tuple_element_t<Is, Tuple>{});
+               }}...}};
 
-  static constexpr auto map =
-      ConstexprMap<DynamicType, TableEntry, data.size()>{{data}};
+    static constexpr auto map =
+        ConstexprMap<DynamicType, TableEntry, data.size()>{{data}};
 
-  return map.at(type)(function_pointer);
-}
-#else
-template <std::size_t S> struct visit_tuple_impl {
-  template <class Function, class DynamicType, class Tuple>
-  static constexpr decltype(auto) visit(const Tuple &, Function &&function,
-                                        const DynamicType &type) {
-    using integral_type = std::tuple_element_t<S - 1, Tuple>;
-    if (integral_type::value == type) {
-      return std::forward<Function>(function)(integral_type{});
+    auto it = map.find(type);
+    if (it != map.end()) {
+      return it->second(function_pointer);
     } else {
-      return visit_tuple_impl<S - 1>::visit(
-          Tuple{}, std::forward<Function>(function), type);
+      return default_function(type);
     }
   }
-};
-template <> struct visit_tuple_impl<0> {
-  template <class Function, class DynamicType, class Tuple>
-  static constexpr auto visit(const Tuple &, Function &&function,
-                              const DynamicType &type)
-      -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
-    AKANTU_EXCEPTION("Cannot call the asked function for the type " << type);
+#else
+  template <std::size_t S> struct visit_tuple_impl {
+    template <class Function, class DynamicType, class Tuple,
+              class DefaultFunction>
+    [[gnu::visibility("hidden")]] static constexpr decltype(auto)
+    visit(const Tuple &, Function && function, const DynamicType & type,
+          DefaultFunction && default_function) {
+      using integral_type = std::tuple_element_t<S - 1, Tuple>;
+      if (integral_type::value == type) {
+        return std::forward<Function>(function)(integral_type{});
+      } else {
+        return visit_tuple_impl<S - 1>::visit(
+            Tuple{}, std::forward<Function>(function), type,
+            std::forward<DefaultFunction>(default_function));
+      }
+    }
+  };
+
+  template <> struct visit_tuple_impl<0> {
+    template <class Function, class DynamicType, class Tuple,
+              class DefaultFunction>
+    [[gnu::visibility("hidden")]] static constexpr auto
+    visit(const Tuple &, Function && function, const DynamicType & type,
+          DefaultFunction && default_function)
+        -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
+      return default_function(type);
+    }
+  };
+
+  template <class Function, class DynamicType, class Tuple, std::size_t... Is>
+  [[gnu::visibility("hidden")]] decltype(auto) static_switch_dispatch(
+      const Tuple &, Function && function, const DynamicType & type,
+      DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
+    return visit_tuple_impl<sizeof...(Is)>::visit(
+        Tuple{}, std::forward<Function>(function), type,
+        std::forward<DefaultFunction>(default_function));
   }
-};
-template <class Function, class DynamicType, class Tuple, std::size_t... Is>
-decltype(auto) static_switch_dispatch(const Tuple &, Function &&function,
-                                      const DynamicType &type,
-                                      std::index_sequence<Is...> /*is*/) {
-  return visit_tuple_impl<sizeof...(Is)>::visit(
-      Tuple{}, std::forward<Function>(function), type);
-}
 #endif
 } // namespace details
 
-template <class Tuple, class Function, class DynamicType>
-constexpr decltype(auto) tuple_dispatch(Function &&function,
-                                        const DynamicType &type) {
+template <class Tuple, class Function, class DynamicType, class DefaultFunction>
+[[gnu::visibility("hidden")]] constexpr decltype(auto)
+tuple_dispatch_with_default(Function && function, const DynamicType & type,
+                            DefaultFunction && default_function) {
   return details::static_switch_dispatch(
       Tuple{}, std::forward<Function>(function), type,
+      std::forward<DefaultFunction>(default_function),
+      std::make_index_sequence<std::tuple_size<Tuple>::value>{});
+}
+
+template <class Tuple, class Function, class DynamicType>
+[[gnu::visibility("hidden")]] constexpr decltype(auto)
+tuple_dispatch(Function && function, const DynamicType & type) {
+  return details::static_switch_dispatch(
+      Tuple{}, std::forward<Function>(function), type,
+      [](auto && type) -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
+        throw std::range_error("Unknown type in dispatch: " +
+                               std::to_string(type));
+      },
       std::make_index_sequence<std::tuple_size<Tuple>::value>{});
 }
 

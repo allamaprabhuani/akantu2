@@ -99,7 +99,7 @@ int main(int argc, char * argv[]) {
   Real tau = Eta / EV;
   std::cout << "relaxation time = " << tau << std::endl;
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   const Array<Real> & coordinate = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
 
@@ -108,8 +108,8 @@ int main(int argc, char * argv[]) {
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model.setTimeStep(time_step);
 
-  UInt max_steps = sim_time / time_step;
-  UInt out_interval = 1;
+  Int max_steps = sim_time / time_step;
+  Int out_interval = 1;
 
   Real time = 0.;
 

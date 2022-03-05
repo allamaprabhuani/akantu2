@@ -56,7 +56,7 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
   coord[2] = z;
 
   Int dim = this->model.getSpatialDimension();
-  for (UInt d = 0; d < dim; ++d) {
+  for (Int d = 0; d < dim; ++d) {
     this->reference_point(d) = coord[d];
   }
 
@@ -74,7 +74,7 @@ void NTRFContact::setNormal(Real x, Real y, Real z) {
   coord[1] = y;
   coord[2] = z;
 
-  for (UInt d = 0; d < dim; ++d) {
+  for (Int d = 0; d < dim; ++d) {
     this->normal(d) = coord[d];
   }
 
@@ -149,15 +149,15 @@ void NTRFContact::updateNormals() {
 void NTRFContact::updateImpedance() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_contact_nodes = getNbContactNodes();
+  auto nb_contact_nodes = getNbContactNodes();
   Real delta_t = this->model.getTimeStep();
   AKANTU_DEBUG_ASSERT(delta_t != NAN,
                       "Time step is NAN. Have you set it already?");
 
   const Array<Real> & mass = this->model.getMass();
 
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt slave = this->slaves(n);
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = this->slaves(n);
 
     Real imp = this->lumped_boundary_slaves(n) / mass(slave);
     imp = 2 / delta_t / imp;
