@@ -424,34 +424,6 @@ inline auto Array<T, is_scal>::operator[](UInt i) const -> const_reference {
   return this->values[i];
 }
 
-
-/* -------------------------------------------------------------------------- */
-template<
-	class 		T, 
-	bool 		is_scal>
-template<
-	typename 	_T>
-std::enable_if_t<std::is_floating_point<_T>::value, bool>
-Array<T, is_scal>::isFinite()
-  const
-  noexcept
-{
-	static_assert(std::is_same<T, _T>::value, "Types are different, what are do doing man?!?");
-	using std::isfinite;
-
-	const UInt N = this->size_ * this->nb_component;
-	for(UInt it = 0; it != N; ++it)
-	{
-		if(not isfinite(this->values[it]))
-		    { return false; };
-	};
-
-	return true;
-};
-
-
-
-
 /* -------------------------------------------------------------------------- */
 /**
  * erase an element. If the erased element is not the last of the array, the
@@ -828,20 +800,25 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
+template <typename T, bool is_scal>
+template <typename OT, std::enable_if_t<std::is_arithmetic<OT>::value> *>
+bool Array<T, is_scal>::isFinite() const noexcept {
+  return std::all_of(this->values,
+                     this->values + this->size_ * this->nb_component,
+                     [](auto && a) { return std::isfinite(a); });
+}
+
+/* -------------------------------------------------------------------------- */
 /* Inline Functions ArrayBase */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 
 // inline bool ArrayBase::empty() { return (this->size_ ==
 // 0); }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 /* Iterators */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 template <class R, class daughter, class IR, bool is_tensor>
 class Array<T, is_scal>::iterator_internal {
@@ -911,8 +888,12 @@ public:
     return ret >= other.ret;
   }
 
-  inline daughter operator-(difference_type n) const { return daughter(ret - n); }
-  inline daughter operator+(difference_type n) const { return daughter(ret + n); }
+  inline daughter operator-(difference_type n) const {
+    return daughter(ret - n);
+  }
+  inline daughter operator+(difference_type n) const {
+    return daughter(ret + n);
+  }
 
   inline difference_type operator-(const iterator_internal & b) const {
     return ret - b.ret;

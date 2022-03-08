@@ -184,8 +184,9 @@ void StructuralMechanicsModel::initSolver(
      *  Also it is not a 1D array, but has an element for every
      *  DOF, which are most of the time equal, but makes handling
      *  some operations a bit simpler. */
-    if(time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-      this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumpedmass");
+    if (time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
+      this->allocNodalField(this->mass, this->nb_degree_of_freedom,
+                            "lumpedmass");
     }
   }
 
@@ -242,19 +243,6 @@ void StructuralMechanicsModel::computeStresses() {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-bool StructuralMechanicsModel::shadyCreateLumpedMass()
-{
-	if(this->hasLumpedMass())	//Already allocated, so nothing to do.
-	    { return true; };
-
-	//now allocate it
-      	this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumpedmass");
-
-      	return true;
-};
-
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(
@@ -333,7 +321,8 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
   }
 
   if (field_name == "mass") {
-    return mesh.createStridedNodalField(this->mass.get(), group_name, n, 0, padding_size);
+    return mesh.createStridedNodalField(this->mass.get(), group_name, n, 0,
+                                        padding_size);
   }
 
   return nullptr;
@@ -378,7 +367,11 @@ void StructuralMechanicsModel::assembleMatrix(const ID & id) {
 }
 
 /// callback to assemble a lumped Matrix
-void StructuralMechanicsModel::assembleLumpedMatrix(const ID & /*id*/) {}
+void StructuralMechanicsModel::assembleLumpedMatrix(const ID & id) {
+  if (id == "M") {
+    assembleLumpedMassMatrix();
+  }
+}
 
 /// callback to assemble the residual StructuralMechanicsModel::(rhs)
 void StructuralMechanicsModel::assembleResidual() {

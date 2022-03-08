@@ -137,7 +137,7 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           "This function returns the `i`th material of `self`."
           " Note a reference is returned which allows to modify the material "
           "inside `self`.",
-          py::arg("i"), py::return_value_policy::reference)
+          py::arg("material_index"), py::return_value_policy::reference)
       .def(
           "getMaterial",
           [](StructuralMechanicsModel & self, const ID & name)
@@ -145,7 +145,7 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           "This function returns the material with name `i` of `self`."
           " Note a reference is returned which allows to modify the material "
           "inside `self`.",
-          py::arg("i"), py::return_value_policy::reference)
+          py::arg("material_index"), py::return_value_policy::reference)
       .def(
           "getNbMaterials",
           [](StructuralMechanicsModel & self) { return self.getNbMaterials(); },
@@ -156,24 +156,17 @@ void register_structural_mechanics_model(pybind11::module & mod) {
            "Compute potential energy")
       .def("getEnergy", &StructuralMechanicsModel::getEnergy,
            "Compute the specified energy")
-      .def("getLumpedMass",
-       	   [](StructuralMechanicsModel& self) -> decltype(auto) {
-     	   	return self.getLumpedMass(); },
-       	   py::return_value_policy::reference_internal)
-      .def("getLumpedMassMutable",
-       	   [](StructuralMechanicsModel& self) -> decltype(auto) {
-      	   	return self.getLumpedMassMutable(); },
-      	   py::return_value_policy::reference_internal)
+      .def(
+          "getLumpedMass",
+          [](StructuralMechanicsModel & self) -> decltype(auto) {
+            return self.getLumpedMass();
+          },
+          py::return_value_policy::reference_internal)
+      .def("assembleLumpedMassMatrix",
+           &StructuralMechanicsModel::assembleLumpedMassMatrix,
+           "Assembles the lumped mass matrix")
 
-      .def("computeShadyLumpedMass",
-      	   [](StructuralMechanicsModel& self,  GhostType ghost_type) -> void {
-      	   	return self.computeShadyLumpedMass(ghost_type); },
-           py::arg("ghost_type") = _not_ghost )
-
-      .def("hasLumpedMass", &StructuralMechanicsModel::hasLumpedMass)
-      .def("shadyCreateLumpedMass", &StructuralMechanicsModel::shadyCreateLumpedMass)
-      ;
-
-} // End: register structural mechanical model
+      .def("hasLumpedMass", &StructuralMechanicsModel::hasLumpedMass);
+}
 
 } // namespace akantu

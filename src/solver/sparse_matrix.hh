@@ -108,13 +108,8 @@ public:
     return *this;
   }
 
-
-  ///Ceck if all if all entries are finite. The default implementation throws.
-  virtual
-  bool
-  isFinite()
-    const;
-
+  /// Check if all entries are finite. The default implementation throws.
+  virtual bool isFinite() const { AKANTU_TO_IMPLEMENT(); }
 
 protected:
   /// This is the revert of add \f[B += \alpha * *this\f];

@@ -110,12 +110,8 @@ public:
   /// copy the profile of another matrix
   void copyProfile(const SparseMatrix & other) override;
 
-  ///Ceck if all if all entries are finite
-  virtual
-  bool
-  isFinite()
-    const
-    override;
+  /// Check if all entries are finite
+  virtual bool isFinite() const override;
 
   /* ------------------------------------------------------------------------ */
   /// accessor to A_{ij} - if (i, j) not present it returns 0

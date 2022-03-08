@@ -32,11 +32,11 @@
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix_aij.hh"
 #include "aka_iterators.hh"
+#include "aka_math.hh"
 #include "dof_manager_default.hh"
 #include "dof_synchronizer.hh"
 #include "solver_vector_default.hh"
 #include "terms_to_assemble.hh"
-#include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
@@ -300,11 +300,6 @@ void SparseMatrixAIJ::set(Real val) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool
-SparseMatrixAIJ::isFinite()
-  const
-    { return this->a.isFinite(); };
-
-
+bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); };
 
 } // namespace akantu

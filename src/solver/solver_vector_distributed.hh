@@ -49,6 +49,8 @@ public:
   Array<Real> & getGlobalVector() override;
   void setGlobalVector(const Array<Real> & solution) override;
 
+  bool isFinite() const override;
+
 protected:
   // full vector in case it needs to be centralized on master
   std::unique_ptr<Array<Real>> global_vector;

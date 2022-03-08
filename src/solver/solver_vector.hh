@@ -72,14 +72,12 @@ public:
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
-
   /**
-   * \brief	Tests if all entries are finite.
-   *
-   * The default implementation of this function, which should be suitable for everyone,
-   * converts `*this` into an array and then performs the checks on the result.
+   * The default implementation of this function, which should be suitable for
+   * everyone, converts `*this` into an array and then performs the checks on
+   * the result.
    */
-  virtual bool isFinite() const { return static_cast<const Array<Real>& >(*this).isFinite(); }
+  virtual bool isFinite() const = 0;
 
 protected:
   ID id;
