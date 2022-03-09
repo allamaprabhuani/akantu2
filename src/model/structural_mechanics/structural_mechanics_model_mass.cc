@@ -155,7 +155,7 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
     }
   }
 
-  constexpr Real pi = std::atan(1.) * 4;
+  const Real pi = std::atan(1.) * 4;
 
   // We now compute the inertia.
   if (spatial_dimension == 2) {
