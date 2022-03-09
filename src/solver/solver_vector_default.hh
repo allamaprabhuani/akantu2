@@ -115,7 +115,7 @@ public:
     this->vector.copy(solution);
   }
 
-  bool isFinite() const { return vector.isFinite(); }
+  bool isFinite() const override { return vector.isFinite(); }
 
 protected:
   DOFManagerDefault & dof_manager;
