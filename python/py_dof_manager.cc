@@ -175,17 +175,6 @@ void register_dof_manager(py::module & mod) {
            &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
            py::arg("terms"))
       .def("zeroResidual", &DOFManager::zeroResidual)
-      .def("localToGlobalEquationNumber",
-      	   &DOFManager::localToGlobalEquationNumber,
-      	   py::arg("local"))
-      .def("globalToLocalEquationNumber",
-      	   &DOFManager::globalToLocalEquationNumber,
-      	   py::arg("global"))
-      .def("getLocalEquationsNumbers",
-      	   [](DOFManager& self,  const ID dof_id) -> decltype(auto) {
-      		return self.getLocalEquationsNumbers(dof_id); },
-      	   py::arg("dof_id"),
-      	   py::return_value_policy::reference_internal )
       ;
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")

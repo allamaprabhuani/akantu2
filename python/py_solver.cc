@@ -85,14 +85,7 @@ void register_solvers(py::module & mod) {
       .def("getJCN", &SparseMatrixAIJ::getJCN)
       .def("getA", &SparseMatrixAIJ::getA);
 
-  py::class_<SolverVector>(mod, "SolverVector")
-        .def("getValues",
-            [](SolverVector& self) -> decltype(auto) {
-        	return static_cast<const Array<Real>& >(self);
-            },
-	    py::return_value_policy::reference_internal,
-	    "Transform this into a vector, Is not copied.")
-  ;
+  py::class_<SolverVector>(mod, "SolverVector");
 
   py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
       .def(py::init<Int, Int>())

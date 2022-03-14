@@ -118,8 +118,6 @@ public:
   /// compute the specified energy
   Real getEnergy(const ID & energy);
 
-  /// Informs the model to reassemble the matrices
-  void needToReassembleMatrices();
 
   /**
    * \brief This function computes the an approximation of the lumped mass.
