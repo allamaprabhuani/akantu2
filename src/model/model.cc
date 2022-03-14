@@ -68,6 +68,17 @@ Model::~Model() = default;
 void Model::initFullImpl(const ModelOptions & options) {
   AKANTU_DEBUG_IN();
 
+  DOFManager& DOF         = this->getDOFManager();
+  SolverVector& Residual  = DOF.getResidual(); 
+  if (this->mesh.isDistributed() != Residual.isDistributed()) {
+#   define YN(q) ((q) ? std::string("is") : std::string("is not"))
+    AKANTU_EXCEPTION("There is an inconsistency inside the Model."
+    		     " It seams that the `Mesh` " << YN(mesh.isDistributed())
+    		     << " distributed, but the `DOFManager` " << YN(Residual.isDistributed())
+    		     << ", which is of type " << debug::demangle(typeid(Residual).name()) << "." );
+#   undef YN
+  }
+
   method = options.analysis_method;
   if (!this->hasDefaultSolver()) {
     this->initNewSolver(this->method);
