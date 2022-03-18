@@ -419,6 +419,10 @@ void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
 
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
 
+  if (!this->getDOFManager().hasMatrix("K")) {
+    this->getDOFManager().getNewMatrix("K");
+  }
+
   // Check if materials need to recompute the matrix
   for (auto & material : materials) {
     need_to_reassemble |= material->hasMatrixChanged("K");
