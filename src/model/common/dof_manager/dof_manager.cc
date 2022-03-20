@@ -707,6 +707,31 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
 }
 
 /* -------------------------------------------------------------------------- */
+void DOFManager::onMeshIsDistributed(const Mesh& mesh_, const MeshIsDistributedEvent & event)
+{
+	//We got a signal from a mesh we do not listen
+	if(&mesh_ != this->mesh)
+	    { AKANTU_EXCEPTION("Recieved a signal from a mesh we do not listen to."); }
+	if(this->mesh == nullptr)
+	    { AKANTU_EXCEPTION("The `Mesh` pointer is not set."); }
+
+	//check if the distributed state of the residual and the mesh are the same.
+	if (this->mesh->isDistributed() != this->residual->isDistributed())
+	{
+		//TODO: Allow to reallocate the internals, in that case one could actually react on that event.
+#   		define YN(q) ((q) ? std::string("is") : std::string("is not"))
+		AKANTU_EXCEPTION("There is an inconsistency about the distribution state of the `DOFManager`."
+				 " It seams that the `Mesh` " << YN(this->mesh->isDistributed())
+				 << " distributed, but the `DOFManager`'s residual " << YN(this->residual->isDistributed())
+				 << ", which is of type " << debug::demangle(typeid(*this->residual).name()) << "." );
+#   		undef YN
+	};
+
+	return;
+}
+
+
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 class GlobalDOFInfoDataAccessor : public DataAccessor<UInt> {
 public:
