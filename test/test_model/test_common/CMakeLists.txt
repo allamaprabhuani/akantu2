@@ -38,3 +38,10 @@ register_gtest_sources(
   SOURCES test_dof_manager.cc
   PACKAGE core)
 register_gtest_test(test_dof_manager DEPENDS dof_manager_mesh)
+
+register_test(test_dof_mesh_distribute
+  SOURCES test_dof_mesh_distribute.cc
+  FILES_TO_COPY mesh.geo
+  PACKAGE parallel
+  PARALLEL
+  )
