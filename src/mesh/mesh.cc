@@ -503,10 +503,9 @@ void Mesh::distributeImpl(
     } else {
       MeshUtilsDistribution::distributeMeshCentralized(*this, 0);
     }
+
 #else
-    if (psize > 1) {
-      AKANTU_ERROR("Cannot distribute a mesh without a partitioning tool");
-    }
+    AKANTU_ERROR("Cannot distribute a mesh without a partitioning tool");
 #endif
   }
 
@@ -514,6 +513,12 @@ void Mesh::distributeImpl(
   this->is_distributed = true;
 
   this->computeBoundingBox();
+
+  //Wait to make sure that the mesh is fully distributed
+  this->communicator->barrier();
+
+  MeshIsDistributedEvent event(this, AKANTU_CURRENT_FUNCTION);
+  this->sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
