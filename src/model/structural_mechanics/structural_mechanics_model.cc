@@ -478,6 +478,12 @@ Real StructuralMechanicsModel::getKineticEnergy() {
     return 0.;
   }
 
+  //if mass matrix was not assembled, assemble it now
+  // Alternative, generate an error.
+  if(this->need_to_reassemble_mass) {
+    this->assembleMassMatrix();
+  }
+
   Real ekin = 0.;
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -500,6 +506,12 @@ Real StructuralMechanicsModel::getKineticEnergy() {
 Real StructuralMechanicsModel::getPotentialEnergy() {
   Real epot = 0.;
   UInt nb_nodes = mesh.getNbNodes();
+
+  //if stiffness matrix is not assembled, do it
+  // as an alternative, gernate an error.
+  if(this->need_to_reassemble_stiffness) {
+    this->assembleStiffnessMatrix();
+  };
 
   Array<Real> Ku(nb_nodes, nb_degree_of_freedom);
   this->getDOFManager().assembleMatMulVectToArray(
