@@ -363,6 +363,14 @@ void StructuralMechanicsModel::assembleResidual() {
 
   assembleInternalForce();
 
+  //Ensures that the matrix are assembled.
+  if(dof_manager.hasMatrix("K")) {
+    this->assembleMatrix("K");
+  }
+  if(dof_manager.hasMatrix("M")) {
+    this->assembleMatrix("M");
+  }
+
   dof_manager.assembleToResidual("displacement", *external_force, 1);
   dof_manager.assembleToResidual("displacement", *internal_force, 1);
 
@@ -372,6 +380,14 @@ void StructuralMechanicsModel::assembleResidual() {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
+
+  //Ensures that the matrix are assembled.
+  if(dof_manager.hasMatrix("K")) {
+    this->assembleMatrix("K");
+  }
+  if(dof_manager.hasMatrix("M")) {
+    this->assembleMatrix("M");
+  }
 
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement",
