@@ -148,7 +148,7 @@ void StructuralMechanicsModel::setTimeStep(Real time_step,
   this->mesh.getDumper().setTimeStep(time_step);
 }
 
-/* -------------------------------------------------------------------------- */
+/* -------------------------------------StructuralMechanicsModel::assembleLumpedMassMatrix------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::initSolver(
@@ -186,7 +186,7 @@ void StructuralMechanicsModel::initSolver(
      *  some operations a bit simpler. */
     if (time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
       this->allocNodalField(this->mass, this->nb_degree_of_freedom,
-                            "lumpedmass");
+                            "lumped_mass");
     }
   }
 
