@@ -425,6 +425,13 @@ StructuralMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
   case _implicit_dynamic: {
     return std::make_tuple("implicit", TimeStepSolverType::_dynamic);
   }
+  case _explicit_lumped_mass: {		//Taken from the solid mechanics part
+    return std::make_tuple("explicit_lumped",
+                           TimeStepSolverType::_dynamic_lumped);
+  }
+  case _explicit_consistent_mass: {    //Taken from the solid mechanics part
+    return std::make_tuple("explicit", TimeStepSolverType::_dynamic);
+  }
   default:
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
@@ -443,11 +450,18 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
   }
-  case TimeStepSolverType::_dynamic: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-    options.integration_scheme_type["displacement"] =
-        IntegrationSchemeType::_trapezoidal_rule_2;
-    options.solution_type["displacement"] = IntegrationScheme::_displacement;
+  case TimeStepSolverType::_dynamic: { // Copied from solid
+    if (this->method == _explicit_consistent_mass) {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["displacement"] =
+          IntegrationSchemeType::_central_difference;
+      options.solution_type["displacement"] = IntegrationScheme::_acceleration;
+    } else {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["displacement"] =
+          IntegrationSchemeType::_trapezoidal_rule_2;
+      options.solution_type["displacement"] = IntegrationScheme::_displacement;
+    }
     break;
   }
   default:
