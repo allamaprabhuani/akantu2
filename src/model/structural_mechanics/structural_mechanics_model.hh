@@ -391,6 +391,7 @@ private:
 
   bool need_to_reassemble_mass{true};
   bool need_to_reassemble_stiffness{true};
+  bool need_to_reassemble_lumpedMass{true};
 
   /* ------------------------------------------------------------------------ */
   std::vector<StructuralMaterial> materials;
