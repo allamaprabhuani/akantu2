@@ -24,6 +24,7 @@
 #include <dof_manager.hh>
 #include <non_linear_solver.hh>
 #include <solver_callback.hh>
+#include <time_step_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -190,6 +191,9 @@ void register_dof_manager(py::module & mod) {
       .def("set",
            [](NonLinearSolver & self, const std::string & id,
               const SolveConvergenceCriteria & val) { self.set(id, val); });
+
+  py::class_<TimeStepSolver>(mod, "TimeStepSolver")
+      .def("getIntegrationScheme", &TimeStepSolver::getIntegrationScheme);
 
   py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")
       .def(py::init_alias<DOFManager &>())

@@ -52,6 +52,7 @@ set(PYAKANTU_SRCS
   py_dof_manager.cc
   py_fe_engine.cc
   py_group_manager.cc
+  py_integration_scheme.cc
   py_mesh.cc
   py_model.cc
   py_parser.cc

@@ -75,6 +75,10 @@ public:
                             IntegrationScheme::SolutionType solution_type =
                                 IntegrationScheme::_not_defined);
 
+  virtual IntegrationScheme & getIntegrationScheme(const ID & dof_id) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
 protected:
   /// register an integration scheme for a given dof
   virtual std::unique_ptr<IntegrationScheme>

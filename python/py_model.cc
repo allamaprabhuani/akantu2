@@ -40,6 +40,7 @@
 #include <non_linear_solver.hh>
 #include <solver_callback.hh>
 #include <sparse_matrix_aij.hh>
+#include <time_step_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -54,10 +55,18 @@ namespace akantu {
 void register_model(py::module & mod) {
   py::class_<ModelSolver, SolverCallback, Parsable>(mod, "ModelSolver",
                                                     py::multiple_inheritance())
-      .def("getNonLinearSolver",
-           (NonLinearSolver & (ModelSolver::*)(const ID &)) &
-               ModelSolver::getNonLinearSolver,
-           py::arg("solver_id") = "", py::return_value_policy::reference)
+      .def(
+          "getNonLinearSolver",
+          [](ModelSolver & self, const ID & solver_id) -> NonLinearSolver & {
+            return self.getNonLinearSolver(solver_id);
+          },
+          py::arg("solver_id") = "", py::return_value_policy::reference)
+      .def(
+          "getTimeStepSolver",
+          [](ModelSolver & self, const ID & solver_id) -> TimeStepSolver & {
+            return self.getTimeStepSolver(solver_id);
+          },
+          py::arg("solver_id") = "", py::return_value_policy::reference)
       .def(
           "solveStep",
           [](ModelSolver & self, const ID & solver_id) {
@@ -117,9 +126,17 @@ void register_model(py::module & mod) {
           py::return_value_policy::reference)
       .def("setIntegrationScheme",
            [](Model & self, const std::string id, const std::string primal,
-              const IntegrationSchemeType & scheme) {
-             self.setIntegrationScheme(id, primal, scheme);
+              const IntegrationSchemeType & scheme_type,
+              IntegrationScheme::SolutionType solution_type) {
+             self.setIntegrationScheme(id, primal, scheme_type, solution_type);
            })
+      // .def("setIntegrationScheme",
+      //      [](Model & self, const std::string id, const std::string primal,
+      //         std::unique_ptr<IntegrationScheme> & scheme,
+      //         IntegrationScheme::SolutionType solution_type) {
+      //        self.setIntegrationScheme(id, primal, scheme, solution_type);
+      //      })
+
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);
