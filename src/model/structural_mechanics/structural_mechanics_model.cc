@@ -370,6 +370,9 @@ void StructuralMechanicsModel::assembleResidual() {
   if(dof_manager.hasMatrix("M")) {
     this->assembleMatrix("M");
   }
+  if(dof_manager.hasLumpedMatrix("M")) {
+    this->assembleLumpedMatrix("M");
+  }
 
   dof_manager.assembleToResidual("displacement", *external_force, 1);
   dof_manager.assembleToResidual("displacement", *internal_force, 1);
@@ -389,6 +392,9 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   }
   if(dof_manager.hasMatrix("M")) {
     this->assembleMatrix("M");
+  }
+  if(dof_manager.hasLumpedMatrix("M")) {
+    this->assembleLumpedMatrix("M");
   }
 
   if ("external" == residual_part) {
