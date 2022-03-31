@@ -273,6 +273,10 @@ public:
     return *(this->mass);
   };
 
+
+  //Creates the array for storing the mass
+  bool allocateLumpedMassArray();
+
   /**
    * Tests if *this has a lumped mass pointer.
    */

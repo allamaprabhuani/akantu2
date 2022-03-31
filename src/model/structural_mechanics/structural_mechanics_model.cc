@@ -229,14 +229,6 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::needToReassembleMatrices(){
-  this->need_to_reassemble_mass       = true;
-  this->need_to_reassemble_stiffness  = true;
-  this->need_to_reassemble_lumpedMass = true;
-  return;
-}
-
-/* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeStresses() {
   AKANTU_DEBUG_IN();
 
@@ -254,7 +246,7 @@ void StructuralMechanicsModel::computeStresses() {
 /* -------------------------------------------------------------------------- */
 bool StructuralMechanicsModel::allocateLumpedMassArray()
 {
-	if(this->hasLumpedMass())	//Already allocated, so nothing to do.
+	if(this->mass != nullptr)	//Already allocated, so nothing to do.
 	    { return true; };
 
 	//now allocate it
@@ -696,47 +688,6 @@ Real StructuralMechanicsModel::getEnergy(const ID & energy) {
   return 0;
 }
 
-/* -------------------------------------------------------------------------- */
-StructuralMaterial
-StructuralMechanicsModel::modifyMaterial(
-		const UInt mID,
-		const StructuralMaterial& newMat)
-{
-	if(mID >= this->materials.size())
-	{
-		AKANTU_EXCEPTION("Know material with index " << mID << " is known, largest index is " << this->materials.size());
-	};
-
-	StructuralMaterial oldMaterial = this->materials[mID];
-	this->materials[mID] = newMat;
-  	this->needToReassembleMatrices();
-
-	return oldMaterial;
-};
-
-/* -------------------------------------------------------------------------- */
-StructuralMaterial
-StructuralMechanicsModel::modifyMaterial(
-	const ID& name,
-	const StructuralMaterial& newMat)
-{
-	auto it = materials_names_to_id.find(name);
-	if (it == materials_names_to_id.end()) {
-		AKANTU_EXCEPTION("The material " << name << " was not found in the model " << id);
-	}
-
-	return this->modifyMaterial(it->second, newMat);
-};
-
-/* -------------------------------------------------------------------------- */
-void
-StructuralMechanicsModel::removeAllMaterials()
-{
-	this->materials.clear();		//Clear the materials
-	this->materials_names_to_id.clear();	//Remove all names
-  	this->needToReassembleMatrices();
-	return;
-};
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeForcesByLocalTractionArray(
