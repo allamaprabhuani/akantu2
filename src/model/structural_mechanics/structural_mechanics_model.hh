@@ -273,6 +273,13 @@ public:
     return *(this->mass);
   };
 
+  //These function is an alias, for compability with the solid mechanics
+  inline
+  const Array<Real>&
+  getMass()
+    const
+      { return this->getLumpedMass(); }
+
 
   //Creates the array for storing the mass
   bool allocateLumpedMassArray();
