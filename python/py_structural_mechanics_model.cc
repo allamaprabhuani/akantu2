@@ -132,40 +132,45 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           py::arg("mat"), py::arg("name") = "")
       .def(
           "getMaterial",
-          [](StructuralMechanicsModel & self, UInt material_index)
-              -> decltype(auto) { return self.getMaterial(material_index); },
+          [](const StructuralMechanicsModel & self, UInt material_index)
+              -> StructuralMaterial { return self.getMaterial(material_index); },
           "This function returns the `i`th material of `self`."
-          " Note a reference is returned which allows to modify the material "
-          "inside `self`.",
-          py::arg("material_index"), py::return_value_policy::reference)
+          " The function returns a copy of the material.",
+          py::arg("material_index"), py::return_value_policy::copy)
       .def(
           "getMaterial",
-          [](StructuralMechanicsModel & self, const ID & name)
-              -> decltype(auto) { return self.getMaterial(name); },
-          "This function returns the material with name `i` of `self`."
-          " Note a reference is returned which allows to modify the material "
-          "inside `self`.",
-          py::arg("material_index"), py::return_value_policy::reference)
+          [](const StructuralMechanicsModel & self, const ID & name)
+              -> StructuralMaterial { return self.getMaterial(name); },
+          "This function returns the `i`th material of `self`."
+          " The function returns a copy of the material.",
+          py::arg("material_index"), py::return_value_policy::copy)
       .def(
           "getNbMaterials",
           [](StructuralMechanicsModel & self) { return self.getNbMaterials(); },
           "Returns the number of different materials inside `self`.")
+
       .def("getKineticEnergy", &StructuralMechanicsModel::getKineticEnergy,
            "Compute kinetic energy")
       .def("getPotentialEnergy", &StructuralMechanicsModel::getPotentialEnergy,
            "Compute potential energy")
       .def("getEnergy", &StructuralMechanicsModel::getEnergy,
            "Compute the specified energy")
+
       .def(
           "getLumpedMass",
-          [](StructuralMechanicsModel & self) -> decltype(auto) {
+          [](const StructuralMechanicsModel & self) -> decltype(auto) {
             return self.getLumpedMass();
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "getMass",
+          [](const StructuralMechanicsModel & self) -> decltype(auto) {
+            return self.getMass();
           },
           py::return_value_policy::reference_internal)
       .def("assembleLumpedMassMatrix",
            &StructuralMechanicsModel::assembleLumpedMassMatrix,
            "Assembles the lumped mass matrix")
-
       .def("hasLumpedMass", &StructuralMechanicsModel::hasLumpedMass);
 }
 
