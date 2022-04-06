@@ -98,6 +98,15 @@ register_phase_field_model(py::module & mod) {
            })
       .def("setTimeStep", &PhaseFieldModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
+      .def( "getEnergy",
+	   [](PhaseFieldModel & self) {
+	     return self.getEnergy();
+	   })
+      .def("getEnergy",
+	   [](PhaseFieldModel & self, const std::string & group_id) {
+	     return self.getEnergy(group_id);
+	   },
+	   py::arg("group_id"))
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
       .def_function_nocopy(getDamage)

@@ -240,6 +240,25 @@ public:
   /// give the phasefield internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
 
+  
+  /**
+   * @brief Returns the total dissipated energy
+   *
+   */
+  Real getEnergy();
+
+  /// Compute dissipated energy for an element type and phasefield index
+  Real getEnergy(ElementType type, UInt index);
+
+  /// Compute dissipated energy for an individual element
+  Real getEnergy(const Element & element) {
+    return getEnergy(element.type, element.element);
+  }
+
+  /// Compute dissipated energy for an element group
+  Real getEnergy(const ID & group_id);
+
+  
   AKANTU_GET_MACRO(PhaseFieldByElement, phasefield_index,
                    const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO(PhaseFieldLocalNumbering, phasefield_local_numbering,

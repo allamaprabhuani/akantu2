@@ -49,6 +49,16 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+public :
+  /// compute the dissiapted energy
+  void computeDissipatedEnergy(ElementType el_type) override;
+
+ 
+  void
+  computeDissipatedEnergyByElement(ElementType type, UInt index,
+				   Vector<Real> & epot_on_quad_points) override;
+
+  
 protected:
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
@@ -62,10 +72,26 @@ protected:
   inline void computeDamageEnergyDensityOnQuad(const Real & /*phi_quad*/,
                                                Real & /*dam_energy_quad*/);
 
+  inline void computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
+					    const Vector<Real> & /*grad_d_quad */,
+					    Real & /*energy*/);
+
 public:
   void updateInternalParameters() override;
 };
 
+/* -------------------------------------------------------------------------- */
+inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
+		      const Real & dam, const Vector<Real> & grad_d, Real & edis) {
+
+  for (auto i : arange(spatial_dimension)) {
+    edis = this->l0*grad_d[i]*grad_d[i];
+  }
+
+  edis += this->g_c*dam*dam/(4*this->l0);
+}
+
+  
 /* -------------------------------------------------------------------------- */
 inline void
 PhaseFieldExponential::computeDrivingForceOnQuad(const Real & phi_quad,
@@ -134,6 +160,8 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
     phi_quad = phi_hist_quad;
   }
 }
+
+  
 
 } // namespace akantu
 

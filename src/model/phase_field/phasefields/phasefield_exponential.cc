@@ -65,6 +65,49 @@ void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
   }
 }
 
+  
+/* -------------------------------------------------------------------------- */
+void PhaseFieldExponential::computeDissipatedEnergy(ElementType el_type) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && tuple : zip(this->dissipated_energy(el_type, _not_ghost),
+			   this->damage_on_qpoints(el_type, _not_ghost),
+			   make_view(this->gradd(el_type, _not_ghost),
+				     spatial_dimension))) {
+
+    this->computeDissipatedEnergyOnQuad(std::get<1>(tuple),
+					std::get<2>(tuple),
+					std::get<0>(tuple));
+  }
+  
+  AKANTU_DEBUG_OUT();
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+void PhaseFieldExponential::computeDissipatedEnergyByElement(
+      ElementType type, UInt index, Vector<Real> & edis_on_quad_points) {
+  auto gradd_it = this->gradd(type).begin(spatial_dimension);
+  auto gradd_end = this->gradd(type).begin(spatial_dimension);
+  auto damage_it = this->damage_on_qpoints(type).begin();
+
+
+  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type);
+
+  gradd_it += index * nb_quadrature_points;
+  gradd_end += (index + 1) * nb_quadrature_points;
+  damage_it += index * nb_quadrature_points;
+
+  Real * edis_quad = edis_on_quad_points.storage();
+
+  for (; gradd_it != gradd_end; ++gradd_it, ++damage_it, ++edis_quad) {
+    this->computeDissipatedEnergyOnQuad(*damage_it,*gradd_it, *edis_quad);
+  }
+}
+  
+
+
 INSTANTIATE_PHASEFIELD(exponential, PhaseFieldExponential);
 
 } // namespace akantu

@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "data_accessor.hh"
+#include "integration_point.hh"
 #include "parsable.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
@@ -123,6 +124,10 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
+ 
+  /// compute the dissipated energy by element
+  void computeDissipatedEnergyByElements();
+
   /// resize the internals arrrays
   virtual void resizeInternals();
 
@@ -135,6 +140,18 @@ protected:
                                    GhostType /* ghost_type */ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
+
+  /// compute the dissiapted energy
+  virtual void computeDissipatedEnergy(ElementType el_type);
+
+   /// compute the potential energy for an element
+  virtual void
+  computeDissipatedEnergyByElement(ElementType /*type*/, UInt /*index*/,
+				   Vector<Real> & /*edis_on_quad_points*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -167,6 +184,14 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+   /// return the damage energyfor the subset of elements contained
+  /// by the phasefield
+  virtual Real getEnergy();
+  /// return the damage energyfor the provided element
+  virtual Real getEnergy(ElementType type, UInt index);
+
+  
+  
   AKANTU_GET_MACRO(Name, name, const std::string &);
 
   AKANTU_GET_MACRO(Model, model, const PhaseFieldModel &)
@@ -179,10 +204,10 @@ public:
 
   AKANTU_GET_MACRO_NOT_CONST(Strain, strain, ElementTypeMapArray<Real> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage_on_qpoints, Real);
 
-  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Damage, damage_on_qpoints, ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(Damage, damage_on_qpoints, const ElementTypeMapArray<Real> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
 
@@ -253,7 +278,10 @@ protected:
   ElementTypeMapArray<UInt> element_filter;
 
   /// damage arrays ordered by element types
-  InternalPhaseField<Real> damage;
+  InternalPhaseField<Real> damage_on_qpoints;
+
+  /// grad_d arrays ordered by element types
+  InternalPhaseField<Real> gradd;
 
   /// phi arrays ordered by element types
   InternalPhaseField<Real> phi;
@@ -266,9 +294,13 @@ protected:
 
   /// damage energy ordered by element types
   InternalPhaseField<Real> damage_energy;
-
+ 
   /// damage energy density ordered by element types
   InternalPhaseField<Real> damage_energy_density;
+  
+  /// dissipated energy by element
+  InternalPhaseField<Real> dissipated_energy;
+
 };
 
 /// standard output stream operator

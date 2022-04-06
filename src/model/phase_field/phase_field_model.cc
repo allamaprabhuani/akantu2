@@ -346,6 +346,53 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
   return options;
 }
 
+  /* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy() {
+  AKANTU_DEBUG_IN();
+
+  Real energy = 0.;
+  for (auto & phasefield : phasefields) {
+    energy += phasefield->getEnergy();
+  }
+
+  /// reduction sum over all processors
+  mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy(ElementType type, UInt index) {
+  AKANTU_DEBUG_IN();
+
+
+  UInt phase_index = this->phasefield_index(type, _not_ghost)(index);
+  UInt phase_loc_num = this->phasefield_local_numbering(type, _not_ghost)(index);
+  Real energy =
+      this->phasefields[phase_index]->getEnergy(type, phase_loc_num);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy(const ID & group_id) {
+  auto && group = mesh.getElementGroup(group_id);
+  auto energy = 0.;
+  for (auto && type : group.elementTypes()) {
+    for (auto el : group.getElementsIterable(type)) {
+      energy += getEnergy(el);
+    }
+  }
+
+  /// reduction sum over all processors
+  mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
+
+  return energy;
+}
+
+
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::beforeSolveStep() {
   for (auto & phasefield : phasefields) {
