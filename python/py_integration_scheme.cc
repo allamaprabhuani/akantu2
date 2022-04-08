@@ -19,6 +19,11 @@
 /* -------------------------------------------------------------------------- */
 #include "py_integration_scheme.hh"
 /* -------------------------------------------------------------------------- */
+#include <integration_scheme.hh>
+#include <integration_scheme_1st_order.hh>
+#include <integration_scheme_2nd_order.hh>
+#include <dof_manager.hh>
+/* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
@@ -27,24 +32,27 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void register_integration_schemes(py::module & mod) {
-  py::class_<IntegrationScheme>(mod, "IntegrationScheme")
-      .def(py::init<DOFManager, const ID &, UInt>());
+  auto IntegrationSchemeBinding = py::class_<IntegrationScheme>(mod, "IntegrationScheme")
+      //.def(py::init<DOFManager&, const ID &, UInt>())
+      ;
 
-  py::enum_<IntegrationScheme::SolutionType>()
-      .def("_not_defined", _not_defined)
-      .def("_displacement", _displacement)
-      .def("_temperature", _temperature)
-      .def("_damage", _damage)
-      .def("_velocity", _velocity)
-      .def("_temperature_rate", _temperature_rate)
-      .def("_acceleration", _acceleration);
+  py::enum_<IntegrationScheme::SolutionType>(IntegrationSchemeBinding, "SolutionType")
+      .value("_not_defined", IntegrationScheme::SolutionType::_not_defined)
+      .value("_displacement", IntegrationScheme::SolutionType::_displacement)
+      .value("_temperature", IntegrationScheme::SolutionType::_temperature)
+      .value("_damage", IntegrationScheme::SolutionType::_damage)
+      .value("_velocity", IntegrationScheme::SolutionType::_velocity)
+      .value("_temperature_rate", IntegrationScheme::SolutionType::_temperature_rate)
+      .value("_acceleration", IntegrationScheme::SolutionType::_acceleration)
+      .export_values();
 
   py::class_<IntegrationScheme2ndOrder, IntegrationScheme>(
       mod, "IntegrationScheme2ndOrder")
-      .def(py::init<DOFManager, const ID &>());
+      //.def(py::init<DOFManager&, const ID &>())
+      ;
 
   py::class_<NewmarkBeta, IntegrationScheme2ndOrder>(mod, "NewmarkBeta")
-      .def(py::init<DOFManager, const ID &, UInt, Real, Real>(),
+      .def(py::init<DOFManager&, const ID &, Real, Real>(),
            py::arg("dof_manager"), py::arg("id"), py::arg("alpha"),
            py::arg("beta"));
 
