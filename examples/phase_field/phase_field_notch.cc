@@ -34,6 +34,7 @@
 #include "non_linear_solver.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
+#include "group_manager.hh"
 /* -------------------------------------------------------------------------- */
 #include <chrono>
 #include <fstream>
@@ -48,6 +49,53 @@ using millisecond = std::chrono::duration<double, std::milli>;
 const UInt spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
+class PhaseFieldElementFilter : public GroupManager::ClusteringFilter {
+public:
+  PhaseFieldElementFilter(const PhaseFieldModel & model,
+			  const Real max_damage = 1.)
+    : model(model), is_unbroken(max_damage) {}
+
+  
+  bool operator()(const Element & el) const override {
+    
+    const Array<UInt> & mat_indexes =
+        model.getPhaseFieldByElement(el.type, el.ghost_type);
+    const Array<UInt> & mat_loc_num =
+        model.getPhaseFieldLocalNumbering(el.type, el.ghost_type);
+
+    const auto & mat = model.getPhaseField(mat_indexes(el.element));
+
+    UInt el_index = mat_loc_num(el.element);
+    UInt nb_quad_per_element =
+        model.getFEEngine("PhaseFieldFEEngine")
+            .getNbIntegrationPoints(el.type, el.ghost_type);
+
+    const Array<Real> & damage_array = mat.getDamage(el.type, el.ghost_type);
+
+    AKANTU_DEBUG_ASSERT(nb_quad_per_element * el_index < damage_array.size(),
+                        "This quadrature point is out of range");
+
+    const Real * element_damage =
+        damage_array.storage() + nb_quad_per_element * el_index;
+
+    UInt unbroken_quads = std::count_if(
+        element_damage, element_damage + nb_quad_per_element, is_unbroken);
+
+    return (unbroken_quads > 0);
+  }
+
+private:
+  struct IsUnbrokenFunctor {
+    IsUnbrokenFunctor(const Real & max_damage) : max_damage(max_damage) {}
+    bool operator()(const Real & x) const { return x > max_damage; }
+    const Real max_damage;
+  };
+
+  const PhaseFieldModel & model;
+  const IsUnbrokenFunctor is_unbroken;
+  
+};
+
 
 int main(int argc, char * argv[]) {
 
@@ -107,14 +155,28 @@ int main(int argc, char * argv[]) {
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
-
+    
     coupler.solve();
+
+    auto energy = phase.getEnergy();
 
     if (s % 100 == 0) {
       model.dump();
     }
   }
 
+  Real damage_limit = 0.08;
+  auto global_nb_clusters =
+    mesh.createClusters(spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
+
+  
+  auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
+
+  model.dumpGroup("crack_0");
+  
+  std::cout << global_nb_clusters << std::endl;
+  std::cout << nb_fragment << std::endl;
+  
   finalize();
   return EXIT_SUCCESS;
 }

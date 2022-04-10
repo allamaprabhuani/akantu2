@@ -297,7 +297,7 @@ void PhaseField::computeDissipatedEnergyByElements() {
     
     /// compute @f$\nabla u@f$
     fem.gradientOnIntegrationPoints(damage, gradd_vect,
-                                    spatial_dimension, type, _not_ghost,
+                                    1, type, _not_ghost,
                                     elem_filter);
 
     computeDissipatedEnergy(type);
