@@ -34,6 +34,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "boundary_condition.hh"
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "model.hh"
@@ -54,7 +55,8 @@ namespace akantu {
 
 class HeatTransferModel : public Model,
                           public DataAccessor<Element>,
-                          public DataAccessor<UInt> {
+                          public DataAccessor<UInt>,
+			  public BoundaryCondition<HeatTransferModel> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -228,9 +230,10 @@ public:
   /// get the thermal energy for a given element
   Real getThermalEnergy();
 
-protected:
   /* ------------------------------------------------------------------------ */
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
+  
+protected:
 
   /* ----------------------------------------------------------------------- */
   template <class iterator>

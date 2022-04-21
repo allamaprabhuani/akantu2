@@ -512,6 +512,8 @@ void HeatTransferModel::initFullImpl(const ModelOptions & options) {
   Model::initFullImpl(options);
 
   readMaterials();
+
+  this->initBC(*this, *temperature, *increment, *external_heat_rate);
 }
 
 /* -------------------------------------------------------------------------- */

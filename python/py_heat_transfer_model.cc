@@ -62,7 +62,8 @@ namespace akantu {
   })
 /* -------------------------------------------------------------------------- */
 
-void register_heat_transfer_model(py::module & mod) {
+[[gnu::visibility("default")]] void
+register_heat_transfer_model(py::module & mod) {
   py::class_<HeatTransferModelOptions>(mod, "HeatTransferModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("analysis_method") = _explicit_lumped_mass);
@@ -86,6 +87,18 @@ void register_heat_transfer_model(py::module & mod) {
             self.initFull(HeatTransferModelOptions(_analysis_method));
           },
           py::arg("_analysis_method"))
+      .def_deprecated("applyDirichletBC", "Deprecated: use applyBC")
+      .def("applyBC",
+           [](HeatTransferModel & self, BC::Dirichlet::DirichletFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           })
+      .def("applyBC",
+           [](HeatTransferModel & self, BC::Neumann::NeumannFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           })
+      .def_function_nocopy(getExternalHeatRate)
       .def("setTimeStep", &HeatTransferModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
       .def_function(getStableTimeStep)
