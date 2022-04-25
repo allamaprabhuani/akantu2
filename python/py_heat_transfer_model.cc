@@ -103,7 +103,9 @@ register_heat_transfer_model(py::module & mod) {
            py::arg("solver_id") = "")
       .def_function(getStableTimeStep)
       .def_function_nocopy(getTemperature)
+      .def_function_nocopy(getTemperatureRate)
       .def_function_nocopy(getBlockedDOFs)
+      .def_function_nocopy(getMesh)
       .def("getTemperatureGradient", &HeatTransferModel::getTemperatureGradient,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
