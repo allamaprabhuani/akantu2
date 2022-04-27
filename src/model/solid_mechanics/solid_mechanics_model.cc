@@ -567,9 +567,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
       ekin += mv2;
     }
   } else if (this->getDOFManager().hasMatrix("M")) {
-    if(this->need_to_reassemble_mass) {
-      this->assembleMatrix("M");
-    }
+    this->assembleMatrix("M");
 
     Array<Real> Mv(nb_nodes, Model::spatial_dimension);
     this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
