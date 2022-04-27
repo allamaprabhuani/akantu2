@@ -375,17 +375,6 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
 
   auto & dof_manager = this->getDOFManager();
 
-  //Ensures that the matrix are assembled.
-  if(dof_manager.hasMatrix("K")) {
-    this->assembleMatrix("K");
-  }
-  if(dof_manager.hasMatrix("M")) {
-    this->assembleMatrix("M");
-  }
-  if(dof_manager.hasLumpedMatrix("M")) {
-    this->assembleLumpedMatrix("M");
-  }
-
   if ("external" == residual_part) {
     dof_manager.assembleToResidual("displacement",
                                              *this->external_force, 1);
