@@ -99,7 +99,7 @@ public:
 class MeshIsDistributedEvent : public MeshEvent<UInt> {
 public:
   MeshIsDistributedEvent(const Mesh & mesh, const std::string & origin = "")
-      : MeshEvent<UInt>(origin), mesh(&mesh) {}
+      : MeshEvent<UInt>(origin), mesh(mesh) {}
   ~MeshIsDistributedEvent() override = default;
 
   const Mesh & getMesh() const noexcept { return this->mesh; }
