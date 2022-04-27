@@ -481,11 +481,7 @@ Real StructuralMechanicsModel::getKineticEnergy() {
   }
 
   //if mass matrix was not assembled, assemble it now
-  // Alternative, generate an error.
-  if(this->need_to_reassemble_mass) {
-    this->assembleMassMatrix();
-  }
-
+  this->assembleMassMatrix();
   Real ekin = 0.;
   UInt nb_nodes = mesh.getNbNodes();
 
