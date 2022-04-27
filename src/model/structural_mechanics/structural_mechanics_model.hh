@@ -118,7 +118,6 @@ public:
   /// compute the specified energy
   Real getEnergy(const ID & energy);
 
-
   /**
    * \brief This function computes the an approximation of the lumped mass.
    *
@@ -261,15 +260,10 @@ public:
     return *(this->mass);
   };
 
-  //These function is an alias, for compability with the solid mechanics
-  inline
-  const Array<Real>&
-  getMass()
-    const
-      { return this->getLumpedMass(); }
+  // These function is an alias, for compability with the solid mechanics
+  inline const Array<Real> & getMass() const { return this->getLumpedMass(); }
 
-
-  //Creates the array for storing the mass
+  // Creates the array for storing the mass
   bool allocateLumpedMassArray();
 
   /**

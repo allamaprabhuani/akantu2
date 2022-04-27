@@ -98,7 +98,7 @@ void StructuralMechanicsModel::assembleMassMatrix(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleLumpedMassMatrix() {
 
-  if(not this->need_to_reassemble_lumpedMass)
+  if (not this->need_to_reassemble_lumpedMass)
     return;
 
   allocNodalField(this->mass, nb_degree_of_freedom, "lumped_mass");

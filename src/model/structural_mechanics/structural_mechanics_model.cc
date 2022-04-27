@@ -184,7 +184,7 @@ void StructuralMechanicsModel::initSolver(
      *  Also it is not a 1D array, but has an element for every
      *  DOF, which are most of the time equal, but makes handling
      *  some operations a bit simpler. */
-    if(time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
+    if (time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
       this->allocateLumpedMassArray();
     }
   }
@@ -244,17 +244,17 @@ void StructuralMechanicsModel::computeStresses() {
 }
 
 /* -------------------------------------------------------------------------- */
-bool StructuralMechanicsModel::allocateLumpedMassArray()
-{
-	if(this->mass != nullptr)	//Already allocated, so nothing to do.
-	    { return true; };
+bool StructuralMechanicsModel::allocateLumpedMassArray() {
+  if (this->mass != nullptr) // Already allocated, so nothing to do.
+  {
+    return true;
+  };
 
-	//now allocate it
-      	this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumped_mass");
+  // now allocate it
+  this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumped_mass");
 
-      	return true;
+  return true;
 };
-
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(
@@ -334,8 +334,9 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
   if (field_name == "mass") {
     AKANTU_DEBUG_ASSERT(this->mass.get() != nullptr,
-    		        "The lumped mass matrix was not allocated.");
-    return mesh.createStridedNodalField(this->mass.get(), group_name, n, 0, padding_size);
+                        "The lumped mass matrix was not allocated.");
+    return mesh.createStridedNodalField(this->mass.get(), group_name, n, 0,
+                                        padding_size);
   }
 
   return nullptr;
@@ -381,7 +382,7 @@ void StructuralMechanicsModel::assembleMatrix(const ID & id) {
 
 /// callback to assemble a lumped Matrix
 void StructuralMechanicsModel::assembleLumpedMatrix(const ID & id) {
-  if("M" == id) {
+  if ("M" == id) {
     this->assembleLumpedMassMatrix();
   }
   return;
@@ -395,19 +396,20 @@ void StructuralMechanicsModel::assembleResidual() {
 
   assembleInternalForce();
 
-  //Ensures that the matrix are assembled.
-  if(dof_manager.hasMatrix("K")) {
+  // Ensures that the matrix are assembled.
+  if (dof_manager.hasMatrix("K")) {
     this->assembleMatrix("K");
   }
-  if(dof_manager.hasMatrix("M")) {
+  if (dof_manager.hasMatrix("M")) {
     this->assembleMatrix("M");
   }
-  if(dof_manager.hasLumpedMatrix("M")) {
+  if (dof_manager.hasLumpedMatrix("M")) {
     this->assembleLumpedMassMatrix();
   }
 
   /* This is essentially a summing up of forces
-   * first the external forces are counted for and then stored inside the residual.
+   * first the external forces are counted for and then stored inside the
+   * residual.
    */
   dof_manager.assembleToResidual("displacement", *external_force, 1);
   dof_manager.assembleToResidual("displacement", *internal_force, 1);
@@ -419,14 +421,14 @@ void StructuralMechanicsModel::assembleResidual() {
 void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
 
-  //Ensures that the matrix are assembled.
-  if(dof_manager->hasMatrix("K")) {
+  // Ensures that the matrix are assembled.
+  if (dof_manager->hasMatrix("K")) {
     this->assembleMatrix("K");
   }
-  if(dof_manager->hasMatrix("M")) {
+  if (dof_manager->hasMatrix("M")) {
     this->assembleMatrix("M");
   }
-  if(dof_manager->hasLumpedMatrix("M")) {
+  if (dof_manager->hasLumpedMatrix("M")) {
     this->assembleLumpedMassMatrix();
   }
 
@@ -464,15 +466,15 @@ StructuralMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
   case _implicit_dynamic: {
     return std::make_tuple("implicit", TimeStepSolverType::_dynamic);
   }
-  case _explicit_lumped_mass: {		//Taken from the solid mechanics part
+  case _explicit_lumped_mass: { // Taken from the solid mechanics part
     return std::make_tuple("explicit_lumped",
                            TimeStepSolverType::_dynamic_lumped);
   }
-  case _explicit_consistent_mass: {    //Taken from the solid mechanics part
+  case _explicit_consistent_mass: { // Taken from the solid mechanics part
     return std::make_tuple("explicit", TimeStepSolverType::_dynamic);
   }
   default:
-	std::cout << "UNKOWN." << std::endl;
+    std::cout << "UNKOWN." << std::endl;
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
 }
@@ -483,7 +485,8 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
   ModelSolverOptions options;
 
   switch (type) {
-  case TimeStepSolverType::_dynamic_lumped: {	//Taken from the solid mechanic part
+  case TimeStepSolverType::_dynamic_lumped: { // Taken from the solid mechanic
+                                              // part
     options.non_linear_solver_type = NonLinearSolverType::_lumped;
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_central_difference;
@@ -491,13 +494,14 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson; // _linear;
+    options.non_linear_solver_type =
+        NonLinearSolverType::_newton_raphson; // _linear;
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
   }
-# if 1
+#if 1
   case TimeStepSolverType::_dynamic: { // Copied from solid
     if (this->method == _explicit_consistent_mass) {
       options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
@@ -512,7 +516,7 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
     }
     break;
   }
-# else
+#else
   case TimeStepSolverType::_dynamic: { // Original
     options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["displacement"] =
@@ -520,7 +524,7 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
     options.solution_type["displacement"] = IntegrationScheme::_displacement;
     break;
   }
-# endif
+#endif
   default:
     AKANTU_EXCEPTION(type << " is not a valid time step solver type");
   }
@@ -565,87 +569,91 @@ void StructuralMechanicsModel::assembleInternalForce(ElementType type,
 /* -------------------------------------------------------------------------- */
 Real StructuralMechanicsModel::getKineticEnergy() {
 
-  const UInt  nb_nodes 			= mesh.getNbNodes();
-  const UInt  nb_degree_of_freedom 	= this->nb_degree_of_freedom;
-  Real 	      ekin 			= 0.;	//used to sum up energy (is divided by two at the very end)
+  const UInt nb_nodes = mesh.getNbNodes();
+  const UInt nb_degree_of_freedom = this->nb_degree_of_freedom;
+  Real ekin = 0.; // used to sum up energy (is divided by two at the very end)
 
-  if(this->getDOFManager().hasLumpedMatrix("M") )
-  {
-  	/* This code computes the kinetic energy for the case when the mass is lumped.
-  	 * It is based on the solid mechanic equivalent.
-  	 */
-  	AKANTU_DEBUG_ASSERT(this->mass != nullptr, "The lumped mass is not allocated.");
+  if (this->getDOFManager().hasLumpedMatrix("M")) {
+    /* This code computes the kinetic energy for the case when the mass is
+     * lumped. It is based on the solid mechanic equivalent.
+     */
+    AKANTU_DEBUG_ASSERT(this->mass != nullptr,
+                        "The lumped mass is not allocated.");
 
-  	if(this->need_to_reassemble_lumpedMass)
-  	    { this->assembleLumpedMatrix("M"); }
+    if (this->need_to_reassemble_lumpedMass) {
+      this->assembleLumpedMatrix("M");
+    }
 
-	/* Iterating over all nodes.
-	 *   Important the velocity and mass also contains the rotational parts.
-	 *   However, they can be handled in an uniform way. */
-	for (auto && data : zip(arange(nb_nodes),
-				make_view(*this->velocity, nb_degree_of_freedom),
-				make_view(*this->mass	 , nb_degree_of_freedom)))
-	{
-		const UInt n = std::get<0>(data);	//This is the ID of the current node
+    /* Iterating over all nodes.
+     *   Important the velocity and mass also contains the rotational parts.
+     *   However, they can be handled in an uniform way. */
+    for (auto && data :
+         zip(arange(nb_nodes), make_view(*this->velocity, nb_degree_of_freedom),
+             make_view(*this->mass, nb_degree_of_freedom))) {
+      const UInt n = std::get<0>(data); // This is the ID of the current node
 
-		if(not mesh.isLocalOrMasterNode(n) )	//Only handle the node if it belongs to us.
-		    { continue; }
+      if (not mesh.isLocalOrMasterNode(
+              n)) // Only handle the node if it belongs to us.
+      {
+        continue;
+      }
 
-		const auto & v   = std::get<1>(data);	//Get the velocity and mass of that node.
-		const auto & m   = std::get<2>(data);
-		Real         mv2 = 0.;			//Contribution of this node.
+      const auto & v =
+          std::get<1>(data); // Get the velocity and mass of that node.
+      const auto & m = std::get<2>(data);
+      Real mv2 = 0.; // Contribution of this node.
 
-		for (UInt i = 0; i < nb_degree_of_freedom; ++i)
-		{
-			/* In the solid mechanics part, only masses that are above a certain value are considered.
-			 * However, the structural part, does not do this. */
-			const Real v_ = v(i);
-			const Real m_ = m(i);
-			mv2 += v_ * v_ * m_;
-		} //end for(i): going through the components
+      for (UInt i = 0; i < nb_degree_of_freedom; ++i) {
+        /* In the solid mechanics part, only masses that are above a certain
+         * value are considered.
+         * However, the structural part, does not do this. */
+        const Real v_ = v(i);
+        const Real m_ = m(i);
+        mv2 += v_ * v_ * m_;
+      } // end for(i): going through the components
 
-		ekin += mv2;	// add continution
-	} //end for(n): iterating through all nodes
+      ekin += mv2; // add continution
+    }              // end for(n): iterating through all nodes
+  } else if (this->getDOFManager().hasMatrix("M")) {
+    /* Handle the case where no lumped mass is there.
+     * This is basically the original code.
+     */
+    if (this->need_to_reassemble_mass) {
+      this->assembleMassMatrix();
+    }
+
+    Array<Real> Mv(nb_nodes, nb_degree_of_freedom);
+    this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
+                                                    *this->velocity, Mv);
+
+    for (auto && data :
+         zip(arange(nb_nodes), make_view(Mv, nb_degree_of_freedom),
+             make_view(*this->velocity, nb_degree_of_freedom))) {
+      if (mesh.isLocalOrMasterNode(std::get<0>(
+              data))) // only consider the node if we are blonging to it
+      {
+        ekin += std::get<2>(data).dot(std::get<1>(data));
+      }
+    }
+  } else {
+    /* This is the case where no mass is present, for whatever reason, such as
+     * the static case. We handle it specially be returning directly zero.
+     * However, by doing that there will not be a syncronizing event as in the
+     * other cases. Which is faster, but could be a problem in case the user
+     * expects this.
+     *
+     * Another not is, that the solid mechanics part, would generate an error in
+     * this clause. But, since the original implementation of the structural
+     * part, did not do that, I, Philip, decided to refrain from that. However,
+     * it is an option that should be considered.
+     */
+    return 0.;
   }
-  else if(this->getDOFManager().hasMatrix("M"))
-  {
-  	/* Handle the case where no lumped mass is there.
-  	 * This is basically the original code.
-  	 */
-	if(this->need_to_reassemble_mass)
-	    { this->assembleMassMatrix(); }
 
-	Array<Real> Mv(nb_nodes, nb_degree_of_freedom);
-	this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
-							*this->velocity, Mv);
-
-	for (auto && data : zip(arange(nb_nodes),
-				make_view(Mv, nb_degree_of_freedom),
-				make_view(*this->velocity, nb_degree_of_freedom)))
-	{
-		if(mesh.isLocalOrMasterNode(std::get<0>(data)) )		//only consider the node if we are blonging to it
-		    { ekin += std::get<2>(data).dot(std::get<1>(data)); }
-	}
-  }
-  else
-  {
-  	  /* This is the case where no mass is present, for whatever reason, such as the static case.
-  	   * We handle it specially be returning directly zero.
-  	   * However, by doing that there will not be a syncronizing event as in the other cases.
-  	   * Which is faster, but could be a problem in case the user expects this.
-  	   *
-  	   * Another not is, that the solid mechanics part, would generate an error in this clause.
-  	   * But, since the original implementation of the structural part, did not do that,
-  	   * I, Philip, decided to refrain from that.
-  	   * However, it is an option that should be considered.
-  	   */
-  	  return 0.;
-  }
-
-  //Sum up across the comunicator
+  // Sum up across the comunicator
   mesh.getCommunicator().allReduce(ekin, SynchronizerOperation::_sum);
 
-  return ekin / 2.;		//finally divide the energy by two
+  return ekin / 2.; // finally divide the energy by two
 }
 
 /* -------------------------------------------------------------------------- */
@@ -653,9 +661,9 @@ Real StructuralMechanicsModel::getPotentialEnergy() {
   Real epot = 0.;
   UInt nb_nodes = mesh.getNbNodes();
 
-  //if stiffness matrix is not assembled, do it
-  // as an alternative, gernate an error.
-  if(this->need_to_reassemble_stiffness) {
+  // if stiffness matrix is not assembled, do it
+  //  as an alternative, gernate an error.
+  if (this->need_to_reassemble_stiffness) {
     this->assembleStiffnessMatrix();
   };
 
@@ -687,7 +695,6 @@ Real StructuralMechanicsModel::getEnergy(const ID & energy) {
 
   return 0;
 }
-
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeForcesByLocalTractionArray(
