@@ -506,10 +506,7 @@ Real StructuralMechanicsModel::getPotentialEnergy() {
   UInt nb_nodes = mesh.getNbNodes();
 
   //if stiffness matrix is not assembled, do it
-  // as an alternative, gernate an error.
-  if(this->need_to_reassemble_stiffness) {
-    this->assembleStiffnessMatrix();
-  };
+  this->assembleStiffnessMatrix();
 
   Array<Real> Ku(nb_nodes, nb_degree_of_freedom);
   this->getDOFManager().assembleMatMulVectToArray(
