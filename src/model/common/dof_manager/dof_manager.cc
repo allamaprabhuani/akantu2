@@ -709,9 +709,7 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
 /* -------------------------------------------------------------------------- */
 void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
                                      const MeshIsDistributedEvent & event) {
-  if (this->mesh == nullptr) {
-    AKANTU_EXCEPTION("The `Mesh` pointer is not set.");
-  }
+  AKANTU_DEBUG_ASSERT(this->mesh != nullptr, "The `Mesh` pointer is not set.")
 
   // check if the distributed state of the residual and the mesh are the same.
   if (this->mesh->isDistributed() != this->residual->isDistributed()) {
