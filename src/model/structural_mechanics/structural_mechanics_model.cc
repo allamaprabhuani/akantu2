@@ -363,17 +363,6 @@ void StructuralMechanicsModel::assembleResidual() {
 
   assembleInternalForce();
 
-  //Ensures that the matrix are assembled.
-  if(dof_manager.hasMatrix("K")) {
-    this->assembleMatrix("K");
-  }
-  if(dof_manager.hasMatrix("M")) {
-    this->assembleMatrix("M");
-  }
-  if(dof_manager.hasLumpedMatrix("M")) {
-    this->assembleLumpedMatrix("M");
-  }
-
   dof_manager.assembleToResidual("displacement", *external_force, 1);
   dof_manager.assembleToResidual("displacement", *internal_force, 1);
 
