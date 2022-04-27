@@ -34,6 +34,7 @@
 #include "mesh_io.hh"
 #include "mesh_partition_scotch.hh"
 
+#include <gtest/gtest.h>
 #include <string>
 
 /* -------------------------------------------------------------------------- */
@@ -42,9 +43,12 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-int main(int argc, char * argv[]) {
+TEST(TestMesh, TestMeshDistribute) {
+
   const UInt spatial_dimension = 3;
 
+  int argc = 0;
+  char ** argv = nullptr;
   initialize(argc, argv);
 
   const auto & comm = akantu::Communicator::getStaticCommunicator();
@@ -58,55 +62,16 @@ int main(int argc, char * argv[]) {
     mesh2.read("mesh.msh");
   }
 
+  /* This should fail since the mesh is distributed after the
+   *  DOFManager is created. */
+  DOFManagerDefault dof_manager(mesh1, "test_dof_manager_1__failing");
+  EXPECT_THROW(mesh1.distribute(), debug::Exception);
 
-  //This test should fail, because we set the mesh to distributed after.
-  bool Failed_firstTest = false;
-  try
-  {
-  	DOFManagerDefault dof_manager(mesh1, "test_dof_manager_1__failing");
-  	mesh1.distribute();
-  }
-  catch(...)
-  {
-  	  //This is actually what should happen
-  	  Failed_firstTest = true;
-  };
-
-  if(Failed_firstTest == false)
-  {
-  	  std::cerr << "Failed !" << " Expected the creation of the DOFManager to faile."
-                  << std::endl;
-        exit(1);
-  }
-
-  /*----------------------------------------------------------*/
-
-  //This should work
-  bool test2Succeed = false;
-  try
-  {
-  	mesh2.distribute();
-  	DOFManagerDefault dof_manager(mesh2, "test_dof_manager_2__succeeding");
-  	test2Succeed = true;
-  }
-  catch(debug::Exception& e)
-  {
-	  std::cerr << "Failed !" << " Creation of the DOFManager resulted in the following error:\n"
-	  	    << e.info()
-	  	    << std::endl;
-	  exit(1);
-  };
-  
-
-  if(test2Succeed == false)
-  {
-  	  std::cerr << "Failed !" << " Expected the creation of the DOFManager to succeed."
-                  << std::endl;
-        exit(1);
-  }
-
+  /* This will succeed since the mesh is distributed before the manager is
+   * created. */
+  mesh2.distribute();
+  EXPECT_NO_THROW(
+      DOFManagerDefault dof_manager2(mesh2, "test_dof_manager_2__succeeding"));
 
   finalize();
-
-  return 0;
 }

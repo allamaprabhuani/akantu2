@@ -514,10 +514,7 @@ void Mesh::distributeImpl(
 
   this->computeBoundingBox();
 
-  //Wait to make sure that the mesh is fully distributed
-  this->communicator->barrier();
-
-  MeshIsDistributedEvent event(this, AKANTU_CURRENT_FUNCTION);
+  MeshIsDistributedEvent event(*this, AKANTU_CURRENT_FUNCTION);
   this->sendEvent(event);
 }
 
