@@ -540,9 +540,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   UInt nb_nodes = mesh.getNbNodes();
 
   if (this->getDOFManager().hasLumpedMatrix("M")) {
-    if(this->need_to_reassemble_lumped_mass) {
-       this->assembleLumpedMatrix("M");
-    }
+    this->assembleLumpedMatrix("M");
 
     auto m_it = this->mass->begin(Model::spatial_dimension);
     auto m_end = this->mass->end(Model::spatial_dimension);
