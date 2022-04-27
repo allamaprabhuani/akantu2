@@ -218,11 +218,19 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
   SparseMatrix & J = this->dof_manager.getMatrix("J");
 
   const SparseMatrix & M = this->dof_manager.getMatrix("M");
-  const SparseMatrix & K = this->dof_manager.getMatrix("K");
+
+  Real c = this->getAccelerationCoefficient(type, delta_t);
+  Real e = this->getDisplacementCoefficient(type, delta_t);
 
   bool does_j_need_update = false;
   does_j_need_update |= M.getRelease() != m_release;
-  does_j_need_update |= K.getRelease() != k_release;
+
+  // in explicit this coefficient is exactly 0.
+  if (not(e == 0.)) {
+    const SparseMatrix & K = this->dof_manager.getMatrix("K");
+    does_j_need_update |= K.getRelease() != k_release;
+  }
+
   if (this->dof_manager.hasMatrix("C")) {
     const SparseMatrix & C = this->dof_manager.getMatrix("C");
     does_j_need_update |= C.getRelease() != c_release;
@@ -230,25 +238,22 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
 
   does_j_need_update |= this->dof_manager.hasBlockedDOFsChanged();
 
-  if (!does_j_need_update) {
+  if (not does_j_need_update) {
     AKANTU_DEBUG_OUT();
     return;
   }
 
-  J.copyProfile(K);
+  J.copyProfile(M);
   // J.zero();
 
-  Real c = this->getAccelerationCoefficient(type, delta_t);
-  Real e = this->getDisplacementCoefficient(type, delta_t);
-
-  if (!(e == 0.)) { // in explicit this coefficient is exactly 0.
+  if (not(e == 0.)) {
+    const SparseMatrix & K = this->dof_manager.getMatrix("K");
     J.add(K, e);
+    k_release = K.getRelease();
   }
 
   J.add(M, c);
-
   m_release = M.getRelease();
-  k_release = K.getRelease();
 
   if (this->dof_manager.hasMatrix("C")) {
     Real d = this->getVelocityCoefficient(type, delta_t);
