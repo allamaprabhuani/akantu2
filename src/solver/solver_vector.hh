@@ -74,6 +74,9 @@ public:
 
   virtual bool isFinite() const = 0;
 
+  /// Returns `true` if `*this` is distributed or not.
+  virtual bool isDistributed() const { return false; }
+
 protected:
   ID id;
 

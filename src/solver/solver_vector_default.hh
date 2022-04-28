@@ -61,6 +61,8 @@ public:
     this->getVector().printself(stream, indent + 1);
     stream << space << "]" << std::endl;
   }
+
+  using SolverVector::isDistributed;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -102,6 +104,14 @@ public:
     this->vector.set(val);
     ++this->release_;
   }
+
+  virtual
+  bool
+  isDistributed()
+    const
+    override
+      { return false; }
+
 
 public:
   Array<Real> & getVector() override { return vector; }
