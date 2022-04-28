@@ -540,6 +540,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
   UInt nb_nodes = mesh.getNbNodes();
 
   if (this->getDOFManager().hasLumpedMatrix("M")) {
+    this->assembleLumpedMatrix("M");
+
     auto m_it = this->mass->begin(Model::spatial_dimension);
     auto m_end = this->mass->end(Model::spatial_dimension);
     auto v_it = this->velocity->begin(Model::spatial_dimension);
@@ -563,6 +565,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
       ekin += mv2;
     }
   } else if (this->getDOFManager().hasMatrix("M")) {
+    this->assembleMatrix("M");
+
     Array<Real> Mv(nb_nodes, Model::spatial_dimension);
     this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
                                                     *this->velocity, Mv);
