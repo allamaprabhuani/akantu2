@@ -709,25 +709,25 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
 /* -------------------------------------------------------------------------- */
 void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
                                      const MeshIsDistributedEvent & event) {
-  AKANTU_DEBUG_ASSERT(this->mesh != nullptr, "The `Mesh` pointer is not set.")
+  AKANTU_DEBUG_ASSERT(this->mesh != nullptr, "The `Mesh` pointer is not set.");
 
   // check if the distributed state of the residual and the mesh are the same.
   if (this->mesh->isDistributed() != this->residual->isDistributed()) {
     // TODO: Allow to reallocate the internals, in that case one could actually
     // react on that event.
-#define YN(q) ((q) ? std::string("is") : std::string("is not"))
+    auto is_or_is_not = [](bool q) {
+        return ((q) ? std::string("is") : std::string("is not"));
+    };
     AKANTU_EXCEPTION("There is an inconsistency about the distribution state "
                      "of the `DOFManager`."
                      " It seams that the `Mesh` "
-                     << YN(this->mesh->isDistributed())
+                     << is_or_is_not(this->mesh->isDistributed())
                      << " distributed, but the `DOFManager`'s residual "
-                     << YN(this->residual->isDistributed())
+                     << is_or_is_not(this->residual->isDistributed())
                      << ", which is of type "
                      << debug::demangle(typeid(*this->residual).name()) << ".");
-#undef YN
-  };
 
-  return;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
