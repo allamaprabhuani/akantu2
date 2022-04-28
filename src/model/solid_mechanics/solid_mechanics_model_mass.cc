@@ -109,7 +109,7 @@ void SolidMechanicsModel::assembleMassLumped() {
 void SolidMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
-  if (!this->getDOFManager().hasMatrix("M")) {
+  if (not this->getDOFManager().hasMatrix("M")) {
     this->getDOFManager().getNewMatrix("M", this->getMatrixType("M"));
   }
 
