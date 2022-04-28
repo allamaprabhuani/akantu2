@@ -72,12 +72,10 @@ public:
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
-  /**
-   * The default implementation of this function, which should be suitable for
-   * everyone, converts `*this` into an array and then performs the checks on
-   * the result.
-   */
   virtual bool isFinite() const = 0;
+
+  /// Returns `true` if `*this` is distributed or not.
+  virtual bool isDistributed() const { return false; }
 
 protected:
   ID id;

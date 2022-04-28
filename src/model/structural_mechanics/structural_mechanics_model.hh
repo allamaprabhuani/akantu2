@@ -118,7 +118,6 @@ public:
   /// compute the specified energy
   Real getEnergy(const ID & energy);
 
-
   /**
    * \brief This function computes the an approximation of the lumped mass.
    *
@@ -249,22 +248,10 @@ public:
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
 
   /**
-   * Returns a non const reference to the array that stores the lumped
-   * mass.
+   * Returns a const reference to the array that stores the lumped mass.
    *
    * The returned array has dimension `N x d` where `N` is the number of nodes
    * and `d`, is the number of degrees of freedom per node.
-   */
-  inline Array<Real> & getLumpedMass() {
-    if (this->mass == nullptr) {
-      AKANTU_EXCEPTION("The pointer to the mass was not allocated.");
-    };
-    return *(this->mass);
-  };
-
-  /**
-   * Returns a constant reference to the array that stores the lumped
-   * mass.
    */
   inline const Array<Real> & getLumpedMass() const {
     if (this->mass == nullptr) {
@@ -272,6 +259,12 @@ public:
     };
     return *(this->mass);
   };
+
+  // These function is an alias, for compability with the solid mechanics
+  inline const Array<Real> & getMass() const { return this->getLumpedMass(); }
+
+  // Creates the array for storing the mass
+  bool allocateLumpedMassArray();
 
   /**
    * Tests if *this has a lumped mass pointer.
@@ -391,6 +384,7 @@ private:
 
   bool need_to_reassemble_mass{true};
   bool need_to_reassemble_stiffness{true};
+  bool need_to_reassemble_lumpedMass{true};
 
   /* ------------------------------------------------------------------------ */
   std::vector<StructuralMaterial> materials;

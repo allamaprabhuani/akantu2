@@ -124,12 +124,16 @@ void register_model(py::module & mod) {
             self.getNewSolver(id, time, type);
           },
           py::return_value_policy::reference)
-      .def("setIntegrationScheme",
-           [](Model & self, const std::string id, const std::string primal,
-              const IntegrationSchemeType & scheme_type,
-              IntegrationScheme::SolutionType solution_type) {
-             self.setIntegrationScheme(id, primal, scheme_type, solution_type);
-           })
+      .def(
+          "setIntegrationScheme",
+          [](Model & self, const std::string id, const std::string primal,
+             const IntegrationSchemeType & scheme_type,
+             IntegrationScheme::SolutionType solution_type) {
+            self.setIntegrationScheme(id, primal, scheme_type, solution_type);
+          },
+          py::arg("id"), py::arg("primal"), py::arg("scheme_type"),
+          py::arg("solution_type") =
+              IntegrationScheme::SolutionType::_not_defined)
       // .def("setIntegrationScheme",
       //      [](Model & self, const std::string id, const std::string primal,
       //         std::unique_ptr<IntegrationScheme> & scheme,
