@@ -545,6 +545,11 @@ public:
                          const ElementTypeMapArray<UInt> & new_numbering,
                          const ChangedElementsEvent & event) override;
 
+  /// function to implement to react on  akantu::MeshIsDistributedEvent
+  void
+  onMeshIsDistributed(const Mesh& mesh,
+  		      const MeshIsDistributedEvent & event) override;
+
 protected:
   inline DOFData & getDOFData(const ID & dof_id);
   inline const DOFData & getDOFData(const ID & dof_id) const;

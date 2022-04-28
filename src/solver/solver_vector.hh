@@ -72,6 +72,20 @@ public:
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
+
+  /**
+   * \brief	Returns `true` if `*this` is distributed or not.
+   *
+   * The default implementation returns `false`.
+   *
+   */
+  virtual
+  bool
+  isDistributed()
+    const
+      { return false; }
+
+
 protected:
   ID id;
 
