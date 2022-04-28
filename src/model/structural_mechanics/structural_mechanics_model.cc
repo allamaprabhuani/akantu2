@@ -373,8 +373,10 @@ void StructuralMechanicsModel::assembleResidual() {
 void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
 
+  auto & dof_manager = this->getDOFManager();
+
   if ("external" == residual_part) {
-    this->getDOFManager().assembleToResidual("displacement",
+    dof_manager.assembleToResidual("displacement",
                                              *this->external_force, 1);
     AKANTU_DEBUG_OUT();
     return;
@@ -382,7 +384,7 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
 
   if ("internal" == residual_part) {
     this->assembleInternalForce();
-    this->getDOFManager().assembleToResidual("displacement",
+    dof_manager.assembleToResidual("displacement",
                                              *this->internal_force, 1);
     AKANTU_DEBUG_OUT();
     return;
@@ -478,6 +480,8 @@ Real StructuralMechanicsModel::getKineticEnergy() {
     return 0.;
   }
 
+  //if mass matrix was not assembled, assemble it now
+  this->assembleMassMatrix();
   Real ekin = 0.;
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -500,6 +504,9 @@ Real StructuralMechanicsModel::getKineticEnergy() {
 Real StructuralMechanicsModel::getPotentialEnergy() {
   Real epot = 0.;
   UInt nb_nodes = mesh.getNbNodes();
+
+  //if stiffness matrix is not assembled, do it
+  this->assembleStiffnessMatrix();
 
   Array<Real> Ku(nb_nodes, nb_degree_of_freedom);
   this->getDOFManager().assembleMatMulVectToArray(
