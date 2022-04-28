@@ -175,8 +175,7 @@ void register_dof_manager(py::module & mod) {
       .def("assemblePreassembledMatrix",
            &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
            py::arg("terms"))
-      .def("zeroResidual", &DOFManager::zeroResidual)
-      ;
+      .def("zeroResidual", &DOFManager::zeroResidual);
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")
       .def(

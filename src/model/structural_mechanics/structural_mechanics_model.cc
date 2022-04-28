@@ -424,16 +424,14 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   auto & dof_manager = this->getDOFManager();
 
   if ("external" == residual_part) {
-    dof_manager.assembleToResidual("displacement",
-                                             *this->external_force, 1);
+    dof_manager.assembleToResidual("displacement", *this->external_force, 1);
     AKANTU_DEBUG_OUT();
     return;
   }
 
   if ("internal" == residual_part) {
     this->assembleInternalForce();
-    dof_manager.assembleToResidual("displacement",
-                                             *this->internal_force, 1);
+    dof_manager.assembleToResidual("displacement", *this->internal_force, 1);
     AKANTU_DEBUG_OUT();
     return;
   }
@@ -564,7 +562,7 @@ Real StructuralMechanicsModel::getKineticEnergy() {
   const UInt nb_degree_of_freedom = this->nb_degree_of_freedom;
   Real ekin = 0.; // used to sum up energy (is divided by two at the very end)
 
-  //if mass matrix was not assembled, assemble it now
+  // if mass matrix was not assembled, assemble it now
   this->assembleMassMatrix();
 
   if (this->getDOFManager().hasLumpedMatrix("M")) {
@@ -655,7 +653,7 @@ Real StructuralMechanicsModel::getPotentialEnergy() {
   Real epot = 0.;
   UInt nb_nodes = mesh.getNbNodes();
 
-  //if stiffness matrix is not assembled, do it
+  // if stiffness matrix is not assembled, do it
   this->assembleStiffnessMatrix();
 
   Array<Real> Ku(nb_nodes, nb_degree_of_freedom);

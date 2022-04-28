@@ -132,8 +132,10 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           py::arg("mat"), py::arg("name") = "")
       .def(
           "getMaterial",
-          [](const StructuralMechanicsModel & self, UInt material_index)
-              -> StructuralMaterial { return self.getMaterial(material_index); },
+          [](const StructuralMechanicsModel & self,
+             UInt material_index) -> StructuralMaterial {
+            return self.getMaterial(material_index);
+          },
           "This function returns the `i`th material of `self`."
           " The function returns a copy of the material.",
           py::arg("material_index"), py::return_value_policy::copy)
