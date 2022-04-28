@@ -108,6 +108,9 @@ public:
     return *this;
   }
 
+  /// Check if all entries are finite. The default implementation throws.
+  virtual bool isFinite() const { AKANTU_TO_IMPLEMENT(); }
+
 protected:
   /// This is the revert of add \f[B += \alpha * *this\f];
   virtual void addMeTo(SparseMatrix & B, Real alpha) const = 0;
