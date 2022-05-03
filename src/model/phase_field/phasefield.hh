@@ -121,7 +121,7 @@ public:
 
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;
-
+ 
 protected:
   /// resize the internals arrrays
   virtual void resizeInternals();
