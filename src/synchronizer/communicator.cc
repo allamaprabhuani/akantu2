@@ -69,6 +69,9 @@ Communicator::~Communicator() {
   delete event;
 }
 
+Communicator & Communicator::getStaticCommunicator() {
+   return Communicator::getWorldCommunicator();
+}
 } // namespace akantu
 
 #ifdef AKANTU_USE_MPI
