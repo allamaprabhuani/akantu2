@@ -454,7 +454,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
 
       // get distance between two barycenters
       auto facet_to_coh_el = mesh_facets.getSubelementToElement(coh_el)(0);
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, facet, facet_to_coh_el);
 
       // ad-hoc rule on barycenters spacing
@@ -659,7 +659,7 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
       // discard facets under sharp angle with crack
       Real facet_indiam =
           MeshUtils::getInscribedCircleDiameter(*(this->model), facet);
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, facet, coh_facets[0]);
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle
@@ -907,7 +907,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
       // discard facets under sharp angle with crack
       Real facet_indiam =
           MeshUtils::getInscribedCircleDiameter(*(this->model), facet);
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, facet, coh_facets[0]);
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle

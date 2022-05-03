@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
   /// consider a constant strain field
   Matrix<Real> grad_u_macro(spatial_dimension, spatial_dimension, 0.);
   grad_u_macro(0, 1) = 1.;
-  model.applyBoundaryConditionsRve(grad_u_macro);
+  model.applyBoundaryConditionsRVE(grad_u_macro);
 
   model.setBaseName("periodic-plate");
   model.addDumpFieldVector("displacement");

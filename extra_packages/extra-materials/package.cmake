@@ -62,7 +62,6 @@ package_declare_sources(extra_materials
 
   material_damage/material_damage_iterative_viscoelastic.cc
   material_damage/material_damage_iterative_viscoelastic.hh
-  material_damage/material_damage_iterative_viscoelastic_inline_impl.hh
 
   material_damage/material_damage_explicit.cc
   material_damage/material_damage_explicit.hh

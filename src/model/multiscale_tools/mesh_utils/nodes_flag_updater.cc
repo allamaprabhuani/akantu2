@@ -38,7 +38,7 @@ void NodesFlagUpdater::fillPreventInsertion() {
   if (mesh.getCommunicator().getNbProc() == 1)
     return;
   this->synchronizer.slaveReductionOnce(*this,
-                                        SynchronizationTag::_border_nodes);
+                                        SynchronizationTag::_rve_border_nodes);
 }
 
 } // namespace akantu

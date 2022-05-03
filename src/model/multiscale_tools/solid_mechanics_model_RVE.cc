@@ -54,6 +54,8 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(
       RVETools(dynamic_cast<SolidMechanicsModel &>(*this)),
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_expanding_elements(nb_expanding_elements), stiffness_changed(true) {
+  AKANTU_DEBUG_ASSERT(dim == 2, "SolidMechanicsModelRVE works only in 2D");
+
   AKANTU_DEBUG_IN();
   // seed is fixed to the same value for all the processors
   // It is done to generate same random internal fields

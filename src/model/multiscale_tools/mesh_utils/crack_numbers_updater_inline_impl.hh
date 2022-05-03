@@ -40,7 +40,7 @@ inline UInt
 CrackNumbersUpdater::getNbData(const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
   UInt size = 0;
-  if (tag == SynchronizationTag::_crack_nb) {
+  if (tag == SynchronizationTag::_rve_crack_nb) {
     size += sizeof(int);
     auto & mesh = model.getMesh();
     for (auto elements_range : MeshElementsByTypes(elements)) {
@@ -59,7 +59,7 @@ inline void
 CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
                               const SynchronizationTag & tag) const {
-  if (tag != SynchronizationTag::_crack_nb) {
+  if (tag != SynchronizationTag::_rve_crack_nb) {
     return;
   }
 
@@ -87,7 +87,7 @@ CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
 inline void CrackNumbersUpdater::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
-  if (tag != SynchronizationTag::_crack_nb) {
+  if (tag != SynchronizationTag::_rve_crack_nb) {
     return;
   }
 

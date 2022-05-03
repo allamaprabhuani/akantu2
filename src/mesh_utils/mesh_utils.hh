@@ -37,6 +37,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_csr.hh"
+#include "fe_engine.hh"
 #include "mesh.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
@@ -114,21 +115,19 @@ public:
                                           const Element & facet1,
                                           const Element & facet2);
 
-  /// compute distance between barycenters of two facets
-  static Real distanceBetween2Barycenters(const Mesh & mesh_facet1,
-                                          const Mesh & mesh_facet2,
-                                          const Element & facet1,
-                                          const Element & facet2);
-
-  /// compute distance between incenters of alligned facets
-  static Real distanceBetweenIncentersCorrected(const Mesh & mesh_facet,
-                                                const Element & facet1,
-                                                const Element & facet2);
-
-  /// compute distance between incenters of 2 random facets
-  static Real distanceBetweenIncenters(const Mesh & mesh_facet,
+  /// compute distance between centers of two facets (either barycenters or
+  /// incentres)
+  static Real distanceBetweenTwoFacets(const Mesh & mesh_facets,
                                        const Element & facet1,
-                                       const Element & facet2);
+                                       const Element & facet2,
+                                       bool barycentres = false);
+
+  /// distance between two incenters of neighboring facets
+  /// it is measured after alligning them such that both lay on a plane
+  /// perpendicular to the shared segment
+  static Real distanceBetweenTwoFacetsAlligned(const Mesh & mesh_facet,
+                                               const Element & facet1,
+                                               const Element & facet2);
 
   /// get inscribed circle diameter directly by the element
   static Real getInscribedCircleDiameter(SolidMechanicsModel & model,
@@ -136,7 +135,7 @@ public:
                                          bool initial_conf = true);
 
   /// get facets area
-  static Real getFacetArea(SolidMechanicsModel & model, const Element & el);
+  static Real getFacetArea(FEEngine & fe_engine, const Element & el);
 
   /// get facets area in the current configuration (works for triangle_3 only)
   static Real getCurrentFacetArea(SolidMechanicsModel & model,

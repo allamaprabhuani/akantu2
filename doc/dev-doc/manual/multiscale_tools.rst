@@ -199,6 +199,13 @@ material. Such parameters as ``eps_inf``, ``time_lat_ref``,
 ``time_ch_ref``, ``U_C``, ``U_L`` and ``T_ref`` are the parameters of an
 asymptotic ASR expansion law described in :cite:`ulm2000`.
 
+``mesh_file`` is the name of the mesh that will be used at the fine
+scale. This 2D mesh should have a rectangular (or square) shape and have
+symmetrically placed nodes at opposite sides. The mesh has to have the
+boundaries composed of the physical entities named ``top``, ``bottom``,
+``left`` and ``right``. This names are later used for setting up the
+periodic pairs.
+
 The macro-scale mesh has to be entirely or partially composed of the
 :cpp:class:`MaterialFE2 <akantu::MaterialFE2>`. In order to assign
 correct material based on the names of regions as defined in the mesh

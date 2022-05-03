@@ -41,7 +41,7 @@ inline UInt
 NodesEffStressUpdater::getNbData(const Array<Element> & elements,
                                  const SynchronizationTag & tag) const {
   UInt size = 0;
-  if (tag == SynchronizationTag::_border_nodes) {
+  if (tag == SynchronizationTag::_rve_border_nodes) {
     size +=
         Mesh::getNbNodesPerElementList(elements) * sizeof(Real) + sizeof(int);
   }
@@ -53,7 +53,7 @@ inline void
 NodesEffStressUpdater::packData(CommunicationBuffer & buffer,
                                 const Array<Element> & elements,
                                 const SynchronizationTag & tag) const {
-  if (tag != SynchronizationTag::_border_nodes) {
+  if (tag != SynchronizationTag::_rve_border_nodes) {
     return;
   }
 
@@ -67,7 +67,7 @@ NodesEffStressUpdater::packData(CommunicationBuffer & buffer,
 inline void NodesEffStressUpdater::unpackData(CommunicationBuffer & buffer,
                                               const Array<Element> & elements,
                                               const SynchronizationTag & tag) {
-  if (tag != SynchronizationTag::_border_nodes) {
+  if (tag != SynchronizationTag::_rve_border_nodes) {
     return;
   }
 

@@ -373,7 +373,7 @@ public:
 
   /// apply boundary contions based on macroscopic deformation gradient
   virtual void
-  applyBoundaryConditionsRve(const Matrix<Real> & displacement_gradient);
+  applyBoundaryConditionsRVE(const Matrix<Real> & displacement_gradient);
 
   /// apply homogeneous temperature field from the macroscale level to the
   /// RVEs
@@ -410,10 +410,10 @@ public:
                                      const ID & material_name);
 
   /// dump the RVE
-  void dumpRve();
+  void dumpRVE();
 
   /// dump the RVE with the dump number
-  void dumpRve(UInt dump_nb);
+  void dumpRVE(UInt dump_nb);
 
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);

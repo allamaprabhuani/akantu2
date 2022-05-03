@@ -35,9 +35,10 @@ namespace akantu {
 void NodesEffStressUpdater::updateMaxEffStressAtNodes() {
   if (mesh.getCommunicator().getNbProc() == 1)
     return;
-  this->synchronizer.synchronizeOnce(*this, SynchronizationTag::_border_nodes);
+  this->synchronizer.synchronizeOnce(*this,
+                                     SynchronizationTag::_rve_border_nodes);
   this->synchronizer.slaveReductionOnce(*this,
-                                        SynchronizationTag::_border_nodes);
+                                        SynchronizationTag::_rve_border_nodes);
 }
 
 } // namespace akantu

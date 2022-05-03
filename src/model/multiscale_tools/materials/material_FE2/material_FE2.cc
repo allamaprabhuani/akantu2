@@ -152,7 +152,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 
     // apply boundary conditions based on the current macroscopic displ.
     // gradient
-    RVE.applyBoundaryConditionsRve(std::get<1>(data));
+    RVE.applyBoundaryConditionsRVE(std::get<1>(data));
 
     // advance expansion in every RVE based on the strain
     RVE.advanceExpansion(std::get<5>(data));
@@ -284,7 +284,7 @@ Real MaterialFE2<spatial_dimension>::computeAverageExpansion() {
 /* --------------------------------------------------------------------------
  */
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::setDirectoryToRveDumper(
+void MaterialFE2<spatial_dimension>::setDirectoryToRVEDumper(
     const std::string & directory) {
   AKANTU_DEBUG_IN();
 
@@ -317,7 +317,7 @@ template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
     // update stress field before dumping
     RVE->assembleInternalForces();
     // dump all the RVEs
-    RVE->dumpRve();
+    RVE->dumpRVE();
   }
 
   AKANTU_DEBUG_OUT();
@@ -331,7 +331,7 @@ void MaterialFE2<spatial_dimension>::dump(UInt dump_nb) {
     // update stress field before dumping
     RVE->assembleInternalForces();
     // dump all the RVEs
-    RVE->dumpRve(dump_nb);
+    RVE->dumpRVE(dump_nb);
   }
 
   AKANTU_DEBUG_OUT();

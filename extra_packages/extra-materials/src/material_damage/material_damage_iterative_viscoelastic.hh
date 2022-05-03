@@ -74,48 +74,12 @@ public:
   void afterSolveStep(bool converged = true) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
   /// update the last converged stress and strain arrays as well as current
   /// values of internal variables
   void updateIntVariables();
-
-  // /// updates energy dissipated due to damage only
-  // void updateDissipatedEnergyDamage(ElementType el_type);
-
-  // /// compute the elastic potential energy
-  // void computePotentialEnergy(ElementType el_type) override;
-
-protected:
-  // /// updates energy dissipated due to damage on quad
-  // void updateDissipatedEnergyDamageOnQuad(
-  //     Matrix<Real> grad_u, Matrix<Real> epsilon_p, Tensor3<Real> sigma_v,
-  //     Tensor3<Real> epsilon_v, Tensor3<Real> sigma_v_pr,
-  //     Tensor3<Real> epsilon_v_pr, Real dam, Real dam_pr, Real & epot,
-  //     Real & ints, Real & edd);
-
-  // /// updates potential energy accounting for damage
-  // void computePotentialEnergyOnQuad(Matrix<Real> grad_u, Real & epot,
-  //                                   Tensor3<Real> sigma_v,
-  //                                   Tensor3<Real> epsilon_v, Real dam);
-
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  // /// give the dissipated due to damage energy
-  // Real getDissipatedEnergyDamage() const;
-  // Real getDissipatedEnergyDamage(ElementType type, UInt index) const;
-
-  // /// get the energy using an energy type string for the time step
-  // Real getEnergy(const std::string & type) override;
-  // Real getEnergy(const std::string & energy_id, ElementType type,
-  //                UInt index) override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -135,7 +99,5 @@ protected:
 };
 
 } // namespace akantu
-
-// #include "material_damage_iterative_viscoelastic_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE_VISCOELASTIC_HH__ */

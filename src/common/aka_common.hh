@@ -356,8 +356,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (cf_nodal)                                    \
   (cf_incr)                                     \
   (solver_solution)                             \
-  (crack_nb)                                    \
-  (border_nodes)
+  (rve_crack_nb)                                \
+  (rve_border_nodes)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
@@ -449,8 +449,8 @@ enum class SynchronizationTag {
                     /// PETSc solver
 
   // --- RVETools tags ---
-  _crack_nb         ///< synchronization for crack numbers in rve tools
-      _border_nodes ///< synchronization for the nodes at the partition border
+  _rve_crack_nb,    ///< synchronization for crack numbers in rve tools
+  _rve_border_nodes ///< synchronization for the nodes at the partition border
 };
 #endif
 

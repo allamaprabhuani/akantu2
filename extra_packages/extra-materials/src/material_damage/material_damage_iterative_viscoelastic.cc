@@ -30,19 +30,7 @@ MaterialDamageIterativeViscoelastic<spatial_dimension>::
                                         const ID & id)
     : iterative_parent(model, id), sigma_v_conv("sigma_v_conv", *this),
       epsilon_v_conv("epsilon_v_conv", *this), gradu_last("gradu_last", *this),
-      dissipated_energy_damage("dissipated_energy_damage", *this) {
-
-  AKANTU_DEBUG_IN();
-
-  // this->dissipated_energy_damage.initialize(1);
-  // this->dissipated_energy.initializeHistory();
-  // this->mechanical_work.initializeHistory();
-  // this->integral.initializeHistory();
-  // this->damage.initializeHistory();
-  // this->gradu_last.initialize(spatial_dimension * spatial_dimension);
-
-  AKANTU_DEBUG_OUT();
-}
+      dissipated_energy_damage("dissipated_energy_damage", *this) {}
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
@@ -53,9 +41,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::initMaterial() {
 
   UInt stress_size = spatial_dimension * spatial_dimension;
   this->sigma_v.initializeHistory();
-  // this->epsilon_v.initializeHistory();
   this->sigma_v_conv.initialize(stress_size * this->Ev.size());
-  // this->epsilon_v_conv.initialize(stress_size * this->Ev.size());
 
   AKANTU_DEBUG_OUT();
 }
@@ -86,10 +72,6 @@ void MaterialDamageIterativeViscoelastic<
     spatial_dimension>::updateIntVariables() {
 
   this->sigma_v_conv.copy(this->sigma_v);
-  // this->epsilon_v_conv.copy(this->epsilon_v);
-  // this->dissipated_energy.saveCurrentValues();
-  // this->integral.saveCurrentValues();
-  // this->mechanical_work.saveCurrentValues();
   this->gradu.saveCurrentValues();
   this->stress.saveCurrentValues();
 }
@@ -99,12 +81,7 @@ template <UInt spatial_dimension>
 void MaterialDamageIterativeViscoelastic<spatial_dimension>::beforeSolveStep() {
 
   this->sigma_v.saveCurrentValues();
-  // this->epsilon_v.saveCurrentValues();
   this->sigma_v.copy(this->sigma_v_conv);
-  // this->epsilon_v.copy(this->epsilon_v_conv);
-  // this->integral.copy(this->integral.previous());
-  // this->dissipated_energy.copy(this->dissipated_energy.previous());
-  // this->mechanical_work.copy(this->mechanical_work.previous());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -128,7 +105,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   viscous_grandparent::computeStressOnQuad(grad_u, *previous_gradu_it, sigma,
-                                          *sigma_v_it, *sigma_th_it, *dam_it);
+                                           *sigma_v_it, *sigma_th_it, *dam_it);
   ++sigma_th_it;
   ++previous_gradu_it;
   ++sigma_v_it;
@@ -144,7 +121,8 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep(bool converged) {
+void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep(
+    bool converged) {
 
   if (not converged) {
     return;
@@ -160,9 +138,6 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep(bool
         this->sigma_v(el_type, _not_ghost)
             .begin(spatial_dimension, spatial_dimension, this->Eta.size());
 
-    // auto epsilon_v_it =
-    //     this->epsilon_v(el_type, _not_ghost)
-    //         .begin(spatial_dimension, spatial_dimension, this->Eta.size());
     auto damage_it = this->damage(el_type, _not_ghost).begin();
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
@@ -172,15 +147,9 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep(bool
 
     ++previous_gradu_it;
     ++sigma_v_it;
-    // ++epsilon_v_it;
     ++damage_it;
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-    // this->updateDissipatedEnergy(el_type);
-    // this->updateDissipatedEnergyDamage(el_type);
-    // this->damage.saveCurrentValues();
-    // this->gradu_last.copy(this->gradu);
   }
 }
 /* -------------------------------------------------------------------------- */

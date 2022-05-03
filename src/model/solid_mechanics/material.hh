@@ -522,8 +522,7 @@ public:
 
   /// specify if the matrix need to be recomputed for this material
   virtual bool hasStiffnessMatrixChanged() {
-    UInt nb_element = 
-           this->element_filter.size(spatial_dimension, gt);
+    UInt nb_element = this->element_filter.size();
     auto && comm = akantu::Communicator::getWorldCommunicator();
     comm.allReduce(nb_element, SynchronizerOperation::_sum);
     if (nb_element == 0) {

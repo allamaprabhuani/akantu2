@@ -115,7 +115,7 @@ protected:
                                                   Real & epot);
 
   bool hasStiffnessMatrixChanged() override {
-    UInt nb_element = this->element_filter.size(spatial_dimension, gt, _ek_regular);
+    UInt nb_element = this->element_filter.size();
     if (nb_element == 0) {
       return false;
     } else {

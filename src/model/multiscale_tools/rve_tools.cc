@@ -1323,7 +1323,7 @@ Real RVETools::computeDeltaEigenStrainLinear(const Real delta_time,
 }
 
 /* ---------------------------------------------------------------------- */
-void RVETools::applyBoundaryConditionsRve(
+void RVETools::applyBoundaryConditionsRVE(
     const Matrix<Real> & displacement_gradient) {
   AKANTU_DEBUG_IN();
 
@@ -1746,7 +1746,7 @@ void RVETools::performVirtualTesting(const Matrix<Real> & H,
   boun.zero();
   ext_force.zero();
 
-  applyBoundaryConditionsRve(H);
+  applyBoundaryConditionsRVE(H);
 
   model.solveStep();
 
@@ -1927,9 +1927,9 @@ void RVETools::computeCrackVolumePerMaterial(Real & crack_volume,
 }
 
 /* ------------------------------------------------------------------ */
-void RVETools::dumpRve() { model.dump(); }
+void RVETools::dumpRVE() { model.dump(); }
 /* ------------------------------------------------------------------ */
-void RVETools::dumpRve(UInt dump_nb) { model.dump(dump_nb); }
+void RVETools::dumpRVE(UInt dump_nb) { model.dump(dump_nb); }
 
 /* -------------------------------------------------------------------------
  */
@@ -2936,7 +2936,7 @@ Array<Element> RVETools::findFacetsLoopFromSegment2Segment(
       Real hypotenuse = sqrt(neighbor_facet_indiam * neighbor_facet_indiam +
                              current_facet_indiam * current_facet_indiam) /
                         2;
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, current_facet, neighbor_facet);
       if (dist < hypotenuse) {
         continue;
@@ -3107,11 +3107,10 @@ RVETools::findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
     auto ret = facets_added.emplace(facet);
     if (ret.second) {
       // compute facet's area to use as a weight
-      // auto facet_area = MeshUtils::getFacetArea(model, facet);
-      auto dist = MeshUtils::distanceBetweenIncenters(mesh_facets,
+      auto dist = MeshUtils::distanceBetweenTwoFacets(mesh_facets,
                                                       starting_facet, facet);
       dist +=
-          MeshUtils::distanceBetweenIncenters(mesh_facets, ending_facet, facet);
+          MeshUtils::distanceBetweenTwoFacets(mesh_facets, ending_facet, facet);
       if (dist > max_dist)
         max_dist = dist;
 
@@ -3128,8 +3127,8 @@ RVETools::findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
   for (std::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
     auto weight = g[*ei].weight;
     weight = max_dist - weight;
-    // weight = std::pow(weight, 4);//give less weight for smaller values
-    auto facet_area = MeshUtils::getFacetArea(model, g[*ei].facet);
+    auto & fe_engine = model.getFEEngine("FacetsFEEngine");
+    auto facet_area = MeshUtils::getFacetArea(fe_engine, g[*ei].facet);
     g[*ei].weight = weight + sqrt(facet_area);
   }
 
@@ -3229,7 +3228,7 @@ Array<Element> RVETools::findFacetsLoopByGraphByArea(
         Real hypotenuse = sqrt(neighbor_facet_indiam * neighbor_facet_indiam +
                                limit_facet_indiam * limit_facet_indiam) /
                           2;
-        auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+        auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
             mesh_facets, limit_facets(i), neighbor_facet);
         if (dist < hypotenuse)
           continue;
@@ -3351,7 +3350,7 @@ Array<Element> RVETools::findFacetsLoopByGraphByArea(
           sqrt(best_neighbors_indiam(i) * best_neighbors_indiam(i) +
                facet_indiam * facet_indiam) /
           2;
-      auto dist = MeshUtils::distanceBetweenIncenters(mesh_facets,
+      auto dist = MeshUtils::distanceBetweenTwoFacets(mesh_facets,
                                                       best_neighbors(i), facet);
 
       if (dist <= hypotenuse) {
@@ -3391,7 +3390,8 @@ Array<Element> RVETools::findFacetsLoopByGraphByArea(
     auto ret = facets_added.emplace(facet);
     if (ret.second) {
       // compute facet's area to use as a weight
-      auto facet_area = MeshUtils::getFacetArea(model, facet);
+      auto & fe_engine = model.getFEEngine("FacetsFEEngine");
+      auto facet_area = MeshUtils::getFacetArea(fe_engine, facet);
 
       // add edge
       std::pair<edge_descriptor_t, bool> e = boost::add_edge(v(0), v(1), g);
@@ -3610,11 +3610,9 @@ Array<Element> RVETools::findStressedFacetLoopAroundNode(
     auto ret = facets_added.emplace(facet);
     if (ret.second) {
       // compute facet's area to use as a weight
-      // auto facet_area = MeshUtils::getFacetArea(model, facet);
 
       // add edge
       std::pair<edge_descriptor_t, bool> e = boost::add_edge(v(0), v(1), g);
-      // g[e.first].weight = facet_area;
       g[e.first].weight = 1 / eff_stress;
       g[e.first].facet = facet;
     }
@@ -3678,8 +3676,8 @@ Array<Element> RVETools::findStressedFacetLoopAroundNode(
         auto hypotenuse = sqrt(facet1_indiam * facet1_indiam +
                                facet2_indiam * facet2_indiam) /
                           2;
-        auto dist = MeshUtils::distanceBetweenIncentersCorrected(
-            mesh_facets, facet1, facet2);
+        auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(mesh_facets,
+                                                                facet1, facet2);
         // get abs of dot product between two normals
         Real dot =
             MeshUtils::cosSharpAngleBetween2Facets(model, facet1, facet2);
@@ -3811,7 +3809,7 @@ RVETools::findSingleFacetLoop(const Array<Element> & limit_facets,
       auto hypotenuse = sqrt(limit_facet_indiam * limit_facet_indiam +
                              facet_indiam * facet_indiam) /
                         2;
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, limit_facet, shared_facets(0));
 
       if (dist <= hypotenuse) {
@@ -4014,7 +4012,7 @@ bool RVETools::pickFacetNeighbors(Element & cent_facet) {
           MeshUtils::getInscribedCircleDiameter(model, cent_facet);
 
       // get distance between two barycenters
-      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
+      auto dist = MeshUtils::distanceBetweenTwoFacetsAlligned(
           mesh_facets, cent_facet, connected_element);
 
       // ad-hoc rule on barycenters spacing
@@ -5251,7 +5249,8 @@ std::tuple<Real, Real> RVETools::computeCrackData(const ID & material_name) {
       for (auto & coh_facet : coh_facets) {
         inscr_diam =
             MeshUtils::getInscribedCircleDiameter(model, coh_facet, true);
-        auto initial_area = MeshUtils::getFacetArea(model, coh_facet);
+        auto & fe_engine = model.getFEEngine("FacetsFEEngine");
+        auto initial_area = MeshUtils::getFacetArea(fe_engine, coh_facet);
         auto current_area = MeshUtils::getCurrentFacetArea(model, coh_facet);
 
         // discard unrealistic deformations (factor is choosen intuitively)
