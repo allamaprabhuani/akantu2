@@ -176,8 +176,6 @@ build_akantu:python_package:
     - .build_release
     - .manylinux_2010_x64_gcc
   script:
-  stage: build_libs
-  script:
     - cmake --build build --target akantu -j1
     - cmake --install build
   artifacts:
@@ -322,9 +320,6 @@ cq:merge_code_quality:
     - job: cq:clang_tidy
     - job: cq:clang_format
     - job: cq:compilation_warnings
-  artifacts:
-    paths:
-      - gl-codequality.json
   artifacts:
     reports:
       codequality: [gl-codequality.json]

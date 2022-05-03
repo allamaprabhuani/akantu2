@@ -158,6 +158,7 @@ void register_mesh(py::module & mod) {
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("distribute", [](Mesh & self) { self.distribute(); })
+      .def("isDistributed", [](const Mesh& self) { return self.isDistributed(); })
       .def("fillNodesToElements", &Mesh::fillNodesToElements,
            py::arg("dimension") = _all_dimensions)
       .def("getAssociatedElements",

@@ -49,6 +49,10 @@ public:
   Array<Real> & getGlobalVector() override;
   void setGlobalVector(const Array<Real> & solution) override;
 
+  bool isFinite() const override;
+
+  virtual bool isDistributed() const override { return true; }
+
 protected:
   // full vector in case it needs to be centralized on master
   std::unique_ptr<Array<Real>> global_vector;
