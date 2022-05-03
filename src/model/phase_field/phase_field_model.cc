@@ -73,10 +73,9 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_phasefield_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_driving);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_history);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_energy);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
 
   AKANTU_DEBUG_OUT();
@@ -212,7 +211,8 @@ void PhaseFieldModel::initPhaseFields() {
     phasefield->initPhaseField();
   }
 
-  this->synchronize(SynchronizationTag::_smm_init_mat);
+    this->synchronize(SynchronizationTag::_pfm_init_mat);
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -240,7 +240,7 @@ void PhaseFieldModel::assignPhaseFieldToElements(
       _element_filter = filter, _ghost_type = _not_ghost);
 
   // synchronize the element phasefield arrays
-  this->synchronize(SynchronizationTag::_material_id);
+  this->synchronize(SynchronizationTag::_phasefield_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -483,22 +483,17 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
   }
 
   switch (tag) {
-  case SynchronizationTag::_pfm_damage: {
-    size += nb_nodes_per_element * sizeof(Real); // damage
+  case SynchronizationTag::_phasefield_id: {
+    size += elements.size() * sizeof(UInt); 
     break;
   }
-  case SynchronizationTag::_pfm_driving: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
+  case SynchronizationTag::_for_dump: {
+    // damage
+    size += nb_nodes_per_element * sizeof(Real);
     break;
   }
-  case SynchronizationTag::_pfm_history: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
-    break;
-  }
-  case SynchronizationTag::_pfm_energy: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
-    break;
-  }
+  
+
   default: {
     AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -508,20 +503,63 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::packData(__attribute__((unused))
-                               CommunicationBuffer & buffer,
-                               __attribute__((unused))
+void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
-                               __attribute__((unused))
-                               const SynchronizationTag & tag) const {}
+                               const SynchronizationTag & tag) const {
+  switch (tag) {
+  case SynchronizationTag::_phasefield_id: {
+    packElementalDataHelper(phasefield_index, buffer, elements, false,
+                            getFEEngine());
+    break;
+  }
+   case SynchronizationTag::_for_dump: {
+    packNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  
+  default: {
+  }
+  }
+
+
+}
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::unpackData(__attribute__((unused))
-                                 CommunicationBuffer & buffer,
-                                 __attribute__((unused))
+void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
-                                 __attribute__((unused))
-                                 const SynchronizationTag & tag) {}
+                                 const SynchronizationTag & tag) {
+AKANTU_DEBUG_IN();
+
+  switch (tag) {
+  case SynchronizationTag::_phasefield_id: {
+    for (auto && element : elements) {
+      UInt recv_phase_index;
+      buffer >> recv_phase_index;
+      UInt & phase_index = phasefield_index(element);
+      if (phase_index != UInt(-1)) {
+        continue;
+      }
+
+      // add ghosts element to the correct phasefield
+      phase_index = recv_phase_index;
+      UInt index = phasefields[phase_index]->addElement(element);
+      phasefield_local_numbering(element) = index;
+    }
+    break;
+  }
+  case SynchronizationTag::_for_dump: {
+    unpackNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  
+  default: {
+  }
+  }
+
+
+  AKANTU_DEBUG_OUT();
+
+}
 
 /* -------------------------------------------------------------------------- */
 UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
@@ -530,10 +568,11 @@ UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
   UInt nb_nodes = indexes.size();
 
   switch (tag) {
-  case SynchronizationTag::_pfm_damage: {
-    size += nb_nodes * sizeof(Real);
+  case SynchronizationTag::_for_dump: {
+    size += sizeof(Real);
     break;
   }
+  
   default: {
     AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -547,8 +586,8 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                                const SynchronizationTag & tag) const {
   for (auto index : indexes) {
     switch (tag) {
-    case SynchronizationTag::_pfm_damage: {
-      buffer << (*damage)(index);
+    case SynchronizationTag::_for_dump: {
+      packDOFDataHelper(*damage, buffer, dofs);
       break;
     }
     default: {
@@ -564,8 +603,8 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const SynchronizationTag & tag) {
   for (auto index : indexes) {
     switch (tag) {
-    case SynchronizationTag::_pfm_damage: {
-      buffer >> (*damage)(index);
+    case SynchronizationTag::_for_dump: {
+      unpackDOFDataHelper(*damage, buffer, dofs);
       break;
     }
     default: {
