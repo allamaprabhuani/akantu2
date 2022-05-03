@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & temperature = model.getTemperature();
   double length = 1.;
 
-  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  auto nb_nodes = model.getFEEngine().getMesh().getNbNodes();
   for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 

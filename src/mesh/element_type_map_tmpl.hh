@@ -814,8 +814,35 @@ ElementTypeMapArray<T, SupportType>::get(const Element & element) {
 template <class T, typename SupportType>
 inline decltype(auto)
 ElementTypeMapArray<T, SupportType>::get(const Element & element) const {
-  auto & array = operator()(element.type, element.ghost_type);
+  const auto & array = operator()(element.type, element.ghost_type);
   auto it = array.begin(array.getNbComponent());
+  return it[element.element];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
+template <typename... Ns,
+          std::enable_if_t<
+              aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
+              sizeof...(Ns) >= 1> *>
+inline decltype(auto)
+ElementTypeMapArray<T, SupportType>::get(const Element & element, Ns &&... ns) {
+  auto & array = this->operator()(element.type, element.ghost_type);
+  auto it = make_view(array, std::forward<Ns>(ns)...).begin();
+  return it[element.element];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
+template <typename... Ns,
+          std::enable_if_t<
+              aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
+              sizeof...(Ns) >= 1> *>
+inline decltype(auto)
+ElementTypeMapArray<T, SupportType>::get(const Element & element,
+                                         Ns &&... ns) const {
+  const auto & array = this->operator()(element.type, element.ghost_type);
+  auto it = make_view(array, std::forward<Ns>(ns)...).begin();
   return it[element.element];
 }
 

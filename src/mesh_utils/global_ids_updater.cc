@@ -111,8 +111,8 @@ Int GlobalIdsUpdater::updateGlobalIDsLocally(Int local_nb_new_nodes) {
 
 void GlobalIdsUpdater::synchronizeGlobalIDs() {
   this->reduce = true;
-  this->synchronizer.slaveReductionOnce(*this,
-                                        SynchronizationTag::_giu_global_conn);
+  this->synchronizer->slaveReductionOnce(*this,
+                                         SynchronizationTag::_giu_global_conn);
 
 #ifndef AKANTU_NDEBUG
   for (auto node : nodes_flags) {
@@ -136,8 +136,8 @@ void GlobalIdsUpdater::synchronizeGlobalIDs() {
 #endif
 
   this->reduce = false;
-  this->synchronizer.synchronizeOnce(*this,
-                                     SynchronizationTag::_giu_global_conn);
+  this->synchronizer->synchronizeOnce(*this,
+                                      SynchronizationTag::_giu_global_conn);
 }
 
 } // namespace akantu

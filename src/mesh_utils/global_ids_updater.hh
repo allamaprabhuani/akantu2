@@ -47,7 +47,7 @@ namespace akantu {
 
 class GlobalIdsUpdater : public DataAccessor<Element> {
 public:
-  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer & synchronizer)
+  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer * synchronizer)
       : mesh(mesh), synchronizer(synchronizer) {}
 
   /// function to update and synchronize the global connectivity of
@@ -70,7 +70,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline Int getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -93,7 +93,7 @@ private:
   Mesh & mesh;
 
   /// distributed synchronizer to communicate the connectivity
-  ElementSynchronizer & synchronizer;
+  ElementSynchronizer * synchronizer;
 
   /// Tells if a reduction is taking place or not
   bool reduce{false};

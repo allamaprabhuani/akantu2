@@ -45,381 +45,392 @@ namespace akantu {
 /* Iterators                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace detail {
-template <typename... V> constexpr auto product_all(V &&...v) {
-  std::common_type_t<int, V...> result = 1;
-  (void)std::initializer_list<int>{(result *= v, 0)...};
-  return result;
-}
-
-template <class R> struct IteratorHelper { static constexpr Int dim = 0; };
-
-template <class Derived> struct IteratorHelper<Eigen::MatrixBase<Derived>> {
-private:
-  using T = typename Derived::Scalar;
-  static constexpr Int m = Derived::RowsAtCompileTime;
-  static constexpr Int n = Derived::ColsAtCompileTime;
-
-public:
-  static constexpr Int dim =
-      Eigen::MatrixBase<Derived>::IsVectorAtCompileTime ? 1 : 2;
-  using pointer = T *;
-  using proxy = Eigen::Map<Eigen::Matrix<T, m, n>>;
-  using const_proxy = Eigen::Map<const Eigen::Matrix<T, m, n>>;
-};
-
-template <class Derived> struct IteratorHelper<Eigen::Map<Derived>> {
-private:
-  using T = typename Derived::Scalar;
-  static constexpr Int m = Derived::RowsAtCompileTime;
-  static constexpr Int n = Derived::ColsAtCompileTime;
-
-public:
-  static constexpr Int dim = Derived::IsVectorAtCompileTime and m != 1 ? 1 : 2;
-  using pointer = T *;
-  using proxy = Eigen::Map<Derived>;
-  using const_proxy = Eigen::Map<const Derived>;
-};
-
-template <typename T, Int _dim> struct IteratorHelper<TensorBase<T, _dim>> {
-  static constexpr Int dim = _dim;
-  using pointer = T *;
-  using proxy = TensorProxy<T, _dim>;
-  using const_proxy = TensorProxy<const T, _dim>;
-};
-
-template <typename T, Int _dim> struct IteratorHelper<TensorProxy<T, _dim>> {
-  static constexpr Int dim = _dim;
-  using pointer = T *;
-  using proxy = TensorProxy<T, _dim>;
-  using const_proxy = TensorProxy<const T, _dim>;
-};
-
-/* ------------------------------------------------------------------------ */
-template <class R, class daughter, class IR = R,
-          Int dim = IteratorHelper<std::decay_t<R>>::dim>
-class internal_view_iterator {
-protected:
-  using helper = IteratorHelper<std::decay_t<R>>;
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
-  using scalar_pointer = typename helper::pointer;
-  using proxy_t = typename helper::proxy;
-  static constexpr int dim_ = dim;
-
-public:
-  using pointer = proxy_t *;
-  using value_type = proxy_t;
-  using reference = proxy_t &;
-  using difference_type = Int;
-  using iterator_category = std::random_access_iterator_tag;
-
-private:
-  template <class ProxyType, std::size_t... I>
-  constexpr auto get_new_proxy(scalar_pointer data,
-                               std::index_sequence<I...>) const {
-    return ProxyType(data, dims[I]...);
+  template <typename... V> constexpr auto product_all(V &&... v) {
+    std::common_type_t<int, V...> result = 1;
+    (void)std::initializer_list<int>{(result *= v, 0)...};
+    return result;
   }
 
-  constexpr auto get_new_proxy(scalar_pointer data) {
-    return this->template get_new_proxy<proxy_t>(
-        data, std::make_index_sequence<dim>());
-  }
+  template <class R> struct IteratorHelper { static constexpr Int dim = 0; };
 
-  template <std::size_t... I>
-  constexpr void reset_proxy(std::index_sequence<I...>) {
-    new (&proxy) proxy_t(ret_ptr, dims[I]...);
-  }
+  template <class Derived> struct IteratorHelper<Eigen::MatrixBase<Derived>> {
+  private:
+    using T = typename Derived::Scalar;
+    static constexpr Int m = Derived::RowsAtCompileTime;
+    static constexpr Int n = Derived::ColsAtCompileTime;
 
-  constexpr auto reset_proxy() {
-    return reset_proxy(std::make_index_sequence<dim>());
-  }
+  public:
+    static constexpr Int dim =
+        Eigen::MatrixBase<Derived>::IsVectorAtCompileTime ? 1 : 2;
+    using pointer = T *;
+    using proxy = Eigen::Map<Eigen::Matrix<T, m, n>>;
+    using const_proxy = Eigen::Map<const Eigen::Matrix<T, m, n>>;
+  };
 
-protected:
-  template <typename OR, typename OD, typename OIR,
-            std::enable_if_t<std::is_convertible<
-                decltype(std::declval<OIR>().data()),
-                decltype(std::declval<IR>().data())>::value> * = nullptr>
-  explicit internal_view_iterator(internal_view_iterator<OR, OD, OIR, dim> &it)
-      : dims(it.dims), _offset(it._offset), initial(it.initial),
-        ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)) {}
+  template <class Derived> struct IteratorHelper<Eigen::Map<Derived>> {
+  private:
+    using T = typename Derived::Scalar;
+    static constexpr Int m = Derived::RowsAtCompileTime;
+    static constexpr Int n = Derived::ColsAtCompileTime;
 
-  template <typename OR, typename OD, typename OIR, Int _dim>
-  friend class internal_view_iterator;
+  public:
+    static constexpr Int dim =
+        Derived::IsVectorAtCompileTime and m != 1 ? 1 : 2;
+    using pointer = T *;
+    using proxy = Eigen::Map<Derived>;
+    using const_proxy = Eigen::Map<const Derived>;
+  };
 
-  template <typename... Args>
-  using valid_args_t = std::enable_if_t<
-      aka::conjunction<aka::disjunction<std::is_integral<Args>,
-                                        std::is_enum<Args>>...>::value and
-          dim == sizeof...(Args),
-      int>;
+  template <typename T, Int _dim> struct IteratorHelper<TensorBase<T, _dim>> {
+    static constexpr Int dim = _dim;
+    using pointer = T *;
+    using proxy = TensorProxy<T, _dim>;
+    using const_proxy = TensorProxy<const T, _dim>;
+  };
 
-public:
-  /// Generic constructor dor any tensor dimension
-  template <typename... Ns, valid_args_t<Ns...> = 0>
-  internal_view_iterator(scalar_pointer data, Ns... ns)
-      : dims({Int(ns)...}),
-        _offset(detail::product_all(std::forward<Ns>(ns)...)), initial(data),
-        ret_ptr(data), proxy(data, ns...) {}
+  template <typename T, Int _dim> struct IteratorHelper<TensorProxy<T, _dim>> {
+    static constexpr Int dim = _dim;
+    using pointer = T *;
+    using proxy = TensorProxy<T, _dim>;
+    using const_proxy = TensorProxy<const T, _dim>;
+  };
 
-  // Specific constructor for Vector of static size 1
-  template <typename RD = std::decay_t<R>,
-            std::enable_if_t<aka::is_eigen_map<RD>::value and
-                             RD::RowsAtCompileTime == 1 and
-                             RD::ColsAtCompileTime == 1> * = nullptr>
-  constexpr internal_view_iterator(scalar_pointer data, Idx rows)
-      : dims({rows, 1}), _offset(rows), initial(data), ret_ptr(data),
-        proxy(data, rows, 1) {
-    assert(rows == 1 && "1x1 Matrix");
-  }
+  /* ------------------------------------------------------------------------ */
+  template <class R, class daughter, class IR = R,
+            Int dim = IteratorHelper<std::decay_t<R>>::dim>
+  class internal_view_iterator {
+  protected:
+    using helper = IteratorHelper<std::decay_t<R>>;
+    using internal_value_type = IR;
+    using internal_pointer = IR *;
+    using scalar_pointer = typename helper::pointer;
+    using proxy_t = typename helper::proxy;
+    static constexpr int dim_ = dim;
 
-  /// Specific constructor for Eigen::Map<Matrix> that look like
-  /// Eigen::Map<Vector>
-  template <typename RD = std::decay_t<R>,
-            std::enable_if_t<(RD::RowsAtCompileTime != 1) and
-                             RD::ColsAtCompileTime == 1> * = nullptr>
-  constexpr internal_view_iterator(scalar_pointer data, Idx rows,
-                                   [[gnu::unused]] Idx cols)
-      : dims({rows}), _offset(rows), initial(data), ret_ptr(data),
-        proxy(data, rows, 1) {
-    assert(cols == 1 && "nx1 Matrix");
-  }
+  public:
+    using pointer = proxy_t *;
+    using value_type = proxy_t;
+    using reference = proxy_t &;
+    using difference_type = Int;
+    using iterator_category = std::random_access_iterator_tag;
 
-  /// Default constructor for Eigen::Map<Vector>
-  template <Int _dim = dim, typename RD = std::decay_t<R>,
-            std::enable_if_t<_dim == 1> * = nullptr>
-  internal_view_iterator()
-      : proxy(reinterpret_cast<scalar_pointer>(0xdeadbeaf),
-              RD::RowsAtCompileTime == Eigen::Dynamic ? 1
-                                                      : RD::RowsAtCompileTime) {
-    // initialized to a fake pointer to pass the static_assert in Eigen
-    // this proxy should not be returned
-  }
+  private:
+    template <class ProxyType, std::size_t... I>
+    constexpr auto get_new_proxy(scalar_pointer data,
+                                 std::index_sequence<I...>) const {
+      return ProxyType(data, dims[I]...);
+    }
 
-  /// Default constructor for Eigen::Map<Matrix>
-  template <Int _dim = dim, typename RD = std::decay_t<R>,
-            std::enable_if_t<_dim == 2> * = nullptr>
-  internal_view_iterator()
-      : proxy(reinterpret_cast<scalar_pointer>(0xdeadbeaf),
-              RD::RowsAtCompileTime == Eigen::Dynamic ? 1
-                                                      : RD::RowsAtCompileTime,
-              RD::ColsAtCompileTime == Eigen::Dynamic ? 1
-                                                      : RD::ColsAtCompileTime) {
-    // initialized to a fake pointer to pass the `static_assert` in `Eigen
-    // this proxy should not be returned
-  }
+    constexpr auto get_new_proxy(scalar_pointer data) {
+      return this->template get_new_proxy<proxy_t>(
+          data, std::make_index_sequence<dim>());
+    }
 
-  internal_view_iterator(const internal_view_iterator &it)
-      : dims(it.dims), _offset(it._offset), initial(it.initial),
-        ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)) {}
+    template <std::size_t... I>
+    constexpr void reset_proxy(std::index_sequence<I...>) {
+      new (&proxy) proxy_t(ret_ptr, dims[I]...);
+    }
 
-  internal_view_iterator &
-  operator=(internal_view_iterator &&it) noexcept = default;
-  internal_view_iterator(internal_view_iterator &&it) noexcept = default;
+    constexpr auto reset_proxy() {
+      return reset_proxy(std::make_index_sequence<dim>());
+    }
 
-  virtual ~internal_view_iterator() = default;
+  protected:
+    template <typename OR, typename OD, typename OIR,
+              std::enable_if_t<std::is_convertible<
+                  decltype(std::declval<OIR>().data()),
+                  decltype(std::declval<IR>().data())>::value> * = nullptr>
+    explicit internal_view_iterator(
+        internal_view_iterator<OR, OD, OIR, dim> & it)
+        : dims(it.dims), _offset(it._offset), initial(it.initial),
+          ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)) {}
 
-  template <typename OR, typename OD, typename OIR,
-            std::enable_if_t<std::is_convertible<
-                decltype(std::declval<OIR>().data()),
-                decltype(std::declval<IR>().data())>::value> * = nullptr>
-  inline internal_view_iterator &
-  operator=(const internal_view_iterator<OR, OD, OIR, dim> &it) {
-    this->dims = it.dims;
-    this->_offset = it._offset;
-    this->initial = it.initial;
-    this->ret_ptr = it.ret_ptr;
-    reset_proxy();
-    return *this;
-  }
+    template <typename OR, typename OD, typename OIR, Int _dim>
+    friend class internal_view_iterator;
 
-  inline internal_view_iterator &operator=(const internal_view_iterator &it) {
-    if (this != &it) {
+    template <typename... Args>
+    using valid_args_t = std::enable_if_t<
+        aka::conjunction<aka::disjunction<std::is_integral<Args>,
+                                          std::is_enum<Args>>...>::value and
+            dim == sizeof...(Args),
+        int>;
+
+  public:
+    /// Generic constructor dor any tensor dimension
+    template <typename... Ns, valid_args_t<Ns...> = 0>
+    internal_view_iterator(scalar_pointer data, Ns... ns)
+        : dims({Int(ns)...}),
+          _offset(detail::product_all(std::forward<Ns>(ns)...)), initial(data),
+          ret_ptr(data), proxy(data, ns...) {}
+
+    // Specific constructor for Vector of static size 1
+    template <typename RD = std::decay_t<R>,
+              std::enable_if_t<aka::is_eigen_map<RD>::value and
+                               RD::RowsAtCompileTime == 1 and
+                               RD::ColsAtCompileTime == 1> * = nullptr>
+    constexpr internal_view_iterator(scalar_pointer data, Idx rows)
+        : dims({rows, 1}), _offset(rows), initial(data), ret_ptr(data),
+          proxy(data, rows, 1) {
+      assert(rows == 1 && "1x1 Matrix");
+    }
+
+    /// Specific constructor for Eigen::Map<Matrix> that look like
+    /// Eigen::Map<Vector>
+    template <typename RD = std::decay_t<R>,
+              std::enable_if_t<(RD::RowsAtCompileTime != 1) and
+                               RD::ColsAtCompileTime == 1> * = nullptr>
+    constexpr internal_view_iterator(scalar_pointer data, Idx rows,
+                                     [[gnu::unused]] Idx cols)
+        : dims({rows}), _offset(rows), initial(data), ret_ptr(data),
+          proxy(data, rows, 1) {
+      assert(cols == 1 && "nx1 Matrix");
+    }
+
+    /// Default constructor for Eigen::Map<Vector>
+    template <Int _dim = dim, typename RD = std::decay_t<R>,
+              std::enable_if_t<_dim == 1> * = nullptr>
+    internal_view_iterator()
+        : proxy(reinterpret_cast<scalar_pointer>(0xdeadbeaf),
+                RD::RowsAtCompileTime == Eigen::Dynamic
+                    ? 1
+                    : RD::RowsAtCompileTime) {
+      // initialized to a fake pointer to pass the static_assert in Eigen
+      // this proxy should not be returned
+    }
+
+    /// Default constructor for Eigen::Map<Matrix>
+    template <Int _dim = dim, typename RD = std::decay_t<R>,
+              std::enable_if_t<_dim == 2> * = nullptr>
+    internal_view_iterator()
+        : proxy(reinterpret_cast<scalar_pointer>(0xdeadbeaf),
+                RD::RowsAtCompileTime == Eigen::Dynamic ? 1
+                                                        : RD::RowsAtCompileTime,
+                RD::ColsAtCompileTime == Eigen::Dynamic
+                    ? 1
+                    : RD::ColsAtCompileTime) {
+      // initialized to a fake pointer to pass the `static_assert` in `Eigen
+      // this proxy should not be returned
+    }
+
+    internal_view_iterator(const internal_view_iterator & it)
+        : dims(it.dims), _offset(it._offset), initial(it.initial),
+          ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)) {}
+
+    internal_view_iterator &
+    operator=(internal_view_iterator && it) noexcept = default;
+    internal_view_iterator(internal_view_iterator && it) noexcept = default;
+
+    virtual ~internal_view_iterator() = default;
+
+    template <typename OR, typename OD, typename OIR,
+              std::enable_if_t<std::is_convertible<
+                  decltype(std::declval<OIR>().data()),
+                  decltype(std::declval<IR>().data())>::value> * = nullptr>
+    inline internal_view_iterator &
+    operator=(const internal_view_iterator<OR, OD, OIR, dim> & it) {
       this->dims = it.dims;
       this->_offset = it._offset;
       this->initial = it.initial;
       this->ret_ptr = it.ret_ptr;
       reset_proxy();
+      return *this;
     }
-    return *this;
-  }
 
-public:
-  Idx getCurrentIndex() {
-    return (this->ret_ptr - this->initial) / this->_offset;
-  }
+    inline internal_view_iterator &
+    operator=(const internal_view_iterator & it) {
+      if (this != &it) {
+        this->dims = it.dims;
+        this->_offset = it._offset;
+        this->initial = it.initial;
+        this->ret_ptr = it.ret_ptr;
+        reset_proxy();
+      }
+      return *this;
+    }
 
-  inline reference operator*() {
-    this->reset_proxy();
-    return proxy;
-  }
+  public:
+    Idx getCurrentIndex() {
+      return (this->ret_ptr - this->initial) / this->_offset;
+    }
 
-  inline pointer operator->() {
-    reset_proxy();
-    return &proxy;
-  }
+    inline reference operator*() {
+      this->reset_proxy();
+      return proxy;
+    }
 
-  inline daughter &operator++() {
-    ret_ptr += _offset;
-    return static_cast<daughter &>(*this);
-  }
+    inline pointer operator->() {
+      reset_proxy();
+      return &proxy;
+    }
 
-  inline daughter &operator--() {
-    ret_ptr -= _offset;
-    return static_cast<daughter &>(*this);
-  }
+    inline daughter & operator++() {
+      ret_ptr += _offset;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline daughter &operator+=(Idx n) {
-    ret_ptr += _offset * n;
-    return static_cast<daughter &>(*this);
-  }
+    inline daughter & operator--() {
+      ret_ptr -= _offset;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline daughter &operator-=(Idx n) {
-    ret_ptr -= _offset * n;
-    return static_cast<daughter &>(*this);
-  }
+    inline daughter & operator+=(Idx n) {
+      ret_ptr += _offset * n;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline auto operator[](Idx n) { return get_new_proxy(ret_ptr + n * _offset); }
+    inline daughter & operator-=(Idx n) {
+      ret_ptr -= _offset * n;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline bool operator==(const internal_view_iterator &other) const {
-    return this->ret_ptr == other.ret_ptr;
-  }
+    inline auto operator[](Idx n) {
+      return get_new_proxy(ret_ptr + n * _offset);
+    }
 
-  inline bool operator!=(const internal_view_iterator &other) const {
-    return this->ret_ptr != other.ret_ptr;
-  }
+    inline bool operator==(const internal_view_iterator & other) const {
+      return this->ret_ptr == other.ret_ptr;
+    }
 
-  inline bool operator<(const internal_view_iterator &other) const {
-    return this->ret_ptr < other.ret_ptr;
-  }
+    inline bool operator!=(const internal_view_iterator & other) const {
+      return this->ret_ptr != other.ret_ptr;
+    }
 
-  inline bool operator<=(const internal_view_iterator &other) const {
-    return this->ret_ptr <= other.ret_ptr;
-  }
+    inline bool operator<(const internal_view_iterator & other) const {
+      return this->ret_ptr < other.ret_ptr;
+    }
 
-  inline bool operator>(const internal_view_iterator &other) const {
-    return this->ret_ptr > other.ret_ptr;
-  }
+    inline bool operator<=(const internal_view_iterator & other) const {
+      return this->ret_ptr <= other.ret_ptr;
+    }
 
-  inline bool operator>=(const internal_view_iterator &other) const {
-    return this->ret_ptr >= other.ret_ptr;
-  }
+    inline bool operator>(const internal_view_iterator & other) const {
+      return this->ret_ptr > other.ret_ptr;
+    }
 
-  inline auto operator+(difference_type n) {
-    auto tmp(static_cast<daughter &>(*this));
-    tmp += n;
-    return tmp;
-  }
+    inline bool operator>=(const internal_view_iterator & other) const {
+      return this->ret_ptr >= other.ret_ptr;
+    }
 
-  inline auto operator-(difference_type n) {
-    auto tmp(static_cast<daughter &>(*this));
-    tmp -= n;
-    return tmp;
-  }
+    inline auto operator+(difference_type n) const {
+      daughter tmp(static_cast<const daughter &>(*this));
+      tmp += n;
+      return tmp;
+    }
 
-  inline difference_type operator-(const internal_view_iterator &b) {
-    return (this->ret_ptr - b.ret_ptr) / _offset;
-  }
+    inline auto operator-(difference_type n) const {
+      daughter tmp(static_cast<const daughter &>(*this));
+      tmp -= n;
+      return tmp;
+    }
 
-  inline scalar_pointer data() const { return ret_ptr; }
-  inline difference_type offset() const { return _offset; }
-  inline decltype(auto) getDims() const { return dims; }
+    inline difference_type operator-(const internal_view_iterator & b) const {
+      return (this->ret_ptr - b.ret_ptr) / _offset;
+    }
 
-protected:
-  std::array<Int, dim> dims;
-  difference_type _offset{0};
-  scalar_pointer initial{nullptr};
-  scalar_pointer ret_ptr{nullptr};
-  proxy_t proxy;
-};
+    inline scalar_pointer data() const { return ret_ptr; }
+    inline difference_type offset() const { return _offset; }
+    inline decltype(auto) getDims() const { return dims; }
 
-/* ------------------------------------------------------------------------ */
-/**
- * Specialization for scalar types
- */
-template <class R, class daughter, class IR>
-class internal_view_iterator<R, daughter, IR, 0> {
-public:
-  using value_type = R;
-  using pointer = R *;
-  using reference = R &;
-  using const_reference = const R &;
-  using difference_type = Idx; // std::ptrdiff_t;
-  using iterator_category = std::random_access_iterator_tag;
-  static constexpr int dim_ = 0;
+  protected:
+    std::array<Int, dim> dims;
+    difference_type _offset{0};
+    scalar_pointer initial{nullptr};
+    scalar_pointer ret_ptr{nullptr};
+    proxy_t proxy;
+  };
 
-protected:
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
+  /* ------------------------------------------------------------------------ */
+  /**
+   * Specialization for scalar types
+   */
+  template <class R, class daughter, class IR>
+  class internal_view_iterator<R, daughter, IR, 0> {
+  public:
+    using value_type = R;
+    using pointer = R *;
+    using reference = R &;
+    using const_reference = const R &;
+    using difference_type = Idx; // std::ptrdiff_t;
+    using iterator_category = std::random_access_iterator_tag;
+    static constexpr int dim_ = 0;
 
-public:
-  internal_view_iterator(pointer data = nullptr) : ret(data), initial(data){};
-  internal_view_iterator(const internal_view_iterator &it) = default;
-  internal_view_iterator(internal_view_iterator &&it) = default;
+  protected:
+    using internal_value_type = IR;
+    using internal_pointer = IR *;
 
-  virtual ~internal_view_iterator() = default;
+  public:
+    internal_view_iterator(pointer data = nullptr) : ret(data), initial(data){};
+    internal_view_iterator(const internal_view_iterator & it) = default;
+    internal_view_iterator(internal_view_iterator && it) = default;
 
-  inline internal_view_iterator &
-  operator=(const internal_view_iterator &it) = default;
+    virtual ~internal_view_iterator() = default;
 
-  Idx getCurrentIndex() { return (this->ret - this->initial); };
+    inline internal_view_iterator &
+    operator=(const internal_view_iterator & it) = default;
 
-  inline reference operator*() { return *ret; }
-  inline pointer operator->() { return ret; };
+    Idx getCurrentIndex() { return (this->ret - this->initial); };
 
-  inline daughter &operator++() {
-    ++ret;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter &operator--() {
-    --ret;
-    return static_cast<daughter &>(*this);
-  }
+    inline reference operator*() { return *ret; }
+    inline pointer operator->() { return ret; };
 
-  inline daughter &operator+=(const Idx n) {
-    ret += n;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter &operator-=(const Idx n) {
-    ret -= n;
-    return static_cast<daughter &>(*this);
-  }
+    inline daughter & operator++() {
+      ++ret;
+      return static_cast<daughter &>(*this);
+    }
+    inline daughter & operator--() {
+      --ret;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline reference operator[](const Idx n) { return ret[n]; }
+    inline daughter & operator+=(const Idx n) {
+      ret += n;
+      return static_cast<daughter &>(*this);
+    }
+    inline daughter & operator-=(const Idx n) {
+      ret -= n;
+      return static_cast<daughter &>(*this);
+    }
 
-  inline bool operator==(const internal_view_iterator &other) const {
-    return ret == other.ret;
-  }
-  inline bool operator!=(const internal_view_iterator &other) const {
-    return ret != other.ret;
-  }
-  inline bool operator<(const internal_view_iterator &other) const {
-    return ret < other.ret;
-  }
-  inline bool operator<=(const internal_view_iterator &other) const {
-    return ret <= other.ret;
-  }
-  inline bool operator>(const internal_view_iterator &other) const {
-    return ret > other.ret;
-  }
-  inline bool operator>=(const internal_view_iterator &other) const {
-    return ret >= other.ret;
-  }
+    inline reference operator[](const Idx n) { return ret[n]; }
 
-  inline daughter operator-(difference_type n) { return daughter(ret - n); }
-  inline daughter operator+(difference_type n) { return daughter(ret + n); }
+    inline bool operator==(const internal_view_iterator & other) const {
+      return ret == other.ret;
+    }
+    inline bool operator!=(const internal_view_iterator & other) const {
+      return ret != other.ret;
+    }
+    inline bool operator<(const internal_view_iterator & other) const {
+      return ret < other.ret;
+    }
+    inline bool operator<=(const internal_view_iterator & other) const {
+      return ret <= other.ret;
+    }
+    inline bool operator>(const internal_view_iterator & other) const {
+      return ret > other.ret;
+    }
+    inline bool operator>=(const internal_view_iterator & other) const {
+      return ret >= other.ret;
+    }
 
-  inline difference_type operator-(const internal_view_iterator &b) {
-    return ret - b.ret;
-  }
+    inline daughter operator-(difference_type n) const {
+      return daughter(ret - n);
+    }
+    inline daughter operator+(difference_type n) const {
+      return daughter(ret + n);
+    }
 
-  inline pointer data() const { return ret; }
-  inline decltype(auto) getDims() const { return dims; }
+    inline difference_type operator-(const internal_view_iterator & b) const {
+      return ret - b.ret;
+    }
 
-protected:
-  std::array<int, 0> dims;
-  pointer ret{nullptr};
-  pointer initial{nullptr};
-};
+    inline pointer data() const { return ret; }
+    inline decltype(auto) getDims() const { return dims; }
+
+  protected:
+    std::array<int, 0> dims;
+    pointer ret{nullptr};
+    pointer initial{nullptr};
+  };
 } // namespace detail
 
 /* -------------------------------------------------------------------------- */
@@ -440,43 +451,43 @@ public:
 
 protected:
   template <typename Iterator, std::size_t... I>
-  static inline auto convert_helper(const Iterator &it,
+  static inline auto convert_helper(const Iterator & it,
                                     std::index_sequence<I...>) {
     return const_view_iterator(it.data(), it.getDims()[I]...);
   }
-  template <typename Iterator> static inline auto convert(const Iterator &it) {
+  template <typename Iterator> static inline auto convert(const Iterator & it) {
     return convert_helper(it, std::make_index_sequence<parent::dim_>());
   }
 
 public:
   const_view_iterator() : parent(){};
-  const_view_iterator(const const_view_iterator &it) = default;
-  const_view_iterator(const_view_iterator &&it) noexcept = default;
+  const_view_iterator(const const_view_iterator & it) = default;
+  const_view_iterator(const_view_iterator && it) noexcept = default;
 
   template <typename P, typename... Ns>
-  const_view_iterator(P *data, Ns... ns) : parent(data, ns...) {}
+  const_view_iterator(P * data, Ns... ns) : parent(data, ns...) {}
 
-  const_view_iterator &operator=(const const_view_iterator &it) = default;
+  const_view_iterator & operator=(const const_view_iterator & it) = default;
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
-  const_view_iterator(const const_view_iterator<OR> &it)
+  const_view_iterator(const const_view_iterator<OR> & it)
       : parent(convert(it)) {}
 
   template <typename OR,
             std::enable_if_t<std::is_convertible<R, OR>::value> * = nullptr>
-  const_view_iterator(const view_iterator<OR> &it) : parent(convert(it)) {}
+  const_view_iterator(const view_iterator<OR> & it) : parent(convert(it)) {}
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value and
                              std::is_convertible<R, OR>::value> * = nullptr>
-  const_view_iterator &operator=(const const_view_iterator<OR> &it) {
+  const_view_iterator & operator=(const const_view_iterator<OR> & it) {
     return dynamic_cast<const_view_iterator &>(parent::operator=(it));
   }
 
   template <typename OR,
             std::enable_if_t<std::is_convertible<R, OR>::value> * = nullptr>
-  const_view_iterator operator=(const view_iterator<OR> &it) {
+  const_view_iterator operator=(const view_iterator<OR> & it) {
     return convert(it);
   }
 };
@@ -485,13 +496,13 @@ template <class R, bool is_tensor_ = aka::is_tensor<R>::value>
 struct ConstConverterIteratorHelper {
 protected:
   template <std::size_t... I>
-  static inline auto convert_helper(const view_iterator<R> &it,
+  static inline auto convert_helper(const view_iterator<R> & it,
                                     std::index_sequence<I...>) {
     return const_view_iterator<R>(it.data(), it.getDims()[I]...);
   }
 
 public:
-  static inline auto convert(const view_iterator<R> &it) {
+  static inline auto convert(const view_iterator<R> & it) {
     return convert_helper(
         it, std::make_index_sequence<
                 std::tuple_size<decltype(it.getDims())>::value>());
@@ -499,7 +510,7 @@ public:
 };
 
 template <class R> struct ConstConverterIteratorHelper<R, false> {
-  static inline auto convert(const view_iterator<R> &it) {
+  static inline auto convert(const view_iterator<R> & it) {
     return const_view_iterator<R>(it.data());
   }
 };
@@ -517,13 +528,13 @@ public:
 
 public:
   view_iterator() : parent(){};
-  view_iterator(const view_iterator &it) = default;
-  view_iterator(view_iterator &&it) = default;
+  view_iterator(const view_iterator & it) = default;
+  view_iterator(view_iterator && it) = default;
 
   template <typename P, typename... Ns>
-  view_iterator(P *data, Ns... ns) : parent(data, ns...) {}
+  view_iterator(P * data, Ns... ns) : parent(data, ns...) {}
 
-  view_iterator &operator=(const view_iterator &it) = default;
+  view_iterator & operator=(const view_iterator & it) = default;
 
   operator const_view_iterator<R>() {
     return ConstConverterIteratorHelper<R>::convert(*this);
@@ -531,29 +542,29 @@ public:
 };
 
 namespace {
-template <std::size_t dim, typename T> struct ViewIteratorHelper {
-  using type = TensorProxy<T, dim>;
-};
+  template <std::size_t dim, typename T> struct ViewIteratorHelper {
+    using type = TensorProxy<T, dim>;
+  };
 
-template <typename T> struct ViewIteratorHelper<0, T> { using type = T; };
-template <typename T> struct ViewIteratorHelper<1, T> {
-  using type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>;
-};
-template <typename T> struct ViewIteratorHelper<1, const T> {
-  using type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>;
-};
+  template <typename T> struct ViewIteratorHelper<0, T> { using type = T; };
+  template <typename T> struct ViewIteratorHelper<1, T> {
+    using type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>;
+  };
+  template <typename T> struct ViewIteratorHelper<1, const T> {
+    using type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>;
+  };
 
-template <typename T> struct ViewIteratorHelper<2, T> {
-  using type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>;
-};
+  template <typename T> struct ViewIteratorHelper<2, T> {
+    using type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>;
+  };
 
-template <typename T> struct ViewIteratorHelper<2, const T> {
-  using type =
-      Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>;
-};
+  template <typename T> struct ViewIteratorHelper<2, const T> {
+    using type =
+        Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>;
+  };
 
-template <std::size_t dim, typename T>
-using ViewIteratorHelper_t = typename ViewIteratorHelper<dim, T>::type;
+  template <std::size_t dim, typename T>
+  using ViewIteratorHelper_t = typename ViewIteratorHelper<dim, T>::type;
 } // namespace
 
 } // namespace akantu

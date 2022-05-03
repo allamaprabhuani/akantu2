@@ -60,7 +60,8 @@ class CohesiveMeshGlobalDataUpdater : public MeshGlobalDataUpdater {
 public:
   CohesiveMeshGlobalDataUpdater(SolidMechanicsModelCohesive & model)
       : model(model), mesh(model.getMesh()),
-        global_ids_updater(model.getMesh(), *model.cohesive_synchronizer) {}
+        global_ids_updater(model.getMesh(), model.cohesive_synchronizer.get()) {
+  }
 
   /* ------------------------------------------------------------------------ */
   std::tuple<UInt, UInt>
@@ -308,6 +309,9 @@ void SolidMechanicsModelCohesive::initModel() {
       type = tmp_type;
       auto type_facet = Mesh::getFacetType(type);
       auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+      AKANTU_DEBUG_ASSERT(Mesh::getKind(type_cohesive) == _ek_cohesive,
+                          "The element type " << type_cohesive
+                                              << " is not a cohesive type");
       mesh.addConnectivityType(type_cohesive, type_ghost);
     }
   }
@@ -560,8 +564,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
   const auto & old_nodes = cohesive_event->getOldNodesList();
 
   auto copy = [this, &new_nodes, &old_nodes](auto & arr) {
-    UInt new_node;
-    UInt old_node;
+    Idx new_node;
+    Idx old_node;
 
     auto view = make_view(arr, spatial_dimension);
     auto begin = view.begin();

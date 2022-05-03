@@ -591,3 +591,31 @@ TEST(TestConcatenateIterator, SimpleTest) {
     EXPECT_EQ(std::get<0>(data), std::get<1>(data));
   }
 }
+
+/* -------------------------------------------------------------------------- */
+TEST(TestRepeatNIterator, SimpleTest) {
+  std::vector<int> ref{0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4};
+  for (auto && data : zip(repeat_n(arange(0, 5), 3), ref)) {
+    EXPECT_EQ(std::get<0>(data), std::get<1>(data));
+  }
+}
+
+TEST(TestRepeatNIterator, IncTest) {
+  std::vector<int> ref{0, 1, 2, 3, 4};
+  auto r = repeat_n(ref, 3);
+
+  auto it = r.begin();
+  EXPECT_EQ(*it, 0);
+  EXPECT_EQ(it[3], 1);
+  EXPECT_EQ(it[4], 1);
+  EXPECT_EQ(it[5], 1);
+
+  auto it1 = it + 1;
+  EXPECT_EQ(it1[3], 1);
+  EXPECT_EQ(it1[4], 1);
+  EXPECT_EQ(it1[5], 2);
+
+  auto end = r.end();
+  EXPECT_EQ(*(it + 5), 1);
+  EXPECT_EQ(*(end - 1), 4);
+}

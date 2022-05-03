@@ -68,7 +68,7 @@ template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_point_1>::computeShapes(
     const Eigen::MatrixBase<D1> & /*natural_coords*/,
-    Eigen::MatrixBase<D2> &N) {
+    Eigen::MatrixBase<D2> & N) {
   N(0) = 1; /// N1(q_0)
 }
 /* -------------------------------------------------------------------------- */

@@ -779,7 +779,7 @@ void CohesiveElementInserterHelper::updateCohesiveData() {
     auto & cohesives_connectivities =
         mesh_accessor.getConnectivity(type_cohesive, old_facet.ghost_type);
     Matrix<Idx> connectivity(facet_connectivities.getNbComponent(), 2);
-    Vector<Element> facets_to_cohesive_element(2);
+    Vector<Element, 2> facets_to_cohesive_element;
 
     for (auto s : arange(2)) {
       /// store doubled facets

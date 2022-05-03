@@ -123,7 +123,7 @@ GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(Idx t) {
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
 template <class D>
 inline bool GeometricalElement<geometrical_type, shape>::contains(
-    const Eigen::MatrixBase<D> &coords) {
+    const Eigen::MatrixBase<D> & coords) {
   return GeometricalShapeContains<shape>::contains(coords);
 }
 
@@ -131,7 +131,7 @@ inline bool GeometricalElement<geometrical_type, shape>::contains(
 template <>
 template <class D>
 inline bool GeometricalShapeContains<_gst_point>::contains(
-    const Eigen::MatrixBase<D> &coords) {
+    const Eigen::MatrixBase<D> & coords) {
   return (coords(0) < std::numeric_limits<Real>::epsilon());
 }
 
@@ -139,7 +139,7 @@ inline bool GeometricalShapeContains<_gst_point>::contains(
 template <>
 template <class D>
 inline bool GeometricalShapeContains<_gst_square>::contains(
-    const Eigen::MatrixBase<D> &coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = true;
   for (Int i = 0; i < coords.size() && in; ++i) {
     in &= ((coords(i) >= -(1. + std::numeric_limits<Real>::epsilon())) &&
@@ -152,7 +152,7 @@ inline bool GeometricalShapeContains<_gst_square>::contains(
 template <>
 template <class D>
 inline bool GeometricalShapeContains<_gst_triangle>::contains(
-    const Eigen::MatrixBase<D> &coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = true;
   Real sum = 0;
   for (Int i = 0; (i < coords.size()) && in; ++i) {
@@ -170,7 +170,7 @@ inline bool GeometricalShapeContains<_gst_triangle>::contains(
 template <>
 template <class D>
 inline bool GeometricalShapeContains<_gst_prism>::contains(
-    const Eigen::MatrixBase<D> &coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segment [-1, 1]
 
   // y and z in triangle
@@ -188,12 +188,12 @@ template <InterpolationType interpolation_type, InterpolationKind kind>
 template <typename D1, typename D2,
           aka::enable_if_t<aka::are_matrices<D1, D2>::value> *>
 inline void InterpolationElement<interpolation_type, kind>::computeShapes(
-    const Eigen::MatrixBase<D1> &Xs, const Eigen::MatrixBase<D2> &N_) {
+    const Eigen::MatrixBase<D1> & Xs, const Eigen::MatrixBase<D2> & N_) {
 
-  Eigen::MatrixBase<D2> &N = const_cast<Eigen::MatrixBase<D2> &>(
+  Eigen::MatrixBase<D2> & N = const_cast<Eigen::MatrixBase<D2> &>(
       N_); // as advised by the Eigen developers
 
-  for (auto &&data : zip(Xs, N)) {
+  for (auto && data : zip(Xs, N)) {
     computeShapes(std::get<0>(data), std::get<1>(data));
   }
 }
@@ -202,8 +202,8 @@ inline void InterpolationElement<interpolation_type, kind>::computeShapes(
 template <InterpolationType interpolation_type, InterpolationKind kind>
 template <class D>
 inline void InterpolationElement<interpolation_type, kind>::computeDNDS(
-    const Eigen::MatrixBase<D> &Xs, Tensor3Base<Real> &dNdS) {
-  for (auto &&data : zip(Xs, dNdS)) {
+    const Eigen::MatrixBase<D> & Xs, Tensor3Base<Real> & dNdS) {
+  for (auto && data : zip(Xs, dNdS)) {
     computeDNDS(std::get<0>(data), std::get<1>(data));
   }
 }
@@ -223,8 +223,8 @@ inline void InterpolationElement<interpolation_type, kind>::computeDNDS(
 template <InterpolationType interpolation_type, InterpolationKind kind>
 template <typename Derived1, typename Derived2>
 inline auto InterpolationElement<interpolation_type, kind>::interpolate(
-    const Eigen::MatrixBase<Derived1> &nodal_values,
-    const Eigen::MatrixBase<Derived2> &shapes) {
+    const Eigen::MatrixBase<Derived1> & nodal_values,
+    const Eigen::MatrixBase<Derived2> & shapes) {
   return nodal_values * shapes;
 }
 
@@ -243,11 +243,11 @@ inline auto InterpolationElement<interpolation_type, kind>::interpolate(
 template <InterpolationType interpolation_type, InterpolationKind kind>
 template <typename Derived1, typename Derived2, typename Derived3>
 inline void InterpolationElement<interpolation_type, kind>::interpolate(
-    const Eigen::MatrixBase<Derived1> &nodal_values,
-    const Eigen::MatrixBase<Derived2> &Ns,
-    const Eigen::MatrixBase<Derived3> &interpolated_) {
+    const Eigen::MatrixBase<Derived1> & nodal_values,
+    const Eigen::MatrixBase<Derived2> & Ns,
+    const Eigen::MatrixBase<Derived3> & interpolated_) {
 
-  auto &&interpolated = const_cast<Eigen::MatrixBase<Derived3> &>(
+  auto && interpolated = const_cast<Eigen::MatrixBase<Derived3> &>(
       interpolated_); // as advised by the Eigen developers
 
   auto nb_points = Ns.cols();
@@ -288,8 +288,8 @@ template <InterpolationType interpolation_type, InterpolationKind kind>
 template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
-    const Eigen::MatrixBase<D1> &natural_coords, const Eigen::MatrixBase<D2> &f,
-    const Eigen::MatrixBase<D3> &dfds_) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & f, const Eigen::MatrixBase<D3> & dfds_) {
 
   constexpr auto nsp =
       InterpolationProperty<interpolation_type>::natural_space_dimension;
@@ -297,7 +297,7 @@ InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
       InterpolationProperty<interpolation_type>::nb_nodes_per_element;
   Eigen::Matrix<Real, D3::ColsAtCompileTime, D2::ColsAtCompileTime> dnds(
       nsp, nnodes);
-  auto &dfds = const_cast<Eigen::MatrixBase<D3> &>(dfds_);
+  auto & dfds = const_cast<Eigen::MatrixBase<D3> &>(dfds_);
   computeDNDS(natural_coords, dnds);
   dfds.noalias() = f * dnds.transpose();
 }
@@ -310,8 +310,8 @@ InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
 template <ElementType type, ElementKind kind>
 template <class D1, class D2>
 inline decltype(auto) ElementClass<type, kind>::computeJMat(
-    const Eigen::MatrixBase<D1> &dnds,
-    const Eigen::MatrixBase<D2> &node_coords) {
+    const Eigen::MatrixBase<D1> & dnds,
+    const Eigen::MatrixBase<D2> & node_coords) {
   /// @f$ J = dxds = dnds * x @f$
   return dnds * node_coords.transpose();
 }
@@ -320,10 +320,10 @@ inline decltype(auto) ElementClass<type, kind>::computeJMat(
 template <ElementType type, ElementKind kind>
 template <class D>
 inline void
-ElementClass<type, kind>::computeJMat(const Tensor3Base<Real> &dnds,
-                                      const Eigen::MatrixBase<D> &node_coords,
-                                      Tensor3Base<Real> &J) {
-  for (auto &&data : zip(J, dnds)) {
+ElementClass<type, kind>::computeJMat(const Tensor3Base<Real> & dnds,
+                                      const Eigen::MatrixBase<D> & node_coords,
+                                      Tensor3Base<Real> & J) {
+  for (auto && data : zip(J, dnds)) {
     std::get<0>(data) = computeJMat(std::get<1>(data), node_coords);
   }
 }
@@ -332,9 +332,9 @@ ElementClass<type, kind>::computeJMat(const Tensor3Base<Real> &dnds,
 template <ElementType type, ElementKind kind>
 template <class D1, class D2, class D3>
 inline void ElementClass<type, kind>::computeJacobian(
-    const Eigen::MatrixBase<D1> &natural_coords,
-    const Eigen::MatrixBase<D2> &node_coords,
-    Eigen::MatrixBase<D3> &jacobians) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & node_coords,
+    Eigen::MatrixBase<D3> & jacobians) {
   auto nb_points = natural_coords.cols();
   Matrix<Real, interpolation_property::natural_space_dimension,
          interpolation_property::nb_nodes_per_element>
@@ -352,8 +352,8 @@ inline void ElementClass<type, kind>::computeJacobian(
 template <ElementType type, ElementKind kind>
 template <class D>
 inline void
-ElementClass<type, kind>::computeJacobian(const Tensor3Base<Real> &J,
-                                          Eigen::MatrixBase<D> &jacobians) {
+ElementClass<type, kind>::computeJacobian(const Tensor3Base<Real> & J,
+                                          Eigen::MatrixBase<D> & jacobians) {
   auto nb_points = J.size(2);
   for (Int p = 0; p < nb_points; ++p) {
     computeJacobian(J(p), jacobians.col(p));
@@ -364,7 +364,7 @@ ElementClass<type, kind>::computeJacobian(const Tensor3Base<Real> &J,
 template <ElementType type, ElementKind kind>
 template <class D>
 inline Real
-ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> &J) {
+ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> & J) {
   if (J.rows() == J.cols()) {
     return J.determinant();
   } else {
@@ -377,9 +377,8 @@ ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> &J) {
           Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.derived().data());
       return (Jstatic.row(0)).cross(Jstatic.row(1)).norm();
     }
-    case 0:
-    case 3: {
-      AKANTU_EXCEPTION("This case is only to avoid compilation warnings");
+    default: {
+      return 0;
     }
     }
   }
@@ -390,21 +389,21 @@ ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> &J) {
 template <ElementType type, ElementKind kind>
 template <class D1, class D2, class D3>
 inline void ElementClass<type, kind>::computeShapeDerivatives(
-    const Eigen::MatrixBase<D1> &J, const Eigen::MatrixBase<D2> &dnds,
-    Eigen::MatrixBase<D3> &shape_deriv) {
+    const Eigen::MatrixBase<D1> & J, const Eigen::MatrixBase<D2> & dnds,
+    Eigen::MatrixBase<D3> & shape_deriv) {
   shape_deriv = J.inverse() * dnds;
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::computeShapeDerivatives(
-    const Tensor3Base<Real> &J, const Tensor3Base<Real> &dnds,
-    Tensor3Base<Real> &shape_deriv) {
+    const Tensor3Base<Real> & J, const Tensor3Base<Real> & dnds,
+    Tensor3Base<Real> & shape_deriv) {
   auto nb_points = J.size(2);
   for (Int p = 0; p < nb_points; ++p) {
-    auto &&J_ = J(p);
-    auto &&dnds_ = dnds(p);
-    auto &&dndx_ = shape_deriv(p);
+    auto && J_ = J(p);
+    auto && dnds_ = dnds(p);
+    auto && dndx_ = shape_deriv(p);
     dndx_ = J_.inverse() * dnds_;
     //    computeShapeDerivatives(J_, dnds_, dndx_);
   }
@@ -414,8 +413,8 @@ inline void ElementClass<type, kind>::computeShapeDerivatives(
 template <ElementType type, ElementKind kind>
 template <class D1, class D2, class D3>
 inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
-    const Eigen::MatrixBase<D1> &coord, const Eigen::MatrixBase<D2> &f,
-    Eigen::MatrixBase<D3> &normals) {
+    const Eigen::MatrixBase<D1> & coord, const Eigen::MatrixBase<D2> & f,
+    Eigen::MatrixBase<D3> & normals) {
   auto dimension = normals.rows();
   auto nb_points = coord.cols();
 
@@ -483,11 +482,11 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 template <ElementType type, ElementKind kind>
 template <class D1, class D2, class D3, aka::enable_if_vectors_t<D1, D3> *>
 inline void ElementClass<type, kind>::inverseMap(
-    const Eigen::MatrixBase<D1> &real_coords,
-    const Eigen::MatrixBase<D2> &node_coords,
-    const Eigen::MatrixBase<D3> &natural_coords_, Int max_iterations,
+    const Eigen::MatrixBase<D1> & real_coords,
+    const Eigen::MatrixBase<D2> & node_coords,
+    const Eigen::MatrixBase<D3> & natural_coords_, Int max_iterations,
     Real tolerance) {
-  auto &natural_coords = const_cast<Eigen::MatrixBase<D3> &>(
+  auto & natural_coords = const_cast<Eigen::MatrixBase<D3> &>(
       natural_coords_); // as advised by the Eigen developers
 
   auto spatial_dimension = real_coords.size();
@@ -571,11 +570,11 @@ inline void ElementClass<type, kind>::inverseMap(
 template <ElementType type, ElementKind kind>
 template <class D1, class D2, class D3, aka::enable_if_matrices_t<D1, D3> *>
 inline void ElementClass<type, kind>::inverseMap(
-    const Eigen::MatrixBase<D1> &real_coords,
-    const Eigen::MatrixBase<D2> &node_coords,
-    const Eigen::MatrixBase<D3> &natural_coords_, Int max_iterations,
+    const Eigen::MatrixBase<D1> & real_coords,
+    const Eigen::MatrixBase<D2> & node_coords,
+    const Eigen::MatrixBase<D3> & natural_coords_, Int max_iterations,
     Real tolerance) {
-  auto &natural_coords = const_cast<Eigen::MatrixBase<D2> &>(
+  auto & natural_coords = const_cast<Eigen::MatrixBase<D2> &>(
       natural_coords_); // as advised by the Eigen developers
 
   auto nb_points = real_coords.cols();

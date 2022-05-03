@@ -44,7 +44,6 @@ namespace _aka_gauss_helpers {
   template <GaussIntegrationType type, Int n>
   struct GaussIntegrationNbPoints {};
 
-#if !defined(DOXYGEN)
   template <Int n> struct GaussIntegrationNbPoints<_git_not_defined, n> {
     static constexpr Int nb_points = 0;
   };
@@ -102,7 +101,6 @@ namespace _aka_gauss_helpers {
   struct GaussIntegrationNbPointsHelper<type, n, on, true> {
     static constexpr Int nb_points = 0;
   };
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* Generic helper                                                           */
@@ -115,18 +113,21 @@ namespace _aka_gauss_helpers {
     static constexpr Int getNbQuadraturePoints() { return git_np::nb_points; }
 
     static constexpr auto getQuadraturePoints()
-        -> Matrix<Real, dimension,
+        -> Matrix<Real, std::max(1, dimension),
                   GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       constexpr auto nb_points = git_np::nb_points;
-      return Eigen::Map<const Eigen::Matrix<Real, dimension, nb_points>>(
-          git_data::quad_positions);
+      using Matrix = Eigen::Matrix<Real, std::max(1, dimension), nb_points>;
+      Matrix quads = Eigen::Map<const Matrix>(git_data::quad_positions);
+      return quads;
     }
 
     static constexpr auto getWeights()
         -> Vector<Real,
                   GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
-      return Eigen::Map<const Vector<Real, git_np::nb_points>>(
-          git_data::quad_weights);
+      constexpr auto nb_points = git_np::nb_points;
+      using Vector = Eigen::Vector<Real, nb_points>;
+      Vector weights = Eigen::Map<const Vector>(git_data::quad_weights);
+      return weights;
     }
   };
 
@@ -265,8 +266,7 @@ GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
 
 /* -------------------------------------------------------------------------- */
 template <ElementType element_type, Int n>
-constexpr auto GaussIntegrationElement<element_type, n>::getWeights()
-    -> Vector<Real, GaussIntegrationElement::getNbQuadraturePoints()> {
+constexpr auto GaussIntegrationElement<element_type, n>::getWeights() {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
       ElementClassProperty<element_type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;
@@ -274,9 +274,7 @@ constexpr auto GaussIntegrationElement<element_type, n>::getWeights()
 }
 
 template <ElementType type, Int n>
-constexpr auto GaussIntegrationElement<type, n>::getQuadraturePoints()
-    -> Matrix<Real, interpolation_property::natural_space_dimension,
-              GaussIntegrationElement::getNbQuadraturePoints()> {
+constexpr auto GaussIntegrationElement<type, n>::getQuadraturePoints() {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
       ElementClassProperty<type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;

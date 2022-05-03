@@ -761,7 +761,6 @@ void Material::initElementalFieldInterpolation(
 /* -------------------------------------------------------------------------- */
 void Material::interpolateStress(ElementTypeMapArray<Real> & result,
                                  const GhostType ghost_type) {
-
   this->fem.interpolateElementalFieldFromIntegrationPoints(
       this->stress, this->interpolation_points_matrices,
       this->interpolation_inverse_coordinates, result, ghost_type,
@@ -781,53 +780,39 @@ void Material::interpolateStressOnFacets(
   const auto & mesh_facets = mesh.getMeshFacets();
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    auto & elem_fil = element_filter(type, ghost_type);
-    auto & by_elem_res = by_elem_result(type, ghost_type);
     auto nb_element_full = mesh.getNbElement(type, ghost_type);
+
     auto nb_interpolation_points_per_elem =
-        by_elem_res.size() / nb_element_full;
+        by_elem_result(type, ghost_type).size() / nb_element_full;
 
     const auto & facet_to_element =
         mesh_facets.getSubelementToElement(type, ghost_type);
-    auto type_facet = Mesh::getFacetType(type);
+
     auto nb_facet_per_elem = facet_to_element.getNbComponent();
     auto nb_quad_per_facet =
         nb_interpolation_points_per_elem / nb_facet_per_elem;
-    Element element_for_comparison{type, 0, ghost_type};
-    const Array<std::vector<Element>> * element_to_facet = nullptr;
-    auto current_ghost_type = _not_ghost;
-    auto result_vec_it =
-        make_view(result(type_facet, current_ghost_type), stress_size, 2)
+    Element element{type, 0, ghost_type};
+
+    auto && by_elem_res =
+        make_view(by_elem_result(type, ghost_type), stress_size,
+                  nb_quad_per_facet, nb_facet_per_elem)
             .begin();
 
-    auto result_it =
-        make_view(by_elem_res, stress_size, nb_interpolation_points_per_elem)
-            .begin();
+    for (auto global_el : element_filter(type, ghost_type)) {
+      element.element = global_el;
 
-    for (auto global_el : elem_fil) {
-      element_for_comparison.element = global_el;
+      auto && result_per_elem = by_elem_res[global_el];
 
       for (Int f = 0; f < nb_facet_per_elem; ++f) {
         auto facet_elem = facet_to_element(global_el, f);
-        auto global_facet = facet_elem.element;
-
-        if (facet_elem.ghost_type != current_ghost_type) {
-          current_ghost_type = facet_elem.ghost_type;
-          element_to_facet = &mesh_facets.getElementToSubelement(
-              type_facet, current_ghost_type);
-          result_vec_it =
-              make_view(result(type_facet, current_ghost_type), stress_size, 2)
-                  .begin();
-        }
-
         auto is_second_element =
-            ((*element_to_facet)(global_facet)[0] != element_for_comparison);
+            Int(mesh_facets.getElementToSubelement(facet_elem)[0] != element);
 
-        for (Int q = 0; q < nb_quad_per_facet; ++q) {
-          auto && result_local =
-              result_vec_it[global_facet * nb_quad_per_facet + q](
-                  is_second_element);
-          result_local = result_it[global_el](f * nb_quad_per_facet + q);
+        auto && result_local =
+            result.get(facet_elem, stress_size, 2, nb_quad_per_facet);
+
+        for (auto && data : zip(result_local, result_per_elem(f))) {
+          std::get<0>(data)(is_second_element) = std::get<1>(data);
         }
       }
     }

@@ -300,6 +300,19 @@ decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime,
       std::forward<Array>(array), rows, cols);
 }
 
+template <Idx RowsAtCompileTime, typename Array>
+decltype(auto) make_const_view(const Array & array,
+                               Idx rows = RowsAtCompileTime) {
+  return make_view<RowsAtCompileTime>(array, rows);
+}
+
+template <Idx RowsAtCompileTime, Idx ColsAtCompileTime, typename Array>
+decltype(auto) make_const_view(const Array & array,
+                               Idx rows = RowsAtCompileTime,
+                               Idx cols = ColsAtCompileTime) {
+  return make_view<RowsAtCompileTime, ColsAtCompileTime>(array, rows, cols);
+}
+
 } // namespace akantu
 
 namespace Eigen {

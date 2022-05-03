@@ -354,7 +354,7 @@ public:
   /// compute the barycenter of a given element
   template <class D, std::enable_if_t<aka::is_vector<D>::value> * = nullptr>
   inline void getBarycenter(const Element & element,
-                            Eigen::MatrixBase<D> & barycenter) const;
+                            const Eigen::MatrixBase<D> & barycenter) const;
 
   void getBarycenters(Array<Real> & barycenter, ElementType type,
                       GhostType ghost_type) const;

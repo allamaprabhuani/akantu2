@@ -32,6 +32,7 @@
 #include "iterators/aka_concatenate_iterator.hh"
 #include "iterators/aka_enumerate_iterator.hh"
 #include "iterators/aka_filter_iterator.hh"
+#include "iterators/aka_repeat_iterator.hh"
 #include "iterators/aka_transform_iterator.hh"
 #include "iterators/aka_zip_iterator.hh"
 /* -------------------------------------------------------------------------- */

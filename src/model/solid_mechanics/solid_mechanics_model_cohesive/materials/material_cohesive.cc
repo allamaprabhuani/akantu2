@@ -374,13 +374,15 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
 
   normal.zero();
 
-#define COMPUTE_NORMAL(type)                                                   \
-  fem_cohesive.getShapeFunctions()                                             \
-      .computeNormalsOnIntegrationPoints<type, CohesiveReduceFunctionMean>(    \
-          position, normal, ghost_type, element_filter(type, ghost_type));
-
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
-#undef COMPUTE_NORMAL
+  tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        fem_cohesive.getShapeFunctions()
+            .computeNormalsOnIntegrationPoints<type,
+                                               CohesiveReduceFunctionMean>(
+                position, normal, ghost_type, element_filter(type, ghost_type));
+      },
+      type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -394,14 +396,16 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
   auto & fem_cohesive =
       this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
 
-#define COMPUTE_OPENING(type)                                                  \
-  fem_cohesive.getShapeFunctions()                                             \
-      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionOpening>(    \
-          displacement, opening, spatial_dimension, ghost_type,                \
-          element_filter(type, ghost_type));
-
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_OPENING);
-#undef COMPUTE_OPENING
+  tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        fem_cohesive.getShapeFunctions()
+            .interpolateOnIntegrationPoints<type,
+                                            CohesiveReduceFunctionOpening>(
+                displacement, opening, spatial_dimension, ghost_type,
+                element_filter(type, ghost_type));
+      },
+      type);
 
   AKANTU_DEBUG_OUT();
 }

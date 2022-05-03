@@ -124,7 +124,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    auto operator-(const ZipIterator_ & other) -> difference_type {
+    auto operator-(const ZipIterator_ & other) const -> difference_type {
       return std::get<0>(this->iterators) - std::get<0>(other.iterators);
     }
 
@@ -143,7 +143,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    auto operator+(std::size_t n) -> decltype(auto) {
+    auto operator+(std::size_t n) const -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it + n; }, iterators)));
     }
@@ -153,7 +153,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    auto operator-(std::size_t n) -> decltype(auto) {
+    auto operator-(std::size_t n) const -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it - n; }, iterators)));
     }

@@ -176,11 +176,17 @@ public:
 public:
   void onElementsAdded(const Array<Element> & elements) override;
 
+protected:
   template <ElementType type>
   void onElementsAddedByType(const Array<Idx> & new_elements,
                              GhostType ghost_type);
 
   decltype(auto) getIntegrationPoints() { return (quadrature_points); }
+
+  template <template <ElementKind, class> class, template <ElementKind> class,
+            ElementKind, class>
+  friend class FEEngineTemplate;
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

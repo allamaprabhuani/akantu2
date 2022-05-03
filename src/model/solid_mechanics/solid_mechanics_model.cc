@@ -444,12 +444,9 @@ void SolidMechanicsModel::updateCurrentPosition() {
 
   this->current_position->copy(this->mesh.getNodes());
 
-  auto cpos_it = this->current_position->begin(Model::spatial_dimension);
-  auto cpos_end = this->current_position->end(Model::spatial_dimension);
-  auto disp_it = this->displacement->begin(Model::spatial_dimension);
-
-  for (; cpos_it != cpos_end; ++cpos_it, ++disp_it) {
-    *cpos_it += *disp_it;
+  for (auto && data : zip(make_view(*this->current_position, spatial_dimension),
+                          make_view(*this->displacement, spatial_dimension))) {
+    std::get<0>(data) += std::get<1>(data);
   }
 
   this->current_position_release = this->displacement_release;

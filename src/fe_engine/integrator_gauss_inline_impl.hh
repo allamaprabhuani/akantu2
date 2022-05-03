@@ -262,8 +262,8 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
 
   const auto has_extra_normal =
       mesh.hasData<Real>("extra_normal", type, ghost_type);
-  Array<Real>::const_vector_iterator extra_normal;
-  Array<Real>::const_vector_iterator extra_normal_begin;
+  Array<Real>::const_vector_iterator extra_normal [[gnu::unused]];
+  Array<Real>::const_vector_iterator extra_normal_begin [[gnu::unused]];
   if (has_extra_normal) {
     extra_normal = mesh.getData<Real>("extra_normal", type, ghost_type)
                        .begin(spatial_dimension);
@@ -544,9 +544,7 @@ IntegratorGauss<kind, IntegrationOrderFunctor>::onElementsAddedByType(
     const Array<Idx> & elements, GhostType ghost_type) {
   const auto & nodes = mesh.getNodes();
 
-  if (not quadrature_points.exists(type, ghost_type)) {
-    computeQuadraturePoints<type>(ghost_type);
-  }
+  computeQuadraturePoints<type>(ghost_type);
 
   if (not jacobians.exists(type, ghost_type)) {
     jacobians.alloc(0, 1, type, ghost_type);

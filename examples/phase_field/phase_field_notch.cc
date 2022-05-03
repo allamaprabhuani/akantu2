@@ -83,7 +83,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1500;
+  auto nbSteps = 1500;
   Real increment = 1e-5;
 
   auto start_time = clk::now();

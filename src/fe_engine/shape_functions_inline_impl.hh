@@ -91,8 +91,7 @@ inline Int ShapeFunctions::getShapeDerivativesSize(ElementType type) {
 template <ElementType type, class D1>
 void ShapeFunctions::setIntegrationPointsByType(
     const Eigen::MatrixBase<D1> & points, GhostType ghost_type) {
-  if (not this->integration_points.exists(type, ghost_type))
-    this->integration_points(type, ghost_type) = points;
+  this->integration_points(type, ghost_type) = points;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -292,14 +291,10 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
     filtered_N = std::make_unique<Array<Real>>(0, shapes.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type,
                                   filter_elements);
-    N_view = make_view(const_cast<const Array<Real> &>(*filtered_N),
-                       nb_nodes_per_element, nb_points);
+    N_view = make_const_view(*filtered_N, nb_nodes_per_element, nb_points);
   }
-  uq.resize(nb_element * nb_points);
 
-  auto u_it =
-      make_view(u_el, nb_degree_of_freedom, nb_nodes_per_element).begin();
-  auto uq_it = make_view(uq, nb_degree_of_freedom, nb_points).begin();
+  uq.resize(nb_element * nb_points);
 
   for (auto && data :
        zip(N_view, make_view(uq, nb_degree_of_freedom, nb_points),

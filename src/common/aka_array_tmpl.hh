@@ -290,8 +290,8 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    make_view(*this, nb_component).begin()[this->size_ - 1].array() =
-        new_elem.array();
+    make_view(*this, new_elem.rows(), new_elem.cols())
+        .begin()[this->size_ - 1] = new_elem;
   }
 
   /// changes the allocated size but not the size
@@ -1162,10 +1162,10 @@ namespace detail {
 } // namespace detail
 
 /* ------------------------------------------------------------------------ */
-template <typename Array, typename... Ns>
+template <typename Array, typename... Ns,
+          std::enable_if_t<aka::conjunction<
+              std::is_integral<std::decay_t<Ns>>...>::value> * = nullptr>
 decltype(auto) make_view(Array && array, const Ns... ns) {
-  static_assert(aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value,
-                "Ns should be integral types");
   AKANTU_DEBUG_ASSERT((detail::product_all(ns...) != 0),
                       "You must specify non zero dimensions");
   auto size = std::forward<decltype(array)>(array).size() *

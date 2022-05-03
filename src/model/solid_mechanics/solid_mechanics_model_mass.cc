@@ -41,10 +41,11 @@ namespace akantu {
 
 class ComputeRhoFunctor {
 public:
-  explicit ComputeRhoFunctor(const SolidMechanicsModel &model) : model(model){};
+  explicit ComputeRhoFunctor(const SolidMechanicsModel & model)
+      : model(model){};
 
-  void operator()(Matrix<Real> &rho, const Element &element) {
-    const auto &mat_indexes =
+  void operator()(Matrix<Real> & rho, const Element & element) {
+    const auto & mat_indexes =
         model.getMaterialByElement(element.type, element.ghost_type);
     Real mat_rho =
         model.getMaterial(mat_indexes(element.element)).getParam("rho");
@@ -52,7 +53,7 @@ public:
   }
 
 private:
-  const SolidMechanicsModel &model;
+  const SolidMechanicsModel & model;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -80,15 +81,16 @@ void SolidMechanicsModel::assembleMassLumped() {
 
 /// for not connected nodes put mass to one in order to avoid
 #if !defined(AKANTU_NDEBUG)
-  bool has_unconnected_nodes = false;
-  for (auto &&m : make_view(*mass)) {
+  std::set<Idx> unconnected_nodes;
+  for (auto && data : enumerate(make_view(*mass))) {
+    auto & m = std::get<1>(data);
     if (std::abs(m) < std::numeric_limits<Real>::epsilon() || Math::isnan(m)) {
       m = 0.;
-      has_unconnected_nodes = true;
+      unconnected_nodes.insert(std::get<0>(data));
     }
   }
 
-  if (has_unconnected_nodes) {
+  if (unconnected_nodes.begin() != unconnected_nodes.end()) {
     AKANTU_DEBUG_WARNING("There are nodes that seem to not be connected to any "
                          "elements, beware that they have lumped mass of 0.");
   }
@@ -121,7 +123,7 @@ void SolidMechanicsModel::assembleMass() {
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto &fem = getFEEngineClass<MyFEEngineType>();
+  auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctor compute_rho(*this);
 
   for (auto type :
@@ -137,7 +139,7 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto &fem = getFEEngineClass<MyFEEngineType>();
+  auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctor compute_rho(*this);
 
   for (auto type :

@@ -360,8 +360,9 @@ Mesh::getSubelementToElementNC(const Element & element) const {
 
 /* -------------------------------------------------------------------------- */
 template <class D, std::enable_if_t<aka::is_vector<D>::value> *>
-inline void Mesh::getBarycenter(const Element & element,
-                                Eigen::MatrixBase<D> & barycenter) const {
+inline void
+Mesh::getBarycenter(const Element & element,
+                    const Eigen::MatrixBase<D> & barycenter_) const {
   const auto && conn = getConnectivity(element);
   Matrix<Real> local_coord(spatial_dimension, conn.size());
   auto node_begin = make_view(*nodes, spatial_dimension).begin();
@@ -370,6 +371,7 @@ inline void Mesh::getBarycenter(const Element & element,
     local_coord(std::get<0>(data)) = node_begin[std::get<1>(data)];
   }
 
+  auto & barycenter = const_cast<Eigen::MatrixBase<D> &>(barycenter_);
   Math::barycenter(local_coord, barycenter);
 }
 

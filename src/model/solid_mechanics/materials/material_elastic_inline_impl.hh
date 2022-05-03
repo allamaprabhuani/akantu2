@@ -69,7 +69,6 @@ inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
 
   static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
     sigma_th = tuple::get<"sigma_th"_h>(args);
-    std::cout << "blip " << sigma_th << std::endl;
   })(std::forward<Args>(args));
 
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;

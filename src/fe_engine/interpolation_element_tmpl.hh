@@ -37,38 +37,79 @@
 #define AKANTU_INTERPOLATION_ELEMENT_TMPL_HH_
 
 namespace akantu {
-
 /* -------------------------------------------------------------------------- */
 /* Regular Elements                                                           */
 /* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_not_defined, _itk_not_defined, 0,
-                                          0);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_point_1,
-                                          _itk_lagrangian, 1, 0);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_segment_2,
-                                          _itk_lagrangian, 2, 1);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_segment_3,
-                                          _itk_lagrangian, 3, 1);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_triangle_3,
-                                          _itk_lagrangian, 3, 2);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_triangle_6,
-                                          _itk_lagrangian, 6, 2);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_tetrahedron_4,
-                                          _itk_lagrangian, 4, 3);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_tetrahedron_10,
-                                          _itk_lagrangian, 10, 3);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_quadrangle_4,
-                                          _itk_lagrangian, 4, 2);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_serendip_quadrangle_8,
-                                          _itk_lagrangian, 8, 2);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_hexahedron_8,
-                                          _itk_lagrangian, 8, 3);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_serendip_hexahedron_20,
-                                          _itk_lagrangian, 20, 3);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_pentahedron_6,
-                                          _itk_lagrangian, 6, 3);
-AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_pentahedron_15,
-                                          _itk_lagrangian, 15, 3);
+template <> struct InterpolationProperty<_itp_not_defined> {
+  static constexpr InterpolationKind kind{_itk_not_defined};
+  static constexpr Int nb_nodes_per_element{0};
+  static constexpr Int natural_space_dimension{0};
+};
+template <> struct InterpolationProperty<_itp_lagrange_point_1> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{1};
+  static constexpr Int natural_space_dimension{0};
+};
+template <> struct InterpolationProperty<_itp_lagrange_segment_2> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{2};
+  static constexpr Int natural_space_dimension{1};
+};
+template <> struct InterpolationProperty<_itp_lagrange_segment_3> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{3};
+  static constexpr Int natural_space_dimension{1};
+};
+template <> struct InterpolationProperty<_itp_lagrange_triangle_3> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{3};
+  static constexpr Int natural_space_dimension{2};
+};
+template <> struct InterpolationProperty<_itp_lagrange_triangle_6> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int natural_space_dimension{2};
+};
+template <> struct InterpolationProperty<_itp_lagrange_tetrahedron_4> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{4};
+  static constexpr Int natural_space_dimension{3};
+};
+template <> struct InterpolationProperty<_itp_lagrange_tetrahedron_10> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{10};
+  static constexpr Int natural_space_dimension{3};
+};
+template <> struct InterpolationProperty<_itp_lagrange_quadrangle_4> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{4};
+  static constexpr Int natural_space_dimension{2};
+};
+template <> struct InterpolationProperty<_itp_serendip_quadrangle_8> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{8};
+  static constexpr Int natural_space_dimension{2};
+};
+template <> struct InterpolationProperty<_itp_lagrange_hexahedron_8> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{8};
+  static constexpr Int natural_space_dimension{3};
+};
+template <> struct InterpolationProperty<_itp_serendip_hexahedron_20> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{20};
+  static constexpr Int natural_space_dimension{3};
+};
+template <> struct InterpolationProperty<_itp_lagrange_pentahedron_6> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int natural_space_dimension{3};
+};
+template <> struct InterpolationProperty<_itp_lagrange_pentahedron_15> {
+  static constexpr InterpolationKind kind{_itk_lagrangian};
+  static constexpr Int nb_nodes_per_element{15};
+  static constexpr Int natural_space_dimension{3};
+};
 
 } // namespace akantu
 #endif /* AKANTU_INTERPOLATION_ELEMENT_TMPL_HH_ */

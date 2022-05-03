@@ -68,7 +68,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & nodes = mesh.getNodes();
   Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & temperature = model.getTemperature();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   double length;
   length = 1.;

@@ -82,7 +82,7 @@ inline constexpr auto FEEngine::getInterpolationType(ElementType type) {
 #if defined(AKANTU_COHESIVE_ELEMENT)
 inline constexpr ElementType
 FEEngine::getCohesiveElementType(ElementType type) {
-  return tuple_dispatch_with_default<ElementTypes_t<_ek_cohesive>>(
+  return tuple_dispatch_with_default<ElementTypes_t<_ek_regular>>(
       [&](auto && enum_type) -> ElementType {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return CohesiveFacetProperty<type>::cohesive_type;
