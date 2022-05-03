@@ -208,7 +208,9 @@ void register_mesh(py::module & mod) {
       .def("getPeriodicMaster", &Mesh::getPeriodicMaster)
       .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
       .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
-      .def("isPeriodicMaster", &Mesh::isPeriodicMaster);
+      .def("isPeriodicMaster", &Mesh::isPeriodicMaster)
+      .def("initMeshFacets", &Mesh::initMeshFacets,
+           py::arg("id") = "mesh_facets", py::return_value_policy::reference);
 
   /* ------------------------------------------------------------------------ */
   py::class_<MeshUtils>(mod, "MeshUtils")

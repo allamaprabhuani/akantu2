@@ -111,14 +111,10 @@ void ElementGroup::append(const ElementGroup & other_group) {
       elem_list->resize(nb_elem + nb_other_elem);
       std::copy(other_elem_list.begin(), other_elem_list.end(),
                 elem_list->begin() + nb_elem);
-
-      /// remove duplicates
-      std::sort(elem_list->begin(), elem_list->end());
-      Array<UInt>::iterator<> end =
-          std::unique(elem_list->begin(), elem_list->end());
-      elem_list->resize(end - elem_list->begin());
     }
   }
+
+  this->optimize();
 
   AKANTU_DEBUG_OUT();
 }
