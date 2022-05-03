@@ -26,8 +26,6 @@
 /* ------------------------------------------------------------------ */
 #include "nodes_eff_stress_updater.hh"
 #include "element_synchronizer.hh"
-#include "mesh_accessor.hh"
-#include "mesh_utils.hh"
 /* ------------------------------------------------------------------- */
 #include <numeric>
 /* ------------------------------------------------------------------- */

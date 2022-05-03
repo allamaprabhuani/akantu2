@@ -97,6 +97,12 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_MULTISCALE_TOOLS
+    case ModelType::_solid_mechanics_model_rve:
+      this->initFullImpl(SolidMechanicsModelRVEOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
 #ifdef AKANTU_HEAT_TRANSFER
     case ModelType::_heat_transfer_model:
       this->initFullImpl(HeatTransferModelOptions{

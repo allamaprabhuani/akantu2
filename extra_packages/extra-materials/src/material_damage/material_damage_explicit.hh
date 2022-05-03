@@ -4,11 +4,12 @@
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  *
- * @brief  Specialization of the class material damage explicit to damage all the
- * quadrature point above damaging criteria at once. It may inherit both from
- * material elastic and viscoelastic. Max principal stress criterion is used as a failure
- * criterion. Can be used ONLY IN EXPLICIT DYNAMIC SIMULATION. Implementation is
- * based on the one from Code_Aster. https://www.code-aster.org/V2/doc/v11/fr/man_r/r5/r5.03.18.pdf
+ * @brief  Specialization of the class material damage explicit to damage all
+ * the quadrature point above damaging criteria at once. It may inherit both
+ * from material elastic and viscoelastic. Max principal stress criterion is
+ * used as a failure criterion. Can be used ONLY IN EXPLICIT DYNAMIC SIMULATION.
+ * Implementation is based on the one from Code_Aster.
+ * https://www.code-aster.org/V2/doc/v11/fr/man_r/r5/r5.03.18.pdf
  *
  * @section LICENSE
  *
@@ -49,8 +50,7 @@ namespace akantu {
  *   - Sc
  */
 template <UInt dim, template <UInt> class ElasticParent = MaterialElastic>
-class MaterialDamageExplicit
-    : public MaterialDamage<dim, ElasticParent> {
+class MaterialDamageExplicit : public MaterialDamage<dim, ElasticParent> {
   using parent = MaterialDamage<dim, ElasticParent>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -69,24 +69,10 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
-  // /// update internal field damage
-  // UInt updateDamage();
-
-  // /// compute the equivalent stress on each Gauss point (i.e. the max prinicpal
-  // /// stress) and normalize it by the tensile strength
-  // void computeNormalizedEquivalentStress(ElementType el_type,
-  //                                        GhostType ghost_type = _not_ghost);
-
-  // /// find max and average normalized equivalent stress
-  // void
-  // findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
-  //                                        GhostType ghost_type = _not_ghost);
-
-  // /// set the strain when softenning starts
-  // void updateSofteningStrain(ElementType el_type, GhostType ghost_type);
-
 protected:
-  inline void computeDamageAndStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, const Real & Et, const Real & Sc);
+  inline void computeDamageAndStressOnQuad(Matrix<Real> & grad_u,
+                                           Matrix<Real> & sigma, Real & dam,
+                                           const Real & Et, const Real & Sc);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -94,17 +80,6 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-// public:
-//   /// get max normalized equivalent stress
-//   AKANTU_GET_MACRO(NormMaxEquivalentStress, norm_max_equivalent_stress, Real);
-
-//   /// get a non-const reference to the max normalized equivalent stress
-//   AKANTU_GET_MACRO_NOT_CONST(NormMaxEquivalentStress,
-//                              norm_max_equivalent_stress, Real &);
-
-// protected:
-//   /// maximum equivalent stress
-//   Real norm_max_equivalent_stress;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -125,7 +100,6 @@ protected:
 
   /// the softening slope
   InternalField<Real> Et;
-
 };
 
 } // namespace akantu

@@ -17,6 +17,7 @@ Akantu: a FEM library
    ./manual/contactmechanicsmodel.rst
    ./manual/phasefieldmodel.rst
    ./manual/structuralmechanicsmodel.rst
+   ./manual/multiscale_tools.rst
    ./manual/io.rst
 
 .. toctree::

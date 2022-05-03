@@ -60,16 +60,7 @@ NodesEffStressUpdater::packData(CommunicationBuffer & buffer,
   int prank = mesh.getCommunicator().whoAmI();
   buffer << prank;
 
-  for (const auto & element : elements) {
-    /// get element connectivity
-    const Vector<UInt> current_conn =
-        const_cast<const Mesh &>(mesh).getConnectivity(element);
-
-    /// loop on all connectivity nodes
-    for (auto node : current_conn) {
-      buffer << nodes_eff_stress(node);
-    }
-  }
+  this->packNodalDataHelper(nodes_eff_stress, buffer, elements, mesh);
 }
 
 /* ------------------------------------------------------------------ */

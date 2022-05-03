@@ -121,6 +121,7 @@ enum EventHandlerPriority {
   (model)                                       \
   (solid_mechanics_model)                       \
   (solid_mechanics_model_cohesive)              \
+  (solid_mechanics_model_rve)                   \
   (heat_transfer_model)                         \
   (structural_mechanics_model)                  \
   (embedded_model)                              \
@@ -140,6 +141,7 @@ enum class ModelType {
   model,
   solid_mechanics_model,
   solid_mechanics_model_cohesive,
+  solid_mechanics_model_rve,
   heat_transfer_model,
   structural_mechanics_model,
   embedded_model,

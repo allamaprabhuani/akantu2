@@ -31,7 +31,9 @@
 #include "solid_mechanics_model_RVE.hh"
 #include "aka_random_generator.hh"
 #include "element_group.hh"
+#include "expanding_material_selector.hh"
 #include "material_damage_iterative.hh"
+// #include "model_options.hh"
 #include "node_group.hh"
 #include "non_linear_solver.hh"
 #include "non_local_manager.hh"
@@ -43,12 +45,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
-                                               UInt nb_expanding_elements,
-                                               bool use_RVE_mat_selector,
+SolidMechanicsModelRVE::SolidMechanicsModelRVE(
+    Mesh & mesh, UInt nb_expanding_elements, bool use_RVE_mat_selector,
 
-                                               UInt dim, const ID & id)
-    : SolidMechanicsModel(mesh, dim, id),
+    UInt dim, const ID & id, std::shared_ptr<DOFManager> dof_manager)
+    : SolidMechanicsModel(mesh, dim, id, dof_manager,
+                          ModelType::_solid_mechanics_model_rve),
       RVETools(dynamic_cast<SolidMechanicsModel &>(*this)),
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_expanding_elements(nb_expanding_elements), stiffness_changed(true) {
@@ -87,10 +89,7 @@ SolidMechanicsModelRVE::~SolidMechanicsModelRVE() = default;
 void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   AKANTU_DEBUG_IN();
 
-  auto options_cp(options);
-  options_cp.analysis_method = AnalysisMethod::_static;
-
-  SolidMechanicsModel::initFullImpl(options_cp);
+  SolidMechanicsModel::initFullImpl(options);
 
   auto & solver = this->getNonLinearSolver();
   solver.set("max_iterations", 50);
@@ -118,7 +117,6 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   this->addDumpField("internal_force");
   this->addDumpField("delta_T");
   this->addDumpField("extra_volume");
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -225,8 +223,8 @@ void SolidMechanicsModelRVE::advanceExpansion(const Matrix<Real> & prestrain,
       this->stiffness_changed = true;
     }
 
-    std::cout << "Proc " << prank << " the number of damaged elements is "
-              << nb_damaged_elements << std::endl;
+    AKANTU_DEBUG_INFO("Proc " << prank << " the number of damaged elements is "
+                              << nb_damaged_elements);
 
   } while (nb_damaged_elements);
 

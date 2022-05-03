@@ -88,6 +88,13 @@ Phase Field Model
 .. doxygenclass:: akantu::PhaseFieldModel
 .. doxygenclass:: akantu::PhaseField
 
+Multi-Scale Tools
+.................
+
+.. doxygenclass:: akantu::RVETools
+.. doxygenclass:: akantu::SolidMechanicsModelRVE
+.. doxygenclass:: akantu::MaterialFE2
+		  
 Structural Mechanics Model
 ..........................
 

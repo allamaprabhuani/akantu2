@@ -36,8 +36,6 @@
 #include "rve_tools.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-//#include <unordered_set>
-/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -51,7 +49,8 @@ public:
   SolidMechanicsModelRVE(Mesh & mesh, UInt nb_expanding_elements,
                          bool use_RVE_mat_selector = true,
                          UInt dim = _all_dimensions,
-                         const ID & id = "solid_mechanics_model");
+                         const ID & id = "solid_mechanics_model",
+                         std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   virtual ~SolidMechanicsModelRVE();
 

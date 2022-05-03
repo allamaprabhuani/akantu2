@@ -111,10 +111,6 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
 
   parent::computeAllStresses(ghost_type);
 
-  /// find global Gauss point with highest stress
-  // auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  // if (rve_model == NULL) {
-  /// is no RVE model
   const auto & comm = this->model.getMesh().getCommunicator();
   comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
   //}
@@ -193,8 +189,6 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
     }
   }
 
-  // auto * rve_model = dynamic_cast<SolidMechanicsModelRVE
-  // *>(&this->model); if (rve_model == NULL) {
   const auto & comm = this->model.getMesh().getCommunicator();
   comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
   //}
@@ -212,8 +206,7 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    updateDamageOnQuad(UInt quad_index, Real /*eq_stress*/,
-                       ElementType el_type,
+    updateDamageOnQuad(UInt quad_index, Real /*eq_stress*/, ElementType el_type,
                        GhostType ghost_type) {
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
                       "Your prescribed damage must be greater than zero");

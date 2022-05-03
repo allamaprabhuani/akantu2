@@ -96,6 +96,22 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
 #endif
 
+/* -------------------------------------------------------------------------- */
+#ifdef AKANTU_MULTISCALE_TOOLS
+namespace {
+  DECLARE_NAMED_ARGUMENT(dump_rves);
+}
+/* -------------------------------------------------------------------------- */
+struct SolidMechanicsModelRVEOptions : public SolidMechanicsModelOptions {
+  SolidMechanicsModelRVEOptions() : SolidMechanicsModelOptions(_static) {}
+
+  template <typename... pack>
+  SolidMechanicsModelRVEOptions(use_named_args_t /*unused*/, pack &&... _pack)
+      : SolidMechanicsModelRVEOptions() {}
+};
+
+#endif
+
 #ifdef AKANTU_HEAT_TRANSFER
 /* -------------------------------------------------------------------------- */
 struct HeatTransferModelOptions : public ModelOptions {

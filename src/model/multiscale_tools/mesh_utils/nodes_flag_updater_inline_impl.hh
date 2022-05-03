@@ -57,17 +57,6 @@ inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
 
   int prank = mesh.getCommunicator().whoAmI();
   buffer << prank;
-
-  for (const auto & element : elements) {
-    // get element connectivity
-    const Vector<UInt> current_conn =
-        const_cast<const Mesh &>(mesh).getConnectivity(element);
-
-    // loop on all connectivity nodes
-    for (auto node : current_conn) {
-      buffer << prevent_insertion(node);
-    }
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -86,6 +75,9 @@ inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
   int proc;
   buffer >> proc;
 
+  // looping through all the slave elements and preventing insertion at their
+  // nodes; the problem could be that a ghost element could have a non-ghost
+  // node
   for (const auto & element : elements) {
     // get element connectivity
     Vector<UInt> current_conn =
@@ -93,8 +85,6 @@ inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
 
     // loop on all connectivity nodes
     for (auto node : current_conn) {
-      bool unpacked_node_flag;
-      buffer >> unpacked_node_flag;
       prevent_insertion(node) = true;
     }
   }

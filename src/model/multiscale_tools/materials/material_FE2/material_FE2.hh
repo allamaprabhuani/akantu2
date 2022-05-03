@@ -77,15 +77,6 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  // /// advance expansion by the user-provided gel strain
-  // void advanceExpansion(const Matrix<Real> & prestrain,
-  //                       const ID & material_name = "gel");
-
-  // /// advance expansion based on delta time and temperature-
-  // /// dependent reaction rate
-  // void advanceExpansion(const Real & delta_time,
-  //                       const ID & material_name = "gel");
-
   /// compute amount of gel strain averaged across all RVEs
   Real computeAverageExpansion();
 
