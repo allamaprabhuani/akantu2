@@ -47,10 +47,12 @@ namespace akantu {
 
 void register_error(py::module & mod) {
 
-  mod.def("setDebugLevel", &debug::setDebugLevel);
-  mod.def("getDebugLevel", &debug::getDebugLevel);
-  mod.def("printBacktrace",
-          [](bool flag) { debug::debugger.printBacktrace(flag); });
+  py::module mod_debug = mod.def_submodule("debug");
+
+  mod_debug.def("setDebugLevel", &debug::setDebugLevel);
+  mod_debug.def("getDebugLevel", &debug::getDebugLevel);
+  mod_debug.def("printBacktrace",
+                [](bool flag) { debug::debugger.printBacktrace(flag); });
 
   py::enum_<DebugLevel>(mod, "DebugLevel")
       .value("dblError", dblError)
