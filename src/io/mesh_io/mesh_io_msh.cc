@@ -295,7 +295,7 @@ namespace {
 
     std::unordered_map<size_t, size_t> node_tags;
     std::unordered_map<size_t, Element> element_tags;
-    double version{0};
+    int version{0};
     int size_of_size_t{0};
     Mesh & mesh;
     MeshAccessor mesh_accessor;
@@ -399,7 +399,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
       auto & read_order = this->_read_order[akantu_type];
 
       /// read tags informations
-      if (file.version < 2) {
+      if (file.version < 2000) {
         Int tag0;
         Int tag1;
         Int nb_nodes; // reg-phys, reg-elem, number-of-nodes
@@ -412,7 +412,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
         auto & data1 =
             file.mesh_accessor.template getData<UInt>("tag_1", akantu_type);
         data1.push_back(tag1);
-      } else if (file.version < 4) {
+      } else if (file.version < 4000) {
         UInt nb_tags;
         sstr_elem >> nb_tags;
         for (UInt j = 0; j < nb_tags; ++j) {
@@ -513,7 +513,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
         size_t num_physical_tags;
         sstr >> tag >> min_x >> min_y >> min_z;
 
-        if (entity_dim > 0 or file.version < 4.1) {
+        if (entity_dim > 0 or file.version < 4001) {
           sstr >> max_x >> max_y >> max_z;
         }
 
@@ -546,7 +546,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
   readers["$Nodes"] = [&](const std::string & /*unused*/) {
     size_t num_blocks;
     size_t num_nodes;
-    if (file.version >= 4.1) {
+    if (file.version >= 4001) {
       file.read_line(num_blocks, num_nodes, file.first_node_number,
                      file.last_node_number);
     } else {
@@ -572,7 +572,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
       Vector<double> pos(3);
       Vector<double> real_pos(nodes.getNbComponent());
 
-      if (file.version >= 4.1) {
+      if (file.version >= 4001) {
         file.read_line(entity_dim, entity_tag, parametric, num_nodes_in_block);
         if (parametric) {
           AKANTU_EXCEPTION(
@@ -600,10 +600,8 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
           size_t tag;
           file.read_line(tag, pos(_x), pos(_y), pos(_z));
 
-          if (file.version < 4.1) {
-            file.first_node_number = std::min(file.first_node_number, tag);
-            file.last_node_number = std::max(file.last_node_number, tag);
-          }
+          file.first_node_number = std::min(file.first_node_number, tag);
+          file.last_node_number = std::max(file.last_node_number, tag);
 
           for (auto && data : zip(real_pos, pos)) {
             std::get<0>(data) = std::get<1>(data);
@@ -628,7 +626,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
       int element_type;
       size_t num_elements_in_block;
 
-      if (file.version >= 4.1) {
+      if (file.version >= 4001) {
         file.read_line(entity_dim, entity_tag, element_type,
                        num_elements_in_block);
       } else {
@@ -657,6 +655,9 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
           file.mesh_accessor.template getData<UInt>("tag_0", akantu_type);
       data0.resize(data0.size() + num_elements_in_block, 0);
 
+      auto range = file.entity_tag_to_physical_tags.equal_range(
+          std::make_pair(entity_tag, entity_dim));
+
       auto & physical_data = file.mesh_accessor.template getData<std::string>(
           "physical_names", akantu_type);
       physical_data.resize(physical_data.size() + num_elements_in_block, "");
@@ -669,6 +670,10 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
           size_t node_tag;
           sstr_elem >> node_tag;
 
+          AKANTU_DEBUG_ASSERT(node_tag >= file.first_node_number,
+                              "Node number not in range : line "
+                                  << file.current_line);
+
           AKANTU_DEBUG_ASSERT(node_tag <= file.last_node_number,
                               "Node number not in range : line "
                                   << file.current_line);
@@ -680,8 +685,6 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
         elem.element = connectivity.size() - 1;
         file.element_tags[elem_tag] = elem;
 
-        auto range = file.entity_tag_to_physical_tags.equal_range(
-            std::make_pair(entity_tag, entity_dim));
         bool first = true;
         for (auto it = range.first; it != range.second; ++it) {
           auto phys_it = this->physical_names.find(it->second);
@@ -716,14 +719,19 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
   readers["$MeshFormat"] = [&](const std::string & /*unused*/) {
     auto && sstr = file.get_line();
 
+    double version;
     int format;
-    sstr >> file.version >> format;
+    sstr >> version >> format;
+
+    int major = std::trunc(version);
+    int minor = std::round(10 * (version - major));
+    file.version = major * 1000 + minor;
 
     if (format != 0) {
       AKANTU_ERROR("This reader can only read ASCII files.");
     }
 
-    if (file.version > 2) {
+    if (file.version > 2000) {
       sstr >> file.size_of_size_t;
       if (file.size_of_size_t > int(sizeof(UInt))) {
         AKANTU_DEBUG_INFO("The size of the indexes in akantu might be to small "
@@ -733,7 +741,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       }
     }
 
-    if (file.version < 4) {
+    if (file.version < 4000) {
       this->populateReaders2(file, readers);
     } else {
       this->populateReaders4(file, readers);
@@ -922,7 +930,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
   }
 
   // mesh.updateTypesOffsets(_not_ghost);
-  if (file.version < 4) {
+  if (file.version < 4000) {
     this->constructPhysicalNames("tag_0", mesh);
     if (file.has_physical_names) {
       mesh.createGroupsFromMeshData<std::string>("physical_names");

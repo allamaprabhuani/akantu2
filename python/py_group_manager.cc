@@ -96,6 +96,7 @@ void register_group_manager(py::module & mod) {
       .def("clear", [](ElementGroup & self) { self.clear(); })
       .def("empty", &ElementGroup::empty)
       .def("append", &ElementGroup::append)
+      .def("optimize", &ElementGroup::optimize)
       .def(
           "add",
           [](ElementGroup & self, const Element & element, bool add_nodes,
@@ -136,10 +137,12 @@ void register_group_manager(py::module & mod) {
       .def(
           "createElementGroup",
           [](GroupManager & self, const std::string & id,
-             UInt spatial_dimension, bool b) -> decltype(auto) {
-            return self.createElementGroup(id, spatial_dimension, b);
+             UInt spatial_dimension, bool replace_group) -> decltype(auto) {
+            return self.createElementGroup(id, spatial_dimension,
+                                           replace_group);
           },
-          py::return_value_policy::reference)
+          py::arg("id"), py::arg("spatial_dimension"),
+          py::arg("replace_group") = false, py::return_value_policy::reference)
       .def("createGroupsFromMeshDataUInt",
            &GroupManager::createGroupsFromMeshData<UInt>)
       .def("createElementGroupFromNodeGroup",
