@@ -49,6 +49,29 @@ void register_error(py::module & mod) {
 
   py::module mod_debug = mod.def_submodule("debug");
 
+  mod.def("setDebugLevel", [](DebugLevel lvl) {
+    debug::setDebugLevel(lvl);
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "setDebugLevel() is deprecated, it has moved in the "
+                 "submodule debug",
+                 1);
+  });
+  mod.def("getDebugLevel", []() {
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "getDebugLevel() is deprecated, it has moved in the "
+                 "submodule debug",
+                 1);
+    return debug::getDebugLevel();
+  });
+
+  mod.def("printBacktrace", [](bool flag) {
+    debug::debugger.printBacktrace(flag);
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "printBacktrace() is deprecated, it has moved in the "
+                 "submodule debug",
+                 1);
+  });
+
   mod_debug.def("setDebugLevel", &debug::setDebugLevel);
   mod_debug.def("getDebugLevel", &debug::getDebugLevel);
   mod_debug.def("printBacktrace",
