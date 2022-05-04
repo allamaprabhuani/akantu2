@@ -61,6 +61,8 @@ public:
     this->getVector().printself(stream, indent + 1);
     stream << space << "]" << std::endl;
   }
+
+  using SolverVector::isDistributed;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -103,6 +105,14 @@ public:
     ++this->release_;
   }
 
+  virtual
+  bool
+  isDistributed()
+    const
+    override
+      { return false; }
+
+
 public:
   Array<Real> & getVector() override { return vector; }
   const Array<Real> & getVector() const override { return vector; }
@@ -114,6 +124,8 @@ public:
   virtual void setGlobalVector(const Array<Real> & solution) {
     this->vector.copy(solution);
   }
+
+  bool isFinite() const override { return vector.isFinite(); }
 
 protected:
   DOFManagerDefault & dof_manager;

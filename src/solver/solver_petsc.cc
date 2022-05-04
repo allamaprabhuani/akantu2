@@ -90,4 +90,11 @@ void SolverPETSc::solve() {
   PETSc_call(KSPSolve, ksp, rhs, solution);
 }
 
+/* -------------------------------------------------------------------------- */
+bool SolverPETSc::isFinite() const {
+  PetscReal norm;
+  PETSc_call(VecNorm, NORM_INFINITY, &norm);
+  return std::isfinite(norm);
+}
+
 } // namespace akantu

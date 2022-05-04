@@ -174,7 +174,8 @@ void register_dof_manager(py::module & mod) {
            py::arg("lumped_mtx"), py::arg("scale_factor") = 1.)
       .def("assemblePreassembledMatrix",
            &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
-           py::arg("terms"));
+           py::arg("terms"))
+      .def("zeroResidual", &DOFManager::zeroResidual);
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")
       .def(
