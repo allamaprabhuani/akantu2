@@ -148,7 +148,60 @@ void ConstitutiveLaw::computeAllFluxes(GhostType ghost_type) {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void Constitutivelaw::assembleStiffnessMatrix(GhostType ghost_type) {
+
+  AKANTU_DEBUG_IN();
   
+  UInt spatial_dimension = model.getSpatialDimension();
   
+  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
+
+    Array<UInt> & elem_filter = element_filter(type, ghost_type);
+    if (elem_filter.empty()) {
+      AKANTU_DEBUG_OUT();
+      return;
+    }
+
+    UInt nb_element = elem_filter.size();
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+
+    
+    UInt tangent_size = spatial_dimension;
+    
+    auto * tangent_stiffness_matrix =
+      new Array<Real>(nb_element * nb_quadrature_points,
+                      tangent_size * tangent_size, "tangent_stiffness_matrix");
+    
+    tangent_stiffness_matrix->zero();
+    
+    computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
+
+    
+    auto bt_d_b = std::make_unique<Array<Real>>(
+				nb_element * nb_quadrature_points,
+				nb_nodes_per_element * nb_nodes_per_element, "B^t*D*B");
+
+    fem.computeBtDB(*tangent_stiffness_matrix, *bt_d_b, 2, type);
+
+    delete tangent_stiffness_matrix;
+    
+    /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+    auto K_e = std::make_unique<Array<Real>>(
+        nb_element, nb_nodes_per_element * nb_nodes_per_element, "K_e");
+
+    fem.integrate(*bt_d_b, *K_e, nb_nodes_per_element * nb_nodes_per_element,
+                  type);
+
+    delete bt_d_b;
+
+    model.getDOFManager().assembleElementalMatricesToMatrix(
+		  "K", "dof", *K_e, type, ghost_type, _symmetric, elem_filter);
+    delete K_e;
+
+  }
 
 }
+    

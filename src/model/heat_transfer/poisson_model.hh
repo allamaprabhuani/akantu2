@@ -10,7 +10,7 @@
  * @date creation: Sun May 01 2011
  * @date last modification: Mon Mar 15 2021
  *
- * @brief  Model of Heat Transfer
+ * @brief  Model of Generic Poisson Equation
  *
  *
  * @section LICENSE
@@ -38,8 +38,6 @@
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "model.hh"
-/* -------------------------------------------------------------------------- */
-#include <array>
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_POISSON_MODEL_HH_
@@ -89,6 +87,9 @@ protected:
 
   void predictor() override;
 
+  /// callback for the solver, this is called at end of solve
+  void corrector() override;
+
   /// compute the heat flux
   void assembleResidual() override;
 
@@ -110,8 +111,11 @@ protected:
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
+  /// 
+  TimeStepSolverType getDefaultSolverType() const override;
+
   /* ------------------------------------------------------------------------ */
-  /* Materials (phase_field_model.cc)                                         */
+  /* Constitutive laws                                                        */
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty constitutive law of a given type
@@ -157,7 +161,7 @@ public:
   void assembleInternalDofRate();
 
   /// assemble the stiffness matrix
-  void assembleStiffnessMatrix();
+  void assembleStiffnessMatrix(bool need_to_reassemble = false);
 
 
 public:
@@ -222,9 +226,7 @@ public:
   /// get the assembled heat flux
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalDofRate, internal_dof_rate);
   /// get the assembled heat flux
-  AKANTU_GET_MACRO_DEREF_PTR(InternalDofRate, internal_dof_rate);
-  /// get the boundary vector
-  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
+  AKANTU_GET_MACRO_DEREF_PTR(InternalDofRate, internal_dof_rate); 
   /// get the external dof rate vector
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ExternalDofRate, external_dof_rate);
   /// get the external dof rate vector
@@ -266,6 +268,7 @@ public:
 
   /// give the constitutive law internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
+
 
   AKANTU_GET_MACRO(ConstitutiveLawByElement, constitutive_law_index,
                    const ElementTypeMapArray<UInt> &);
@@ -355,6 +358,7 @@ private:
 #include "parser.hh"
 #include "constitutive_law.hh"
 
-#include "poisson_model_inline_impl.hh"
+#include "constitutive_law_selector.hh"
+#include "constitutive_law_selector_tmpl.hh"
 
 #endif /* AKANTU_POISSON_MODEL_HH_ */

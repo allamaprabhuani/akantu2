@@ -103,7 +103,7 @@ public:
   virtual void beforeSolveStep();
 
   ///
-  virtual void afterSolveStep();
+  virtual void afterSolveStep(bool converged = true);
 
   /// compute the fluxes for this constitutive law
   virtual void computeAllFluxes(GhostType ghost_type = _not_ghost);
@@ -154,6 +154,32 @@ protected:
     AKANTU_TO_IMPLEMENT();
   }
 
+  
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  AKANTU_GET_MACRO(Name, name, const std::string &);
+  AKANTU_SET_MACRO(Name, name, const std::string &);
+
+  AKANTU_GET_MACRO(Model, model, const PoissonModel &)
+
+  AKANTU_GET_MACRO(ID, id, const ID &);
+  
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+
+  
+  bool hasMatrixChanged(const ID & id) {
+    if (id == "K") {
+      return hasStiffnessMatrixChanged();
+    }
+  }
+
+  /// specify if the matrix need to be recomputed for this
+  /// constitutive law
+  virtual bool hasStiffnessMatrixChanged() { return true; }
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -162,9 +188,9 @@ protected:
   /// boolean to know if the material has been initialized
   bool is_init;
 
-  std::map<ID, InternalPhaseField<Real> *> internal_vectors_real;
-  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_uint;
-  std::map<ID, InternalPhaseField<bool> *> internal_vectors_bool;
+  std::map<ID, InternalConstitutiveLaw<Real> *> internal_vectors_real;
+  std::map<ID, InternalConstitutiveLaw<UInt> *> internal_vectors_uint;
+  std::map<ID, InternalConstitutiveLaw<bool> *> internal_vectors_bool;
 
 protected:
   ID id;
@@ -189,7 +215,6 @@ protected:
 
   /// gradient of dof arrays ordered by element types
   InternalField<Real> gradient_dof;
-
   
   /// vector that contains the names of all the internals that need to
   /// be transferred when constitutive law interfaces move
@@ -197,18 +222,18 @@ protected:
   
 };
 
-
-} // namespace akantu
-
-  
 /// standard output stream operator
 inline std::ostream & operator<<(std::ostream & stream,
                                  const ConstitutiveLaw & _this) {
   _this.printself(stream);
   return stream;
 }
+  
 
-#include "constitutive_law_inline_impl.cc"
+} // namespace akantu
+
+  
+
 
 #include "internal_field_tmpl.hh"
 #include "random_internal_field_tmpl.hh"

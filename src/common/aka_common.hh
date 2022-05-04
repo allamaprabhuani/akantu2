@@ -128,7 +128,8 @@ enum EventHandlerPriority {
   (coupler_solid_contact)                       \
   (coupler_solid_cohesive_contact)              \
   (phase_field_model)                           \
-  (coupler_solid_phasefield)
+  (coupler_solid_phasefield)			\
+  (poisson_model)				
 // clang-format on
 
 /// enum ModelType defines which type of physics is solved
@@ -141,6 +142,7 @@ enum class ModelType {
   solid_mechanics_model,
   solid_mechanics_model_cohesive,
   heat_transfer_model,
+  poisson_model,
   structural_mechanics_model,
   embedded_model,
 };
@@ -337,6 +339,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (htm_gradient_temperature)                    \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
+  (pm_flux)					\
   (pfm_damage)                                  \
   (pfm_driving)                                 \
   (pfm_history)                                 \
@@ -350,6 +353,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (user_1)                                      \
   (user_2)                                      \
   (material_id)                                 \
+  (constitutive_law_id)				\
   (for_dump)                                    \
   (cf_nodal)                                    \
   (cf_incr)                                     \
@@ -402,6 +406,10 @@ enum class SynchronizationTag {
   _htm_gradient_temperature, ///< synchronization of the element gradient
                              /// temperature
 
+  // --- HeatTransfer tags ---
+  _pm_flux,          ///< synchronization of the fluxes to compute to
+		     ///the  internal dof rate
+
   // --- PhaseFieldModel tags ---
   _pfm_damage,  ///< synchronization of the nodal damage
   _pfm_driving, ///< synchronization of the driving forces to
@@ -430,11 +438,12 @@ enum class SynchronizationTag {
   _nh_criterion,
 
   // --- General tags ---
-  _test,        ///< Test tag
-  _user_1,      ///< tag for user simulations
-  _user_2,      ///< tag for user simulations
-  _material_id, ///< synchronization of the material ids
-  _for_dump,    ///< everything that needs to be synch before dump
+  _test,                 ///< Test tag
+  _user_1,               ///< tag for user simulations
+  _user_2,               ///< tag for user simulations
+  _material_id,          ///< synchronization of the material ids
+  _constitutive_law_id,  ///< synchronization of the constitutive law ids
+  _for_dump,             ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---
   _cf_nodal, ///< synchronization of disp, velo, and current position

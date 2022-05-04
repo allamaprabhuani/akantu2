@@ -110,6 +110,22 @@ struct HeatTransferModelOptions : public ModelOptions {
 };
 #endif
 
+  
+#ifdef AKANTU_POISSON_MODEL
+/* -------------------------------------------------------------------------- */
+struct PoissonModelOptions : public ModelOptions {
+  explicit PoissonModelOptions(
+      AnalysisMethod analysis_method = _explicit_lumped_mass)
+      : ModelOptions(analysis_method) {}
+
+  template <typename... pack>
+  PoissonModelOptions(use_named_args_t /*unused*/, pack &&... _pack)
+      : PoissonModelOptions(
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
+};
+#endif
+
+
 #ifdef AKANTU_PHASE_FIELD
 /* -------------------------------------------------------------------------- */
 struct PhaseFieldModelOptions : public ModelOptions {
