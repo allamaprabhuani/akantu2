@@ -150,7 +150,7 @@ void ConstitutiveLaw::computeAllFluxes(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Constitutivelaw::assembleStiffnessMatrix(GhostType ghost_type) {
+void ConstitutiveLaw::assembleStiffnessMatrix(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
   
@@ -195,13 +195,11 @@ void Constitutivelaw::assembleStiffnessMatrix(GhostType ghost_type) {
     fem.integrate(*bt_d_b, *K_e, nb_nodes_per_element * nb_nodes_per_element,
                   type);
 
-    delete bt_d_b;
-
     model.getDOFManager().assembleElementalMatricesToMatrix(
 		  "K", "dof", *K_e, type, ghost_type, _symmetric, elem_filter);
-    delete K_e;
 
   }
 
 }
     
+}

@@ -53,6 +53,7 @@ namespace akantu {
   (integration_scheme)                                                  \
   (material)                                                            \
   (phasefield)								\
+  (constitutive_law)							\
   (mesh)                                                                \
   (model)                                                               \
   (model_solver)                                                        \
@@ -85,6 +86,7 @@ enum class ParserType {
   integration_scheme,
   material,
   phasefield,
+  constitutive_law,
   mesh,
   model,
   model_solver,

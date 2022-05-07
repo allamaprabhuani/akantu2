@@ -67,7 +67,16 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
-  
+  /// compute the celerity in the constitutive law
+  Real getCelerity() const override {
+    return 4. * this->diffusivity;
+  };
+
+  /// compute the effective capacity
+  Real getEffectiveCapacity() const override {
+    return 1.;
+  };
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

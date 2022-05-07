@@ -53,7 +53,26 @@
 #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 
+
+
 namespace akantu {
+  
+  class ComputeEffectiveCapacityFunctor {
+  public:
+    ComputeEffectiveCapacityFunctor(const PoissonModel & model) : model(model){};
+    
+    void operator()(Matrix<Real> & rho, const Element & element) {
+      const Array<UInt> & law_indexes =
+        model.getConstitutiveLawByElement(element.type, element.ghost_type);
+      Real law_rho = 
+        model.getConstitutiveLaw(law_indexes(element.element)).getEffectiveCapacity();
+      rho.set(law_rho);
+    }
+    
+  private:
+    const PoissonModel & model;
+  };
+  
 
 /* -------------------------------------------------------------------------- */
 PoissonModel::PoissonModel(Mesh & mesh, UInt dim, const ID & id,
@@ -70,12 +89,9 @@ PoissonModel::PoissonModel(Mesh & mesh, UInt dim, const ID & id,
   this->mesh.registerDumper<DumperParaview>("poisson_model", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
 			 _ek_regular);
-
+  
   constitutive_law_selector =
       std::make_shared<DefaultConstitutiveLawSelector>(constitutive_law_index);
-
-
-  conductivity = Matrix<Real>(this->spatial_dimension, this->spatial_dimension);
 
   this->registerDataAccessor(*this);
 
@@ -349,92 +365,29 @@ void PoissonModel::assembleCapacityLumped() {
 
   this->getDOFManager().zeroLumpedMatrix("M");
 
-  // call compute capacity lumped equivalent matrix on each local elements
-  for (auto & law : constitutive_laws) {
-      law->assembleCapacityLumped(_not_ghost);
-      law->assembleCapacityLumped(_ghost);
-  }
-  
+  assembleCapacityLumped(_not_ghost);
+  assembleCapacityLumped(_ghost);
+    
   need_to_reassemble_capacity_lumped = false;
 
   AKANTU_DEBUG_OUT();
 }
-  
-  
-/* -------------------------------------------------------------------------- */
-FEEngine & PoissonModel::getFEEngineBoundary(const ID & name) {
-  return aka::as_type<FEEngine>(getFEEngineClassBoundary<FEEngineType>(name));
-}
 
-
+  
 /* -------------------------------------------------------------------------- */
 void PoissonModel::assembleCapacityLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & fem = getFEEngineClass<FEEngineType>();
-  heat_transfer::details::ComputeRhoFunctor compute_rho(*this);
+  ComputeEffectiveCapacityFunctor compute_rho(*this);
 
-  for (auto && type :
-       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-    fem.assembleFieldLumped(compute_rho, "M", "temperature",
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
+    fem.assembleFieldLumped(compute_rho, "M", "dof",
                             this->getDOFManager(), type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
-}
-
-
-/* -------------------------------------------------------------------------- */
-Real PoissonModel::getStableTimeStep() {
-  AKANTU_DEBUG_IN();
-
-  Real el_size;
-  Real min_el_size = std::numeric_limits<Real>::max();
-  Real conductivitymax = conductivity(0, 0);
-
-  // get the biggest parameter from k11 until k33//
-  for (UInt i = 0; i < spatial_dimension; i++) {
-    for (UInt j = 0; j < spatial_dimension; j++) {
-      conductivitymax = std::max(conductivity(i, j), conductivitymax);
-    }
-  }
-  for (auto && type :
-       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
-
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-
-    Array<Real> coord(0, nb_nodes_per_element * spatial_dimension);
-    FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
-                                         _not_ghost);
-
-    auto el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
-    UInt nb_element = mesh.getNbElement(type);
-
-    for (UInt el = 0; el < nb_element; ++el, ++el_coord) {
-      el_size = getFEEngine().getElementInradius(*el_coord, type);
-      min_el_size = std::min(min_el_size, el_size);
-    }
-
-    AKANTU_DEBUG_INFO("The minimum element size : "
-                      << min_el_size
-                      << " and the max conductivity is : " << conductivitymax);
-  }
-
-  Real min_dt = 2. * min_el_size * min_el_size / 4. * density * capacity /
-                conductivitymax;
-
-  mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
-
-  AKANTU_DEBUG_OUT();
-
-  return min_dt;
-}
-/* -------------------------------------------------------------------------- */
-
-void PoissonModel::setTimeStep(Real time_step, const ID & solver_id) {
-  Model::setTimeStep(time_step, solver_id);
-
-  this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
 }
 
 
@@ -447,17 +400,86 @@ void PoissonModel::assembleCapacity() {
 
   auto & fem = getFEEngineClass<FEEngineType>();
 
-  heat_transfer::details::ComputeRhoFunctor rho_functor(*this);
+  ComputeEffectiveCapacityFunctor rho_functor(*this);
 
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-    fem.assembleFieldMatrix(rho_functor, "M", "temperature",
+    fem.assembleFieldMatrix(rho_functor, "M", "dof",
                             this->getDOFManager(), type, ghost_type);
   }
 
   need_to_reassemble_capacity = false;
 
   AKANTU_DEBUG_OUT();
+}
+  
+/* -------------------------------------------------------------------------- */
+FEEngine & PoissonModel::getFEEngineBoundary(const ID & name) {
+  return aka::as_type<FEEngine>(getFEEngineClassBoundary<FEEngineType>(name));
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Information                                                                */
+/* -------------------------------------------------------------------------- */
+Real PoissonModel::getStableTimeStep() {
+  AKANTU_DEBUG_IN();
+
+  Real min_dt = getStableTimeStep(_not_ghost);
+
+  /// reduction min over all processors
+  mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
+
+  AKANTU_DEBUG_OUT();
+  return min_dt;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PoissonModel::getStableTimeStep(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Real min_dt = std::numeric_limits<Real>::max();
+
+  Element elem;
+  elem.ghost_type = ghost_type;
+
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
+    elem.type = type;
+    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    UInt nb_element = mesh.getNbElement(type);
+
+    auto law_indexes = constitutive_law_index(type, ghost_type).begin();
+    auto law_loc_num = constitutive_law_local_numbering(type, ghost_type).begin();
+
+    Array<Real> X(0, nb_nodes_per_element * Model::spatial_dimension);
+    FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), X, type,
+                                         _not_ghost);
+
+    auto X_el = X.begin(Model::spatial_dimension, nb_nodes_per_element);
+
+    for (UInt el = 0; el < nb_element;
+         ++el, ++X_el, ++law_indexes, ++law_loc_num) {
+      elem.element = *law_loc_num;
+      Real el_h = getFEEngine().getElementInradius(*X_el, type);
+      Real el_c = this->constitutive_laws[*law_indexes]->getCelerity();
+      Real el_dt = el_h / el_c;
+
+      min_dt = std::min(min_dt, el_dt);
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return min_dt;
+}
+  
+
+/* -------------------------------------------------------------------------- */
+
+void PoissonModel::setTimeStep(Real time_step, const ID & solver_id) {
+  Model::setTimeStep(time_step, solver_id);
+
+  this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
 }
 
 

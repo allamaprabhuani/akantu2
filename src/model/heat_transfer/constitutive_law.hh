@@ -113,15 +113,23 @@ public:
 
   /// compute the stiffness matrix
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
- 
-  /// compute the cpaciyt lumped equivalent matrix
-  virtual void assembleCapacityLumped(GhostType ghost_type);
-  
+   
   /// add an element to the local mesh filter
   inline UInt addElement(const ElementType & type, UInt element,
                          const GhostType & ghost_type);
   inline UInt addElement(const Element & element);
 
+  /// get a constitutive law celerity to compute the stable time step
+  virtual Real getCelerity() const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// get a effective capacity to assmble capacity matrix
+  virtual Real getEffectiveCapacity() const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;
  
@@ -169,6 +177,8 @@ public:
   
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
+  AKANTU_GET_MACRO(ElementFilter, element_filter,
+                   const ElementTypeMapArray<UInt> &);
   
   bool hasMatrixChanged(const ID & id) {
     if (id == "K") {
@@ -211,10 +221,10 @@ protected:
   ElementTypeMapArray<UInt> element_filter;
 
   /// fluxes arrays ordered by element types
-  InternalField<Real> flux_dof;
+  InternalConstitutiveLaw<Real> flux_dof;
 
   /// gradient of dof arrays ordered by element types
-  InternalField<Real> gradient_dof;
+  InternalConstitutiveLaw<Real> gradient_dof;
   
   /// vector that contains the names of all the internals that need to
   /// be transferred when constitutive law interfaces move

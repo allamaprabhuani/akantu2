@@ -154,6 +154,9 @@ protected:
   /// callback for the solver, this is called at end of solve
   void afterSolveStep(bool converged = true) override;
   
+  /// compute the stable time step
+  Real getStableTimeStep(GhostType ghost_type);
+
   
 public:
   /// compute the internal dof rate \todo Need code review: currently not
@@ -168,13 +171,16 @@ public:
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
 
-  /// calculate the lumped capacity vector for poisson problem (w
-  /// ghost type)
-  void assembleCapacityLumped(GhostType ghost_type);
-
   /// assemble the capacity matrix
   void assembleCapacity();
 
+
+public:
+  /// assemble the lumped capacity matrix for local and ghost elements
+  void assembleCapacityLumped(GhostType ghost_type);
+
+  /// assemble the capacity matrix for either _ghost or _not_ghost elements
+  void assembleCapacity(GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
