@@ -150,6 +150,38 @@ void ConstitutiveLaw::computeAllFluxes(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
+void PoissonModel::assembleInternalDofRate(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  
+  Array<Real> & internal_dof_rate = model.getInternalDofRate();
+
+  Mesh & mesh = fem.getMesh();
+  
+  for (auto type : element_filter.elementTypes(_ghost_type = ghost_type)) {
+
+    UInt nb_element = elem_filter.size();
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    auto & flux_dof_vect = flux_dof(type, ghost_type);
+
+    UInt nb_quad_points = flux_dof_vect.size();
+    Array<Real> bt_k_gT(nb_quad_points, nb_nodes_per_element);
+    fem.computeBtD(flux_dof_vect, bt_k_gT, type, ghost_type);
+    
+    Array<Real> int_bt_k_gT(nb_elements, nb_nodes_per_element);
+    
+    fem.integrate(bt_k_gT, int_bt_k_gT, nb_nodes_per_element, type,
+		  ghost_type, elem_filter);
+    
+    model.getDOFManager().assembleElementalArrayLocalArray(
+	  int_bt_k_gT, internal_dof_rate, type, ghost_type, -1., elem_filter);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+  
+/* -------------------------------------------------------------------------- */
 void ConstitutiveLaw::assembleStiffnessMatrix(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();

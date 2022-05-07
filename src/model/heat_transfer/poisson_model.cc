@@ -98,7 +98,8 @@ PoissonModel::PoissonModel(Mesh & mesh, UInt dim, const ID & id,
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
     this->registerSynchronizer(synchronizer, SynchronizationTag::_constitutive_law_id);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pm_flux);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_pm_dof);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_pm_gradient_dof);
   }
 
   AKANTU_DEBUG_OUT();
@@ -141,30 +142,30 @@ ModelSolverOptions PoissonModel::getDefaultSolverOptions(
   switch (type) {
   case TimeStepSolverType::_dynamic_lumped: {
     options.non_linear_solver_type = NonLinearSolverType::_lumped;
-    options.integration_scheme_type["temperature"] =
+    options.integration_scheme_type["dof"] =
         IntegrationSchemeType::_forward_euler;
-    options.solution_type["temperature"] = IntegrationScheme::_temperature_rate;
+    options.solution_type["dof"] = IntegrationScheme::_temperature_rate;
     break;
   }
   case TimeStepSolverType::_static: {
     options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-    options.integration_scheme_type["temperature"] =
+    options.integration_scheme_type["dof"] =
         IntegrationSchemeType::_pseudo_time;
-    options.solution_type["temperature"] = IntegrationScheme::_not_defined;
+    options.solution_type["dof"] = IntegrationScheme::_not_defined;
     break;
   }
   case TimeStepSolverType::_dynamic: {
     if (this->method == _explicit_consistent_mass) {
       options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-      options.integration_scheme_type["temperature"] =
+      options.integration_scheme_type["dof"] =
           IntegrationSchemeType::_forward_euler;
-      options.solution_type["temperature"] =
+      options.solution_type["dof"] =
           IntegrationScheme::_temperature_rate;
     } else {
       options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-      options.integration_scheme_type["temperature"] =
+      options.integration_scheme_type["dof"] =
           IntegrationSchemeType::_backward_euler;
-      options.solution_type["temperature"] = IntegrationScheme::_temperature;
+      options.solution_type["dof"] = IntegrationScheme::_temperature;
     }
     break;
   }
@@ -294,6 +295,8 @@ void PoissonModel::assembleInternalDofRate() {
   AKANTU_DEBUG_IN();
 
   this->internal_dof_rate->zero();
+  
+  this->synchronize(SynchronizationTag::_pm_dof);
 
   // compute the fluxes of local elements
   AKANTU_DEBUG_INFO("Compute local fluxes");
@@ -301,22 +304,20 @@ void PoissonModel::assembleInternalDofRate() {
     law->computeAllFluxes(_not_ghost);
   }
 
-  
-  // communicate the stresses
-  AKANTU_DEBUG_INFO("Send data for residual assembly");
-  this->asynchronousSynchronize(SynchronizationTag::_pm_flux);
-  
+ 
   // assemble the rate due to local fluxes
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
   for (auto & law : constitutive_laws) {
     law->assembleInternalDofRate(_not_ghost);
   }
 
-  // finalize communications
-  AKANTU_DEBUG_INFO("Wait distant stresses");
-  this->waitEndSynchronize(SynchronizationTag::_pm_flux);
-
-    // assemble the fluxes due to ghost elements
+  // compute the fluxes of ghost elements
+  AKANTU_DEBUG_INFO("Compute local fluxes");
+  for (auto & law : constitutive_laws) {
+    law->computeAllFluxes(_ghost);
+  }
+  
+  // assemble the fluxes due to ghost elements
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   for (auto & law : constitutive_laws) {
     law->assembleInternalDofRate(_ghost);
@@ -479,7 +480,7 @@ Real PoissonModel::getStableTimeStep(GhostType ghost_type) {
 void PoissonModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-  this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
+  this->mesh.getDumper("poisson_model").setTimeStep(time_step);
 }
 
 

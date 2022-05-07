@@ -37,9 +37,16 @@ package_declare(poisson_model
 package_declare_sources(poisson_model
   model/heat_transfer/poisson_model.cc
   model/heat_transfer/poisson_model.hh
+  model/heat_transfer/poisson_model_inline_impl.hh
 
+  
   model/heat_transfer/constitutive_law.cc
   model/heat_transfer/constitutive_law.hh
   model/heat_transfer/constitutive_law_selector.hh
   model/heat_transfer/constitutive_law_selector_tmpl.hh
+
+  model/heat_transfer/constitutive_laws/constitutive_law_diffusion.hh
+  model/heat_transfer/constitutive_laws/constitutive_law_diffusion.cc
+  model/heat_transfer/constitutive_laws/constitutive_law_heat.hh
+  model/heat_transfer/constitutive_laws/constitutive_law_heat.cc
   )
