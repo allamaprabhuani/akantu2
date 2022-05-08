@@ -16,25 +16,24 @@ ConstitutiveLawDiffusion::ConstitutiveLawDiffusion(PoissonModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
 ConstitutiveLawDiffusion::ConstitutiveLawDiffusion(PoissonModel & model,
-					 UInt /*a_dim*/, const Mesh & mesh,
-					 FEEngine & fe_engine, const ID & id)
-    : ConstitutiveLaw(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
+						   UInt dim, const Mesh & mesh,
+						   FEEngine & fe_engine, const ID & id)
+  : ConstitutiveLaw(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawDiffusion<dim>::initialize() {
+  void ConstitutiveLawDiffusion::initialize() {
   this->registerParam("diffusivity", diffusivity, _pat_readable, "Diffusion Coefficient");
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawDiffusion::initMaterial() {
+void ConstitutiveLawDiffusion::initConstitutiveLaw() {
   AKANTU_DEBUG_IN();
-  ConstitutiveLaw::initMaterial();
+  ConstitutiveLaw::initConstitutiveLaw();
 
   this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
@@ -46,24 +45,22 @@ void ConstitutiveLawDiffusion::computeFlux(ElementType el_type,
 					   GhostType ghost_type) {
 
 
-  computeDiffusivityOnQuad(el_type, ghost_type);
-
+  Matrix<Real> identity(spatial_dimension, spatial_dimension);
+  identity.eye();
+  auto D = identity * this->diffusivity;
+  
   // concentration gradient at quadrature points
   auto & gradient = gradient_dof(el_type, ghost_type);
-  this->getFEEngine().gradientOnIntegrationPoints(model.getDof(), gradient, 1,
-						  el_type, ghost_type);
+  fem.gradientOnIntegrationPoints(model.getDof(), gradient, 1,
+				  el_type, ghost_type);
   
   for (auto && values :
-         zip(make_view(diffusivity_on_qpoints(el_type, ghost_type),
-                       spatial_dimension, spatial_dimension),
-             make_view(gradient, spatial_dimension),
-             make_view(flux_dof(el_type, ghost_type),
-                       spatial_dimension))) {
-    const auto & D = std::get<0>(values);
-    const auto & BC = std::get<1>(values);
-    auto & d_BC = std::get<2>(values);
-    
-    d_BT.mul<false>(D, BC);
+         zip(make_view(gradient, spatial_dimension),
+             make_view(flux_dof(el_type, ghost_type), spatial_dimension))) {
+    const auto & BC = std::get<0>(values);
+    auto & d_BC = std::get<1>(values);
+  
+    d_BC.mul<false>(D, BC);
   }
   
 }
@@ -74,10 +71,13 @@ void ConstitutiveLawDiffusion::computeTangentModuli(ElementType el_type,
 						    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  
+  Matrix<Real> identity(spatial_dimension, spatial_dimension);
+  identity.eye();
+  
   for (auto && tuple :
 	 make_view(tangent_matrix, spatial_dimension, spatial_dimension)) {
-    auto & D = std::get<0>(tuple);
-    D = this->diffusivity;
+    tuple = identity * this->diffusivity;
   }
   
   this->was_stiffness_assembled = true;
@@ -86,17 +86,5 @@ void ConstitutiveLawDiffusion::computeTangentModuli(ElementType el_type,
 }
 
   
-/* -------------------------------------------------------------------------- */
-void ConstitutiveLawDiffusion::computeDiffusivityOnQuad(ElementType el_type,
-							GhostType ghost_type) {
   
-  AKANTU_DEBUG_IN();
-  auto & diff_coef = diffusivity_on_qpoints(el_type, ghost_type);
-  for (auto && tuple :
-	 make_view(diff_coef, spatial_dimension, spatial_dimension)) {
-    auto & D = std::get<0>(tuple);
-    D = this->diffusivity;
-  }
-  AKANTU_DEBUG_OUT();
 }
-  

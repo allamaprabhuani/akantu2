@@ -120,7 +120,7 @@ void PoissonModel::initFullImpl(const ModelOptions & options) {
 
   Model::initFullImpl(options);
 
-  // initialize the materials
+  // initialize the constitutive laws
   if (not this->parser.getLastParsedFile().empty()) {
     this->instantiateConstitutiveLaws();
     this->initConstitutiveLaws();
@@ -128,6 +128,133 @@ void PoissonModel::initFullImpl(const ModelOptions & options) {
 
   this->initBC(*this, *dof, *increment, *external_dof_rate);
 }
+
+/* -------------------------------------------------------------------------- */
+ConstitutiveLaw &
+PoissonModel::registerNewConstitutiveLaw(const ParserSection & section) {
+  std::string law_name;
+  std::string law_type = section.getName();
+  std::string opt_param = section.getOption();
+
+  try {
+    std::string tmp = section.getParameter("name");
+    law_name = tmp; /** this can seam weird, but there is an ambiguous
+                       * operator overload that i couldn't solve. @todo remove
+                       * the weirdness of this code
+                       */
+  } catch (debug::Exception &) {
+    AKANTU_ERROR("A constitutive law of type \'"
+                 << law_type
+                 << "\' in the input file has been defined without a name!");
+  }
+  ConstitutiveLaw & constitutive_law =
+      this->registerNewConstitutiveLaw(law_name, law_type, opt_param);
+
+  constitutive_law.parseSection(section);
+
+  return constitutive_law;
+}
+
+/* -------------------------------------------------------------------------- */
+ConstitutiveLaw & PoissonModel::registerNewConstitutiveLaw(const ID & law_name,
+                                                    const ID & law_type,
+                                                    const ID & opt_param) {
+  AKANTU_DEBUG_ASSERT(constitutive_laws_names_to_id.find(law_name) ==
+		      constitutive_laws_names_to_id.end(),
+                      "A constitutive law with this name '"
+                          << law_name << "' has already been registered. "
+                          << "Please use unique names for constitutive laws");
+
+  UInt law_count = constitutive_laws.size();
+  constitutive_laws_names_to_id[law_name] = law_count;
+
+  std::stringstream sstr_law;
+  sstr_law << this->id << ":" << law_count << ":" << law_type;
+  ID mat_id = sstr_law.str();
+
+  std::unique_ptr<ConstitutiveLaw> constitutive_law = ConstitutiveLawFactory::getInstance().allocate(
+      law_type, opt_param, *this, mat_id);
+
+  constitutive_laws.push_back(std::move(constitutive_law));
+
+  return *(constitutive_laws.back());
+}
+
+  
+  
+/* -------------------------------------------------------------------------- */
+void PoissonModel::instantiateConstitutiveLaws() {
+  ParserSection model_section;
+  bool is_empty;
+  std::tie(model_section, is_empty) = this->getParserSection();
+
+  if (not is_empty) {
+    auto model_constitutive_laws = model_section.getSubSections(ParserType::_constitutive_law);
+    for (const auto & section : model_constitutive_laws) {
+      this->registerNewConstitutiveLaw(section);
+    }
+  }
+
+  auto sub_sections = this->parser.getSubSections(ParserType::_constitutive_law);
+  for (const auto & section : sub_sections) {
+    this->registerNewConstitutiveLaw(section);
+  }
+
+
+  if (constitutive_laws.empty()) {
+    AKANTU_EXCEPTION("No constitutive_laws where instantiated for the model"
+                     << getID());
+  }
+  are_constitutive_laws_instantiated = true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+void PoissonModel::initConstitutiveLaws() {
+  AKANTU_DEBUG_ASSERT(constitutive_laws.size() != 0, "No constitutive law to initialize !");
+
+  if (!are_constitutive_laws_instantiated) {
+    instantiateConstitutiveLaws();
+  }
+
+  this->assignConstitutiveLawToElements();
+
+  for (auto & law : constitutive_laws) {
+    /// init internals properties
+    law->initConstitutiveLaw();
+  }
+
+  this->synchronize(SynchronizationTag::_smm_init_mat);
+}
+
+/* -------------------------------------------------------------------------- */
+void PoissonModel::assignConstitutiveLawToElements(
+    const ElementTypeMapArray<UInt> * filter) {
+
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        UInt law_index = (*constitutive_law_selector)(element);
+        AKANTU_DEBUG_ASSERT(
+            law_index < constitutive_laws.size(),
+            "The constitutive law selector returned an index that does not exists");
+        constitutive_law_index(element) = law_index;
+      },
+      _element_filter = filter, _ghost_type = _not_ghost);
+
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        auto law_index = constitutive_law_index(element);
+        auto index = constitutive_laws[law_index]->addElement(element);
+        constitutive_law_local_numbering(element) = index;
+      },
+      _element_filter = filter, _ghost_type = _not_ghost);
+
+  // synchronize the element constitutive law arrays
+  this->synchronize(SynchronizationTag::_constitutive_law_id);
+}
+
 
 /* -------------------------------------------------------------------------- */
 TimeStepSolverType PoissonModel::getDefaultSolverType() const {
@@ -537,6 +664,32 @@ std::shared_ptr<dumpers::Field> PoissonModel::createElementalField(
   return field;
 }
 
+
+/* -------------------------------------------------------------------------- */
+void PoissonModel::printself(std::ostream & stream, int indent) const {
+  std::string space(indent, AKANTU_INDENT);
+
+  stream << space << "Poisson Model [" << std::endl;
+  stream << space << " + id                : " << id << std::endl;
+  stream << space << " + spatial dimension : " << Model::spatial_dimension
+         << std::endl;
+  stream << space << " + fem [" << std::endl;
+  getFEEngine().printself(stream, indent + 2);
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+  stream << space << " + nodals information [" << std::endl;
+  dof->printself(stream, indent + 2);
+  external_dof_rate->printself(stream, indent + 2);
+  internal_dof_rate->printself(stream, indent + 2);
+  blocked_dofs->printself(stream, indent + 2);
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
+  stream << space << " + constitutive law information [" << std::endl;
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
+  stream << space << "]" << std::endl;
+}
+
+  
 /* -------------------------------------------------------------------------- */
 inline UInt PoissonModel::getNbData(const Array<UInt> & indexes,
 				    const SynchronizationTag & tag) const {
@@ -553,7 +706,18 @@ inline void PoissonModel::packData(CommunicationBuffer & buffer,
                                         const Array<UInt> & indexes,
                                         const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
-
+  
+  for (auto index : indexes) {
+    switch (tag) {
+    case SynchronizationTag::_pm_dof: {
+      buffer << (*dof)(index);
+      break;
+    }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
+    }
+  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -562,6 +726,18 @@ inline void PoissonModel::unpackData(CommunicationBuffer & buffer,
                                           const Array<UInt> & indexes,
                                           const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
+
+    for (auto index : indexes) {
+    switch (tag) {
+    case SynchronizationTag::_pm_dof: {
+      buffer >> (*dof)(index);
+      break;
+    }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
+    }
+  }
 
 
   AKANTU_DEBUG_OUT();
@@ -574,6 +750,29 @@ inline UInt PoissonModel::getNbData(const Array<Element> & elements,
 
   UInt size = 0;
   UInt nb_nodes_per_element = 0;
+  Array<Element>::const_iterator<Element> it = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
+
+  switch (tag) {
+  case SynchronizationTag::_pm_dof: {
+    size += nb_nodes_per_element * sizeof(Real); // temperature
+    break;
+  }
+  case SynchronizationTag::_pm_gradient_dof: {
+    // temperature gradientx
+    size += getNbIntegrationPoints(elements) * spatial_dimension * sizeof(Real);
+    size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
 
   AKANTU_DEBUG_OUT();
   return size;
@@ -583,14 +782,30 @@ inline UInt PoissonModel::getNbData(const Array<Element> & elements,
 inline void PoissonModel::packData(CommunicationBuffer & buffer,
 				   const Array<Element> & elements,
 				   const SynchronizationTag & tag) const {
-  
+  switch (tag) {
+  case SynchronizationTag::_pm_dof: {
+    packNodalDataHelper(*dof, buffer, elements, mesh);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void PoissonModel::unpackData(CommunicationBuffer & buffer,
 				     const Array<Element> & elements,
 				     const SynchronizationTag & tag) {
-  
+  switch (tag) {
+  case SynchronizationTag::_pm_dof: {
+    unpackNodalDataHelper(*dof, buffer, elements, mesh);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

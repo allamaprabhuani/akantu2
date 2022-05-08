@@ -339,7 +339,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (htm_gradient_temperature)                    \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
-  (pm_flux)					\
+  (pm_dof)					\
+  (pm_gradient_dof)				\
   (pfm_damage)                                  \
   (pfm_driving)                                 \
   (pfm_history)                                 \
@@ -407,8 +408,9 @@ enum class SynchronizationTag {
                              /// temperature
 
   // --- HeatTransfer tags ---
-  _pm_flux,          ///< synchronization of the fluxes to compute to
-		     ///the  internal dof rate
+  _pm_dof,          ///< synchronization of the genric dof to compute to
+                    ///the  internal dof rate
+  _pm_gradient_dof,
 
   // --- PhaseFieldModel tags ---
   _pfm_damage,  ///< synchronization of the nodal damage

@@ -364,7 +364,6 @@ private:
 #include "parser.hh"
 #include "constitutive_law.hh"
 
-#include "constitutive_law_selector.hh"
-#include "constitutive_law_selector_tmpl.hh"
+#include "poisson_model_inline_impl.hh"
 
 #endif /* AKANTU_POISSON_MODEL_HH_ */

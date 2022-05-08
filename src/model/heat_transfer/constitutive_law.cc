@@ -98,11 +98,8 @@ void ConstitutiveLaw::initConstitutiveLaw() {
 
   this->resizeInternals();
 
-  updateInternalParameters();
-
   AKANTU_DEBUG_OUT();
 }
-
 
   
 /* -------------------------------------------------------------------------- */
@@ -150,7 +147,7 @@ void ConstitutiveLaw::computeAllFluxes(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void PoissonModel::assembleInternalDofRate(GhostType ghost_type) {
+void ConstitutiveLaw::assembleInternalDofRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   
   Array<Real> & internal_dof_rate = model.getInternalDofRate();
@@ -159,7 +156,13 @@ void PoissonModel::assembleInternalDofRate(GhostType ghost_type) {
   
   for (auto type : element_filter.elementTypes(_ghost_type = ghost_type)) {
 
-    UInt nb_element = elem_filter.size();
+    Array<UInt> & elem_filter = element_filter(type, ghost_type);
+    UInt nb_elements = elem_filter.size();
+    
+    if (nb_elements == 0) {
+      continue;
+    }
+    
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     auto & flux_dof_vect = flux_dof(type, ghost_type);
@@ -233,5 +236,25 @@ void ConstitutiveLaw::assembleStiffnessMatrix(GhostType ghost_type) {
   }
 
 }
+
+
+/* -------------------------------------------------------------------------- */
+void ConstitutiveLaw::beforeSolveStep() {
+}
+
+/* -------------------------------------------------------------------------- */
+void ConstitutiveLaw::afterSolveStep(bool converged) {}
+ 
+  
+/* -------------------------------------------------------------------------- */
+void ConstitutiveLaw::printself(std::ostream & stream, int indent) const {
+  std::string space(indent, AKANTU_INDENT);
+  std::string type = getID().substr(getID().find_last_of(':') + 1);
+
+  stream << space << "Constitutive Law " << type << " [" << std::endl;
+  Parsable::printself(stream, indent);
+  stream << space << "]" << std::endl;
+}
+
     
 }

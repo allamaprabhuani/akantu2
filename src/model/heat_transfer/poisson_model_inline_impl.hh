@@ -36,18 +36,18 @@
 #include "poisson_model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_POISSON_MODEL_INLINE_IMPL_CC__
-#define __AKANTU_POISSON_MODEL_INLINE_IMPL_CC__
+#ifndef __AKANTU_POISSON_MODEL_INLINE_IMPL_HH__
+#define __AKANTU_POISSON_MODEL_INLINE_IMPL_HH__
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline decltype(auto) PoissonModel::getConsitituiveLaws() {
+inline decltype(auto) PoissonModel::getConstitutiveLaws() {
   return make_dereference_adaptor(constitutive_laws);
 }
 
 /* -------------------------------------------------------------------------- */
-inline decltype(auto) PoissonModel::getConsitituiveLaws() const {
+inline decltype(auto) PoissonModel::getConstitutiveLaws() const {
   return make_dereference_adaptor(constitutive_laws);
 }
 
@@ -79,7 +79,7 @@ inline ConstitutiveLaw & PoissonModel::getConstitutiveLaw(const std::string & na
 
 /* -------------------------------------------------------------------------- */
 inline UInt
-PoissonModel::getCosntitutiveLawIndex(const std::string & name) const {
+PoissonModel::getConstitutiveLawIndex(const std::string & name) const {
   auto it = constitutive_laws_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != constitutive_laws_names_to_id.end(),
                       "The model " << id << " has no constituitve law named "
@@ -100,4 +100,4 @@ PoissonModel::getConstitutiveLaw(const std::string & name) const {
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
 
-#endif /* __AKANTU_POISSON_MODEL_INLINE_IMPL_CC__ */
+#endif /* __AKANTU_POISSON_MODEL_INLINE_IMPL_HH__ */

@@ -57,7 +57,7 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
+  void initConstitutiveLaw() override;
 
   /// constitutive law for all element of a type
   void computeFlux(ElementType el_type,
@@ -67,7 +67,8 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
-  
+  void computeConductivityOnQuad(ElementType el_type, GhostType ghost_type);
+
   /// compute the celerity in the constitutive law
   Real getCelerity() const override {
     return 4. * this->density * this->capacity * this->conductivity;
@@ -93,11 +94,16 @@ private:
   // conductivity
   Real conductivity;
 
+  /// defines if the stiffness was computed
+  bool was_stiffness_assembled;
+
   std::unordered_map<GhostType, bool> initial_conductivity{{_not_ghost, true},
                                                            {_ghost, true}};
 
   std::unordered_map<GhostType, UInt> conductivity_release{{_not_ghost, 0},
                                                            {_ghost, 0}};
+
+};
   
 } // namespace akantu
 

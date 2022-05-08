@@ -16,18 +16,17 @@ ConstitutiveLawHeat::ConstitutiveLawHeat(PoissonModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
 ConstitutiveLawHeat::ConstitutiveLawHeat(PoissonModel & model,
-					 UInt /*a_dim*/, const Mesh & mesh,
+					 UInt dim, const Mesh & mesh,
 					 FEEngine & fe_engine, const ID & id)
-    : ConstitutiveLaw(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
+  : ConstitutiveLaw(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawHeat<dim>::initialize() {
+void ConstitutiveLawHeat::initialize() {
   this->registerParam("density", density, _pat_readable,
                       "density");
   this->registerParam("capacity", capacity, _pat_readable, "Heat capacity");
@@ -35,9 +34,9 @@ void ConstitutiveLawHeat<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawHeat::initMaterial() {
+void ConstitutiveLawHeat::initConstitutiveLaw() {
   AKANTU_DEBUG_IN();
-  ConstitutiveLaw::initMaterial();
+  ConstitutiveLaw::initConstitutiveLaw();
 
   this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
@@ -49,12 +48,12 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
 				      GhostType ghost_type) {
 
 
-  computeConductivityOnQuad(el_type, ghost_type);
+  /*computeConductivityOnQuad(el_type, ghost_type);
 
   // temperature gradient at quadrature points
   auto & gradient = gradient_dof(el_type, ghost_type);
-  this->getFEEngine().gradientOnIntegrationPoints(model.getDof(), gradient, 1,
-						  el_type, ghost_type);
+  fem.gradientOnIntegrationPoints(model.getDof(), gradient, 1,
+				  el_type, ghost_type);
   
   for (auto && values :
          zip(make_view(conductivity_on_qpoints(el_type, ghost_type),
@@ -67,14 +66,35 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
       auto & k_BT = std::get<2>(values);
 
       k_BT.mul<false>(C, BT);
-  }
-    
+      } */   
 }
 
+
 /* -------------------------------------------------------------------------- */
-  void ConstitutiveLawHeat::computeConductivityOnQuad(ElementType el_type,
+void ConstitutiveLawHeat::computeTangentModuli(ElementType el_type,
+						    Array<Real> & tangent_matrix,
+						    GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  
+  Matrix<Real> identity(spatial_dimension, spatial_dimension);
+  identity.eye();
+  
+  for (auto && tuple :
+	 make_view(tangent_matrix, spatial_dimension, spatial_dimension)) {
+    tuple = identity * this->conductivity;
+  }
+  
+  this->was_stiffness_assembled = true;
+
+  AKANTU_DEBUG_OUT();
+}
+  
+
+/* -------------------------------------------------------------------------- */
+void ConstitutiveLawHeat::computeConductivityOnQuad(ElementType el_type,
 						      GhostType ghost_type) {
-  // if already computed once check if need to compute
+  /*  // if already computed once check if need to compute
   if (not initial_conductivity[ghost_type]) {
     // if temperature did not change, conductivity will not vary
     if (dof_release == conductivity_release[ghost_type]) {
@@ -86,6 +106,10 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
     }
   }
 
+  Matrix<Real> identity(spatial_dimension, spatial_dimension);
+  identity.eye();
+
+  
   auto & temperature_interpolated = temperature_on_qpoints(el_type, ghost_type);
 
   // compute the temperature on quadrature points
@@ -98,7 +122,7 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
              temperature_interpolated)) {
     auto & C = std::get<0>(tuple);
     auto & T = std::get<1>(tuple);
-    C = conductivity;
+    C = identity * conductivity;
 
     Matrix<Real> variation(spatial_dimension, spatial_dimension,
 			   conductivity_variation * (T - T_ref));
@@ -108,8 +132,9 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
     
 
   conductivity_release[ghost_type] = dof_release;
-  initial_conductivity[ghost_type] = false;
+  initial_conductivity[ghost_type] = false;*/
 
   AKANTU_DEBUG_OUT();
 }
-  
+
+}

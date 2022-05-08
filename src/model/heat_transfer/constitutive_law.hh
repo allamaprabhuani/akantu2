@@ -140,7 +140,9 @@ protected:
 
   /// function called to updatet the internal parameters when the
   /// modifiable parameters are modified
-  virtual void updateInternalParameters();
+  virtual void updateInternalParameters() {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   
   /* ------------------------------------------------------------------------ */
@@ -161,6 +163,33 @@ protected:
                                     GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
+  
+  /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
+public:
+  inline UInt getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const override;
+
+  inline void packData(CommunicationBuffer & buffer,
+                       const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
+
+  inline void unpackData(CommunicationBuffer & buffer,
+                         const Array<Element> & elements,
+                         const SynchronizationTag & tag) override;
+
+  template <typename T>
+  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
+                                    CommunicationBuffer & buffer,
+                                    const Array<Element> & elements,
+                                    const ID & fem_id = ID()) const;
+
+  template <typename T>
+  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
+                                      CommunicationBuffer & buffer,
+                                      const Array<Element> & elements,
+                                      const ID & fem_id = ID());
 
   
 
@@ -179,12 +208,42 @@ public:
 
   AKANTU_GET_MACRO(ElementFilter, element_filter,
                    const ElementTypeMapArray<UInt> &);
+
+  
+  template <typename T>
+  const InternalConstitutiveLaw<T> & getInternal(const ID & id) const;
+  template <typename T> InternalConstitutiveLaw<T> & getInternal(const ID & id);
+
+  template <typename T>
+  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+
+  template <typename T> inline void setParam(const ID & param, T value);
+  inline const Parameter & getParam(const ID & param) const;
+
+  template <typename T>
+  void flattenInternal(const std::string & field_id,
+                       ElementTypeMapArray<T> & internal_flat,
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined) const;
+
   
   bool hasMatrixChanged(const ID & id) {
     if (id == "K") {
       return hasStiffnessMatrixChanged();
     }
+
+    return true;
   }
+
+
+  MatrixType getMatrixType(const ID & id) {
+    if (id == "K" or id == "M") {
+      return _symmetric;
+    }
+
+    return _mt_not_defined;
+  }
+
 
   /// specify if the matrix need to be recomputed for this
   /// constitutive law
@@ -243,6 +302,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 } // namespace akantu
 
   
+#include "constitutive_law_inline_impl.hh"
 
 
 #include "internal_field_tmpl.hh"
