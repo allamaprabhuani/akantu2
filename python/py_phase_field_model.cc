@@ -69,9 +69,11 @@ register_phase_field_model(py::module & mod) {
 
   py::class_<PhaseFieldModel, Model>(mod, "PhaseFieldModel",
                                      py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, const ModelType>(),
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+	   const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "phase_field_model",
+	   py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_phase_field_model)
       .def(
           "initFull",

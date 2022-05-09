@@ -64,6 +64,7 @@ public:
 
   PhaseFieldModel(Mesh & mesh, UInt dim = _all_dimensions,
                   const ID & id = "phase_field_model",
+		  std::shared_ptr<DOFManager> dof_manager = nullptr,
                   ModelType model_type = ModelType::_phase_field_model);
 
   ~PhaseFieldModel() override;
@@ -102,15 +103,20 @@ protected:
 
   /// callback to assemble a lumped Matrix
   void assembleLumpedMatrix(const ID & /*unused*/) override;
+ 
+  /// function to print the containt of the class
+  void printself(std::ostream & stream, int indent = 0) const override;
 
+
+protected:
+  /* ------------------------------------------------------------------------ */
+  TimeStepSolverType getDefaultSolverType() const override;
+  
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
-
-  /// function to print the containt of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Materials (phase_field_model.cc)                                         */
@@ -175,13 +181,13 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  UInt getNbData(const Array<UInt> & indexes,
+  UInt getNbData(const Array<UInt> & dofs,
                  const SynchronizationTag & tag) const override;
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
+  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
+  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
                   const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */

@@ -50,11 +50,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
+				 std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
-    : Model(mesh, model_type, dim, id),
-      phasefield_index("phasefield index", id),
-      phasefield_local_numbering("phasefield local numbering", id) {
-
+  : Model(mesh, model_type, std::move(dof_manager), dim, id),
+    phasefield_index("phasefield index", id),
+    phasefield_local_numbering("phasefield local numbering", id) {
+  
   AKANTU_DEBUG_IN();
 
   this->registerFEEngineObject<FEEngineType>("PhaseFieldFEEngine", mesh,
@@ -67,17 +68,15 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
   phasefield_selector =
       std::make_shared<DefaultPhaseFieldSelector>(phasefield_index);
 
-  this->initDOFManager();
-
   this->registerDataAccessor(*this);
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
     this->registerSynchronizer(synchronizer, SynchronizationTag::_phasefield_id);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_driving);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
-
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -211,13 +210,11 @@ void PhaseFieldModel::initPhaseFields() {
     phasefield->initPhaseField();
   }
 
-    this->synchronize(SynchronizationTag::_pfm_init_mat);
-
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+			       const ElementTypeMapArray<UInt> * filter) {
 
   for_each_element(
       mesh,
@@ -290,6 +287,13 @@ FEEngine & PhaseFieldModel::getFEEngineBoundary(const ID & name) {
   return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<FEEngineType>(name));
 }
 
+
+/* -------------------------------------------------------------------------- */
+TimeStepSolverType PhaseFieldModel::getDefaultSolverType() const {
+  return TimeStepSolverType::_static;
+}
+
+  
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 PhaseFieldModel::getDefaultSolverID(const AnalysisMethod & method) {
@@ -444,9 +448,7 @@ void PhaseFieldModel::assembleInternalForces() {
 
   this->internal_force->zero();
 
-  // communicate the driving forces
-  AKANTU_DEBUG_INFO("Send data for residual assembly");
-  this->asynchronousSynchronize(SynchronizationTag::_pfm_driving);
+  this->synchronize(SynchronizationTag::_htm_temperature);
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
@@ -454,12 +456,12 @@ void PhaseFieldModel::assembleInternalForces() {
     phasefield->assembleInternalForces(_not_ghost);
   }
 
-  // finalize communications
-  AKANTU_DEBUG_INFO("Wait distant driving forces");
-  this->waitEndSynchronize(SynchronizationTag::_pfm_driving);
-
-  // assemble the residual due to ghost elements
+  // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
+  for (auto & phasefield : phasefields) {
+    phasefield->assembleInternalForces(_ghost);
+  }
+  
 }
 
 /* -------------------------------------------------------------------------- */
@@ -492,8 +494,10 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
     size += nb_nodes_per_element * sizeof(Real);
     break;
   }
-  
-
+  case SynchronizationTag::_pfm_damage: {
+    size += nb_nodes_per_element * sizeof(Real);
+    break;
+  }
   default: {
     AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -516,7 +520,10 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
     packNodalDataHelper(*damage, buffer, elements, mesh);
     break;
   }
-  
+  case SynchronizationTag::_pfm_damage: {
+    packNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
   default: {
   }
   }
@@ -562,17 +569,19 @@ AKANTU_DEBUG_IN();
 }
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
+UInt PhaseFieldModel::getNbData(const Array<UInt> & dofs,
                                 const SynchronizationTag & tag) const {
   UInt size = 0;
-  UInt nb_nodes = indexes.size();
-
+  
   switch (tag) {
   case SynchronizationTag::_for_dump: {
     size += sizeof(Real);
     break;
   }
-  
+  case SynchronizationTag::_pfm_damage: {
+    size += sizeof(Real);
+    break;
+  }
   default: {
     AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -582,35 +591,39 @@ UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
-                               const Array<UInt> & indexes,
+                               const Array<UInt> & dofs,
                                const SynchronizationTag & tag) const {
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_for_dump: {
-      packDOFDataHelper(*damage, buffer, dofs);
-      break;
-    }
-    default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
+  switch (tag) {
+  case SynchronizationTag::_for_dump: {
+    packDOFDataHelper(*damage, buffer, dofs);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    packDOFDataHelper(*damage, buffer, dofs);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
-                                 const Array<UInt> & indexes,
+                                 const Array<UInt> & dofs,
                                  const SynchronizationTag & tag) {
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_for_dump: {
-      unpackDOFDataHelper(*damage, buffer, dofs);
-      break;
-    }
-    default: {
+  switch (tag) {
+  case SynchronizationTag::_for_dump: {
+    unpackDOFDataHelper(*damage, buffer, dofs);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    unpackDOFDataHelper(*damage, buffer, dofs);
+    break;
+  }
+  default: {
       AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
+  }
   }
 }
 

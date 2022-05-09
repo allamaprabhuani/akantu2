@@ -111,9 +111,6 @@ PhaseField::isInternal<Real>(const ID & id,
 inline UInt PhaseField::getNbData(const Array<Element> & elements,
                                   const SynchronizationTag & tag) const {
 
-  if (tag == SynchronizationTag::_pfm_driving) {
-    return sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
-  }
   return 0;
 }
 
@@ -121,9 +118,6 @@ inline UInt PhaseField::getNbData(const Array<Element> & elements,
 inline void PhaseField::packData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
                                  const SynchronizationTag & tag) const {
-  if (tag == SynchronizationTag::_pfm_driving) {
-    packElementDataHelper(driving_force, buffer, elements);
-  }
 
 }
 
@@ -132,9 +126,6 @@ inline void
 PhaseField::unpackData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
                        const SynchronizationTag & tag) {
-  if (tag == SynchronizationTag::_pfm_driving) {
-    unpackElementDataHelper(driving_force, buffer, elements);
-  }
 
 }
 
