@@ -38,7 +38,6 @@ void ConstitutiveLawHeat::initConstitutiveLaw() {
   AKANTU_DEBUG_IN();
   ConstitutiveLaw::initConstitutiveLaw();
 
-  this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
 }
 
@@ -137,4 +136,7 @@ void ConstitutiveLawHeat::computeConductivityOnQuad(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
+  INSTANTIATE_CONSTITUTIVE_LAW(heat, ConstitutiveLawHeat);
+
+  
 }

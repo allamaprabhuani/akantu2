@@ -256,5 +256,10 @@ void ConstitutiveLaw::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
+/* -------------------------------------------------------------------------- */
+ConstitutiveLawFactory & ConstitutiveLaw::getFactory() {
+  return ConstitutiveLawFactory::getInstance();
+}
+
     
 }

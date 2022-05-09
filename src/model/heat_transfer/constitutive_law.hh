@@ -206,9 +206,18 @@ public:
   
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
+  
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FluxDof, flux_dof, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradientDof, gradient_dof, Real);
+  
+  AKANTU_GET_MACRO(GradientDof, gradient_dof, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(FluxDof, flux_dof, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(ElementFilter, element_filter,
                    const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO(FEEngine, fem, FEEngine &);
 
+  
   
   template <typename T>
   const InternalConstitutiveLaw<T> & getInternal(const ID & id) const;
@@ -243,6 +252,10 @@ public:
 
     return _mt_not_defined;
   }
+
+  
+  /// static method to reteive the material factory
+  static ConstitutiveLawFactory & getFactory();
 
 
   /// specify if the matrix need to be recomputed for this

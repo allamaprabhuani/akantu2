@@ -38,6 +38,29 @@
 
 namespace akantu {
 
+
+/* -------------------------------------------------------------------------- */
+inline const Parameter & ConstitutiveLaw::getParam(const ID & param) const {
+  try {
+    return get(param);
+  } catch (...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the constitutive law "
+                                     << getID());
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline void ConstitutiveLaw::setParam(const ID & param, T value) {
+  try {
+    set<T>(param, value);
+  } catch (...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the constitutive law "
+                                     << getID());
+  }
+}
+
+  
 /* -------------------------------------------------------------------------- */
 inline UInt ConstitutiveLaw::addElement(const ElementType & type, UInt element,
                                    const GhostType & ghost_type) {
@@ -128,16 +151,6 @@ inline void
 ConstitutiveLaw::unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
                        __attribute__((unused)) const Array<Element> & elements,
                        __attribute__((unused)) const SynchronizationTag & tag) {
-}
-
-/* -------------------------------------------------------------------------- */
-inline const Parameter & ConstitutiveLaw::getParam(const ID & param) const {
-  try {
-    return get(param);
-  } catch (...) {
-    AKANTU_EXCEPTION("No parameter " << param << " in the material "
-                                     << getID());
-  }
 }
 
 /* -------------------------------------------------------------------------- */

@@ -76,9 +76,11 @@ protected:
   /// generic function to initialize everything ready for explicit dynamics
   void initFullImpl(const ModelOptions & options) override;
 
+public:
   /// read one material file to instantiate all the materials
   void initConstitutiveLaws();
 
+protected:
   /// allocate all vectors
   void initSolver(TimeStepSolverType time_step_solver_type,
                   NonLinearSolverType non_linear_solver_type) override;

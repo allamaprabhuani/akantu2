@@ -84,6 +84,14 @@ if (_is_activated)
     )
 endif()
 
+package_is_activated(poisson_model _is_activated)
+if (_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_poisson_model.cc
+    py_constitutive_law.cc
+    )
+endif()
+
 
 package_is_activated(contact_mechanics _is_activated)
 if(_is_activated)
