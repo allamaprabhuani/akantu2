@@ -103,6 +103,12 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_POISSON_MODEL
+    case ModelType::_poisson_model:
+      this->initFullImpl(PoissonModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
 #ifdef AKANTU_PHASE_FIELD
     case ModelType::_phase_field_model:
       this->initFullImpl(PhaseFieldModelOptions{

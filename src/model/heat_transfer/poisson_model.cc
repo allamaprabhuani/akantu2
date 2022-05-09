@@ -76,10 +76,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 PoissonModel::PoissonModel(Mesh & mesh, UInt dim, const ID & id,
-			   std::shared_ptr<DOFManager> dof_manager)
-  : Model(mesh, ModelType::_poisson_model, std::move(dof_manager), dim, id),
-      constitutive_law_index("constitutive law index", id),
-      constitutive_law_local_numbering("constitutive law local numbering", id) {
+			   std::shared_ptr<DOFManager> dof_manager,
+			   const ModelType model_type)
+  : Model(mesh, model_type, std::move(dof_manager), dim, id),
+    constitutive_law_index("constitutive law index", id),
+    constitutive_law_local_numbering("constitutive law local numbering", id) {
   
   AKANTU_DEBUG_IN();
 
@@ -111,15 +112,14 @@ PoissonModel::~PoissonModel() = default;
 
 /* -------------------------------------------------------------------------- */
 void PoissonModel::initFullImpl(const ModelOptions & options) {
-  Model::initFullImpl(options);
-
+ 
   constitutive_law_index.initialize(mesh, _element_kind = _ek_not_defined,
 				    _default_value = UInt(-1), _with_nb_element = true);
   constitutive_law_local_numbering.initialize(mesh, _element_kind = _ek_not_defined,
 					      _with_nb_element = true);
 
   Model::initFullImpl(options);
-
+  
   // initialize the constitutive laws
   if (not this->parser.getLastParsedFile().empty()) {
     this->instantiateConstitutiveLaws();
@@ -591,7 +591,7 @@ Real PoissonModel::getStableTimeStep(GhostType ghost_type) {
       elem.element = *law_loc_num;
       Real el_h = getFEEngine().getElementInradius(*X_el, type);
       Real el_c = this->constitutive_laws[*law_indexes]->getCelerity();
-      Real el_dt = el_h / el_c;
+      Real el_dt = 2.* el_h * el_h / el_c;
 
       min_dt = std::min(min_dt, el_dt);
     }

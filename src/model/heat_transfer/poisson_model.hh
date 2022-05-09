@@ -63,8 +63,9 @@ public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
   PoissonModel(Mesh & mesh, UInt dim = _all_dimensions,
-                    const ID & id = "poisson_model",
-                    std::shared_ptr<DOFManager> dof_manager = nullptr);
+	       const ID & id = "poisson_model",
+	       std::shared_ptr<DOFManager> dof_manager = nullptr,
+	       ModelType model_type = ModelType::_poisson_model);
 
   ~PoissonModel() override;
 
@@ -245,6 +246,8 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(DofRate, dof_rate);
   /// get the dof rate
   AKANTU_GET_MACRO_DEREF_PTR(DofRate, dof_rate);
+  /// get the PoissonModel::blocked_dofs array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
   /// get the blocked_dofs vector
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 

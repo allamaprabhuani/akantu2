@@ -1,13 +1,12 @@
 #===============================================================================
-# @file   heat_transfer.cmake
+# @file   CMakeLists.txt
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date creation: Mon Nov 21 2011
-# @date last modification: Mon Mar 30 2015
+# @date creation: Fri Sep 03 2010
+# @date last modification: Fri Mar 16 2018
 #
-# @brief  package description for heat transfer
+# @brief  configuration for poisson model example
 #
 #
 # @section LICENSE
@@ -30,24 +29,11 @@
 #
 #===============================================================================
 
+add_mesh(bar bar.geo 1 1)
 
-package_declare(poisson_model
-  DESCRIPTION "Use Poisson Model package of Akantu")
-
-package_declare_sources(poisson_model
-  model/heat_transfer/poisson_model.cc
-  model/heat_transfer/poisson_model.hh
-  model/heat_transfer/poisson_model_inline_impl.hh
-
-  
-  model/heat_transfer/constitutive_law.cc
-  model/heat_transfer/constitutive_law.hh
-  model/heat_transfer/constitutive_law_inline_impl.hh
-  model/heat_transfer/constitutive_law_selector.hh
-  model/heat_transfer/constitutive_law_selector_tmpl.hh
-
-  model/heat_transfer/constitutive_laws/constitutive_law_diffusion.hh
-  model/heat_transfer/constitutive_laws/constitutive_law_diffusion.cc
-  model/heat_transfer/constitutive_laws/constitutive_law_heat.hh
-  model/heat_transfer/constitutive_laws/constitutive_law_heat.cc
+register_example(diffusion_dynamics_1d
+  SOURCES diffusion_dynamics_1d.cc
+  DEPENDS bar
+  FILES_TO_COPY diffusion_law.dat
   )
+

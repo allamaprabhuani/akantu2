@@ -26,8 +26,9 @@ ConstitutiveLawDiffusion::ConstitutiveLawDiffusion(PoissonModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-  void ConstitutiveLawDiffusion::initialize() {
-  this->registerParam("diffusivity", diffusivity, _pat_readable, "Diffusion Coefficient");
+void ConstitutiveLawDiffusion::initialize() {
+  this->registerParam("diffusivity", diffusivity, Real(0.),
+		      _pat_parsable | _pat_modifiable, "Diffusion Coefficient");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -35,7 +36,6 @@ void ConstitutiveLawDiffusion::initConstitutiveLaw() {
   AKANTU_DEBUG_IN();
   ConstitutiveLaw::initConstitutiveLaw();
 
-  this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
 }
 
@@ -48,21 +48,21 @@ void ConstitutiveLawDiffusion::computeFlux(ElementType el_type,
   Matrix<Real> identity(spatial_dimension, spatial_dimension);
   identity.eye();
   auto D = identity * this->diffusivity;
+
   
   // concentration gradient at quadrature points
-  auto & gradient = gradient_dof(el_type, ghost_type);
-  fem.gradientOnIntegrationPoints(model.getDof(), gradient, 1,
+  auto & concentration_gradient = gradient_dof(el_type, ghost_type);
+  fem.gradientOnIntegrationPoints(model.getDof(), concentration_gradient, 1,
 				  el_type, ghost_type);
   
   for (auto && values :
-         zip(make_view(gradient, spatial_dimension),
+         zip(make_view(concentration_gradient, spatial_dimension),
              make_view(flux_dof(el_type, ghost_type), spatial_dimension))) {
     const auto & BC = std::get<0>(values);
     auto & d_BC = std::get<1>(values);
-  
+
     d_BC.mul<false>(D, BC);
   }
-  
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,6 +85,7 @@ void ConstitutiveLawDiffusion::computeTangentModuli(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
+INSTANTIATE_CONSTITUTIVE_LAW(diffusion, ConstitutiveLawDiffusion);
   
   
 }
