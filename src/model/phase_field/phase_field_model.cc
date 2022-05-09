@@ -448,7 +448,7 @@ void PhaseFieldModel::assembleInternalForces() {
 
   this->internal_force->zero();
 
-  this->synchronize(SynchronizationTag::_htm_temperature);
+  this->synchronize(SynchronizationTag::_pfm_damage);
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
@@ -525,6 +525,7 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
     break;
   }
   default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
@@ -558,8 +559,12 @@ AKANTU_DEBUG_IN();
     unpackNodalDataHelper(*damage, buffer, elements, mesh);
     break;
   }
-  
+  case SynchronizationTag::_pfm_damage: {
+    unpackNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
   default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 

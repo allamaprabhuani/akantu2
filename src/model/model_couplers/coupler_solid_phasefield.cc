@@ -44,7 +44,7 @@ namespace akantu {
 CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
                                                const ID & id,
                                                const ModelType model_type)
-    : Model(mesh, model_type, dim, id) {
+  : Model(mesh, model_type, dim, id) {
 
   AKANTU_DEBUG_IN();
 
@@ -465,10 +465,24 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
                                    const ID & phase_solver_id) {
 
   solid->solveStep(solid_solver_id);
-  this->computeStrainOnQuadPoints(_not_ghost);
 
+  //this->synchronize(SynchronizationTag::_csp_strain);
+
+  AKANTU_DEBUG_INFO("exchange strain for local elements");
+  this->computeStrainOnQuadPoints(_not_ghost);
+  
+  AKANTU_DEBUG_INFO("exchange strain for ghost elements");
+  this->computeStrainOnQuadPoints(_ghost);
+  
   phase->solveStep(phase_solver_id);
+  
+  //this->synchronize(SynchronizationTag::_csp_damage);
+  
+  AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
+
+  AKANTU_DEBUG_INFO("exchange damage for ghost elements");
+  this->computeDamageOnQuadPoints(_ghost);
 
   solid->assembleInternalForces();
 }
@@ -522,6 +536,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   Real tolerance = 1e-8;
   return error < tolerance;
 }
+
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
