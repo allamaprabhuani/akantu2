@@ -34,17 +34,17 @@ docker build:manylinux:
 version_determination:
   stage: version
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 0
+    GIT_FETCH_EXTRA_FLAGS: --prune --tags --quiet
   extends:
     - .debian_bullseye_gcc
   script:
-    - git init -b ${CI_DEFAULT_BRANCH} .
-    - git remote add origin ${CI_REPOSITORY_URL}
-    - git fetch --tags --prune origin
-    - git checkout -b ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHA}
-    - git describe --tags --abbrev=0 --match 'v*' || /bin/true
+    # - git init -b ${CI_DEFAULT_BRANCH} .
+    # - git remote add origin ${CI_REPOSITORY_URL}
+    # - git fetch --tags --prune origin
+    # - git checkout -b ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHA}
     - git describe --tags --always --dirty --long --match 'v*' || /bin/true
-    - git rev-parse HEAD || /bin/true
   artifacts:
     when: on_success
     paths:
