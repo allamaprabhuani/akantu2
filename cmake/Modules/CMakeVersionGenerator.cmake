@@ -141,7 +141,9 @@ endfunction()
 function(_get_version_from_file)
   if(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     file(STRINGS ${PROJECT_SOURCE_DIR}/VERSION _file_version)
+
     _match_semver("${_file_version}" "_file")
+
     set(_file_version ${_file_version} PARENT_SCOPE)
     if(_file_version_metadata)
       set(_file_version_metadata ${_file_version_metadata} PARENT_SCOPE)
@@ -186,7 +188,7 @@ function(define_project_version)
     _get_version_from_file()
 
     if(_file_version_metadata)
-      set(_version_metadata "${_version_metadata}${_git_version_metadata}")
+      set(_version_metadata "${_file_version_metadata}${_git_version_metadata}")
     endif()
 
     if (_file_version)
