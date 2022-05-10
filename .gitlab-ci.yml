@@ -141,6 +141,10 @@ configure:python_package:
     - .manylinux_2010_x64_gcc
     - .build_release
   script:
+    git describe --tags --abbrev=0 --match v*
+    git describe --tags --always --dirty --long --match v*
+    git rev-parse HEAD
+
     # create the build folder
     - cmake -E make_directory build
     - cd build
