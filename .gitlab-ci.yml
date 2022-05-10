@@ -34,13 +34,12 @@ docker build:manylinux:
 version_determination:
   stage: version
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 0
+    GIT_FETCH_EXTRA_FLAGS: --prune --tags
   extends:
     - .debian_bullseye_gcc
   script:
-    - git init .
-    - git remote add origin ${CI_REPOSITORY_URL}
-    - git fetch --tags origin
     - git describe --tags --abbrev=0 --match v* || /bin/true
     - git describe --tags --always --dirty --long --match v* || /bin/true
     - git rev-parse HEAD || /bin/true
