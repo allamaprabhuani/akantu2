@@ -193,6 +193,7 @@ configure:python_package:
     when: on_success
     paths:
       - build/
+      - VERSION
     expire_in: 10h
 
 build_akantu:python_package:
@@ -207,6 +208,7 @@ build_akantu:python_package:
     when: on_success
     paths:
       - install/
+      - VERSION
     expire_in: 10h
   needs:
     - job: configure:python_package
