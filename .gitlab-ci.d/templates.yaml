@@ -136,5 +136,5 @@
       junit:
         - build/juint.xml
       coverage_report:
-        coverage_format: corbetura
+        coverage_format: cobertura
         path: build/coverage.xml
