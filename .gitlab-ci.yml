@@ -38,8 +38,9 @@ version_determination:
   extends:
     - .debian_bullseye_gcc
   script:
-    - git clone ${CI_REPOSITORY_URL} ${CI_PROJECT_DIR}
-    - cd ${CI_PROJECT_DIR}
+    - git init .
+    - git remote add origin ${CI_REPOSITORY_URL}
+    - git fetch --tags origin
     - git describe --tags --abbrev=0 --match v* || /bin/true
     - git describe --tags --always --dirty --long --match v* || /bin/true
     - git rev-parse HEAD || /bin/true
