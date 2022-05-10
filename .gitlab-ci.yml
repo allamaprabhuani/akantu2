@@ -34,7 +34,7 @@ docker build:manylinux:
 version_determination:
   stage: version
   variables:
-    GIT_STRATEGY: clone
+    GIT_STRATEGY: none
   extends:
     - .debian_bullseye_gcc
   script:
