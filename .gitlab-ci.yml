@@ -142,9 +142,9 @@ configure:python_package:
     - .build_release
   script:
     - git config --global --add safe.directory ${CI_PROJECT_DIR}
-    - git describe --tags --abbrev=0 --match v*
-    - git describe --tags --always --dirty --long --match v*
-    - git rev-parse HEAD
+    - git describe --tags --abbrev=0 --match v* || /usr/bin/true
+    - git describe --tags --always --dirty --long --match v* || /usr/bin/true
+    - git rev-parse HEAD || /usr/bin/true
 
     # create the build folder
     - cmake -E make_directory build
