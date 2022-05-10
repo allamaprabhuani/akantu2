@@ -1,0 +1,7 @@
+constitutive_law local_constitutive_law [
+     name = bulk
+     permitivity = 1
+ ]
+
+
+
