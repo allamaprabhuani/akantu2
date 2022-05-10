@@ -119,17 +119,22 @@
     - if [ ${BUILD_TYPE} = "Coverage" ]; then
     - gcovr --xml
       --gcov-executable "${GCOV_EXECUTABLE}"
+      --xml-pretty
+      --exclude-unreachable-branches
+      --print-summary 
       --output coverage.xml
       --object-directory ${CI_PROJECT_DIR}/build
       --root ${CI_PROJECT_DIR}  -s || true
     - fi
   artifacts:
     when: always
+    expire_in: 2 days
     paths:
       - build/juint.xml
       - build/coverage.xml
     reports:
       junit:
         - build/juint.xml
-      cobertura:
-        - build/coverage.xml
+      coverage_report:
+        coverage_format: corbetura
+        path: build/coverage.xml
