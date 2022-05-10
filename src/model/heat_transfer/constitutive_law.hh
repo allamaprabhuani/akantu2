@@ -55,7 +55,7 @@ template <typename T>
 using InternalConstitutiveLaw = InternalFieldTmpl<ConstitutiveLaw, T>;
 
 using ConstitutiveLawFactory =
-    Factory<ConstitutiveLaw, ID, const ID &, PoissonModel &, const ID &>;
+  Factory<ConstitutiveLaw, ID, const ID &, PoissonModel &, const ID &>;
 
 class ConstitutiveLaw : public DataAccessor<Element>, public Parsable {
 
@@ -338,13 +338,13 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 /* -------------------------------------------------------------------------- */
 #define CONSTITUTIVE_LAW_DEFAULT_ALLOCATOR(id, law_name)		\
-  [](const ID &, PoissonModel & model,					\
+  [](const ID &, PoissonModel & model,			\
      const ID & id) -> std::unique_ptr<ConstitutiveLaw> {		\
     return std::make_unique<law_name>(model, id);			\
   }
 
 #define INSTANTIATE_CONSTITUTIVE_LAW(id, law_name)			\
-  static bool constitutive_law_is_alocated_##id [[gnu::unused]] =	\
+  static bool constitutive_law_is_alocated_##id =			\
     ConstitutiveLawFactory::getInstance().registerAllocator(		\
 	 #id, CONSTITUTIVE_LAW_DEFAULT_ALLOCATOR(id, law_name))
 

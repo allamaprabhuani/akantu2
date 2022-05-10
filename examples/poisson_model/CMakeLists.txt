@@ -37,3 +37,14 @@ register_example(diffusion_dynamics_1d
   FILES_TO_COPY diffusion_law.dat
   )
 
+
+register_example(new_local_law
+  SOURCES
+    local_law.cc
+    local_law.hh
+    new_local_law.cc
+  DEPENDS
+    bar
+  FILES_TO_COPY
+    local_law.dat
+  )

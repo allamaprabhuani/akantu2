@@ -157,23 +157,23 @@ PoissonModel::registerNewConstitutiveLaw(const ParserSection & section) {
 
 /* -------------------------------------------------------------------------- */
 ConstitutiveLaw & PoissonModel::registerNewConstitutiveLaw(const ID & law_name,
-                                                    const ID & law_type,
-                                                    const ID & opt_param) {
+							   const ID & law_type,
+							   const ID & opt_param) {
   AKANTU_DEBUG_ASSERT(constitutive_laws_names_to_id.find(law_name) ==
 		      constitutive_laws_names_to_id.end(),
                       "A constitutive law with this name '"
-                          << law_name << "' has already been registered. "
-                          << "Please use unique names for constitutive laws");
+		      << law_name << "' has already been registered. "
+		      << "Please use unique names for constitutive laws");
 
   UInt law_count = constitutive_laws.size();
   constitutive_laws_names_to_id[law_name] = law_count;
 
   std::stringstream sstr_law;
   sstr_law << this->id << ":" << law_count << ":" << law_type;
-  ID mat_id = sstr_law.str();
+  ID law_id = sstr_law.str();
 
   std::unique_ptr<ConstitutiveLaw> constitutive_law = ConstitutiveLawFactory::getInstance().allocate(
-      law_type, opt_param, *this, mat_id);
+      law_type, opt_param, *this, law_id);
 
   constitutive_laws.push_back(std::move(constitutive_law));
 
