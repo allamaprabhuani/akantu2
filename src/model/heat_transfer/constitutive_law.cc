@@ -32,6 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "constitutive_law.hh"
+#include "mesh_iterators.hh"
 #include "poisson_model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -97,6 +98,104 @@ void ConstitutiveLaw::initConstitutiveLaw() {
   AKANTU_DEBUG_IN();
 
   this->resizeInternals();
+
+  AKANTU_DEBUG_OUT();
+}
+
+  /* -------------------------------------------------------------------------- */
+void ConstitutiveLaw::addElements(const Array<Element> & elements_to_add) {
+  AKANTU_DEBUG_IN();
+
+  UInt law_id = model.getConstitutiveLawIndex(name);
+  for (const auto & element : elements_to_add) {
+    auto index = this->addElement(element);
+    model.constitutive_law_index(element) = law_id;
+    model.constitutive_law_local_numbering(element) = index;
+  }
+
+  this->resizeInternals();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ConstitutiveLaw::removeElements(const Array<Element> & elements_to_remove) {
+  AKANTU_DEBUG_IN();
+
+  auto el_begin = elements_to_remove.begin();
+  auto el_end = elements_to_remove.end();
+
+  if (elements_to_remove.empty()) {
+    return;
+  }
+
+  auto & mesh = this->model.getMesh();
+
+  ElementTypeMapArray<UInt> constitutive_law_local_new_numbering(
+      "remove law filter elem", id);
+
+  constitutive_law_local_new_numbering.initialize(
+      mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
+      _with_nb_element = true);
+
+  ElementTypeMapArray<UInt> element_filter_tmp("element_filter_tmp", id);
+
+  element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
+                                _element_kind = _ek_not_defined);
+
+  ElementTypeMap<UInt> new_ids, element_ids;
+
+  for_each_element(
+      mesh,
+      [&](auto && el) {
+        if (not new_ids(el.type, el.ghost_type)) {
+          element_ids(el.type, el.ghost_type) = 0;
+        }
+
+        auto & element_id = element_ids(el.type, el.ghost_type);
+        auto l_el = Element{el.type, element_id, el.ghost_type};
+        if (std::find(el_begin, el_end, el) != el_end) {
+          constitutive_law_local_new_numbering(l_el) = UInt(-1);
+          return;
+        }
+
+        element_filter_tmp(el.type, el.ghost_type).push_back(el.element);
+        if (not new_ids(el.type, el.ghost_type)) {
+          new_ids(el.type, el.ghost_type) = 0;
+        }
+
+        auto & new_id = new_ids(el.type, el.ghost_type);
+
+        constitutive_law_local_new_numbering(l_el) = new_id;
+        model.constitutive_law_local_numbering(el) = new_id;
+
+        ++new_id;
+        ++element_id;
+      },
+      _element_filter = &element_filter, _element_kind = _ek_not_defined);
+
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : element_filter.elementTypes(
+             _ghost_type = ghost_type, _element_kind = _ek_not_defined)) {
+      element_filter(type, ghost_type)
+          .copy(element_filter_tmp(type, ghost_type));
+    }
+  }
+
+  for (auto it = internal_vectors_real.begin();
+       it != internal_vectors_real.end(); ++it) {
+    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
+  }
+
+  for (auto it = internal_vectors_uint.begin();
+       it != internal_vectors_uint.end(); ++it) {
+    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
+  }
+
+  for (auto it = internal_vectors_bool.begin();
+       it != internal_vectors_bool.end(); ++it) {
+    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
+  }
 
   AKANTU_DEBUG_OUT();
 }

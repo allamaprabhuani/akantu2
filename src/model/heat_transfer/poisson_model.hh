@@ -311,7 +311,20 @@ public:
 private:
   /// time step
   Real time_step;
+  
+  /// mapping between constitutive Law name and law internal id
+  std::map<std::string, UInt> constitutive_laws_names_to_id;
+  
+  bool need_to_reassemble_capacity{true};
 
+  bool need_to_reassemble_capacity_lumped{true};
+
+  UInt dof_release{0};
+
+  UInt conductivity_matrix_release{UInt(-1)};
+
+
+protected:
   /// temperatures array
   std::unique_ptr<Array<Real>> dof;
 
@@ -340,24 +353,15 @@ private:
   /// class defining of to choose a constitutive law
   std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector;
 
-  /// mapping between constitutive Law name and law internal id
-  std::map<std::string, UInt> constitutive_laws_names_to_id;
-
   /// list of used constitutive laws
   std::vector<std::unique_ptr<ConstitutiveLaw>> constitutive_laws;
 
   /// tells if the constitutive law are instantiated
   bool are_constitutive_laws_instantiated{false};
 
-
   
-  bool need_to_reassemble_capacity{true};
+  friend class ConstitutiveLaw;
 
-  bool need_to_reassemble_capacity_lumped{true};
-
-  UInt dof_release{0};
-
-  UInt conductivity_matrix_release{UInt(-1)};
 
 };
 

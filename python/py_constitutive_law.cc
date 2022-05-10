@@ -115,7 +115,7 @@ namespace {
 } // namespace
 
 /* -------------------------------------------------------------------------- */
-void register_constituive_law(py::module & mod) {
+void register_constitutive_law(py::module & mod) {
   py::class_<ConstitutiveLawFactory>(mod, "ConstitutiveLawFactory")
       .def_static(
           "getInstance",

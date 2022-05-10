@@ -89,6 +89,7 @@ if (_is_activated)
   list(APPEND PYAKANTU_SRCS
     py_poisson_model.cc
     py_constitutive_law.cc
+    py_constitutive_law_selector.cc
     )
 endif()
 

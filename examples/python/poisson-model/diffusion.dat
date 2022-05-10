@@ -1,0 +1,7 @@
+constitutive_law diffusion [
+     name = bulk
+     diffusivity = 1
+ ]
+
+
+

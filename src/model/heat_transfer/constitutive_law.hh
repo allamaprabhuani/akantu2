@@ -118,7 +118,14 @@ public:
   inline UInt addElement(const ElementType & type, UInt element,
                          const GhostType & ghost_type);
   inline UInt addElement(const Element & element);
+  
+  /// add many elements at once
+  void addElements(const Array<Element> & elements_to_add);
 
+  /// remove many element at once
+  void removeElements(const Array<Element> & elements_to_remove);
+
+  
   /// get a constitutive law celerity to compute the stable time step
   virtual Real getCelerity() const {
     AKANTU_TO_IMPLEMENT();
@@ -218,13 +225,23 @@ public:
   AKANTU_GET_MACRO(FEEngine, fem, FEEngine &);
 
   
-  
+  template <typename T>
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
+    
   template <typename T>
   const InternalConstitutiveLaw<T> & getInternal(const ID & id) const;
   template <typename T> InternalConstitutiveLaw<T> & getInternal(const ID & id);
 
   template <typename T>
   inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+
+  template <typename T>
+  ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
+                                              ElementKind element_kind) const;
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
@@ -252,16 +269,14 @@ public:
 
     return _mt_not_defined;
   }
-
   
-  /// static method to reteive the material factory
+  /// static method to retreive the constitutive law factory
   static ConstitutiveLawFactory & getFactory();
 
 
   /// specify if the matrix need to be recomputed for this
   /// constitutive law
   virtual bool hasStiffnessMatrixChanged() { return true; }
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

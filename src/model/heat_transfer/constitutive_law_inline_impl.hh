@@ -130,6 +130,104 @@ ConstitutiveLaw::isInternal<Real>(const ID & id,
            internal_array->second->getElementKind() != element_kind);
 }
 
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const InternalConstitutiveLaw<T> &
+ConstitutiveLaw::getInternal([[gnu::unused]] const ID & int_id) const {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline InternalConstitutiveLaw<T> &
+ConstitutiveLaw::getInternal([[gnu::unused]] const ID & int_id) {
+  AKANTU_TO_IMPLEMENT();
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalConstitutiveLaw<Real> &
+ConstitutiveLaw::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalConstitutiveLaw<Real> & ConstitutiveLaw::getInternal(const ID & int_id) {
+  auto it = internal_vectors_real.find(getID() + ":" + int_id);
+  if (it == internal_vectors_real.end()) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalConstitutiveLaw<UInt> &
+ConstitutiveLaw::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalConstitutiveLaw<UInt> & ConstitutiveLaw::getInternal(const ID & int_id) {
+  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
+  if (it == internal_vectors_uint.end()) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const Array<T> & ConstitutiveLaw::getArray(const ID & vect_id, ElementType type,
+                                           GhostType ghost_type) const {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline Array<T> & ConstitutiveLaw::getArray(const ID & vect_id, ElementType type,
+					    GhostType ghost_type) {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
+  }
+}
+
+  
 /* -------------------------------------------------------------------------- */
 inline UInt ConstitutiveLaw::getNbData(__attribute__((unused))
                                   const Array<Element> & elements,

@@ -72,6 +72,13 @@
 #include "py_phase_field_model.hh"
 #endif
 
+#if defined(AKANTU_POISSON_MODEL)
+#include "py_poisson_model.hh"
+#include "py_constitutive_law.hh"
+#include "py_constitutive_law_selector.hh"
+#endif
+
+
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #include "py_structural_mechanics_model.hh"
 #endif
@@ -133,6 +140,12 @@ void register_all(pybind11::module & mod) {
 #if defined(AKANTU_PHASE_FIELD)
   register_phase_field_model(mod);
   register_phase_field_coupler(mod);
+#endif
+
+#if defined(AKANTU_POISSON_MODEL)
+  register_poisson_model(mod);
+  register_constitutive_law(mod);
+  register_constitutive_law_selector(mod);
 #endif
 }
 } // namespace akantu

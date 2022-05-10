@@ -547,6 +547,38 @@ FEEngine & PoissonModel::getFEEngineBoundary(const ID & name) {
 }
 
 
+  
+/* -------------------------------------------------------------------------- */
+void PoissonModel::reassignConstitutiveLaw() {
+  AKANTU_DEBUG_IN();
+
+  std::vector<Array<Element>> element_to_add(constitutive_laws.size());
+  std::vector<Array<Element>> element_to_remove(constitutive_laws.size());
+
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        auto old_law = constitutive_law_index(element);
+        auto new_law = (*constitutive_law_selector)(element);
+        if (old_law != new_law) {
+          element_to_add[new_law].push_back(element);
+          element_to_remove[old_law].push_back(element);
+        }
+      },
+      _spatial_dimension = spatial_dimension);
+
+  for (auto && data : enumerate(constitutive_laws)) {
+    auto law_index = std::get<0>(data);
+    auto & law = *std::get<1>(data);
+
+    law.removeElements(element_to_remove[law_index]);
+    law.addElements(element_to_add[law_index]);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
 /* -------------------------------------------------------------------------- */
 /* Information                                                                */
 /* -------------------------------------------------------------------------- */

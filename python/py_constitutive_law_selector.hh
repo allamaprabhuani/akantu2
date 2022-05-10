@@ -1,12 +1,12 @@
 /**
- * @file   py_constitutive_law.hh
+ * @file   py_constitutive_law_selector.hh
  *
  * @author Mohit Pundir <mpundir@ethz.ch>
  *
  * @date creation: Thu Jun 20 2022
  * @date last modification: Tue Sep 29 2022
  *
- * @brief  pybind11 interface to Constitutive Law
+ * @brief  pybind11 interface to Constitutive Law selector
  *
  *
  * @section LICENSE
@@ -29,16 +29,16 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
+
 #include <pybind11/pybind11.h>
 
-#ifndef AKANTU_PY_CONSTITUTIVE_LAW_HH_
-#define AKANTU_PY_CONSTITUTIVE_LAW_HH_
+#ifndef AKANTU_PY_CONSTITUTIVE_LAW_SELECTOR_HH_
+#define AKANTU_PY_CONSTITUTIVE_LAW_SELECTOR_HH_
 
 namespace akantu {
 
-void register_constitutive_law(pybind11::module & mod);
 void register_constitutive_law_selector(pybind11::module & mod);
+
 } // namespace akantu
 
-#endif // AKANTU_PY_CONSTITUTIVE_LAW_HH_
+#endif // AKANTU_PY_CONSTITUTIVE_LAW_SELECTOR_HH_
