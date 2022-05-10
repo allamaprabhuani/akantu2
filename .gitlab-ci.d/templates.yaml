@@ -31,9 +31,9 @@
       -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE}
       -G "${CMAKE_GENERATOR}" ..
 
-    # Copie the compile commands for the code quality
+    # Copy the compile commands for the code quality
     - if [ -e compile_commands.json ]; then
-    - cp compile_commands.json ..
+    -   cp compile_commands.json ..
     - fi
   artifacts:
     when: on_success

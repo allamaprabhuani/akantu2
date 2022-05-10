@@ -2,6 +2,7 @@
 # yaml-language-server: $format.enable=false
 
 stages:
+  - version
   - configure
   - build_libs
   - build_tests
@@ -30,6 +31,21 @@ docker build:manylinux:
     IMAGE_NAME: manylinux:2010_x86_64
   extends: .docker_build
 
+version_determination:
+  stage: version
+  variables:
+    GIT_STRATEGY: clone
+  extends:
+    - .debian_bullseye_gcc
+  script:
+    - git describe --tags --abbrev=0 --match v* || /bin/true
+    - git describe --tags --always --dirty --long --match v* || /bin/true
+    - git rev-parse HEAD || /bin/true
+  artifacts:
+    when: on_success
+    paths:
+      - VERSION
+    expire_in: 1day
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with GCC
 # ------------------------------------------------------------------------------
@@ -38,7 +54,9 @@ configure:debian_bullseye_gcc:
     - .debian_bullseye_gcc
     - .build_coverage
     - .configure
-
+  needs:
+    - version_determination
+    
 build:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
@@ -64,6 +82,8 @@ configure:debian_bullseye_clang:
     - .debian_bullseye_clang
     - .build_coverage
     - .configure
+  needs:
+    - version_determination
 
 build:debian_bullseye_clang:
   extends:
@@ -90,6 +110,8 @@ configure:ubuntu_lts_gcc:
     - .ubuntu_lts_gcc
     - .build_release
     - .configure
+  needs:
+    - version_determination
 
 build:ubuntu_lts_gcc:
   extends:
@@ -115,6 +137,8 @@ configure:ubuntu_lts_gcc_valgrind:
     - .ubuntu_lts_gcc
     - .build_valgrind
     - .configure
+  needs:
+    - version_determination
 
 build:ubuntu_lts_gcc_valgrind:
   extends:
@@ -141,11 +165,6 @@ configure:python_package:
     - .manylinux_2010_x64_gcc
     - .build_release
   script:
-    - git config --global --add safe.directory ${CI_PROJECT_DIR}
-    - git describe --tags --abbrev=0 --match v* || /bin/true
-    - git describe --tags --always --dirty --long --match v* || /bin/true
-    - git rev-parse HEAD || /bin/true
-
     # create the build folder
     - cmake -E make_directory build
     - cd build
@@ -169,6 +188,8 @@ configure:python_package:
             -DMUMPS_DETECT_DEBUG:BOOL=TRUE
             -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
             -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+  needs:
+    - version_determination
   artifacts:
     when: on_success
     paths:
