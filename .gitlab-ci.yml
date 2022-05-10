@@ -141,6 +141,7 @@ configure:python_package:
     - .manylinux_2010_x64_gcc
     - .build_release
   script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
     - git describe --tags --abbrev=0 --match v*
     - git describe --tags --always --dirty --long --match v*
     - git rev-parse HEAD
