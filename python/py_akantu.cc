@@ -168,6 +168,6 @@ PYBIND11_MODULE(py11_akantu, mod) {
     return false;
 #endif
           })
-      .def("getVersion", &getVersion);
+      .def("getVersion", &akantu::getVersion);
 
 } // Module akantu

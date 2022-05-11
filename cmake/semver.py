@@ -58,6 +58,7 @@ def _parse_semver(version):
         for p in ["major", "minor", "patch", "prerelease", "build"]:
             if semver_mo.group(p):
                 pieces[p] = semver_mo.group(p)
+    return pieces
 
 
 def get_git_version():
