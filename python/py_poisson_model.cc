@@ -115,7 +115,7 @@ void register_poisson_model(py::module & mod) {
       .def_function_nocopy(getBlockedDOFs)
       .def_function_nocopy(getMesh)
       .def(
-          "getMaterial",
+          "getConstitutiveLaw",
           [](PoissonModel & self, UInt constitutive_law_id) -> decltype(auto) {
             return self.getConstitutiveLaw(constitutive_law_id);
           },
