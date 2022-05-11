@@ -2,6 +2,7 @@
 import os
 import re
 import subprocess
+import sys
 
 semver_re = re.compile(
     r"^v(?P<major>0|[1-9]\d*)"
@@ -45,16 +46,6 @@ def _split_git_describe(describe):
         if describe_mo.group("dirty"):
             pieces["dirty"] = describe_mo.group("dirty")
 
-        # major.minor.patch-prerelease+build
-        semver_mo = semver_re.search(
-            pieces["tag"],
-        )
-
-        if semver_mo:
-            for p in ["major", "minor", "patch", "prerelease", "build"]:
-                if semver_mo.group(p):
-                    pieces[p] = semver_mo.group(p)
-
         return pieces
 
     return None
@@ -63,19 +54,30 @@ def _split_git_describe(describe):
 def get_git_version():
     out, rc = run_git_command(["rev-parse", "--git-dir"])
     if rc != 0:
+        print("not in git repo", file=sys.stderr)
         return None
 
     git_describe, rc = run_git_command(
         ["describe", "--tags", "--dirty", "--always", "--match", "v*"]
     )
 
-    pieces = {}
-    if git_describe and "-g" in git_describe:
+    if git_describe:
         # TAG-DISTANCE-gHEX
         pieces = _split_git_describe(git_describe)
-    else:
+    elif git_describe:
         # remove prefix
-        pieces["tag"] = git_describe
+        pieces = {"tag": git_describe}
+
+    # major.minor.patch-prerelease+build
+    if not pieces or ("tag" not in pieces):
+        print("No tag retrieved", file=sys.stderr)
+        return None
+
+    semver_mo = semver_re.search(pieces["tag"])
+    if semver_mo:
+        for p in ["major", "minor", "patch", "prerelease", "build"]:
+            if semver_mo.group(p):
+                pieces[p] = semver_mo.group(p)
 
     return pieces
 
@@ -84,6 +86,7 @@ def get_git_attributes_version():
     file_dir = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
     attributes = None
     pieces = None
+
     with open(os.path.join(file_dir, "git_info")) as fh:
         describe_re = re.compile(r"describe: ([^$].*[^$])")
         for line in fh:
@@ -94,6 +97,8 @@ def get_git_attributes_version():
 
     if attributes:
         pieces = _split_git_describe(attributes)
+    else:
+        print("git_info was not replaced", file=sys.stderr)
 
     return pieces
 
@@ -120,6 +125,37 @@ def get_ci_version():
                 for p in ["major", "minor", "patch", "prerelease", "build"]:
                     if semver_mo.group(p):
                         pieces[p] = semver_mo.group(p)
+    else:
+        print("Not with installed version", file=sys.stderr)
+
+    return pieces
+
+
+def get_version_file():
+    version_path = os.path.join(
+        os.path.realpath(
+            os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+        ),
+        "VERSION",
+    )
+
+    if not os.path.exists(version_path):
+        print("No filed named VERSION", file=sys.stderr)
+        return None
+
+    version = None
+    with open(version_path, "r") as fh:
+        version = fh.readline()
+
+    if not version:
+        return None
+
+    pieces = {}
+    semver_mo = semver_re.search(version)
+    if semver_mo:
+        for p in ["major", "minor", "patch", "prerelease", "build"]:
+            if semver_mo.group(p):
+                pieces[p] = semver_mo.group(p)
 
     return pieces
 
@@ -135,6 +171,9 @@ def get_version():
 
     if not pieces:
         pieces = get_git_attributes_version()
+
+    if not pieces:
+        pieces = get_version_file()
 
     if not pieces:
         raise Exception("No version could be determined")
@@ -159,6 +198,9 @@ def get_version():
         pieces["prerelease"] = ""
 
     semver = "{major}.{minor}.{patch}{prerelease}{build_part}".format(**pieces)
+
+    if "CI_MERGE_REQUEST_ID" in os.environ:
+        semver = "{}.mr{}".format(semver, os.environ["CI_MERGE_REQUEST_ID"])
 
     return semver
 
