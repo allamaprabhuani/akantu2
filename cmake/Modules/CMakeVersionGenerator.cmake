@@ -187,6 +187,10 @@ endfunction()
 function(define_project_version)
   string(TOUPPER ${PROJECT_NAME} _project)
 
+  if(${_project}_VERSION)
+    return()
+  endif()
+  
   _get_version_from_git()
 
   if(_git_version)

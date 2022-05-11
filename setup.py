@@ -21,8 +21,8 @@ except ImportError:
     raise
 
 # This is needed for semver.py to be importable
-source_folder = os.path.dirname(os.path.join(__file__, "cmake"))
-sys.path.append(source_folder)
+source_folder = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(source_folder, "cmake"))
 
 parser = configparser.ConfigParser()
 parser.read("setup.cfg")
@@ -57,13 +57,15 @@ setup_kw = {}
 try:
     import semver
 
+    _version = semver.get_version()
     setup_kw = {
-        "version": semver.get_version(),
+        "version": _version,
     }
+    cmake_args.append("-DAKANTU_VERSION={}".format(_version))
 except ImportError:
     pass
 
-print(f"AAAAAAAAAA {_version}")
+
 # Add CMake as a build requirement if cmake is not installed or is too low a
 # version
 setup_requires = []
@@ -72,7 +74,6 @@ try:
         setup_requires.append("cmake")
 except SKBuildError:
     setup_requires.append("cmake")
-
 
 with open(os.path.join(source_folder, "README.md"), "r") as fh:
     long_description = fh.read()
