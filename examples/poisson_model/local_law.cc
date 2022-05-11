@@ -33,12 +33,8 @@ void LocalLaw::computeFlux(ElementType el_type,
   Matrix<Real> identity(spatial_dimension, spatial_dimension);
   identity.eye();
   auto D = identity * this->epsilon;
-
   
-  // concentration gradient at quadrature points
   auto & potential_gradient = gradient_dof(el_type, ghost_type);
-  fem.gradientOnIntegrationPoints(model.getDof(), potential_gradient, 1,
-				  el_type, ghost_type);
   
   for (auto && values :
          zip(make_view(potential_gradient, spatial_dimension),

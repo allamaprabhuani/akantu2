@@ -29,16 +29,10 @@ class LocalConstitutiveLaw(aka.ConstitutiveLaw):
         return 8.* self.getReal('permitivity')
 
     def computeFlux(self, el_type, ghost_type):
-        concentration = self.getModel().getDof()
         concentration_flux = self.getFluxDof(el_type, ghost_type)
         concentration_gradient = self.getGradientDof(el_type, ghost_type)
 
-        fem = self.getModel().getFEEngine()
-        fem.gradientOnIntegrationPoints(concentration, concentration_gradient,
-                                        1, el_type, ghost_type)
-        concentration_flux[:, :, :] = np.einsum('a,ij->aij', self.getReal('D'),
-                                                concentration_gradient)
-
+        concentration_flux = self.getReal('permitivity') * concentration_gradient
 
 
     def computeTangentModulii(self, el_type, tangent_matrix, ghost_type):
@@ -47,7 +41,6 @@ class LocalConstitutiveLaw(aka.ConstitutiveLaw):
 
         tangent[:, 0, 0] = self.getReal('permitivity')
 
-        print(tangent)
 
     def getEffectiveCapacity(self):
         return 1.

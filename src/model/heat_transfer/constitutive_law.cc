@@ -239,6 +239,11 @@ void ConstitutiveLaw::computeAllFluxes(GhostType ghost_type) {
       continue;
     }
 
+    auto & grad_dof = gradient_dof(type, ghost_type);
+    fem.gradientOnIntegrationPoints(model.getDof(), grad_dof, 1,
+				    type, ghost_type, elem_filter);
+    
+
     computeFlux(type, ghost_type);
   }
 

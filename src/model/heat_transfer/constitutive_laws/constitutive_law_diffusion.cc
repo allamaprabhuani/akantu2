@@ -52,8 +52,6 @@ void ConstitutiveLawDiffusion::computeFlux(ElementType el_type,
   
   // concentration gradient at quadrature points
   auto & concentration_gradient = gradient_dof(el_type, ghost_type);
-  fem.gradientOnIntegrationPoints(model.getDof(), concentration_gradient, 1,
-				  el_type, ghost_type);
   
   for (auto && values :
          zip(make_view(concentration_gradient, spatial_dimension),
