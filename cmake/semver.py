@@ -105,28 +105,37 @@ def get_git_attributes_version():
 
 def get_ci_version():
     pieces = None
-    if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
-        ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-        akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    if "CI_AKANTU_INSTALL_PREFIX" not in os.environ:
+        print("Not using installed version", file=sys.stderr)
+        return None
 
-        version = None
-        with open(os.path.join(akantu_dir, "AkantuConfig.cmake"), "r") as fh:
-            version_re = re.compile(r"^set\(AKANTU_VERSION (.*)\)$")
-            for line in fh:
-                version_mo = version_re.search(line)
-                if version_mo:
-                    version = version_mo.group(1)
-                    break
+    ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
+    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    cmake_config = os.path.join(akantu_dir, "AkantuConfig.cmake")
 
-        if version:
-            pieces = {}
-            semver_mo = semver_re.search(version)
-            if semver_mo:
-                for p in ["major", "minor", "patch", "prerelease", "build"]:
-                    if semver_mo.group(p):
-                        pieces[p] = semver_mo.group(p)
-    else:
-        print("Not with installed version", file=sys.stderr)
+    if not os.path.exists(cmake_config):
+        print("Did not find AkantuConfig.cmake", file=sys.stderr)
+        return None
+
+    version = None
+    with open(cmake_config, "r") as fh:
+        version_re = re.compile(r"^set\(AKANTU_VERSION (.*)\)$")
+        for line in fh:
+            version_mo = version_re.search(line)
+            if version_mo:
+                version = version_mo.group(1)
+                break
+
+    if not version:
+        print("Version not set in AkantuConfig.cmake", file=sys.stderr)
+        return None
+
+    pieces = {}
+    semver_mo = semver_re.search(version)
+    if semver_mo:
+        for p in ["major", "minor", "patch", "prerelease", "build"]:
+            if semver_mo.group(p):
+                pieces[p] = semver_mo.group(p)
 
     return pieces
 
