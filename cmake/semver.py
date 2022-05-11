@@ -2,15 +2,6 @@
 import os
 import re
 import subprocess
-import sys
-
-semver_re = re.compile(
-    r"^v(?P<major>0|[1-9]\d*)"
-    r"(\.(?P<minor>0|[1-9]\d*))?"
-    r"(\.(?P<patch>0|[1-9]\d*))?"
-    r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
-    r"(?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
-)
 
 
 def run_git_command(args):
@@ -51,10 +42,27 @@ def _split_git_describe(describe):
     return None
 
 
+semver_re = re.compile(
+    r"^(?P<major>0|[1-9]\d*)"
+    r"(\.(?P<minor>0|[1-9]\d*))?"
+    r"(\.(?P<patch>0|[1-9]\d*))?"
+    r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+    r"(?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+)
+
+
+def _parse_semver(version):
+    pieces = {}
+    semver_mo = semver_re.search(version)
+    if semver_mo:
+        for p in ["major", "minor", "patch", "prerelease", "build"]:
+            if semver_mo.group(p):
+                pieces[p] = semver_mo.group(p)
+
+
 def get_git_version():
     out, rc = run_git_command(["rev-parse", "--git-dir"])
     if rc != 0:
-        print("not in git repo", file=sys.stderr)
         return None
 
     git_describe, rc = run_git_command(
@@ -70,10 +78,9 @@ def get_git_version():
 
     # major.minor.patch-prerelease+build
     if not pieces or ("tag" not in pieces):
-        print("No tag retrieved", file=sys.stderr)
         return None
 
-    semver_mo = semver_re.search(pieces["tag"])
+    semver_mo = semver_re.search(pieces["tag"][1:])
     if semver_mo:
         for p in ["major", "minor", "patch", "prerelease", "build"]:
             if semver_mo.group(p):
@@ -97,8 +104,6 @@ def get_git_attributes_version():
 
     if attributes:
         pieces = _split_git_describe(attributes)
-    else:
-        print("git_info was not replaced", file=sys.stderr)
 
     return pieces
 
@@ -106,7 +111,6 @@ def get_git_attributes_version():
 def get_ci_version():
     pieces = None
     if "CI_AKANTU_INSTALL_PREFIX" not in os.environ:
-        print("Not using installed version", file=sys.stderr)
         return None
 
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
@@ -114,7 +118,6 @@ def get_ci_version():
     cmake_config = os.path.join(akantu_dir, "AkantuConfig.cmake")
 
     if not os.path.exists(cmake_config):
-        print("Did not find AkantuConfig.cmake", file=sys.stderr)
         return None
 
     version = None
@@ -127,16 +130,9 @@ def get_ci_version():
                 break
 
     if not version:
-        print("Version not set in AkantuConfig.cmake", file=sys.stderr)
         return None
 
-    pieces = {}
-    semver_mo = semver_re.search(version)
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
-
+    pieces = _parse_semver(version)
     return pieces
 
 
@@ -149,7 +145,6 @@ def get_version_file():
     )
 
     if not os.path.exists(version_path):
-        print("No filed named VERSION", file=sys.stderr)
         return None
 
     version = None
@@ -159,13 +154,7 @@ def get_version_file():
     if not version:
         return None
 
-    pieces = {}
-    semver_mo = semver_re.search(version)
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
-
+    pieces = _parse_semver(version)
     return pieces
 
 
