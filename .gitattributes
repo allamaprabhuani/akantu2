@@ -1,1 +1,2 @@
 python/akantu/_version.py export-subst
+cmake/Modules/CMakeVersionGenerator.cmake export-subst

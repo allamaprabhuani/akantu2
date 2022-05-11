@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import re
 import os.path
 import pybind11 as py11
 import configparser
@@ -39,6 +40,40 @@ if ("cmake_config" in parser) and ("akantu_dir" in parser["cmake_config"]):
     except ImportError:
         pass
 
+if "cmake_config" in parser:
+    for k, v in parser["cmake_config"].items():
+        k = k.upper()
+        cmake_args.append("-D{}:BOOL={}".format(k, v))
+
+akantu_libs = []
+
+if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
+    ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
+    akantu_dir = os.path.join(ci_akantu_install_prefix,
+                              "lib", "cmake", "Akantu")
+    akantu_libs.extend(
+        [
+            # paths comming from the manylinux install via gitlab-ci
+            "/softs/view/lib/*",
+            "/softs/view/lib64/*",
+            os.path.join(ci_akantu_install_prefix, "lib64/*"),
+            os.path.join(ci_akantu_install_prefix, "lib/*"),
+        ]
+    )
+    cmake_args.extend(
+        [
+            "-DAKANTU_BYPASS_AKANTU_TARGET:BOOL=ON",
+            "-DAkantu_DIR:PATH={}".format(akantu_dir),
+        ]
+    )
+    with open(os.path.join(akantu_dir, 'AkantuConfig.cmake'), 'r') as fh:
+        version_re = re.compile(r'^set\(AKANTU_VERSION (.*)\)$')
+        for line in fh:
+            version_mo = version_re.search(line)
+            if version_mo:
+                _version = version_mo.group(1)
+                break
+
 try:
     import versioneer
 
@@ -54,34 +89,6 @@ except ImportError:
     print("WARNING: failed to import versioneer," " falling back to no version for now")
     setup_kw = {}
 
-
-if "cmake_config" in parser:
-    for k, v in parser["cmake_config"].items():
-        k = k.upper()
-        cmake_args.append("-D{}:BOOL={}".format(k, v))
-
-akantu_libs = []
-
-if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
-    akantu_libs.extend(
-        [
-            # paths comming from the manylinux install via gitlab-ci
-            "/softs/view/lib/*",
-            "/softs/view/lib64/*",
-            os.path.join(os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib64/*"),
-            os.path.join(os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib/*"),
-        ]
-    )
-    cmake_args.extend(
-        [
-            "-DAKANTU_BYPASS_AKANTU_TARGET:BOOL=ON",
-            "-DAkantu_DIR:PATH={}".format(
-                os.path.join(
-                    os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib", "cmake", "Akantu"
-                )
-            ),
-        ]
-    )
 
 # Add CMake as a build requirement if cmake is not installed or is too low a
 # version

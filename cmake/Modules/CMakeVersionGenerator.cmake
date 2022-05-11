@@ -30,6 +30,9 @@
 #
 #===============================================================================
 
+## Git metadata for version on archive
+## GIT DESCRIBE $Format:%(describe:tags=true,match=v*)$
+
 
 if(__DEFINE_PROJECT_VERSION__)
   return()
@@ -60,43 +63,51 @@ function(_get_version_from_git)
 
   find_package(Git)
 
-  if(NOT Git_FOUND)
-    return()
+  if(Git_FOUND)
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} describe
+      --tags
+      --abbrev=0
+      --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_VARIABLE _out_tag
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_VARIABLE _err_tag)
+
+    if(NOT _res EQUAL 0)
+      return()
+    endif()
+
+    string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
+
+    _match_semver("${_tag}" _tag)
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} describe
+      --tags
+      --dirty
+      --always
+      --long
+      --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_VARIABLE _out
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    set(_git_version ${_tag_version} PARENT_SCOPE)
+  else()
+    file(STRINGS ${CMAKE_CURRENT_LIST_FILE}
+      _lines
+      REGEX "GIT DESCRIBE (v(0|[1-9][0-9]*)(.(0|[1-9][0-9]*))?(.(0|[1-9][0-9]*))?)-([0-9]+)-g([0-9a-f]+)(-dirty)?"
+      )
+
+    foreach(line ${_lines})
+      message("---------- ${_line}")
+    endforeach()
   endif()
-
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe
-    --tags
-    --abbrev=0
-    --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE _res
-    OUTPUT_VARIABLE _out_tag
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_VARIABLE _err_tag)
-
-  if(NOT _res EQUAL 0)
-    return()
-  endif()
-
-  string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
-
-  _match_semver("${_tag}" _tag)
-
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe
-    --tags
-    --dirty
-    --always
-    --long
-    --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE _res
-    OUTPUT_VARIABLE _out
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-  set(_git_version ${_tag_version} PARENT_SCOPE)
-
+  
   if(_tag_version_prerelease)
     set(_git_version_prerelease ${_tag_version_prerelease} PARENT_SCOPE)
   endif()
@@ -161,7 +172,7 @@ function(_get_metadata_from_ci)
   endif()
 
   if(DEFINED ENV{CI_MERGE_REQUEST_ID})
-    set(_ci_version_metadata "ci.mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
+    set(_ci_version_metadata ".mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -201,7 +212,10 @@ function(define_project_version)
   endif()
 
   _get_metadata_from_ci()
-
+  if(_ci_version_metadata)
+    set(_version_metadata "${_version_metadata}${_ci_version_metadata}")
+  endif()
+  
   if(_version)
     if(_version_prerelease)
       set(_version_prerelease "-${_version_prerelease}")
