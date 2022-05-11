@@ -15,8 +15,9 @@
 import os
 import shutil
 import jinja2
-import git
-import re
+
+# import git
+# import re
 import subprocess
 
 # -- General configuration ---------------------------------------------------
@@ -139,7 +140,7 @@ author = "Nicolas Richart"
 #     release = file_release
 
 
-# print('Release: {} - Version: {}'.format(release, version))
+# print("Release: {} - Version: {}".format(release, version))
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -299,7 +300,7 @@ else:
 
 j2_args = {
     "akantu_source_path": akantu_source_path,
-    "akantu_version": version.replace("v", ""),
+    #'akantu_version': version.replace('v', ''),
 }
 
 print(akantu_path)
