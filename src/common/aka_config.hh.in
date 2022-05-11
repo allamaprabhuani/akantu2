@@ -28,6 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <string>
+/* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_CONFIG_HH_
 #define AKANTU_AKA_CONFIG_HH_
 
@@ -40,7 +42,9 @@
                         + AKANTU_VERSION_MINOR * 100 \
                         + AKANTU_VERSION_PATCH)
 
-#define AKANTU_VERSION_FULL "@AKANTU_MAJOR_VERSION@.@AKANTU_MINOR_VERSION@.@AKANTU_PATCH_VERSION@@AKANTU_PRERELEASE_VERSION@"
+namespace akantu {
+std::string getVersion();
+}
 
 @AKANTU_TYPES_EXTRA_INCLUDES@
 namespace akantu {

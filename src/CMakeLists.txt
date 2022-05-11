@@ -104,6 +104,12 @@ list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
   "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
+configure_file(common/aka_config.cc.in
+  "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc" @ONLY)
+
+list(APPEND AKANTU_LIBRARY_SRCS
+  "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc")
+
 #===============================================================================
 # Debug infos
 #===============================================================================

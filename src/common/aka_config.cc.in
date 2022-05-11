@@ -1,0 +1,11 @@
+/* -------------------------------------------------------------------------- */
+#include "aka_config.hh"
+/* -------------------------------------------------------------------------- */
+
+namespace akantu {
+std::string getVersion() {
+  return std::string(
+      "@AKANTU_MAJOR_VERSION@.@AKANTU_MINOR_VERSION@.@AKANTU_PATCH_VERSION@"
+      "@AKANTU_PRERELEASE_VERSION@@AKANTU_LOCAL_VERSION@");
+}
+} // namespace akantu

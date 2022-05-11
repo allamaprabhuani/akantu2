@@ -38,7 +38,7 @@ version_determination:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 0
   script:
-    - python3 test/ci/semver.py > VERSION
+    - python3 cmake/semver.py > VERSION
     - cat VERSION
   artifacts:
     when: on_success

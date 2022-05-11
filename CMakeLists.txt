@@ -103,11 +103,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #===============================================================================
 # AKANTU version number.
 define_project_version()
-if(NOT AKANTU_BYPASS_AKANTU_TARGET)
-  configure_file("cmake/akantu_version.py.in"
-    "${PROJECT_BINARY_DIR}/akantu_version.py"
-    @ONLY)
-endif()
 
 #===============================================================================
 # Options

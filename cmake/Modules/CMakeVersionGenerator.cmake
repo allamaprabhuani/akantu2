@@ -30,10 +30,6 @@
 #
 #===============================================================================
 
-## Git metadata for version on archive
-## GIT DESCRIBE $Format:%(describe:tags=true,match=v*)$
-
-
 if(__DEFINE_PROJECT_VERSION__)
   return()
 endif()
@@ -63,8 +59,20 @@ function(_get_version_from_git)
 
   find_package(Git)
 
+  set(is_git FALSE)
   if(Git_FOUND)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse --git-dir
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_QUIET
+      ERROR_QUIET)
+    if(_res EQUAL 0)
+      set(is_git TRUE)
+    endif()
+  endif()
 
+  if(is_git)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} describe
       --tags
@@ -82,8 +90,6 @@ function(_get_version_from_git)
 
     string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
 
-    _match_semver("${_tag}" _tag)
-
     execute_process(
       COMMAND ${GIT_EXECUTABLE} describe
       --tags
@@ -95,19 +101,22 @@ function(_get_version_from_git)
       RESULT_VARIABLE _res
       OUTPUT_VARIABLE _out
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    set(_git_version ${_tag_version} PARENT_SCOPE)
   else()
-    file(STRINGS ${CMAKE_CURRENT_LIST_FILE}
-      _lines
-      REGEX "GIT DESCRIBE (v(0|[1-9][0-9]*)(.(0|[1-9][0-9]*))?(.(0|[1-9][0-9]*))?)-([0-9]+)-g([0-9a-f]+)(-dirty)?"
-      )
+    file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/git_info lines)
 
-    foreach(line ${_lines})
-      message("---------- ${_line}")
+    foreach(line ${lines})
+      if(line MATCHES
+          "describe: (${CMAKE_VERSION_GENERATOR_TAG_PREFIX}((0|[1-9][0-9]*)(.(0|[1-9][0-9]*))?(.(0|[1-9][0-9]*))?)-(.*))?")
+        set(_tag ${CMAKE_MATCH_2})
+        set(_out ${CMAKE_MATCH_1})
+        break()
+      endif()
     endforeach()
   endif()
-  
+
+  _match_semver("${_tag}" _tag)
+
+  set(_git_version ${_tag_version} PARENT_SCOPE)
   if(_tag_version_prerelease)
     set(_git_version_prerelease ${_tag_version_prerelease} PARENT_SCOPE)
   endif()
@@ -126,7 +135,7 @@ function(_get_version_from_git)
     if(CMAKE_MATCH_4)
       set(_metadata "${_metadata}.dirty")
     endif()
-  else()
+  elseif(is_git)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} rev-list HEAD --count
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -146,7 +155,6 @@ function(_get_version_from_git)
     endif()
   endif()
   set(_git_version_metadata ${_metadata} PARENT_SCOPE)
-
 endfunction()
 
 function(_get_version_from_file)

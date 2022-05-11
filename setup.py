@@ -20,25 +20,13 @@ except ImportError:
     )
     raise
 
-# This is needed for versioneer to be importable when building with PEP 517.
-# See <https://github.com/warner/python-versioneer/issues/193> and links
-# therein for more information.
-source_folder = os.path.dirname(__file__)
+# This is needed for semver.py to be importable
+source_folder = os.path.dirname(os.path.join(__file__, "cmake"))
 sys.path.append(source_folder)
 
 parser = configparser.ConfigParser()
 parser.read("setup.cfg")
 cmake_args = ["-Dpybind11_DIR:PATH={}".format(py11.get_cmake_dir())]
-
-_version = None
-if ("cmake_config" in parser) and ("akantu_dir" in parser["cmake_config"]):
-    sys.path.append(parser["cmake_config"]["akantu_dir"])
-    try:
-        import akantu_version
-
-        _version = akantu_version.get_version()
-    except ImportError:
-        pass
 
 if "cmake_config" in parser:
     for k, v in parser["cmake_config"].items():
@@ -46,11 +34,9 @@ if "cmake_config" in parser:
         cmake_args.append("-D{}:BOOL={}".format(k, v))
 
 akantu_libs = []
-
 if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-    akantu_dir = os.path.join(ci_akantu_install_prefix,
-                              "lib", "cmake", "Akantu")
+    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
     akantu_libs.extend(
         [
             # paths comming from the manylinux install via gitlab-ci
@@ -66,30 +52,18 @@ if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
             "-DAkantu_DIR:PATH={}".format(akantu_dir),
         ]
     )
-    with open(os.path.join(akantu_dir, 'AkantuConfig.cmake'), 'r') as fh:
-        version_re = re.compile(r'^set\(AKANTU_VERSION (.*)\)$')
-        for line in fh:
-            version_mo = version_re.search(line)
-            if version_mo:
-                _version = version_mo.group(1)
-                break
 
+setup_kw = {}
 try:
-    import versioneer
+    import semver
 
-    if not _version:
-        _version = versioneer.get_version()
     setup_kw = {
-        "version": _version,
-        "cmdclass": versioneer.get_cmdclass(),
+        "version": semver.get_version(),
     }
-    cmake_args.append("-DAKANTU_VERSION={}".format(_version))
 except ImportError:
-    # see https://github.com/warner/python-versioneer/issues/192
-    print("WARNING: failed to import versioneer," " falling back to no version for now")
-    setup_kw = {}
+    pass
 
-
+print(f"AAAAAAAAAA {_version}")
 # Add CMake as a build requirement if cmake is not installed or is too low a
 # version
 setup_requires = []
@@ -139,5 +113,5 @@ setup(
         "Topic :: Education",
         "Topic :: Scientific/Engineering",
     ],
-    **setup_kw
+    **setup_kw,
 )
