@@ -367,7 +367,7 @@ void PoissonModel::assembleResidual() {
   this->getDOFManager().assembleToResidual("dof",
                                            *this->external_dof_rate, 1);
   this->getDOFManager().assembleToResidual("dof",
-                                           *this->internal_dof_rate, 1);
+                                           *this->internal_dof_rate, -1);
 
   AKANTU_DEBUG_OUT();
 }

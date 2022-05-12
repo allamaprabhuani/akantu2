@@ -33,6 +33,7 @@ void LocalLaw::computeFlux(ElementType el_type,
   Matrix<Real> identity(spatial_dimension, spatial_dimension);
   identity.eye();
   auto D = identity * this->epsilon;
+  D *= -1;
   
   auto & potential_gradient = gradient_dof(el_type, ghost_type);
   

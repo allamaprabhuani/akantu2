@@ -32,7 +32,7 @@ class LocalConstitutiveLaw(aka.ConstitutiveLaw):
         concentration_flux = self.getFluxDof(el_type, ghost_type)
         concentration_gradient = self.getGradientDof(el_type, ghost_type)
 
-        concentration_flux = self.getReal('permitivity') * concentration_gradient
+        concentration_flux = -self.getReal('permitivity') * concentration_gradient
 
 
     def computeTangentModulii(self, el_type, tangent_matrix, ghost_type):
