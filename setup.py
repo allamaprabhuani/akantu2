@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import re
 import os.path
 import pybind11 as py11
 import configparser
@@ -19,41 +20,13 @@ except ImportError:
     )
     raise
 
-# This is needed for versioneer to be importable when building with PEP 517.
-# See <https://github.com/warner/python-versioneer/issues/193> and links
-# therein for more information.
+# This is needed for semver.py to be importable
 source_folder = os.path.dirname(__file__)
-sys.path.append(source_folder)
+sys.path.insert(0, os.path.join(source_folder, "cmake"))
 
 parser = configparser.ConfigParser()
 parser.read("setup.cfg")
 cmake_args = ["-Dpybind11_DIR:PATH={}".format(py11.get_cmake_dir())]
-
-_version = None
-if ("cmake_config" in parser) and ("akantu_dir" in parser["cmake_config"]):
-    sys.path.append(parser["cmake_config"]["akantu_dir"])
-    try:
-        import akantu_version
-
-        _version = akantu_version.get_version()
-    except ImportError:
-        pass
-
-try:
-    import versioneer
-
-    if not _version:
-        _version = versioneer.get_version()
-    setup_kw = {
-        "version": _version,
-        "cmdclass": versioneer.get_cmdclass(),
-    }
-    cmake_args.append("-DAKANTU_VERSION={}".format(_version))
-except ImportError:
-    # see https://github.com/warner/python-versioneer/issues/192
-    print("WARNING: failed to import versioneer," " falling back to no version for now")
-    setup_kw = {}
-
 
 if "cmake_config" in parser:
     for k, v in parser["cmake_config"].items():
@@ -61,27 +34,37 @@ if "cmake_config" in parser:
         cmake_args.append("-D{}:BOOL={}".format(k, v))
 
 akantu_libs = []
-
 if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
+    ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
+    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
     akantu_libs.extend(
         [
             # paths comming from the manylinux install via gitlab-ci
             "/softs/view/lib/*",
             "/softs/view/lib64/*",
-            os.path.join(os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib64/*"),
-            os.path.join(os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib/*"),
+            os.path.join(ci_akantu_install_prefix, "lib64/*"),
+            os.path.join(ci_akantu_install_prefix, "lib/*"),
         ]
     )
     cmake_args.extend(
         [
             "-DAKANTU_BYPASS_AKANTU_TARGET:BOOL=ON",
-            "-DAkantu_DIR:PATH={}".format(
-                os.path.join(
-                    os.environ["CI_AKANTU_INSTALL_PREFIX"], "lib", "cmake", "Akantu"
-                )
-            ),
+            "-DAkantu_DIR:PATH={}".format(akantu_dir),
         ]
     )
+
+setup_kw = {}
+try:
+    import semver
+
+    _version = semver.get_version()
+    setup_kw = {
+        "version": _version,
+    }
+    cmake_args.append("-DAKANTU_VERSION={}".format(_version))
+except ImportError:
+    pass
+
 
 # Add CMake as a build requirement if cmake is not installed or is too low a
 # version
@@ -91,7 +74,6 @@ try:
         setup_requires.append("cmake")
 except SKBuildError:
     setup_requires.append("cmake")
-
 
 with open(os.path.join(source_folder, "README.md"), "r") as fh:
     long_description = fh.read()
@@ -132,5 +114,5 @@ setup(
         "Topic :: Education",
         "Topic :: Scientific/Engineering",
     ],
-    **setup_kw
+    **setup_kw,
 )

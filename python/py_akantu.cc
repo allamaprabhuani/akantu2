@@ -160,12 +160,14 @@ PYBIND11_MODULE(py11_akantu, mod) {
 
   akantu::register_all(mod);
 
-  mod.def("has_mpi", []() {
+  mod.def("has_mpi",
+          []() {
 #if defined(AKANTU_USE_MPI)
-    return true;
+            return true;
 #else
     return false;
 #endif
-  });
+          })
+      .def("getVersion", &akantu::getVersion);
 
 } // Module akantu
