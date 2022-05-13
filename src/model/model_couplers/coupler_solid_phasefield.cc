@@ -416,7 +416,9 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
     const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto & mesh = solid->getMesh();
+  auto & gradu = solid->flattenInternal("gradu", _ek_regular, ghost_type);
+  
+  /*auto & mesh = solid->getMesh();
 
   auto nb_materials = solid->getNbMaterials();
   auto nb_phasefields = phase->getNbPhaseFields();
@@ -455,7 +457,7 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
         break;
       }
     }
-  }
+  }*/
 
   AKANTU_DEBUG_OUT();
 }
@@ -466,21 +468,22 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
 
   solid->solveStep(solid_solver_id);
 
-  //this->synchronize(SynchronizationTag::_csp_strain);
-
+  solid->synchronize(SynchronizationTag::_smm_gradu);
+    
   AKANTU_DEBUG_INFO("exchange strain for local elements");
   this->computeStrainOnQuadPoints(_not_ghost);
-  
+
   AKANTU_DEBUG_INFO("exchange strain for ghost elements");
   this->computeStrainOnQuadPoints(_ghost);
+
   
   phase->solveStep(phase_solver_id);
   
-  //this->synchronize(SynchronizationTag::_csp_damage);
+  phase->synchronize(SynchronizationTag::_pfm_damage);
   
   AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
-
+  
   AKANTU_DEBUG_INFO("exchange damage for ghost elements");
   this->computeDamageOnQuadPoints(_ghost);
 

@@ -325,6 +325,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smm_res)                                     \
   (smm_init_mat)                                \
   (smm_stress)                                  \
+  (smm_gradu)					\
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
   (smmc_facets_stress)                          \
@@ -376,6 +377,8 @@ enum class SynchronizationTag {
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
+  _smm_gradu,    ///< synchronization of the gradu to compute the
+                  ///< strain
   _smmc_facets,   ///< synchronization of facet data to setup facet synch
   _smmc_facets_conn,   ///< synchronization of facet global connectivity
   _smmc_facets_stress, ///< synchronization of facets' stress to setup

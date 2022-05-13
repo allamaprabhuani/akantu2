@@ -214,6 +214,14 @@ public:
   AKANTU_GET_MACRO(ElementFilter, element_filter,
                    const ElementTypeMapArray<UInt> &);
 
+  
+  template <typename T>
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
+
   template <typename T>
   const InternalPhaseField<T> & getInternal(const ID & id) const;
   template <typename T> InternalPhaseField<T> & getInternal(const ID & id);
@@ -224,12 +232,21 @@ public:
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
 
+ 
   template <typename T>
   void flattenInternal(const std::string & field_id,
                        ElementTypeMapArray<T> & internal_flat,
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
+  template <typename T>
+  void inflateInternal(const std::string & field_id,
+                       const ElementTypeMapArray<T> & field,
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined);
+
+
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -312,7 +329,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#include "phasefield_inline_impl.cc"
+#include "phasefield_inline_impl.hh"
 
 #include "internal_field_tmpl.hh"
 #include "random_internal_field_tmpl.hh"

@@ -447,9 +447,13 @@ void PhaseFieldModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble the internal forces");
 
   this->internal_force->zero();
-
+  
   this->synchronize(SynchronizationTag::_pfm_damage);
 
+  for (auto & phasefield : phasefields) {
+    phasefield->computeAllDrivingForces(_not_ghost);
+  }
+  
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
   for (auto & phasefield : phasefields) {
@@ -679,6 +683,58 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
   return field;
 }
 
+/* -------------------------------------------------------------------------- */
+ElementTypeMapArray<Real> &
+PhaseFieldModel::flattenInternal(const std::string & field_name,
+				 ElementKind kind,
+				 const GhostType ghost_type) {
+  auto key = std::make_pair(field_name, kind);
+
+  ElementTypeMapArray<Real> * internal_flat;
+
+  auto it = this->registered_internals.find(key);
+  if (it == this->registered_internals.end()) {
+    auto internal =
+        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
+
+    internal_flat = internal.get();
+    this->registered_internals[key] = std::move(internal);
+  } else {
+    internal_flat = it->second.get();
+  }
+
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, kind)) {
+    if (internal_flat->exists(type, ghost_type)) {
+      auto & internal = (*internal_flat)(type, ghost_type);
+      internal.resize(0);
+    }
+  }
+
+  for (auto & phasefield : phasefields) {
+    if (phasefield->isInternal<Real>(field_name, kind)) {
+      phasefield->flattenInternal(field_name, *internal_flat, ghost_type, kind);
+    }
+  }
+
+  return *internal_flat;
+}
+
+
+/* -------------------------------------------------------------------------- */
+void PhaseFieldModel::inflateInternal(
+    const std::string & field_name, const ElementTypeMapArray<Real> & field,
+    ElementKind kind, GhostType ghost_type) {
+
+  for (auto & phasefield : phasefields) {
+    if (phasefield->isInternal<Real>(field_name, kind)) {
+      phasefield->inflateInternal(field_name, field, ghost_type, kind);
+    }
+  }
+}
+
+
+  
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);

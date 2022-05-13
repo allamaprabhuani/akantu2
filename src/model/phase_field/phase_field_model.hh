@@ -307,6 +307,17 @@ public:
                        const std::string & group_name, bool padding_flag,
                        UInt spatial_dimension, ElementKind kind) override;
 
+  //! flatten a given phasefield internal field
+  ElementTypeMapArray<Real> &
+  flattenInternal(const std::string & field_name, ElementKind kind,
+                  GhostType ghost_type = _not_ghost);
+
+  //! inverse operation of the flatten
+  void inflateInternal(const std::string & field_name,
+                       const ElementTypeMapArray<Real> & field,
+                       ElementKind kind, GhostType ghost_type = _not_ghost);
+
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -345,6 +356,14 @@ private:
   /// list of used phasefields
   std::vector<std::unique_ptr<PhaseField>> phasefields;
 
+  using flatten_internal_map =
+      std::map<std::pair<std::string, ElementKind>,
+               std::unique_ptr<ElementTypeMapArray<Real>>>;
+
+  /// tells if the phasefields are instantiated
+  flatten_internal_map registered_internals;
+
+
   /// tells if the phasefield are instantiated
   bool are_phasefields_instantiated{false};
 };
@@ -357,7 +376,7 @@ private:
 #include "parser.hh"
 #include "phasefield.hh"
 
-#include "phase_field_model_inline_impl.cc"
+#include "phase_field_model_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
 
 #endif

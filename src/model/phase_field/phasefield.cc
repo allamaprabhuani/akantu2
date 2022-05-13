@@ -195,8 +195,16 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
+    // damage_energy_density_on_qpoints = gc/l0 + phi = scalar
+    auto & damage_energy_density_vect = damage_energy_density(type, ghost_type);
+    auto & driving_force_vect = driving_force(type, ghost_type);
+
+    auto & damage_interpolated = damage_on_qpoints(type, ghost_type);
+    
+    //auto total_driving_force_vect = damage_energy_density*damage_interpolated - driving_force_vect;
+    
     Array<Real> nt_driving_force(nb_quadrature_points, nb_nodes_per_element);
-    fem.computeNtb(driving_force(type, ghost_type), nt_driving_force, type,
+    fem.computeNtb(driving_force_vect, nt_driving_force, type,
                    ghost_type, elem_filter);
 
     Array<Real> int_nt_driving_force(nb_element, nb_nodes_per_element);
@@ -351,7 +359,6 @@ Real PhaseField::getEnergy(ElementType type,
 /* -------------------------------------------------------------------------- */
 void PhaseField::beforeSolveStep() {
   this->savePreviousState();
-  this->computeAllDrivingForces(_not_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
