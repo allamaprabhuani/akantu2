@@ -70,6 +70,5 @@ FromStress = _py11_akantu.FromHigherDim
 FromTraction = _py11_akantu.FromSameDim
 _py11_akantu.__initialize()
 
-from ._version import get_versions  # NOQA(402@)
-__version__ = get_versions()['version']
-del get_versions
+__version__ = _py11_akantu.getVersion()
+
