@@ -309,6 +309,9 @@ protected:
   /// driving force ordered by element types
   InternalPhaseField<Real> driving_force;
 
+  /// driving energy ordered by element types
+  InternalPhaseField<Real> driving_energy;
+
   /// damage energy ordered by element types
   InternalPhaseField<Real> damage_energy;
  

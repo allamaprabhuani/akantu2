@@ -57,11 +57,30 @@ void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
                            this->driving_force(el_type, ghost_type),
                            this->damage_energy_density(el_type, ghost_type),
                            make_view(this->strain(el_type, ghost_type),
-                                     spatial_dimension, spatial_dimension))) {
-    computePhiOnQuad(std::get<4>(tuple), std::get<0>(tuple),
-                     std::get<1>(tuple));
-    computeDamageEnergyDensityOnQuad(std::get<0>(tuple), std::get<3>(tuple));
-    computeDrivingForceOnQuad(std::get<0>(tuple), std::get<2>(tuple));
+                                     spatial_dimension, spatial_dimension),
+			   this->damage_on_qpoints(el_type, _not_ghost),
+			   make_view(this->driving_energy(el_type, ghost_type),
+				     spatial_dimension),
+			   make_view(this->damage_energy(el_type, ghost_type),
+				     spatial_dimension, spatial_dimension),
+			   make_view(this->gradd(el_type, ghost_type),
+				     spatial_dimension))) {
+    
+    auto & phi_quad = std::get<0>(tuple);
+    auto & phi_hist_quad = std::get<1>(tuple);
+    auto & driving_force_quad  = std::get<2>(tuple);
+    auto & dam_energy_density_quad = std::get<3>(tuple);
+    auto & strain = std::get<4>(tuple);
+    auto & dam_on_quad = std::get<5>(tuple);
+    auto & driving_energy_quad = std::get<6>(tuple);
+    auto & damage_energy_quad = std::get<7>(tuple);
+    auto & gradd_quad = std::get<8>(tuple);
+
+    computePhiOnQuad(strain, phi_quad,  phi_hist_quad);
+    computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad);
+    
+    driving_force_quad = dam_on_quad * dam_energy_density_quad - 2*phi_quad;
+    driving_energy_quad = damage_energy_quad*gradd_quad;
   }
 }
 

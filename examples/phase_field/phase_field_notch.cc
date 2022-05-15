@@ -142,7 +142,7 @@ int main(int argc, char * argv[]) {
       increment = 1.e-6;
     }
 
-    if (s % 10 == 0) {
+    if (s % 200 == 0) {
       constexpr char wheel[] = "/-\\|";
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;

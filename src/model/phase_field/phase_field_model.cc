@@ -330,7 +330,7 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_linear;
+    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["damage"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["damage"] = IntegrationScheme::_not_defined;
@@ -729,6 +729,11 @@ void PhaseFieldModel::inflateInternal(
   for (auto & phasefield : phasefields) {
     if (phasefield->isInternal<Real>(field_name, kind)) {
       phasefield->inflateInternal(field_name, field, ghost_type, kind);
+    }
+    else {
+      AKANTU_ERROR("A internal of name \'"
+                 << field_name
+                 << "\' has not been defined in the phasefield");
     }
   }
 }

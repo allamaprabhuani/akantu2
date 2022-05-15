@@ -126,7 +126,7 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
   strain_values.zero();
   strain_diag_plus.zero();
   strain_diag_minus.zero();
-
+  
   strain_quad.eig(strain_values, strain_dir);
 
   for (UInt i = 0; i < spatial_dimension; i++) {
