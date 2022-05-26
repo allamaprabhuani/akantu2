@@ -77,6 +77,41 @@ namespace {
   };
 
   /* ------------------------------------------------------------------------ */
+  template <typename daughter = BC::BodyForce::BodyForceFunctor>
+  class PyBodyForceFunctor : public daughter {
+  public:
+    /* Inherit the constructors */
+    using daughter::daughter;
+
+    /* Trampoline (need one for each virtual function) */
+    void operator()(const IntegrationPoint & quad_point, Vector<Real> & dual,
+                    const Vector<Real> & coord) const override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE_PURE_NAME(void, daughter, "__call__", operator(),
+                                  quad_point, dual, coord);
+    }
+  };
+
+  
+  /* ------------------------------------------------------------------------ */
+  template <typename daughter = BC::BodyStress::BodyStressFunctor>
+  class PyBodyStressFunctor : public daughter {
+  public:
+    /* Inherit the constructors */
+    using daughter::daughter;
+
+    /* Trampoline (need one for each virtual function) */
+    void operator()(const IntegrationPoint & quad_point, Matrix<Real> & dual,
+                    const Vector<Real> & coord) const override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE_PURE_NAME(void, daughter, "__call__", operator(),
+                                  quad_point, dual, coord);
+    }
+  };
+
+
+  
+  /* ------------------------------------------------------------------------ */
   template <typename Functor, typename Constructor>
   decltype(auto) register_dirichlet_functor(py::module mod, const char * name,
                                             Constructor && cons) {
@@ -90,6 +125,16 @@ namespace {
   decltype(auto) register_neumann_functor(py::module mod, const char * name,
                                           Constructor && cons) {
     py::class_<Functor, PyNeumannFunctor<Functor>, BC::Neumann::NeumannFunctor>(
+        mod, name)
+        .def(cons);
+  }
+
+  
+  /* ------------------------------------------------------------------------ */
+  template <typename Functor, typename Constructor>
+  decltype(auto) register_body_force_functor(py::module mod, const char * name,
+                                          Constructor && cons) {
+    py::class_<Functor, PyBodyForceFunctor<Functor>, BC::BodyForce::BodyForceFunctor>(
         mod, name)
         .def(cons);
   }
@@ -108,6 +153,17 @@ void register_boundary_conditions(py::module & mod) {
       mod, "NeumannFunctor")
       .def(py::init());
 
+  py::class_<BC::BodyForce::BodyForceFunctor, PyBodyForceFunctor<>, BC::Functor>(
+      mod, "BodyForceFunctor")
+    .def(py::init())
+    .def(py::init<Vector<Real> &>());
+
+  py::class_<BC::BodyStress::BodyStressFunctor, PyBodyStressFunctor<>, BC::Functor>(
+      mod, "BodyStressFunctor")
+    .def(py::init())
+    .def(py::init<Matrix<Real> &>());
+
+  
   register_dirichlet_functor<BC::Dirichlet::FixedValue>(
       mod, "FixedValue", py::init<Real, BC::Axis>());
 

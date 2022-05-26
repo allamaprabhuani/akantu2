@@ -185,6 +185,189 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 };
 
 /* -------------------------------------------------------------------------- */
+/* Partial specialization for BODYFORCE functors */
+template <typename ModelType>
+template <typename FunctorType>
+struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
+    FunctorType, BC::Functor::_body_force> {
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance) {
+    UInt dim = bc_instance.getModel().getSpatialDimension();
+    switch (dim) {
+    case 1: {
+      AKANTU_TO_IMPLEMENT();
+      break;
+    }
+    case 2:
+    case 3: {
+      applyBC(func, group, bc_instance, _not_ghost);
+      applyBC(func, group, bc_instance, _ghost);
+      break;
+    }
+    }
+  }
+
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance,
+                             GhostType ghost_type) {
+    auto & model = bc_instance.getModel();
+    auto & dual = bc_instance.getDual();
+    const auto & mesh = model.getMesh();
+    const auto & nodes_coords = mesh.getNodes();
+    const auto & fem_engine = model.getFEEngine();
+
+    UInt dim = model.getSpatialDimension();
+    UInt nb_degree_of_freedom = dual.getNbComponent();
+
+    IntegrationPoint quad_point;
+    quad_point.ghost_type = ghost_type;
+
+    // Loop over the volume element types
+    for (auto && type : group.elementTypes(dim, ghost_type)) {
+      const auto & element_ids = group.getElements(type, ghost_type);
+
+      UInt nb_quad_points =
+          fem_engine.getNbIntegrationPoints(type, ghost_type);
+      UInt nb_elements = element_ids.size();
+      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+      Array<Real> dual_before_integ(nb_elements * nb_quad_points,
+                                    nb_degree_of_freedom, 0.);
+      Array<Real> quad_coords(nb_elements * nb_quad_points, dim);
+
+      fem_engine.interpolateOnIntegrationPoints(
+          nodes_coords, quad_coords, dim, type, ghost_type, element_ids);
+      
+      auto quad_coords_iter = quad_coords.begin(dim);
+      auto dual_iter = dual_before_integ.begin(nb_degree_of_freedom);
+
+      quad_point.type = type;
+      for (auto el : element_ids) {
+        quad_point.element = el;
+	for (auto q : arange(nb_quad_points)) {
+          quad_point.num_point = q;
+          func(quad_point, *dual_iter, *quad_coords_iter);
+          ++dual_iter;
+          ++quad_coords_iter;
+	}
+      }
+
+      Array<Real> dual_by_shapes(nb_elements * nb_quad_points,
+                                 nb_degree_of_freedom * nb_nodes_per_element);
+
+      fem_engine.computeNtb(dual_before_integ, dual_by_shapes, type,
+			    ghost_type, element_ids);
+
+      Array<Real> dual_by_shapes_integ(nb_elements, nb_degree_of_freedom *
+				       nb_nodes_per_element);
+      fem_engine.integrate(dual_by_shapes, dual_by_shapes_integ,
+                             nb_degree_of_freedom * nb_nodes_per_element, type,
+                             ghost_type, element_ids);
+
+      // assemble the result into force vector
+      model.getDOFManager().assembleElementalArrayLocalArray(
+          dual_by_shapes_integ, dual, type, ghost_type, 1., element_ids);
+    }
+  }
+};
+
+  
+/* -------------------------------------------------------------------------- */
+/* Partial specialization for BODYSTRESS functors */
+template <typename ModelType>
+template <typename FunctorType>
+struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
+    FunctorType, BC::Functor::_body_stress> {
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance) {
+    UInt dim = bc_instance.getModel().getSpatialDimension();
+    switch (dim) {
+    case 1: {
+      AKANTU_TO_IMPLEMENT();
+      break;
+    }
+    case 2:
+    case 3: {
+      applyBC(func, group, bc_instance, _not_ghost);
+      applyBC(func, group, bc_instance, _ghost);
+      break;
+    }
+    }
+  }
+
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance,
+                             GhostType ghost_type) {
+    auto & model = bc_instance.getModel();
+    auto & dual = bc_instance.getDual();
+    const auto & mesh = model.getMesh();
+    const auto & nodes_coords = mesh.getNodes();
+    const auto & fem_engine = model.getFEEngine();
+
+    UInt dim = model.getSpatialDimension();
+    UInt nb_degree_of_freedom = dual.getNbComponent();
+
+    IntegrationPoint quad_point;
+    quad_point.ghost_type = ghost_type;
+
+    // Loop over the volume element types
+    for (auto && type : group.elementTypes(dim, ghost_type)) {
+      const auto & element_ids = group.getElements(type, ghost_type);
+
+      const Array<Real> & shapes_derivatives =
+        fem_engine.getShapesDerivatives(type, ghost_type);
+      UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
+      
+      UInt nb_quad_points =
+          fem_engine.getNbIntegrationPoints(type, ghost_type);
+      UInt nb_elements = element_ids.size();
+      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+      Array<Real> dual_before_integ(nb_elements * nb_quad_points,
+                                    dim*dim, 0.);
+      Array<Real> quad_coords(nb_elements * nb_quad_points, dim);
+
+      fem_engine.interpolateOnIntegrationPoints(
+          nodes_coords, quad_coords, dim, type, ghost_type, element_ids);
+      
+      auto quad_coords_iter = quad_coords.begin(dim);
+      auto dual_iter = dual_before_integ.begin(dim, dim);
+
+      quad_point.type = type;
+      for (auto el : element_ids) {
+        quad_point.element = el;
+	for (auto q : arange(nb_quad_points)) {
+          quad_point.num_point = q;
+          func(quad_point, *dual_iter, *quad_coords_iter);
+          ++dual_iter;
+          ++quad_coords_iter;
+	}
+      }
+
+      Array<Real> dual_by_shapes(nb_elements * nb_quad_points,
+                                 nb_degree_of_freedom * nb_nodes_per_element);
+      
+      fem_engine.computeBtD(dual_before_integ, dual_by_shapes, type,
+			    ghost_type, element_ids);
+
+      Array<Real> dual_by_shapes_integ(nb_elements, dim *
+				       nb_nodes_per_element);
+      fem_engine.integrate(dual_by_shapes, dual_by_shapes_integ,
+                             size_of_shapes_derivatives, type,
+                             ghost_type, element_ids);
+
+      // assemble the result into force vector
+      model.getDOFManager().assembleElementalArrayLocalArray(
+          dual_by_shapes_integ, dual, type, ghost_type, 1., element_ids);
+    }
+  }
+};
+  
+/* -------------------------------------------------------------------------- */
 template <typename ModelType>
 template <typename FunctorType>
 inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {

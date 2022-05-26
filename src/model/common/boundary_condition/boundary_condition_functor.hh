@@ -50,7 +50,7 @@ namespace BC {
 
   /* ---------------------------------------------------------------------- */
   struct Functor {
-    enum Type { _dirichlet, _neumann };
+    enum Type { _dirichlet, _neumann, _body_force, _body_stress };
     virtual ~Functor() = default;
   };
 
@@ -207,6 +207,70 @@ namespace BC {
                              const Vector<Real> & normals) const override;
     };
   } // namespace Neumann
+
+  
+  /* ------------------------------------------------------------------------ */
+  /* Body Force                                                                 */
+  /* ------------------------------------------------------------------------ */
+  namespace BodyForce {
+
+    class BodyForceFunctor : public Functor {
+
+    public:
+      explicit BodyForceFunctor(const Vector<Real> & force) : bc_data(force) {}
+                  
+    protected:
+      BodyForceFunctor() = default;
+
+    public:
+      virtual void operator()(const IntegrationPoint & quad_point,
+                              Vector<Real> & dual, const Vector<Real> & coord) const {
+	dual = this->bc_data;
+      }
+
+      ~BodyForceFunctor() override = default;
+
+    public:
+      static const Type type = _body_force;
+
+    protected:
+      Vector<Real> bc_data;
+    };
+
+  } // namespace BodyForce
+
+  
+  /* ------------------------------------------------------------------------ */
+  /* Body Stress                                                                 */
+  /* ------------------------------------------------------------------------ */
+  namespace BodyStress {
+
+    class BodyStressFunctor : public Functor {
+
+    public:
+      explicit BodyStressFunctor(const Matrix<Real> & mat) : bc_data(mat) {}
+                  
+    protected:
+      BodyStressFunctor() = default;
+
+    public:
+      virtual void operator()(const IntegrationPoint & quad_point,
+                              Matrix<Real> & dual, const Vector<Real> & coord) const {
+	dual = this->bc_data;
+      }
+
+      ~BodyStressFunctor() override = default;
+
+    public:
+      static const Type type = _body_stress;
+
+    protected:
+      Matrix<Real> bc_data;
+    };
+
+  } // namespace BodyStress
+
+  
 } // namespace BC
 } // namespace akantu
 

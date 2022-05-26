@@ -31,6 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
@@ -46,17 +47,30 @@ int main(int argc, char * argv[]) {
 
   // model initialization
   SolidMechanicsModel model(mesh);
-  model.initFull();
+  model.initFull(_analysis_method=_static);
 
   // Dirichlet boundary conditions
-  model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed_x");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed_y");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed_y");
+
+  //Body force boundary conditions
+  Vector<Real> gravity(2);
+  gravity(1) = 1.;
+  model.applyBC(BC::BodyForce::BodyForceFunctor(gravity), "steel");
+
+  auto & solver = model.getNonLinearSolver();
+  solver.set("max_iterations", 2);
+  solver.set("threshold", 2e-4);
+  solver.set("convergence_type", SolveConvergenceCriteria::_solution);
+
+  model.solveStep();
   
   // output in a paraview file
   model.setBaseName("plate");
   model.addDumpFieldVector("displacement");
   model.addDumpField("blocked_dofs");
   model.addDumpField("external_force");
+  model.addDumpField("internal_force");
   model.dump();
 
   finalize();

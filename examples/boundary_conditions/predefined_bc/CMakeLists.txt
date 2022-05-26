@@ -35,3 +35,7 @@ add_mesh(predefined_bc_mesh square.geo 2 1)
 register_example(predefined_bc SOURCES predefined_bc.cc
   DEPENDS predefined_bc_mesh
   FILES_TO_COPY material.dat)
+
+register_example(bodyforce_bc SOURCES bodyforce_bc.cc
+  DEPENDS predefined_bc_mesh
+  FILES_TO_COPY material.dat)
