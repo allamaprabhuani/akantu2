@@ -249,7 +249,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 	for (auto q : arange(nb_quad_points)) {
           quad_point.num_point = q;
           func(quad_point, *dual_iter, *quad_coords_iter);
-          ++dual_iter;
+	  ++dual_iter;
           ++quad_coords_iter;
 	}
       }
@@ -343,7 +343,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 	for (auto q : arange(nb_quad_points)) {
           quad_point.num_point = q;
           func(quad_point, *dual_iter, *quad_coords_iter);
-          ++dual_iter;
+	  ++dual_iter;
           ++quad_coords_iter;
 	}
       }

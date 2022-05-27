@@ -249,7 +249,8 @@ namespace BC {
 
     public:
       explicit BodyStressFunctor(const Matrix<Real> & mat) : bc_data(mat) {}
-                  
+      ~BodyStressFunctor() override = default;
+
     protected:
       BodyStressFunctor() = default;
 
@@ -259,7 +260,7 @@ namespace BC {
 	dual = this->bc_data;
       }
 
-      ~BodyStressFunctor() override = default;
+
 
     public:
       static const Type type = _body_stress;

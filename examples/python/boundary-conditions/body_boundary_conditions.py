@@ -20,6 +20,13 @@ except ImportError:
 import akantu as aka
 import numpy as np
 
+class MyBoundary(aka.BodyStressFunctor):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, quad_point, dual, coord):
+        dual[0, 0] = 1.0
+        dual[1, 1] = 1.0
 
 # -----------------------------------------------------------------------------
 def solve(material_file, mesh_file, body_stress):
@@ -51,13 +58,13 @@ def solve(material_file, mesh_file, body_stress):
     model.applyBC(aka.FixedValue(0.0, aka._x), "Fixed_y")
     model.applyBC(aka.FixedValue(0.0, aka._y), "Fixed_y")
 
-    gravity = np.eye(2)*body_stress
-    model.applyBC(aka.BodyStressFunctor(gravity), "steel")
-    
+    my_boundary = MyBoundary()
+    model.applyBC(my_boundary, "steel")
+
     solver = model.getNonLinearSolver()
     solver.set("max_iterations", 2)
     solver.set("threshold", 1e-10)
-    solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
+    solver.set("convergence_type", aka.SolveConvergenceCriteria.residual)
 
     model.solveStep()
 

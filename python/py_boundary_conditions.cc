@@ -87,8 +87,8 @@ namespace {
     void operator()(const IntegrationPoint & quad_point, Vector<Real> & dual,
                     const Vector<Real> & coord) const override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE_NAME(void, daughter, "__call__", operator(),
-                                  quad_point, dual, coord);
+      PYBIND11_OVERRIDE_NAME(void, daughter, "__call__", operator(),
+			     quad_point, dual, coord);
     }
   };
 
@@ -104,8 +104,8 @@ namespace {
     void operator()(const IntegrationPoint & quad_point, Matrix<Real> & dual,
                     const Vector<Real> & coord) const override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE_NAME(void, daughter, "__call__", operator(),
-                                  quad_point, dual, coord);
+      PYBIND11_OVERRIDE_NAME(void, daughter, "__call__", operator(),
+			     quad_point, dual, coord);
     }
   };
 
@@ -155,13 +155,14 @@ void register_boundary_conditions(py::module & mod) {
 
   py::class_<BC::BodyForce::BodyForceFunctor, PyBodyForceFunctor<>, BC::Functor>(
       mod, "BodyForceFunctor")
-    .def(py::init())
+    .def(py::init<>())
     .def(py::init<Vector<Real> &>());
 
   py::class_<BC::BodyStress::BodyStressFunctor, PyBodyStressFunctor<>, BC::Functor>(
       mod, "BodyStressFunctor")
-    .def(py::init())
-    .def(py::init<Matrix<Real> &>());
+    .def(py::init<>())
+    .def(py::init<Matrix<Real> &>())
+    .def("__call__", &BC::BodyStress::BodyStressFunctor::operator());
 
   
   register_dirichlet_functor<BC::Dirichlet::FixedValue>(
