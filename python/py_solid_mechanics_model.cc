@@ -102,6 +102,16 @@ void register_solid_mechanics_model(py::module & mod) {
               const std::string & element_group) {
              self.applyBC(func, element_group);
            })
+      .def("applyBC",
+           [](SolidMechanicsModel & self, BC::BodyForce::BodyForceFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           })
+      .def("applyBC",
+           [](SolidMechanicsModel & self, BC::BodyStress::BodyStressFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           })
       .def("setTimeStep", &SolidMechanicsModel::setTimeStep,
            py::arg("time_step"), py::arg("solver_id") = "")
       .def(

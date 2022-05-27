@@ -54,9 +54,11 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed_y");
 
   //Body force boundary conditions
-  Vector<Real> gravity(2);
-  gravity(1) = 1.;
-  model.applyBC(BC::BodyForce::BodyForceFunctor(gravity), "steel");
+  Matrix<Real> gravity(2, 2);
+  gravity(0, 0) = 1.;
+  gravity(1, 1) = 1.;
+
+  model.applyBC(BC::BodyStress::BodyStressFunctor(gravity), "steel");
 
   auto & solver = model.getNonLinearSolver();
   solver.set("max_iterations", 2);
@@ -71,6 +73,8 @@ int main(int argc, char * argv[]) {
   model.addDumpField("blocked_dofs");
   model.addDumpField("external_force");
   model.addDumpField("internal_force");
+  model.addDumpField("stress");
+  model.addDumpField("strain");
   model.dump();
 
   finalize();

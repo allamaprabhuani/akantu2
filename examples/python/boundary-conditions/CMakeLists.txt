@@ -1,13 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date creation: Fri Jan 22 2016
-# @date last modification: Tue Mar 30 2021
+# @date last modification: Wed Aug 14 2019
 #
-# @brief  Main CMakeLists for python examples
+# @brief  CMakeLists for plate-hole example
 #
 #
 # @section LICENSE
@@ -31,23 +30,11 @@
 #===============================================================================
 
 
-add_subdirectory(custom-material)
-add_subdirectory(dynamics)
-add_subdirectory(eigen_modes)
-add_subdirectory(plate-hole)
-add_subdirectory(stiffness_matrix)
-add_subdirectory(boundary-conditions)
+add_mesh(square_mesh square.geo DIM 2 ORDER 1)
 
-add_example(structural_mechanics "structural mechanics example in python"
-  PACKAGE structural_mechanics)
-add_example(fragmentation "example of fragmentation in python"
-  PACKAGE cohesive_element)
-add_example(phase-field "phase-field example in python"
-  PACKAGE phase_field)
-add_example(cohesive "cohesive element examples in python"
-  PACKAGE cohesive_element)
-add_example(contact-mechanics "contact mechanics example in python"
-  PACKAGE contact_mechanics)
-package_add_files_to_package(
-  examples/python/README.rst
+register_example(body-stress
+  SCRIPT body_boundary_condition.py
+  FILES_TO_COPY material.dat
+  DEPENDS square_mesh
+  PYTHON
   )
