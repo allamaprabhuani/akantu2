@@ -285,10 +285,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
                              BoundaryCondition<ModelType> & bc_instance) {
     UInt dim = bc_instance.getModel().getSpatialDimension();
     switch (dim) {
-    case 1: {
-      AKANTU_TO_IMPLEMENT();
-      break;
-    }
+    case 1:
     case 2:
     case 3: {
       applyBC(func, group, bc_instance, _not_ghost);
