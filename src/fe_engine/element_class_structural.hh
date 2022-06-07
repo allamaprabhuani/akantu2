@@ -82,7 +82,7 @@ public:
       auto && N_T = std::get<1>(data);
 
       computeShapes(X, x, N);
-      N_T = N * T;
+      N_T = N.block(0, 0, N_T.rows(), N_T.cols()) * T;
     }
   }
 

@@ -91,22 +91,20 @@ class CohesiveElementFilter : public GroupManager::ClusteringFilter {
 public:
   CohesiveElementFilter(const SolidMechanicsModelCohesive & model,
                         const Real max_damage = 1.)
-      : model(model), is_unbroken(max_damage) {}
+      : model(model), max_damage(max_damage) {}
 
   bool operator()(const Element & el) const override {
     if (Mesh::getKind(el.type) == _ek_regular) {
       return true;
     }
 
-    const auto & mat_indexes =
-        model.getMaterialByElement(el.type, el.ghost_type);
-    const auto & mat_loc_num =
-        model.getMaterialLocalNumbering(el.type, el.ghost_type);
+    auto mat_indexe = model.getMaterialByElement()(el);
+    auto mat_loc_num = model.getMaterialLocalNumbering()(el);
 
-    const auto & mat = static_cast<const MaterialCohesive &>(
-        model.getMaterial(mat_indexes(el.element)));
+    const auto & mat =
+        static_cast<const MaterialCohesive &>(model.getMaterial(mat_indexe));
 
-    auto el_index = mat_loc_num(el.element);
+    auto el_index = mat_loc_num;
     auto nb_quad_per_element =
         model.getFEEngine("CohesiveFEEngine")
             .getNbIntegrationPoints(el.type, el.ghost_type);
@@ -120,21 +118,16 @@ public:
     const auto * element_damage =
         damage_array.data() + nb_quad_per_element * el_index;
 
-    auto unbroken_quads = std::count_if(
-        element_damage, element_damage + nb_quad_per_element, is_unbroken);
+    auto nonbroken_quads =
+        std::count_if(element_damage, element_damage + nb_quad_per_element,
+                      [&](auto && x) { return x < (max_damage - 1e-14); });
 
-    return (unbroken_quads > 0);
+    return (nonbroken_quads > 0);
   }
 
 private:
-  struct IsUnbrokenFunctor {
-    IsUnbrokenFunctor(const Real & max_damage) : max_damage(max_damage) {}
-    bool operator()(const Real & x) const { return x < max_damage; }
-    const Real max_damage;
-  };
-
   const SolidMechanicsModelCohesive & model;
-  const IsUnbrokenFunctor is_unbroken;
+  Real max_damage;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -204,13 +197,8 @@ void FragmentManager::computeCenterOfMass() {
   integrateFieldOnFragments(quad_coordinates, mass_center);
 
   /// divide it by the fragments' mass
-  Real * mass_storage = mass.data();
-  Real * mass_center_storage = mass_center.data();
-
-  UInt total_components = mass_center.size() * mass_center.getNbComponent();
-
-  for (UInt i = 0; i < total_components; ++i) {
-    mass_center_storage[i] /= mass_storage[i];
+  for (auto && data : zip(make_view(mass), make_view(mass_center))) {
+    std::get<1>(data) /= std::get<0>(data);
   }
 
   AKANTU_DEBUG_OUT();
@@ -235,13 +223,8 @@ void FragmentManager::computeVelocity() {
   integrateFieldOnFragments(velocity_field, velocity);
 
   /// divide it by the fragments' mass
-  Real * mass_storage = mass.data();
-  Real * velocity_storage = velocity.data();
-
-  UInt total_components = velocity.size() * velocity.getNbComponent();
-
-  for (UInt i = 0; i < total_components; ++i) {
-    velocity_storage[i] /= mass_storage[i];
+  for (auto && data : zip(make_view(mass), make_view(velocity))) {
+    std::get<1>(data) /= std::get<0>(data);
   }
 
   AKANTU_DEBUG_OUT();
@@ -452,11 +435,12 @@ void FragmentManager::integrateFieldOnFragments(
       model.getFEEngine().integrate(integration_array, integrated_array,
                                     nb_component, type, _not_ghost, elements);
 
+      Vector<Real> zeros = Vector<Real>::Zero(nb_component);
       /// sum over all elements and store the result
-      Vector<Real> output_tmp(output_begin[fragment_index]);
-      output_tmp += std::accumulate(integrated_array.begin(nb_component),
-                                    integrated_array.end(nb_component),
-                                    Vector<Real>(nb_component));
+      output_begin[fragment_index] = zeros;
+      for (auto && data : make_view(integrated_array, nb_component)) {
+        output_begin[fragment_index] += data;
+      }
     }
   }
 
@@ -483,7 +467,7 @@ void FragmentManager::computeNbElementsPerFragment() {
     /// loop over elements of the fragment
     for (auto type :
          el_list.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
-      UInt nb_element = el_list(type).size();
+      auto nb_element = el_list(type).size();
 
       nb_elements_per_fragment(fragment_index) += nb_element;
     }

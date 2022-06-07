@@ -40,7 +40,7 @@
 
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
@@ -59,24 +59,26 @@ int main(int argc, char *argv[]) {
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
 
-  CohesiveElementInserter &inserter = model.getElementInserter();
+  CohesiveElementInserter & inserter = model.getElementInserter();
   inserter.setLimit(_y, 0.30, 0.20);
   model.updateAutomaticInsertion();
 
-  Array<Real> &position = mesh.getNodes();
-  Array<Real> &velocity = model.getVelocity();
-  Array<bool> &boundary = model.getBlockedDOFs();
-  Array<Real> &displacement = model.getDisplacement();
+  Array<Real> & position = mesh.getNodes();
+  Array<Real> & velocity = model.getVelocity();
+  Array<bool> & boundary = model.getBlockedDOFs();
+  Array<Real> & displacement = model.getDisplacement();
 
   Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
   for (Int n = 0; n < nb_nodes; ++n) {
-    if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+    if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
       boundary(n, 1) = true;
+    }
 
-    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
+    if (position(n, 0) > 0.99 || position(n, 0) < -0.99) {
       boundary(n, 0) = true;
+    }
   }
 
   model.setBaseName("extrinsic");
@@ -100,8 +102,9 @@ int main(int argc, char *argv[]) {
 
     /// update displacement on extreme nodes
     for (Int n = 0; n < nb_nodes; ++n) {
-      if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+      if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
         displacement(n, 1) += disp_update * position(n, 1);
+      }
     }
 
     model.checkCohesiveStress();

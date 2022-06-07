@@ -80,9 +80,9 @@ TEST_F(TestSynchronizerFixture, DataDistributionTags) {
   this->distribute();
 
   for (const auto & type : this->mesh->elementTypes(_all_dimensions)) {
-    auto & tags = this->mesh->getData<UInt>("tag_0", type);
-    Array<UInt>::const_vector_iterator tags_it = tags.begin(1);
-    Array<UInt>::const_vector_iterator tags_end = tags.end(1);
+    auto & tags = this->mesh->getData<Int>("tag_0", type);
+    auto tags_it = tags.begin(1);
+    auto tags_end = tags.end(1);
 
     // The number of tags should match the number of elements on rank"
     EXPECT_EQ(this->mesh->getNbElement(type), tags.size());

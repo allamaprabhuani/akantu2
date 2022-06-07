@@ -293,20 +293,20 @@ public:
     /// renumber clusters
 
     /// generate fragment list
-    std::vector<std::set<UInt>> global_clusters;
-    UInt total_nb_cluster = 0;
+    std::vector<std::set<Int>> global_clusters;
+    Int total_nb_cluster = 0;
 
     Array<bool> is_fragment_in_cluster(global_nb_fragment, 1, false);
-    std::queue<UInt> fragment_check_list;
+    std::queue<Int> fragment_check_list;
 
     while (not total_pairs.empty()) {
       /// create a new cluster
       ++total_nb_cluster;
       global_clusters.resize(total_nb_cluster);
-      std::set<UInt> & current_cluster = global_clusters[total_nb_cluster - 1];
+      std::set<Int> & current_cluster = global_clusters[total_nb_cluster - 1];
 
-      UInt first_fragment = total_pairs(0, 0);
-      UInt second_fragment = total_pairs(0, 1);
+      auto first_fragment = total_pairs(0, 0);
+      auto second_fragment = total_pairs(0, 1);
       total_pairs.erase(0);
 
       fragment_check_list.push(first_fragment);
@@ -488,30 +488,18 @@ Int GroupManager::createClusters(Int element_dimension,
   ElementTypeMapArray<bool> seen_elements("seen_elements", id);
   seen_elements.initialize(mesh, _spatial_dimension = element_dimension,
                            _element_kind = _ek_not_defined,
-                           _with_nb_element = true);
+                           _with_nb_element = true, _default_value = false);
 
   for_each_element(
       mesh,
       [&filter, &seen_elements](auto && el) {
-        if (!filter(el))
-          seen_elements(el) = true;
+        seen_elements(el) = not filter(el);
       },
       _spatial_dimension = element_dimension);
 
-  Array<bool> checked_node(mesh.getNbNodes(), 1, false);
   Int nb_cluster = 0;
 
-  auto add_element = [&](auto & cluster, auto && element) {
-    cluster.add(element);
-    Vector<Idx> connect = mesh.getConnectivity(element);
-    for (auto node : connect) {
-      /// add element's nodes to the cluster
-      if (!checked_node(node)) {
-        cluster.addNode(node);
-        checked_node(node) = true;
-      }
-    }
-  };
+  std::vector<std::string> created_groups;
 
   for (auto ghost_type : ghost_types) {
     Element uns_el;
@@ -532,16 +520,19 @@ Int GroupManager::createClusters(Int element_dimension,
         uns_el.element = e;
         seen_elements_vec(e) = true;
 
+        auto group_name =
+            tmp_cluster_name_prefix + "_" + std::to_string(nb_cluster);
+
+        created_groups.push_back(group_name);
+
         /// create a new cluster
-        auto & cluster = createElementGroup(tmp_cluster_name_prefix + "_" +
-                                                std::to_string(nb_cluster),
-                                            element_dimension, true);
+        auto & cluster =
+            createElementGroup(group_name, element_dimension, true);
         ++nb_cluster;
 
         // point element are cluster by themself
         if (element_dimension == 0) {
-          add_element(cluster, uns_el);
-
+          cluster.add(uns_el, true, false);
           continue;
         }
 
@@ -550,7 +541,7 @@ Int GroupManager::createClusters(Int element_dimension,
 
         /// keep looping until current cluster is complete (no more
         /// connected elements)
-        while (!element_to_add.empty()) {
+        while (not element_to_add.empty()) {
 
           /// take first element and erase it in the queue
           auto el = element_to_add.front();
@@ -558,12 +549,11 @@ Int GroupManager::createClusters(Int element_dimension,
 
           /// if parallel, store cluster index per element
           if (nb_proc > 1 && mesh.isDistributed()) {
-            (*element_to_fragment)(el.type, el.ghost_type)(el.element) =
-                nb_cluster - 1;
+            (*element_to_fragment)(el) = nb_cluster - 1;
           }
 
           /// add current element to the cluster
-          add_element(cluster, el);
+          cluster.add(el, true, false);
 
           const auto & element_to_facet =
               mesh_facets.getSubelementToElement(el.type, el.ghost_type);
@@ -590,7 +580,7 @@ Int GroupManager::createClusters(Int element_dimension,
 
               auto & seen_elements_current = seen_elements(check_el);
 
-              if (seen_elements_current == false) {
+              if (not seen_elements_current) {
                 seen_elements_current = true;
                 element_to_add.push(check_el);
               }
@@ -599,6 +589,10 @@ Int GroupManager::createClusters(Int element_dimension,
         }
       }
     }
+  }
+
+  for (auto && gid : created_groups) {
+    this->getElementGroup(gid).getNodeGroup().optimize();
   }
 
   if (nb_proc > 1 && mesh.isDistributed()) {

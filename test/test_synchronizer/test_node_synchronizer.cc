@@ -45,7 +45,7 @@
 
 using namespace akantu;
 
-class DataAccessorTest : public DataAccessor<UInt> {
+class DataAccessorTest : public DataAccessor<Idx> {
 public:
   explicit DataAccessorTest(Array<int> & data) : data(data) {}
 

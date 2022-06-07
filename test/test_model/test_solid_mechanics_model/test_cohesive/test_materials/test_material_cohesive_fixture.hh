@@ -83,7 +83,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  void addOpening(const Vector<Real> &direction, Real start, Real stop,
+  void addOpening(const Vector<Real> & direction, Real start, Real stop,
                   UInt nb_steps) {
     for (auto s : arange(nb_steps)) {
       auto opening =
@@ -116,13 +116,13 @@ public:
     auto dim = normal.size();
     Matrix<Real> tangent(dim, dim - 1);
     if (dim == 2) {
-      normal = Math::normal(tangent(0));
+      tangent(0) = Math::normal(normal);
     }
 
     if (dim == 3) {
       auto v = getRandomVector();
       tangent(0) = (v - v.dot(normal) * normal).normalized();
-      normal = Math::normal(tangent(0), tangent(1));
+      tangent(1) = Math::normal(tangent(0), normal);
     }
 
 #if defined(debug_)
@@ -137,7 +137,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   void output_csv() {
-    const ::testing::TestInfo *const test_info =
+    const ::testing::TestInfo * const test_info =
         ::testing::UnitTest::GetInstance()->current_test_info();
 
     std::ofstream cout(std::string(test_info->name()) + ".csv");
@@ -149,7 +149,7 @@ public:
         cout << name << "_" << s;
       }
     };
-    auto print_vect = [&](const auto &vect) {
+    auto print_vect = [&](const auto & vect) {
       cout << vect.dot(normal);
       if (dim > 1)
         cout << ", " << vect.dot(tangents(0));
@@ -163,10 +163,10 @@ public:
     print_vect_name("traction");
     cout << std::endl;
 
-    for (auto &&data : zip(make_view(*this->openings, this->dim),
-                           make_view(*this->tractions, this->dim))) {
-      const auto &opening = std::get<0>(data);
-      auto &traction = std::get<1>(data);
+    for (auto && data : zip(make_view(*this->openings, this->dim),
+                            make_view(*this->tractions, this->dim))) {
+      const auto & opening = std::get<0>(data);
+      auto & traction = std::get<1>(data);
 
       cout << this->material->delta(opening, normal) << ", ";
       print_vect(opening);
@@ -183,10 +183,10 @@ public:
 
     Real etot = 0.;
     Real erev = 0.;
-    for (auto &&data : zip(make_view(*this->openings, this->dim),
-                           make_view(*this->tractions, this->dim))) {
-      const auto &opening = std::get<0>(data);
-      const auto &traction = std::get<1>(data);
+    for (auto && data : zip(make_view(*this->openings, this->dim),
+                            make_view(*this->tractions, this->dim))) {
+      const auto & opening = std::get<0>(data);
+      const auto & traction = std::get<1>(data);
 
       etot += (opening - prev_opening).dot(traction + prev_traction) / 2.;
       erev = traction.dot(opening) / 2.;
@@ -205,10 +205,10 @@ public:
 
     this->material->computeTractions(*openings, normal, *tractions);
 
-    for (auto &&data : zip(make_view(*this->openings, this->dim),
-                           make_view(*this->tractions, this->dim))) {
-      const auto &opening = std::get<0>(data);
-      auto &traction = std::get<1>(data);
+    for (auto && data : zip(make_view(*this->openings, this->dim),
+                            make_view(*this->tractions, this->dim))) {
+      const auto & opening = std::get<0>(data);
+      auto & traction = std::get<1>(data);
       auto T = traction.dot(normal);
       EXPECT_NEAR(0, (traction - T * normal).norm(), 1e-9);
 
@@ -250,10 +250,10 @@ public:
 
     this->material->computeTractions(*openings, normal, *tractions);
 
-    for (auto &&data : zip(make_view(*this->openings, this->dim),
-                           make_view(*this->tractions, this->dim))) {
-      const auto &opening = std::get<0>(data);
-      const auto &traction = std::get<1>(data);
+    for (auto && data : zip(make_view(*this->openings, this->dim),
+                            make_view(*this->tractions, this->dim))) {
+      const auto & opening = std::get<0>(data);
+      const auto & traction = std::get<1>(data);
 
       // In ModeII normal traction should be 0
       ASSERT_NEAR(0, traction.dot(normal), 1e-9);
@@ -286,7 +286,7 @@ protected:
 
 template <template <Int> class Mat, Int dim>
 struct TestMaterialCohesive : public Mat<dim> {
-  TestMaterialCohesive(SolidMechanicsModel &model)
+  TestMaterialCohesive(SolidMechanicsModel & model)
       : Mat<dim>(model, "test"), insertion_stress_(Vector<Real>(dim)) {}
 
   virtual void SetUp() {}

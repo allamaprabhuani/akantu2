@@ -162,6 +162,30 @@ namespace mesh_iterators {
 } // namespace mesh_iterators
 
 /* -------------------------------------------------------------------------- */
+template <class T,
+          typename = std::enable_if_t<std::is_integral<std::decay_t<T>>::value>>
+inline constexpr decltype(auto)
+element_range(const T & stop, ElementType type,
+              GhostType ghost_type = _not_ghost) {
+  return make_transform_adaptor(arange(stop),
+                                [type, ghost_type](auto && value) {
+                                  return Element{type, value, ghost_type};
+                                });
+}
+
+template <class T1, class T2,
+          typename = std::enable_if_t<
+              std::is_integral<std::common_type_t<T1, T2>>::value>>
+inline constexpr decltype(auto)
+element_range(const T1 & start, const T2 & stop, ElementType type,
+              GhostType ghost_type = _not_ghost) {
+  return make_transform_adaptor(arange(start, stop),
+                                [type, ghost_type](auto && value) {
+                                  return Element{type, value, ghost_type};
+                                });
+}
+
+/* -------------------------------------------------------------------------- */
 template <class Func>
 void for_each_element(Int nb_elements, const Array<Idx> & filter_elements,
                       Func && function) {
