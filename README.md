@@ -39,7 +39,7 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev zlib-dev liblapack-dev libblas-dev gmsh
+> sudo apt install cmake libboost-dev zlib1g-dev liblapack-dev libblas-dev gmsh
 # For parallel
 > sudo apt install mpi-default-dev libmumps-dev 
 # For sequential
