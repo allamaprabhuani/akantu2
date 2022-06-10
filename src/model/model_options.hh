@@ -181,6 +181,7 @@ struct CouplerSolidContactOptions : public ModelOptions {
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
 
+#ifdef AKANTU_COHESIVE_ELEMENT
 /* -------------------------------------------------------------------------- */
 struct CouplerSolidCohesiveContactOptions : public ModelOptions {
   CouplerSolidCohesiveContactOptions(
@@ -197,6 +198,7 @@ struct CouplerSolidCohesiveContactOptions : public ModelOptions {
 
   bool is_extrinsic{false};
 };
+#endif
 
 #endif
 
