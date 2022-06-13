@@ -68,6 +68,10 @@
 #include "py_model_couplers.hh"
 #endif
 
+#if defined(AKANTU_CONTACT_MECHANICS_INTERNODES)
+#include "py_contact_mechanics_internodes_model.hh"
+#endif
+
 #if defined(AKANTU_PHASE_FIELD)
 #include "py_phase_field_model.hh"
 #endif
@@ -128,6 +132,10 @@ void register_all(pybind11::module & mod) {
 #if defined(AKANTU_CONTACT_MECHANICS)
   register_contact_mechanics_model(mod);
   register_model_couplers(mod);
+#endif
+
+#if defined(AKANTU_CONTACT_MECHANICS_INTERNODES)
+  register_contact_mechanics_internodes_model(mod);
 #endif
 
 #if defined(AKANTU_PHASE_FIELD)

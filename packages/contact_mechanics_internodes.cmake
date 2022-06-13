@@ -1,12 +1,12 @@
 #===============================================================================
-# @file   contact_mechanics.cmake
+# @file   contact_mechanics_internodes.cmake
 #
-# @author Mohit Pundir <mohit.pundir@epfl.ch>
+# @author Moritz Waldleben <moritz.waldleben@epfl.ch>
 #
-# @date creation: Fri Sep 03 2010
-# @date last modification: Wed Jun 23 2021
+# @date creation: Thu Jul 09 2022
+# @date last modification: Fri Jul 10 2020 
 #
-# @brief  package description for contact mechanics
+# @brief  package description for contact mechanics internodes
 #
 #
 # @section LICENSE
