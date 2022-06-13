@@ -47,7 +47,7 @@ ContactMechanicsInternodesModel::ContactMechanicsInternodesModel(
 
   this->solid = std::make_unique<SolidMechanicsModel>(
       this->mesh, spatial_dimension, id + ":solid_mechanics_model",
-      dof_manager);
+      this->dof_manager);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,13 +63,33 @@ void ContactMechanicsInternodesModel::initFullImpl(
                         "ContactMechanicsInternodesModel");
   }
 
+
+  detector->findContactNodes();
+  
+  // this doesn't work
+  Model::initFullImpl(options);
+
   // init solid mechanics model
   solid->initFull(options);
 
-  detector->findContactNodes();
+  // other idea
+  // TODO: change back to initial
+  // auto nb_initial_master_nodes = detector->getMasterNodeGroup().getNodes().size();
 
-  Model::initFullImpl(options);
+  // // allocate lambdas
+  // this->lambdas = std::make_unique<Array<Real>>(nb_initial_master_nodes, spatial_dimension,
+  //                                         id + ":lambdas");
+
+  // // allocate blocked dofs for lambdas
+  // this->blocked_dofs = std::make_unique<Array<bool>>(
+  //     nb_initial_master_nodes, spatial_dimension, false, id + ":blocked_dofs");
+
+  // this->dof_manager->registerDOFs("lambdas", *lambdas, _dst_generic);
+  // this->dof_manager->registerBlockedDOFs("lambdas", *blocked_dofs);
+
+  // Model::initFullImpl(options);
 }
+
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::assembleResidual() {
   // get positions of master and slave nodes
@@ -77,6 +97,7 @@ void ContactMechanicsInternodesModel::assembleResidual() {
   auto && positions_view = make_view(positions, spatial_dimension).begin();
 
   auto & master_node_group = detector->getMasterNodeGroup();
+  auto & initial_master_node_group = detector->getMasterNodeGroup();
   auto & slave_node_group = detector->getSlaveNodeGroup();
 
   Array<Real> positions_master(master_node_group.size(), spatial_dimension);
@@ -105,7 +126,7 @@ void ContactMechanicsInternodesModel::assembleResidual() {
       master_node_group, slave_node_group, detector->getSlaveRadiuses());
 
   // calculate constraints
-  Array<Real> constraints(master_node_group.size(), spatial_dimension);
+  Array<Real> constraints(initial_master_node_group.size(), spatial_dimension, 0.);
 
   for (int dim = 0; dim < spatial_dimension; dim++) {
     auto tmp = R_master_slave * positions_slave(dim);
@@ -113,11 +134,14 @@ void ContactMechanicsInternodesModel::assembleResidual() {
       constraints(i, dim) = tmp[i] - positions_master(i, dim);
     }
   }
-  dof_manager->assembleToResidual("lambdas", constraints, 1);
+  this->dof_manager->assembleToResidual("lambdas", constraints, 1);
 }
 
 MatrixType
 ContactMechanicsInternodesModel::getMatrixType(const ID & matrix_id) const {
+  if (matrix_id == "K") {
+    return _unsymmetric;
+  }
   return _mt_not_defined;
 }
 
@@ -125,6 +149,12 @@ ContactMechanicsInternodesModel::getMatrixType(const ID & matrix_id) const {
 void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
   if (matrix_id == "K") {
     solid->assembleStiffnessMatrix();
+
+    auto & initial_master_node_group = detector->getMasterNodeGroup();
+    auto & initial_slave_node_group = detector->getSlaveNodeGroup();
+
+    auto nb_initial_master_nodes = initial_master_node_group.getNodes().size();
+    auto nb_initial_slave_nodes = initial_slave_node_group.getNodes().size();
 
     auto & master_node_group = detector->getMasterNodeGroup();
     auto & slave_node_group = detector->getSlaveNodeGroup();
@@ -134,7 +164,7 @@ void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
 
     auto nb_nodes = mesh.getNbNodes();
     auto nb_dofs = spatial_dimension * nb_nodes;
-    auto nb_constraint_dofs = spatial_dimension * nb_master_nodes;
+    auto nb_constraint_dofs = spatial_dimension * nb_initial_master_nodes;
 
     // R matrices, need for calculations of blocks
     auto && R_master_slave = detector->constructInterpolationMatrix(
@@ -142,35 +172,75 @@ void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
     auto && R_slave_master = detector->constructInterpolationMatrix(
         slave_node_group, master_node_group, detector->getMasterRadiuses());
 
-    // assemble B
+    // get interface masses
+    auto && M_master = constructInterfaceMass(master_node_group);
+    auto && M_slave = constructInterfaceMass(slave_node_group);
+
+    // assemble B and B_tilde
+    // B_master = - M_master;
+    auto B_slave = M_slave * R_slave_master;
+
+    //B_tilde_master = I;
+    //B_tilde_slave = - R_master_slave;
+
     TermsToAssemble termsB("displacement", "lambdas");
-    for (UInt i = 0; i < nb_dofs; ++i) {
-      for (UInt j = 0; j < nb_constraint_dofs; ++j) {
-        termsB(i, j) = 1;
+    TermsToAssemble termsB_tilde("lambdas", "displacement");
+
+    // fill in active nodes
+    UInt i = 0;
+    for (auto && node_ref : initial_master_node_group.getNodes()) {
+      auto local_i = master_node_group.find(node_ref);
+      if (local_i != UInt(-1)) {
+        UInt j = 0;
+        for (auto && master_node : master_node_group.getNodes()) {
+          for (int dim = 0; dim < spatial_dimension; dim++) {
+            UInt idx_i = local_i*spatial_dimension + dim;
+            UInt idx_j = j*spatial_dimension + dim;
+            UInt global_idx_i = i*spatial_dimension + dim;
+            UInt global_idx_j = master_node*spatial_dimension + dim;
+
+              termsB(global_idx_j, global_idx_i) = M_master(idx_j, idx_i);
+
+            if (idx_i == idx_j) {
+              termsB_tilde(global_idx_i, global_idx_j) = 1;
+            }
+          }
+          ++j;
+        }
       }
+      ++i;
     }
 
-    // assemble B_tilde
-    TermsToAssemble termsB_tilde("lambdas", "displacement");
-    for (UInt i = 0; i < nb_constraint_dofs; ++i) {
-      for (UInt j = 0; j < nb_dofs; ++j) {
-        termsB_tilde(i, j) = 1.;
+    i = 0;
+    for (auto && node_ref : initial_master_node_group.getNodes()) {
+      auto local_i = master_node_group.find(node_ref);
+      if (local_i != UInt(-1)) {
+        UInt j = 0;
+        for (auto && slave_node : slave_node_group.getNodes()) {
+          for (int dim = 0; dim < spatial_dimension; dim++) {
+            UInt idx_i = local_i*spatial_dimension + dim;
+            UInt idx_j = j*spatial_dimension + dim;
+            UInt global_idx_i = i*spatial_dimension + dim;
+            UInt global_idx_j = slave_node*spatial_dimension + dim;
+
+              termsB(global_idx_j, global_idx_i) = B_slave(idx_j, idx_i);
+
+              termsB_tilde(global_idx_i, global_idx_j) = R_master_slave(idx_i, idx_j);
+          }
+          ++j;
+        }
       }
+      ++i;
     }
 
     // assemble C (zeros)
     TermsToAssemble termsC("lambdas", "lambdas");
-    for (UInt i = 0; i < nb_constraint_dofs; ++i) {
-      for (UInt j = 0; j < nb_constraint_dofs; ++j) {
-        termsB_tilde(i, j) = 1.;
-      }
-    }
 
-    dof_manager->assemblePreassembledMatrix("K", termsB);
-    dof_manager->assemblePreassembledMatrix("K", termsB_tilde);
-    dof_manager->assemblePreassembledMatrix("K", termsC);
+    this->dof_manager->assemblePreassembledMatrix("K", termsB);
+    this->dof_manager->assemblePreassembledMatrix("K", termsB_tilde);
+    this->dof_manager->assemblePreassembledMatrix("K", termsC);
 
-    auto & A = dof_manager->getMatrix("K");
+    auto & A = this->dof_manager->getMatrix("K");
     A.saveMatrix("A.mtx");
   }
 
@@ -187,9 +257,6 @@ void ContactMechanicsInternodesModel::assembleLumpedMatrix(
 
 void ContactMechanicsInternodesModel::solveStep(SolverCallback & callback,
                                                 const ID & solver_id) {
-  // not sure how to initalize initSolver
-  solid->solveStep(callback, solver_id);
-
   ModelSolver::solveStep(callback, solver_id);
 }
 
@@ -199,7 +266,8 @@ void ContactMechanicsInternodesModel::solveStep(const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::beforeSolveStep() {}
+void ContactMechanicsInternodesModel::beforeSolveStep() {
+}
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::afterSolveStep(bool converged) {
@@ -253,20 +321,70 @@ ModelSolverOptions ContactMechanicsInternodesModel::getDefaultSolverOptions(
 }
 
 void ContactMechanicsInternodesModel::initSolver(
-    TimeStepSolverType /*unused*/, NonLinearSolverType /*unused*/) {
+    TimeStepSolverType time_step_solver_type,
+    NonLinearSolverType non_linear_solver_type) {
 
-  auto nb_master_nodes = detector->getMasterNodeGroup().getNodes().size();
+  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
+  solid_model_solver.initSolver(time_step_solver_type, non_linear_solver_type);
+
+  // TODO: change back to initial
+  auto nb_initial_master_nodes = detector->getMasterNodeGroup().getNodes().size();
 
   // allocate lambdas
-  lambdas = std::make_unique<Array<Real>>(nb_master_nodes, spatial_dimension,
+  this->lambdas = std::make_unique<Array<Real>>(nb_initial_master_nodes, spatial_dimension,
                                           id + ":lambdas");
 
   // allocate blocked dofs for lambdas
-  blocked_dofs = std::make_unique<Array<bool>>(
-      nb_master_nodes, spatial_dimension, id + ":blocked_dofs");
+  this->blocked_dofs = std::make_unique<Array<bool>>(
+      nb_initial_master_nodes, spatial_dimension, false, id + ":blocked_dofs");
 
-  dof_manager->registerDOFs("lambdas", *lambdas, _dst_generic);
-  dof_manager->registerBlockedDOFs("lambdas", *blocked_dofs);
+  this->dof_manager->registerDOFs("lambdas", *lambdas, _dst_generic);
+  this->dof_manager->registerBlockedDOFs("lambdas", *blocked_dofs);
+}
+
+Matrix<Real> ContactMechanicsInternodesModel::constructInterfaceMass(NodeGroup & contact_node_group) {
+  // get interface mass for a node group
+  this->assembleMatrix("M");
+  auto & M = this->dof_manager->getMatrix("M");
+
+  auto nb_contact_nodes = contact_node_group.size();
+
+  Matrix<Real> M_contact(nb_contact_nodes*spatial_dimension,
+      nb_contact_nodes*spatial_dimension);
+
+  UInt i = 0;
+  for (auto && node_ref : contact_node_group.getNodes()) {
+    UInt j = 0;
+    for (auto && node : contact_node_group.getNodes()) {
+      for (int dim = 0; dim < spatial_dimension; dim++) {
+        UInt global_idx_ref = node_ref*spatial_dimension + dim;
+        UInt global_idx = node*spatial_dimension + dim;
+
+        UInt idx_ref = i*spatial_dimension + dim;
+        UInt idx = j*spatial_dimension + dim;
+
+        try {
+          M_contact(idx_ref, idx) = M(global_idx_ref, global_idx);
+        }
+        catch(...) {
+        M_contact(idx_ref, idx) = 0.;
+        }
+
+      }
+      ++j;
+    }
+    ++i;
+  }
+
+  return M_contact;
+}
+
+void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
+  this->assembleMatrix("K");
+}
+
+Matrix<Real> ContactMechanicsInternodesModel::testConstructInterfaceMass(NodeGroup & contact_node_group) {
+  return constructInterfaceMass(contact_node_group);
 }
 
 } // namespace akantu

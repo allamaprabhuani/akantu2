@@ -67,6 +67,12 @@ public:
   /// get radiuses of attack of master nodes
   AKANTU_GET_MACRO_NOT_CONST(SlaveRadiuses, slave_radiuses, Array<Real> &)
 
+  /// get initial master node group
+  NodeGroup & getInitialMasterNodeGroup();
+
+  /// get initial slave node group
+  NodeGroup & getInitialSlaveNodeGroup();
+
   /// get master node group
   NodeGroup & getMasterNodeGroup();
 

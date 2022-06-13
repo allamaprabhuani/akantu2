@@ -31,15 +31,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "contact_detector_internodes.hh"
+#include "solid_mechanics_model.hh"
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_MECHANICS_INTERNODES_MODEL_HH__
 #define __AKANTU_CONTACT_MECHANICS_INTERNODES_MODEL_HH__
-
-namespace akantu {
-class SolidMechanicsModel;
-} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -63,6 +60,11 @@ public:
   void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
   void solveStep(const ID & solver_id = "") override;
 
+  void assembleInternodesMatrix();
+
+  // temporary test cases
+  Matrix<Real> testConstructInterfaceMass(NodeGroup & contact_node_group);
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -71,8 +73,8 @@ protected:
   void initFullImpl(const ModelOptions & options) override;
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType /*unused*/,
-                  NonLinearSolverType /*unused*/) override;
+  void initSolver(TimeStepSolverType time_step_solver_type,
+                  NonLinearSolverType non_linear_solver_type) override;
 
   // call back for the solver, computes the force residual
   void assembleResidual() override;
@@ -103,6 +105,9 @@ protected:
 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
+
+  /// assemble an interface matrix eather master or slave
+  Matrix<Real> constructInterfaceMass(NodeGroup & contact_node_group);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
