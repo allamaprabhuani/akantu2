@@ -199,7 +199,7 @@ void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
             UInt global_idx_i = i*spatial_dimension + dim;
             UInt global_idx_j = master_node*spatial_dimension + dim;
 
-              termsB(global_idx_j, global_idx_i) = M_master(idx_j, idx_i);
+              termsB(global_idx_j, global_idx_i) = - M_master(idx_j, idx_i);
 
             if (idx_i == idx_j) {
               termsB_tilde(global_idx_i, global_idx_j) = 1;
@@ -225,7 +225,7 @@ void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
 
               termsB(global_idx_j, global_idx_i) = B_slave(idx_j, idx_i);
 
-              termsB_tilde(global_idx_i, global_idx_j) = R_master_slave(idx_i, idx_j);
+              termsB_tilde(global_idx_i, global_idx_j) = - R_master_slave(idx_i, idx_j);
           }
           ++j;
         }
