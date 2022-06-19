@@ -35,8 +35,8 @@ package_declare(contact_mechanics_internodes
   DESCRIPTION "Use Contact Mechanics Internodes package of Akantu")
 
 package_declare_sources(contact_mechanics_internodes
-  model/contact_mechanics/contact_mechanics_internodes_model.hh
-  model/contact_mechanics/contact_mechanics_internodes_model.cc
-  model/contact_mechanics/contact_detector_internodes.hh
-  model/contact_mechanics/contact_detector_internodes.cc
+  model/contact_mechanics_internodes/contact_mechanics_internodes_model.hh
+  model/contact_mechanics_internodes/contact_mechanics_internodes_model.cc
+  model/contact_mechanics_internodes/contact_detector_internodes.hh
+  model/contact_mechanics_internodes/contact_detector_internodes.cc
   )

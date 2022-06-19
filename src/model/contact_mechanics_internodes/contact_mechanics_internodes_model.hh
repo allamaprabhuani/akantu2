@@ -4,7 +4,7 @@
  * @author Moritz Waldleben <moritz.waldleben@epfl.ch>
  *
  * @date creation: Thu Jul 09 2022
- * @date last modification: Thu Jul 09 2022
+ * @date last modification: Thu Jul 17 2022
  *
  * @brief Model for Contact Mechanics Internodes
  *
@@ -56,15 +56,6 @@ public:
 
   ~ContactMechanicsInternodesModel() override;
 
-  /// costum solve step
-  void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
-  void solveStep(const ID & solver_id = "") override;
-
-  void assembleInternodesMatrix();
-
-  // temporary test cases
-  Matrix<Real> testConstructInterfaceMass(NodeGroup & contact_node_group);
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -72,10 +63,24 @@ protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
 
-  /// allocate all vectors
-  void initSolver(TimeStepSolverType time_step_solver_type,
-                  NonLinearSolverType non_linear_solver_type) override;
+  /// function to print the containt of the class
+  void printself(std::ostream & stream, int indent = 0) const override;
 
+  /* ------------------------------------------------------------------------ */
+  /* Solver interface                                                         */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// costum solve step for Internodes
+  void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
+  void solveStep(const ID & solver_id = "") override;
+
+  // assemble extended matrix K
+  void assembleInternodesMatrix();
+
+  /// assemble an interface matrix, eather master or slave
+  Matrix<Real> assembleInterfaceMass(const NodeGroup & contact_node_group);
+
+protected:
   // call back for the solver, computes the force residual
   void assembleResidual() override;
 
@@ -92,10 +97,10 @@ protected:
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
-  TimeStepSolverType getDefaultSolverType() const override;
-
-  ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
+  /// callback for the solver, this is called at beginning of solve
+  void predictor() override;
+  /// callback for the solver, this is called at end of solve
+  void corrector() override;
 
   /// callback for the solver, this is called at beginning of solve
   void beforeSolveStep() override;
@@ -103,11 +108,15 @@ protected:
   /// callback for the solver, this is called at end of solve
   void afterSolveStep(bool converged = true) override;
 
-  /// function to print the containt of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
+  /// allocate all vectors
+  void initSolver(TimeStepSolverType time_step_solver_type,
+      NonLinearSolverType non_linear_solver_type) override;
 
-  /// assemble an interface matrix eather master or slave
-  Matrix<Real> constructInterfaceMass(NodeGroup & contact_node_group);
+protected:
+  TimeStepSolverType getDefaultSolverType() const override;
+
+  ModelSolverOptions
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -119,6 +128,12 @@ public:
 
   /// get solid mechanics model
   AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
+
+  /// get lambdas from internodes formulation
+  AKANTU_GET_MACRO(Lambdas, *lambdas, Array<Real>);
+
+  /// get constraints 
+  AKANTU_GET_MACRO(Contstraints, *constraints, Array<Real>);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -126,11 +141,14 @@ private:
   /// contact detector
   std::unique_ptr<ContactDetectorInternodes> detector;
 
-  /// solid mechanics
+  /// solid mechanics model
   std::unique_ptr<SolidMechanicsModel> solid;
 
   /// lambdas array
   std::unique_ptr<Array<Real>> lambdas;
+
+  /// contstraints for lambdas array
+  std::unique_ptr<Array<Real>> constraints;
 
   /// blocked dofs for lambdas
   std::unique_ptr<Array<bool>> blocked_dofs;

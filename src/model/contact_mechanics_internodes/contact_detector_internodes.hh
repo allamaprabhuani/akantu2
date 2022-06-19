@@ -1,3 +1,34 @@
+/**
+ * @file   contact_detector_internodes.hh
+ *
+ * @author Moritz Waldleben <moritz.waldleben@epfl.ch>
+ *
+ * @date creation: Thu Jul 09 2022
+ * @date last modification: Thu Jul 17 2022
+ *
+ * @brief Algorithm to detetect contact nodes
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
@@ -30,29 +61,28 @@ public:
   /// find contact nodes for iteration
   void findContactNodes();
 
-  // TODO: move to a new class
-  Matrix<Real> constructInterpolationMatrix(NodeGroup & ref_node_group,
-                                            NodeGroup & eval_node_group,
-                                            Array<Real> eval_radiuses);
+  /// construct interpolation matrices 
+  Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
+      const NodeGroup & eval_node_group, Array<Real> eval_radiuses);
+
   /// construct Phi matrix used for interpolation
-  Matrix<Real> constructPhiMatrix(NodeGroup & ref_node_group,
-                                  NodeGroup & eval_node_group,
-                                  Array<Real> & eval_radiuses);
+  Matrix<Real> constructPhiMatrix(const NodeGroup & ref_node_group,
+      const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
 
 private:
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
 
   /// compute radius to detect contact nodes
-  std::pair<Array<Real>, Array<UInt>>
-  computeRadiuses(NodeGroup & ref_node_group, NodeGroup & eval_node_group);
+  Array<UInt> computeRadiuses(Array<Real> & attack_radiuses,
+      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group);
 
   /// radial basis function
   Real computeRadialBasisInterpolation(Real distance, Real radius);
 
   /// distances between a reference node and a other nodes
   Array<Real> computeDistancesToRefNode(UInt & ref_node,
-                                        NodeGroup & eval_node_group);
+      const NodeGroup & eval_node_group);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

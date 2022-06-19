@@ -1,13 +1,14 @@
+l = 0.9;
 //+
-Point(1) = {0, 0, 0, 1.0};
-Point(2) = {1, 0, 0, 1.0};
-Point(3) = {1, 1, 0, 1.0};
-Point(4) = {0, 1, 0, 1.0};
-Point(5) = {0, 1.1, 0, 1.0};
-Point(6) = {1, 1.1, 0, 1.0};
-Point(7) = {1, 2, 0, 1.0};
-Point(8) = {0, 2, 0, 1.0};
-Point(9) = {0.5, 2.1, 0, 1.0};
+Point(1) = {0, 0, 0, l};
+Point(2) = {1, 0, 0, l};
+Point(3) = {1, 1, 0, l};
+Point(4) = {0, 1, 0, l};
+Point(5) = {0, 1.1, 0, l};
+Point(6) = {1, 1.1, 0, l};
+Point(7) = {1, 2, 0, l};
+Point(8) = {0, 2, 0, l};
+Point(9) = {0.5, 2.1, 0, l};
 
 //+
 Line(1) = {1, 2};
@@ -53,3 +54,7 @@ Physical Curve("upper_right") = {6};
 Physical Curve("upper_left") = {8};
 //+
 Physical Curve("upper_top") = {7};
+//+
+Physical Point("blocked_point") = {1};
+//+
+Field[1] = Box;

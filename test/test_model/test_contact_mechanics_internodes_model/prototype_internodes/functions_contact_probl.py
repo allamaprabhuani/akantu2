@@ -3,10 +3,13 @@
 
 import numpy as np
 import scipy as sp
+from scipy.linalg import lstsq 
 from scipy import spatial
 
-def nodes_to_dofs(nodes):
-    return np.column_stack([2*nodes, 2*nodes+1]).reshape([-1, 1])
+import sys
+sys.path.append("..")
+from prototype_internodes.functions import nodes_to_dofs
+
 
 def find_contact_nodes(nodes1i, nodes2i, coords1i, coords2i):
     radiuses1, nnzR21 = compute_radiuses(nodes1i, nodes2i, coords1i, coords2i)
@@ -127,10 +130,10 @@ def Rij_constructor(coords_i, coords_j, radiuses_j):
 
 def assemble_Rijs(coords1i, coords2i, radiuses1, radiuses2):
     R12_normal = Rij_constructor(coords1i, coords2i, radiuses2)
-    R12 = sp.sparse.csr_matrix(extend_to_2D(R12_normal))
-
     R21_normal = Rij_constructor(coords2i, coords1i, radiuses1)
+
     R21 = sp.sparse.csr_matrix(extend_to_2D(R21_normal))
+    R12 = sp.sparse.csr_matrix(extend_to_2D(R12_normal))
 
     return R12_normal, R21_normal, R12, R21
 
@@ -140,7 +143,8 @@ def extend_to_2D(R):
     R_extended[::2,1::2] = 0
     return R_extended
 
-def remove_traction(coords_new, connectivity1b, connectivity2b, connectivity1b_body, connectivity2b_body, nodes1i, nodes2i, nodes1b, nodes2b, lambda1, R12, R21):
+def remove_traction(coords_new, connectivity1b, connectivity2b, connectivity1b_body, connectivity2b_body,
+        nodes1i, nodes2i, nodes1b, nodes2b, lambda1, R12, R21):
     normals1b = compute_normals(coords_new, nodes1b, connectivity1b, connectivity1b_body)
     normals2b = compute_normals(coords_new, nodes2b, connectivity2b, connectivity2b_body)
 
@@ -219,8 +223,8 @@ def compute_normals(coords_new, nodesb, connectivityb, connectivityb_body):
     return normals_avg
 
 def detect_gaps(coords_new, nodes1i, nodes2i, normals1i, normals2i):
-    tol = 0.9 # tolerance for gap detection
-    h = 0.05 # mesh size
+    tol = 0.9 # tolerance for gap detection (could be changed as input)
+    h = 0.05 # mesh size (shouldn't be fixed!)
     coords1i = coords_new[nodes1i, :]
     coords2i = coords_new[nodes2i, :]
 

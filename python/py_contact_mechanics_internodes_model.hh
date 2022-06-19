@@ -4,7 +4,7 @@
  * @author Moritz Waldleben <moritz.waldleben@epfl.ch>
  *
  * @date creation: Thu Jul 09 2022
- * @date last modification: Thu Jul 09 2022
+ * @date last modification: Thu Jul 17 2022
  *
  * @brief  Contact mechanics internodes python binding
  *

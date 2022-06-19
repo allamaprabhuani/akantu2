@@ -105,9 +105,10 @@ void register_contact_mechanics_internodes_model(py::module & mod) {
         .def_function_nocopy(assembleInternodesMatrix)
         .def_function_nocopy(getSolidMechanicsModel)
         .def_function_nocopy(getContactDetectorInternodes)
-        .def("testAssembleInterfaceMass",
+        .def_function_nocopy(getLambdas)
+        .def("assembleInterfaceMass",
             [](ContactMechanicsInternodesModel & self, NodeGroup & contact_node_group)
-                -> decltype(auto) { return self.testConstructInterfaceMass(contact_node_group); },
+                -> decltype(auto) { return self.assembleInterfaceMass(contact_node_group); },
             py::arg("contact_node_group"), py::return_value_policy::copy);
 }
 
