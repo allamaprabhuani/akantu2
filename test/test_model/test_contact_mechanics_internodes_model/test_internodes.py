@@ -35,19 +35,20 @@ def reference_setup():
     model.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
 
     # Dirichlet
-    # nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
-    # displacements = displacements.reshape([-1, 2])
-    # displacements[nodes_top, 1] = -0.1
-    # displacements = displacements.ravel()
+    model.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top') # to block the nodes
+    nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
+    displacements = displacements.reshape([-1, 2])
+    displacements[nodes_top, 1] = -0.1
+    displacements = displacements.ravel()
 
     # Neumann (K is not invertible)
-    traction = np.zeros(spatial_dimension)
-    traction[1] = -1e9
-    model.applyBC(aka.FromTraction(traction), "upper_top")
+    # traction = np.zeros(spatial_dimension)
+    # traction[1] = -1e9
+    # model.applyBC(aka.FromTraction(traction), "upper_top")
 
     # init and solve
     model, data = init_model(model, mesh, mesh_file, material_file, spatial_dimension,
-            displacements, "upper_bottom", "lower_top")
+            displacements, 'lower_top', 'upper_bottom')
 
     return model, mesh, data
 
@@ -156,6 +157,7 @@ def test_assembleInternodesMatrix():
     np.testing.assert_allclose(B_tilde_master, B_tilde_master_ref)
     np.testing.assert_allclose(B_tilde_slave, B_tilde_slave_ref)
 
+    # this fails for the K matrix part, but very small errors
     # np.testing.assert_allclose(A[:nb_free_dofs, :nb_free_dofs],
     #         A_ref[:nb_free_dofs, :nb_free_dofs])
 
@@ -175,12 +177,12 @@ def test_solveStep():
     solid.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
 
     # Dirichlet
-    # solid.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top')
+    solid.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top')
 
     # Neumann (K is not invertible)
-    traction = np.zeros(2)
-    traction[1] = -1e9
-    solid.applyBC(aka.FromTraction(traction), "upper_top")
+    # traction = np.zeros(2)
+    # traction[1] = -1e9
+    # solid.applyBC(aka.FromTraction(traction), "upper_top")
 
     contact_model.solveStep()
     positions_new = solid.getCurrentPosition()

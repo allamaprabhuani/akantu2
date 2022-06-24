@@ -11,9 +11,17 @@ sys.path.append("..")
 from prototype_internodes.functions import nodes_to_dofs
 
 
-def find_contact_nodes(nodes1i, nodes2i, coords1i, coords2i):
-    radiuses1, nnzR21 = compute_radiuses(nodes1i, nodes2i, coords1i, coords2i)
-    radiuses2, nnzR12 = compute_radiuses(nodes2i, nodes1i, coords2i, coords1i)
+def find_contact_nodes(nodes1i, nodes2i, positions1i, positions2i):
+    """Contact nodes algorithm.
+
+    :param nodes1i: nodes of body 1 interface (master)
+    :param nodes2i: nodes of body 2 interface (slave)
+    :param positions1i: initial positions of body 1 interface (master)
+    :param positions2i: initial positions of body 2 interface (slave)
+    :returns: selected nodes and radiuses
+    """
+    radiuses1, nnzR21 = compute_radiuses(nodes1i, nodes2i, positions1i, positions2i)
+    radiuses2, nnzR12 = compute_radiuses(nodes2i, nodes1i, positions2i, positions1i)
 
     nodes1i_mask = nnzR12 > 0
     nodes2i_mask = nnzR21 > 0
@@ -22,28 +30,37 @@ def find_contact_nodes(nodes1i, nodes2i, coords1i, coords2i):
         nodes1i = nodes1i[nodes1i_mask]
         nodes2i = nodes2i[nodes2i_mask]
 
-        coords1i = coords1i[nodes1i_mask]
-        coords2i = coords2i[nodes2i_mask]
+        positions1i = positions1i[nodes1i_mask]
+        positions2i = positions2i[nodes2i_mask]
 
         dofs1i = nodes_to_dofs(nodes1i).ravel()
         dofs2i = nodes_to_dofs(nodes2i).ravel()
 
-        radiuses1, nnzR21 = compute_radiuses(nodes1i, nodes2i, coords1i, coords2i)
-        radiuses2, nnzR12 = compute_radiuses(nodes2i, nodes1i, coords2i, coords1i)
+        radiuses1, nnzR21 = compute_radiuses(nodes1i, nodes2i, positions1i, positions2i)
+        radiuses2, nnzR12 = compute_radiuses(nodes2i, nodes1i, positions2i, positions1i)
 
         nodes1i_mask = nnzR12 > 0
         nodes2i_mask = nnzR21 > 0
 
-    return nodes1i, nodes2i, coords1i, coords2i, radiuses1, radiuses2
+    return nodes1i, nodes2i, positions1i, positions2i, radiuses1, radiuses2
 
-def compute_radiuses(nodes1i, nodes2i, coords1i, coords2i):
+def compute_radiuses(nodes1i, nodes2i, positions1i, positions2i):
+    """Computes the radiuses of attack.
+
+    :param nodes1i: nodes of body 1 interface (master)
+    :param nodes2i: nodes of body 2 interface (slave)
+    :param positions1i: initial positions of body 1 interface (master)
+    :param positions2i: initial positions of body 2 interface (slave)
+    :returns: radiuses, and resulting nonzero components of R matrix
+    """
+    # fixed parameters
     c = 0.5 # conditition (2)
     C = 0.95 # condition (3)
-    n = 1 # consider n nearest neighboors
+    n = 1 # consider 1 nearest neighboors
     d = 0.05 # tolerance, for radius of "attack" estimation
 
-    M = len(coords1i)
-    N = len(coords2i)
+    M = len(positions1i)
+    N = len(positions2i)
 
     radiuses = np.zeros(M)
     nnzRMM = np.zeros(M)
@@ -60,22 +77,15 @@ def compute_radiuses(nodes1i, nodes2i, coords1i, coords2i):
         f = np.floor(1/(np.power(1-c, 4)*(1+4*c))) # maximum number of supports
 
         for k in range(M):
-            point = coords1i[k, :].reshape(1, -1)
-            neighbors = coords1i.copy()
+            point = positions1i[k, :].reshape(1, -1)
+            neighbors = positions1i.copy()
             neighbors[k, :] = np.inf
             distMM = spatial.distance.cdist(neighbors, point).ravel()
-            distMN = spatial.distance.cdist(coords2i, point).ravel()
+            distMN = spatial.distance.cdist(positions2i, point).ravel()
 
             rMM = np.min(distMM)
             rNM = np.sqrt(d*d + 0.25*np.power(rMM, 2))
             radius = np.maximum(rMM, rNM)
-
-            # rMM = distMM[np.argpartition(distMM, n)[:n]]
-            # rNM = np.sqrt(d*d + 0.25*np.power(rMM, 2))
-            # radius = np.maximum([rMM[-1], rNM])
-
-            # if radius > rMM[0]/c:
-            #     radius = rMM[0]/c
 
             if radius > rMM/c:
                 radius = rMM/c
@@ -103,34 +113,58 @@ def compute_radiuses(nodes1i, nodes2i, coords1i, coords2i):
     return radiuses, nnzRNM
 
 def wendland(dists, radiuses):
+    """ Compute the Beckert & Wendland RBF
+
+    :param dists: distances 
+    :param radiuses: radius for each distance (same length)
+    """
     result = np.zeros(len(dists))
 
     mask = dists <= radiuses
     result[mask] = np.power(1-dists[mask]/radiuses[mask], 4) * (1+4*dists[mask]/radiuses[mask])
     return result
 
-def phi_constructor(coords_i, coords_j, radiuses_j, rad_func):
-    N = len(coords_i)
-    M = len(coords_j)
+def phi_constructor(positions_i, positions_j, radiuses_j, rad_func):
+    """Construct Phi for RBF interpolation.
 
-    dists = spatial.distance.cdist(coords_i, coords_j)
+    :param positions_i: positions of evaluation points
+    :param positions_j: positions of reference points 
+    :param radiuses_j: radiuses of reference points
+    """
+    N = len(positions_i)
+    M = len(positions_j)
+
+    dists = spatial.distance.cdist(positions_i, positions_j)
     radiuses_j = np.tile(radiuses_j, N)
     phi = rad_func(dists.ravel(), radiuses_j.ravel())
 
     return phi.reshape([N, M])
 
-def Rij_constructor(coords_i, coords_j, radiuses_j):
-    phiMM = phi_constructor(coords_j, coords_j, radiuses_j, wendland)
-    phiNM = phi_constructor(coords_i, coords_j, radiuses_j, wendland)
+def Rij_constructor(positions_i, positions_j, radiuses_j):
+    """Construct a RBF interpolation.
+
+    :param positions_i: positions of evaluation points
+    :param positions_j: positions of reference points 
+    :param radiuses_j: radiuses of reference points
+    """
+    phiMM = phi_constructor(positions_j, positions_j, radiuses_j, wendland)
+    phiNM = phi_constructor(positions_i, positions_j, radiuses_j, wendland)
 
     Rij = phiNM.dot(np.linalg.inv(phiMM))
     g = Rij.dot(np.ones((Rij.shape[1], 1)))
     Rij_norm = Rij * (1/g)
     return Rij_norm
 
-def assemble_Rijs(coords1i, coords2i, radiuses1, radiuses2):
-    R12_normal = Rij_constructor(coords1i, coords2i, radiuses2)
-    R21_normal = Rij_constructor(coords2i, coords1i, radiuses1)
+def assemble_Rijs(positions1i, positions2i, radiuses1, radiuses2):
+    """ Assembles the Radial Basis function (RBF) interpolation matrices.
+
+    :param positions_i: positions of evaluation points
+    :param positions_j: positions of reference points 
+    :param radiuses_i: radiuses of evaluation points
+    :param radiuses_j: radiuses of reference points
+    """
+    R12_normal = Rij_constructor(positions1i, positions2i, radiuses2)
+    R21_normal = Rij_constructor(positions2i, positions1i, radiuses1)
 
     R21 = sp.sparse.csr_matrix(extend_to_2D(R21_normal))
     R12 = sp.sparse.csr_matrix(extend_to_2D(R12_normal))
@@ -138,15 +172,32 @@ def assemble_Rijs(coords1i, coords2i, radiuses1, radiuses2):
     return R12_normal, R21_normal, R12, R21
 
 def extend_to_2D(R):
+    """ Extend the RBF matrices to 2D. """
     R_extended = np.repeat(np.repeat(R,2,axis=1), 2, axis=0)
     R_extended[1::2,::2] = 0
     R_extended[::2,1::2] = 0
     return R_extended
 
-def remove_traction(coords_new, connectivity1b, connectivity2b, connectivity1b_body, connectivity2b_body,
+def remove_traction(positions_new, connectivity1b, connectivity2b, connectivity1b_body, connectivity2b_body,
         nodes1i, nodes2i, nodes1b, nodes2b, lambda1, R12, R21):
-    normals1b = compute_normals(coords_new, nodes1b, connectivity1b, connectivity1b_body)
-    normals2b = compute_normals(coords_new, nodes2b, connectivity2b, connectivity2b_body)
+
+    """ Check if there is still traction between the bodies.
+
+    :param positions_new: new positions after internodes step
+    :param connectivity1b: connectivity of boundary surface 1 (master) 
+    :param connectivity2b: connectivity of boundary surface 2 (slave) 
+    :param connectivity1b_body: connectivity of boundary elements 1 (master) 
+    :param connectivity2b_body: connectivity of boundary elements 2 (slave) 
+    :param nodes1i: nodes of interface 1
+    :param nodes2i: nodes of interface 2
+    :param nodes1b: nodes of boundary 1 (potential interface nodes)
+    :param nodes2b: nodes of boundary 2 (potential interface nodes)
+    :param lambda1: lambdas of interface 1 (solution)
+    :param R12: RBF interpolation master to slave
+    :param R21: RBF interpolation slave to master
+    """
+    normals1b = compute_normals(positions_new, nodes1b, connectivity1b, connectivity1b_body)
+    normals2b = compute_normals(positions_new, nodes2b, connectivity2b, connectivity2b_body)
 
     normals1i = normals1b[np.in1d(nodes1b, nodes1i)]
     normals2i = normals2b[np.in1d(nodes2b, nodes2i)]
@@ -161,20 +212,24 @@ def remove_traction(coords_new, connectivity1b, connectivity2b, connectivity1b_b
 
     if len(nodes1i_dump) == 0 and len(nodes2i_dump) == 0:
         # gap verification
-        nodes1i_add, nodes2i_add = detect_gaps(coords_new, nodes1i, nodes2i, normals1i, normals2i)
+        nodes1i_add, nodes2i_add = detect_gaps(positions_new, nodes1i, nodes2i, normals1i, normals2i)
 
         nodes1i, diff_nb_nodes1i = update_interface(nodes1i_add, nodes1i, 'add')
         nodes2i, diff_nb_nodes2i = update_interface(nodes2i_add, nodes2i, 'add')
+
+        print(diff_nb_nodes1i, ' nodes added to interface 1')
+        print(diff_nb_nodes2i, ' nodes added to interface 2')
     else:
         nodes1i, diff_nb_nodes1i = update_interface(nodes1i_dump, nodes1i, 'dump')
         nodes2i, diff_nb_nodes2i = update_interface(nodes2i_dump, nodes2i, 'dump')
 
-    print(diff_nb_nodes1i, ' nodes removed from interface 1')
-    print(diff_nb_nodes2i, ' nodes removed from interface 2')
+        print(diff_nb_nodes1i, ' nodes removed from interface 1')
+        print(diff_nb_nodes2i, ' nodes removed from interface 2')
 
     return nodes1i, nodes2i, diff_nb_nodes1i, diff_nb_nodes2i
 
 def update_interface(new_nodes, nodesi, case):
+    """ Remove of add interfaces after traction check. """
     if case == 'dump':
         nodesi_new = nodesi[~np.in1d(nodesi, new_nodes)]
     if case == 'add':
@@ -183,14 +238,20 @@ def update_interface(new_nodes, nodesi, case):
     diff_nb_nodes = len(nodesi) -len(nodesi_new)
     return nodesi_new, diff_nb_nodes
 
-def compute_normals(coords_new, nodesb, connectivityb, connectivityb_body):
+def compute_normals(positions_new, nodesb, connectivityb, connectivityb_body):
+    """Comput normals on interface surface.
+
+    :param positions_new: new positions after internodes step
+    :param nodesb: nodes of boundary(potential interface nodes)
+    :param connectivityb: connectivity of boundary surface
+    """
     n = len(nodesb)
     m = len(connectivityb)
 
     connectivityi_body = connectivityb_body[np.in1d(connectivityb_body, nodesb).reshape(connectivityb_body.shape).any(axis=1)]
     nodesb_body = np.unique(connectivityi_body[~np.isin(connectivityb_body, nodesb)])
 
-    tangents = coords_new[connectivityb[:, 1]] - coords_new[connectivityb[:, 0]]
+    tangents = positions_new[connectivityb[:, 1]] - positions_new[connectivityb[:, 0]]
     lengths = np.linalg.norm(tangents, axis=1).reshape([-1,1])
     tangents = tangents/lengths
 
@@ -202,7 +263,7 @@ def compute_normals(coords_new, nodesb, connectivityb, connectivityb_body):
     gamma = 1e-3 # step size
     for j in range(n):
         node = nodesb[j]
-        coord = coords_new[node, :]
+        coord = positions_new[node, :]
         id = np.in1d(connectivityb, node).reshape(connectivityb.shape).any(axis=1)
         length = lengths[id]
         normal_avg = 1/np.sum(length)*np.sum(normals[id, :]*length, axis=0)
@@ -210,8 +271,8 @@ def compute_normals(coords_new, nodesb, connectivityb, connectivityb_body):
         tang_plus = (coord + gamma*normal_avg).reshape([-1, 2])
         tang_minus = (coord - gamma*normal_avg).reshape([-1, 2])
 
-        min_plus = np.min(spatial.distance.cdist(coords_new[nodesb_body, :], tang_plus).ravel())
-        min_minus = np.min(spatial.distance.cdist(coords_new[nodesb_body, :], tang_minus).ravel())
+        min_plus = np.min(spatial.distance.cdist(positions_new[nodesb_body, :], tang_plus).ravel())
+        min_minus = np.min(spatial.distance.cdist(positions_new[nodesb_body, :], tang_minus).ravel())
 
         if min_plus > min_minus:
             normals_avg[j, :] = normal_avg
@@ -222,23 +283,31 @@ def compute_normals(coords_new, nodesb, connectivityb, connectivityb_body):
     normals_avg = (normals_avg/norms).reshape([-1, 2])
     return normals_avg
 
-def detect_gaps(coords_new, nodes1i, nodes2i, normals1i, normals2i):
+def detect_gaps(positions_new, nodes1i, nodes2i, normals1i, normals2i):
+    """Detect gaps between interfaces.
+
+    :param positions_new: new positions after internodes step
+    :param nodes1i: nodes of interface 1
+    :param nodes2i: nodes of interface 2
+    :param normals1i: normal vectors of nodes on interface 1
+    :param normals2i: normal vectors of nodes on interface 2
+    """
     tol = 0.9 # tolerance for gap detection (could be changed as input)
     h = 0.05 # mesh size (shouldn't be fixed!)
-    coords1i = coords_new[nodes1i, :]
-    coords2i = coords_new[nodes2i, :]
+    positions1i = positions_new[nodes1i, :]
+    positions2i = positions_new[nodes2i, :]
 
-    nodes1i, nodes2i, coords1i, coords2i, radiuses1, radiuses2 = find_contact_nodes(nodes1i, nodes2i, coords1i, coords2i)
+    nodes1i, nodes2i, positions1i, positions2i, radiuses1, radiuses2 = find_contact_nodes(nodes1i, nodes2i, positions1i, positions2i)
 
-    R21_normal = Rij_constructor(coords2i, coords1i, radiuses1)
+    R21_normal = Rij_constructor(positions2i, positions1i, radiuses1)
     R21 = sp.sparse.csr_matrix(extend_to_2D(R21_normal))
 
-    R12_normal = Rij_constructor(coords1i, coords2i, radiuses2)
+    R12_normal = Rij_constructor(positions1i, positions2i, radiuses2)
     R12 = sp.sparse.csr_matrix(extend_to_2D(R12_normal))
 
-    diffs1 = R12.dot(coords2i.reshape([-1, 1])) - coords1i.reshape([-1, 1])
+    diffs1 = R12.dot(positions2i.reshape([-1, 1])) - positions1i.reshape([-1, 1])
     diffs1 = diffs1.reshape([-1, 2])
-    diffs2 = R21.dot(coords1i.reshape([-1, 1])) - coords2i.reshape([-1, 1])
+    diffs2 = R21.dot(positions1i.reshape([-1, 1])) - positions2i.reshape([-1, 1])
     diffs2 = diffs2.reshape([-1, 2])
 
     scalar1 = np.sum(diffs1*normals1i, axis=1)

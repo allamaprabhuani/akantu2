@@ -38,19 +38,20 @@ def main():
     model.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
 
     # Dirichlet
-    # nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
-    # displacements = displacements.reshape([-1, 2])
-    # displacements[nodes_top, 1] = -0.1
-    # displacements = displacements.ravel()
+    model.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top') # to block the nodes
+    nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
+    displacements = displacements.reshape([-1, 2])
+    displacements[nodes_top, 1] = -0.1
+    displacements = displacements.ravel()
 
     # Neumann (K is not invertible)
-    traction = np.zeros(spatial_dimension)
-    traction[1] = -1e9
-    model.applyBC(aka.FromTraction(traction), "upper_top")
+    # traction = np.zeros(spatial_dimension)
+    # traction[1] = -1e9
+    # model.applyBC(aka.FromTraction(traction), 'upper_top')
 
     # init and solve
     model, data = init_model(model, mesh, mesh_file, material_file, spatial_dimension,
-            displacements, "upper_bottom", "lower_top")
+            displacements, 'lower_top', 'upper_bottom')
 
     solve_step_iterative(model, data, nb_max_iter=10, plot=True)
 
@@ -157,6 +158,7 @@ def solve_step_iterative(model, data, nb_max_iter=10, plot=False):
 
         b = assemble_b(f_free_order, R12_normal, K, data['displacements'], data['free_dofs'],
                 data['blocked_dofs'], positions1i, positions2i, nb_constraint_dofs, rescaling)
+        b[:data['nb_free_dofs']] = b[:data['nb_free_dofs']][ordering]
 
         A_size = data['nb_free_dofs'] + nb_constraint_dofs
         A_op = lambda x: linearoperator_A(x, K_tilde_order, B, B_tilde, data['nb_free_dofs'])

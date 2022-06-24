@@ -47,7 +47,6 @@ def assemble_Bs(M1i, M2i, R12, R21, indx1i, indx2i,
     :param nb_constraint_dofs: number of master dofs which act as constraint 
     :returns: sparse blocke matrices for internodes formulation 
     """
-
     B = sp.sparse.lil_matrix(np.zeros((nb_free_dofs, nb_constraint_dofs)))
     B_tilde = sp.sparse.lil_matrix(np.zeros((nb_constraint_dofs, nb_free_dofs)))
     C = sp.sparse.lil_matrix(np.zeros((nb_constraint_dofs, nb_constraint_dofs)))
@@ -84,12 +83,12 @@ def assemble_b(f_free, R12_normal, K, displacements, free_dofs, blocked_dofs,
     :param f_free: force vector of free dofs 
     :param R12_normal: nodal interpolation matrix master to slave
     :param K: stiffness matrix
+    :param displacements: displacements vector
     :param free_dofs: dofs numbers of non blocked dofs
     :param blocked_dofs: dofs numbers of blocked dofs
-    :param positions1i: initial positions of interface 1 nodes 
-    :param positions2i: initial positions of interface 2 nodes 
+    :param positions1i: initial positions of interface 1 nodes
+    :param positions2i: initial positions of interface 2 nodes
     :param nb_constraint_dofs: number of master dofs which act as constraint
-    :param nb_dofs: total number of dofs
     :param rescaling: rescaling stiffness matrix
     """
     nb_free_dofs = len(free_dofs)
@@ -111,9 +110,8 @@ def solve_direct(A, b, positions, displacements, free_dofs,
 
     :param A: sparse matrix internodes
     :param b: right hand side vector
-    :param displacements: displacements vector 
     :param positions: initial positions of all nodes
-    :param scaling: scaling factor for stiffness matrix
+    :param displacements: displacements vector
     :param free_dofs: dofs numbers of non blocked dofs
     :param nb_constraint_dofs: number of master dofs which act as constraint
     :param nb_dofs: total number of dofs
@@ -137,13 +135,14 @@ def solve_iterative(A_op_spla, b, M_inv_op_spla, positions, displacements,
 
     :param A_op_spla: scipy linear operator for A
     :param b: right hand side vector
-    :param M_inv_op_spla: scipy linear operator for B
+    :param M_inv_op_spla: scipy linear operator for M
     :param positions: initial positions of all nodes
+    :param displacements: displacements vector
+    :param free_dofs: dofs numbers of non blocked dofs
     :param ordering: reordered stiffness matrix due to cholesky factorization
-    :param scaling: scaling factor for stiffness matrix
-    :param free_dofs: mask of free dofs
     :param nb_constraint_dofs: number of master dofs which act as constraint
     :param nb_dofs: total number of dofs
+    :param rescaling: rescaling stiffness matrix
     :returns: new positions and lambdas resulting from constraints
     """
     nb_free_dofs = len(free_dofs)
@@ -162,10 +161,9 @@ def solve_iterative(A_op_spla, b, M_inv_op_spla, positions, displacements,
 def linearoperator_A(x, K_free_order, B, B_tilde, nb_free_dofs):
     """Creates linear operator for internodes matrix.
 
-    :param K_free: stiffness matrix with non blocked dofs
+    :param K_free_order: ordered stiffness matrix with non blocked dofs
     :param B: B matrix of internodes formulation
     :param B_tilde: B_tilde matrix of internodes formulation
-    :param nb_free_dofs: number of non blocked dofs 
     :param nb_free_dofs: number of non blocked dofs 
     :param nb_constraint_dofs: number of master dofs which act as constraint 
     """
@@ -193,10 +191,9 @@ def prepare_precond(M1i, M2i, R12, R21, L22, L22L22_T, indx1i, indx2i,
     :param L22L22_T: precomputed L_22 * L_22^T
     :param indx1i: indices of interface 1 (master)
     :param indx2i: indices of interface 2 (slave)
-    :param nb_boundary_dofs: indices of initial boundary interface dofs
+    :param nb_boundary_dofs: number of initial boundary dofs
     :return: matrix V needed for preconditioner
     """
-
     indxi = np.append(indx1i, indx2i)
  
     # assemble Y1*Y2^T
@@ -225,12 +222,11 @@ def linearoperator_precond(y, L22, V, B, M1i, chol_factor,
     :param L22: submatrice of chelosky for perturbed stiffness matrix
     :param V: prepared matrix for preconditioner
     :param B: B matrix of internodes formulation
-    :param M1i: sparse matrix interface mass 1 
+    :param M1i: sparse matrix interface mass 1
     :param chol_factor: sksparse factor to do operations with L
     :param nb_free_dofs: number of non blocked dofs 
     :param nb_boundary_dofs: indices of initial boundary interface dofs
     """
-
     boundary_start = nb_free_dofs - nb_boundary_dofs 
 
     # M @ [x1; x2] = [y1; y2]
@@ -267,11 +263,12 @@ def solve_iterative(A_op_spla, b, M_inv_op_spla, positions, displacements,
     :param b: right hand side vector
     :param M_inv_op_spla: scipy linear operator for B
     :param positions: initial positions of all nodes
+    :param displacements: displacements vector
+    :param free_dofs: dofs numbers of non blocked dofs
     :param ordering: reordered stiffness matrix due to cholesky factorization
-    :param scaling: scaling factor for stiffness matrix
-    :param free_dofs: mask of free dofs
     :param nb_constraint_dofs: number of master dofs which act as constraint
     :param nb_dofs: total number of dofs
+    :param rescaling: rescaling stiffness matrix
     :returns: new positions and lambdas resulting from constraints
     """
     nb_free_dofs = len(free_dofs)

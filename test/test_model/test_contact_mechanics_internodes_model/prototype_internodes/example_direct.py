@@ -37,21 +37,22 @@ def main():
     model.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
 
     # Dirichlet
-    # nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
-    # displacements = displacements.reshape([-1, 2])
-    # displacements[nodes_top, 1] = -0.1
-    # displacements = displacements.ravel()
+    model.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top') # to block the nodes
+    nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
+    displacements = displacements.reshape([-1, 2])
+    displacements[nodes_top, 1] = -0.1
+    displacements = displacements.ravel()
 
     # Neumann (K is not invertible)
-    traction = np.zeros(spatial_dimension)
-    traction[1] = -1e9
-    model.applyBC(aka.FromTraction(traction), 'upper_top')
+    # traction = np.zeros(spatial_dimension)
+    # traction[1] = -1e9
+    # model.applyBC(aka.FromTraction(traction), 'upper_top')
 
     # init and solve
     model, data = init_model(model, mesh, mesh_file, material_file, spatial_dimension,
             displacements, 'lower_top', 'upper_bottom')
 
-    solve_step_direct(model, data, nb_max_iter=1, plot=True)
+    solve_step_direct(model, data, nb_max_iter=10, plot=True)
 
 def solve_step_direct(model, data, nb_max_iter=10, plot=False):
     #---------- assemble stiffness matrices: K, K_free ----------
