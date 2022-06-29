@@ -716,7 +716,7 @@ void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
     // TODO: Allow to reallocate the internals, in that case one could actually
     // react on that event.
     auto is_or_is_not = [](bool q) {
-        return ((q) ? std::string("is") : std::string("is not"));
+      return ((q) ? std::string("is") : std::string("is not"));
     };
     AKANTU_EXCEPTION("There is an inconsistency about the distribution state "
                      "of the `DOFManager`."
@@ -725,8 +725,7 @@ void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
                      << " distributed, but the `DOFManager`'s residual "
                      << is_or_is_not(this->residual->isDistributed())
                      << ", which is of type "
-                     << debug::demangle(typeid(*this->residual).name()) << ".");
-
+                     << debug::demangle(typeid(this->residual).name()) << ".");
   }
 }
 
