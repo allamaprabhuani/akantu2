@@ -39,7 +39,7 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev libzlib-dev liblapack3 gmsh
+> sudo apt install cmake libboost-dev zlib1g-dev liblapack-dev libblas-dev gmsh
 # For parallel
 > sudo apt install mpi-default-dev libmumps-dev 
 # For sequential
@@ -59,12 +59,13 @@ To compile the tests and examples:
   [ Set the options that you need ]
   > make
   > make install
+
 ```
 
 ## Using the python interface
 
 
-You can install ``Akantu`` using pip:
+You can install ``Akantu`` using pip, this will install a pre-compiled version:
 
 ``` sh
   > pip install akantu
