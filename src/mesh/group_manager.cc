@@ -1031,4 +1031,13 @@ void GroupManager::copyNodeGroup(const std::string & name,
   new_grp.getNodes().copy(grp.getNodes());
 }
 
+/* -------------------------------------------------------------------------- */
+void GroupManager::onNodesAdded(const Array<UInt> & new_nodes,
+                                const NewNodesEvent & event) {
+  for (auto && group : make_values_adaptor(element_groups)) {
+    group->onNodesAdded(new_nodes, event);
+  }
+}
+/* -------------------------------------------------------------------------- */
+
 } // namespace akantu

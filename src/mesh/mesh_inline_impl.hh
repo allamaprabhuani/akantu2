@@ -79,6 +79,7 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
 template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
   this->computeBoundingBox();
   this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
+  GroupManager::onNodesAdded(event.getList(), event);
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
