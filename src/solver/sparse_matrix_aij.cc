@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix_aij.hh"
 #include "aka_iterators.hh"
+#include "aka_math.hh"
 #include "dof_manager_default.hh"
 #include "dof_synchronizer.hh"
 #include "solver_vector_default.hh"
@@ -294,5 +295,8 @@ void SparseMatrixAIJ::set(Real val) {
 
   this->value_release++;
 }
+
+/* -------------------------------------------------------------------------- */
+bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); };
 
 } // namespace akantu

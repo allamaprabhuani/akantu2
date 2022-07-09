@@ -62,13 +62,11 @@ class AkantuSparseMatrix (_aka_sparse.coo_matrix):
             data = _aka_np.concatenate((data, data_sup))
 
         _aka_sparse.coo_matrix.__init__(
-            self, (data, (row, col)), shape=(sz, sz))
+            self, (data, (row, col)), shape=(sz, sz), dtype=data.dtype)
 
 
 FromStress = _py11_akantu.FromHigherDim
 FromTraction = _py11_akantu.FromSameDim
 _py11_akantu.__initialize()
 
-from ._version import get_versions  # NOQA(402@)
-__version__ = get_versions()['version']
-del get_versions
+__version__ = _py11_akantu.getVersion()

@@ -28,8 +28,6 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 package_declare(Mumps EXTERNAL
   DESCRIPTION "Add Mumps support in akantu"
   )
@@ -57,16 +55,19 @@ endif()
 package_get_option_name(parallel _par_option)
 if(${_par_option})
   list(APPEND _mumps_components "parallel")
+
   package_set_package_system_dependency(Mumps deb libmumps)
   package_set_package_system_dependency(Mumps deb-src libmumps-dev)
+  package_add_dependencies(Mumps PRIVATE parallel)
 else()
   list(APPEND _mumps_components "sequential")
   package_set_package_system_dependency(Mumps deb libmumps-seq)
   package_set_package_system_dependency(Mumps deb-src libmumps-seq-dev)
+  package_remove_dependencies(Mumps PRIVATE parallel)
 endif()
 
 package_set_find_package_extra_options(Mumps ARGS COMPONENTS "${_mumps_components}")
-package_declare_extra_files_to_package(MUMPS
+package_declare_extra_files_to_package(Mumps
   PROJECT
     cmake/Modules/FindMumps.cmake
   )

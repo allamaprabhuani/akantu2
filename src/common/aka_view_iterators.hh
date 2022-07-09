@@ -126,6 +126,11 @@ namespace detail {
           data, std::make_index_sequence<dim>());
     }
 
+    constexpr auto get_new_proxy(scalar_pointer data) const {
+      return this->template get_new_proxy<proxy_t>(
+          data, std::make_index_sequence<dim>());
+    }
+
     template <std::size_t... I>
     constexpr void reset_proxy(std::index_sequence<I...>) {
       new (&proxy) proxy_t(ret_ptr, dims[I]...);
@@ -284,6 +289,10 @@ namespace detail {
     }
 
     inline auto operator[](Idx n) {
+      return get_new_proxy(ret_ptr + n * _offset);
+    }
+
+    inline auto operator[](Idx n) const {
       return get_new_proxy(ret_ptr + n * _offset);
     }
 

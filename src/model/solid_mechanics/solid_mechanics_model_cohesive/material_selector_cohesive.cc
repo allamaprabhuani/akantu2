@@ -128,24 +128,21 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
 
   // non cohesive fallback
   this->fallback_selector->setFallback(
-      std::make_shared<MeshDataMaterialSelector<std::string>>(mesh_data_id,
-                                                              model));
+      std::make_shared<MeshDataMaterialSelector<std::string>>(
+          this->mesh_data_id, model));
 }
 
 /* -------------------------------------------------------------------------- */
 Int MaterialCohesiveRulesSelector::operator()(const Element & element) {
   if (mesh_facets.getSpatialDimension(element.type) ==
       (spatial_dimension - 1)) {
-    const auto & element_to_subelement =
-        mesh_facets.getElementToSubelement(element.type,
-                                           element.ghost_type)(element.element);
-    // Array<bool> & facets_check = model.getFacetsCheck();
-
+    const auto & element_to_subelement = mesh_facets.getElementToSubelement(
+        element.type, element.ghost_type)(element.element);
     const auto & el1 = element_to_subelement[0];
     const auto & el2 = element_to_subelement[1];
 
     auto id1 = mesh.getData<std::string>(mesh_data_id, el1.type,
-                                       el1.ghost_type)(el1.element);
+                                         el1.ghost_type)(el1.element);
 
     auto id2 = id1;
     if (el2 != ElementNull) {

@@ -76,10 +76,38 @@ void register_parser(py::module & mod) {
              self.registerParam<Real>(name, *p, _default,
                                       ParameterAccessType(type), description);
            })
+
+      .def("setReal", [](ParameterRegistry & self, const std::string & name,
+                         const Real value) { self.set(name, value); })
       .def("getReal",
-           [](ParameterRegistry & self, const std::string & name) {
-             return Real(self.get(name));
+           [](ParameterRegistry & self, const std::string & name) -> Real {
+             return self.get(name);
            })
+
+      .def("setBool", [](ParameterRegistry & self, const std::string & name,
+                         const bool value) { self.set(name, value); })
+      .def("getBool",
+           [](ParameterRegistry & self, const std::string & name) -> bool {
+             return self.get(name);
+           })
+
+      .def("setString",
+           [](ParameterRegistry & self, const std::string & name,
+              const std::string & value) { self.set(name, value); })
+      .def("getString",
+           [](ParameterRegistry & self,
+              const std::string & name) -> std::string {
+             std::string tmp = self.get(name);
+             return tmp;
+           })
+
+      .def("setInt", [](ParameterRegistry & self, const std::string & name,
+                        const Int value) { self.set(name, value); })
+      .def("getInt",
+           [](ParameterRegistry & self, const std::string & name) -> Int {
+             return self.get(name);
+           })
+
       .def(
           "getMatrix",
           [](ParameterRegistry & self, const std::string & name) {

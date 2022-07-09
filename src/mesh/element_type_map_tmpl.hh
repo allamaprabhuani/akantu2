@@ -194,6 +194,21 @@ ElementTypeMapArray<T, SupportType>::ElementTypeMapArray(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
+auto ElementTypeMapArray<T, SupportType>::operator=(
+    const ElementTypeMapArray & other) -> ElementTypeMapArray & {
+  if (this != &other) {
+    AKANTU_DEBUG_WARNING("You are copying the ElementTypeMapArray "
+                         << this->id << " are you sure it is on purpose");
+
+    this->id = other.id + "_copy";
+    this->name = other.name + "_copy";
+    this->copy(other);
+  }
+  return *this;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T, typename SupportType>
 inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
     Int size, Int nb_component, SupportType type, GhostType ghost_type,
     const T & default_value) {

@@ -775,6 +775,15 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
+/* -------------------------------------------------------------------------- */
+template <typename T, bool is_scal>
+template <typename OT, std::enable_if_t<std::is_arithmetic<OT>::value> *>
+bool Array<T, is_scal>::isFinite() const noexcept {
+  return std::all_of(this->values,
+                     this->values + this->size_ * this->nb_component,
+                     [](auto && a) { return std::isfinite(a); });
+}
+
 /* ------------------------------------------------------------------------ */
 /* ArrayFilter                                                              */
 /* ------------------------------------------------------------------------ */

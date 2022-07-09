@@ -59,8 +59,8 @@ protected:
   struct DOFData;
 
 public:
-  DOFManager(const ID &id = "dof_manager");
-  DOFManager(Mesh &mesh, const ID &id = "dof_manager");
+  DOFManager(const ID & id = "dof_manager");
+  DOFManager(Mesh & mesh, const ID & id = "dof_manager");
   ~DOFManager() override;
 
   /* ------------------------------------------------------------------------ */
@@ -68,36 +68,39 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// register an array of degree of freedom
-  virtual void registerDOFs(const ID &dof_id, Array<Real> &dofs_array,
+  virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
                             DOFSupportType support_type);
 
   /// the dof as an implied type of _dst_nodal and is defined only on a subset
   /// of nodes
-  virtual void registerDOFs(const ID &dof_id, Array<Real> &dofs_array,
-                            const ID &support_group);
+  virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
+                            const ID & support_group);
 
   /// register an array of previous values of the degree of freedom
-  virtual void registerDOFsPrevious(const ID &dof_id, Array<Real> &dofs_array);
+  virtual void registerDOFsPrevious(const ID & dof_id,
+                                    Array<Real> & dofs_array);
 
   /// register an array of increment of degree of freedom
-  virtual void registerDOFsIncrement(const ID &dof_id, Array<Real> &dofs_array);
+  virtual void registerDOFsIncrement(const ID & dof_id,
+                                     Array<Real> & dofs_array);
 
   /// register an array of derivatives for a particular dof array
-  virtual void registerDOFsDerivative(const ID &dof_id, Int order,
-                                      Array<Real> &dofs_derivative);
+  virtual void registerDOFsDerivative(const ID & dof_id, Int order,
+                                      Array<Real> & dofs_derivative);
 
   /// register array representing the blocked degree of freedoms
-  virtual void registerBlockedDOFs(const ID &dof_id, Array<bool> &blocked_dofs);
+  virtual void registerBlockedDOFs(const ID & dof_id,
+                                   Array<bool> & blocked_dofs);
 
   /// Assemble an array to the global residual array
-  virtual void assembleToResidual(const ID &dof_id,
-                                  Array<Real> &array_to_assemble,
+  virtual void assembleToResidual(const ID & dof_id,
+                                  Array<Real> & array_to_assemble,
                                   Real scale_factor = 1.);
 
   /// Assemble an array to the global lumped matrix array
-  virtual void assembleToLumpedMatrix(const ID &dof_id,
-                                      Array<Real> &array_to_assemble,
-                                      const ID &lumped_mtx,
+  virtual void assembleToLumpedMatrix(const ID & dof_id,
+                                      Array<Real> & array_to_assemble,
+                                      const ID & lumped_mtx,
                                       Real scale_factor = 1.);
 
   /**
@@ -107,9 +110,9 @@ public:
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalArrayLocalArray(
-      const Array<Real> &elementary_vect, Array<Real> &array_assembeled,
+      const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
       ElementType type, GhostType ghost_type, Real scale_factor = 1.,
-      const Array<Int> &filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -117,18 +120,19 @@ public:
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalArrayToResidual(
-      const ID &dof_id, const Array<Real> &elementary_vect, ElementType type,
+      const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
       GhostType ghost_type, Real scale_factor = 1.,
-      const Array<Int> &filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to a global array corresponding to a lumped
    * matrix
    */
   virtual void assembleElementalArrayToLumpedMatrix(
-      const ID &dof_id, const Array<Real> &elementary_vect,
-      const ID &lumped_mtx, ElementType type, GhostType ghost_type,
-      Real scale_factor = 1., const Array<Int> &filter_elements = empty_filter);
+      const ID & dof_id, const Array<Real> & elementary_vect,
+      const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+      Real scale_factor = 1.,
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -136,35 +140,36 @@ public:
    * n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalMatricesToMatrix(
-      const ID &matrix_id, const ID &dof_id, const Array<Real> &elementary_mat,
-      ElementType type, GhostType ghost_type = _not_ghost,
-      const MatrixType &elemental_matrix_type = _symmetric,
-      const Array<Int> &filter_elements = empty_filter) = 0;
+      const ID & matrix_id, const ID & dof_id,
+      const Array<Real> & elementary_mat, ElementType type,
+      GhostType ghost_type = _not_ghost,
+      const MatrixType & elemental_matrix_type = _symmetric,
+      const Array<Int> & filter_elements = empty_filter) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
-  virtual void assembleMatMulVectToArray(const ID &dof_id, const ID &A_id,
-                                         const Array<Real> &x,
-                                         Array<Real> &array,
+  virtual void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
+                                         const Array<Real> & x,
+                                         Array<Real> & array,
                                          Real scale_factor = 1) = 0;
 
   /// multiply a vector by a lumped matrix and assemble the result to the
   /// residual
-  virtual void assembleLumpedMatMulVectToResidual(const ID &dof_id,
-                                                  const ID &A_id,
-                                                  const Array<Real> &x,
+  virtual void assembleLumpedMatMulVectToResidual(const ID & dof_id,
+                                                  const ID & A_id,
+                                                  const Array<Real> & x,
                                                   Real scale_factor = 1) = 0;
 
   /// assemble coupling terms between to dofs
-  virtual void assemblePreassembledMatrix(const ID &matrix_id,
-                                          const TermsToAssemble &terms) = 0;
+  virtual void assemblePreassembledMatrix(const ID & matrix_id,
+                                          const TermsToAssemble & terms) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
-  virtual void assembleMatMulVectToResidual(const ID &dof_id, const ID &A_id,
-                                            const Array<Real> &x,
+  virtual void assembleMatMulVectToResidual(const ID & dof_id, const ID & A_id,
+                                            const Array<Real> & x,
                                             Real scale_factor = 1);
 
   /// multiply the dofs by a matrix and assemble the result to the residual
-  virtual void assembleMatMulDOFsToResidual(const ID &A_id,
+  virtual void assembleMatMulDOFsToResidual(const ID & A_id,
                                             Real scale_factor = 1);
 
   /// updates the global blocked_dofs array
@@ -173,63 +178,63 @@ public:
   /// sets the residual to 0
   virtual void zeroResidual();
   /// sets the matrix to 0
-  virtual void zeroMatrix(const ID &mtx);
+  virtual void zeroMatrix(const ID & mtx);
   /// sets the lumped matrix to 0
-  virtual void zeroLumpedMatrix(const ID &mtx);
+  virtual void zeroLumpedMatrix(const ID & mtx);
 
-  virtual void applyBoundary(const ID &matrix_id = "J");
+  virtual void applyBoundary(const ID & matrix_id = "J");
   // virtual void applyBoundaryLumped(const ID & matrix_id = "J");
 
   /// extract a lumped matrix part corresponding to a given dof
-  virtual void getLumpedMatrixPerDOFs(const ID &dof_id, const ID &lumped_mtx,
-                                      Array<Real> &lumped);
+  virtual void getLumpedMatrixPerDOFs(const ID & dof_id, const ID & lumped_mtx,
+                                      Array<Real> & lumped);
 
   /// splits the solution storage from a global view to the per dof storages
   void splitSolutionPerDOFs();
 
 private:
   /// dispatch the creation of the dof data and register it
-  DOFData &getNewDOFDataInternal(const ID &dof_id);
+  DOFData & getNewDOFDataInternal(const ID & dof_id);
 
 protected:
   /// common function to help registering dofs the return values are the add new
   /// numbers of local dofs, pure local dofs, and system size
   virtual std::tuple<Int, Int, Int>
-  registerDOFsInternal(const ID &dof_id, Array<Real> &dofs_array);
+  registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array);
 
   /// minimum functionality to implement per derived version of the DOFManager
   /// to allow the splitSolutionPerDOFs function to work
-  virtual void getSolutionPerDOFs(const ID &dof_id,
-                                  Array<Real> &solution_array);
+  virtual void getSolutionPerDOFs(const ID & dof_id,
+                                  Array<Real> & solution_array);
 
   /// fill a Vector with the equation numbers corresponding to the given
   /// connectivity
   static inline void extractElementEquationNumber(
-      const Array<Int> &equation_numbers, const Vector<Idx> &connectivity,
-      Int nb_degree_of_freedom, Vector<Idx> &local_equation_number);
+      const Array<Int> & equation_numbers, const Vector<Idx> & connectivity,
+      Int nb_degree_of_freedom, Vector<Idx> & local_equation_number);
 
   /// Assemble a array to a global one
-  void assembleMatMulVectToGlobalArray(const ID &dof_id, const ID &A_id,
-                                       const Array<Real> &x,
-                                       SolverVector &array,
+  void assembleMatMulVectToGlobalArray(const ID & dof_id, const ID & A_id,
+                                       const Array<Real> & x,
+                                       SolverVector & array,
                                        Real scale_factor = 1.);
 
   /// common function that can be called by derived class with proper matrice
   /// types
   template <typename Mat>
-  void assemblePreassembledMatrix_(Mat &A, const TermsToAssemble &terms);
+  void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
   void
-  assembleElementalMatricesToMatrix_(Mat &A, const ID &dof_id,
-                                     const Array<Real> &elementary_mat,
+  assembleElementalMatricesToMatrix_(Mat & A, const ID & dof_id,
+                                     const Array<Real> & elementary_mat,
                                      ElementType type, GhostType ghost_type,
-                                     const MatrixType &elemental_matrix_type,
-                                     const Array<Idx> &filter_elements);
+                                     const MatrixType & elemental_matrix_type,
+                                     const Array<Idx> & filter_elements);
 
   template <typename Vec>
-  void assembleMatMulVectToArray_(const ID &dof_id, const ID &A_id,
-                                  const Array<Real> &x, Array<Real> &array,
+  void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
+                                  const Array<Real> & x, Array<Real> & array,
                                   Real scale_factor);
 
   /* ------------------------------------------------------------------------ */
@@ -279,47 +284,47 @@ public:
   /* DOFs and derivatives accessors                                          */
   /* ------------------------------------------------------------------------ */
   /// Get a reference to the registered dof array for a given id
-  inline Array<Real> &getDOFs(const ID &dofs_id);
+  inline Array<Real> & getDOFs(const ID & dofs_id);
 
   /// Get the support type of a given dof
-  inline DOFSupportType getSupportType(const ID &dofs_id) const;
+  inline DOFSupportType getSupportType(const ID & dofs_id) const;
 
   /// are the dofs registered
-  inline bool hasDOFs(const ID &dof_id) const;
+  inline bool hasDOFs(const ID & dof_id) const;
 
   /// Get a reference to the registered dof derivatives array for a given id
-  inline Array<Real> &getDOFsDerivatives(const ID &dofs_id, Int order);
+  inline Array<Real> & getDOFsDerivatives(const ID & dofs_id, Int order);
 
   /// Does the dof has derivatives
-  inline bool hasDOFsDerivatives(const ID &dofs_id, Int order) const;
+  inline bool hasDOFsDerivatives(const ID & dofs_id, Int order) const;
 
   /// Get a reference to the blocked dofs array registered for the given id
-  inline const Array<bool> &getBlockedDOFs(const ID &dofs_id) const;
+  inline const Array<bool> & getBlockedDOFs(const ID & dofs_id) const;
 
   /// Does the dof has a blocked array
-  inline bool hasBlockedDOFs(const ID &dofs_id) const;
+  inline bool hasBlockedDOFs(const ID & dofs_id) const;
 
   /// Get a reference to the registered dof increment array for a given id
-  inline Array<Real> &getDOFsIncrement(const ID &dofs_id);
+  inline Array<Real> & getDOFsIncrement(const ID & dofs_id);
 
   /// Does the dof has a increment array
-  inline bool hasDOFsIncrement(const ID &dofs_id) const;
+  inline bool hasDOFsIncrement(const ID & dofs_id) const;
 
   /// Does the dof has a previous array
-  inline Array<Real> &getPreviousDOFs(const ID &dofs_id);
+  inline Array<Real> & getPreviousDOFs(const ID & dofs_id);
 
   /// Get a reference to the registered dof array for previous step values a
   /// given id
-  inline bool hasPreviousDOFs(const ID &dofs_id) const;
+  inline bool hasPreviousDOFs(const ID & dofs_id) const;
 
   /// saves the values from dofs to previous dofs
-  virtual void savePreviousDOFs(const ID &dofs_id);
+  virtual void savePreviousDOFs(const ID & dofs_id);
 
   /// Get a reference to the solution array registered for the given id
-  inline const Array<Real> &getSolution(const ID &dofs_id) const;
+  inline const Array<Real> & getSolution(const ID & dofs_id) const;
 
   /// Get a reference to the solution array registered for the given id
-  inline Array<Real> &getSolution(const ID &dofs_id);
+  inline Array<Real> & getSolution(const ID & dofs_id);
 
   /// Get the blocked dofs array
   AKANTU_GET_MACRO_AUTO(GlobalBlockedDOFs, global_blocked_dofs);
@@ -331,45 +336,45 @@ public:
   /* Matrices accessors                                                       */
   /* ------------------------------------------------------------------------ */
   /// Get an instance of a new SparseMatrix
-  virtual SparseMatrix &getNewMatrix(const ID &matrix_id,
-                                     const MatrixType &matrix_type) = 0;
+  virtual SparseMatrix & getNewMatrix(const ID & matrix_id,
+                                      const MatrixType & matrix_type) = 0;
 
   /// Get an instance of a new SparseMatrix as a copy of the SparseMatrix
   /// matrix_to_copy_id
-  virtual SparseMatrix &getNewMatrix(const ID &matrix_id,
-                                     const ID &matrix_to_copy_id) = 0;
+  virtual SparseMatrix & getNewMatrix(const ID & matrix_id,
+                                      const ID & matrix_to_copy_id) = 0;
 
   /// Get the equation numbers corresponding to a dof_id. This might be used to
   /// access the matrix.
-  inline decltype(auto) getLocalEquationsNumbers(const ID &dof_id) const;
+  inline decltype(auto) getLocalEquationsNumbers(const ID & dof_id) const;
 
 protected:
   /// get the array of dof types (use only if you know what you do...)
-  inline decltype(auto) getDOFsAssociatedNodes(const ID &dof_id) const;
+  inline decltype(auto) getDOFsAssociatedNodes(const ID & dof_id) const;
 
 protected:
   /* ------------------------------------------------------------------------ */
   /// register a matrix
-  SparseMatrix &registerSparseMatrix(const ID &matrix_id,
-                                     std::unique_ptr<SparseMatrix> &matrix);
+  SparseMatrix & registerSparseMatrix(const ID & matrix_id,
+                                      std::unique_ptr<SparseMatrix> & matrix);
 
   /// register a lumped matrix (aka a Vector)
-  SolverVector &registerLumpedMatrix(const ID &matrix_id,
-                                     std::unique_ptr<SolverVector> &matrix);
+  SolverVector & registerLumpedMatrix(const ID & matrix_id,
+                                      std::unique_ptr<SolverVector> & matrix);
 
   /// register a non linear solver instantiated by a derived class
   NonLinearSolver &
-  registerNonLinearSolver(const ID &non_linear_solver_id,
-                          std::unique_ptr<NonLinearSolver> &non_linear_solver);
+  registerNonLinearSolver(const ID & non_linear_solver_id,
+                          std::unique_ptr<NonLinearSolver> & non_linear_solver);
 
   /// register a time step solver instantiated by a derived class
   TimeStepSolver &
-  registerTimeStepSolver(const ID &time_step_solver_id,
-                         std::unique_ptr<TimeStepSolver> &time_step_solver);
+  registerTimeStepSolver(const ID & time_step_solver_id,
+                         std::unique_ptr<TimeStepSolver> & time_step_solver);
 
   template <class NLSType, class DMType>
-  NonLinearSolver &registerNonLinearSolver(DMType &dm, const ID &id,
-                                           const NonLinearSolverType &type) {
+  NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
+                                            const NonLinearSolverType & type) {
     ID non_linear_solver_id = this->id + ":nls:" + id;
     std::unique_ptr<NonLinearSolver> nls =
         std::make_unique<NLSType>(dm, type, non_linear_solver_id);
@@ -377,10 +382,10 @@ protected:
   }
 
   template <class TSSType, class DMType>
-  TimeStepSolver &registerTimeStepSolver(DMType &dm, const ID &id,
-                                         const TimeStepSolverType &type,
-                                         NonLinearSolver &non_linear_solver,
-                                         SolverCallback &solver_callback) {
+  TimeStepSolver & registerTimeStepSolver(DMType & dm, const ID & id,
+                                          const TimeStepSolverType & type,
+                                          NonLinearSolver & non_linear_solver,
+                                          SolverCallback & solver_callback) {
     ID time_step_solver_id = this->id + ":tss:" + id;
     std::unique_ptr<TimeStepSolver> tss = std::make_unique<TSSType>(
         dm, type, non_linear_solver, solver_callback, time_step_solver_id);
@@ -388,8 +393,8 @@ protected:
   }
 
   template <class MatType, class DMType>
-  SparseMatrix &registerSparseMatrix(DMType &dm, const ID &id,
-                                     const MatrixType &matrix_type) {
+  SparseMatrix & registerSparseMatrix(DMType & dm, const ID & id,
+                                      const MatrixType & matrix_type) {
     ID matrix_id = this->id + ":mtx:" + id;
     std::unique_ptr<SparseMatrix> sm =
         std::make_unique<MatType>(dm, matrix_type, matrix_id);
@@ -397,10 +402,10 @@ protected:
   }
 
   template <class MatType>
-  SparseMatrix &registerSparseMatrix(const ID &id,
-                                     const ID &matrix_to_copy_id) {
+  SparseMatrix & registerSparseMatrix(const ID & id,
+                                      const ID & matrix_to_copy_id) {
     ID matrix_id = this->id + ":mtx:" + id;
-    auto &sm_to_copy =
+    auto & sm_to_copy =
         aka::as_type<MatType>(this->getMatrix(matrix_to_copy_id));
     std::unique_ptr<SparseMatrix> sm =
         std::make_unique<MatType>(sm_to_copy, matrix_id);
@@ -408,72 +413,74 @@ protected:
   }
 
   template <class MatType, class DMType>
-  SolverVector &registerLumpedMatrix(DMType &dm, const ID &id) {
+  SolverVector & registerLumpedMatrix(DMType & dm, const ID & id) {
     ID matrix_id = this->id + ":lumped_mtx:" + id;
     std::unique_ptr<SolverVector> sm = std::make_unique<MatType>(dm, matrix_id);
     return this->registerLumpedMatrix(matrix_id, sm);
   }
 
 protected:
-  virtual void makeConsistentForPeriodicity(const ID &dof_id,
-                                            SolverVector &array) = 0;
+  virtual void makeConsistentForPeriodicity(const ID & dof_id,
+                                            SolverVector & array) = 0;
 
-  virtual void assembleToGlobalArray(const ID &dof_id,
-                                     const Array<Real> &array_to_assemble,
-                                     SolverVector &global_array,
+  virtual void assembleToGlobalArray(const ID & dof_id,
+                                     const Array<Real> & array_to_assemble,
+                                     SolverVector & global_array,
                                      Real scale_factor) = 0;
 
 public:
   /// extract degrees of freedom (identified by ID) from a global solver array
-  virtual void getArrayPerDOFs(const ID &dof_id, const SolverVector &global,
-                               Array<Real> &local) = 0;
+  virtual void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
+                               Array<Real> & local) = 0;
 
   /// Get the reference of an existing matrix
-  SparseMatrix &getMatrix(const ID &matrix_id);
+  SparseMatrix & getMatrix(const ID & matrix_id);
 
   /// check if the given matrix exists
-  bool hasMatrix(const ID &matrix_id) const;
+  bool hasMatrix(const ID & matrix_id) const;
 
   /// Get an instance of a new lumped matrix
-  virtual SolverVector &getNewLumpedMatrix(const ID &matrix_id) = 0;
+  virtual SolverVector & getNewLumpedMatrix(const ID & matrix_id) = 0;
   /// Get the lumped version of a given matrix
-  const SolverVector &getLumpedMatrix(const ID &matrix_id) const;
+  const SolverVector & getLumpedMatrix(const ID & matrix_id) const;
   /// Get the lumped version of a given matrix
-  SolverVector &getLumpedMatrix(const ID &matrix_id);
+  SolverVector & getLumpedMatrix(const ID & matrix_id);
 
   /// check if the given matrix exists
-  bool hasLumpedMatrix(const ID &matrix_id) const;
+  bool hasLumpedMatrix(const ID & matrix_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Non linear system solver                                                 */
   /* ------------------------------------------------------------------------ */
   /// Get instance of a non linear solver
-  virtual NonLinearSolver &
-  getNewNonLinearSolver(const ID &nls_solver_id,
-                        const NonLinearSolverType &_non_linear_solver_type) = 0;
+  virtual NonLinearSolver & getNewNonLinearSolver(
+      const ID & nls_solver_id,
+      const NonLinearSolverType & _non_linear_solver_type) = 0;
 
   /// get instance of a non linear solver
-  virtual NonLinearSolver &getNonLinearSolver(const ID &nls_solver_id);
+  virtual NonLinearSolver & getNonLinearSolver(const ID & nls_solver_id);
 
   /// check if the given solver exists
-  bool hasNonLinearSolver(const ID &solver_id) const;
+  bool hasNonLinearSolver(const ID & solver_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Time-Step Solver                                                         */
   /* ------------------------------------------------------------------------ */
   /// Get instance of a time step solver
-  virtual TimeStepSolver &getNewTimeStepSolver(
-      const ID &time_step_solver_id, const TimeStepSolverType &type,
-      NonLinearSolver &non_linear_solver, SolverCallback &solver_callback) = 0;
+  virtual TimeStepSolver &
+  getNewTimeStepSolver(const ID & time_step_solver_id,
+                       const TimeStepSolverType & type,
+                       NonLinearSolver & non_linear_solver,
+                       SolverCallback & solver_callback) = 0;
 
   /// get instance of a time step solver
-  virtual TimeStepSolver &getTimeStepSolver(const ID &time_step_solver_id);
+  virtual TimeStepSolver & getTimeStepSolver(const ID & time_step_solver_id);
 
   /// check if the given solver exists
-  bool hasTimeStepSolver(const ID &solver_id) const;
+  bool hasTimeStepSolver(const ID & solver_id) const;
 
   /* ------------------------------------------------------------------------ */
-  const Mesh &getMesh() {
+  const Mesh & getMesh() {
     if (mesh != nullptr) {
       return *mesh;
     }
@@ -497,17 +504,18 @@ public:
 protected:
   friend class GlobalDOFInfoDataAccessor;
   /// helper function for the DOFManager::onNodesAdded method
-  virtual std::pair<Int, Int> updateNodalDOFs(const ID &dof_id,
-                                              const Array<Idx> &nodes_list);
+  virtual std::pair<Int, Int> updateNodalDOFs(const ID & dof_id,
+                                              const Array<Idx> & nodes_list);
 
   template <typename Func>
-  auto countDOFsForNodes(const DOFData &dof_data, Int nb_nodes, Func &&getNode);
+  auto countDOFsForNodes(const DOFData & dof_data, Int nb_nodes,
+                         Func && getNode);
 
-  void updateDOFsData(DOFData &dof_data, Int nb_new_local_dofs,
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
                       Int nb_new_pure_local, Int nb_nodes,
-                      const std::function<Idx(Idx)> &getNode);
+                      const std::function<Idx(Idx)> & getNode);
 
-  void updateDOFsData(DOFData &dof_data, Int nb_new_local_dofs,
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
                       Int nb_new_pure_local);
 
   auto computeFirstDOFIDs(Int nb_new_local_dofs, Int nb_new_pure_local);
@@ -518,33 +526,37 @@ protected:
 
 public:
   /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<Idx> &nodes_list,
-                    const NewNodesEvent &event) override;
+  void onNodesAdded(const Array<Idx> & nodes_list,
+                    const NewNodesEvent & event) override;
   /// function to implement to react on  akantu::RemovedNodesEvent
-  void onNodesRemoved(const Array<Idx> &nodes_list,
-                      const Array<Idx> &new_numbering,
-                      const RemovedNodesEvent &event) override;
+  void onNodesRemoved(const Array<Idx> & nodes_list,
+                      const Array<Idx> & new_numbering,
+                      const RemovedNodesEvent & event) override;
   /// function to implement to react on  akantu::NewElementsEvent
-  void onElementsAdded(const Array<Element> &elements_list,
-                       const NewElementsEvent &event) override;
+  void onElementsAdded(const Array<Element> & elements_list,
+                       const NewElementsEvent & event) override;
   /// function to implement to react on  akantu::RemovedElementsEvent
-  void onElementsRemoved(const Array<Element> &elements_list,
-                         const ElementTypeMapArray<Idx> &new_numbering,
-                         const RemovedElementsEvent &event) override;
+  void onElementsRemoved(const Array<Element> & elements_list,
+                         const ElementTypeMapArray<Idx> & new_numbering,
+                         const RemovedElementsEvent & event) override;
   /// function to implement to react on  akantu::ChangedElementsEvent
-  void onElementsChanged(const Array<Element> &old_elements_list,
-                         const Array<Element> &new_elements_list,
-                         const ElementTypeMapArray<Idx> &new_numbering,
-                         const ChangedElementsEvent &event) override;
+  void onElementsChanged(const Array<Element> & old_elements_list,
+                         const Array<Element> & new_elements_list,
+                         const ElementTypeMapArray<Idx> & new_numbering,
+                         const ChangedElementsEvent & event) override;
+
+  /// function to implement to react on  akantu::MeshIsDistributedEvent
+  void onMeshIsDistributed(const MeshIsDistributedEvent & event) override;
 
 protected:
-  inline DOFData &getDOFData(const ID &dof_id);
-  inline const DOFData &getDOFData(const ID &dof_id) const;
-  template <class DOFData_> inline DOFData_ &getDOFDataTyped(const ID &dof_id);
+  inline DOFData & getDOFData(const ID & dof_id);
+  inline const DOFData & getDOFData(const ID & dof_id) const;
   template <class DOFData_>
-  inline const DOFData_ &getDOFDataTyped(const ID &dof_id) const;
+  inline DOFData_ & getDOFDataTyped(const ID & dof_id);
+  template <class DOFData_>
+  inline const DOFData_ & getDOFDataTyped(const ID & dof_id) const;
 
-  virtual std::unique_ptr<DOFData> getNewDOFData(const ID &dof_id) = 0;
+  virtual std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -553,7 +565,7 @@ protected:
   /// dof representations in the dof manager
   struct DOFData {
     DOFData() = delete;
-    explicit DOFData(const ID &dof_id);
+    explicit DOFData(const ID & dof_id);
     virtual ~DOFData();
 
     /// DOF support type (nodal, general) this is needed to determine how the
@@ -563,16 +575,16 @@ protected:
     ID group_support;
 
     /// Degree of freedom array
-    Array<Real> *dof{nullptr};
+    Array<Real> * dof{nullptr};
 
     /// Blocked degree of freedoms array
-    Array<bool> *blocked_dofs{nullptr};
+    Array<bool> * blocked_dofs{nullptr};
 
     /// Degree of freedoms increment
-    Array<Real> *increment{nullptr};
+    Array<Real> * increment{nullptr};
 
     /// Degree of freedoms at previous step
-    Array<Real> *previous{nullptr};
+    Array<Real> * previous{nullptr};
 
     /// Solution associated to the dof
     Array<Real> solution;
@@ -599,7 +611,7 @@ protected:
     /// associated node for _dst_nodal dofs only
     Array<Idx> associated_nodes;
 
-    virtual Array<Idx> &getLocalEquationsNumbers() {
+    virtual Array<Idx> & getLocalEquationsNumbers() {
       return local_equation_number;
     }
   };
@@ -637,7 +649,7 @@ protected:
   TimeStepSolversMap time_step_solvers;
 
   /// reference to the underlying mesh
-  Mesh *mesh{nullptr};
+  Mesh * mesh{nullptr};
 
   /// Total number of degrees of freedom (size with the ghosts)
   Int local_system_size{0};
@@ -671,7 +683,7 @@ protected:
 
   /// Communicator used for this manager, should be the same as in the mesh if a
   /// mesh is registered
-  Communicator &communicator;
+  Communicator & communicator;
 
   /// accumulator to know what would be the next global id to use
   Int first_global_dof_id{0};

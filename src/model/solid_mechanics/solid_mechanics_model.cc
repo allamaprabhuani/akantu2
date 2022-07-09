@@ -419,6 +419,10 @@ void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
 
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
 
+  if (not this->getDOFManager().hasMatrix("K")) {
+    this->getDOFManager().getNewMatrix("K", this->getMatrixType("K"));
+  }
+
   // Check if materials need to recompute the matrix
   for (auto & material : materials) {
     need_to_reassemble |= material->hasMatrixChanged("K");
@@ -536,6 +540,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
   auto nb_nodes = mesh.getNbNodes();
 
   if (this->getDOFManager().hasLumpedMatrix("M")) {
+    this->assembleLumpedMatrix("M");
+
     auto m_it = this->mass->begin(Model::spatial_dimension);
     auto m_end = this->mass->end(Model::spatial_dimension);
     auto v_it = this->velocity->begin(Model::spatial_dimension);
@@ -559,6 +565,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
       ekin += mv2;
     }
   } else if (this->getDOFManager().hasMatrix("M")) {
+    this->assembleMatrix("M");
+
     Array<Real> Mv(nb_nodes, Model::spatial_dimension);
     this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
                                                     *this->velocity, Mv);

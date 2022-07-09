@@ -30,7 +30,6 @@
 #
 #===============================================================================
 
-
 if(__DEFINE_PROJECT_VERSION__)
   return()
 endif()
@@ -60,43 +59,64 @@ function(_get_version_from_git)
 
   find_package(Git)
 
-  if(NOT Git_FOUND)
-    return()
+  set(is_git FALSE)
+  if(Git_FOUND)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse --git-dir
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_QUIET
+      ERROR_QUIET)
+    if(_res EQUAL 0)
+      set(is_git TRUE)
+    endif()
   endif()
 
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe
-    --tags
-    --abbrev=0
-    --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE _res
-    OUTPUT_VARIABLE _out_tag
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_VARIABLE _err_tag)
+  if(is_git)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} describe
+      --tags
+      --abbrev=0
+      --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_VARIABLE _out_tag
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_VARIABLE _err_tag)
 
-  if(NOT _res EQUAL 0)
-    return()
+    if(NOT _res EQUAL 0)
+      return()
+    endif()
+
+    string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} describe
+      --tags
+      --dirty
+      --always
+      --long
+      --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE _res
+      OUTPUT_VARIABLE _out
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  else()
+    file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/git_info lines)
+
+    foreach(line ${lines})
+      if(line MATCHES
+          "describe: (${CMAKE_VERSION_GENERATOR_TAG_PREFIX}((0|[1-9][0-9]*)(.(0|[1-9][0-9]*))?(.(0|[1-9][0-9]*))?)-(.*))?")
+        set(_tag ${CMAKE_MATCH_2})
+        set(_out ${CMAKE_MATCH_1})
+        break()
+      endif()
+    endforeach()
   endif()
-
-  string(REGEX REPLACE "^${CMAKE_VERSION_GENERATOR_TAG_PREFIX}(.*)" "\\1" _tag "${_out_tag}")
 
   _match_semver("${_tag}" _tag)
 
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe
-    --tags
-    --dirty
-    --always
-    --long
-    --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE _res
-    OUTPUT_VARIABLE _out
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-
   set(_git_version ${_tag_version} PARENT_SCOPE)
-
   if(_tag_version_prerelease)
     set(_git_version_prerelease ${_tag_version_prerelease} PARENT_SCOPE)
   endif()
@@ -115,7 +135,7 @@ function(_get_version_from_git)
     if(CMAKE_MATCH_4)
       set(_metadata "${_metadata}.dirty")
     endif()
-  else()
+  elseif(is_git)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} rev-list HEAD --count
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -135,13 +155,14 @@ function(_get_version_from_git)
     endif()
   endif()
   set(_git_version_metadata ${_metadata} PARENT_SCOPE)
-
 endfunction()
 
 function(_get_version_from_file)
   if(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     file(STRINGS ${PROJECT_SOURCE_DIR}/VERSION _file_version)
+
     _match_semver("${_file_version}" "_file")
+
     set(_file_version ${_file_version} PARENT_SCOPE)
     if(_file_version_metadata)
       set(_file_version_metadata ${_file_version_metadata} PARENT_SCOPE)
@@ -159,13 +180,17 @@ function(_get_metadata_from_ci)
   endif()
 
   if(DEFINED ENV{CI_MERGE_REQUEST_ID})
-    set(_ci_version_metadata "ci.mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
+    set(_ci_version_metadata ".mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
   endif()
 endfunction()
 
 function(define_project_version)
   string(TOUPPER ${PROJECT_NAME} _project)
 
+  if(${_project}_VERSION)
+    return()
+  endif()
+  
   _get_version_from_git()
 
   if(_git_version)
@@ -186,7 +211,7 @@ function(define_project_version)
     _get_version_from_file()
 
     if(_file_version_metadata)
-      set(_version_metadata "${_version_metadata}${_git_version_metadata}")
+      set(_version_metadata "${_file_version_metadata}${_git_version_metadata}")
     endif()
 
     if (_file_version)
@@ -199,7 +224,10 @@ function(define_project_version)
   endif()
 
   _get_metadata_from_ci()
-
+  if(_ci_version_metadata)
+    set(_version_metadata "${_version_metadata}${_ci_version_metadata}")
+  endif()
+  
   if(_version)
     if(_version_prerelease)
       set(_version_prerelease "-${_version_prerelease}")

@@ -73,11 +73,19 @@ inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
 /* -------------------------------------------------------------------------- */
 inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
   auto it = materials_names_to_id.find(name);
-  if(it == materials_names_to_id.end()) {
-    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named " << name);
+  if (it == materials_names_to_id.end()) {
+    AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named "
+                                         << name);
   }
 
   return *materials[it->second];
+}
+
+/* -------------------------------------------------------------------------- */
+inline const Material &
+SolidMechanicsModel::getMaterial(const Element & element) const {
+  auto mat_id = material_index(element);
+  return *materials[mat_id];
 }
 
 /* -------------------------------------------------------------------------- */

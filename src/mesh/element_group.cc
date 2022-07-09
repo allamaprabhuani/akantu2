@@ -102,13 +102,10 @@ void ElementGroup::append(const ElementGroup & other_group) {
       elem_list.resize(nb_elem + nb_other_elem);
       std::copy(other_elem_list.begin(), other_elem_list.end(),
                 elem_list.begin() + nb_elem);
-
-      /// remove duplicates
-      std::sort(elem_list.begin(), elem_list.end());
-      auto end = std::unique(elem_list.begin(), elem_list.end());
-      elem_list.resize(end - elem_list.begin());
     }
   }
+
+  this->optimize();
 
   AKANTU_DEBUG_OUT();
 }
@@ -162,15 +159,13 @@ void ElementGroup::fillFromNodeGroup() {
       }
 
       auto nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
-      auto conn_it =
-          this->mesh.getConnectivity(elem.type, elem.ghost_type)
-              .begin(nb_nodes_per_element);
+      auto conn_it = this->mesh.getConnectivity(elem.type, elem.ghost_type)
+                         .begin(nb_nodes_per_element);
       const auto & conn = conn_it[elem.element];
 
       Int count = 0;
       for (auto n : conn) {
-        count +=
-            (this->node_group.getNodes().find(n) != Idx(-1) ? 1 : 0);
+        count += (this->node_group.getNodes().find(n) != Idx(-1) ? 1 : 0);
       }
 
       if (count == nb_nodes_per_element) {

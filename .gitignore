@@ -29,3 +29,6 @@ setup.cfg
 .auctex*
 .clangd
 .ccls-cache
+.ccls
+VERSION
+

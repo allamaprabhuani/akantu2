@@ -96,6 +96,13 @@ public:
   /// implementation of the generic TimeStepSolver::solveStep()
   void solveStep(SolverCallback & solver_callback) override;
 
+  IntegrationScheme & getIntegrationScheme(const ID & dof_id) override {
+    auto it = integration_schemes.find(dof_id);
+    AKANTU_DEBUG_ASSERT(it != integration_schemes.end(),
+                        "No integration scheme");
+    return *(it->second);
+  }
+
 private:
   template <class Func> void for_each_integrator(Func && function) {
     for (auto & pair : this->integration_schemes) {

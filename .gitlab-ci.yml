@@ -2,6 +2,7 @@
 # yaml-language-server: $format.enable=false
 
 stages:
+  - version
   - configure
   - build_libs
   - build_tests
@@ -30,6 +31,20 @@ docker build:manylinux:
     IMAGE_NAME: manylinux:2010_x86_64
   extends: .docker_build
 
+version_determination:
+  stage: version
+  image: python:latest
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 0
+  script:
+    - python3 cmake/semver.py > VERSION
+    - cat VERSION
+  artifacts:
+    when: on_success
+    paths:
+      - VERSION
+    expire_in: 1day
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with GCC
 # ------------------------------------------------------------------------------
@@ -38,7 +53,9 @@ configure:debian_bullseye_gcc:
     - .debian_bullseye_gcc
     - .build_release
     - .configure
-
+  needs:
+    - version_determination
+    
 build:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
@@ -64,6 +81,8 @@ configure:debian_bullseye_clang:
     - .debian_bullseye_clang
     - .build_release
     - .configure
+  needs:
+    - version_determination
 
 build:debian_bullseye_clang:
   extends:
@@ -90,6 +109,8 @@ configure:ubuntu_lts_gcc:
     - .ubuntu_lts_gcc
     - .build_release
     - .configure
+  needs:
+    - version_determination
 
 build:ubuntu_lts_gcc:
   extends:
@@ -115,6 +136,8 @@ configure:ubuntu_lts_gcc_valgrind:
     - .ubuntu_lts_gcc
     - .build_valgrind
     - .configure
+  needs:
+    - version_determination
 
 build:ubuntu_lts_gcc_valgrind:
   extends:
@@ -131,7 +154,7 @@ test:ubuntu_lts_gcc_valgrind:
     - .tests
   needs:
     - job: build:ubuntu_lts_gcc_valgrind
-
+   
 # ------------------------------------------------------------------------------
 # Manylinux to build python packages
 # ------------------------------------------------------------------------------
@@ -164,10 +187,13 @@ configure:python_package:
             -DMUMPS_DETECT_DEBUG:BOOL=TRUE
             -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
             -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+  needs:
+    - version_determination
   artifacts:
     when: on_success
     paths:
       - build/
+      - VERSION
     expire_in: 10h
 
 build_akantu:python_package:
@@ -176,14 +202,13 @@ build_akantu:python_package:
     - .build_release
     - .manylinux_2010_x64_gcc
   script:
-  stage: build_libs
-  script:
     - cmake --build build --target akantu -j1
     - cmake --install build
   artifacts:
     when: on_success
     paths:
       - install/
+      - VERSION
     expire_in: 10h
   needs:
     - job: configure:python_package
@@ -268,6 +293,7 @@ cq:clang_tidy:
             -x extra-packages
             -x pybind11
             -x test
+            -x build
             ${FILE_LIST_ARG}
             clang-tidy
             -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
@@ -284,6 +310,7 @@ cq:clang_format:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
+            -x build
             clang-format
             -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
   needs:
@@ -301,6 +328,7 @@ cq:compilation_warnings:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
+            -x build
             warnings
             build-*-err.log > gl-warnings-report.json
   needs:
@@ -322,9 +350,6 @@ cq:merge_code_quality:
     - job: cq:clang_tidy
     - job: cq:clang_format
     - job: cq:compilation_warnings
-  artifacts:
-    paths:
-      - gl-codequality.json
   artifacts:
     reports:
       codequality: [gl-codequality.json]

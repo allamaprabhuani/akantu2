@@ -146,20 +146,41 @@ void register_solid_mechanics_model(py::module & mod) {
           [](SolidMechanicsModel & self, const ID & material_name)
               -> decltype(auto) { return self.getMaterial(material_name); },
           py::arg("material_name"), py::return_value_policy::reference)
+      .def(
+          "getMaterial",
+          [](SolidMechanicsModel & self, const Element & element)
+              -> decltype(auto) { return self.getMaterial(element); },
+          py::arg("element"), py::return_value_policy::reference)
+
+      .def("getNbMaterials", &SolidMechanicsModel::getNbMaterials)
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
-      // .def(
-      //     "setMaterialSelector",
-      //     [](SolidMechanicsModel & self, MaterialSelector &
-      //     material_selector) {
-      //       self.setMaterialSelector(material_selector.shared_from_this());
-      //     })
       .def("setMaterialSelector",
            [](SolidMechanicsModel & self,
               std::shared_ptr<MaterialSelector> material_selector) {
              std::cout << (*material_selector)(ElementNull) << std::endl;
              self.setMaterialSelector(material_selector);
            })
-      .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector);
+      .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector)
+      .def(
+          "getMaterialByElement",
+          [](const SolidMechanicsModel & self) -> decltype(auto) {
+            return self.getMaterialByElement();
+          },
+          py::return_value_policy::reference, py::keep_alive<0, 1>())
+      .def("reassignMaterial", &SolidMechanicsModel::reassignMaterial)
+      .def(
+          "registerNewMaterial",
+          [](SolidMechanicsModel & self, const ID & mat_name,
+             const ID & mat_type, const ID & opt_param) -> decltype(auto) {
+            return self.registerNewMaterial(mat_name, mat_type, opt_param);
+          },
+          py::arg("material_name"), py::arg("material_type"),
+          py::arg("option") = "", py::return_value_policy::reference)
+      .def("initMaterials", &SolidMechanicsModel::initMaterials)
+      .def("flattenInternal", &SolidMechanicsModel::flattenInternal,
+           py::return_value_policy::reference)
+      .def("inflateInternal", &SolidMechanicsModel::inflateInternal,
+           py::return_value_policy::reference);
 }
 
 } // namespace akantu

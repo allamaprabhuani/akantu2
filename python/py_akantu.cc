@@ -42,6 +42,7 @@
 #include "py_dumpable.hh"
 #include "py_fe_engine.hh"
 #include "py_group_manager.hh"
+#include "py_integration_scheme.hh"
 #include "py_mesh.hh"
 #include "py_model.hh"
 #include "py_parser.hh"
@@ -100,6 +101,7 @@ void register_all(pybind11::module & mod) {
 
   register_fe_engine(mod);
 
+  register_integration_schemes(mod);
   register_dof_manager(mod);
 
   register_boundary_conditions(mod);
@@ -158,12 +160,14 @@ PYBIND11_MODULE(py11_akantu, mod) {
 
   akantu::register_all(mod);
 
-  mod.def("has_mpi", []() {
+  mod.def("has_mpi",
+          []() {
 #if defined(AKANTU_USE_MPI)
-    return true;
+            return true;
 #else
     return false;
 #endif
-  });
+          })
+      .def("getVersion", &akantu::getVersion);
 
 } // Module akantu

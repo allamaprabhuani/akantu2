@@ -117,6 +117,35 @@ public:
   /// compute the specified energy
   Real getEnergy(const ID & energy);
 
+  /**
+   * \brief This function computes the an approximation of the lumped mass.
+   *
+   * The mass is computed by looping over all beams and computing their mass.
+   * The mass of a single beam is computed by the (initial) length of the beam,
+   * its cross sectional area and its density.
+   * The beam mass is then equaly distributed among the two nodes.
+   *
+   * For computing the rotational inertia, the function assumes that the mass of
+   * a node is uniformaly distributed inside a disc (2D) or a sphere (3D). The
+   * size of that disc, depends on the volume of the beam.
+   *
+   * Note that the computation of the mass is not unambigius.
+   * The reason for this is, that the units of `StructralMaterial::rho` are not
+   * clear. By default the function assumes that its unit are 'Mass per Volume'.
+   * However, this makes the computed mass different than the consistent mass,
+   * which seams to assume that its units are 'mass per unit length'.
+   * The main difference between thge two are not the values, but that the
+   * first version depends on `StructuralMaterial::A` while the later does not.
+   * By defining the macro `AKANTU_STRUCTURAL_MECHANICS_CONSISTENT_LUMPED_MASS`
+   * the function will compute the mass in a way that is consistent with the
+   * consistent mass matrix.
+   *
+   * \note	The lumped mass is not stored inside the DOFManager.
+   *
+   * \param  ghost_type 	Should ghost types be computed.
+   */
+  void assembleLumpedMassMatrix();
+
   /* ------------------------------------------------------------------------ */
   /* Virtual methods from Model                                               */
   /* ------------------------------------------------------------------------ */
@@ -217,6 +246,30 @@ public:
   /// get the StructuralMechanicsModel::boundary vector
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
 
+  /**
+   * Returns a const reference to the array that stores the lumped mass.
+   *
+   * The returned array has dimension `N x d` where `N` is the number of nodes
+   * and `d`, is the number of degrees of freedom per node.
+   */
+  inline const Array<Real> & getLumpedMass() const {
+    if (this->mass == nullptr) {
+      AKANTU_EXCEPTION("The pointer to the mass was not allocated.");
+    };
+    return *(this->mass);
+  };
+
+  // These function is an alias, for compability with the solid mechanics
+  inline const Array<Real> & getMass() const { return this->getLumpedMass(); }
+
+  // Creates the array for storing the mass
+  bool allocateLumpedMassArray();
+
+  /**
+   * Tests if *this has a lumped mass pointer.
+   */
+  inline bool hasLumpedMass() const { return (this->mass != nullptr); };
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
@@ -293,7 +346,16 @@ private:
   /// forces array
   std::unique_ptr<Array<Real>> external_force;
 
-  /// lumped mass array
+  /**
+   * \brief	This is the "lumped" mass array.
+   *
+   * It is a bit special, since it is not a one dimensional array, bit it is
+   * actually a matrix. The number of rows equals the number of nodes. The
+   * number of colums equals the number of degrees of freedoms per node. This
+   * layout makes the thing a bit more simple.
+   *
+   * Note that it is only allocated in case, the "Lumped" mode is enabled.
+   */
   std::unique_ptr<Array<Real>> mass;
 
   /// boundaries array
@@ -321,6 +383,7 @@ private:
 
   bool need_to_reassemble_mass{true};
   bool need_to_reassemble_stiffness{true};
+  bool need_to_reassemble_lumpedMass{true};
 
   /* ------------------------------------------------------------------------ */
   std::vector<StructuralMaterial> materials;

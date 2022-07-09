@@ -34,12 +34,17 @@ if(NOT Scotch_FIND_COMPONENTS)
   set(Scotch_FIND_COMPONENTS)
 endif()
 
-find_path(SCOTCH_INCLUDE_DIR scotch.h  PATHS "${SCOTCH_DIR}" ENV SCOTCH_DIR
+find_path(SCOTCH_INCLUDE_DIR scotch.h
+  PATHS "${SCOTCH_DIR}"
+  ENV SCOTCH_DIR
   PATH_SUFFIXES include include/scotch
   )
 
 
-find_library(SCOTCH_LIBRARY scotch PATHS "${SCOTCH_DIR}" ENV SCOTCH_DIR PATH_SUFFIXES lib)
+find_library(SCOTCH_LIBRARY scotch
+  PATHS "${SCOTCH_DIR}"
+  ENV SCOTCH_DIR
+  PATH_SUFFIXES lib)
 
 set(_scotch_test_dir "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
 file(WRITE "${_scotch_test_dir}/scotch_test_code.c"
@@ -64,7 +69,9 @@ if(CMAKE_VERSION VERSION_GREATER 2.8.12)
       string(REGEX MATCH "SCOTCH_(VERSION|RELEASE|PATCHLEVEL) *([0-9.]+)" _tmp "${_ver}")
       set(_scotch_${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
     endforeach()
-    set(SCOTCH_VERSION "${_scotch_VERSION}.${_scotch_RELEASE}.${_scotch_PATCHLEVEL}" CACHE INTERNAL "")
+    set(SCOTCH_VERSION
+      "${_scotch_VERSION}.${_scotch_RELEASE}.${_scotch_PATCHLEVEL}"
+      CACHE INTERNAL "")
   endif()
   find_package_handle_standard_args(Scotch
     REQUIRED_VARS SCOTCH_LIBRARY SCOTCH_INCLUDE_DIR
@@ -76,7 +83,8 @@ endif()
 
 set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY})
 
-try_compile(_scotch_compiles "${_scotch_test_dir}" SOURCES "${_scotch_test_dir}/scotch_test_code.c"
+try_compile(_scotch_compiles "${_scotch_test_dir}"
+  SOURCES "${_scotch_test_dir}/scotch_test_code.c"
   CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${SCOTCH_INCLUDE_DIR}"
   LINK_LIBRARIES ${SCOTCH_LIBRARY}
   OUTPUT_VARIABLE _out)
@@ -199,11 +207,12 @@ int main() {
 }
 ")
 
-  find_package(MPI REQUIRED)
+  find_package(MPI REQUIRED COMPONENTS C QUIET)
 
   find_library(SCOTCH_LIBRARY_PTSCOTCH ptscotch HINTS ${_scotch_hint})
 
-  try_compile(_scotch_compiles "${_scotch_test_dir}" SOURCES "${_scotch_test_dir}/ptscotch_test_code.c"
+  try_compile(_scotch_compiles "${_scotch_test_dir}"
+    SOURCES "${_scotch_test_dir}/ptscotch_test_code.c"
     CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${SCOTCH_INCLUDE_DIR};${MPI_C_INCLUDE_PATH}"
     LINK_LIBRARIES ${SCOTCH_LIBRARY_PTSCOTCH} ${MPI_C_LIBRARIES}
     OUTPUT_VARIABLE _out)
@@ -223,7 +232,10 @@ int main() {
     IMPORTED_LINK_INTERFACE_LANGUAGES "C"
     ${_scotch_link_lib})
 
-  set(PTSCOTCH_LIBRARIES ${SCOTCH_LIBRARY_PTSCOTCH} ${SCOTCH_LIBRARIES} CACHE INTERNAL "Libraries for PT-Scotch" FORCE)
+  set(PTSCOTCH_LIBRARIES
+    ${SCOTCH_LIBRARY_PTSCOTCH}
+    ${SCOTCH_LIBRARIES}
+    CACHE INTERNAL "Libraries for PT-Scotch" FORCE)
 
   mark_as_advanced(SCOTCH_LIBRARY_PTSCOTCH
     PTSCOTCH_LIBRARIES)

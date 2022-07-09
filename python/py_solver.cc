@@ -70,6 +70,11 @@ void register_solvers(py::module & mod) {
             self.add(A, alpha);
           },
           "Add a matrix to the matrix", py::arg("A"), py::arg("alpha") = 1.)
+
+      .def("isFinite", &SparseMatrix::isFinite)
+
+      .def("getRelease",
+           [](const SparseMatrix & self) -> UInt { return self.getRelease(); })
       .def("__call__",
            [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
       .def("getRelease", &SparseMatrix::getRelease);
@@ -79,7 +84,16 @@ void register_solvers(py::module & mod) {
       .def("getJCN", &SparseMatrixAIJ::getJCN)
       .def("getA", &SparseMatrixAIJ::getA);
 
-  py::class_<SolverVector>(mod, "SolverVector");
+  py::class_<SolverVector>(mod, "SolverVector")
+      .def(
+          "getValues",
+          [](SolverVector & self) -> decltype(auto) {
+            return static_cast<const Array<Real> &>(self);
+          },
+          py::return_value_policy::reference_internal,
+          "Transform this into a vector, Is not copied.")
+      .def("isDistributed",
+           [](const SolverVector & self) { return self.isDistributed(); });
 
   py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
       .def(py::init<Int, Int>())

@@ -123,7 +123,7 @@ public:
   inline T elementData(const Element & element) {
     DebugLevel dbl = debug::getDebugLevel();
     debug::setDebugLevel(dblError);
-    T data = element_data(element.type, element.ghost_type)(element.element);
+    T data = element_data(element);
     debug::setDebugLevel(dbl);
     return data;
   }

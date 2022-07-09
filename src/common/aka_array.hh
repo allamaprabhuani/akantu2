@@ -375,6 +375,11 @@ public:
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
+  /// Tests if all elements are finite.
+  template <typename OT = T,
+            std::enable_if_t<std::is_arithmetic<OT>::value> * = nullptr>
+  bool isFinite() const noexcept;
+
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */

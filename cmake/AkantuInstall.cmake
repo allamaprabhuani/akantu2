@@ -108,7 +108,6 @@ set(AKANTU_EXTRA_CXX_FLAGS \"${AKANTU_EXTRA_CXX_FLAGS}\")
 # Create the AkantuConfig.cmake and AkantuConfigVersion files
 get_filename_component(CONF_REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
-#configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
 configure_file(cmake/AkantuUse.cmake "${PROJECT_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
 
 package_is_activated(pybind11 _is_pybind11_activated)
