@@ -50,15 +50,15 @@ namespace akantu {
 FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
                                  bool dump_data, const ID & id)
     : GroupManager(model.getMesh(), id), model(model),
-      mass_center(0, model.getSpatialDimension(), "mass_center"),
-      mass(0, model.getSpatialDimension(), "mass"),
-      velocity(0, model.getSpatialDimension(), "velocity"),
+      mass_centers(0, model.getSpatialDimension(), "mass_center"),
+      masses(0, model.getSpatialDimension(), "mass"),
+      velocities(0, model.getSpatialDimension(), "velocity"),
       inertia_moments(0, model.getSpatialDimension(), "inertia_moments"),
       principal_directions(
           0, model.getSpatialDimension() * model.getSpatialDimension(),
           "principal_directions"),
       quad_coordinates("quad_coordinates", id),
-      mass_density("mass_density", id),
+      mass_densities("mass_density", id),
       nb_elements_per_fragment(0, 1, "nb_elements_per_fragment"),
       dump_data(dump_data) {
   AKANTU_DEBUG_IN();
@@ -69,17 +69,13 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   quad_coordinates.initialize(mesh, _nb_component = spatial_dimension,
                               _spatial_dimension = spatial_dimension,
                               _ghost_type = _not_ghost);
-  // mesh.initElementTypeMapArray(quad_coordinates, spatial_dimension,
-  //                              spatial_dimension, _not_ghost);
 
   model.getFEEngine().interpolateOnIntegrationPoints(model.getMesh().getNodes(),
                                                      quad_coordinates);
 
   /// store mass density per quadrature point
-  mass_density.initialize(mesh, _spatial_dimension = spatial_dimension,
-                          _ghost_type = _not_ghost);
-  // mesh.initElementTypeMapArray(mass_density, 1, spatial_dimension,
-  // _not_ghost);
+  mass_densities.initialize(mesh, _spatial_dimension = spatial_dimension,
+                            _ghost_type = _not_ghost);
 
   storeMassDensityPerIntegrationPoint();
 
@@ -150,10 +146,10 @@ void FragmentManager::buildFragments(Real damage_limit) {
                      CohesiveElementFilter(model, damage_limit));
 
   nb_fragment = getNbElementGroups(spatial_dimension);
-  fragment_index.resize(nb_fragment);
+  fragment_indexes.resize(nb_fragment);
 
   /// loop over fragments
-  for (auto && data : zip(iterateElementGroups(), fragment_index)) {
+  for (auto && data : zip(iterateElementGroups(), fragment_indexes)) {
     auto name = std::get<0>(data).getName();
     /// get fragment index
     std::string fragment_index_string = name.substr(fragment_prefix.size() + 1);
@@ -164,8 +160,8 @@ void FragmentManager::buildFragments(Real damage_limit) {
   computeMass();
 
   if (dump_data) {
-    createDumpDataArray(fragment_index, "fragments", true);
-    createDumpDataArray(mass, "fragments mass");
+    createDumpDataArray(fragment_indexes, "fragments", true);
+    createDumpDataArray(masses, "fragments mass");
   }
 
   AKANTU_DEBUG_OUT();
@@ -184,7 +180,7 @@ void FragmentManager::computeMass() {
                         _spatial_dimension = spatial_dimension,
                         _ghost_type = _not_ghost, _default_value = 1.);
 
-  integrateFieldOnFragments(unit_field, mass);
+  integrateFieldOnFragments(unit_field, masses);
 
   AKANTU_DEBUG_OUT();
 }
@@ -194,10 +190,10 @@ void FragmentManager::computeCenterOfMass() {
   AKANTU_DEBUG_IN();
 
   /// integrate position multiplied by density
-  integrateFieldOnFragments(quad_coordinates, mass_center);
+  integrateFieldOnFragments(quad_coordinates, mass_centers);
 
   /// divide it by the fragments' mass
-  for (auto && data : zip(make_view(mass), make_view(mass_center))) {
+  for (auto && data : zip(make_view(masses), make_view(mass_centers))) {
     std::get<1>(data) /= std::get<0>(data);
   }
 
@@ -220,10 +216,10 @@ void FragmentManager::computeVelocity() {
                                                      velocity_field);
 
   /// integrate on fragments
-  integrateFieldOnFragments(velocity_field, velocity);
+  integrateFieldOnFragments(velocity_field, velocities);
 
   /// divide it by the fragments' mass
-  for (auto && data : zip(make_view(mass), make_view(velocity))) {
+  for (auto && data : zip(make_view(masses), make_view(velocities))) {
     std::get<1>(data) /= std::get<0>(data);
   }
 
@@ -257,8 +253,8 @@ void FragmentManager::computeInertiaMoments() {
                             _ghost_type = _not_ghost, _default_value = 1.);
 
   /// loop over fragments
-  for (auto && data :
-       zip(iterateElementGroups(), make_view(mass_center, spatial_dimension))) {
+  for (auto && data : zip(iterateElementGroups(),
+                          make_view(mass_centers, spatial_dimension))) {
     const auto & el_list = std::get<0>(data).getElements();
     auto & mass_center = std::get<1>(data);
 
@@ -352,7 +348,7 @@ void FragmentManager::storeMassDensityPerIntegrationPoint() {
 
   for (auto type : mesh.elementTypes(_spatial_dimension = spatial_dimension,
                    _element_kind = _ek_regular)) {
-    auto & mass_density_array = mass_density(type);
+    auto & mass_density_array = mass_densities(type);
 
     auto nb_element = mesh.getNbElement(type);
     auto nb_quad_per_element = model.getFEEngine().getNbIntegrationPoints(type);
@@ -386,13 +382,12 @@ void FragmentManager::integrateFieldOnFragments(
   /// integration part
   output.resize(global_nb_fragment);
   output.zero();
-
-  auto output_begin = output.begin(nb_component);
+  auto output_begin = make_view(output, nb_component).begin();
 
   /// loop over fragments
-  for (auto && data : zip(iterateElementGroups(), fragment_index)) {
+  for (auto && data : zip(iterateElementGroups(), fragment_indexes)) {
     const auto & el_list = std::get<0>(data).getElements();
-    auto fragment_index = std::get<1>(data);
+    auto && fragment_index = std::get<1>(data);
 
     /// loop over elements of the fragment
     for (auto type :
@@ -401,7 +396,7 @@ void FragmentManager::integrateFieldOnFragments(
       auto nb_quad_per_element =
           model.getFEEngine().getNbIntegrationPoints(type);
 
-      const auto & density_array = mass_density(type);
+      const auto & density_array = mass_densities(type);
       auto & field_array = field(type);
       const auto & elements = el_list(type);
 
@@ -432,10 +427,14 @@ void FragmentManager::integrateFieldOnFragments(
 
       /// integrate the field over the fragment
       Array<Real> integrated_array(elements.size(), nb_component);
+      std::cout << "integrated_array 1: " << std::get<0>(data).getName()
+                << " - " << integrated_array.size() << " - " << fragment_index
+                << " - " << type << std::endl;
       model.getFEEngine().integrate(integration_array, integrated_array,
                                     nb_component, type, _not_ghost, elements);
 
       Vector<Real> zeros = Vector<Real>::Zero(nb_component);
+
       /// sum over all elements and store the result
       output_begin[fragment_index] = zeros;
       for (auto && data : make_view(integrated_array, nb_component)) {
@@ -460,9 +459,9 @@ void FragmentManager::computeNbElementsPerFragment() {
   nb_elements_per_fragment.zero();
 
   /// loop over fragments
-  for (auto && data : zip(iterateElementGroups(), fragment_index)) {
+  for (auto && data : zip(iterateElementGroups(), fragment_indexes)) {
     const auto & el_list = std::get<0>(data).getElements();
-    auto fragment_index = std::get<1>(data);
+    auto && fragment_index = std::get<1>(data);
 
     /// loop over elements of the fragment
     for (auto type :
@@ -501,9 +500,9 @@ void FragmentManager::createDumpDataArray(Array<T> & data, std::string name,
   auto && data_begin = data.begin(nb_component);
 
   /// loop over fragments
-  for (auto && data : zip(iterateElementGroups(), fragment_index)) {
+  for (auto && data : zip(iterateElementGroups(), fragment_indexes)) {
     const auto & fragment = std::get<0>(data);
-    auto fragment_idx = std::get<1>(data);
+    auto && fragment_idx = std::get<1>(data);
 
     /// loop over cluster types
     for (auto && type : fragment.elementTypes(spatial_dimension)) {

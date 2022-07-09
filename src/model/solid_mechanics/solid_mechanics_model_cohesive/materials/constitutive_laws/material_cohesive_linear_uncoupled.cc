@@ -42,11 +42,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-MaterialCohesiveLinearUncoupled<dim>::
-    MaterialCohesiveLinearUncoupled(SolidMechanicsModel & model, const ID & id)
-    : MaterialCohesiveLinear<dim>(model, id),
-      delta_n_max("delta_n_max", *this), delta_t_max("delta_t_max", *this),
-      damage_n("damage_n", *this), damage_t("damage_t", *this) {
+MaterialCohesiveLinearUncoupled<dim>::MaterialCohesiveLinearUncoupled(
+    SolidMechanicsModel & model, const ID & id)
+    : MaterialCohesiveLinear<dim>(model, id), delta_n_max("delta_n_max", *this),
+      delta_t_max("delta_t_max", *this), damage_n("damage_n", *this),
+      damage_t("damage_t", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -58,8 +58,7 @@ MaterialCohesiveLinearUncoupled<dim>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialCohesiveLinearUncoupled<dim>::initMaterial() {
+template <Int dim> void MaterialCohesiveLinearUncoupled<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesiveLinear<dim>::initMaterial();
@@ -87,11 +86,9 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
   damage_t.resize();
 
   /// define iterators
-  auto traction_it =
-      this->tractions(el_type, ghost_type).begin(dim);
+  auto traction_it = this->tractions(el_type, ghost_type).begin(dim);
 
-  auto traction_end =
-      this->tractions(el_type, ghost_type).end(dim);
+  auto traction_end = this->tractions(el_type, ghost_type).end(dim);
 
   auto opening_it = this->opening(el_type, ghost_type).begin(dim);
   auto contact_traction_it =
@@ -223,8 +220,8 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    const Array<Real> &, GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, const Array<Real> &,
+    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -290,13 +287,11 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
     Real T = 0;
 
     /// TANGENT STIFFNESS FOR NORMAL TRACTIONS
-    Matrix<Real> n_outer_n(dim, dim);
-    n_outer_n = *normal_it * (*normal_it).transpose();
+    Matrix<Real, dim, dim> n_outer_n = *normal_it * (*normal_it).transpose();
 
     if (penetration) {
       /// stiffness in compression given by the penalty parameter
-      *tangent_it = n_outer_n;
-      *tangent_it *= this->penalty;
+      *tangent_it = n_outer_n * this->penalty;
 
       //*opening_it = tangential_opening;
       normal_opening.zero();
@@ -333,24 +328,16 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
       }
 
       /// computation of the derivative of the constitutive law (dT/ddelta)
-      Matrix<Real> nn(n_outer_n);
-      nn *= T / delta_n;
+      Matrix<Real, dim, dim> nn = n_outer_n * T / delta_n;
 
-      Vector<Real> Delta_tilde(normal_opening);
-      Delta_tilde *= (1. - this->beta2_kappa2);
-      Vector<Real> mm(*opening_it);
-      mm *= this->beta2_kappa2;
-      Delta_tilde += mm;
+      Vector<Real, dim> Delta_tilde =
+          normal_opening * (1. - this->beta2_kappa2) +
+          *opening_it * this->beta2_kappa2;
 
-      const Vector<Real> & Delta_hat(normal_opening);
-      Matrix<Real> prov(dim, dim);
-      prov = Delta_hat * Delta_tilde.transpose();
-      prov *= derivative / delta_n;
-      prov += nn;
+      Matrix<Real, dim, dim> prov =
+          normal_opening * Delta_tilde.transpose() * derivative / delta_n + nn;
 
-      Matrix<Real> prov_t = prov.transpose();
-
-      *tangent_it = prov_t;
+      *tangent_it = prov.transpose();
     }
 
     derivative = 0.;
@@ -388,12 +375,13 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
     /// computation of the derivative of the constitutive law (dT/ddelta)
     auto I = (Matrix<Real, dim, dim>::Identity() - n_outer_n) * (T / delta_t);
 
-    auto && Delta_tilde = normal_opening * (delta_c2_R2 - this->beta2_kappa2)
-        + *opening_it  * this->beta2_kappa2;
+    auto && Delta_tilde = normal_opening * (delta_c2_R2 - this->beta2_kappa2) +
+                          *opening_it * this->beta2_kappa2;
 
     auto && Delta_hat = tangential_opening * this->beta2_kappa;
 
-    auto && prov = Delta_hat * Delta_tilde.transpose() * derivative / delta_t + I;
+    auto && prov =
+        Delta_hat * Delta_tilde.transpose() * derivative / delta_t + I;
 
     *tangent_it += prov.transpose();
   }

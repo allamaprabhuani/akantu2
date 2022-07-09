@@ -698,7 +698,7 @@ inline decltype(auto) Mesh::getPeriodicSlaves(Idx master) const {
 /* -------------------------------------------------------------------------- */
 inline decltype(auto)
 Mesh::getConnectivityWithPeriodicity(const Element & element) const {
-  Vector<Idx> conn = getConnectivity(element);
+  auto conn = getConnectivity(element);
   if (not isPeriodic()) {
     return conn;
   }

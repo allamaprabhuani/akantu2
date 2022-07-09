@@ -30,6 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "boost_graph_converter.hh"
 #include "fragment_manager.hh"
 #include "material_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
@@ -79,9 +80,8 @@ int main(int argc, char * argv[]) {
   auto & velocity = model.getVelocity();
   const auto & position = mesh.getNodes();
   auto nb_nodes = mesh.getNbNodes();
-  auto nb_elements = mesh.getNbElement(type);
-
-  auto & mesh_facets = mesh.getMeshFacets();
+  // auto nb_elements = mesh.getNbElement(type);
+  // auto & mesh_facets = mesh.getMeshFacets();
 
   /// initial conditions
   for (Int n = 0; n < nb_nodes; ++n) {
@@ -121,6 +121,9 @@ int main(int argc, char * argv[]) {
     model.checkCohesiveStress();
     model.solveStep();
 
+    BoostGraphConverter converter(mesh);
+    converter.toGraphviz("blip_" + std::to_string(s) + ".dot");
+
     if (debug_) {
       model.dump();
       model.dump("cohesive elements");
@@ -131,20 +134,20 @@ int main(int argc, char * argv[]) {
     model.applyBC(BC::Dirichlet::IncrementValue(disp_increment, _x),
                   "Right_side");
 
-    const auto & elements_to_facets = mesh_facets.getSubelementToElement();
+    // const auto & elements_to_facets = mesh_facets.getSubelementToElement();
 
-    for (auto && el : element_range(nb_elements, type)) {
-      auto && element_to_facets = elements_to_facets.get(el);
-      counts.zero();
-      for (auto && facet_data : enumerate(element_to_facets)) {
-        const auto & connected_elements =
-            mesh_facets.getElementToSubelement(std::get<1>(facet_data));
-        counts[std::get<0>(facet_data)] = std::count_if(
-            connected_elements.begin(), connected_elements.end(),
-            [](auto && element) { return element == ElementNull; });
-      }
-      std::cout << el << " - " << counts << std::endl;
-    }
+    // for (auto && el : element_range(nb_elements, type)) {
+    //   auto && element_to_facets = elements_to_facets.get(el);
+    //   counts.zero();
+    //   for (auto && facet_data : enumerate(element_to_facets)) {
+    //     const auto & connected_elements =
+    //         mesh_facets.getElementToSubelement(std::get<1>(facet_data));
+    //     counts[std::get<0>(facet_data)] = std::count_if(
+    //         connected_elements.begin(), connected_elements.end(),
+    //         [](auto && element) { return element == ElementNull; });
+    //   }
+    //   std::cout << el << " - " << counts << std::endl;
+    // }
 
     if (s % 1 == 0) {
       //      model.dump();

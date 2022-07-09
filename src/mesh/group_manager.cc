@@ -555,14 +555,10 @@ Int GroupManager::createClusters(Int element_dimension,
           /// add current element to the cluster
           cluster.add(el, true, false);
 
-          const auto & element_to_facet =
-              mesh_facets.getSubelementToElement(el.type, el.ghost_type);
+          const auto & element_to_facets =
+              mesh_facets.getSubelementToElement().get(el);
 
-          auto nb_facet_per_element = element_to_facet.getNbComponent();
-
-          for (auto f : arange(nb_facet_per_element)) {
-            const Element & facet = element_to_facet(el.element, f);
-
+          for (auto && facet : element_to_facets) {
             if (facet == ElementNull) {
               continue;
             }

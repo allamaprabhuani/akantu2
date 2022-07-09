@@ -424,11 +424,10 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
   const auto & jac_loc = jacobians(type, ghost_type);
   if (filter_elements != empty_filter) {
     auto nb_element = filter_elements.size();
-    auto filtered_J =
-        std::make_shared<Array<Real>>(0, jac_loc.getNbComponent());
-    FEEngine::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type,
+    Array<Real> filtered_J(0, jac_loc.getNbComponent());
+    FEEngine::filterElementalData(mesh, jac_loc, filtered_J, type, ghost_type,
                                   filter_elements);
-    this->integrate(in_f, intf, nb_degree_of_freedom, *filtered_J, nb_element);
+    this->integrate(in_f, intf, nb_degree_of_freedom, filtered_J, nb_element);
   } else {
     auto nb_element = mesh.getNbElement(type, ghost_type);
     this->integrate(in_f, intf, nb_degree_of_freedom, jac_loc, nb_element);
