@@ -220,8 +220,7 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(TemperatureRate, temperature_rate);
 
   /// get the energy denominated by thermal
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 Idx index);
+  Real getEnergy(const std::string & energy_id, ElementType type, Idx index);
   /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id);
 
@@ -309,10 +308,5 @@ private:
 };
 
 } // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-#include "heat_transfer_model_inline_impl.hh"
 
 #endif /* AKANTU_HEAT_TRANSFER_MODEL_HH_ */
