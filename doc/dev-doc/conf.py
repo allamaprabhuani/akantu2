@@ -194,6 +194,8 @@ mathjax2_config = {
         "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
     },
 }
+#for old versions
+mathjax_config = mathjax2_config
 
 mathjax3_config = {
     "tex": {
