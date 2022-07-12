@@ -39,7 +39,7 @@
 
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
 
   /* ------------------------------------------------------------------------ */
   template <class... Iterators>
@@ -114,7 +114,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
     tuple_t end_iterators;
   };
 
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
@@ -128,7 +128,7 @@ concat_iterator(std::tuple<Iterators...> && iterators_tuple,
 }
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class... Containers> class ConcatContainer {
     using containers_t = std::tuple<Containers...>;
 
@@ -181,7 +181,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
         std::forward<Containers>(conts)...);
   }
 
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
 namespace std {

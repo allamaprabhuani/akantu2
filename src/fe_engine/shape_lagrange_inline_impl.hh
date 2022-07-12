@@ -271,14 +271,14 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
     Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
-#define AKANTU_COMPUTE_SHAPES(type)                                            \
-  computeShapeDerivativesOnIntegrationPoints<type>(                            \
-      nodes, integration_points, shape_derivatives, ghost_type,                \
-      filter_elements);
-
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES);
-
-#undef AKANTU_COMPUTE_SHAPES
+  tuple_dispatch<ElementTypes_t<_ek_regular>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        this->computeShapeDerivativesOnIntegrationPoints<type>(
+            nodes, integration_points, shape_derivatives, ghost_type,
+            filter_elements);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */

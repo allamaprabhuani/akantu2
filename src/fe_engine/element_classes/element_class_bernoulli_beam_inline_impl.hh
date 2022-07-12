@@ -50,25 +50,6 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_2,
-                                                     _itp_lagrange_segment_2, 3,
-                                                     2, 6);
-
-AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_3,
-                                                     _itp_lagrange_segment_2, 6,
-                                                     4, 6);
-
-AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
-                                                _gt_segment_2,
-                                                _itp_bernoulli_beam_2,
-                                                _segment_2, 2, _git_segment, 3);
-
-AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
-                                                _gt_segment_2,
-                                                _itp_bernoulli_beam_3,
-                                                _segment_2, 3, _git_segment, 3);
-
-/* -------------------------------------------------------------------------- */
 template <>
 template <typename D1, typename D2, typename D3>
 inline void

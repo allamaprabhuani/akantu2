@@ -175,10 +175,10 @@ void register_material(py::module & mod) {
           py::arg("el_type"), py::return_value_policy::reference)
       .def(
           "getPotentialEnergy",
-          [](Material & self, ElementType el_type, UInt index) -> Real {
-            return self.getPotentialEnergy(el_type, index);
+          [](Material & self, Element element) -> Real {
+            return self.getPotentialEnergy(element);
           },
-          py::arg("el_type"), py::arg("index"))
+          py::arg("element"))
       .def("getPotentialEnergy",
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)

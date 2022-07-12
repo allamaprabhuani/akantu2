@@ -114,7 +114,7 @@ function(generate_material_list)
   try_run(_material_list_run _material_list_compile
     ${CMAKE_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}/cmake/material_lister.cc
-    CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${_include_dirs}" "-DCMAKE_CXX_STANDARD=14"
+    CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${_include_dirs}" "-DCMAKE_CXX_STANDARD=${AKANTU_CXX_STANDARD}"
     COMPILE_DEFINITIONS "-DAKANTU_CMAKE_LIST_MATERIALS"
     COMPILE_OUTPUT_VARIABLE _compile_results
     RUN_OUTPUT_VARIABLE _result_material_list)
@@ -261,6 +261,33 @@ function(declare_akantu_types)
     set(_incs "#include <${_inc}>\n${_incs}")
   endforeach()
   set(AKANTU_TYPES_EXTRA_INCLUDES ${_incs} CACHE INTERNAL "")
+
+  # ----------------------------------------------------------------------------
+  set(CMAKE_REQUIRED_FLAGS "-Werror -Wall -std=c++${AKANTU_CXX_STANDARD}")
+  file(READ ${PROJECT_SOURCE_DIR}/cmake/check_constexpr_map.cc _check_constexpr_map_code)
+  check_cxx_source_compiles("${_check_constexpr_map_code}"
+    can_compile_constexpr_map)
+
+  if(can_compile_constexpr_map EQUAL 1)
+    set(AKANTU_CAN_COMPILE_CONSTEXPR_MAP TRUE CACHE INTERNAL "")
+  else()
+    set(AKANTU_CAN_COMPILE_CONSTEXPR_MAP FALSE CACHE INTERNAL "")
+  endif()
+
+
+  file(READ ${PROJECT_SOURCE_DIR}/cmake/check_gnu_unlikely.cc _has_gnu_unlikely_code)
+  check_cxx_source_compiles("${_has_unlikely_code}"
+    has_gnu_unlikely)
+  if(has_gnu_unlikely EQUAL 1)
+    set(AKANTU_HAS_GNU_UNLIKELY FALSE CACHE INTERNAL "")
+  else()
+    file(READ ${PROJECT_SOURCE_DIR}/cmake/check_builtin_expect.cc _has_builtin_expect_code)
+    check_cxx_source_compiles("${_has_builtin_expect_code}"
+      has_builtin_expect)
+    if(has_builtin_expect EQUAL 1)
+      set(AKANTU_HAS_BUILTIN_EXPECT FALSE CACHE INTERNAL "")
+    endif()
+  endif()
 endfunction()
 
 

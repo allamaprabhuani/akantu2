@@ -72,32 +72,6 @@ package_declare_sources(igfem
   non_local_manager_igfem.cc
   )
 
-package_declare_elements(igfem
-  ELEMENT_TYPES
-  _igfem_segment_3
-  _igfem_triangle_4
-  _igfem_triangle_5
-  KIND igfem
-  GEOMETRICAL_TYPES
-  _gt_igfem_segment_3
-  _gt_igfem_triangle_4
-  _gt_igfem_triangle_5
-  INTERPOLATION_TYPES
-  _itp_igfem_segment_3
-  _itp_igfem_triangle_4
-  _itp_igfem_triangle_5
-  INTERPOLATION_KIND
-  _itk_igfem
-  FE_ENGINE_LISTS
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  interpolate
-  compute_normals_on_integration_points
-  inverse_map
-  contains
-  get_shapes_derivatives
-  )
-
 package_declare_material_infos(igfem
   LIST AKANTU_IGFEM_MATERIAL_LIST
   INCLUDE material_igfem_includes.hh

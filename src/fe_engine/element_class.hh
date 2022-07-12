@@ -457,6 +457,7 @@ public:
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
 
+/* -------------------------------------------------------------------------- */
 #include "interpolation_element_tmpl.hh"
 /* -------------------------------------------------------------------------- */
 #include "geometrical_element_property.hh"
@@ -477,7 +478,6 @@ public:
 #include "element_class_tetrahedron_4_inline_impl.hh"
 #include "element_class_triangle_3_inline_impl.hh"
 #include "element_class_triangle_6_inline_impl.hh"
-
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #include "element_class_structural.hh"

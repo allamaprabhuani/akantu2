@@ -126,7 +126,7 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
     const auto & connectivity = mesh.getConnectivity(type);
     // const auto nb_element = connectivity.size();
 
-    if (type != _bernoulli_beam_3 or type != _bernoulli_beam_2) {
+    if (type != _bernoulli_beam_3 and type != _bernoulli_beam_2) {
       AKANTU_EXCEPTION(
           "The lumped mass was not implemented for non Bernoulli Beams");
     }

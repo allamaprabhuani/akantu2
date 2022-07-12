@@ -98,13 +98,12 @@ FEEngine::getCohesiveElementType(ElementType type) {
 namespace akantu {
 
 inline Vector<ElementType> FEEngine::getIGFEMElementTypes(ElementType type) {
-
-#define GET_IGFEM_ELEMENT_TYPES(type)                                          \
-  return IGFEMHelper::getIGFEMElementTypes<type>();
-
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_IGFEM_ELEMENT_TYPES);
-
-#undef GET_IGFEM_ELEMENT_TYPES
+  tuple_dispatch<ElementTypes_t<_ek_regular>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return IGFEMHelper::getIGFEMElementTypes<type>();
+      },
+      type);
 }
 #endif
 

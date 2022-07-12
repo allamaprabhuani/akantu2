@@ -51,12 +51,12 @@ constexpr inline auto convertType<ElementType, ElementType>(ElementType type) {
 template <>
 constexpr inline auto
 convertType<ElementType, InterpolationType>(ElementType type) {
-  auto itp_type = _itp_not_defined;
-#define GET_ITP(type) itp_type = ElementClassProperty<type>::interpolation_type;
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_ITP);
-#undef GET_ITP
-  return itp_type;
+  return tuple_dispatch_with_default<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClassProperty<type>::interpolation_type;
+      },
+      type, [&](auto && /*type*/) { return _itp_not_defined; });
 }
 
 } // namespace akantu

@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:18.04
 MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 ENV TZ=Europe/Zurich

@@ -39,7 +39,7 @@
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class Iterator, class size_type_>
   class EnumerateIterator
       : public details::CopyAssignmentEnabler<
@@ -165,9 +165,9 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
         std::forward<Iterator>(iterator));
   }
 
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class... Containers> class EnumerateContainer {
     using ZipContainer_t = ZipContainer<Containers...>;
     using size_type = typename ZipContainer_t::size_type;
@@ -195,7 +195,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   private:
     ZipContainer_t zip_container;
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class... Container>
 inline constexpr auto enumerate(Container &&... container) -> decltype(auto) {

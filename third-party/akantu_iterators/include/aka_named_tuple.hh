@@ -251,7 +251,7 @@ namespace tuple {
 
   namespace details {
     template <class Tuple, std::size_t... Is>
-    void printTuple(std::ostream & stream, Tuple && tuple,
+    void printTuple(std::ostream & stream, Tuple && /*tuple*/,
                     std::index_sequence<Is...> && /*unused*/) {
       std::initializer_list<int>{
           ((stream << "{"

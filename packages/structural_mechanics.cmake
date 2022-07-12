@@ -55,24 +55,3 @@ package_declare_sources(structural_mechanics
   model/structural_mechanics/structural_mechanics_model_mass.cc
   )
 
-package_declare_elements(structural_mechanics
-  ELEMENT_TYPES
-  _bernoulli_beam_2
-  _bernoulli_beam_3
-  _discrete_kirchhoff_triangle_18
-  KIND structural
-  INTERPOLATION_TYPES
-  _itp_hermite_2
-  _itp_bernoulli_beam_2
-  _itp_bernoulli_beam_3
-  _itp_discrete_kirchhoff_triangle_18
-  INTERPOLATION_KIND
-  _itk_structural
-  FE_ENGINE_LISTS
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  compute_shapes
-  compute_shapes_derivatives
-  get_shapes_derivatives
-  assemble_fields
-  )

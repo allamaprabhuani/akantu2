@@ -312,7 +312,7 @@ namespace debug {
                               const DebugLevel & level,
                               const std::string & info,
                               const std::string & module) const {
-    if (testLevel(level, module)) [[gnu::unlikely]] {
+    if AKANTU_UNLIKELY (testLevel(level, module)) {
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())

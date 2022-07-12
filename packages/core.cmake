@@ -34,7 +34,7 @@
 package_declare(core NOT_OPTIONAL
   DESCRIPTION "core package for Akantu"
   FEATURES_PUBLIC cxx_strong_enums cxx_defaulted_functions
-                  cxx_deleted_functions cxx_auto_type cxx_decltype_auto
+                  cxx_deleted_functions cxx_auto_type cxx_decltype_auto cxx_std_17
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
                    cxx_delegating_constructors
   DEPENDS INTERFACE akantu_iterators Boost Eigen3
@@ -69,6 +69,7 @@ package_declare_sources(core
   common/aka_common.hh
   common/aka_common_inline_impl.hh
   common/aka_csr.hh
+  common/aka_element_classes_info.hh
   common/aka_element_classes_info_inline_impl.hh
   common/aka_enum_macros.hh
   common/aka_error.cc
@@ -355,80 +356,6 @@ set(AKANTU_SPIRIT_SOURCES
   io/parser/parser_types.cc
   io/parser/parser_input_files.cc
   PARENT_SCOPE
-  )
-
-package_declare_elements(core
-  ELEMENT_TYPES
-  _point_1
-  _segment_2
-  _segment_3
-  _triangle_3
-  _triangle_6
-  _quadrangle_4
-  _quadrangle_8
-  _tetrahedron_4
-  _tetrahedron_10
-  _pentahedron_6
-  _pentahedron_15
-  _hexahedron_8
-  _hexahedron_20
-  KIND regular
-  GEOMETRICAL_TYPES
-  _gt_point
-  _gt_segment_2
-  _gt_segment_3
-  _gt_triangle_3
-  _gt_triangle_6
-  _gt_quadrangle_4
-  _gt_quadrangle_8
-  _gt_tetrahedron_4
-  _gt_tetrahedron_10
-  _gt_hexahedron_8
-  _gt_hexahedron_20
-  _gt_pentahedron_6
-  _gt_pentahedron_15
-  INTERPOLATION_TYPES
-  _itp_lagrange_point_1
-  _itp_lagrange_segment_2
-  _itp_lagrange_segment_3
-  _itp_lagrange_triangle_3
-  _itp_lagrange_triangle_6
-  _itp_lagrange_quadrangle_4
-  _itp_serendip_quadrangle_8
-  _itp_lagrange_tetrahedron_4
-  _itp_lagrange_tetrahedron_10
-  _itp_lagrange_hexahedron_8
-  _itp_serendip_hexahedron_20
-  _itp_lagrange_pentahedron_6
-  _itp_lagrange_pentahedron_15
-  GEOMETRICAL_SHAPES
-  _gst_point
-  _gst_triangle
-  _gst_square
-  _gst_prism
-  GAUSS_INTEGRATION_TYPES
-  _git_point
-  _git_segment
-  _git_triangle
-  _git_tetrahedron
-  _git_pentahedron
-  INTERPOLATION_KIND _itk_lagrangian
-  FE_ENGINE_LISTS
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  interpolate
-  compute_normals_on_integration_points
-  inverse_map
-  contains
-  compute_shapes
-  compute_shapes_derivatives
-  get_N
-  compute_dnds
-  compute_d2nds2
-  compute_jmat
-  get_shapes_derivatives
-  lagrange_base
-  assemble_fields
   )
 
 find_program(READLINK_COMMAND readlink)

@@ -56,7 +56,19 @@ using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
 
 #define AKANTU_INTEGER_SIZE @AKANTU_INTEGER_SIZE@
 #define AKANTU_FLOAT_SIZE @AKANTU_FLOAT_SIZE@
+
 // clang-format on
+#cmakedefine AKANTU_CAN_COMPILE_CONSTEXPR_MAP
+#cmakedefine AKANTU_HAS_GNU_UNLIKELY
+#cmakedefine AKANTU_HAS_BUILTIN_EXPECT
+
+#if defined(AKANTU_HAS_GNU_UNLIKELY)
+#define AKANTU_UNLIKELY(x) (x) [[gnu::unlikely]]
+#elif defined(AKANTU_HAS_BUILTIN_EXPECT)
+#define AKANTU_UNLIKELY(x) (__builtin_expect(!!(x), 0))
+#else
+#define AKANTU_UNLIKELY(x) (x)
+#endif
 
 #cmakedefine AKANTU_USE_BLAS
 #cmakedefine AKANTU_USE_LAPACK

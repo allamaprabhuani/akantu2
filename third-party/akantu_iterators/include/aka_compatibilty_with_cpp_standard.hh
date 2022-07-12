@@ -36,6 +36,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+
 #if __cplusplus >= 201703L
 #include <functional>
 #endif
@@ -168,8 +169,10 @@ auto count_if(InputIt first, InputIt last, UnaryPredicate p) ->
 namespace detail {
   template <class T, class Tuple, std::size_t... I>
   constexpr T make_from_tuple_impl(Tuple && t, std::index_sequence<I...>) {
-    static_assert(std::is_constructible_v<T, decltype(std::get<I>(
-                                                 std::declval<Tuple>()))...>);
+    static_assert(
+        std::is_constructible<T, decltype(std::get<I>(
+                                     std::declval<Tuple>()))...>::value,
+        "make_from_tuple needs T to be constructible");
     return T(std::get<I>(std::forward<Tuple>(t))...);
   }
 } // namespace detail

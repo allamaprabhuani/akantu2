@@ -297,6 +297,6 @@ void SparseMatrixAIJ::set(Real val) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); };
+bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); }
 
 } // namespace akantu

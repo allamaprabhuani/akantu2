@@ -171,17 +171,18 @@ void ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
         elem_filter = &(empty_filter);
       }
 
-#define AKANTU_INIT_ELEMENTAL_FIELD_INTERPOLATION_FROM_C_POINTS(type)          \
-  this->initElementalFieldInterpolationFromIntegrationPoints<type>(            \
-      interpolation_points_coordinates(type, ghost_type),                      \
-      interpolation_points_coordinates_matrices,                               \
-      quad_points_coordinates_inv_matrices,                                    \
-      quadrature_points_coordinates(type, ghost_type), ghost_type,             \
-      *elem_filter)
-
-      AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(
-          AKANTU_INIT_ELEMENTAL_FIELD_INTERPOLATION_FROM_C_POINTS);
-#undef AKANTU_INIT_ELEMENTAL_FIELD_INTERPOLATION_FROM_C_POINTS
+      tuple_dispatch<ElementTypes_t<_ek_regular>>(
+          [&](auto && enum_type) {
+            constexpr ElementType type =
+                std::decay_t<decltype(enum_type)>::value;
+            this->initElementalFieldInterpolationFromIntegrationPoints<type>(
+                interpolation_points_coordinates(type, ghost_type),
+                interpolation_points_coordinates_matrices,
+                quad_points_coordinates_inv_matrices,
+                quadrature_points_coordinates(type, ghost_type), ghost_type,
+                *elem_filter);
+          },
+          type);
     }
   }
 
@@ -219,16 +220,16 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
       elem_filter = &(empty_filter);
     }
 
-#define AKANTU_INTERPOLATE_ELEMENTAL_FIELD_FROM_C_POINTS(type)                 \
-  interpolateElementalFieldFromIntegrationPoints<type>(                        \
-      field(type, ghost_type),                                                 \
-      interpolation_points_coordinates_matrices(type, ghost_type),             \
-      quad_points_coordinates_inv_matrices(type, ghost_type), result,          \
-      ghost_type, *elem_filter)
-
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(
-        AKANTU_INTERPOLATE_ELEMENTAL_FIELD_FROM_C_POINTS);
-#undef AKANTU_INTERPOLATE_ELEMENTAL_FIELD_FROM_C_POINTS
+    tuple_dispatch<ElementTypes_t<_ek_regular>>(
+        [&](auto && enum_type) {
+          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          this->interpolateElementalFieldFromIntegrationPoints<type>(
+              field(type, ghost_type),
+              interpolation_points_coordinates_matrices(type, ghost_type),
+              quad_points_coordinates_inv_matrices(type, ghost_type), result,
+              ghost_type, *elem_filter);
+        },
+        type);
   }
 
   AKANTU_DEBUG_OUT();

@@ -41,7 +41,7 @@
 #define AKANTU_ITERATORS_NAMESPACE akantu
 #endif
 
-#define AKA_ITERATOR_EXPORT_NAMESPACE [[gnu::visibility("hidden")]]
+#define AKA_ITERATOR_EXPORT_NAMESPACE __attribute__((visibility("hidden")))
 #define FWD(x) std::forward<decltype(x)>(x)
 
 namespace AKANTU_ITERATORS_NAMESPACE {
@@ -52,7 +52,7 @@ namespace tuple {
   struct is_tuple<std::tuple<Params...>> : public std::true_type {};
 
   /* ------------------------------------------------------------------------ */
-  namespace AKA_ITERATOR_EXPORT_NAMESPACE details {
+  namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
     template <std::size_t N> struct Foreach {
       template <class Tuple>
 
@@ -218,7 +218,7 @@ namespace tuple {
           std::forward<Value>(value),
           std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
     }
-  } // namespace details
+  } // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
   /* ------------------------------------------------------------------------
    */

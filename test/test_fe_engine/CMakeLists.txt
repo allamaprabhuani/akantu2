@@ -47,8 +47,7 @@ function(register_fem_test operation type)
 endfunction()
 
 #===============================================================================
-macro(register_mesh_types package)
-  package_get_element_types(${package} _types)
+macro(register_mesh_types package _types)
   foreach(_type ${_types})
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
       list(APPEND _meshes ${_type}.msh)
@@ -66,12 +65,25 @@ endmacro(register_mesh_types)
 
 set(_meshes)
 set(_csvs)
-
-register_mesh_types(core)
+set(_regular_types
+  _hexahedron_8
+  _hexahedron_20
+  _pentahedron_6
+  _pentahedron_15
+  _quadrangle_4
+  _quadrangle_8
+  _segment_2
+  _segment_3
+  _tetrahedron_4
+  _tetrahedron_10
+  _triangle_3
+  _triangle_6
+  )
+register_mesh_types(core ${_regular_types})
 
 package_is_activated(structural_mechanics has_structural_mechanics)
 if(has_structural_mechanics)
-  register_mesh_types(structural_mechanics)
+  register_mesh_types(structural_mechanics _bernoulli_beam_2;_bernoulli_beam_3;_kirchhoff_triangle_18)
 endif()
 
 # Tests for class MeshData

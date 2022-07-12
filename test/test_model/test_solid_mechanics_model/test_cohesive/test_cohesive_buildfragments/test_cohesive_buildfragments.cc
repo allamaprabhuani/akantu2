@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "boost_graph_converter.hh"
+//#include "boost_graph_converter.hh"
 #include "fragment_manager.hh"
 #include "material_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
@@ -121,8 +121,8 @@ int main(int argc, char * argv[]) {
     model.checkCohesiveStress();
     model.solveStep();
 
-    BoostGraphConverter converter(mesh);
-    converter.toGraphviz("blip_" + std::to_string(s) + ".dot");
+    //    BoostGraphConverter converter(mesh);
+    //    converter.toGraphviz("blip_" + std::to_string(s) + ".dot");
 
     if (debug_) {
       model.dump();

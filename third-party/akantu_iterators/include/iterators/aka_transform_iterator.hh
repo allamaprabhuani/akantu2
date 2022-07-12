@@ -36,7 +36,7 @@
 
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class iterator_t, class operator_t>
   class transform_adaptor_iterator {
   public:
@@ -86,9 +86,9 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
         it, std::forward<operator_t>(op));
   }
 
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class container_t, class operator_t>
   class TransformIteratorAdaptor {
   public:
@@ -119,7 +119,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
     container_t cont;
     operator_t op;
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class container_t, class operator_t>
 auto make_transform_adaptor(container_t && cont, operator_t && op)

@@ -115,12 +115,13 @@ void StructuralMechanicsModel::initFullImpl(const ModelOptions & options) {
   /// TODO this is ugly af, maybe add a function to FEEngine
   for (auto && type : mesh.elementTypes(_spatial_dimension = _all_dimensions,
                       _element_kind = _ek_structural)) {
-    UInt nb_components = 0;
-
-// Getting number of components for each element type
-#define GET_(type) nb_components = ElementClass<type>::getNbStressComponents()
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(GET_);
-#undef GET_
+    // Getting number of components for each element type
+    auto nb_components = tuple_dispatch<ElementTypes_t<_ek_structural>>(
+        [&](auto && enum_type) {
+          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          return ElementClass<type>::getNbStressComponents();
+        },
+        type);
 
     stress_components(nb_components, type);
   }
@@ -217,10 +218,13 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
-#define ASSEMBLE_STIFFNESS_MATRIX(type) assembleStiffnessMatrix<type>();
 
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(ASSEMBLE_STIFFNESS_MATRIX);
-#undef ASSEMBLE_STIFFNESS_MATRIX
+    tuple_dispatch<ElementTypes_t<_ek_structural>>(
+        [&](auto && enum_type) {
+          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          this->assembleStiffnessMatrix<type>();
+        },
+        type);
   }
 
   need_to_reassemble_stiffness = false;
@@ -234,10 +238,12 @@ void StructuralMechanicsModel::computeStresses() {
 
   for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
-#define COMPUTE_STRESS_ON_QUAD(type) computeStressOnQuad<type>();
-
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(COMPUTE_STRESS_ON_QUAD);
-#undef COMPUTE_STRESS_ON_QUAD
+    tuple_dispatch<ElementTypes_t<_ek_structural>>(
+        [&](auto && enum_type) {
+          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          this->computeStressOnQuad<type>();
+        },
+        type);
   }
 
   AKANTU_DEBUG_OUT();
@@ -245,16 +251,10 @@ void StructuralMechanicsModel::computeStresses() {
 
 /* -------------------------------------------------------------------------- */
 bool StructuralMechanicsModel::allocateLumpedMassArray() {
-  if (this->mass != nullptr) // Already allocated, so nothing to do.
-  {
-    return true;
-  };
-
-  // now allocate it
   this->allocNodalField(this->mass, this->nb_degree_of_freedom, "lumped_mass");
 
   return true;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createNodalFieldBool(

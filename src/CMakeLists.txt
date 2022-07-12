@@ -92,16 +92,11 @@ package_get_all_material_lists(AKANTU_MATERIAL_LISTS)
 configure_file(model/solid_mechanics/material_list.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh" @ONLY)
 
-package_get_element_lists()
-configure_file(common/aka_element_classes_info.hh.in
-  "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh" @ONLY)
-
 configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
   "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh"
-  "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
 configure_file(common/aka_config.cc.in
@@ -211,7 +206,7 @@ if(NOT CMAKE_VERSION VERSION_LESS 3.1)
 else()
   set_target_properties(akantu
     PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD ${AKANTU_CXX_STANDARD}
     )
 endif()
 

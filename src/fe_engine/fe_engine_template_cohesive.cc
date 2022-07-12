@@ -31,8 +31,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "shape_cohesive.hh"
 #include "integrator_gauss.hh"
+#include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include "fe_engine_template.hh"
 /* -------------------------------------------------------------------------- */
@@ -66,13 +66,12 @@ Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                           << ") has not the good number of component.");
 #endif
 
-  Real integral = 0.;
-
-#define INTEGRATE(type)                                                        \
-  integral = integrator.integrate<type>(f, ghost_type, filter_elements);
-
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-#undef INTEGRATE
+  Real integral = tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return integrator.integrate<type>(f, ghost_type, filter_elements);
+      },
+      type);
 
   AKANTU_DEBUG_OUT();
   return integral;
@@ -111,12 +110,13 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                                          << ") has not the good size.");
 #endif
 
-#define INTEGRATE(type)                                                        \
-  integrator.integrate<type>(f, intf, nb_degree_of_freedom, ghost_type,        \
-                             filter_elements);
-
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-#undef INTEGRATE
+  tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        integrator.integrate<type>(f, intf, nb_degree_of_freedom, ghost_type,
+                                   filter_elements);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -30,7 +30,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 #include "aka_tuple_tools.hh"
@@ -83,6 +82,17 @@ namespace akantu {
     }                                                                          \
   } while (0)
 
+#define AKANTU_BOOST_LIST_SWITCH_WITH_DEFAULT_MACRO(macro1, def_macro, list1,  \
+                                                    var)                       \
+  do {                                                                         \
+    switch (var) {                                                             \
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)            \
+    default: {                                                                 \
+      def_macro(var);                                                          \
+    }                                                                          \
+    }                                                                          \
+  } while (0)
+
 #define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)                             \
   AKANTU_BOOST_LIST_SWITCH(macro1, list1, type)
 
@@ -91,6 +101,10 @@ namespace akantu {
 
 #define AKANTU_BOOST_ELEMENT_SWITCH_CONSTEXPR(macro1, list1)                   \
   AKANTU_BOOST_LIST_SWITCH_CONSTEXPR(macro1, list1, type)
+
+#define AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(macro1, def_macro,      \
+                                                       list1)                  \
+  AKANTU_BOOST_LIST_SWITCH_WITH_DEFAULT_MACRO(macro1, def_macro, list1, type)
 
 #define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro)                                 \
   AKANTU_BOOST_ELEMENT_SWITCH(macro, AKANTU_ALL_ELEMENT_TYPE)
@@ -194,14 +208,28 @@ using AllElementTypes = tuple::cat_t<BOOST_PP_SEQ_ENUM(
 #undef OP_CAT
 
 namespace details {
+
+#if defined(AKANTU_CAN_COMPILE_CONSTEXPR_MAP)
+  // when implemented this function the one from the STL was not constexpr
+  template <class InputIt, class UnaryPredicate>
+  constexpr InputIt my_find_if(InputIt first, InputIt last,
+                               UnaryPredicate && p) {
+    for (; first != last; ++first) {
+      if (std::forward<UnaryPredicate>(p)(*first)) {
+        return first;
+      }
+    }
+    return last;
+  }
+
   // Author Jason Turner C++ Weekly ep 233
   template <typename Key, typename Value, std::size_t Size>
   struct ConstexprMap {
     std::array<std::pair<Key, Value>, Size> data;
     [[nodiscard]] constexpr Value at(const Key & key) const {
       const auto it =
-          std::find_if(data.begin(), data.end(),
-                       [&key](const auto & val) { return val.first == key; });
+          my_find_if(data.begin(), data.end(),
+                     [&key](const auto & val) { return val.first == key; });
 
       if (it != data.end()) {
         return it->second;
@@ -212,8 +240,8 @@ namespace details {
 
     [[nodiscard]] constexpr auto find(const Key & key) const {
       const auto it =
-          std::find_if(data.begin(), data.end(),
-                       [&key](const auto & val) { return val.first == key; });
+          my_find_if(data.begin(), data.end(),
+                     [&key](const auto & val) { return val.first == key; });
 
       return it;
     }
@@ -222,12 +250,11 @@ namespace details {
     [[nodiscard]] constexpr auto end() const { return data.end(); }
   };
 
-// magic_switch from
-// https://stackoverflow.com/questions/39915986/solutions-for-dynamic-dispatch-on-unrelated-types
-#if __cplusplus >= 201703L
+  // magic_switch from
+  // https://stackoverflow.com/questions/39915986/solutions-for-dynamic-dispatch-on-unrelated-types
   template <class Function, class DynamicType, class Tuple,
             class DefaultFunction, std::size_t... Is>
-  [[gnu::visibility("hidden")]] decltype(auto) static_switch_dispatch(
+  [[gnu::visibility("hidden")]] constexpr decltype(auto) static_switch_dispatch(
       const Tuple &, Function && function, const DynamicType & type,
       DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
     auto * function_pointer = std::addressof(function);
@@ -235,14 +262,13 @@ namespace details {
     using Ret = decltype(function(std::tuple_element_t<0, Tuple>{}));
     using TableEntry = Ret (*)(FunctionPointer);
 
-    static constexpr std::array<std::pair<DynamicType, TableEntry>,
-                                sizeof...(Is)>
+    constexpr std::array<std::pair<DynamicType, TableEntry>, sizeof...(Is)>
         data{{{std::tuple_element_t<Is, Tuple>::value,
                [](FunctionPointer function_pointer) -> Ret {
                  return (*function_pointer)(std::tuple_element_t<Is, Tuple>{});
                }}...}};
 
-    static constexpr auto map =
+    constexpr auto map =
         ConstexprMap<DynamicType, TableEntry, data.size()>{{data}};
 
     auto it = map.find(type);
@@ -253,42 +279,109 @@ namespace details {
     }
   }
 #else
-  template <std::size_t S> struct visit_tuple_impl {
-    template <class Function, class DynamicType, class Tuple,
-              class DefaultFunction>
-    [[gnu::visibility("hidden")]] static constexpr decltype(auto)
-    visit(const Tuple &, Function && function, const DynamicType & type,
-          DefaultFunction && default_function) {
-      using integral_type = std::tuple_element_t<S - 1, Tuple>;
-      if (integral_type::value == type) {
-        return std::forward<Function>(function)(integral_type{});
-      } else {
-        return visit_tuple_impl<S - 1>::visit(
-            Tuple{}, std::forward<Function>(function), type,
-            std::forward<DefaultFunction>(default_function));
-      }
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto)
+  static_switch_dispatch(const std::tuple<std::integral_constant<Int, 1>,
+                                          std::integral_constant<Int, 2>,
+                                          std::integral_constant<Int, 3>> &,
+                         Function && function, const DynamicType & type,
+                         DefaultFunction && default_function,
+                         std::index_sequence<Is...> /*is*/) {
+    switch (type) {
+    case 1: {
+      return function(std::integral_constant<Int, 1>{});
     }
-  };
-
-  template <> struct visit_tuple_impl<0> {
-    template <class Function, class DynamicType, class Tuple,
-              class DefaultFunction>
-    [[gnu::visibility("hidden")]] static constexpr auto
-    visit(const Tuple &, Function && function, const DynamicType & type,
-          DefaultFunction && default_function)
-        -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
+    case 2: {
+      return function(std::integral_constant<Int, 2>{});
+    }
+    case 3: {
+      return function(std::integral_constant<Int, 3>{});
+    }
+    default:
       return default_function(type);
     }
-  };
-
-  template <class Function, class DynamicType, class Tuple, std::size_t... Is>
-  [[gnu::visibility("hidden")]] decltype(auto) static_switch_dispatch(
-      const Tuple &, Function && function, const DynamicType & type,
-      DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
-    return visit_tuple_impl<sizeof...(Is)>::visit(
-        Tuple{}, std::forward<Function>(function), type,
-        std::forward<DefaultFunction>(default_function));
   }
+
+#define AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION(type)                           \
+  return function(element_type_t<type>{})
+#define AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT(type)                            \
+  return default_function(type)
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto) static_switch_dispatch(
+      const AllElementTypes &, Function && function, const DynamicType & type,
+      DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
+
+    AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(
+        AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION,
+        AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT, AKANTU_ALL_ELEMENT_TYPE);
+  }
+
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto)
+  static_switch_dispatch(const ElementTypes_t<_ek_regular> &,
+                         Function && function, const DynamicType & type,
+                         DefaultFunction && default_function,
+                         std::index_sequence<Is...> /*is*/) {
+    AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(
+        AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION,
+        AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT, AKANTU_ek_regular_ELEMENT_TYPE);
+  }
+
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto)
+  static_switch_dispatch(const ElementTypes_t<_ek_structural> &,
+                         Function && function, const DynamicType & type,
+                         DefaultFunction && default_function,
+                         std::index_sequence<Is...> /*is*/) {
+    AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(
+        AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION,
+        AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT,
+        AKANTU_ek_structural_ELEMENT_TYPE);
+  }
+#endif
+
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto)
+  static_switch_dispatch(const ElementTypes_t<_ek_cohesive> &,
+                         Function && function, const DynamicType & type,
+                         DefaultFunction && default_function,
+                         std::index_sequence<Is...> /*is*/) {
+    AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(
+        AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION,
+        AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT, AKANTU_ek_cohesive_ELEMENT_TYPE);
+  }
+
+  template <class Function, class DynamicType, class DefaultFunction,
+            std::size_t... Is>
+  constexpr decltype(auto)
+  static_switch_dispatch(const tuple::cat_t<ElementTypes_t<_ek_regular>,
+                                            ElementTypes_t<_ek_cohesive>> &,
+                         Function && function, const DynamicType & type,
+                         DefaultFunction && default_function,
+                         std::index_sequence<Is...> /*is*/) {
+#define AKANTU_REGULAR_AND_COHESIVE_ELEMENT_TYPE                               \
+  AKANTU_ek_regular_ELEMENT_TYPE AKANTU_ek_cohesive_ELEMENT_TYPE
+
+    AKANTU_BOOST_ELEMENT_SWITCH_WITH_DEFAULT_MACRO(
+        AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION,
+        AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT,
+        AKANTU_REGULAR_AND_COHESIVE_ELEMENT_TYPE);
+
+#undef AKANTU_REGULAR_AND_COHESIVE_ELEMENT_TYPE
+  }
+
+#endif
+
+#undef AKANTU_STATIC_SWITCH_DISPATCH_FUNCTION
+#undef AKANTU_STATIC_SWITCH_DISPATCH_DEFAULT
+
 #endif
 } // namespace details
 

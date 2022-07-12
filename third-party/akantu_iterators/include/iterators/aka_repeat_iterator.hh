@@ -27,7 +27,7 @@
 #define AKANTU_AKA_REPEAT_ITERATOR_HH
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
 
   template <class Iterator, typename N>
   class RepeatNIterator
@@ -159,9 +159,9 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
                                         std::move(n));
   }
 
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class Container, typename N> class RepeatNContainer {
   public:
     using size_type = typename std::decay_t<Container>::size_type;
@@ -188,7 +188,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
     Container container;
     N n;
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class Container, typename N>
 inline constexpr auto repeat_n(Container && container, N n) -> decltype(auto) {

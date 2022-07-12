@@ -681,14 +681,12 @@ inline std::ostream & operator<<(std::ostream & stream, const Mesh & _this) {
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbNodesPerElement(ElementType type) -> Int {
-  Int nb_nodes_per_element = 0;
-
-#define GET_NB_NODES_PER_ELEMENT(type)                                         \
-  nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_NODES_PER_ELEMENT);
-#undef GET_NB_NODES_PER_ELEMENT
-  return nb_nodes_per_element;
+  return tuple_dispatch_with_default<AllElementTypes>(
+      [](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getNbNodesPerElement();
+      },
+      type, [](auto && /*type*/) { return 0; });
 }
 
 /* -------------------------------------------------------------------------- */

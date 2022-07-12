@@ -46,7 +46,7 @@
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   /* ------------------------------------------------------------------------ */
   template <template <class...> class Tuple, class... Iterators>
   class ZipIterator_
@@ -175,7 +175,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
 
   template <class... Iterators>
   using NamedZipIterator = ZipIterator_<tuple::named_tuple, Iterators...>;
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
@@ -193,7 +193,7 @@ auto zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple)
 }
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <template <class...> class Tuple, class... Containers>
   class ZipContainer_ {
   public:
@@ -251,7 +251,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   template <class... Containers>
   using NamedZipContainer = ZipContainer_<tuple::named_tuple, Containers...>;
 
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Containers,
@@ -302,7 +302,7 @@ inline auto zip_remove(ZipContainer && zip_container) {
 }
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE details {
+namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class Tuple, std::size_t... Is,
             std::enable_if_t<not tuple::is_named_tuple<
                 std::decay_t<Tuple>>::value> * = nullptr>
@@ -324,7 +324,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE details {
                 tuple::tuple_name_tag_t<Is, std::decay_t<Tuple>>::value>() =
                 FWD(std::get<Is>(FWD(tuple))))...);
   }
-} // namespace details
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class Tuple> inline auto make_zip_from_tuple(Tuple && tuple) {
   return details::make_zip_from_tuple_impl(
@@ -333,7 +333,7 @@ template <class Tuple> inline auto make_zip_from_tuple(Tuple && tuple) {
       std::forward<Tuple>(tuple));
 }
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <template <class...> class Tuple, class... Containers>
   template <class... OtherContainers>
   inline auto
@@ -359,7 +359,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
     return make_zip_from_tuple(
         tuple::remove<Tag>(FWD(zip_container.containers)));
   }
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 

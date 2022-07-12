@@ -54,9 +54,7 @@ register_gtest_sources(
 #===============================================================================
 
 # Adding meshes for element types
-package_get_element_types(structural_mechanics _types)
-
-foreach(_type ${_types})
+foreach(_type _bernoulli_beam_2 _bernoulli_beam_3 _discrete_kirchhoff_triangle_18)
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
     list(APPEND _meshes ${_type}.msh)
     #register_fem_test(fe_engine_precomputation ${_type })

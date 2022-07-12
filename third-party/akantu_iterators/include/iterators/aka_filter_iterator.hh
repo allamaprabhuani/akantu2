@@ -40,7 +40,7 @@
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class filter_iterator_t, class container_iterator_t>
   class FilterIterator
       : public details::CopyAssignmentEnabler<aka::conjunction<
@@ -168,9 +168,9 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
         std::forward<filter_iterator_t>(filter_it),
         std::forward<container_iterator_t>(container_begin));
   }
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class filter_t, class Container> class FilterAdaptor {
   public:
     using size_type = typename std::decay_t<Container>::size_type;
@@ -204,7 +204,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
     filter_t filter;
     Container container;
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class filter_t, class Container>
 auto filter(filter_t && filter, Container && container) -> decltype(auto) {

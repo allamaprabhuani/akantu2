@@ -63,24 +63,24 @@ namespace {
     /// callback to assemble the residual (rhs)
     void assembleResidual() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE(void, SolverCallback, assembleResidual);
+      PYBIND11_OVERRIDE_PURE(void, SolverCallback, assembleResidual, );
     }
 
     /// callback for the predictor (in case of dynamic simulation)
     void predictor() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, predictor);
+      PYBIND11_OVERRIDE(void, SolverCallback, predictor, );
     }
 
     /// callback for the corrector (in case of dynamic simulation)
     void corrector() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, corrector);
+      PYBIND11_OVERRIDE(void, SolverCallback, corrector, );
     }
 
     void beforeSolveStep() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, SolverCallback, beforeSolveStep);
+      PYBIND11_OVERRIDE(void, SolverCallback, beforeSolveStep, );
     }
 
     void afterSolveStep(bool converged) override {
@@ -114,22 +114,22 @@ namespace {
 
     void assembleResidual() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, InterceptSolverCallback, assembleResidual);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, assembleResidual, );
     }
 
     void predictor() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, InterceptSolverCallback, predictor);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, predictor, );
     }
 
     void corrector() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, InterceptSolverCallback, corrector);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, corrector, );
     }
 
     void beforeSolveStep() override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, InterceptSolverCallback, beforeSolveStep);
+      PYBIND11_OVERRIDE(void, InterceptSolverCallback, beforeSolveStep, );
     }
 
     void afterSolveStep(bool converged) override {

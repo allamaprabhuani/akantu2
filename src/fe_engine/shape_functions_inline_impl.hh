@@ -58,33 +58,22 @@ ShapeFunctions::getShapesDerivatives(ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 inline Int ShapeFunctions::getShapeSize(ElementType type) {
-  AKANTU_DEBUG_IN();
-
-  Int shape_size = 0;
-#define GET_SHAPE_SIZE(type) shape_size = ElementClass<type>::getShapeSize()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SIZE); // ,
-
-#undef GET_SHAPE_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_size;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getShapeSize();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline Int ShapeFunctions::getShapeDerivativesSize(ElementType type) {
-  AKANTU_DEBUG_IN();
-
-  Int shape_derivatives_size = 0;
-#define GET_SHAPE_DERIVATIVES_SIZE(type)                                       \
-  shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE); // ,
-
-#undef GET_SHAPE_DERIVATIVES_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_derivatives_size;
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        return ElementClass<type>::getShapeDerivativesSize();
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */

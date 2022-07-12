@@ -947,7 +947,8 @@ namespace detail {
   };
 
   template <typename Arr, typename T, typename... Ns>
-  decltype(auto) get_iterator(Arr && array, T * data, Ns &&... ns) {
+  decltype(auto) __attribute__((visibility("hidden")))
+  get_iterator(Arr && array, T * data, Ns &&... ns) {
     const bool is_const_arr =
         std::is_const<std::remove_reference_t<Arr>>::value;
     using type = ViewIteratorHelper_t<sizeof...(Ns) - 1, T>;

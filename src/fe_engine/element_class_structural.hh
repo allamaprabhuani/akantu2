@@ -56,7 +56,51 @@ namespace akantu {
     static constexpr Int nb_degree_of_freedom{ndof};                           \
     static constexpr Int nb_stress_components{nb_stress};                      \
     static constexpr Int dnds_columns{nb_dnds_cols};                           \
+  } // namespace akantu
+
+/// Macro to generate the element class structures for different structural
+/// element types
+/* -------------------------------------------------------------------------- */
+#define AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(                       \
+    elem_type, geom_type, interp_type, parent_el_type, sp, gauss_int_type,     \
+    min_int_order)                                                             \
+  template <> struct ElementClassProperty<elem_type> {                         \
+    static constexpr GeometricalType geometrical_type{geom_type};              \
+    static constexpr InterpolationType interpolation_type{interp_type};        \
+    static constexpr ElementType parent_element_type{parent_el_type};          \
+    static constexpr ElementKind element_kind{_ek_structural};                 \
+    static constexpr Int spatial_dimension{sp};                                \
+    static constexpr GaussIntegrationType gauss_integration_type{              \
+        gauss_int_type};                                                       \
+    static constexpr Int polynomial_degree{min_int_order};                     \
   }
+
+/* -------------------------------------------------------------------------- */
+AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_2,
+                                                     _itp_lagrange_segment_2, 3,
+                                                     2, 6);
+
+AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_3,
+                                                     _itp_lagrange_segment_2, 6,
+                                                     4, 6);
+
+AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
+                                                _gt_segment_2,
+                                                _itp_bernoulli_beam_2,
+                                                _segment_2, 2, _git_segment, 3);
+
+AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
+                                                _gt_segment_2,
+                                                _itp_bernoulli_beam_3,
+                                                _segment_2, 3, _git_segment, 3);
+/* -------------------------------------------------------------------------- */
+AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(
+    _itp_discrete_kirchhoff_triangle_18, _itp_lagrange_triangle_3, 6, 6, 21);
+
+AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(
+    _discrete_kirchhoff_triangle_18, _gt_triangle_3,
+    _itp_discrete_kirchhoff_triangle_18, _triangle_3, 3, _git_triangle, 2);
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 template <InterpolationType interpolation_type>
@@ -180,23 +224,6 @@ public:
     return interpolation_property::nb_stress_components;
   }
 };
-
-/// Macro to generate the element class structures for different structural
-/// element types
-/* -------------------------------------------------------------------------- */
-#define AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(                       \
-    elem_type, geom_type, interp_type, parent_el_type, sp, gauss_int_type,     \
-    min_int_order)                                                             \
-  template <> struct ElementClassProperty<elem_type> {                         \
-    static constexpr GeometricalType geometrical_type{geom_type};              \
-    static constexpr InterpolationType interpolation_type{interp_type};        \
-    static constexpr ElementType parent_element_type{parent_el_type};          \
-    static constexpr ElementKind element_kind{_ek_structural};                 \
-    static constexpr Int spatial_dimension{sp};                                \
-    static constexpr GaussIntegrationType gauss_integration_type{              \
-        gauss_int_type};                                                       \
-    static constexpr Int polynomial_degree{min_int_order};                     \
-  }
 
 /* -------------------------------------------------------------------------- */
 /* ElementClass for structural elements                                       */

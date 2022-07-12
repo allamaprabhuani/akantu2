@@ -38,7 +38,7 @@
 
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
 
   template <class Iterator> class Range {
   public:
@@ -61,7 +61,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   private:
     std::tuple<Iterator, Iterator> iterators;
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class Iterator>
 decltype(auto) range(Iterator && it1, Iterator && it2) {
@@ -71,7 +71,7 @@ decltype(auto) range(Iterator && it1, Iterator && it2) {
 /* -------------------------------------------------------------------------- */
 /* Arange                                                                     */
 /* -------------------------------------------------------------------------- */
-namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class T> class ArangeIterator {
   public:
     using value_type = T;
@@ -102,9 +102,9 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE iterators {
     T value{0};
     const T step{1};
   };
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
-namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class T> class ArangeContainer {
   public:
     using iterator = iterators::ArangeIterator<T>;
@@ -132,7 +132,7 @@ namespace AKA_ITERATOR_EXPORT_NAMESPACE containers {
   private:
     const T start{0}, stop{0}, step{1};
   };
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class T,
           typename = std::enable_if_t<std::is_integral<std::decay_t<T>>::value>>
