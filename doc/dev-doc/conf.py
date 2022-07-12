@@ -182,30 +182,32 @@ html_sidebars = {
 math_eqref_format = "Eq. {number}"
 
 # MathJax configuration
-if not read_the_docs_build:
-    mathjax_config = {
-        "extensions": ["tex2jax.js", "siunitx.js"],
-        "TeX": {
-            "Macros": {
-                "st": [r"\mathrm{#1}", 1],
-                "mat": [r"\mathbf{#1}", 1],
-                "half": [r"\frac{1}{2}", 0],
-            },
-            "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
+# if not read_the_docs_build:
+mathjax2_config = {
+    "extensions": ["tex2jax.js", "siunitx.js"],
+    "TeX": {
+        "Macros": {
+            "st": [r"\mathrm{#1}", 1],
+            "mat": [r"\mathbf{#1}", 1],
+            "half": [r"\frac{1}{2}", 0],
         },
-    }
-else:
-    mathjax3_config = {
-        "tex": {
-            "macros": {
-                "st": [r"\mathrm{#1}", 1],
-                "mat": [r"\mathbf{#1}", 1],
-                "half": [r"\frac{1}{2}", 0],
-            },
-            "packages": ["base", "ams"],
+        "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
+    },
+}
+#for old versions
+mathjax_config = mathjax2_config
+
+mathjax3_config = {
+    "tex": {
+        "macros": {
+            "st": [r"\mathrm{#1}", 1],
+            "mat": [r"\mathbf{#1}", 1],
+            "half": [r"\frac{1}{2}", 0],
         },
-        "loader": {"load": ["[tex]/ams"]},
-    }
+        "packages": ["base", "ams"],
+    },
+    "loader": {"load": ["[tex]/ams"]},
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
