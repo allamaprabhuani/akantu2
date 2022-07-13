@@ -60,7 +60,8 @@
       - build-${output}-err.log
       - compile_commands.json
     expire_in: 10h
-
+  timeout: 4h
+  
 # build the tests
 .build_tests:
   stage: build_tests
