@@ -104,7 +104,8 @@
     exclude:
       - build/**/*.o
     expire_in: 10h
-
+  timeout: 4h
+  
 # Run the tests
 .tests:
   stage: test
