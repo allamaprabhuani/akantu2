@@ -282,21 +282,19 @@ namespace details {
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
   constexpr decltype(auto)
-  static_switch_dispatch(const std::tuple<std::integral_constant<Int, 1>,
-                                          std::integral_constant<Int, 2>,
-                                          std::integral_constant<Int, 3>> &,
-                         Function && function, const DynamicType & type,
+  static_switch_dispatch(const AllSpatialDimensions &, Function && function,
+                         const DynamicType & type,
                          DefaultFunction && default_function,
                          std::index_sequence<Is...> /*is*/) {
     switch (type) {
     case 1: {
-      return function(std::integral_constant<Int, 1>{});
+      return function(dim_1_t{});
     }
     case 2: {
-      return function(std::integral_constant<Int, 2>{});
+      return function(dim_2_t{});
     }
     case 3: {
-      return function(std::integral_constant<Int, 3>{});
+      return function(dim_3_t{});
     }
     default:
       return default_function(type);

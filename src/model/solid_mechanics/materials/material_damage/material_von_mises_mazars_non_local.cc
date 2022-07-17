@@ -38,7 +38,8 @@ template class MaterialMazarsNonLocal<1, MaterialLinearIsotropicHardening>;
 template class MaterialMazarsNonLocal<2, MaterialLinearIsotropicHardening>;
 template class MaterialMazarsNonLocal<3, MaterialLinearIsotropicHardening>;
 
-INSTANTIATE_MATERIAL_NO_INSTATIATION(plastic_mazars_non_local,
-                                     MaterialVonMisesMazarsNonLocal);
+static bool material_is_allocated_plastic_mazars_non_local =
+    instantiateMaterial<MaterialVonMisesMazarsNonLocal>(
+        "plastic_mazars_non_local");
 
 } // namespace akantu

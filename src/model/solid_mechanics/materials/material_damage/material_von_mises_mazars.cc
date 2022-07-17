@@ -38,6 +38,7 @@ template class MaterialMazars<1, MaterialLinearIsotropicHardening>;
 template class MaterialMazars<2, MaterialLinearIsotropicHardening>;
 template class MaterialMazars<3, MaterialLinearIsotropicHardening>;
 
-INSTANTIATE_MATERIAL_NO_INSTATIATION(plastic_mazars, MaterialVonMisesMazars);
+static bool material_is_allocated_plastic_mazars =
+    instantiateMaterial<MaterialVonMisesMazars>("plastic_mazars");
 
 } // namespace akantu

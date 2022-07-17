@@ -420,7 +420,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
           continue;
         }
 
-        Matrix<Real> quad_f =
+        auto && quad_f =
             make_view(quad_facets(global_facet.type, global_facet.ghost_type),
                       spatial_dimension, nb_quad_per_facet)
                 .begin()[global_facet.element];

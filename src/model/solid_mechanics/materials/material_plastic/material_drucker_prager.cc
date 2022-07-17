@@ -92,7 +92,10 @@ void MaterialDruckerPrager<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(plastic_drucker_prager, MaterialDruckerPrager);
+template class MaterialDruckerPrager<1>;
+template class MaterialDruckerPrager<2>;
+template class MaterialDruckerPrager<3>;
+static bool material_is_allocated_plastic_drucker_prager =
+    instantiateMaterial<MaterialDruckerPrager>("plastic_drucker_prager");
 
 } // namespace akantu

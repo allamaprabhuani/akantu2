@@ -60,11 +60,6 @@ inline auto Material::addElement(const Element & element) {
 }
 
 /* -------------------------------------------------------------------------- */
-constexpr inline Int Material::getCauchyStressMatrixSize(Int dim) {
-  return (dim * dim);
-}
-
-/* -------------------------------------------------------------------------- */
 template <Int dim, typename D1, typename D2>
 constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
                                          Eigen::MatrixBase<D2> & F) {
@@ -72,7 +67,7 @@ constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
          "The dimension of the tensor F should be greater or "
          "equal to the dimension of the tensor grad_u.");
 
-  F.Identity();
+  F.setIdentity();
   F.template block<dim, dim>(0, 0) += grad_u;
 }
 
@@ -91,7 +86,7 @@ constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
                                           const Eigen::MatrixBase<D2> & S,
                                           Eigen::MatrixBase<D3> & sigma,
                                           const Real & C33) {
-  Real J = F.determinant() * sqrt(C33);
+  Real J = F.determinant() * std::sqrt(C33);
 
   Matrix<Real, dim, dim> F_S;
   F_S = F * S;

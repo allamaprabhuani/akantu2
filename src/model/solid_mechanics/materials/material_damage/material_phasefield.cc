@@ -74,7 +74,11 @@ void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
+template class MaterialPhaseField<1>;
+template class MaterialPhaseField<2>;
+template class MaterialPhaseField<3>;
 
-INSTANTIATE_MATERIAL(phasefield, MaterialPhaseField);
+static bool material_is_allocated_phasefield =
+    instantiateMaterial<MaterialPhaseField>("phasefield");
 
 } // namespace akantu

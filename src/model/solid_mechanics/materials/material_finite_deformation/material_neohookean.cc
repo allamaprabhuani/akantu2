@@ -238,7 +238,10 @@ Real MaterialNeohookean<spatial_dimension>::getShearWaveSpeed(
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(neohookean, MaterialNeohookean);
+template class MaterialNeohookean<1>;
+template class MaterialNeohookean<2>;
+template class MaterialNeohookean<3>;
+static bool material_is_allocated_neohookean =
+    instantiateMaterial<MaterialNeohookean>("neohookean");
 
 } // namespace akantu

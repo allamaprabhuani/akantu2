@@ -46,8 +46,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-MaterialCohesiveLinear<dim>::MaterialCohesiveLinear(SolidMechanicsModel &model,
-                                                    const ID &id)
+MaterialCohesiveLinear<dim>::MaterialCohesiveLinear(SolidMechanicsModel & model,
+                                                    const ID & id)
     : MaterialCohesive(model, id), sigma_c_eff("sigma_c_eff", *this),
       delta_c_eff("delta_c_eff", *this),
       insertion_stress("insertion_stress", *this) {
@@ -136,12 +136,12 @@ template <Int dim> void MaterialCohesiveLinear<dim>::scaleInsertionTraction() {
     return;
   }
 
-  const auto &mesh_facets = model->getMeshFacets();
-  const auto &fe_engine = model->getFEEngine();
-  const auto &fe_engine_facet = model->getFEEngine("FacetsFEEngine");
+  const auto & mesh_facets = model->getMeshFacets();
+  const auto & fe_engine = model->getFEEngine();
+  const auto & fe_engine_facet = model->getFEEngine("FacetsFEEngine");
 
-  for (const auto &type_facet : mesh_facets.elementTypes(dim - 1)) {
-    const auto &facet_to_element =
+  for (const auto & type_facet : mesh_facets.elementTypes(dim - 1)) {
+    const auto & facet_to_element =
         mesh_facets.getElementToSubelement(type_facet);
 
     auto nb_quad_per_facet = fe_engine_facet.getNbIntegrationPoints(type_facet);
@@ -149,12 +149,12 @@ template <Int dim> void MaterialCohesiveLinear<dim>::scaleInsertionTraction() {
     for (auto data :
          enumerate(make_view(sigma_c(type_facet), nb_quad_per_facet))) {
       auto f = std::get<0>(data);
-      auto &&sigma_c = std::get<1>(data);
+      auto && sigma_c = std::get<1>(data);
 
       // compute bounding volume
       Real volume = 0;
 
-      for (auto &&elem : facet_to_element(f)) {
+      for (auto && elem : facet_to_element(f)) {
         if (elem == ElementNull) {
           continue;
         }
@@ -183,21 +183,21 @@ template <Int dim>
 void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
   AKANTU_DEBUG_IN();
 
-  const auto &mesh_facets = model->getMeshFacets();
-  auto &inserter = model->getElementInserter();
+  const auto & mesh_facets = model->getMeshFacets();
+  auto & inserter = model->getElementInserter();
 
-  for (const auto &type_facet : mesh_facets.elementTypes(dim - 1)) {
+  for (const auto & type_facet : mesh_facets.elementTypes(dim - 1)) {
     auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
-    const auto &facets_check = inserter.getCheckFacets(type_facet);
-    auto &f_insertion = inserter.getInsertionFacets(type_facet);
-    auto &f_filter = facet_filter(type_facet);
-    auto &sig_c_eff = sigma_c_eff(type_cohesive);
-    auto &del_c = delta_c_eff(type_cohesive);
-    auto &ins_stress = insertion_stress(type_cohesive);
-    auto &trac_old = tractions.previous(type_cohesive);
-    const auto &f_stress = model->getStressOnFacets(type_facet);
-    const auto &sigma_lim = sigma_c(type_facet);
+    const auto & facets_check = inserter.getCheckFacets(type_facet);
+    auto & f_insertion = inserter.getInsertionFacets(type_facet);
+    auto & f_filter = facet_filter(type_facet);
+    auto & sig_c_eff = sigma_c_eff(type_cohesive);
+    auto & del_c = delta_c_eff(type_cohesive);
+    auto & ins_stress = insertion_stress(type_cohesive);
+    auto & trac_old = tractions.previous(type_cohesive);
+    const auto & f_stress = model->getStressOnFacets(type_facet);
+    const auto & sigma_lim = sigma_c(type_facet);
 
     auto nb_quad_facet =
         model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
@@ -221,9 +221,9 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
     Vector<Real> stress_check(nb_quad_facet);
     auto sp2 = dim * dim;
 
-    const auto &tangents = model->getTangents(type_facet);
-    const auto &normals = model->getFEEngine("FacetsFEEngine")
-                              .getNormalsOnIntegrationPoints(type_facet);
+    const auto & tangents = model->getTangents(type_facet);
+    const auto & normals = model->getFEEngine("FacetsFEEngine")
+                               .getNormalsOnIntegrationPoints(type_facet);
     auto normal_begin = make_view<dim>(normals).begin();
     auto tangent_begin = make_view < dim, dim == 3 ? 2 : 1 > (tangents).begin();
     auto facet_stress_begin = make_view<dim, dim * 2>(f_stress).begin();
@@ -243,16 +243,16 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
       // compute the effective norm on each quadrature point of the facet
       for (Int q = 0; q < nb_quad_facet; ++q) {
         auto current_quad = facet * nb_quad_facet + q;
-        auto &&normal = normal_begin[current_quad];
-        auto &&tangent = tangent_begin[current_quad];
-        auto &&facet_stress_it = facet_stress_begin[current_quad];
+        auto && normal = normal_begin[current_quad];
+        auto && tangent = tangent_begin[current_quad];
+        auto && facet_stress_it = facet_stress_begin[current_quad];
 
         // compute average stress on the current quadrature point
         MatrixProxy<const Real, dim, dim> stress_1(facet_stress_it.data());
         MatrixProxy<const Real, dim, dim> stress_2(facet_stress_it.data() +
                                                    sp2);
 
-        auto &&stress_avg = (stress_1 + stress_2) / 2.;
+        auto && stress_avg = (stress_1 + stress_2) / 2.;
 
         // compute normal and effective stress
         stress_check(q) = computeEffectiveNorm(stress_avg, normal, tangent,
@@ -277,7 +277,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
         // point
         for (Int q = 0; q < nb_quad_facet; ++q) {
           auto new_sigma = stress_check(q);
-          auto &&normal_traction_vec = normal_traction(q);
+          auto && normal_traction_vec = normal_traction(q);
 
           if (dim != 3) {
             normal_traction_vec *= -1.;
@@ -323,7 +323,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialCohesiveLinear<dim>::computeTraction(const Array<Real> &normal,
+void MaterialCohesiveLinear<dim>::computeTraction(const Array<Real> & normal,
                                                   ElementType el_type,
                                                   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -366,8 +366,8 @@ void MaterialCohesiveLinear<dim>::computeTraction(const Array<Real> &normal,
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinear<dim>::computeTangentTraction(
-    ElementType el_type, Array<Real> &tangent_matrix, const Array<Real> &normal,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix,
+    const Array<Real> & normal, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -405,8 +405,12 @@ void MaterialCohesiveLinear<dim>::computeTangentTraction(
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(cohesive_linear, MaterialCohesiveLinear);
+/* -------------------------------------------------------------------------- */
+template class MaterialCohesiveLinear<1>;
+template class MaterialCohesiveLinear<2>;
+template class MaterialCohesiveLinear<3>;
+static bool material_is_alocated_cohesive_linear =
+    instantiateMaterial<MaterialCohesiveLinear>("cohesive_linear");
 
 } // namespace akantu

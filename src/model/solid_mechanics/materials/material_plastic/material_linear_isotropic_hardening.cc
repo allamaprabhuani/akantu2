@@ -98,8 +98,11 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(plastic_linear_isotropic_hardening,
-                     MaterialLinearIsotropicHardening);
+template class MaterialLinearIsotropicHardening<1>;
+template class MaterialLinearIsotropicHardening<2>;
+template class MaterialLinearIsotropicHardening<3>;
+static bool material_is_allocated_plastic_linear_isotropic_hardening =
+    instantiateMaterial<MaterialLinearIsotropicHardening>(
+        "plastic_linear_isotropic_hardening");
 
 } // namespace akantu

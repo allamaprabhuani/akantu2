@@ -107,8 +107,8 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
   auto insertion_stress_it =
       this->insertion_stress(el_type, ghost_type).begin(dim);
 
-  Vector<Real> normal_opening(dim);
-  Vector<Real> tangential_opening(dim);
+  Vector<Real, dim> normal_opening;
+  Vector<Real, dim> tangential_opening;
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
@@ -124,14 +124,9 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
 
     /// compute normal and tangential opening vectors
     normal_opening_norm = opening_it->dot(*normal_it);
-    Vector<Real> normal_opening = *normal_it;
-    normal_opening *= normal_opening_norm;
+    normal_opening = *normal_it * normal_opening_norm;
 
-    //    std::cout<< "normal_opening_norm = " << normal_opening_norm
-    //    <<std::endl;
-
-    Vector<Real> tangential_opening = *opening_it;
-    tangential_opening -= normal_opening;
+    tangential_opening = *opening_it - normal_opening;
     tangential_opening_norm = tangential_opening.norm();
 
     /// compute effective opening displacement
@@ -148,8 +143,7 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
 
     if (penetration) {
       /// use penalty coefficient in case of penetration
-      *contact_traction_it = normal_opening;
-      *contact_traction_it *= this->penalty;
+      *contact_traction_it = normal_opening * this->penalty;
       *contact_opening_it = normal_opening;
 
       /// don't consider penetration contribution for delta
@@ -173,8 +167,8 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
     *delta_t_max_it = std::max(*delta_t_max_it, delta_t);
     *damage_t_it = std::min(*delta_t_max_it / *delta_c_it, Real(1.));
 
-    Vector<Real> normal_traction(dim);
-    Vector<Real> shear_traction(dim);
+    Vector<Real, dim> normal_traction;
+    Vector<Real, dim> shear_traction;
 
     /// NORMAL TRACTIONS
     if (Math::are_float_equal(*damage_n_it, 1.)) {
@@ -188,12 +182,11 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
     } else {
       // the following formulation holds both in loading and in
       // unloading-reloading
-      normal_traction = normal_opening;
-
       AKANTU_DEBUG_ASSERT(*delta_n_max_it != 0.,
                           "Division by zero, tolerance might be too low");
 
-      normal_traction *= *sigma_c_it / (*delta_n_max_it) * (1. - *damage_n_it);
+      normal_traction = normal_opening * *sigma_c_it / (*delta_n_max_it) *
+                        (1. - *damage_n_it);
     }
 
     /// SHEAR TRACTIONS
@@ -201,17 +194,14 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
         Math::are_float_equal(*damage_t_it, 0.)) {
       shear_traction.zero();
     } else {
-      shear_traction = tangential_opening;
-
       AKANTU_DEBUG_ASSERT(*delta_t_max_it != 0.,
                           "Division by zero, tolerance might be too low");
 
-      shear_traction *= this->beta2_kappa;
-      shear_traction *= *sigma_c_it / (*delta_t_max_it) * (1. - *damage_t_it);
+      shear_traction = tangential_opening * this->beta2_kappa * *sigma_c_it /
+                       (*delta_t_max_it) * (1. - *damage_t_it);
     }
 
-    *traction_it = normal_traction;
-    *traction_it += shear_traction;
+    *traction_it = normal_traction + shear_traction;
   }
 
   AKANTU_DEBUG_OUT();
@@ -242,8 +232,8 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(dim);
 
-  Vector<Real> normal_opening(dim);
-  Vector<Real> tangential_opening(dim);
+  Vector<Real, dim> normal_opening;
+  Vector<Real, dim> tangential_opening;
 
   for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it,
                                     ++sigma_c_it, ++delta_c_it,
@@ -265,11 +255,9 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
 
     /// compute normal and tangential opening vectors
     normal_opening_norm = opening_it->dot(*normal_it);
-    Vector<Real> normal_opening = *normal_it;
-    normal_opening *= normal_opening_norm;
+    normal_opening = *normal_it * normal_opening_norm;
 
-    Vector<Real> tangential_opening = *opening_it;
-    tangential_opening -= normal_opening;
+    tangential_opening = *opening_it - normal_opening;
     tangential_opening_norm = tangential_opening.norm();
 
     Real delta_n =
@@ -388,9 +376,13 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(cohesive_linear_uncoupled,
-                     MaterialCohesiveLinearUncoupled);
+/* -------------------------------------------------------------------------- */
+template class MaterialCohesiveLinearUncoupled<1>;
+template class MaterialCohesiveLinearUncoupled<2>;
+template class MaterialCohesiveLinearUncoupled<3>;
+static bool material_is_allocated_cohesive_linear_uncoupled =
+    instantiateMaterial<MaterialCohesiveLinearUncoupled>(
+        "cohesive_linear_uncoupled");
 
 } // namespace akantu

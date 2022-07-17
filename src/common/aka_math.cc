@@ -66,26 +66,28 @@ namespace Math {
     tangents.zero();
 
     /// compute first tangent
-    for (auto && data : zip(make_view(normals, spatial_dimension),
-                            make_view(tangents, tangent_components))) {
+    for (auto && data :
+         zip(make_view(normals, spatial_dimension),
+             make_view(tangents, spatial_dimension, spatial_dimension - 1))) {
       const auto & normal_ = std::get<0>(data);
       auto & tangent = std::get<1>(data);
 
       if (are_float_equal(normal_.norm(), 0.)) {
-        tangent(0) = 1.;
+        tangent(0, 0) = 1.;
       } else {
-        tangent = normal(normal_);
+        tangent(0) = normal(normal_);
       }
     }
 
     /// compute second tangent (3D case)
     if (spatial_dimension == 3) {
-      for (auto && data : zip(make_view(normals, spatial_dimension),
-                              make_view(tangents, tangent_components))) {
+      for (auto && data :
+           zip(make_view(normals, spatial_dimension),
+               make_view(tangents, spatial_dimension, spatial_dimension - 1))) {
         const auto & normal_ = std::get<0>(data);
         auto & tangent = std::get<1>(data);
 
-        tangent.col(1) = normal(normal_, tangent.col(0));
+        tangent(1) = normal(normal_, tangent(0));
       }
     }
   }

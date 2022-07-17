@@ -301,6 +301,11 @@ void MaterialCohesiveExponential<dim>::computeCompressivePenalty(
   tangent = tangent + n_outer_n * normal_tg;
 }
 
-INSTANTIATE_MATERIAL(cohesive_exponential, MaterialCohesiveExponential);
+/* -------------------------------------------------------------------------- */
+template class MaterialCohesiveExponential<1>;
+template class MaterialCohesiveExponential<2>;
+template class MaterialCohesiveExponential<3>;
+static bool material_is_alocated_cohesive_exponential =
+    instantiateMaterial<MaterialCohesiveExponential>("cohesive_exponential");
 
 } // namespace akantu

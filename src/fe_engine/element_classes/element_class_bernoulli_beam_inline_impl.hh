@@ -195,10 +195,9 @@ template <class D1, class D2, class D3>
 inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
     Eigen::MatrixBase<D1> & R, const Eigen::MatrixBase<D2> & X,
     const Eigen::MatrixBase<D3> & n) {
-  Vector<Real> x2 = X(1); // X2
-  Vector<Real> x1 = X(0); // X1
   auto dim = X.rows();
-  Eigen::Matrix<Real, 1, 3> x = (x2 - x1), nv = n;
+  Eigen::Matrix<Real, 1, 3> x = (X(1) - X(0));
+  Eigen::Matrix<Real, 1, 3> nv = n;
 
   x.normalize();
   auto x_n = x.cross(nv);

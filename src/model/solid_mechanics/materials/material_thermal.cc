@@ -89,6 +89,8 @@ void MaterialThermal<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-INSTANTIATE_MATERIAL_ONLY(MaterialThermal);
+template class MaterialThermal<1>;
+template class MaterialThermal<2>;
+template class MaterialThermal<3>;
 
 } // namespace akantu

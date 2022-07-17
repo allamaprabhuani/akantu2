@@ -55,5 +55,11 @@ template <Int dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
 
 /* -------------------------------------------------------------------------- */
 // Instantiate the material for the 3 dimensions
-INSTANTIATE_MATERIAL(test_material, TestMaterialDamage);
+template class TestMaterialDamage<1>;
+template class TestMaterialDamage<2>;
+template class TestMaterialDamage<3>;
+
+static bool material_is_allocated_test_material =
+    instantiateMaterial<TestMaterialDamage>("test_material");
+
 /* -------------------------------------------------------------------------- */

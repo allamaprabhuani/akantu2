@@ -129,8 +129,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -164,8 +163,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 9; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -176,8 +174,7 @@ namespace dumpers {
     ComputeStrain(const SolidMechanicsModel & model) : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       auto nrows = spatial_dimension;
       auto ncols = in.size() / nrows;
       auto nb_data = in.size() / (nrows * nrows);
@@ -210,8 +207,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension * spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -224,8 +220,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Matrix<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       auto nrows = spatial_dimension;
       auto nb_data = in.size() / (nrows * nrows);
 
@@ -236,9 +231,7 @@ namespace dumpers {
       for (Int d = 0; d < nb_data; ++d) {
         Matrix<Real> grad_u = all_grad_u(d);
 
-        tuple_dispatch<std::tuple<std::integral_constant<Int, 1>,
-                                  std::integral_constant<Int, 2>,
-                                  std::integral_constant<Int, 3>>>(
+        tuple_dispatch<AllSpatialDimensions>(
             [&grad_u, &strain](auto && dim_t) {
               constexpr auto dim = std::decay_t<decltype(dim_t)>::value;
               if (green_strain) {
@@ -257,8 +250,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return spatial_dimension; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -270,8 +262,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
 
     inline Vector<Real> func(const Vector<Real> & in,
-                             Element /*global_element_id*/)
-    override {
+                             Element /*global_element_id*/) override {
       auto nrows = spatial_dimension;
       auto nb_data = in.size() / (nrows * nrows);
 
@@ -288,8 +279,7 @@ namespace dumpers {
     }
 
     Int getDim() override { return 1; }
-    Int getNbComponent(Int /*old_nb_comp*/)
-    override { return this->getDim(); }
+    Int getNbComponent(Int /*old_nb_comp*/) override { return this->getDim(); }
   };
 
   /* ------------------------------------------------------------------------ */

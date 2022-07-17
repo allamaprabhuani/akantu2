@@ -309,22 +309,27 @@ protected:
   /* Dynamic Analysis, Vol 9, 353-386, 1975                                   */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// assemble the residual
-  template <Int dim> void assembleInternalForces(GhostType ghost_type);
+  /// assemble the internal forces
+  template <Int dim, ElementType type>
+  void assembleInternalForces(GhostType ghost_type);
+
+  /// assemble the internal forces  in the case of finite deformation
+  template <Int dim, ElementType type>
+  void assembleInternalForcesFiniteDeformation(GhostType ghost_type);
 
   template <Int dim>
   void computeAllStressesFromTangentModuli(ElementType type,
                                            GhostType ghost_type);
 
-  template <Int dim>
-  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
+  template <Int dim, ElementType type>
+  void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// assembling in finite deformation
-  template <Int dim>
-  void assembleStiffnessMatrixNL(ElementType type, GhostType ghost_type);
+  template <Int dim, ElementType type>
+  void assembleStiffnessMatrixNL(GhostType ghost_type);
 
-  template <Int dim>
-  void assembleStiffnessMatrixL2(ElementType type, GhostType ghost_type);
+  template <Int dim, ElementType type>
+  void assembleStiffnessMatrixL2(GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Conversion functions                                                     */
@@ -332,7 +337,9 @@ protected:
 public:
   /// Size of the Stress matrix for the case of finite deformation see: Bathe et
   /// al, IJNME, Vol 9, 353-386, 1975
-  static constexpr inline Int getCauchyStressMatrixSize(Int dim);
+  static constexpr inline Int getCauchyStressMatrixSize(Int dim) {
+    return (dim * dim);
+  }
 
   /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
   /// 1975
@@ -775,45 +782,21 @@ inline std::ostream & operator<<(std::ostream & stream,
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END }
 
 /* -------------------------------------------------------------------------- */
-
-#define INSTANTIATE_MATERIAL_ONLY(mat_name)                                    \
-  template class mat_name<1>; /* NOLINT */                                     \
-  template class mat_name<2>; /* NOLINT */                                     \
-  template class mat_name<3>  /* NOLINT */
-
-#define MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name)                       \
-  [](Int dim, const ID &, SolidMechanicsModel & model,                         \
-     const ID & id) /* NOLINT */                                               \
-      -> std::unique_ptr<                                                      \
-          Material> { /* NOLINT */                                             \
-                      switch (dim) {                                           \
-                      case 1:                                                  \
-                        return std::make_unique<mat_name<1>>(/* NOLINT */      \
-                                                             model, id);       \
-                      case 2:                                                  \
-                        return std::make_unique<mat_name<2>>(/* NOLINT */      \
-                                                             model, id);       \
-                      case 3:                                                  \
-                        return std::make_unique<mat_name<3>>(/* NOLINT */      \
-                                                             model, id);       \
-                      default:                                                 \
-                        AKANTU_EXCEPTION(                                      \
-                            "The dimension "                                   \
-                            << dim                                             \
-                            << "is not a valid dimension for the material "    \
-                            << #id);                                           \
-                      }                                                        \
+namespace akantu {
+namespace {
+  template <template <Int> class Mat> bool instantiateMaterial(const ID & id) {
+    return MaterialFactory::getInstance().registerAllocator(
+        id,
+        [](Int dim, const ID &, SolidMechanicsModel & model, const ID & id) {
+          return tuple_dispatch<AllSpatialDimensions>(
+              [&](auto && _) -> std::unique_ptr<Material> {
+                constexpr auto && dim_ = std::decay_t<decltype(_)>::value;
+                return std::make_unique<Mat<dim_>>(model, id);
+              },
+              dim);
+        });
   }
-
-#define INSTANTIATE_MATERIAL(id, mat_name)                                     \
-  INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
-  static bool material_is_alocated_##id =                                      \
-      MaterialFactory::getInstance().registerAllocator(                        \
-          #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
-
-#define INSTANTIATE_MATERIAL_NO_INSTATIATION(id, mat_name)                     \
-  static bool material_is_alocated_##id [[gnu::unused]] =                      \
-      MaterialFactory::getInstance().registerAllocator(                        \
-          #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
+} // namespace
+} // namespace akantu
 
 #endif /* AKANTU_MATERIAL_HH_ */

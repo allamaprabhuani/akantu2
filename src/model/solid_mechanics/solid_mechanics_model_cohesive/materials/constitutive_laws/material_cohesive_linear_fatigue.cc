@@ -297,7 +297,11 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(cohesive_linear_fatigue, MaterialCohesiveLinearFatigue);
+template class MaterialCohesiveLinearFatigue<1>;
+template class MaterialCohesiveLinearFatigue<2>;
+template class MaterialCohesiveLinearFatigue<3>;
+static bool material_is_alocated_cohesive_linear_fatigue =
+    instantiateMaterial<MaterialCohesiveLinearFatigue>(
+        "cohesive_linear_fatigue");
 
 } // namespace akantu

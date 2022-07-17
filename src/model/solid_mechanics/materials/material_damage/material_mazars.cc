@@ -36,6 +36,13 @@
 
 namespace akantu {
 
-INSTANTIATE_MATERIAL(mazars, MaterialMazars);
+template class MaterialMazars<1>;
+template class MaterialMazars<2>;
+template class MaterialMazars<3>;
+
+template <Int dim> using MaterialMazars_ = MaterialMazars<dim>;
+
+static bool material_is_alocated_mazars =
+    instantiateMaterial<MaterialMazars_>("mazars");
 
 } // namespace akantu

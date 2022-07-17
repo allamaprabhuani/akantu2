@@ -142,6 +142,11 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-INSTANTIATE_MATERIAL(elastic_orthotropic, MaterialElasticOrthotropic);
+template class MaterialElasticOrthotropic<1>;
+template class MaterialElasticOrthotropic<2>;
+template class MaterialElasticOrthotropic<3>;
+
+static bool material_is_allocated_elastic_orthotropic =
+    instantiateMaterial<MaterialElasticOrthotropic>("elastic_orthotropic");
 
 } // namespace akantu

@@ -243,7 +243,11 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(sls_deviatoric, MaterialStandardLinearSolidDeviatoric);
+template class MaterialStandardLinearSolidDeviatoric<1>;
+template class MaterialStandardLinearSolidDeviatoric<2>;
+template class MaterialStandardLinearSolidDeviatoric<3>;
+static bool material_is_allocated_sls_deviatoric =
+    instantiateMaterial<MaterialStandardLinearSolidDeviatoric>(
+        "sls_deviatoric");
 
 } // namespace akantu

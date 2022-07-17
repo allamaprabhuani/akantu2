@@ -251,7 +251,12 @@ Real MaterialElasticLinearAnisotropic<dim>::getCelerity(
 }
 
 /* -------------------------------------------------------------------------- */
+template class MaterialElasticLinearAnisotropic<1>;
+template class MaterialElasticLinearAnisotropic<2>;
+template class MaterialElasticLinearAnisotropic<3>;
 
-INSTANTIATE_MATERIAL(elastic_anisotropic, MaterialElasticLinearAnisotropic);
+static bool material_is_alocated_elastic =
+    instantiateMaterial<MaterialElasticLinearAnisotropic>(
+        "elastic_anisotropic");
 
 } // namespace akantu

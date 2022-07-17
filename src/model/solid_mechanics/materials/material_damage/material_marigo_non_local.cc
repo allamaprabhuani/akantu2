@@ -89,6 +89,12 @@ void MaterialMarigoNonLocal<dim>::computeNonLocalStress(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
-INSTANTIATE_MATERIAL(marigo_non_local, MaterialMarigoNonLocal);
+/* -------------------------------------------------------------------------- */
+template class MaterialMarigoNonLocal<1>;
+template class MaterialMarigoNonLocal<2>;
+template class MaterialMarigoNonLocal<3>;
+
+static bool material_is_alocated_marigo_non_local =
+    instantiateMaterial<MaterialMarigo>("marigo_non_local");
 
 } // namespace akantu

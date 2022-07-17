@@ -292,7 +292,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   }
 
 #define INSTANTIATE_PHASEFIELD(id, phase_name)                                 \
-  static bool phasefield_is_alocated_##id [[gnu::unused]] =                    \
+  static bool phasefield_is_allocated_##id [[gnu::unused]] =                   \
       PhaseFieldFactory::getInstance().registerAllocator(                      \
           #id, PHASEFIELD_DEFAULT_ALLOCATOR(id, phase_name))
 

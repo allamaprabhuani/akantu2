@@ -342,6 +342,17 @@ TYPED_TEST(ArrayFixture, IteratorIncrement) {
   EXPECT_EQ(12, (*it)[0]);
 }
 
+TYPED_TEST(ArrayFixture, IteratorFixSize) {
+  this->array->set(12);
+
+  auto it = make_view<10>(*this->array).begin();
+  EXPECT_EQ(12, (*it)[0]);
+
+  auto && vect = *it;
+  vect(0) = 120;
+  EXPECT_EQ(120, (*this->array)(0, 0));
+}
+
 TYPED_TEST(ArrayFixture, IteratorBracket) {
   this->array->set(12);
 

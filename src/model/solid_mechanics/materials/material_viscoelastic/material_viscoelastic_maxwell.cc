@@ -659,7 +659,10 @@ void MaterialViscoelasticMaxwell<dim>::forceNotUpdateVariable() {
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(viscoelastic_maxwell, MaterialViscoelasticMaxwell);
+template class MaterialViscoelasticMaxwell<1>;
+template class MaterialViscoelasticMaxwell<2>;
+template class MaterialViscoelasticMaxwell<3>;
+static bool material_is_allocated_viscoelastic_maxwell =
+    instantiateMaterial<MaterialViscoelasticMaxwell>("viscoelastic_maxwell");
 
 } // namespace akantu

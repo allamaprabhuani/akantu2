@@ -53,13 +53,10 @@ namespace akantu {
 namespace Math {
   /* ------------------------------------------------------------------------ */
   template <class D1, aka::enable_if_t<aka::is_vector<D1>::value> *>
-  inline Vector<Real, 2> normal(const Eigen::MatrixBase<D1> & vec) {
-    Vector<Real, 2> normal_;
-    AKANTU_DEBUG_ASSERT(vec.cols() == 1 and vec.rows() == 2,
-                        "Vec is not of the proper size");
-    Vector<Real, 2> vec_(vec);
-    normal_[0] = vec_[1];
-    normal_[1] = -vec_[0];
+  inline Vector<Real> normal(const Eigen::MatrixBase<D1> & vec) {
+    Vector<Real> normal_(vec);
+    normal_[0] = vec[1];
+    normal_[1] = -vec[0];
     normal_.normalize();
     return normal_;
   }

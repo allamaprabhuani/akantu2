@@ -158,7 +158,8 @@ void MaterialPlastic<dim>::updateEnergies(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL_ONLY(MaterialPlastic);
+template class MaterialPlastic<1>;
+template class MaterialPlastic<2>;
+template class MaterialPlastic<3>;
 
 } // namespace akantu

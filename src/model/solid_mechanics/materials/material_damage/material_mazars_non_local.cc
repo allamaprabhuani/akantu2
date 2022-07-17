@@ -37,6 +37,13 @@
 
 namespace akantu {
 
-INSTANTIATE_MATERIAL(mazars_non_local, MaterialMazarsNonLocal);
+template class MaterialMazarsNonLocal<1>;
+template class MaterialMazarsNonLocal<2>;
+template class MaterialMazarsNonLocal<3>;
+
+template <Int dim> using MaterialMazarsNonLocal_ = MaterialMazarsNonLocal<dim>;
+
+static bool material_is_alocated_mazars_non_local =
+    instantiateMaterial<MaterialMazarsNonLocal_>("mazars_non_local");
 
 } // namespace akantu

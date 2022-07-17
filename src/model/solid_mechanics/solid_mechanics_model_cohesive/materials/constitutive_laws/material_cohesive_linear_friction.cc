@@ -266,7 +266,11 @@ void MaterialCohesiveLinearFriction<dim>::computeTangentTraction(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(cohesive_linear_friction, MaterialCohesiveLinearFriction);
+template class MaterialCohesiveLinearFriction<1>;
+template class MaterialCohesiveLinearFriction<2>;
+template class MaterialCohesiveLinearFriction<3>;
+static bool material_is_allocated_cohesive_linear_friction =
+    instantiateMaterial<MaterialCohesiveLinearFriction>(
+        "cohesive_linear_friction");
 
 } // namespace akantu

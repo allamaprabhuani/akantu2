@@ -92,6 +92,12 @@ void MaterialMarigo<dim>::computeStress(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
-INSTANTIATE_MATERIAL(marigo, MaterialMarigo);
+/* -------------------------------------------------------------------------- */
+template class MaterialMarigo<1>;
+template class MaterialMarigo<2>;
+template class MaterialMarigo<3>;
+
+static bool material_is_alocated_marigo =
+    instantiateMaterial<MaterialMarigo>("marigo");
 
 } // namespace akantu

@@ -245,8 +245,13 @@ template <>
 Real MaterialElastic<1>::getShearWaveSpeed(const Element & /*element*/) const {
   AKANTU_EXCEPTION("There is no shear wave speed in 1D");
 }
-/* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(elastic, MaterialElastic);
+/* -------------------------------------------------------------------------- */
+template class MaterialElastic<1>;
+template class MaterialElastic<2>;
+template class MaterialElastic<3>;
+
+static bool material_is_allocated_elastic =
+    instantiateMaterial<MaterialElastic>("elastic");
 
 } // namespace akantu
