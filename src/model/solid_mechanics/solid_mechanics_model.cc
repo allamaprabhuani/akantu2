@@ -632,8 +632,8 @@ Real SolidMechanicsModel::getExternalWork() {
            make_view(*internal_force, spatial_dimension),
            make_view(*blocked_dofs, spatial_dimension),
            make_view(*incr_or_velo, spatial_dimension), arange(nb_nodes))) {
-    auto && int_force = std::get<0>(data);
-    auto && ext_force = std::get<1>(data);
+    auto && ext_force = std::get<0>(data);
+    auto && int_force = std::get<1>(data);
     auto && boun = std::get<2>(data);
     auto && incr_or_velo = std::get<3>(data);
     auto && n = std::get<4>(data);
