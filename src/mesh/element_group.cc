@@ -203,15 +203,31 @@ void ElementGroup::onNodesAdded(const Array<UInt> & new_nodes,
   if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     // nodes might have changed in the connectivity
     node_group.clear();
+    const auto & mesh_to_mesh_facet =
+        mesh.getData<Element>("mesh_to_mesh_facet");
+
     for (auto ghost_type : ghost_types) {
       for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
         auto & els = elements(type, ghost_type);
+
+        const auto & mesh_to_mesh_facet_type =
+            mesh_to_mesh_facet(type, ghost_type);
+
         auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
         auto && conn_it = make_view(mesh.getConnectivity(type, ghost_type),
                                     nb_nodes_per_element)
                               .begin();
+
+        auto && mesh_facet_conn_it =
+            make_view(mesh.getMeshFacets().getConnectivity(type, ghost_type),
+                      nb_nodes_per_element)
+                .begin();
+
         for (auto element : els) {
+          auto && mesh_facet_conn =
+              mesh_facet_conn_it[mesh_to_mesh_facet_type(element).element];
           auto && conn = conn_it[element];
+          conn = mesh_facet_conn;
           for (auto && n : conn) {
             node_group.add(n, false);
           }

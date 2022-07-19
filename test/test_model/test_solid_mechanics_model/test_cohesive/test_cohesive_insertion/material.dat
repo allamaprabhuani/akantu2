@@ -1,0 +1,19 @@
+seed = 1.0
+model solid_mechanics_model_cohesive [
+
+    material elastic [
+        name = linear
+        rho = 2750.0 # Density (kg/m3)
+        E = 275.0e9  # Young's module (Pa)
+        nu = 0.3
+        finite_deformation = true
+    ]
+
+    material cohesive_linear [
+        name = insertion
+        sigma_c = 300.0e6 uniform [-1e6, 1e6] # critical stress (Pa)
+        G_c = 100.0 # Fracture energy (N/m)
+        beta = 0.
+        penalty = 1e11
+    ]
+]

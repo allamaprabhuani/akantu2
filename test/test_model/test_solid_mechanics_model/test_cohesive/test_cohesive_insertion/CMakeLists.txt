@@ -40,3 +40,11 @@ register_test(test_cohesive_insertion_along_physical_surfaces
   FILES_TO_COPY input_file.dat
   PACKAGE cohesive_element
   )
+
+add_mesh(group_update_bar bar.geo DIM 2 ORDER 1)
+register_test(test_cohesive_group_update
+  SOURCES test_group_update.cc
+  DEPENDS group_update_bar
+  FILES_TO_COPY material.dat
+  PACKAGE cohesive_element
+  )
