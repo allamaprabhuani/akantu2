@@ -210,6 +210,9 @@ void ElementGroup::onNodesAdded(const Array<UInt> & new_nodes,
       for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
         auto & els = elements(type, ghost_type);
 
+        if (not mesh_to_mesh_facet.exists(type, ghost_type)) {
+          continue;
+        }
         const auto & mesh_to_mesh_facet_type =
             mesh_to_mesh_facet(type, ghost_type);
 
