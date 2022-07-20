@@ -97,6 +97,7 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
     this->model->applyBC(BC::Dirichlet::FixedValue(u, _x), "el_fixed");
 
     Vector<Real> surface_traction(spatial_dimension);
+    surface_traction.zero();
     Real work = 0.0;
     Real Epot;
     static const Int N = 100;
