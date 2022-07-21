@@ -33,6 +33,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "element_group.hh"
 #include "aka_csr.hh"
 #include "dumpable.hh"
 #include "dumpable_inline_impl.hh"
@@ -40,11 +41,12 @@
 #include "group_manager_inline_impl.hh"
 #include "mesh.hh"
 #include "mesh_utils.hh"
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#include "cohesive_element_inserter.hh"
+#endif
 #include <algorithm>
 #include <iterator>
 #include <sstream>
-
-#include "element_group.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
 
@@ -139,10 +141,10 @@ void ElementGroup::optimize() {
   // increasing the locality of data when iterating on the element of a group
   for (auto ghost_type : ghost_types) {
     for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
-      Array<UInt> & els = elements(type, ghost_type);
+      auto & els = elements(type, ghost_type);
       std::sort(els.begin(), els.end());
 
-      Array<UInt>::iterator<> end = std::unique(els.begin(), els.end());
+      auto end = std::unique(els.begin(), els.end());
       els.resize(end - els.begin());
     }
   }
@@ -157,38 +159,32 @@ void ElementGroup::fillFromNodeGroup() {
 
   std::set<Element> seen;
 
-  Array<UInt>::const_iterator<> itn = this->node_group.begin();
-  Array<UInt>::const_iterator<> endn = this->node_group.end();
-  for (; itn != endn; ++itn) {
-    CSR<Element>::iterator ite = node_to_elem.begin(*itn);
-    CSR<Element>::iterator ende = node_to_elem.end(*itn);
-    for (; ite != ende; ++ite) {
-      const Element & elem = *ite;
+  for (auto node : node_group) {
+    auto ite = node_to_elem.begin(node);
+    auto ende = node_to_elem.end(node);
+    for (auto && element : node_to_elem.getRow(node)) {
       if (this->dimension != _all_dimensions &&
-          this->dimension != Mesh::getSpatialDimension(elem.type)) {
-        continue;
-      }
-      if (seen.find(elem) != seen.end()) {
+          this->dimension != Mesh::getSpatialDimension(element.type)) {
         continue;
       }
 
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
-      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
-          this->mesh.getConnectivity(elem.type, elem.ghost_type)
-              .begin(nb_nodes_per_element);
-      const Vector<UInt> & conn = conn_it[elem.element];
+      if (seen.find(element) != seen.end()) {
+        continue;
+      }
+
+      auto nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+      auto conn = mesh.getConnectivity(element);
 
       UInt count = 0;
-      for (UInt n = 0; n < conn.size(); ++n) {
-        count +=
-            (this->node_group.getNodes().find(conn(n)) != UInt(-1) ? 1 : 0);
+      for (auto && n : conn) {
+        count += (this->node_group.getNodes().find(n) != UInt(-1) ? 1 : 0);
       }
 
       if (count == nb_nodes_per_element) {
-        this->add(elem);
+        this->add(element);
       }
 
-      seen.insert(elem);
+      seen.insert(element);
     }
   }
 
@@ -200,6 +196,51 @@ void ElementGroup::addDimension(UInt dimension) {
   this->dimension = std::max(dimension, this->dimension);
 }
 
+/* -------------------------------------------------------------------------- */
+void ElementGroup::onNodesAdded(const Array<UInt> & new_nodes,
+                                const NewNodesEvent & event) {
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
+    // nodes might have changed in the connectivity
+    node_group.clear();
+    const auto & mesh_to_mesh_facet =
+        mesh.getData<Element>("mesh_to_mesh_facet");
+
+    for (auto ghost_type : ghost_types) {
+      for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
+        auto & els = elements(type, ghost_type);
+
+        if (not mesh_to_mesh_facet.exists(type, ghost_type)) {
+          continue;
+        }
+        const auto & mesh_to_mesh_facet_type =
+            mesh_to_mesh_facet(type, ghost_type);
+
+        auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+        auto && conn_it = make_view(mesh.getConnectivity(type, ghost_type),
+                                    nb_nodes_per_element)
+                              .begin();
+
+        auto && mesh_facet_conn_it =
+            make_view(mesh.getMeshFacets().getConnectivity(type, ghost_type),
+                      nb_nodes_per_element)
+                .begin();
+
+        for (auto element : els) {
+          auto && mesh_facet_conn =
+              mesh_facet_conn_it[mesh_to_mesh_facet_type(element).element];
+          auto && conn = conn_it[element];
+          conn = mesh_facet_conn;
+          for (auto && n : conn) {
+            node_group.add(n, false);
+          }
+        }
+      }
+    }
+    node_group.optimize();
+  }
+#endif
+}
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu
