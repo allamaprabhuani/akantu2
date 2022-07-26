@@ -47,6 +47,24 @@ void ConstitutiveLawHeat::computeFlux(ElementType el_type,
 				      GhostType ghost_type) {
 
 
+  
+  Matrix<Real> identity(spatial_dimension, spatial_dimension);
+  identity.eye();
+  auto C = identity * this->conductivity;
+  C *= -1;
+  
+  // temperature gradient at quadrature points
+  auto & temperature_gradient = gradient_dof(el_type, ghost_type);
+  
+  for (auto && values :
+         zip(make_view(temperature_gradient, spatial_dimension),
+             make_view(flux_dof(el_type, ghost_type), spatial_dimension))) {
+    const auto & BT = std::get<0>(values);
+    auto & k_BT = std::get<1>(values);
+
+    k_BT.mul<false>(C, BT);
+  }
+  
   /*computeConductivityOnQuad(el_type, ghost_type);
 
   // temperature gradient at quadrature points
