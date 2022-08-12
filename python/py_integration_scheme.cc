@@ -53,7 +53,9 @@ void register_integration_schemes(py::module & mod) {
   py::class_<NewmarkBeta, IntegrationScheme2ndOrder>(mod, "NewmarkBeta")
       .def(py::init<DOFManager &, const ID &, Real, Real>(),
            py::arg("dof_manager"), py::arg("id"), py::arg("alpha"),
-           py::arg("beta"));
+           py::arg("beta"))
+      .def_property("alpha", &NewmarkBeta::getAlpha, &NewmarkBeta::setAlpha)
+      .def_property("beta", &NewmarkBeta::getBeta, &NewmarkBeta::setBeta);
 
   py::class_<CentralDifference, NewmarkBeta>(mod, "CentralDifference");
   py::class_<TrapezoidalRule2, NewmarkBeta>(mod, "TrapezoidalRule2");

@@ -399,9 +399,9 @@ BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
                                       const ElementGroup & element_group) {
 #if !defined(AKANTU_NDEBUG)
   if (element_group.getDimension() != model->getSpatialDimension() - 1) {
-    AKANTU_DEBUG_WARNING("The group "
-                         << element_group.getName()
-                         << " does not contain only boundaries elements");
+    AKANTU_DEBUG_INFO("The group "
+                      << element_group.getName()
+                      << " does not contain only boundaries elements");
   }
 #endif
 

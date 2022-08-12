@@ -127,7 +127,10 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO(Beta, beta, Real);
+  AKANTU_SET_MACRO(Beta, beta, Real);
+
   AKANTU_GET_MACRO(Alpha, alpha, Real);
+  AKANTU_SET_MACRO(Alpha, alpha, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
