@@ -49,6 +49,9 @@ MaterialDamage<spatial_dimension, Parent>::MaterialDamage(
       int_sigma("integral of sigma", *this) {
   AKANTU_DEBUG_IN();
 
+  this->registerParam("damage_limit", damage_limit, Real(1.),
+		      _pat_parsable | _pat_modifiable);
+
   this->is_non_local = false;
   this->use_previous_stress = true;
   this->use_previous_gradu = true;

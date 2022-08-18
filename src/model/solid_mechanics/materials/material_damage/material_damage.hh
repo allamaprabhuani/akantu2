@@ -100,6 +100,9 @@ protected:
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega
   /// @f$ the dissipated energy
   InternalField<Real> int_sigma;
+
+  // Maximum Damage limit
+  Real damage_limit;
 };
 
 } // namespace akantu

@@ -75,7 +75,7 @@ inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
   if (Fd > 0) {
     dam = (Y - Ydq) / Sd;
   }
-  dam = std::min(dam, Real(1.));
+  dam = std::min(dam, this->damage_limit);
 
   sigma *= 1 - dam;
 }

@@ -149,7 +149,7 @@ inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
     damtemp = alpha_t * dam_t + alpha_c * dam_c;
 
     dam = std::max(damtemp, dam);
-    dam = std::min(dam, Real(1.));
+    dam = std::min(dam, this->damage_limit);
   }
 }
 
