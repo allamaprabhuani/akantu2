@@ -90,8 +90,7 @@ public:
 
     bool operator!=(const CellID & id) const { return !(operator==(id)); }
 
-    class neighbor_cells_iterator
-        : private std::iterator<std::forward_iterator_tag, Idx> {
+    class neighbor_cells_iterator {
     public:
       neighbor_cells_iterator(const CellID & cell_id, bool end)
           : cell_id(cell_id), position(cell_id.ids.size()) {
@@ -248,8 +247,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  class cells_iterator
-      : private std::iterator<std::forward_iterator_tag, CellID> {
+  class cells_iterator {
   public:
     explicit cells_iterator(typename std::map<CellID, Cell>::const_iterator it)
         : it(it) {}

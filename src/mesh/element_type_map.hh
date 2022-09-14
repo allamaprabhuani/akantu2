@@ -137,12 +137,13 @@ public:
   using DataMap = std::map<SupportType, Stored>;
 
   /// helper class to use in range for constructions
-  class type_iterator
-      : private std::iterator<std::forward_iterator_tag, const SupportType> {
+  class type_iterator {
   public:
     using value_type = const SupportType;
     using pointer = const SupportType *;
     using reference = SupportType;
+    using iterator_category = std::input_iterator_tag;
+    using difference_type = Int;
 
   protected:
     using DataMapIterator =
@@ -503,5 +504,22 @@ using ElementTypeMapUInt = ElementTypeMapArray<UInt>;
 using ElementTypeMapIdx = ElementTypeMapArray<Idx>;
 
 } // namespace akantu
+
+// namespace std {
+// template <class Stored, typename SupportType>
+// struct iterator_traits<
+//     ::akantu::template ElementTypeMap<Stored, SupportType>::type_iterator> {
+// private:
+//   using iterator_type =
+//       typename ::akantu::ElementTypeMap<Stored, SupportType>::type_iterator;
+
+// public:
+//   using iterator_category = typename iterator_type::iterator_category;
+//   using value_type = typename iterator_type::value_type;
+//   using difference_type = typename iterator_type::difference_type;
+//   using pointer = typename iterator_type::pointer;
+//   using reference = typename iterator_type::reference;
+// };
+// } // namespace std
 
 #endif /* AKANTU_ELEMENT_TYPE_MAP_HH_ */

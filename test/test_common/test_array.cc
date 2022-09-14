@@ -390,6 +390,20 @@ TYPED_TEST(ArrayFixture, IteratorRange) {
   }
 }
 
+TYPED_TEST(ArrayFixture, DynamicSizeIteratorFilter) {
+  this->array->set(12);
+  (*this->array)(3) = 13;
+  (*this->array)(50) = 13;
+
+  std::vector<Idx> list_filter{3, 50};
+  auto && view = make_view(*this->array, 10);
+
+  for (auto && data : filter(list_filter, view)) {
+    EXPECT_EQ(13, data[0]);
+    EXPECT_EQ(12, data[1]);
+  }
+}
+
 TYPED_TEST(ArrayFixture, IteratorFilter) {
   this->array->set(12);
   (*this->array)(3) = 13;

@@ -197,7 +197,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 
   mesh_facets = std::make_unique<Mesh>(spatial_dimension, this->nodes,
                                        getID() + ":" + id);
-
   mesh_facets->mesh_parent = this;
   mesh_facets->is_mesh_facets = true;
   mesh_facets->nodes_flags = this->nodes_flags;

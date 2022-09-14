@@ -122,6 +122,10 @@ public:
 #define debug_ 0
 
 #if debug_
+    auto size = mesh->getCommunicator().getNbProc();
+    this->model->setBaseName("solid_mechanics_model_cohesive_" +
+                             std::to_string(size));
+    //    this->model->addDumpField("partition");
     this->model->addDumpFieldVector("displacement");
     this->model->addDumpFieldVector("velocity");
     this->model->addDumpFieldVector("internal_force");
@@ -130,7 +134,8 @@ public:
     this->model->addDumpField("stress");
     this->model->addDumpField("strain");
     this->model->assembleInternalForces();
-    this->model->setBaseNameToDumper("cohesive elements", "cohesive_elements");
+    this->model->setBaseNameToDumper(
+        "cohesive elements", "cohesive_elements_" + std::to_string(size));
     this->model->addDumpFieldVectorToDumper("cohesive elements",
                                             "displacement");
     this->model->addDumpFieldToDumper("cohesive elements", "damage");

@@ -286,7 +286,8 @@ void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
     auto && piola = std::get<1>(data);
     auto && sigma = std::get<2>(data);
 
-    this->StoCauchy<dim>(gradUToF<dim>(grad_u), piola, sigma);
+    Matrix<Real, dim, dim> F = gradUToF<dim>(grad_u);
+    this->StoCauchy<dim>(F, piola, sigma);
   }
 
   AKANTU_DEBUG_OUT();
@@ -793,8 +794,8 @@ void Material::interpolateStressOnFacets(
 
       for (Int f = 0; f < nb_facet_per_elem; ++f) {
         auto facet_elem = facet_to_element(global_el, f);
-        auto is_second_element =
-            Int(mesh_facets.getElementToSubelement(facet_elem)[0] != element);
+        Int is_second_element =
+            mesh_facets.getElementToSubelement(facet_elem)[0] != element;
 
         auto && result_local =
             result.get(facet_elem, stress_size, 2, nb_quad_per_facet);

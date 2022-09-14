@@ -66,17 +66,17 @@ public:
   constexpr TensorBase(Args... args)
       : n{idx_t(args)...}, _size(detail::product_all(args...)) {}
 
-  constexpr TensorBase(const TensorBase &other)
+  constexpr TensorBase(const TensorBase & other)
       : n(other.n), _size(other._size), values(other.values) {}
 
-  constexpr TensorBase(TensorBase &&other) noexcept
+  constexpr TensorBase(TensorBase && other) noexcept
       : n(std::move(other.n)), _size(std::exchange(other._size, 0)),
         values(std::exchange(other.values, nullptr)) {}
 
 protected:
   template <typename Array, idx_t... I>
   constexpr auto check_indices(
-      const Array &idx,
+      const Array & idx,
       std::integer_sequence<idx_t, I...> /* for_template_deduction */) const {
     bool result = true;
     (void)std::initializer_list<int>{(result &= idx[I] < n[I], 0)...};
@@ -150,14 +150,14 @@ public:
   }
 
 protected:
-  template <class Operator> auto transform(Operator &&op) -> RetType & {
+  template <class Operator> auto transform(Operator && op) -> RetType & {
     std::transform(this->values, this->values + this->_size, this->values,
                    std::forward<Operator>(op));
     return *(static_cast<RetType *>(this));
   }
 
   template <class Other, class Operator>
-  auto transform(Other &&other, Operator &&op) -> RetType & {
+  auto transform(Other && other, Operator && op) -> RetType & {
     AKANTU_DEBUG_ASSERT(_size == other.size(),
                         "The two tensors do not have the same size "
                             << this->_size << " != " << other._size);
@@ -167,14 +167,14 @@ protected:
     return *(static_cast<RetType *>(this));
   }
 
-  template <class Operator> auto accumulate(T init, Operator &&op) -> T {
+  template <class Operator> auto accumulate(T init, Operator && op) -> T {
     return std::accumulate(this->values, this->values + this->_size,
                            std::move(init), std::forward<Operator>(op));
   }
 
   template <class Other, class Init, class Accumulate, class Operator>
-  auto transform_reduce(Other &&other, T init, Accumulate &&acc, Operator &&op)
-      -> T {
+  auto transform_reduce(Other && other, T init, Accumulate && acc,
+                        Operator && op) -> T {
     return std::inner_product(
         this->values, this->values + this->_size, other.data(), std::move(init),
         std::forward<Accumulate>(acc), std::forward<Operator>(op));
@@ -182,40 +182,40 @@ protected:
 
   // element wise arithmetic operators -----------------------------------------
 public:
-  inline decltype(auto) operator+=(const TensorBase &other) {
-    return transform(other, [](auto &&a, auto &&b) { return a + b; });
+  inline decltype(auto) operator+=(const TensorBase & other) {
+    return transform(other, [](auto && a, auto && b) { return a + b; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline auto operator-=(const TensorBase &other) -> TensorBase & {
-    return transform(other, [](auto &&a, auto &&b) { return a - b; });
+  inline auto operator-=(const TensorBase & other) -> TensorBase & {
+    return transform(other, [](auto && a, auto && b) { return a - b; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline auto operator+=(const T &x) -> TensorBase & {
-    return transform([&x](auto &&a) { return a + x; });
+  inline auto operator+=(const T & x) -> TensorBase & {
+    return transform([&x](auto && a) { return a + x; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline auto operator-=(const T &x) -> TensorBase & {
-    return transform([&x](auto &&a) { return a - x; });
+  inline auto operator-=(const T & x) -> TensorBase & {
+    return transform([&x](auto && a) { return a - x; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline auto operator*=(const T &x) -> TensorBase & {
-    return transform([&x](auto &&a) { return a * x; });
+  inline auto operator*=(const T & x) -> TensorBase & {
+    return transform([&x](auto && a) { return a * x; });
   }
 
   /* ---------------------------------------------------------------------- */
-  inline auto operator/=(const T &x) -> TensorBase & {
-    return transform([&x](auto &&a) { return a / x; });
+  inline auto operator/=(const T & x) -> TensorBase & {
+    return transform([&x](auto && a) { return a / x; });
   }
 
   /// Y = \alpha X + Y
-  inline auto aXplusY(const TensorBase &other, const T alpha = 1.)
+  inline auto aXplusY(const TensorBase & other, const T alpha = 1.)
       -> TensorBase & {
     return transform(other,
-                     [&alpha](auto &&a, auto &&b) { return alpha * a + b; });
+                     [&alpha](auto && a, auto && b) { return alpha * a + b; });
   }
 
   /* ------------------------------------------------------------------------ */
@@ -242,7 +242,7 @@ public:
     return n[i];
   };
 
-  inline void set(const T &t) { std::fill_n(values, _size, t); };
+  inline void set(const T & t) { std::fill_n(values, _size, t); };
   inline void clear() { set(T()); };
 
 public:
@@ -252,28 +252,30 @@ public:
   template <Int norm_type,
             std::enable_if_t<norm_type == Eigen::Infinity> * = nullptr>
   auto lpNorm() const -> T {
-    return accumulate(T(),
-                      [](auto &&init, auto &&a) { return init + std::abs(a); });
+    return accumulate(
+        T(), [](auto && init, auto && a) { return init + std::abs(a); });
   }
 
   template <Int norm_type, std::enable_if_t<norm_type == 1> * = nullptr>
   auto lpNorm() const -> T {
-    return accumulate(
-        T(), [](auto &&init, auto &&a) { return std::max(init, std::abs(a)); });
+    return accumulate(T(), [](auto && init, auto && a) {
+      return std::max(init, std::abs(a));
+    });
   }
 
   template <Int norm_type, std::enable_if_t<norm_type == 2> * = nullptr>
   auto norm() const -> T {
     return std::sqrt(
-        accumulate(T(), [](auto &&init, auto &&a) { return init + a * a; }));
+        accumulate(T(), [](auto && init, auto && a) { return init + a * a; }));
   }
 
   template <Int norm_type, std::enable_if_t<(norm_type > 2)> * = nullptr>
   auto norm() const -> T {
-    return std::pow(
-        accumulate(T(), [](auto &&init,
-                           auto &&a) { return init + std::pow(a, norm_type); }),
-        1. / norm_type);
+    return std::pow(accumulate(T(),
+                               [](auto && init, auto && a) {
+                                 return init + std::pow(a, norm_type);
+                               }),
+                    1. / norm_type);
   }
 
   auto norm() const -> T { return lpNorm<2>(); }
@@ -281,13 +283,13 @@ public:
 protected:
   template <Int N, typename... Args,
             std::enable_if_t<(sizeof...(Args) == ndim), int> = 0>
-  void serialize(std::ostream &stream, Args... args) const {
+  void serialize(std::ostream & stream, Args... args) const {
     stream << this->operator()(std::move(args)...);
   }
 
   template <Int N, typename... Args,
             std::enable_if_t<(sizeof...(Args) < ndim), int> = 0>
-  void serialize(std::ostream &stream, Args... args) const {
+  void serialize(std::ostream & stream, Args... args) const {
     stream << "[";
     for (idx_t i = 0; i < n[N]; ++i) {
       if (i != 0) {
@@ -299,7 +301,7 @@ protected:
   }
 
 public:
-  void printself(std::ostream &stream) const { serialize<0>(stream); };
+  void printself(std::ostream & stream) const { serialize<0>(stream); };
 
 protected:
   template <std::size_t... I>
@@ -345,7 +347,7 @@ protected:
   idx_t _size{0};
 
   // actual data location
-  T *values{nullptr};
+  T * values{nullptr};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -358,23 +360,25 @@ private:
 public:
   // proxy constructor
   template <typename... Args>
-  constexpr TensorProxy(T *data, Args... args) : parent(args...) {
+  constexpr TensorProxy(T * data = reinterpret_cast<T *>(0xdeadbeef),
+                        Args... args)
+      : parent(args...) {
     this->values = data;
   }
 
-  constexpr TensorProxy(const TensorProxy<T, ndim> &other) : parent(other) {
+  constexpr TensorProxy(const TensorProxy<T, ndim> & other) : parent(other) {
     this->values = other.values;
   }
 
-  constexpr TensorProxy(const Tensor<T, ndim> &other) : parent(other) {
+  constexpr TensorProxy(const Tensor<T, ndim> & other) : parent(other) {
     this->values = other.values;
   }
 
   // move constructors ---------------------------------------------------------
   // proxy -> proxy
-  TensorProxy(TensorProxy &&other) noexcept : parent(other) {}
+  TensorProxy(TensorProxy && other) noexcept : parent(other) {}
 
-  auto operator=(const TensorBase<T, ndim> &other) -> TensorProxy & {
+  auto operator=(const TensorBase<T, ndim> & other) -> TensorProxy & {
     AKANTU_DEBUG_ASSERT(
         other.size() == this->size(),
         "You are trying to copy too a tensors proxy with the wrong size "
@@ -407,12 +411,13 @@ public:
   virtual ~Tensor() { delete[] this->values; }
 
   // copy constructors ---------------------------------------------------------
-  constexpr Tensor(const Tensor &other) : parent(other) {
+  constexpr Tensor(const Tensor & other) : parent(other) {
     this->values = new T[this->_size];
     std::copy(other.values, other.values + this->_size, this->values);
   }
 
-  constexpr explicit Tensor(const TensorProxy<T, ndim> &other) : parent(other) {
+  constexpr explicit Tensor(const TensorProxy<T, ndim> & other)
+      : parent(other) {
     //    static_assert(false, "Copying data are you sure");
     this->values = new T[this->_size];
     std::copy(other.values, other.values + this->_size, this->values);
@@ -420,11 +425,11 @@ public:
 
   // move constructors ---------------------------------------------------------
   // proxy -> proxy, non proxy -> non proxy
-  Tensor(Tensor &&other) noexcept : parent(other) {}
+  Tensor(Tensor && other) noexcept : parent(other) {}
 
   // copy operator -------------------------------------------------------------
   /// operator= copy-and-swap
-  auto operator=(const TensorBase<T, ndim> &other) -> Tensor & {
+  auto operator=(const TensorBase<T, ndim> & other) -> Tensor & {
     if (&other == this)
       return *this;
 

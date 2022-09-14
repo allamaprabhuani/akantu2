@@ -62,13 +62,9 @@ FacetSynchronizer::FacetSynchronizer(
     const auto & scheme = std::get<1>(scheme_pair);
 
     for (auto && elem : scheme) {
-      const auto & facet_to_element =
-          mesh.getSubelementToElement(elem.type, elem.ghost_type);
-      auto && facets = facet_to_element.begin(
-          facet_to_element.getNbComponent())[elem.element];
+      const auto & facets = mesh.getSubelementToElement().get(elem);
 
-      for (Int f = 0; f < facets.size(); ++f) {
-        const auto & facet = facets(f);
+      for (auto && facet : facets) {
         if (facet == ElementNull) {
           continue;
         }
@@ -132,14 +128,10 @@ FacetSynchronizer::FacetSynchronizer(
     // check the facets to see if they should be communicated and create a
     // connectivity array to match with the one other processors might send
     for (auto && element : elements) {
-      const auto & facet_to_element =
-          mesh.getSubelementToElement(element.type, element.ghost_type);
-      auto && facets = facet_to_element.begin(
-          facet_to_element.getNbComponent())[element.element];
+      const auto & facet_to_element = mesh.getSubelementToElement();
+      auto && facets = facet_to_element.get(element);
 
-      for (Int f = 0; f < facets.size(); ++f) {
-        auto & facet = facets(f);
-
+      for (auto && facet : facets) {
         // exclude no valid facets
         if (facet == ElementNull) {
           continue;
@@ -166,10 +158,7 @@ FacetSynchronizer::FacetSynchronizer(
 
         facet_scheme.push_back(facet);
 
-        auto & global_conn =
-            facet_global_connectivities(facet.type, facet.ghost_type);
-        auto && conn =
-            global_conn.begin(global_conn.getNbComponent())[facet.element];
+        auto && conn = facet_global_connectivities.get(facet);
         std::sort(conn.data(), conn.data() + conn.size());
 
         connectivities_for_proc(facet.type, facet.ghost_type).push_back(conn);

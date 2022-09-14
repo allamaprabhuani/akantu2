@@ -217,6 +217,10 @@ namespace detail {
       // this proxy should not be returned
     }
 
+    template <Int _dim = dim, typename RD = std::decay_t<R>,
+              std::enable_if_t<(_dim > 2)> * = nullptr>
+    internal_view_iterator() {}
+
     internal_view_iterator(const internal_view_iterator & it)
         : dims(it.dims), _offset(it._offset), initial(it.initial),
           ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)) {}

@@ -608,7 +608,7 @@ void MeshUtils::flipFacets(
       }
 
       /// re-arrange connectivity
-      auto conn_tmp = conn;
+      Vector<Idx> conn_tmp = conn;
       auto begin = local_gconn.begin();
       auto end = local_gconn.end();
 

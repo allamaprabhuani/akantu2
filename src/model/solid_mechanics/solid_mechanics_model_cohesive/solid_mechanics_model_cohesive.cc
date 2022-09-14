@@ -564,19 +564,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
   const auto & old_nodes = cohesive_event->getOldNodesList();
 
   auto copy = [this, &new_nodes, &old_nodes](auto & arr) {
-    Idx new_node;
-    Idx old_node;
-
-    auto view = make_view(arr, spatial_dimension);
-    auto begin = view.begin();
-
-    for (auto && pair : zip(new_nodes, old_nodes)) {
-      std::tie(new_node, old_node) = pair;
-
-      auto old_ = begin + old_node;
-      auto new_ = begin + new_node;
-
-      *new_ = *old_;
+    auto it = make_view(arr, spatial_dimension).begin();
+    for (auto [new_node, old_node] : zip(new_nodes, old_nodes)) {
+      it[new_node] = it[old_node];
     }
   };
 

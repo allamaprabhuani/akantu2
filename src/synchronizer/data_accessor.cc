@@ -47,23 +47,25 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
 
   auto current_element_type = _not_defined;
   auto current_ghost_type = _casper;
-  Int * conn = nullptr;
+  const_view_iterator<VectorProxy<Idx>> conn_it;
+
+  auto data_it = make_view(data, nb_component).begin();
 
   for (const auto & el : elements) {
     if (el.type != current_element_type ||
         el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type = el.ghost_type;
-      conn = mesh.getConnectivity(el.type, el.ghost_type).data();
       nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+      conn_it = make_view(mesh.getConnectivity(el.type, el.ghost_type),
+                          nb_nodes_per_element)
+                    .begin();
     }
 
-    auto el_offset = el.element * nb_nodes_per_element;
-    for (Int n = 0; n < nb_nodes_per_element; ++n) {
-      auto offset_conn = conn[el_offset + n];
-      VectorProxy<T> data_vect(data.data() + offset_conn * nb_component,
-                               nb_component);
+    auto && conn = conn_it[el.element];
 
+    for (auto node : conn) {
+      auto && data_vect = data_it[node];
       if (pack_helper) {
         buffer << data_vect;
       } else {
@@ -79,30 +81,25 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & element, bool per_quadrature_point_data,
     const FEEngine & fem) {
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  Int nb_quad_per_elem = 0;
-  Int nb_component = 0;
-
-  Array<T> * vect = nullptr;
+  auto current_element_type = _not_defined;
+  auto current_ghost_type = _casper;
+  view_iterator<VectorProxy<T>> data_it;
 
   for (const auto & el : element) {
     if (el.type != current_element_type ||
         el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type = el.ghost_type;
-      vect = &data_to_pack(el.type, el.ghost_type);
-
-      nb_quad_per_elem =
+      auto nb_quad_per_elem =
           per_quadrature_point_data
               ? fem.getNbIntegrationPoints(el.type, el.ghost_type)
               : 1;
-      nb_component = vect->getNbComponent();
+      auto && array = data_to_pack(el.type, el.ghost_type);
+      auto nb_component = array.getNbComponent();
+      data_it = make_view(array, nb_component * nb_quad_per_elem).begin();
     }
 
-    VectorProxy<T> data(vect->data() +
-                            el.element * nb_component * nb_quad_per_elem,
-                        nb_component * nb_quad_per_elem);
+    auto && data = data_it[el.element];
     if (pack_helper) {
       buffer << data;
     } else {

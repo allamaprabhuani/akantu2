@@ -191,13 +191,14 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
     const auto & facets_check = inserter.getCheckFacets(type_facet);
     auto & f_insertion = inserter.getInsertionFacets(type_facet);
-    auto & f_filter = facet_filter(type_facet);
     auto & sig_c_eff = sigma_c_eff(type_cohesive);
     auto & del_c = delta_c_eff(type_cohesive);
     auto & ins_stress = insertion_stress(type_cohesive);
     auto & trac_old = tractions.previous(type_cohesive);
     const auto & f_stress = model->getStressOnFacets(type_facet);
-    const auto & sigma_lim = sigma_c(type_facet);
+
+    const auto & facet_filter_array = facet_filter(type_facet);
+    const auto & sigma_limit_array = sigma_c(type_facet);
 
     auto nb_quad_facet =
         model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
@@ -211,30 +212,24 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
                         "not have the same numbers of integration points");
 #endif
 
-    auto nb_facet = f_filter.size();
-    //  if (nb_facet == 0) continue;
-
-    auto sigma_lim_it = sigma_lim.begin();
-
     Matrix<Real, dim, dim> stress_tmp;
     Matrix<Real> normal_traction(dim, nb_quad_facet);
     Vector<Real> stress_check(nb_quad_facet);
-    auto sp2 = dim * dim;
 
     const auto & tangents = model->getTangents(type_facet);
     const auto & normals = model->getFEEngine("FacetsFEEngine")
                                .getNormalsOnIntegrationPoints(type_facet);
     auto normal_begin = make_view<dim>(normals).begin();
-    auto tangent_begin = make_view < dim, dim == 3 ? 2 : 1 > (tangents).begin();
-    auto facet_stress_begin = make_view<dim, dim * 2>(f_stress).begin();
+    auto tangent_begin = make_view<dim, (dim == 3 ? 2 : 1)>(tangents).begin();
+    auto facet_stress_begin = make_view(f_stress, dim, dim, 2).begin();
 
     std::vector<Real> new_sigmas;
     std::vector<Vector<Real>> new_normal_traction;
     std::vector<Real> new_delta_c;
 
     // loop over each facet belonging to this material
-    for (Int f = 0; f < nb_facet; ++f, ++sigma_lim_it) {
-      auto facet = f_filter(f);
+    for (auto && [facet, sigma_limit] :
+         zip(facet_filter_array, sigma_limit_array)) {
       // skip facets where check shouldn't be realized
       if (!facets_check(facet)) {
         continue;
@@ -245,12 +240,11 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
         auto current_quad = facet * nb_quad_facet + q;
         auto && normal = normal_begin[current_quad];
         auto && tangent = tangent_begin[current_quad];
-        auto && facet_stress_it = facet_stress_begin[current_quad];
+        auto && facet_stress = facet_stress_begin[current_quad];
 
         // compute average stress on the current quadrature point
-        MatrixProxy<const Real, dim, dim> stress_1(facet_stress_it.data());
-        MatrixProxy<const Real, dim, dim> stress_2(facet_stress_it.data() +
-                                                   sp2);
+        auto && stress_1 = facet_stress(0);
+        auto && stress_2 = facet_stress(1);
 
         auto && stress_avg = (stress_1 + stress_2) / 2.;
 
@@ -266,7 +260,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
                                          stress_check.data() + nb_quad_facet);
       }
 
-      if (final_stress > *sigma_lim_it) {
+      if (final_stress > sigma_limit) {
         f_insertion(facet) = true;
 
         if (check_only) {
@@ -292,7 +286,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
           if (Math::are_float_equal(delta_c, 0.)) {
             new_delta = 2 * G_c / new_sigma;
           } else {
-            new_delta = (*sigma_lim_it) / new_sigma * delta_c;
+            new_delta = sigma_limit / new_sigma * delta_c;
           }
 
           new_delta_c.push_back(new_delta);

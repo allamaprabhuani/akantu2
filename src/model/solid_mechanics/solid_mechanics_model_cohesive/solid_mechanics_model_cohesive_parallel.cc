@@ -149,35 +149,37 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::updateFacetStressSynchronizer() {
-  if (facet_stress_synchronizer != nullptr) {
-    const auto & rank_to_element =
-        mesh.getElementSynchronizer().getElementToRank();
-    const auto & facet_checks = inserter->getCheckFacets();
-    const auto & mesh_facets = inserter->getMeshFacets();
-    const auto & element_to_facet = mesh_facets.getElementToSubelement();
-    auto rank = mesh.getCommunicator().whoAmI();
-
-    facet_stress_synchronizer->updateSchemes(
-        [&](auto & scheme, auto & proc, auto & /*direction*/) {
-          Idx el = 0;
-          for (auto && element : scheme) {
-            if (not facet_checks(element)) {
-              continue;
-            }
-
-            const auto & next_el = element_to_facet(element);
-            auto rank_left = rank_to_element(next_el[0]);
-            auto rank_right = rank_to_element(next_el[1]);
-
-            if ((rank_left == rank and rank_right == proc) or
-                (rank_left == proc and rank_right == rank)) {
-              scheme[el] = element;
-              ++el;
-            }
-          }
-          scheme.resize(el);
-        });
+  if (facet_stress_synchronizer == nullptr) {
+    return;
   }
+
+  const auto & rank_to_element =
+      mesh.getElementSynchronizer().getElementToRank();
+  const auto & facet_checks = inserter->getCheckFacets();
+  const auto & mesh_facets = inserter->getMeshFacets();
+  const auto & element_to_facet = mesh_facets.getElementToSubelement();
+  auto rank = mesh.getCommunicator().whoAmI();
+
+  facet_stress_synchronizer->updateSchemes(
+      [&](auto & scheme, auto & proc, auto & /*direction*/) {
+        Idx el = 0;
+        for (auto && element : scheme) {
+          if (not facet_checks(element)) {
+            continue;
+          }
+
+          const auto & next_el = element_to_facet(element);
+          auto rank_left = rank_to_element(next_el[0]);
+          auto rank_right = rank_to_element(next_el[1]);
+
+          if ((rank_left == rank and rank_right == proc) or
+              (rank_left == proc and rank_right == rank)) {
+            scheme[el] = element;
+            ++el;
+          }
+        }
+        scheme.resize(el);
+      });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -204,14 +206,11 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     const Array<Element> & elements) const {
   auto current_element_type = _not_defined;
   auto current_ghost_type = _casper;
-  Int nb_quad_per_elem = 0;
-  Int sp2 = spatial_dimension * spatial_dimension;
-  Int nb_component = sp2 * 2;
   bool element_rank = false;
   auto & mesh_facets = inserter->getMeshFacets();
 
-  Array<T> * vect = nullptr;
   const Array<std::vector<Element>> * element_to_facet = nullptr;
+  view_iterator<Tensor3Proxy<T>> data_it;
 
   auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (auto && el : elements) {
@@ -224,28 +223,26 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
         el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type = el.ghost_type;
-      vect = &data_to_pack(el.type, el.ghost_type);
-
       element_to_facet =
           &(mesh_facets.getElementToSubelement(el.type, el.ghost_type));
 
-      nb_quad_per_elem =
+      auto nb_quad_per_elem =
           fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
+      data_it =
+          make_view(data_to_pack(el.type, el.ghost_type),
+                    spatial_dimension * spatial_dimension, 2, nb_quad_per_elem)
+              .begin();
     }
 
+    auto ghost_type = (*element_to_facet)(el.element)[0].ghost_type;
     if (pack_helper) {
-      element_rank =
-          (*element_to_facet)(el.element)[0].ghost_type != _not_ghost;
+      element_rank = ghost_type != _not_ghost;
     } else {
-      element_rank =
-          (*element_to_facet)(el.element)[0].ghost_type == _not_ghost;
+      element_rank = ghost_type == _not_ghost;
     }
 
-    for (Int q = 0; q < nb_quad_per_elem; ++q) {
-      VectorProxy<T> data(vect->data() +
-                         (el.element * nb_quad_per_elem + q) * nb_component +
-                         element_rank * sp2,
-                     sp2);
+    for (auto && data_per_quad : data_it[el.element]) {
+      auto && data = data_per_quad(element_rank);
 
       if (pack_helper) {
         buffer << data;

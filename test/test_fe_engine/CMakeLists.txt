@@ -37,7 +37,6 @@
 #===============================================================================
 function(register_fem_test operation type)
   set(_target test_${operation}${type})
-
   register_test(${_target}
     SOURCES test_${operation}.cc
     FILES_TO_COPY ${type}.msh
@@ -47,7 +46,8 @@ function(register_fem_test operation type)
 endfunction()
 
 #===============================================================================
-macro(register_mesh_types package _types)
+macro(register_mesh_types package)
+  set(_types ${ARGN})
   foreach(_type ${_types})
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
       list(APPEND _meshes ${_type}.msh)
@@ -79,6 +79,8 @@ set(_regular_types
   _triangle_3
   _triangle_6
   )
+
+
 register_mesh_types(core ${_regular_types})
 
 package_is_activated(structural_mechanics has_structural_mechanics)

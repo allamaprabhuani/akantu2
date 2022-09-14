@@ -327,7 +327,7 @@ void MeshPartitionScotch::partitionate(
       for (auto && conn : make_view(connectivity, nb_nodes_per_element)) {
         mid.set(0.);
         for (auto node : conn) {
-          mid += Vector<Real>(nodes_it[node]);
+          mid += nodes_it[node];
         }
         mid /= conn.size();
 

@@ -196,8 +196,6 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
     const Array<Int> & element_filter) const {
   AKANTU_DEBUG_IN();
 
-  auto nb_element = this->mesh.getNbElement(type, ghost_type);
-
   constexpr auto nb_quad_per_element =
       GaussIntegrationElement<type>::getNbQuadraturePoints();
   auto nb_interpolation_points_per_elem =
@@ -205,54 +203,49 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
       nb_quad_per_element;
 
   if (not result.exists(type, ghost_type)) {
+    auto nb_element = this->mesh.getNbElement(type, ghost_type);
     result.alloc(nb_element * nb_interpolation_points_per_elem,
                  field.getNbComponent(), type, ghost_type);
   }
 
-  if (element_filter != empty_filter) {
-    nb_element = element_filter.size();
-  }
+  AKANTU_DEBUG_ASSERT(element_filter != empty_filter,
+                      "This function does not work without an element_filter");
+  //  auto nb_element = element_filter.size();
 
   Matrix<Real> coefficients(nb_quad_per_element, field.getNbComponent());
 
-  auto & result_vec = result(type, ghost_type);
-
-  auto field_it =
-      make_view(field, field.getNbComponent(), nb_quad_per_element).begin();
-
-  auto interpolation_points_coordinates_it =
-      interpolation_points_coordinates_matrices.begin(
-          nb_interpolation_points_per_elem, nb_quad_per_element);
-
-  auto result_begin = make_view(result_vec, field.getNbComponent(),
-                                nb_interpolation_points_per_elem)
-                          .begin();
-
-  auto inv_quad_coord_it = quad_points_coordinates_inv_matrices.begin(
-      nb_quad_per_element, nb_quad_per_element);
+  auto result_begin =
+      make_view(result(type, ghost_type), field.getNbComponent(),
+                nb_interpolation_points_per_elem)
+          .begin();
 
   /// loop over the elements of the current filter and element type
-  for (Int el = 0; el < nb_element; ++el, ++field_it, ++inv_quad_coord_it,
-           ++interpolation_points_coordinates_it) {
+  for (auto && data :
+       zip(element_filter,
+           make_view(field, field.getNbComponent(), nb_quad_per_element),
+           make_view(interpolation_points_coordinates_matrices,
+                     nb_interpolation_points_per_elem, nb_quad_per_element),
+           make_view(quad_points_coordinates_inv_matrices, nb_quad_per_element,
+                     nb_quad_per_element))) {
     /**
      * matrix containing the inversion of the quadrature points'
      * coordinates
      */
-    const auto & inv_quad_coord_matrix = *inv_quad_coord_it;
+    auto && inv_quad_coord_matrix = std::get<3>(data);
 
     /**
      * multiply it by the field values over quadrature points to get
      * the interpolation coefficients
      */
-    coefficients = inv_quad_coord_matrix * field_it->transpose();
+    coefficients = inv_quad_coord_matrix * std::get<1>(data).transpose();
 
     /// matrix containing the points' coordinates
-    const auto & coord = *interpolation_points_coordinates_it;
+    auto && coord = std::get<2>(data);
 
+    auto el = std::get<0>(data);
     /// multiply the coordinates matrix by the coefficients matrix and store the
     /// result
-    result_begin[element_filter(el)] =
-        coefficients.transpose() * coord.transpose();
+    result_begin[el] = coefficients.transpose() * coord.transpose();
   }
 
   AKANTU_DEBUG_OUT();
