@@ -98,8 +98,9 @@ void StructuralMechanicsModel::assembleMassMatrix(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleLumpedMassMatrix() {
 
-  if (not this->need_to_reassemble_lumpedMass)
+  if (not this->need_to_reassemble_lumped_mass) {
     return;
+  }
 
   allocNodalField(this->mass, nb_degree_of_freedom, "lumped_mass");
 
@@ -212,8 +213,8 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
 
   this->getDOFManager().assembleToLumpedMatrix("displacement", lumped_mass,
                                                "M");
-  this->need_to_reassemble_lumpedMass = false;
-  return;
+
+  this->need_to_reassemble_lumped_mass = false;
 }
 
 } // namespace akantu

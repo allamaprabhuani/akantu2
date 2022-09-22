@@ -88,6 +88,7 @@ public:
                                                 this->spatial_dimension - 1);
 
     Vector<Real> surface_traction(this->spatial_dimension);
+    surface_traction.zero();
     surface_traction(_x) = 0.5;
     if (this->spatial_dimension == 1) {
       // TODO: this is a hack to work
@@ -135,10 +136,13 @@ TYPED_TEST(TestSMMFixtureWorkDynamic, WorkExplicit) {
     for (Int i = 0; i < 25; ++i) {
       this->model->solveStep();
     }
+
     // Again, work reported by Akantu is infinitesimal (dW) and we
     // need to integrate a while to get a decent value.
-    double Etot0 =
-        this->model->getEnergy("potential") + this->model->getEnergy("kinetic");
+    auto Epot = this->model->getEnergy("potential");
+    auto Ekin = this->model->getEnergy("kinetic");
+
+    auto Etot0 = Epot + Ekin;
     double W = 0.0;
     for (Int i = 0; i < 200; ++i) {
       /// Solve.
@@ -149,8 +153,8 @@ TYPED_TEST(TestSMMFixtureWorkDynamic, WorkExplicit) {
       W += dW;
     }
     // Finally check.
-    const auto Epot = this->model->getEnergy("potential");
-    const auto Ekin = this->model->getEnergy("kinetic");
+    Epot = this->model->getEnergy("potential");
+    Ekin = this->model->getEnergy("kinetic");
 
     EXPECT_NEAR(W, Ekin + Epot - Etot0, 5e-2);
     // Sadly not very exact for such a coarse mesh.

@@ -120,13 +120,15 @@ public:
                                    const Eigen::MatrixBase<D2> & x,
                                    const Eigen::MatrixBase<D3> & T,
                                    TensorBase<Real, 3> & Ns) {
-    Matrix<Real> N(Ns.size(1), Ns.size(2));
+
+    Matrix<Real> N(Ns.size(0), Ns.size(1));
     for (auto && data : zip(Xs, Ns)) {
       auto && X = std::get<0>(data);
       auto && N_T = std::get<1>(data);
 
       computeShapes(X, x, N);
-      N_T = N.block(0, 0, N_T.rows(), N_T.cols()) * T;
+
+      N_T = N * T;
     }
   }
 

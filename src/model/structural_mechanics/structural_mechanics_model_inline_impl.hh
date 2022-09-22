@@ -175,7 +175,8 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   for (auto && data :
        zip(make_view(*tangent_moduli, tangent_size, tangent_size),
-           make_view(b, tangent_size, d_b_size), make_view(u_el, d_b_size),
+           make_view(b, tangent_size, d_b_size),
+           repeat_n(make_view(u_el, d_b_size), nb_quadrature_points),
            make_view(sigma, tangent_size))) {
     auto && D = std::get<0>(data);
     auto && B = std::get<1>(data);

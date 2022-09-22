@@ -621,7 +621,6 @@ void MeshUtils::flipFacets(
         AKANTU_DEBUG_ASSERT(it != end, "Node not found");
         auto new_position = it - begin;
         conn(new_position) = conn_tmp(std::get<0>(data));
-        ;
       }
       // std::transform(remote_gconn.begin(), remote_gconn.end(), conn.begin(),
       //                [&](auto && gnode) {

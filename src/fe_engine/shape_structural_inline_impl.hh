@@ -68,12 +68,13 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
 
   auto nb_points = integration_points.cols();
   auto nb_element = mesh.getConnectivity(type, ghost_type).size();
-  auto nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement();
+  const auto nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement();
 
   shapes.resize(nb_element * nb_points);
 
-  auto nb_dofs = ElementClass<type>::getNbDegreeOfFreedom();
+  const auto nb_dofs = ElementClass<type>::getNbDegreeOfFreedom();
   auto nb_rows = nb_dofs;
+
   if (mass) {
     nb_rows = ElementClass<type>::getNbStressComponents();
   }
@@ -85,55 +86,44 @@ void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
                           << "number of component");
 #endif
 
-  auto shapes_it =
-      make_view(shapes, nb_rows,
-                ElementClass<type>::getNbNodesPerInterpolationElement() *
-                    nb_dofs,
-                nb_points)
-          .begin();
-
-  auto shapes_begin = shapes_it;
-  if (filter_elements != empty_filter) {
-    nb_element = filter_elements.size();
-  }
-
+  const auto nb_cols_shapes =
+      ElementClass<type>::getNbNodesPerInterpolationElement() * nb_dofs;
   auto nodes_per_element = getNodesPerElement<type>(mesh, nodes, ghost_type);
-  auto nodes_it = nodes_per_element->begin(mesh.getSpatialDimension(),
-                                           Mesh::getNbNodesPerElement(type));
-  auto nodes_begin = nodes_it;
-  auto rot_matrix_it =
-      make_view(rotation_matrices(type, ghost_type), nb_dofs, nb_dofs).begin();
-  auto rot_matrix_begin = rot_matrix_it;
 
-  for (Int elem = 0; elem < nb_element; ++elem) {
-    if (filter_elements != empty_filter) {
-      shapes_it = shapes_begin + filter_elements(elem);
-      nodes_it = nodes_begin + filter_elements(elem);
-      rot_matrix_it = rot_matrix_begin + filter_elements(elem);
-    }
+  auto shapes_view = make_view(shapes, nb_rows, nb_cols_shapes, nb_points);
+  auto nodes_view = make_view<Eigen::Dynamic, nb_nodes_per_element>(
+      *nodes_per_element, mesh.getSpatialDimension(), nb_nodes_per_element);
+  auto R_view =
+      make_view<nb_dofs, nb_dofs>(rotation_matrices(type, ghost_type));
 
-    Tensor3<Real> N = *shapes_it;
-    auto & real_coord = *nodes_it;
+  auto loop_core = [&](auto && data) {
+    auto & N = std::get<0>(data);
+    auto & X = std::get<1>(data);
+    auto & R = std::get<2>(data);
 
-    auto & RDOFs = *rot_matrix_it;
-
-    Matrix<Real> T(N.size(1), N.size(1));
+    Matrix<Real, nb_cols_shapes, nb_cols_shapes> T;
     T.zero();
 
     for (Int i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(i * RDOFs.rows(), i * RDOFs.cols(), RDOFs.rows(), RDOFs.cols()) =
-          RDOFs;
+      T.template block<nb_dofs, nb_dofs>(i * nb_dofs, i * nb_dofs) = R;
     }
 
     if (not mass) {
-      ElementClass<type>::computeShapes(integration_points, real_coord, T, N);
+      ElementClass<type>::computeShapes(integration_points, X, T, N);
     } else {
-      ElementClass<type>::computeShapesMass(integration_points, real_coord, T,
-                                            N);
+      ElementClass<type>::computeShapesMass(integration_points, X, T, N);
     }
-    if (filter_elements == empty_filter) {
-      ++shapes_it;
-      ++nodes_it;
+  };
+
+  if (filter_elements == empty_filter) {
+    for (auto && data : zip(shapes_view, nodes_view, R_view)) {
+      loop_core(data);
+    }
+
+  } else {
+    for (auto && data :
+         filter(filter_elements, zip(shapes_view, nodes_view, R_view))) {
+      loop_core(data);
     }
   }
 }
@@ -259,6 +249,7 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
   const auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
   const auto nb_element = mesh.getNbElement(type, ghost_type);
   const auto nb_stress_components = ElementClass<type>::getNbStressComponents();
+  const auto nb_cols_shaped = nb_dof * nb_nodes_per_element;
 
   auto itp_type = FEEngine::getInterpolationType(type);
   if (not this->shapes_derivatives.exists(itp_type, ghost_type)) {
@@ -276,9 +267,8 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
 
   for (auto && tuple :
        zip(make_view(x_el, spatial_dimension, nb_nodes_per_element),
-           make_view(shapesd, nb_stress_components,
-                     nb_nodes_per_element * nb_dof, nb_points),
-           make_view(rot_matrices, nb_dof, nb_dof))) {
+           make_view(shapesd, nb_stress_components, nb_cols_shaped, nb_points),
+           make_view<nb_dof, nb_dof>(rot_matrices))) {
     // compute shape derivatives
     auto & X = std::get<0>(tuple);
     auto & B = std::get<1>(tuple);
@@ -293,18 +283,18 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
                     natural_coords.cols());
 
     // Computing the coordinates of the element in the natural space
-    auto && R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
-    Matrix<Real> T(B.size(1), B.size(1));
-    T.fill(0);
+    Matrix<Real, nb_cols_shaped, nb_cols_shaped> T;
+    T.zero();
 
     for (Int i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(i * RDOFs.rows(), i * RDOFs.rows(), RDOFs.rows(), RDOFs.cols()) =
-          RDOFs;
+      T.template block<nb_dof, nb_dof>(i * nb_dof, i * nb_dof) = RDOFs;
     }
 
+    auto && R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
     // Rotate to local basis
     auto x =
-        (R * X).block(0, 0, natural_spatial_dimension, nb_nodes_per_element);
+        (R * X).template block<natural_spatial_dimension, nb_nodes_per_element>(
+            0, 0);
 
     ElementClass<type>::computeJMat(natural_coords, x, J);
     ElementClass<type>::computeShapeDerivatives(J, dnds, T, B);

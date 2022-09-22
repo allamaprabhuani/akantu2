@@ -768,10 +768,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered,
       // copy the data for the local processor
       for (auto local_entity : entities_from_root) {
         auto global_entity = localToGlobalEntity(local_entity);
-
-        Vector<T> entity_data_to_scatter = data_to_scatter_it[global_entity];
-        Vector<T> entity_data_scattered = data_scattered_it[local_entity];
-        entity_data_scattered = entity_data_to_scatter;
+        data_scattered_it[local_entity] = data_to_scatter_it[global_entity];
       }
 
       continue;
@@ -833,7 +830,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered) {
 
   // unpack the data
   for (auto local_entity : entities_from_root) {
-    Vector<T> data_scattered(data_scattered_it[local_entity]);
+    auto && data_scattered = data_scattered_it[local_entity];
     buffer >> data_scattered;
   }
 

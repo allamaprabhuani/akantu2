@@ -148,7 +148,7 @@ CohesiveElementInserterHelper::CohesiveElementInserterHelper(
     auto new_facet = nb_new_facets(type_facet, gt_facet)++;
 
     facets_to_double.push_back(Vector<Element>{
-        facet_to_double, Element{type_facet, new_facet, gt_facet}});
+        {facet_to_double, Element{type_facet, new_facet, gt_facet}}});
 
     /// update facet_to_element vector
     auto & element_to_update = elements_to_facet[1];

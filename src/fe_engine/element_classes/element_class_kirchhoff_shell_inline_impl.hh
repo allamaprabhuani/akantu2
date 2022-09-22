@@ -43,7 +43,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 namespace detail {
   template <class D>
-  inline decltype(auto)
+  inline Eigen::Matrix<Real, 3, 3>
   computeBasisChangeMatrix(const Eigen::MatrixBase<D> & X) {
     auto && X1 = X(0);
     auto && X2 = X(1);
@@ -52,7 +52,7 @@ namespace detail {
     Eigen::Matrix<Real, 1, 3> a1 = X2 - X1;
     Eigen::Matrix<Real, 1, 3> a2 = X3 - X1;
 
-    a1.normalized();
+    a1.normalize();
     auto && e3 = a1.cross(a2).normalized();
     auto && e2 = e3.cross(a1);
 
@@ -130,48 +130,47 @@ InterpolationElement<_itp_discrete_kirchhoff_triangle_18>::computeDNDS(
   Real eta = natural_coords(1);
 
   // Derivative of quadratic interpolation functions
-  Eigen::Matrix<Real, 2, 3> dP;
-  dP << 4 * (1 - 2 * xi - eta), 4 * eta, -4 * eta, -4 * xi, 4 * xi,
-      4 * (1 - xi - 2 * eta);
+  Eigen::Matrix<Real, 2, 3> dP{{4 * (1 - 2 * xi - eta), 4 * eta, -4 * eta},
+                               {-4 * xi, 4 * xi, 4 * (1 - xi - 2 * eta)}};
 
-  Eigen::Matrix<Real, 2, 3> dNx1;
-  dNx1 << 3. / 2 * (dP(0, 0) * C[0] / L[0] - dP(0, 2) * C[2] / L[2]),
-      3. / 2 * (dP(0, 1) * C[1] / L[1] - dP(0, 0) * C[0] / L[0]),
-      3. / 2 * (dP(0, 2) * C[2] / L[2] - dP(0, 1) * C[1] / L[1]),
-      3. / 2 * (dP(1, 0) * C[0] / L[0] - dP(1, 2) * C[2] / L[2]),
-      3. / 2 * (dP(1, 1) * C[1] / L[1] - dP(1, 0) * C[0] / L[0]),
-      3. / 2 * (dP(1, 2) * C[2] / L[2] - dP(1, 1) * C[1] / L[1]);
-  Eigen::Matrix<Real, 2, 3> dNx2;
-  dNx2 << -1 - 3. / 4 * (dP(0, 0) * C[0] * C[0] + dP(0, 2) * C[2] * C[2]),
-      1 - 3. / 4 * (dP(0, 1) * C[1] * C[1] + dP(0, 0) * C[0] * C[0]),
-      -3. / 4 * (dP(0, 2) * C[2] * C[2] + dP(0, 1) * C[1] * C[1]),
-      -1 - 3. / 4 * (dP(1, 0) * C[0] * C[0] + dP(1, 2) * C[2] * C[2]),
-      -3. / 4 * (dP(1, 1) * C[1] * C[1] + dP(1, 0) * C[0] * C[0]),
-      1 - 3. / 4 * (dP(1, 2) * C[2] * C[2] + dP(1, 1) * C[1] * C[1]);
+  Eigen::Matrix<Real, 2, 3> dNx1{
+      {3. / 2 * (dP(0, 0) * C[0] / L[0] - dP(0, 2) * C[2] / L[2]),
+       3. / 2 * (dP(0, 1) * C[1] / L[1] - dP(0, 0) * C[0] / L[0]),
+       3. / 2 * (dP(0, 2) * C[2] / L[2] - dP(0, 1) * C[1] / L[1])},
+      {3. / 2 * (dP(1, 0) * C[0] / L[0] - dP(1, 2) * C[2] / L[2]),
+       3. / 2 * (dP(1, 1) * C[1] / L[1] - dP(1, 0) * C[0] / L[0]),
+       3. / 2 * (dP(1, 2) * C[2] / L[2] - dP(1, 1) * C[1] / L[1])}};
+  Eigen::Matrix<Real, 2, 3> dNx2{
+      {-1 - 3. / 4 * (dP(0, 0) * C[0] * C[0] + dP(0, 2) * C[2] * C[2]),
+       1 - 3. / 4 * (dP(0, 1) * C[1] * C[1] + dP(0, 0) * C[0] * C[0]),
+       -3. / 4 * (dP(0, 2) * C[2] * C[2] + dP(0, 1) * C[1] * C[1])},
+      {-1 - 3. / 4 * (dP(1, 0) * C[0] * C[0] + dP(1, 2) * C[2] * C[2]),
+       -3. / 4 * (dP(1, 1) * C[1] * C[1] + dP(1, 0) * C[0] * C[0]),
+       1 - 3. / 4 * (dP(1, 2) * C[2] * C[2] + dP(1, 1) * C[1] * C[1])}};
 
-  Eigen::Matrix<Real, 2, 3> dNx3;
-  dNx3 << -3. / 4 * (dP(0, 0) * C[0] * S[0] + dP(0, 2) * C[2] * S[2]),
-      -3. / 4 * (dP(0, 1) * C[1] * S[1] + dP(0, 0) * C[0] * S[0]),
-      -3. / 4 * (dP(0, 2) * C[2] * S[2] + dP(0, 1) * C[1] * S[1]),
-      -3. / 4 * (dP(1, 0) * C[0] * S[0] + dP(1, 2) * C[2] * S[2]),
-      -3. / 4 * (dP(1, 1) * C[1] * S[1] + dP(1, 0) * C[0] * S[0]),
-      -3. / 4 * (dP(1, 2) * C[2] * S[2] + dP(1, 1) * C[1] * S[1]);
-  Eigen::Matrix<Real, 2, 3> dNy1;
-  dNy1 << 3. / 2 * (dP(0, 0) * S[0] / L[0] - dP(0, 2) * S[2] / L[2]),
-      3. / 2 * (dP(0, 1) * S[1] / L[1] - dP(0, 0) * S[0] / L[0]),
-      3. / 2 * (dP(0, 2) * S[2] / L[2] - dP(0, 1) * S[1] / L[1]),
-      3. / 2 * (dP(1, 0) * S[0] / L[0] - dP(1, 2) * S[2] / L[2]),
-      3. / 2 * (dP(1, 1) * S[1] / L[1] - dP(1, 0) * S[0] / L[0]),
-      3. / 2 * (dP(1, 2) * S[2] / L[2] - dP(1, 1) * S[1] / L[1]);
+  Eigen::Matrix<Real, 2, 3> dNx3{
+      {-3. / 4 * (dP(0, 0) * C[0] * S[0] + dP(0, 2) * C[2] * S[2]),
+       -3. / 4 * (dP(0, 1) * C[1] * S[1] + dP(0, 0) * C[0] * S[0]),
+       -3. / 4 * (dP(0, 2) * C[2] * S[2] + dP(0, 1) * C[1] * S[1])},
+      {-3. / 4 * (dP(1, 0) * C[0] * S[0] + dP(1, 2) * C[2] * S[2]),
+       -3. / 4 * (dP(1, 1) * C[1] * S[1] + dP(1, 0) * C[0] * S[0]),
+       -3. / 4 * (dP(1, 2) * C[2] * S[2] + dP(1, 1) * C[1] * S[1])}};
+  Eigen::Matrix<Real, 2, 3> dNy1{
+      {3. / 2 * (dP(0, 0) * S[0] / L[0] - dP(0, 2) * S[2] / L[2]),
+       3. / 2 * (dP(0, 1) * S[1] / L[1] - dP(0, 0) * S[0] / L[0]),
+       3. / 2 * (dP(0, 2) * S[2] / L[2] - dP(0, 1) * S[1] / L[1])},
+      {3. / 2 * (dP(1, 0) * S[0] / L[0] - dP(1, 2) * S[2] / L[2]),
+       3. / 2 * (dP(1, 1) * S[1] / L[1] - dP(1, 0) * S[0] / L[0]),
+       3. / 2 * (dP(1, 2) * S[2] / L[2] - dP(1, 1) * S[1] / L[1])}};
   auto dNy2 = dNx3;
 
-  Eigen::Matrix<Real, 2, 3> dNy3;
-  dNy3 << -1 - 3. / 4 * (dP(0, 0) * S[0] * S[0] + dP(0, 2) * S[2] * S[2]),
-      1 - 3. / 4 * (dP(0, 1) * S[1] * S[1] + dP(0, 0) * S[0] * S[0]),
-      -3. / 4 * (dP(0, 2) * S[2] * S[2] + dP(0, 1) * S[1] * S[1]),
-      -1 - 3. / 4 * (dP(1, 0) * S[0] * S[0] + dP(1, 2) * S[2] * S[2]),
-      -3. / 4 * (dP(1, 1) * S[1] * S[1] + dP(1, 0) * S[0] * S[0]),
-      1 - 3. / 4 * (dP(1, 2) * S[2] * S[2] + dP(1, 1) * S[1] * S[1]);
+  Eigen::Matrix<Real, 2, 3> dNy3{
+      {-1 - 3. / 4 * (dP(0, 0) * S[0] * S[0] + dP(0, 2) * S[2] * S[2]),
+       1 - 3. / 4 * (dP(0, 1) * S[1] * S[1] + dP(0, 0) * S[0] * S[0]),
+       -3. / 4 * (dP(0, 2) * S[2] * S[2] + dP(0, 1) * S[1] * S[1])},
+      {-1 - 3. / 4 * (dP(1, 0) * S[0] * S[0] + dP(1, 2) * S[2] * S[2]),
+       -3. / 4 * (dP(1, 1) * S[1] * S[1] + dP(1, 0) * S[0] * S[0]),
+       1 - 3. / 4 * (dP(1, 2) * S[2] * S[2] + dP(1, 1) * S[1] * S[1])}};
 
   // Derivative of linear (membrane mode) functions
   Eigen::Matrix<Real, 2, 3> dNm;
@@ -180,7 +179,7 @@ InterpolationElement<_itp_discrete_kirchhoff_triangle_18>::computeDNDS(
 
   UInt i = 0;
   for (auto && mat : {dNm, dNx1, dNx2, dNx3, dNy1, dNy2, dNy3}) {
-    B.block(2, 3, 0, i) = mat;
+    B.template block<2, 3>(0, i) = mat;
     i += mat.cols();
   }
 }
@@ -196,23 +195,22 @@ InterpolationElement<_itp_discrete_kirchhoff_triangle_18, _itk_structural>::
 
   UInt i = 0;
   for (auto && mat : {&dNm, &dNx1, &dNx2, &dNx3, &dNy1, &dNy2, &dNy3}) {
-    *mat = dnds.block(2, 3, 0, i);
+    *mat = dnds.template block<2, 3>(0, i);
     i += mat->cols();
   }
 
   for (Int i = 0; i < 3; ++i) {
-    // clang-format off
-    Eigen::Matrix<Real, 3, 6> Bm;
-    Bm << dNm(0, i), 0,         0, 0, 0, 0,
-          0,         dNm(1, i), 0, 0, 0, 0,
-          dNm(1, i), dNm(0, i), 0, 0, 0, 0;
-    Eigen::Matrix<Real, 3, 6> Bf;
-    Bf << 0, 0, dNx1(0, i),              -dNx3(0, i),              dNx2(0, i),              0,
-          0, 0, dNy1(1, i),              -dNy3(1, i),              dNy2(1, i),              0,
-          0, 0, dNx1(1, i) + dNy1(0, i), -dNx3(1, i) - dNy3(0, i), dNx2(1, i) + dNy2(0, i), 0;
-    // clang-format on
-    B.block(3, 6, 0, i * 6) = Bm;
-    B.block(3, 6, 3, i * 6) = Bf;
+    Eigen::Matrix<Real, 3, 6> Bm{{dNm(0, i), 0, 0, 0, 0, 0},
+                                 {0, dNm(1, i), 0, 0, 0, 0},
+                                 {dNm(1, i), dNm(0, i), 0, 0, 0, 0}};
+    Eigen::Matrix<Real, 3, 6> Bf{{0, 0, dNx1(0, i), -dNx3(0, i), dNx2(0, i), 0},
+                                 {0, 0, dNy1(1, i), -dNy3(1, i), dNy2(1, i), 0},
+                                 {0, 0, dNx1(1, i) + dNy1(0, i),
+                                  -dNx3(1, i) - dNy3(0, i),
+                                  dNx2(1, i) + dNy2(0, i), 0}};
+
+    B.template block<3, 6>(0, i * 6) = Bm;
+    B.template block<3, 6>(3, i * 6) = Bf;
   }
 }
 

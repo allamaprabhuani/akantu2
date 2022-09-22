@@ -397,17 +397,6 @@ void StructuralMechanicsModel::assembleResidual() {
 
   assembleInternalForce();
 
-  // Ensures that the matrix are assembled.
-  if (dof_manager.hasMatrix("K")) {
-    this->assembleMatrix("K");
-  }
-  if (dof_manager.hasMatrix("M")) {
-    this->assembleMatrix("M");
-  }
-  if (dof_manager.hasLumpedMatrix("M")) {
-    this->assembleLumpedMassMatrix();
-  }
-
   /* This is essentially a summing up of forces
    * first the external forces are counted for and then stored inside the
    * residual.
@@ -563,9 +552,6 @@ Real StructuralMechanicsModel::getKineticEnergy() {
   const UInt nb_degree_of_freedom = this->nb_degree_of_freedom;
   Real ekin = 0.; // used to sum up energy (is divided by two at the very end)
 
-  // if mass matrix was not assembled, assemble it now
-  this->assembleMassMatrix();
-
   if (this->getDOFManager().hasLumpedMatrix("M")) {
     /* This code computes the kinetic energy for the case when the mass is
      * lumped. It is based on the solid mechanic equivalent.
@@ -573,9 +559,7 @@ Real StructuralMechanicsModel::getKineticEnergy() {
     AKANTU_DEBUG_ASSERT(this->mass != nullptr,
                         "The lumped mass is not allocated.");
 
-    if (this->need_to_reassemble_lumpedMass) {
-      this->assembleLumpedMatrix("M");
-    }
+    this->assembleLumpedMatrix("M");
 
     /* Iterating over all nodes.
      *   Important the velocity and mass also contains the rotational parts.
@@ -585,35 +569,26 @@ Real StructuralMechanicsModel::getKineticEnergy() {
              make_view(*this->mass, nb_degree_of_freedom))) {
       const UInt n = std::get<0>(data); // This is the ID of the current node
 
-      if (not mesh.isLocalOrMasterNode(
-              n)) // Only handle the node if it belongs to us.
-      {
+      // Only handle the node if it belongs to us.
+      if (not mesh.isLocalOrMasterNode(n)) {
         continue;
       }
 
-      const auto & v =
-          std::get<1>(data); // Get the velocity and mass of that node.
-      const auto & m = std::get<2>(data);
-      Real mv2 = 0.; // Contribution of this node.
+      const auto & velocity = std::get<1>(data);
+      const auto & mass = std::get<2>(data);
+      Real mv2 = 0.;
 
-      for (UInt i = 0; i < nb_degree_of_freedom; ++i) {
-        /* In the solid mechanics part, only masses that are above a certain
-         * value are considered.
-         * However, the structural part, does not do this. */
-        const Real v_ = v(i);
-        const Real m_ = m(i);
-        mv2 += v_ * v_ * m_;
-      } // end for(i): going through the components
+      for (auto && node_data : zip(velocity, mass)) {
+        mv2 += Math::pow<2>(std::get<0>(node_data)) * std::get<1>(node_data);
+      }
 
-      ekin += mv2; // add continution
-    }              // end for(n): iterating through all nodes
+      ekin += mv2;
+    }
   } else if (this->getDOFManager().hasMatrix("M")) {
     /* Handle the case where no lumped mass is there.
      * This is basically the original code.
      */
-    if (this->need_to_reassemble_mass) {
-      this->assembleMassMatrix();
-    }
+    this->assembleMassMatrix();
 
     Array<Real> Mv(nb_nodes, nb_degree_of_freedom);
     this->getDOFManager().assembleMatMulVectToArray("displacement", "M",
@@ -622,16 +597,15 @@ Real StructuralMechanicsModel::getKineticEnergy() {
     for (auto && data :
          zip(arange(nb_nodes), make_view(Mv, nb_degree_of_freedom),
              make_view(*this->velocity, nb_degree_of_freedom))) {
-      if (mesh.isLocalOrMasterNode(std::get<0>(
-              data))) // only consider the node if we are blonging to it
-      {
+      // only consider the node if we are belonging to it
+      if (mesh.isLocalOrMasterNode(std::get<0>(data))) {
         ekin += std::get<2>(data).dot(std::get<1>(data));
       }
     }
   } else {
     /* This is the case where no mass is present, for whatever reason, such as
      * the static case. We handle it specially be returning directly zero.
-     * However, by doing that there will not be a syncronizing event as in the
+     * However, by doing that there will not be a synchronizing event as in the
      * other cases. Which is faster, but could be a problem in case the user
      * expects this.
      *

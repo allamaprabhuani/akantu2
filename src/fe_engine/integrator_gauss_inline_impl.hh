@@ -281,7 +281,7 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
 
     const auto & X = *x_it;
     auto & J = *jacobians_it;
-    Matrix<Real> R(nb_dofs, nb_dofs);
+    Matrix<Real, nb_dofs, nb_dofs> R;
 
     if (has_extra_normal) {
       ElementClass<type>::computeRotationMatrix(R, X, *extra_normal);
@@ -292,8 +292,10 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
     const Int natural_space = ElementClass<type>::getNaturalSpaceDimension();
     const Int nb_nodes = ElementClass<type>::getNbNodesPerElement();
     // Extracting relevant lines
-    auto x = (R.block(0, 0, spatial_dimension, spatial_dimension) * X)
-                 .template block<natural_space, nb_nodes>(0, 0);
+
+    Matrix<Real> RX = R.block(0, 0, spatial_dimension, spatial_dimension) * X;
+
+    auto x = RX.template block<natural_space, nb_nodes>(0, 0);
 
     computeJacobianOnQuadPointsByElement<type>(x, quad_points, J);
 

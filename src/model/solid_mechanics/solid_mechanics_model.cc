@@ -616,11 +616,11 @@ Real SolidMechanicsModel::getKineticEnergy(const Element & element) {
 Real SolidMechanicsModel::getExternalWork() {
   AKANTU_DEBUG_IN();
 
-  Array<Real> * incr_or_velo;
+  Array<Real> * incrs_or_velos;
   if (this->method == _static) {
-    incr_or_velo = this->displacement_increment.get();
+    incrs_or_velos = this->displacement_increment.get();
   } else {
-    incr_or_velo = this->velocity.get();
+    incrs_or_velos = this->velocity.get();
   }
 
   Real work = 0.;
@@ -631,7 +631,7 @@ Real SolidMechanicsModel::getExternalWork() {
        zip(make_view(*external_force, spatial_dimension),
            make_view(*internal_force, spatial_dimension),
            make_view(*blocked_dofs, spatial_dimension),
-           make_view(*incr_or_velo, spatial_dimension), arange(nb_nodes))) {
+           make_view(*incrs_or_velos, spatial_dimension), arange(nb_nodes))) {
     auto && ext_force = std::get<0>(data);
     auto && int_force = std::get<1>(data);
     auto && boun = std::get<2>(data);

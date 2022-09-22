@@ -358,9 +358,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     GhostType ghost_type) const {
-  auto shapes_size = ElementClass<type>::getShapeSize();
   auto nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
-  auto lmat_size = nb_degree_of_freedom * shapes_size;
   auto nb_element = mesh.getNbElement(type, ghost_type);
 
   // \int N * N  so degree 2 * degree of N
@@ -379,6 +377,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
       fe_engine::details::ShapesForMassHelper<kind>::template getShapes<type>(
           shape_functions, integration_points, mesh.getNodes(),
           nb_degree_of_freedom, nb_element, ghost_type);
+
+  auto lmat_size = shapes_voigt->getNbComponent() / nb_degree_of_freedom;
 
   // getting the value to assemble on the integration points
   Array<Real> field(vect_size, nb_degree_of_freedom);

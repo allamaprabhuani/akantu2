@@ -202,12 +202,12 @@ public:
 /* -------------------------------------------------------------------------- */
 template <typename T> class AddOperation {
 public:
-  inline T operator()(T & a, T & b) { return a + b; };
+  inline T operator()(const T & a, const T & b) { return a + b; };
 };
 
 template <typename T> class IdentityOperation {
 public:
-  inline T & operator()(T & /*unused*/, T & b) { return b; };
+  inline T operator()(const T & /*unused*/, const T & b) { return b; };
 };
 /* -------------------------------------------------------------------------- */
 
@@ -247,7 +247,7 @@ public:
 
     auto data_it = data.begin(data.getNbComponent());
     for (auto el : entities) {
-      buffer << Vector<T>(data_it[el]);
+      buffer << data_it[el];
     }
   }
 
@@ -261,7 +261,7 @@ public:
     auto data_it = data.begin(data.getNbComponent());
     for (auto el : entities) {
       Vector<T> unpacked(data.getNbComponent());
-      Vector<T> vect(data_it[el]);
+      auto && vect(data_it[el]);
       buffer >> unpacked;
       vect = oper(vect, unpacked);
     }

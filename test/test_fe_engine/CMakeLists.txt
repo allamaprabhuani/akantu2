@@ -85,7 +85,7 @@ register_mesh_types(core ${_regular_types})
 
 package_is_activated(structural_mechanics has_structural_mechanics)
 if(has_structural_mechanics)
-  register_mesh_types(structural_mechanics _bernoulli_beam_2;_bernoulli_beam_3;_kirchhoff_triangle_18)
+  register_mesh_types(structural_mechanics _bernoulli_beam_2;_bernoulli_beam_3;_discrete_kirchhoff_triangle_18)
 endif()
 
 # Tests for class MeshData
