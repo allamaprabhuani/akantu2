@@ -58,7 +58,7 @@
   variables:
     CC: /usr/lib/ccache/gcc-8
     CXX: /usr/lib/ccache/g++-8
-    FC: gfortran-8
+    FC: /usr/bin/gfortran-8
     GCOV_EXECUTABLE: gcov
 
 .compiler_clang:
@@ -104,7 +104,7 @@
   variables:
     output: ubuntu_lts_gcc
   extends:
-    - .compiler_gcc
+    - .compiler_gcc_ubuntu
     - .image_ubuntu_lts
     - .cache_build
 
