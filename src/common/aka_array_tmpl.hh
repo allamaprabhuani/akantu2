@@ -800,20 +800,25 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
+template <typename T, bool is_scal>
+template <typename OT, std::enable_if_t<std::is_arithmetic<OT>::value> *>
+bool Array<T, is_scal>::isFinite() const noexcept {
+  return std::all_of(this->values,
+                     this->values + this->size_ * this->nb_component,
+                     [](auto && a) { return std::isfinite(a); });
+}
+
+/* -------------------------------------------------------------------------- */
 /* Inline Functions ArrayBase */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 
 // inline bool ArrayBase::empty() { return (this->size_ ==
 // 0); }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 /* Iterators */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 template <class R, class daughter, class IR, bool is_tensor>
 class Array<T, is_scal>::iterator_internal {
@@ -883,10 +888,14 @@ public:
     return ret >= other.ret;
   }
 
-  inline daughter operator-(difference_type n) { return daughter(ret - n); }
-  inline daughter operator+(difference_type n) { return daughter(ret + n); }
+  inline daughter operator-(difference_type n) const {
+    return daughter(ret - n);
+  }
+  inline daughter operator+(difference_type n) const {
+    return daughter(ret + n);
+  }
 
-  inline difference_type operator-(const iterator_internal & b) {
+  inline difference_type operator-(const iterator_internal & b) const {
     return ret - b.ret;
   }
 
@@ -1023,18 +1032,18 @@ public:
     return this->ret_ptr >= other.ret_ptr;
   }
 
-  inline daughter operator+(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
+  inline daughter operator+(difference_type n) const {
+    daughter tmp(static_cast<const daughter &>(*this));
     tmp += n;
     return tmp;
   }
-  inline daughter operator-(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
+  inline daughter operator-(difference_type n) const {
+    daughter tmp(static_cast<const daughter &>(*this));
     tmp -= n;
     return tmp;
   }
 
-  inline difference_type operator-(const iterator_internal & b) {
+  inline difference_type operator-(const iterator_internal & b) const {
     return (this->ret_ptr - b.ret_ptr) / _offset;
   }
 

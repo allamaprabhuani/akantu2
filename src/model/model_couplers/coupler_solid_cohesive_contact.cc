@@ -40,16 +40,14 @@ namespace akantu {
 template <>
 CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
     CouplerSolidContactTemplate(Mesh & mesh, UInt dim, const ID & id,
-                                std::shared_ptr<DOFManager> dof_manager,
-                                ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id) {
-#if defined(AKANTU_USE_IOHELPER)
+                                std::shared_ptr<DOFManager> dof_manager)
+    : Model(mesh, ModelType::_coupler_solid_cohesive_contact, dof_manager, dim,
+            id) {
   this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact",
                                             id, true);
   this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh,
                                  Model::spatial_dimension, _not_ghost,
                                  _ek_cohesive);
-#endif
 
   this->registerDataAccessor(*this);
 

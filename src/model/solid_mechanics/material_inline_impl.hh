@@ -415,8 +415,8 @@ void Material::flattenInternal(const std::string & field_id,
   const Mesh & mesh = fe_engine.getMesh();
 
   for (auto && type : internal_field.filterTypes(ghost_type)) {
-    const Array<Real> & src_vect = internal_field(type, ghost_type);
-    const Array<UInt> & filter = internal_field.getFilter(type, ghost_type);
+    const auto & src_vect = internal_field(type, ghost_type);
+    const auto & filter = internal_field.getFilter(type, ghost_type);
 
     // total number of elements in the corresponding mesh
     UInt nb_element_dst = mesh.getNbElement(type, ghost_type);
@@ -432,10 +432,6 @@ void Material::flattenInternal(const std::string & field_id,
                           type, ghost_type);
     }
 
-    if (nb_element_src == 0) {
-      continue;
-    }
-
     // number of data per element
     UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
 
@@ -446,6 +442,49 @@ void Material::flattenInternal(const std::string & field_id,
 
     for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
       it_dst[std::get<0>(data)] = std::get<1>(data);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+void Material::inflateInternal(const std::string & field_id,
+                               const ElementTypeMapArray<T> & field,
+                               GhostType ghost_type, ElementKind element_kind) {
+  if (!this->template isInternal<T>(field_id, element_kind)) {
+    AKANTU_EXCEPTION("Cannot find internal field " << id << " in material "
+                                                   << this->name);
+  }
+
+  InternalField<T> & internal_field = this->template getInternal<T>(field_id);
+  const FEEngine & fe_engine = internal_field.getFEEngine();
+
+  for (auto && type : field.elementTypes(ghost_type)) {
+    if (not internal_field.exists(type, ghost_type)) {
+      continue;
+    }
+    const auto & filter = internal_field.getFilter(type, ghost_type);
+
+    const auto & src_array = field(type, ghost_type);
+    auto & dest_array = internal_field(type, ghost_type);
+
+    auto nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
+    auto nb_component = src_array.getNbComponent();
+
+    AKANTU_DEBUG_ASSERT(
+        field.size() == fe_engine.getMesh().getNbElement(type, ghost_type) *
+                            nb_quad_per_elem,
+        "The ElementTypeMapArray to inflate is not of the proper size");
+    AKANTU_DEBUG_ASSERT(
+        dest_array.getNbComponent() == nb_component,
+        "The ElementTypeMapArray has not the proper number of components");
+
+    auto src =
+        make_view(field(type, ghost_type), nb_component, nb_quad_per_elem)
+            .begin();
+    for (auto && data :
+         zip(filter, make_view(dest_array, nb_component, nb_quad_per_elem))) {
+      std::get<1>(data) = src[std::get<0>(data)];
     }
   }
 }

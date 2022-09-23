@@ -128,8 +128,8 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
 
   // non cohesive fallback
   this->fallback_selector->setFallback(
-      std::make_shared<MeshDataMaterialSelector<std::string>>(mesh_data_id,
-                                                              model));
+      std::make_shared<MeshDataMaterialSelector<std::string>>(
+          this->mesh_data_id, model));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -139,8 +139,6 @@ UInt MaterialCohesiveRulesSelector::operator()(const Element & element) {
     const std::vector<Element> & element_to_subelement =
         mesh_facets.getElementToSubelement(element.type,
                                            element.ghost_type)(element.element);
-    // Array<bool> & facets_check = model.getFacetsCheck();
-
     const Element & el1 = element_to_subelement[0];
     const Element & el2 = element_to_subelement[1];
 

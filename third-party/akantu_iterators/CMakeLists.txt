@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-project(AkantuIterators)
+project(akantu_iterators)
 
 # ------------------------------------------------------------------------------
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -29,7 +29,7 @@ set(AKANTU_ITERATORS_PUBLIC_HDRS
 add_library(akantu_iterators INTERFACE)
 
 target_include_directories(akantu_iterators
-  INTERFACE $<INSTALL_INTERFACE:include>
+  INTERFACE $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
   )
 
 # small trick for build includes in public
@@ -60,11 +60,11 @@ install(TARGETS akantu_iterators
   EXPORT ${AKANTU_ITERATORS_TARGETS_EXPORT}
   )
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 if("${AKANTU_ITERATORS_TARGETS_EXPORT}" STREQUAL "AkantuIteratorsTargets")
   install(EXPORT AkantuIteratorsTargets
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME})
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
   #Export for build tree
   export(EXPORT AkantuIteratorsTargets

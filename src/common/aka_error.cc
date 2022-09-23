@@ -66,12 +66,6 @@
 namespace akantu {
 namespace debug {
 
-  // static void printBacktraceAndExit(int) { std::terminate(); }
-
-  // /* ------------------------------------------------------------------------
-  // */ void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit);
-  // }
-
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char * symbol) {
     int status;

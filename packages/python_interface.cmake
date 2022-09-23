@@ -30,7 +30,5 @@
 #
 #===============================================================================
 
-
 package_declare(python_interface
-  DESCRIPTION "Akantu's python interface"
-  DEPENDS pybind11)
+  DESCRIPTION "Akantu's python interface")

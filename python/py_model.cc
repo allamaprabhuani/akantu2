@@ -38,7 +38,9 @@
 /* -------------------------------------------------------------------------- */
 #include <model.hh>
 #include <non_linear_solver.hh>
+#include <solver_callback.hh>
 #include <sparse_matrix_aij.hh>
+#include <time_step_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -51,55 +53,31 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void register_model(py::module & mod) {
-  py::class_<DOFManager>(mod, "DOFManager")
-      .def("getMatrix", &DOFManager::getMatrix,
-           py::return_value_policy::reference)
+  py::class_<ModelSolver, SolverCallback, Parsable>(mod, "ModelSolver",
+                                                    py::multiple_inheritance())
       .def(
-          "getNewMatrix",
-          [](DOFManager & self, const std::string & name,
-             const std::string & matrix_to_copy_id) -> decltype(auto) {
-            return self.getNewMatrix(name, matrix_to_copy_id);
+          "getNonLinearSolver",
+          [](ModelSolver & self, const ID & solver_id) -> NonLinearSolver & {
+            return self.getNonLinearSolver(solver_id);
           },
-          py::return_value_policy::reference)
+          py::arg("solver_id") = "", py::return_value_policy::reference)
       .def(
-          "getResidual",
-          [](DOFManager & self) -> decltype(auto) {
-            return self.getResidual();
+          "getTimeStepSolver",
+          [](ModelSolver & self, const ID & solver_id) -> TimeStepSolver & {
+            return self.getTimeStepSolver(solver_id);
           },
-          py::return_value_policy::reference)
-      .def("getArrayPerDOFs", &DOFManager::getArrayPerDOFs)
+          py::arg("solver_id") = "", py::return_value_policy::reference)
       .def(
-          "hasMatrix",
-          [](DOFManager & self, const ID & name) -> bool {
-            return self.hasMatrix(name);
+          "solveStep",
+          [](ModelSolver & self, const ID & solver_id) {
+            self.solveStep(solver_id);
           },
-          py::arg("name"))
-      .def("assembleToResidual", &DOFManager::assembleToResidual);
-
-  py::class_<NonLinearSolver>(mod, "NonLinearSolver")
+          py::arg("solver_id") = "")
       .def(
-          "set",
-          [](NonLinearSolver & self, const std::string & id, const Real & val) {
-            if (id == "max_iterations") {
-              self.set(id, int(val));
-            } else {
-              self.set(id, val);
-            }
-          })
-      .def("set",
-           [](NonLinearSolver & self, const std::string & id,
-              const SolveConvergenceCriteria & val) { self.set(id, val); });
-
-  py::class_<ModelSolver, Parsable>(mod, "ModelSolver",
-                                    py::multiple_inheritance())
-      .def("getNonLinearSolver",
-           (NonLinearSolver & (ModelSolver::*)(const ID &)) &
-               ModelSolver::getNonLinearSolver,
-           py::arg("solver_id") = "", py::return_value_policy::reference)
-      .def("solveStep", [](ModelSolver & self) { self.solveStep(); })
-      .def("solveStep", [](ModelSolver & self, const ID & solver_id) {
-        self.solveStep(solver_id);
-      });
+          "solveStep",
+          [](ModelSolver & self, SolverCallback & callback,
+             const ID & solver_id) { self.solveStep(callback, solver_id); },
+          py::arg("callback"), py::arg("solver_id") = "");
 
   py::class_<Model, ModelSolver>(mod, "Model", py::multiple_inheritance())
       .def("setBaseName", &Model::setBaseName)
@@ -146,11 +124,23 @@ void register_model(py::module & mod) {
             self.getNewSolver(id, time, type);
           },
           py::return_value_policy::reference)
-      .def("setIntegrationScheme",
-           [](Model & self, const std::string id, const std::string primal,
-              const IntegrationSchemeType & scheme) {
-             self.setIntegrationScheme(id, primal, scheme);
-           })
+      .def(
+          "setIntegrationScheme",
+          [](Model & self, const std::string id, const std::string primal,
+             const IntegrationSchemeType & scheme_type,
+             IntegrationScheme::SolutionType solution_type) {
+            self.setIntegrationScheme(id, primal, scheme_type, solution_type);
+          },
+          py::arg("id"), py::arg("primal"), py::arg("scheme_type"),
+          py::arg("solution_type") =
+              IntegrationScheme::SolutionType::_not_defined)
+      // .def("setIntegrationScheme",
+      //      [](Model & self, const std::string id, const std::string primal,
+      //         std::unique_ptr<IntegrationScheme> & scheme,
+      //         IntegrationScheme::SolutionType solution_type) {
+      //        self.setIntegrationScheme(id, primal, scheme, solution_type);
+      //      })
+
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);

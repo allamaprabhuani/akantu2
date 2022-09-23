@@ -79,6 +79,7 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
 template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
   this->computeBoundingBox();
   this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
+  GroupManager::onNodesAdded(event.getList(), event);
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
@@ -730,6 +731,7 @@ public:
       return *this;
     }
     bool operator!=(const const_iterator & other) { return other.it != it; }
+    bool operator==(const const_iterator & other) { return other.it == it; }
     auto operator*() { return it->second; }
   };
 

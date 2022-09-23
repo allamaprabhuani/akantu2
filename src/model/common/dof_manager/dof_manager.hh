@@ -160,9 +160,7 @@ public:
                                                   Real scale_factor = 1) = 0;
 
   /// assemble coupling terms between to dofs
-  virtual void assemblePreassembledMatrix(const ID & dof_id_m,
-                                          const ID & dof_id_n,
-                                          const ID & matrix_id,
+  virtual void assemblePreassembledMatrix(const ID & matrix_id,
                                           const TermsToAssemble & terms) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
@@ -224,9 +222,7 @@ protected:
   /// common function that can be called by derived class with proper matrice
   /// types
   template <typename Mat>
-  void assemblePreassembledMatrix_(Mat & A, const ID & dof_id_m,
-                                   const ID & dof_id_n,
-                                   const TermsToAssemble & terms);
+  void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
   void
@@ -548,6 +544,11 @@ public:
                          const Array<Element> & new_elements_list,
                          const ElementTypeMapArray<UInt> & new_numbering,
                          const ChangedElementsEvent & event) override;
+
+  /// function to implement to react on  akantu::MeshIsDistributedEvent
+  void
+  onMeshIsDistributed(const Mesh& mesh,
+  		      const MeshIsDistributedEvent & event) override;
 
 protected:
   inline DOFData & getDOFData(const ID & dof_id);

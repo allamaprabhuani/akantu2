@@ -73,7 +73,6 @@ set(AKANTU_CMAKE_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/Modules")
 
-set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL
   "Enable/Disable output of compile commands during generation" FORCE)
 
@@ -110,11 +109,26 @@ define_project_version()
 #===============================================================================
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
+option(AKANTU_SHARED "Build Akantu as a shared library" ON)
+option(AKANTU_POSITION_INDEPENDENT "Build with -fPIC when static" ON)
 
 option(AKANTU_RUN_IN_DOCKER "Set the approriate flage tu run in docker" OFF)
 set(AKANTU_PREFERRED_PYTHON_VERSION 3
   CACHE STRING "Preferred version for python related things")
-mark_as_advanced(AKANTU_PREFERRED_PYTHON_VERSION AKANTU_RUN_IN_DOCKER)
+mark_as_advanced(
+  AKANTU_PREFERRED_PYTHON_VERSION
+  AKANTU_RUN_IN_DOCKER
+  AKANTU_POSITION_INDEPENDENT
+  AKANTU_SHARED
+  )
+
+if (AKANTU_SHARED)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
+else()
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries.")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 
 include(AkantuExtraCompilationProfiles)
 #===============================================================================
@@ -126,24 +140,18 @@ package_list_packages(${PROJECT_SOURCE_DIR}/packages
   EXTRA_PACKAGES_FOLDER ${PROJECT_SOURCE_DIR}/extra_packages
   NO_AUTO_COMPILE_FLAGS)
 
-## meta option \todo better way to do it when multiple package give enable the
-## same feature
-if(AKANTU_SCOTCH)
-  set(AKANTU_PARTITIONER ON)
-else()
-  set(AKANTU_PARTITIONER OFF)
-endif()
-
-if(AKANTU_MUMPS)
-  set(AKANTU_SOLVER ON)
-else()
-  set(AKANTU_SOLVER OFF)
-endif()
-
 #===============================================================================
 # Akantu library
 #===============================================================================
-add_subdirectory(src)
+if (NOT AKANTU_BYPASS_AKANTU_TARGET)
+  add_subdirectory(src)
+else()
+  find_package(Akantu REQUIRED)
+  if (Akantu_FOUND)
+    get_target_property(_lib akantu INTERFACE_LINK_LIBRARIES)
+    message(STATUS "Found Akantu: ${_lib} (found version ${AKANTU_VERSION})")
+  endif()
+endif()
 
 #===============================================================================
 # Documentation
@@ -159,6 +167,7 @@ endif()
 #===============================================================================
 package_is_activated(python_interface _python_act)
 if(_python_act)
+  include(AkantuNeedPybind11)
   if(IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
     set(AKANTU_PYTHON_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
   else()
@@ -174,6 +183,7 @@ include(AkantuTestsMacros)
 include(AkantuExampleMacros)
 
 if(AKANTU_TESTS)
+  include(AkantuNeedPybind11)
   option(AKANTU_BUILD_ALL_TESTS "Build all tests" ON)
   find_package(GMSH REQUIRED)
 endif()
@@ -192,11 +202,13 @@ endif()
 #===============================================================================
 # Install and Packaging
 #===============================================================================
-include(AkantuInstall)
+if (NOT AKANTU_BYPASS_AKANTU_TARGET)
+  include(AkantuInstall)
 
-option(AKANTU_DISABLE_CPACK
-  "This option commands the generation of extra info for the \"make package\" target" ON)
-mark_as_advanced(AKANTU_DISABLE_CPACK)
-if(NOT AKANTU_DISABLE_CPACK)
-  include(AkantuCPack)
+  option(AKANTU_DISABLE_CPACK
+    "This option commands the generation of extra info for the \"make package\" target" ON)
+  mark_as_advanced(AKANTU_DISABLE_CPACK)
+  if(NOT AKANTU_DISABLE_CPACK)
+    include(AkantuCPack)
+  endif()
 endif()

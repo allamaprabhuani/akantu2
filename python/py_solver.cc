@@ -36,6 +36,7 @@
 #include <model.hh>
 #include <non_linear_solver.hh>
 #include <sparse_matrix_aij.hh>
+#include <terms_to_assemble.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -69,16 +70,50 @@ void register_solvers(py::module & mod) {
             self.add(A, alpha);
           },
           "Add a matrix to the matrix", py::arg("A"), py::arg("alpha") = 1.)
-      .def("__call__", [](const SparseMatrix & self, UInt i, UInt j) {
-        return self(i, j);
-      });
+
+      .def("isFinite", &SparseMatrix::isFinite)
+
+      .def("getRelease",
+           [](const SparseMatrix & self) -> UInt { return self.getRelease(); })
+      .def("__call__",
+           [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
+      .def("getRelease", &SparseMatrix::getRelease);
 
   py::class_<SparseMatrixAIJ, SparseMatrix>(mod, "SparseMatrixAIJ")
       .def("getIRN", &SparseMatrixAIJ::getIRN)
       .def("getJCN", &SparseMatrixAIJ::getJCN)
       .def("getA", &SparseMatrixAIJ::getA);
 
-  py::class_<SolverVector>(mod, "SolverVector");
+  py::class_<SolverVector>(mod, "SolverVector")
+      .def(
+          "getValues",
+          [](SolverVector & self) -> decltype(auto) {
+            return static_cast<const Array<Real> &>(self);
+          },
+          py::return_value_policy::reference_internal,
+          "Transform this into a vector, Is not copied.")
+      .def("isDistributed",
+           [](const SolverVector & self) { return self.isDistributed(); });
+
+  py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
+      .def(py::init<Int, Int>())
+      .def(py::self += Real())
+      .def_property_readonly("i", &TermsToAssemble::TermToAssemble::i)
+      .def_property_readonly("j", &TermsToAssemble::TermToAssemble::j);
+
+  py::class_<TermsToAssemble>(mod, "TermsToAssemble")
+      .def(py::init<const ID &, const ID &>())
+      .def("getDOFIdM", &TermsToAssemble::getDOFIdM)
+      .def("getDOFIdN", &TermsToAssemble::getDOFIdN)
+      .def(
+          "__call__",
+          [](TermsToAssemble & self, UInt i, UInt j, Real val) {
+            auto & term = self(i, j);
+            term = val;
+            return term;
+          },
+          py::arg("i"), py::arg("j"), py::arg("val") = 0.,
+          py::return_value_policy::reference);
 }
 
 } // namespace akantu

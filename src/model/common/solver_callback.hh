@@ -59,7 +59,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the type of matrix needed
-  virtual MatrixType getMatrixType(const ID &) = 0;
+  virtual MatrixType getMatrixType(const ID &) const = 0;
 
   /// callback to assemble a Matrix
   virtual void assembleMatrix(const ID &) = 0;
@@ -84,13 +84,15 @@ public:
   virtual void corrector() {}
 
   /// tells if the residual can be computed in separated parts
-  virtual bool canSplitResidual() { return false; }
+  virtual bool canSplitResidual() const { return false; }
 
   /* ------------------------------------------------------------------------ */
   /* management callbacks                                                     */
   /* ------------------------------------------------------------------------ */
-  virtual void beforeSolveStep(){};
-  virtual void afterSolveStep(bool /*converged*/ = true){};
+  virtual void beforeSolveStep() {}
+  virtual void afterSolveStep(bool /*converged*/ = true) {}
+
+  DOFManager & getSCDOFManager() { return *sc_dof_manager; }
 
 protected:
   /// DOFManager prefixed to avoid collision in multiple inheritance cases
@@ -104,6 +106,62 @@ namespace debug {
         : Exception(residual_part + " is not known here.") {}
   };
 } // namespace debug
+
+/* -------------------------------------------------------------------------- */
+class InterceptSolverCallback : public SolverCallback {
+public:
+  InterceptSolverCallback(SolverCallback & solver_callback)
+      : solver_callback(solver_callback) {}
+
+  /// get the type of matrix needed
+  MatrixType getMatrixType(const ID & matrix_id) const override {
+    return solver_callback.getMatrixType(matrix_id);
+  }
+
+  /// callback to assemble a Matrix
+  void assembleMatrix(const ID & matrix_id) override {
+    solver_callback.assembleMatrix(matrix_id);
+  }
+
+  /// callback to assemble a lumped Matrix
+  void assembleLumpedMatrix(const ID & matrix_id) override {
+    solver_callback.assembleLumpedMatrix(matrix_id);
+  }
+
+  /// callback to assemble the residual (rhs)
+  void assembleResidual() override { solver_callback.assembleResidual(); }
+
+  /// callback to assemble the rhs parts, (e.g. internal_forces +
+  /// external_forces)
+  void assembleResidual(const ID & residual_part) override {
+    solver_callback.assembleResidual(residual_part);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Dynamic simulations part                                                 */
+  /* ------------------------------------------------------------------------ */
+  /// callback for the predictor (in case of dynamic simulation)
+  void predictor() override { solver_callback.predictor(); }
+
+  /// callback for the corrector (in case of dynamic simulation)
+  void corrector() override { solver_callback.corrector(); }
+
+  /// tells if the residual can be computed in separated parts
+  bool canSplitResidual() const override {
+    return solver_callback.canSplitResidual();
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* management callbacks                                                     */
+  /* ------------------------------------------------------------------------ */
+  void beforeSolveStep() override { solver_callback.beforeSolveStep(); }
+  void afterSolveStep(bool converged = true) override {
+    solver_callback.afterSolveStep(converged);
+  }
+
+protected:
+  SolverCallback & solver_callback;
+};
 
 } // namespace akantu
 

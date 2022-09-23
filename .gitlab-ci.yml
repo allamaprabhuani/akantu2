@@ -1,287 +1,122 @@
+# yaml-language-server: $schema=gitlab-ci
+# yaml-language-server: $format.enable=false
+
 stages:
+  - version
   - configure
-  - build
+  - build_libs
+  - build_tests
   - test
+  - code_quality
   - deploy
 
-.docker_build:
-  image: 'docker:19.03.11'
-  stage: .pre
-  services:
-    - docker:19.03.11-dind
-  variables:
-    # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - cd test/ci/${IMAGE_NAME}/
-    - docker build -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
-    - docker push registry.gitlab.com/akantu/akantu/${IMAGE_NAME}
+include:
+  local: '.gitlab-ci.d/*.yaml'
 
-docker build:debian-testing:
+#-------------------------------------------------------------------------------
+# Rebuilding the docker images if needed
+#-------------------------------------------------------------------------------
+docker build:debian-bullseye:
   variables:
-    IMAGE_NAME: debian:testing
+    IMAGE_NAME: debian:bullseye
   extends: .docker_build
-  rules:
-    - changes:
-        - test/ci/debian:testing/Dockerfile
 
 docker build:ubuntu-lts:
   variables:
     IMAGE_NAME: ubuntu:lts
   extends: .docker_build
-  rules:
-    - changes:
-        - test/ci/ubuntu:lts/Dockerfile
 
-.configure:
-  stage: configure
-  except:
-    - tags
+docker build:manylinux:
   variables:
-    BLA_VENDOR: 'Generic'
+    IMAGE_NAME: manylinux:2010_x86_64
+  extends: .docker_build
+
+version_determination:
+  stage: version
+  image: python:latest
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 0
   script:
-    - cmake -E make_directory build
-    - cd build
-    - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
-            -DAKANTU_IMPLICIT:BOOL=TRUE
-            -DAKANTU_PARALLEL:BOOL=TRUE
-            -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
-            -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
-            -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
-            -DAKANTU_PHASE_FIELD:BOOL=TRUE
-            -DAKANTU_PYTHON_INTERFACE:BOOL=TRUE
-            -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
-            -DAKANTU_EXAMPLES:BOOL=TRUE
-            -DAKANTU_BUILD_ALL_EXAMPLES:BOOL=TRUE
-            -DAKANTU_TESTS:BOOL=TRUE
-            -DAKANTU_RUN_IN_DOCKER:BOOL=TRUE
-            -DAKANTU_TEST_EXAMPLES:BOOL=${TEST_EXAMPLES}
-            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+    - python3 cmake/semver.py > VERSION
+    - cat VERSION
+  artifacts:
+    when: on_success
+    paths:
+      - VERSION
+    expire_in: 1day
+# ------------------------------------------------------------------------------
+# Debian bullseye compiled with GCC
+# ------------------------------------------------------------------------------
+configure:debian_bullseye_gcc:
+  extends:
+    - .debian_bullseye_gcc
+    - .build_coverage
+    - .configure
+  needs:
+    - version_determination
     
-    - if [ -e compile_commands.json ]; then
-    -   cp compile_commands.json ..
-    - fi
-  artifacts:
-    when: on_success
-    paths:
-      - build
-      - compile_commands.json
-    expire_in: 10h
-
-.build:
-  stage: build
-  script:
-    - cmake --build build/src > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/python > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/test/ > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/examples > >(tee -a build-${output}-out.log) 2> >(tee -a build-${output}-err.log >&2)
-  artifacts:
-    when: on_success
-    paths:
-      - build/
-      - build-${output}-err.log
-      - compile_commands.json
-    exclude:
-      - build/**/*.o
-    expire_in: 10h
-
-.tests:
-  stage: test
-  script:
-    - cd build
-    - ctest -T test --output-on-failure --no-compress-output --timeout 1800
-  after_script:
-    - cd build
-    - tag=$(head -n 1 < Testing/TAG)
-    - if [ -e Testing/${tag}/Test.xml ]; then
-    -   xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
-    - fi
-    - if [ "${BUILD_TYPE}" = "Coverage" ]; then
-    -   gcovr --xml
-              --gcov-executable "${GCOV_EXECUTABLE}"
-              --output coverage.xml
-              --object-directory ${CI_PROJECT_DIR}/build
-              --root ${CI_PROJECT_DIR}  -s || true
-    - fi
-  artifacts:
-    when: always
-    paths:
-      - build/juint.xml
-      - build/coverage.xml
-    reports:
-      junit:
-        - build/juint.xml
-      cobertura:
-        - build/coverage.xml
-
-# ------------------------------------------------------------------------------
-.cache_build:
-  variables:
-    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/
-    CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
-    #CCACHE_NOHASHDIR: 1
-    #CCACHE_COMPILERCHECK: content
-  cache:
-    key: ${output}_${BUILD_TYPE}
-    policy: pull-push
-    paths:
-      - .ccache/
-      - third-party/google-test
-      - third-party/pybind11
-  before_script:
-    - ccache --zero-stats || true
-  after_script:
-    - ccache --show-stats || true
-
-# ------------------------------------------------------------------------------
-.image_debian_testing:
-  image: registry.gitlab.com/akantu/akantu/debian:testing
-
-.image_ubuntu_lts:
-  image: registry.gitlab.com/akantu/akantu/ubuntu:lts
-
-# ------------------------------------------------------------------------------
-.compiler_gcc:
-  variables:
-    CC: /usr/lib/ccache/gcc
-    CXX: /usr/lib/ccache/g++
-    FC: gfortran
-    GCOV_EXECUTABLE: gcov
-
-.compiler_clang:
-  variables:
-    CC: /usr/lib/ccache/clang
-    CXX: /usr/lib/ccache/clang++
-    FC: gfortran
-    GCOV_EXECUTABLE: llvm-cov gcov
-
-.build_coverage:
-  variables:
-    TEST_EXAMPLES: 'FALSE'
-    BUILD_TYPE: 'Coverage'
-
-.build_release:
-  variables:
-    TEST_EXAMPLES: 'TRUE'
-    BUILD_TYPE: 'Release'
-
-.build_valgrind:
-  variables:
-    TEST_EXAMPLES: 'FALSE'
-    BUILD_TYPE: 'Valgrind'
-
-# ------------------------------------------------------------------------------
-.debian_testing_gcc:
-  variables:
-    output: debian_testing_gcc
+build:debian_bullseye_gcc:
   extends:
-    - .compiler_gcc
-    - .image_debian_testing
-    - .cache_build
-
-.debian_testing_clang:
-  variables:
-    output: debian_testing_clang
-  extends:
-    - .compiler_clang
-    - .image_debian_testing
-    - .cache_build
-
-.ubuntu_lts_gcc:
-  variables:
-    output: ubuntu_lts_gcc
-  extends:
-    - .compiler_gcc
-    - .image_ubuntu_lts
-    - .cache_build
-
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-configure:debian_testing_gcc:
-  extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
     - .build_coverage
-    - .configure
-
-build:debian_testing_gcc:
-  extends:
-    - .debian_testing_gcc
-    - .build_coverage
-    - .build
+    - .build_all
   needs:
-    - job: configure:debian_testing_gcc
+    - job: configure:debian_bullseye_gcc
 
-test:debian_testing_gcc:
+test:debian_bullseye_gcc:
   extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
     - .build_coverage
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_testing_gcc
+    - job: build:debian_bullseye_gcc
 
 # ------------------------------------------------------------------------------
-configure:debian_testing_gcc_valgrind:
-  extends:
-    - .debian_testing_gcc
-    - .build_valgrind
-    - .configure
-
-build:debian_testing_gcc_valgrind:
-  extends:
-    - .debian_testing_gcc
-    - .build_valgrind
-    - .build
-  needs:
-    - job: configure:debian_testing_gcc_valgrind
-
-test:debian_testing_gcc_valgrind:
-  extends:
-    - .debian_testing_gcc
-    - .build_valgrind
-    - .tests
-  needs:
-    - job: build:debian_testing_gcc_valgrind
-
+# Debian bullseye compiled with Clang
 # ------------------------------------------------------------------------------
-configure:debian_testing_clang:
+configure:debian_bullseye_clang:
   extends:
-    - .debian_testing_clang
+    - .debian_bullseye_clang
     - .build_coverage
     - .configure
-
-build:debian_testing_clang:
-  extends:
-    - .debian_testing_clang
-    - .build_coverage
-    - .build
   needs:
-    - job: configure:debian_testing_clang
+    - version_determination
 
-test:debian_testing_clang:
+build:debian_bullseye_clang:
   extends:
-    - .debian_testing_clang
+    - .debian_bullseye_clang
+    - .build_coverage
+    - .build_all
+  needs:
+    - job: configure:debian_bullseye_clang
+
+test:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
     - .build_coverage
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_testing_clang
+    - job: build:debian_bullseye_clang
 
+# ------------------------------------------------------------------------------
+# Ubuntu LTS compiled with GCC
 # ------------------------------------------------------------------------------
 configure:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
     - .configure
+  needs:
+    - version_determination
 
 build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
-    - .build
+    - .build_all
   needs:
     - job: configure:ubuntu_lts_gcc
 
@@ -294,77 +129,160 @@ test:ubuntu_lts_gcc:
     - job: build:ubuntu_lts_gcc
 
 # ------------------------------------------------------------------------------
-cq:code_quality:
-  stage: test
-  image: docker:19.03.12
-  allow_failure: true
-  services:
-    - docker:19.03.12-dind
-  variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.85.24"
-  needs: []
-  script:
-    - export SOURCE_CODE=$PWD
-    - |
-      if ! docker info &>/dev/null; then
-        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
-          export DOCKER_HOST='tcp://localhost:2375'
-        fi
-      fi
-    - | # this is required to avoid undesirable reset of Docker image ENV variables being set on build stage
-      function propagate_env_vars() {
-        CURRENT_ENV=$(printenv)
+# Debian bullseye compiled with GCC tested with valgrind
+# ------------------------------------------------------------------------------
+configure:ubuntu_lts_gcc_valgrind:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_valgrind
+    - .configure
+  needs:
+    - version_determination
 
-        for VAR_NAME; do
-          echo $CURRENT_ENV | grep "${VAR_NAME}=" > /dev/null && echo "--env $VAR_NAME "
-        done
-      }
-    - docker pull --quiet "$CODE_QUALITY_IMAGE"
-    - |
-      docker run --rm \
-        $(propagate_env_vars \
-          SOURCE_CODE \
-          TIMEOUT_SECONDS \
-          CODECLIMATE_DEBUG \
-          CODECLIMATE_DEV \
-          REPORT_STDOUT \
-          REPORT_FORMAT \
-          ENGINE_MEMORY_LIMIT_BYTES \
-          CODECLIMATE_PREFIX \
-        ) \
-        --volume "$PWD":/code \
-        --volume /var/run/docker.sock:/var/run/docker.sock \
-        "$CODE_QUALITY_IMAGE" /code
+build:ubuntu_lts_gcc_valgrind:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_valgrind
+    - .build_all
+  needs:
+    - job: configure:ubuntu_lts_gcc_valgrind
+
+test:ubuntu_lts_gcc_valgrind:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_valgrind
+    - .tests
+  needs:
+    - job: build:ubuntu_lts_gcc_valgrind
+   
+# ------------------------------------------------------------------------------
+# Manylinux to build python packages
+# ------------------------------------------------------------------------------
+configure:python_package:
+  stage: configure
+  extends:
+    - .manylinux_2010_x64_gcc
+    - .build_release
+  script:
+    # create the build folder
+    - cmake -E make_directory build
+    - cd build
+
+    # Variables for cmake
+    - export CMAKE_PREFIX_PATH=/softs/view
+    - export BOOST_ROOT=/softs/view
+
+    # Configure in sequential and without tests or examples
+    - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
+            -DAKANTU_IMPLICIT:BOOL=TRUE
+            -DAKANTU_PARALLEL:BOOL=FALSE
+            -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
+            -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
+            -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
+            -DAKANTU_PHASE_FIELD:BOOL=TRUE
+            -DAKANTU_PYTHON_INTERFACE:BOOL=FALSE
+            -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
+            -DAKANTU_EXAMPLES:BOOL=FALSE
+            -DAKANTU_TESTS:BOOL=FALSE
+            -DMUMPS_DETECT_DEBUG:BOOL=TRUE
+            -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
+            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+  needs:
+    - version_determination
+  artifacts:
+    when: on_success
+    paths:
+      - build/
+      - VERSION
+    expire_in: 10h
+
+build_akantu:python_package:
+  extends:
+    - .build_libs
+    - .build_release
+    - .manylinux_2010_x64_gcc
+  script:
+    - cmake --build build --target akantu -j1
+    - cmake --install build
+  artifacts:
+    when: on_success
+    paths:
+      - install/
+      - VERSION
+    expire_in: 10h
+  needs:
+    - job: configure:python_package
+
+build_pip:python_package:
+  stage: build_tests
+  extends:
+    - .build_release
+    - .manylinux_2010_x64_gcc
+  script:
+    - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
+    - export CMAKE_PREFIX_PATH=/softs/view:${CI_AKANTU_INSTALL_PREFIX}
+    - test/ci/make-wheels.sh
+  needs:
+    - job: build_akantu:python_package
+  artifacts:
+    when: on_success
+    paths:
+      - wheelhouse
+    expire_in: 10h
+
+test:python_package:
+  stage: test
+  image: python:3.8
+  needs:
+    - job: build_pip:python_package
+  script:
+    - pip install numpy scipy
+    - pip install akantu --no-index --find-links=${PWD}/wheelhouse
+    - python -c "import akantu"
+    - cd examples/python/dynamics/
+    - apt update && apt install -y gmsh
+    - gmsh -2 bar.geo
+    - python ./dynamics.py
+
+package:python_gitlab:
+  stage: deploy
+  image: python:latest
+  script:
+    - pip install twine
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token
+          python3 -m twine upload
+            --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
+            wheelhouse/*
+  needs:
+    - job: build_pip:python_package
+    - job: test:python_package
+  only:
+    - master
+
+package:python_pypi:
+  stage: deploy
+  image: python:latest
+  script:
+    - pip install twine
+    - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__
+          python3 -m twine upload --verbose wheelhouse/*
+  needs:
+    - job: build_pip:python_package
+    - job: test:python_package
+  only:
+    - tags
+
+# ------------------------------------------------------------------------------
+# Code Quality
+# ------------------------------------------------------------------------------
+cq:code_quality:
+  extends:
+    - .code_quality_gitlab_template
+  needs:
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-code-quality-report.json
-    expire_in: 1 week
-  needs:
-    - job: build:debian_testing_clang
-  rules:
-    - if: '$CODE_QUALITY_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
-.clang_tools:
-  stage: test
-  extends:
-    - .debian_testing_clang
-  before_script:
-    - if [ 'x${CI_MERGE_REQUEST_ID}' != 'x' ]; then
-    -   git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-    -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_TARGET_BRANCH_NAME > file_list
-    -   FILE_LIST_ARG='-f file_list'
-    - fi
-  needs:
-    - job: build:debian_testing_clang
-  allow_failure: true
-  rules:
-    - if: '$CODE_QUALITY_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
 cq:clang_tidy:
   extends:
@@ -375,9 +293,12 @@ cq:clang_tidy:
             -x extra-packages
             -x pybind11
             -x test
+            -x build
             ${FILE_LIST_ARG}
             clang-tidy
             -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
+  needs:
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-tidy-report.json
@@ -389,14 +310,17 @@ cq:clang_format:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
+            -x build
             clang-format
             -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
+  needs:
+    - job: build:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-format-report.json
 
 cq:compilation_warnings:
-  stage: test
+  stage: code_quality
   image: python:latest
   script:
     - pip install warning-parser termcolor Click
@@ -404,11 +328,12 @@ cq:compilation_warnings:
     - test/ci/scripts/cq
             -x third-party
             -x extra-packages
+            -x build
             warnings
             build-*-err.log > gl-warnings-report.json
   needs:
-    - job: build:debian_testing_clang
-    - job: build:debian_testing_gcc
+    - job: build:debian_bullseye_clang
+    - job: build:debian_bullseye_gcc
     - job: build:ubuntu_lts_gcc
   artifacts:
     paths:
@@ -417,7 +342,7 @@ cq:compilation_warnings:
 cq:merge_code_quality:
   stage: deploy
   extends:
-    - .debian_testing_clang
+    - .debian_bullseye_clang
   script:
     - jq -Ms '[.[][]]' gl-*-report.json | tee gl-codequality.json | jq -C
   needs:
@@ -426,23 +351,23 @@ cq:merge_code_quality:
     - job: cq:clang_format
     - job: cq:compilation_warnings
   artifacts:
-    paths:
-      - gl-codequality.json
-  artifacts:
     reports:
       codequality: [gl-codequality.json]
+
+# ------------------------------------------------------------------------------
+# Deploy pages
 # ------------------------------------------------------------------------------
 pages:
   stage: deploy
   extends:
-    - .debian_testing_gcc
+    - .debian_bullseye_gcc
   script:
     - cd build
     - cmake -DAKANTU_DOCUMENTATION=ON ..
     - cmake --build . -t sphinx-doc
     - mv doc/dev-doc/html ../public
   needs:
-    - job: build:debian_testing_gcc
+    - job: build:debian_bullseye_gcc
   artifacts:
     paths:
       - public

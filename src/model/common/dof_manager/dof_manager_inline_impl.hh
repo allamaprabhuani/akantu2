@@ -318,9 +318,11 @@ void DOFManager::assembleElementalMatricesToMatrix_(
 
 /* -------------------------------------------------------------------------- */
 template <typename Mat>
-void DOFManager::assemblePreassembledMatrix_(Mat & A, const ID & dof_id_m,
-                                             const ID & dof_id_n,
+void DOFManager::assemblePreassembledMatrix_(Mat & A,
                                              const TermsToAssemble & terms) {
+  const auto & dof_id_m = terms.getDOFIdM();
+  const auto & dof_id_n = terms.getDOFIdN();
+
   const auto & equation_number_m = this->getLocalEquationsNumbers(dof_id_m);
   const auto & equation_number_n = this->getLocalEquationsNumbers(dof_id_n);
 

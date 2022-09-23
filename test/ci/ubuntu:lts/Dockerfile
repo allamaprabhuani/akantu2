@@ -19,6 +19,7 @@ RUN apt-get -qq update && apt-get -qq -y install \
     python3-yaml python3-pytest python3-termcolor python3-click \
     ccache  gmsh curl git xsltproc \
     gcovr binutils \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install warning_parser

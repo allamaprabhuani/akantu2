@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <aka_error.hh>
 #include <cohesive_contact_solvercallback.hh>
 #include <coupler_solid_cohesive_contact.hh>
 #include <coupler_solid_contact.hh>
@@ -52,12 +53,10 @@ namespace {
       -> py::class_<CouplerSolidContact_, Model> {
     return py::class_<CouplerSolidContact_, Model>(mod, name.c_str(),
                                                    py::multiple_inheritance())
-        .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
-                      const ModelType>(),
+        .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>>(),
              py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
              py::arg("id") = "coupler_solid_contact",
-             py::arg("dof_manager") = nullptr,
-             py::arg("model_type") = ModelType::_coupler_solid_contact)
+             py::arg("dof_manager") = nullptr)
         .def("applyBC",
              [](CouplerSolidContact_ & self,
                 BC::Dirichlet::DirichletFunctor & func,

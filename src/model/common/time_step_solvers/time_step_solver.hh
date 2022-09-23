@@ -75,6 +75,10 @@ public:
                             IntegrationScheme::SolutionType solution_type =
                                 IntegrationScheme::_not_defined);
 
+  virtual IntegrationScheme & getIntegrationScheme(const ID & dof_id) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
 protected:
   /// register an integration scheme for a given dof
   virtual std::unique_ptr<IntegrationScheme>
@@ -97,7 +101,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// implementation of the SolverCallback::getMatrixType()
-  MatrixType getMatrixType(const ID & /*unused*/) final {
+  MatrixType getMatrixType(const ID & /*unused*/) const final {
     return _mt_not_defined;
   }
   /// implementation of the SolverCallback::predictor()
@@ -116,7 +120,7 @@ public:
   void beforeSolveStep() override;
   void afterSolveStep(bool converged = true) override;
 
-  bool canSplitResidual() override {
+  bool canSplitResidual() const override {
     return solver_callback->canSplitResidual();
   }
   /* ------------------------------------------------------------------------ */

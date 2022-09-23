@@ -34,9 +34,8 @@
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_contact.hh"
 #include "dumpable_inline_impl.hh"
-#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -171,7 +170,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::corrector() {
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 MatrixType CouplerSolidContactTemplate<SolidMechanicsModelType>::getMatrixType(
-    const ID & matrix_id) {
+    const ID & matrix_id) const {
   if (matrix_id == "K") {
     return _symmetric;
   }
@@ -287,8 +286,6 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::assembleMass(
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-/* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 std::shared_ptr<dumpers::Field>
 CouplerSolidContactTemplate<SolidMechanicsModelType>::createElementalField(
@@ -349,8 +346,6 @@ CouplerSolidContactTemplate<SolidMechanicsModelType>::createNodalFieldBool(
   }
   return field;
 }
-
-#endif
 
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>

@@ -53,11 +53,8 @@
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
 #include "dumper_field.hh"
 #include "dumper_internal_material_field.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <sstream>
@@ -214,6 +211,11 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
   }
 
   auto & mesh_phys_data = this->getData<std::string>("physical_names");
+  auto & mesh_to_mesh_facet = this->getData<Element>("mesh_to_mesh_facet");
+  mesh_to_mesh_facet.initialize(*this,
+                                _spatial_dimension = spatial_dimension - 1,
+                                _with_nb_element = true);
+
   auto & phys_data = mesh_facets->getData<std::string>("physical_names");
   phys_data.initialize(*mesh_facets, _spatial_dimension = spatial_dimension - 1,
                        _with_nb_element = true);
@@ -273,6 +275,8 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         auto && facet_element = Element{element.type, UInt(std::get<0>(*facet)),
                                         element.ghost_type};
         phys_data(facet_element) = mesh_phys_data(element);
+
+        mesh_to_mesh_facet(element) = facet_element;
       },
       _spatial_dimension = spatial_dimension - 1);
 
@@ -442,7 +446,6 @@ template ElementTypeMap<UInt>
 Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
 template <typename T>
 std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData(const std::string & field_id,
@@ -475,7 +478,6 @@ template std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
                                         const std::string & group_name,
                                         ElementKind element_kind);
-#endif
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distributeImpl(
@@ -508,10 +510,9 @@ void Mesh::distributeImpl(
     } else {
       MeshUtilsDistribution::distributeMeshCentralized(*this, 0);
     }
+
 #else
-    if (psize > 1) {
-      AKANTU_ERROR("Cannot distribute a mesh without a partitioning tool");
-    }
+    AKANTU_ERROR("Cannot distribute a mesh without a partitioning tool");
 #endif
   }
 
@@ -519,6 +520,9 @@ void Mesh::distributeImpl(
   this->is_distributed = true;
 
   this->computeBoundingBox();
+
+  MeshIsDistributedEvent event(*this, AKANTU_CURRENT_FUNCTION);
+  this->sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */

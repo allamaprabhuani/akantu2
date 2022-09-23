@@ -77,5 +77,14 @@ void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
 }
 
 /* -------------------------------------------------------------------------- */
+bool SolverVectorDistributed::isFinite() const {
+  auto & synchronizer = dof_manager.getSynchronizer();
+  bool is_finite = this->vector.isFinite();
+  synchronizer.getCommunicator().allReduce(is_finite,
+                                           SynchronizerOperation::_land);
+  return is_finite;
+}
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

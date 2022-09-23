@@ -90,7 +90,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) override;
+  MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & matrix_id) override;

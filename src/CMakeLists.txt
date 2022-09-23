@@ -104,6 +104,12 @@ list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
   "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
+configure_file(common/aka_config.cc.in
+  "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc" @ONLY)
+
+list(APPEND AKANTU_LIBRARY_SRCS
+  "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc")
+
 #===============================================================================
 # Debug infos
 #===============================================================================
@@ -178,8 +184,13 @@ set_target_properties(akantu
     ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
     COMPILE_FLAGS "${_cxx_flags}"
     #PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS}
-    )
+)
 
+if(NOT AKANTU_SHARED)
+  set_property(TARGET akantu PROPERTY
+    POSITION_INDEPENDENT_CODE ${AKANTU_POSITION_INDEPENDENT})
+endif()
+  
 if(AKANTU_LIBRARY_PUBLIC_HDRS)
   set_property(TARGET akantu PROPERTY PUBLIC_HEADER ${AKANTU_LIBRARY_PUBLIC_HDRS})
 endif()
@@ -232,7 +243,7 @@ install(TARGETS akantu
 
 if("${AKANTU_TARGETS_EXPORT}" STREQUAL "AkantuTargets")
   install(EXPORT AkantuTargets
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME}
+    DESTINATION lib/cmake/${PROJECT_NAME}
     COMPONENT dev)
 
   #Export for build tree

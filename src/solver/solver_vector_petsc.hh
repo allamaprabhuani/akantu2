@@ -119,6 +119,13 @@ public:
 
   void printself(std::ostream & stream, int indent = 0) const override;
 
+  virtual
+  bool
+  isDistributed()
+    const
+    override
+      { return true; }
+
 protected:
   void applyModifications();
   void updateGhost();

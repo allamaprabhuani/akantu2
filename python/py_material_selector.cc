@@ -90,7 +90,7 @@ void register_material_selector(py::module & mod) {
 
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
-      .def(py::init<const ElementTypeMapArray<UInt>>());
+      .def(py::init<const ElementTypeMapArray<UInt> &>());
 
   register_material_selectors<MeshDataMaterialSelector<std::string>>(
       mod, "MeshDataMaterialSelectorString")

@@ -94,6 +94,20 @@ public:
   ~NewElementsEvent() override = default;
 };
 
+/// akantu::MeshEvent related to the case the mesh is made distributed.
+///  Note that the `list` has no meaning for this event.
+class MeshIsDistributedEvent : public MeshEvent<UInt> {
+public:
+  MeshIsDistributedEvent(const Mesh & mesh, const std::string & origin = "")
+      : MeshEvent<UInt>(origin), mesh(mesh) {}
+  ~MeshIsDistributedEvent() override = default;
+
+  const Mesh & getMesh() const noexcept { return this->mesh; }
+
+private:
+  const Mesh & mesh;
+};
+
 /// akantu::MeshEvent related to elements removed from the mesh
 class RemovedElementsEvent : public MeshEvent<Element> {
 public:
@@ -172,6 +186,10 @@ private:
     onElementsChanged(event.getListOld(), event.getListNew(),
                       event.getNewNumbering(), event);
   }
+  /// send a akantu::MeshIsDistributedEvent
+  inline void sendEvent(const MeshIsDistributedEvent & event) {
+    onMeshIsDistributed(event.getMesh(), event);
+  }
   template <class EventHandler> friend class EventHandlerManager;
 
   /* ------------------------------------------------------------------------ */
@@ -199,6 +217,10 @@ public:
                     const Array<Element> & /*new_elements_list*/,
                     const ElementTypeMapArray<UInt> & /*new_numbering*/,
                     const ChangedElementsEvent & /*event*/) {}
+
+  /// function to implement to react on  akantu::MeshIsDistributedEvent
+  virtual void onMeshIsDistributed(const Mesh & /*mesh*/,
+                                   const MeshIsDistributedEvent & /*event*/) {}
 };
 
 } // namespace akantu

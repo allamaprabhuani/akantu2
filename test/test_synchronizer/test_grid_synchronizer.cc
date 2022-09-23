@@ -37,9 +37,7 @@
 #include "mesh_partition.hh"
 #include "synchronizer_registry.hh"
 #include "test_data_accessor.hh"
-#ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
-#endif // AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
