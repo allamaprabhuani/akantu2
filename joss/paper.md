@@ -1,5 +1,5 @@
 ---
-title: 'Akantu: a finite-element library for contact an fracture simulations'
+title: 'Akantu: an HPC finite-element library for contact and fracture simulations'
 tags:
   - C++
   - python
@@ -40,7 +40,7 @@ authors:
 affiliations:
   - name: Civil Engineering Institute, École Polytechnique Fédérale de Lausanne, Switzerland
     index: 1
-  - name: Department of Physics and Astronomy, Johns Hopkins University, Baltimore, Maryland, United States.
+  - name: Department of Microsystems Engineering, Univeristy of Freiburg, Germany
     index: 2
   - name: Institute for Building Materials, ETH Zurich, Switzerland
     index: 3
@@ -58,13 +58,16 @@ Complex, nonlinear and transient phenomena are at the heart of modern research
 in mechanics of materials. For example, the buildup and release of elastic
 energy at geological fault is what causes earthquakes, and the intricate details
 of the slip zone, the propagation of slip fronts and waves radiated through the
-various geological media are still active areas of research [cite kammer etc].
-Similarly, understanding fracture in heterogeneous materials such as concrete,
-masonry or ceramics necessitates the modeling of interaction of crack fronts
-with complex materials [cite okan, mohadeseh, aurelia etc], the representation
-of residual shear stresses in the contact of newly-formed crack surfaces [cite
-shenghan, mohit etc], and the accurate characterization of transient dynamics
-[cite marco etc] and material structure evolution [cite aurelia, emil].
+various geological media are still active areas of research
+[@kammer_propagation_2012;@kammer_existence_2014]. Similarly, understanding
+fracture in heterogeneous materials such as concrete, masonry or ceramics
+necessitates the modeling of interaction of crack fronts with complex materials
+[@taheri_mousavi_dynamic_2015;@yilmaz_damage_2017;@cuba_ramos_hpc_2018], the
+representation of residual shear stresses in the contact of newly-formed crack
+surfaces [@zhang_micro-mechanical_2017;@pundir_coupling_2021], and the accurate
+characterization of transient dynamics
+[@vocialta_numerical_2018;@corrado_effects_2016] and material structure
+evolution [@cuba_ramos_hpc_2018;@gallyamov_multi-scale_2020].
 
 The finite-element method is now ubiquitous in virtually all areas of solid
 mechanics. With meticulous care on code architecture and performance, we show
@@ -81,6 +84,8 @@ computations, while retaining the necessary flexibility to handle:
 - structural elements (beams and shells)
 - one-dimensional elements embeded in a three-dimensional mesh (e.g.
   reinforcements in concrete)
+- interaction between contact and cohesive elements (residual crack shear
+  strength)
 
 # Statement of need
 
@@ -113,6 +118,7 @@ The following publications have been made possible with ``Akantu``:
 - @albertini_three-dimensional_2021
 - @brun_hybrid_2021
 - @rezakhani_meso-scale_2021
+- @pundir_coupling_2021
 
 # Acknowledgement
 
