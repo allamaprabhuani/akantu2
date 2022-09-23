@@ -54,6 +54,13 @@
     FC: gfortran
     GCOV_EXECUTABLE: gcov
 
+.compiler_gcc_ubuntu:
+  variables:
+    CC: /usr/lib/ccache/gcc-8
+    CXX: /usr/lib/ccache/g++-8
+    FC: gfortran-8
+    GCOV_EXECUTABLE: gcov
+
 .compiler_clang:
   variables:
     CC: /usr/lib/ccache/clang

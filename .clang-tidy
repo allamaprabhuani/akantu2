@@ -4,6 +4,8 @@ Checks: "
         modernize-use-*,
         -modernize-use-trailing-return-type*,
 
+        cppcoreguidelines-*,
+
         readability-*,
         -readability-magic-numbers,
         -readability-redundant-access-specifiers,
@@ -13,3 +15,8 @@ Checks: "
 AnalyzeTemporaryDtors: false
 HeaderFilterRegex:     'src/.*'
 FormatStyle:           file
+CheckOptions:
+  - key: readability-identifier-length.IgnoreVariableNames
+    value: True
+  - key: readability-identifier-length.IgnoreLoopCounterNames
+    value: True

@@ -6,7 +6,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install akantu dependencies
 RUN apt-get -qq update && apt-get -qq -y install \
-    g++ gfortran  cmake \
+    g++-8 gfortran-8  cmake \
     openmpi-bin libmumps-dev libscotch-dev \
     libboost-dev libopenblas-dev libcgal-dev \
     libeigen3-dev \
