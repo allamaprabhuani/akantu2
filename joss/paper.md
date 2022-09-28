@@ -88,9 +88,27 @@ computations, while retaining the necessary flexibility to handle:
   strength)
 
 # Statement of need
+Understanding the interplay between material constitutive behavior and interface
+processes such as crack propagation, contact and friction is fundamental to the
+study of, among others, earthquakes, concrete structures, ceramics, and
+polycrystalline failure. Thanks to its versatility, the finite-element method
+(FEM) has become a staple in these areas. However, codes that can handle cutting
+edge simulations with interaction of material behavior and interface processes
+in a high-performance computing (HPC) setting are rare, particularily in the
+open-source space. Driving these state-of-the-art research simulations to the
+exascale era is the primary *raison d'être* of Akantu.
+
+At its heart, Akantu leverages a hybrid object-oriented vectorial architecture.
+This makes high-level development possible while retaining performance in the
+critical areas of the code. *Elaborate more, parallelization strategy, solving
+capabilities etc.*
+
+# Scaling analysis
+Would be nice to have scaling plots of simple and complex simulations (with
+cohesive elements, contact, etc.)
 
 # Publications
-The following publications have been made possible with ``Akantu``:
+The following publications have been made possible with Akantu:
 
 - @kammer_propagation_2012
 - @kammer_existence_2014
