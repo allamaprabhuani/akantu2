@@ -543,7 +543,7 @@ void Mesh::getAssociatedElements(const Idx & node,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::fillNodesToElements(Int dimension) {
-  Element e;
+  Element element;
 
   auto nb_nodes = nodes->size();
   this->nodes_to_elements.resize(nb_nodes);
@@ -557,20 +557,20 @@ void Mesh::fillNodesToElements(Int dimension) {
   }
 
   for (auto ghost_type : ghost_types) {
-    e.ghost_type = ghost_type;
+    element.ghost_type = ghost_type;
     for (const auto & type :
          elementTypes(dimension, ghost_type, _ek_not_defined)) {
-      e.type = type;
+      element.type = type;
 
       auto nb_element = this->getNbElement(type, ghost_type);
       auto connectivity = connectivities(type, ghost_type);
       auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
       for (Int el = 0; el < nb_element; ++el, ++conn_it) {
-        e.element = el;
+        element.element = el;
         const auto & conn = *conn_it;
         for (auto node : conn) {
-          nodes_to_elements[node]->insert(e);
+          nodes_to_elements[node]->insert(element);
         }
       }
     }

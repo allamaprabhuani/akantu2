@@ -39,12 +39,7 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-// #ifndef __AKANTU_MESH_INLINE_IMPL_CC__
-// #define __AKANTU_MESH_INLINE_IMPL_CC__
-
 namespace akantu {
-
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) -> Int {
@@ -376,6 +371,13 @@ Mesh::getBarycenter(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
+inline Vector<Real> Mesh::getBarycenter(const Element & element) const {
+  Vector<Real> tmp(spatial_dimension);
+  getBarycenter(element, tmp);
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getKind(ElementType type) -> ElementKind {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
@@ -392,54 +394,54 @@ inline constexpr auto Element::kind() const -> ElementKind {
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getP1ElementType(ElementType type) -> ElementType {
-  return tuple_dispatch<AllElementTypes>(
+  return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getP1ElementType();
       },
-      type);
+      type, [](auto && /*enum_type*/) { return _not_defined; });
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getSpatialDimension(ElementType type) -> Int {
-  return tuple_dispatch<AllElementTypes>(
+  return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getSpatialDimension();
       },
-      type);
+      type, [](auto && /*enum_type*/) { return 0; });
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) -> Int {
-  return tuple_dispatch<AllElementTypes>(
+  return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getNaturalSpaceDimension();
       },
-      type);
+      type, [](auto && /*enum_type*/) { return 0; });
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/)
     -> Int {
-  return tuple_dispatch<AllElementTypes>(
+  return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getNbFacetTypes();
       },
-      type);
+      type, [](auto && /*enum_type*/) { return 0; });
 }
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getFacetType(ElementType type, Idx t)
     -> ElementType {
-  return tuple_dispatch<AllElementTypes>(
+  return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
         return ElementClass<type>::getFacetType(t);
       },
-      type);
+      type, [](auto && /*enum_type*/) { return _not_defined; });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -487,15 +489,34 @@ inline decltype(auto) Mesh::getConnectivityNC(const Element & element) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
+template <typename T, class Derived1, class Derived2,
+          std::enable_if_t<aka::is_vector<Derived2>::value> *>
 inline void Mesh::extractNodalValuesFromElement(
-    const Array<T> & nodal_values, T * local_coord, Int * connectivity,
-    Int n_nodes, Int nb_degree_of_freedom) const {
-  for (Int n = 0; n < n_nodes; ++n) {
-    memcpy(local_coord + n * nb_degree_of_freedom,
-           nodal_values.data() + connectivity[n] * nb_degree_of_freedom,
-           nb_degree_of_freedom * sizeof(T));
+    const Array<T> & nodal_values,
+    Eigen::MatrixBase<Derived1> & elemental_values,
+    const Eigen::MatrixBase<Derived2> & connectivity) const {
+  static_assert(std::is_convertible<T, typename Derived1::Scalar>::value,
+                "Cannot extract the array to the vector");
+  AKANTU_DEBUG_ASSERT(
+      nodal_values.getNbComponent() == elemental_values.rows(),
+      "Cannot extract nodal values to a vector of different size");
+  auto nodal_values_it =
+      make_view(nodal_values, elemental_values.rows()).begin();
+  for (auto && data : enumerate(connectivity)) {
+    elemental_values(std::get<0>(data)) = nodal_values_it[std::get<1>(data)];
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto)
+Mesh::extractNodalValuesFromElement(const Array<T> & nodal_values,
+                                    const Element & element) const {
+  auto && conn = mesh.getConnectivity(element);
+  Matrix<Real> elemental_values(nodal_values.getNbComponent(),
+                                Mesh::getNbNodesPerElement(element.type));
+  extractNodalValuesFromElement(nodal_values, elemental_values, conn);
+  return elemental_values;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -607,13 +628,13 @@ inline const Mesh & Mesh::getMeshFacets() const {
 
   return *this->mesh_facets;
 }
+
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getMeshParent() const {
   if (this->mesh_parent == nullptr) {
     AKANTU_SILENT_EXCEPTION(
         "No parent mesh is defined! This is only valid in a mesh_facets");
   }
-
   return *this->mesh_parent;
 }
 
@@ -653,7 +674,8 @@ void Mesh::addPeriodicSlave(Idx slave, Idx master) {
   set_flag(master, NodeFlag::_periodic_master);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 auto Mesh::getPeriodicMaster(Idx slave) const -> Idx {
   return periodic_slave_master.at(slave);
 }
@@ -712,6 +734,9 @@ Mesh::getConnectivityWithPeriodicity(const Element & element) const {
   return conn;
 }
 
-} // namespace akantu
+/* -------------------------------------------------------------------------- */
+inline decltype(auto) Mesh::getAssociatedElements(const Idx & node) const {
+  return (*nodes_to_elements[node]);
+}
 
-//#endif /* __AKANTU_MESH_INLINE_IMPL_CC__ */
+} // namespace akantu

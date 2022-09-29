@@ -76,12 +76,11 @@ public:
               Array<Real> & projections);
 
   /// performs global spatial search to construct spatial grids
-  void globalSearch(SpatialGrid<Idx> & /*slave_grid*/,
-                    SpatialGrid<Idx> & /*master_grid*/);
+  std::pair<BBox, std::unique_ptr<SpatialGrid<Idx>>> globalSearch() const;
 
   ///  performs local search to find closet master node to a slave node
-  void localSearch(SpatialGrid<Idx> & /*slave_grid*/,
-                   SpatialGrid<Idx> & /*master_grid*/);
+  void localSearch(const BBox & intersection,
+                   const SpatialGrid<Idx> & master_grid);
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,
@@ -97,14 +96,20 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// checks whether the natural projection is valid or not
-  inline bool checkValidityOfProjection(Vector<Real> & projection) const;
+  template <class Derived,
+            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+  inline bool
+  checkValidityOfProjection(Eigen::MatrixBase<Derived> & projection) const;
 
   /// extracts the coordinates of an element
+  template <class Derived>
   inline void coordinatesOfElement(const Element & el,
-                                   Matrix<Real> & coords) const;
+                                   Eigen::MatrixBase<Derived> & coords) const;
 
   /// computes the optimal cell size for grid
-  inline void computeCellSpacing(Vector<Real> & spacing) const;
+  template <class Derived,
+            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+  inline void computeCellSpacing(Eigen::MatrixBase<Derived> & spacing) const;
 
   /// constructs a grid containing nodes lying within bounding box
   inline void constructGrid(SpatialGrid<Idx> & grid, BBox & bbox,
@@ -122,17 +127,23 @@ public:
                                            const Element & master) const;
 
   /// computes normal on an element
+  template <class Derived,
+            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
   inline void computeNormalOnElement(const Element & element,
-                                     Vector<Real> & normal) const;
+                                     Eigen::MatrixBase<Derived> & normal) const;
 
   /// extracts vectors which forms the plane of element
+  template <class Derived>
   inline void vectorsAlongElement(const Element & el,
-                                  Matrix<Real> & vectors) const;
+                                  Eigen::MatrixBase<Derived> & vectors) const;
 
   /// computes the gap between slave and its projection on master
   /// surface
-  inline Real computeGap(const Vector<Real> & slave,
-                         const Vector<Real> & master) const;
+  template <
+      class Derived1, class Derived2,
+      std::enable_if_t<aka::are_vectors<Derived1, Derived2>::value> * = nullptr>
+  inline Real computeGap(const Eigen::MatrixBase<Derived1> & slave,
+                         const Eigen::MatrixBase<Derived2> & master) const;
 
   /// filter boundary elements
   inline void filterBoundaryElements(const Array<Element> & elements,
@@ -140,8 +151,11 @@ public:
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  inline bool isValidSelfContact(const Idx & slave_node, const Real & gap,
-                                 const Vector<Real> & normal) const;
+  template <class Derived,
+            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+  inline bool
+  isValidSelfContact(const Idx & slave_node, const Real & gap,
+                     const Eigen::MatrixBase<Derived> & normal) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -316,7 +316,7 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
   this->internal_force->clear();
   this->normal_force->clear();
   this->tangential_force->clear();
@@ -373,7 +373,7 @@ void ContactMechanicsModel::search() {
   // model to work by default the gap value from detector is negative
   std::for_each((*gaps).begin(), (*gaps).end(), [](Real & gap) { gap *= -1.; });
 
-  if (!contact_elements.empty()) {
+  if (not contact_elements.empty()) {
     this->computeNodalAreas();
   }
 }
@@ -405,7 +405,7 @@ void ContactMechanicsModel::savePreviousState() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   nodal_area->resize(nb_nodes);
   nodal_area->zero();
@@ -431,13 +431,13 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
   for (auto && type : group.elementTypes(spatial_dimension - 1, ghost_type)) {
     const auto & element_ids = group.getElements(type, ghost_type);
 
-    UInt nb_quad_points = fem_boundary.getNbIntegrationPoints(type, ghost_type);
-    UInt nb_elements = element_ids.size();
+    auto nb_quad_points = fem_boundary.getNbIntegrationPoints(type, ghost_type);
+    auto nb_elements = element_ids.size();
 
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
     Array<Real> dual_before_integ(nb_elements * nb_quad_points,
-                                  nb_degree_of_freedom, 0.);
+                                  nb_degree_of_freedom);
     Array<Real> quad_coords(nb_elements * nb_quad_points, spatial_dimension);
 
     const auto & normals_on_quad =
@@ -450,34 +450,22 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
     quad_point.type = type;
 
-    Element subelement;
-    subelement.type = type;
-    subelement.ghost_type = ghost_type;
+    Element subelement{type, 0, ghost_type};
     for (auto el : element_ids) {
       subelement.element = el;
-      const auto & element_to_subelement =
-          mesh.getElementToSubelement(type)(el);
 
-      Vector<Real> outside(spatial_dimension);
-      mesh.getBarycenter(subelement, outside);
-
-      Vector<Real> inside(spatial_dimension);
-      if (mesh.isMeshFacets()) {
-        mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
-      } else {
-        mesh.getBarycenter(element_to_subelement[0], inside);
-      }
-
-      Vector<Real> inside_to_outside(spatial_dimension);
-      inside_to_outside = outside - inside;
+      auto inside_to_outside =
+          GeometryUtils::outsideDirection(mesh, subelement);
 
       normals_iter = normals_begin + el * nb_quad_points;
 
       quad_point.element = el;
       for (auto q : arange(nb_quad_points)) {
         quad_point.num_point = q;
-        auto ddot = inside_to_outside.dot(*normals_iter);
+
         auto & normal = *normals_iter;
+        auto ddot = inside_to_outside.dot(normal);
+
         if (ddot < 0) {
           normal *= -1.0;
         }
@@ -485,6 +473,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
         (*dual_iter) =
             Matrix<Real>::Identity(spatial_dimension, spatial_dimension) *
             normal;
+
         ++dual_iter;
         ++quad_coords_iter;
         ++normals_iter;

@@ -243,7 +243,7 @@ public:
   };
 
   inline void set(const T & t) { std::fill_n(values, _size, t); };
-  inline void clear() { set(T()); };
+  inline void zero() { set(T()); };
 
 public:
   /// "Entrywise" norm norm<L_p> @f[ \|\boldsymbol{T}\|_p = \left(

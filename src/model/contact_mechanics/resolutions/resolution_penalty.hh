@@ -89,7 +89,7 @@ public:
 
 protected:
   /// local computation of normal traction due to penetration
-  virtual Real computeNormalTraction(Real & gap) const;
+  virtual Real computeNormalTraction(const Real & gap) const;
 
   /// local computation of trial tangential traction due to friction
   template <typename D>

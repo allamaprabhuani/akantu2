@@ -106,17 +106,8 @@ void ShapeLagrange<kind>::inverseMap(
   // as advised by the Eigen developers even though this is a UB
   auto & natural_coords = const_cast<Eigen::MatrixBase<D2> &>(natural_coords_);
 
-  Int spatial_dimension = mesh.getSpatialDimension();
-  constexpr Int nb_nodes_per_element =
-      ElementClass<type>::getNbNodesPerInterpolationElement();
-
-  auto * elem_val = mesh.getConnectivity(type, ghost_type).data();
-  Matrix<Real, Eigen::Dynamic, nb_nodes_per_element> nodes_coord(
-      spatial_dimension, nb_nodes_per_element);
-
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
-                                     elem_val + elem * nb_nodes_per_element,
-                                     nb_nodes_per_element, spatial_dimension);
+  auto nodes_coord = mesh.extractNodalValuesFromElement(
+      mesh.getNodes(), Element{type, elem, ghost_type});
 
   ElementClass<type>::inverseMap(real_coords, nodes_coord, natural_coords);
 
@@ -177,7 +168,7 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
 
   auto spatial_dimension = mesh.getSpatialDimension();
   auto nb_points = real_coords.cols();
-  auto nb_nodes_per_element =
+  const auto nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
   AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == shapesd.size(0) &&
@@ -193,12 +184,8 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
     inverseMap<type>(real_coords(i), elem, natural_coords(i), ghost_type);
   }
 
-  auto * elem_val = mesh.getConnectivity(type, ghost_type).data();
-  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
-
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
-                                     elem_val + elem * nb_nodes_per_element,
-                                     nb_nodes_per_element, spatial_dimension);
+  auto nodes_coord = mesh.extractNodalValuesFromElement(
+      mesh.getNodes(), Element{type, elem, ghost_type});
 
   computeShapeDerivativesOnCPointsByElement<type>(nodes_coord, natural_coords,
                                                   shapesd);

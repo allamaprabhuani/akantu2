@@ -45,102 +45,111 @@ class GeometryUtils {
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  static Vector<Real> outsideDirection(const Mesh & mesh,
+                                       const Element & element);
+
   /// computes the normal on an element (assuming elements is flat)
-  static void normal(const Mesh & mesh, const Array<Real> & positions,
-                     const Element & element, Vector<Real> & normal,
-                     bool outward = true);
+  template <class Derived>
+  static Vector<Real> normal(const Mesh & mesh,
+                             const Eigen::MatrixBase<Derived> & coords,
+                             const Element & element, bool outward = true);
 
   // computes normal at given covariant basis
-  static void normal(const Mesh & mesh, const Element & element,
-                     Matrix<Real> & tangents, Vector<Real> & normal,
-                     bool outward = true);
+  template <class Derived>
+  static Vector<Real> normal(const Mesh & mesh, const Element & element,
+                             Eigen::MatrixBase<Derived> & tangents,
+                             bool outward = true);
 
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
-  static Idx
-  orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
-                       const Vector<Real> & slave,
-                       const Array<Element> & elements, Real & gap,
-                       Vector<Real> & natural_projection, Vector<Real> & normal,
-                       Real alpha, Int max_iterations = 100,
-                       Real tolerance = 1e-10, Real extension_tolerance = 1e-5);
-
-  /// computes the orthogonal projection on a set of elements and
-  /// returns natural projection and normal gap and index of element
-  static Idx orthogonalProjection(
+  template <class Derived1, class Derived2, class Derived3, class Derived4,
+            class ElementList>
+  static Element orthogonalProjection(
       const Mesh & mesh, const Array<Real> & positions,
-      const Vector<Real> & slave, const Array<Element> & elements, Real & gap,
-      Vector<Real> & natural_projection, Vector<Real> & normal,
-      Matrix<Real> & tangent, Real alpha, Int max_iterations = 100,
-      Real tolerance = 1e-10, Real extension_tolerance = 1e-5);
+      const Eigen::MatrixBase<Derived1> & slave, const ElementList & elements,
+      Real & gap, Eigen::MatrixBase<Derived2> & natural_projection,
+      Eigen::MatrixBase<Derived3> & normal,
+      Eigen::MatrixBase<Derived4> & tangent, Real alpha,
+      Int max_iterations = 100, Real projection_tolerance = 1e-10,
+      Real extension_tolerance = 1e-5);
 
   /// computes the natural projection on an element
-  static void
-  naturalProjection(const Mesh & mesh, const Array<Real> & positions,
-                    const Element & element, const Vector<Real> & slave_coords,
-                    Vector<Real> & master_coords,
-                    Vector<Real> & natural_projection, Int max_iterations = 100,
-                    Real tolerance = 1e-10);
+  template <class Derived1, class Derived2>
+  static std::pair<Vector<Real>, Vector<Real>>
+  naturalProjection(const Eigen::MatrixBase<Derived1> & coords,
+                    const Element & element,
+                    const Eigen::MatrixBase<Derived2> & slave_coords,
+                    Int max_iterations = 100, Real tolerance = 1e-10);
 
   /// computes the real projection on an element
-  static void realProjection(const Mesh & mesh, const Array<Real> & positions,
-                             const Vector<Real> & slave,
-                             const Element & element,
-                             const Vector<Real> & normal,
-                             Vector<Real> & projection);
+  template <class Derived1, class Derived2, class Derived3>
+  static Vector<Real>
+  realProjection(const Eigen::MatrixBase<Derived1> & coords,
+                 const Eigen::MatrixBase<Derived2> & slave,
+                 const Eigen::MatrixBase<Derived3> & normal);
 
   /// computes the real projection from a natural coordinate
-  static void realProjection(const Mesh & mesh, const Array<Real> & positions,
-                             const Element & element,
-                             const Vector<Real> & natural_coord,
-                             Vector<Real> & projection);
+  template <class Derived1, class Derived2>
+  static Vector<Real>
+  realProjection(const Eigen::MatrixBase<Derived1> & coords,
+                 const Element & element,
+                 const Eigen::MatrixBase<Derived2> & natural_coord);
 
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
-  static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
-                             const Element & element,
-                             Vector<Real> & natural_coord,
-                             Matrix<Real> & tangents);
+  template <class Derived1, class Derived2>
+  static Matrix<Real>
+  covariantBasis(const Eigen::MatrixBase<Derived1> & coords,
+                 const Element & element,
+                 Eigen::MatrixBase<Derived2> & natural_coord);
 
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
-  static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
-                             const Element & element,
-                             const Vector<Real> & normal,
-                             Vector<Real> & natural_coord,
-                             Matrix<Real> & tangents);
+  template <class Derived1, class Derived2, class Derived3>
+  static Matrix<Real>
+  covariantBasis(const Eigen::MatrixBase<Derived1> & coords,
+                 const Element & element,
+                 const Eigen::MatrixBase<Derived2> & normal,
+                 Eigen::MatrixBase<Derived3> & natural_coord);
 
   // computes the curvature on projection
-  static void curvature(const Mesh & mesh, const Array<Real> & positions,
-                        const Element & element,
-                        const Vector<Real> & natural_coord,
-                        Matrix<Real> & curvature);
+  template <class Derived1, class Derived2>
+  static Matrix<Real>
+  curvature(const Eigen::MatrixBase<Derived1> & coords, const Element & element,
+            const Eigen::MatrixBase<Derived2> & natural_coord);
 
   /// computes the contravariant basis on projection point
-  static void contravariantBasis(const Matrix<Real> & covariant,
-                                 Matrix<Real> & contravariant);
+  template <class Derived>
+  static Matrix<Real>
+  contravariantBasis(const Eigen::MatrixBase<Derived> & covariant);
 
   /// computes metric tesnor with covariant components
+  template <class Derived>
   static Matrix<Real>
-  covariantMetricTensor(const Matrix<Real> & /*covariant_bases*/);
+  covariantMetricTensor(const Eigen::MatrixBase<Derived> & covariant_bases);
 
   /// computes metric tensor with contravariant components
+  template <class Derived>
   static Matrix<Real>
-  contravariantMetricTensor(const Matrix<Real> & /*covariant_bases*/);
+  contravariantMetricTensor(const Eigen::MatrixBase<Derived> & covariant_bases);
 
   // computes curvature tensor with convariant components
-  static Matrix<Real> covariantCurvatureTensor(
-      const Mesh & /*mesh*/, const Array<Real> & /*positions*/,
-      const Element & /*element*/, const Vector<Real> & /*natural_coord*/,
-      const Vector<Real> & /*normal*/);
+  template <class Derived1, class Derived2, class Derived3>
+  static Matrix<Real>
+  covariantCurvatureTensor(const Eigen::MatrixBase<Derived1> & coords,
+                           const Element & element,
+                           const Eigen::MatrixBase<Derived2> & natural_coord,
+                           const Eigen::MatrixBase<Derived3> & normal);
 
   /// checks if the element is truly a boundary element or not
   inline static bool isBoundaryElement(const Mesh & mesh,
                                        const Element & element);
 
   /// checks if the natural projection is valid for not
-  inline static bool isValidProjection(const Vector<Real> & projection,
-                                       Real extension_tolerance = 1e-5);
+  template <class Derived>
+  inline static bool
+  isValidProjection(const Eigen::MatrixBase<Derived> & projection,
+                    Real extension_tolerance = 1e-5);
 };
 
 } // namespace akantu

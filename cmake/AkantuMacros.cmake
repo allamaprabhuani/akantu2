@@ -264,6 +264,7 @@ function(declare_akantu_types)
 
   # ----------------------------------------------------------------------------
   set(CMAKE_REQUIRED_FLAGS "-Werror -Wall -std=c++${AKANTU_CXX_STANDARD}")
+  set(CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/src/common")
   file(READ ${PROJECT_SOURCE_DIR}/cmake/check_constexpr_map.cc _check_constexpr_map_code)
   check_cxx_source_compiles("${_check_constexpr_map_code}"
     can_compile_constexpr_map)

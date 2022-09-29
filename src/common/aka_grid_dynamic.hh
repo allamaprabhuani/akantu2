@@ -54,16 +54,16 @@ template <typename T> class SpatialGrid {
 public:
   explicit SpatialGrid(Int dimension)
       : dimension(dimension), spacing(dimension), center(dimension),
-        lower(dimension), upper(dimension), empty_cell() {}
+        lower(dimension), upper(dimension), empty_cell() {
+    lower.fill(std::numeric_limits<Real>::max());
+    upper.fill(-std::numeric_limits<Real>::max());
+  }
 
   SpatialGrid(Int dimension, const Vector<Real> & spacing,
               const Vector<Real> & center)
-      : dimension(dimension), spacing(spacing), center(center),
-        lower(dimension), upper(dimension), empty_cell() {
-    for (Int i = 0; i < dimension; ++i) {
-      lower(i) = std::numeric_limits<Real>::max();
-      upper(i) = -std::numeric_limits<Real>::max();
-    }
+      : SpatialGrid(dimension) {
+    this->spacing = spacing;
+    this->center = center;
   }
 
   virtual ~SpatialGrid() = default;
@@ -76,7 +76,8 @@ public:
     CellID() = default;
     explicit CellID(Int dimention) : ids(dimention) {}
     void setID(Int dir, Int id) { ids(dir) = id; }
-    Int getID(Int dir) const { return ids(dir); }
+    Idx getID(Int dir) const { return ids(dir); }
+    const Vector<Idx> & getIDs() const { return ids; }
 
     bool operator<(const CellID & id) const {
       return std::lexicographical_compare(ids.data(), ids.data() + ids.size(),
@@ -151,7 +152,7 @@ public:
       /// central cell id
       const CellID & cell_id;
       // number representing the current neighbor in base 3;
-      Int it;
+      Int it{0};
       // current cell shift
       Vector<Idx> position;
     };
@@ -287,16 +288,13 @@ public:
       Cell cell(cell_id);
       auto & tmp = (cells[cell_id] = cell).add(d);
 
-      for (Int i = 0; i < dimension; ++i) {
-        Real posl = center(i) + cell_id.getID(i) * spacing(i);
-        Real posu = posl + spacing(i);
-        if (posl <= lower(i)) {
-          lower(i) = posl;
-        }
-        if (posu > upper(i)) {
-          upper(i) = posu;
-        }
-      }
+      auto posl =
+          center.array() +
+          cell_id.getIDs().array().template cast<Real>() * spacing.array();
+      auto posu = posl + spacing.array();
+
+      lower = lower.array().min(posl);
+      upper = upper.array().max(posu);
       return tmp;
     }
     return it->second.add(d);
@@ -320,6 +318,11 @@ public:
       cell_id.setID(i, getCellID(position(i), i));
     }
     return cell_id;
+  }
+
+  template <class vector_type>
+  const Cell & getCell(const vector_type & position) const {
+    return this->getCell(this->getCellID(position));
   }
 
   void printself(std::ostream & stream, int indent = 0) const {
@@ -411,8 +414,8 @@ public:
   AKANTU_GET_MACRO(Center, center, const Vector<Real> &);
   AKANTU_SET_MACRO(Center, center, Vector<Real> &);
 
-protected:
-  Int dimension;
+private:
+  Int dimension{0};
 
   cells_container cells;
 
@@ -434,12 +437,13 @@ inline std::ostream & operator<<(std::ostream & stream,
 }
 
 } // namespace akantu
+
 #include "mesh.hh"
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T> void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
-
   ElementType type = _not_defined;
   switch (dimension) {
   case 1:

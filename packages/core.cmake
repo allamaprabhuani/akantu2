@@ -68,6 +68,7 @@ package_declare_sources(core
   common/aka_common.cc
   common/aka_common.hh
   common/aka_common_inline_impl.hh
+  common/aka_constexpr_map.hh
   common/aka_csr.hh
   common/aka_element_classes_info.hh
   common/aka_element_classes_info_inline_impl.hh

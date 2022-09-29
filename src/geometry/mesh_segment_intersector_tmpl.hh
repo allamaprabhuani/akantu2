@@ -59,15 +59,15 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
   result_mesh.addConnectivityType(_segment_2, _ghost);
 
   std::list<result_type> result_list;
-  std::set<std::pair<K::Segment_3, UInt>, segmentPairsLess> segment_set;
+  std::set<std::pair<K::Segment_3, Int>, segmentPairsLess> segment_set;
 
   this->factory.getTree().all_intersections(query,
                                             std::back_inserter(result_list));
   this->computeSegments(result_list, segment_set, query);
 
   // Arrays for storing nodes and connectivity
-  Array<Real> & nodes = result_mesh.getNodes();
-  Array<UInt> & connectivity = result_mesh.getConnectivity(_segment_2);
+  auto & nodes = result_mesh.getNodes();
+  auto & connectivity = result_mesh.getConnectivity(_segment_2);
 
   // Arrays for storing associated element and physical name
   bool valid_elemental_data = true;
@@ -87,29 +87,30 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
   auto end = segment_set.end();
 
   // Loop over the segment pairs
-  for (; it != end; ++it) {
-    if (!it->first.is_degenerate()) {
-      Vector<UInt> segment_connectivity(2);
-      segment_connectivity(0) = result_mesh.getNbNodes();
-      segment_connectivity(1) = result_mesh.getNbNodes() + 1;
-      connectivity.push_back(segment_connectivity);
+  for (auto && [segment, element] : segment_set) {
+    if (segment.is_degenerate()) {
+      continue;
+    }
 
-      // Copy nodes
-      Vector<Real> source(dim);
-      Vector<Real> target(dim);
-      for (UInt j = 0; j < dim; j++) {
-        source(j) = it->first.source()[j];
-        target(j) = it->first.target()[j];
-      }
+    Vector<Idx, 2> segment_connectivity{result_mesh.getNbNodes(),
+                                        result_mesh.getNbNodes() + 1};
+    connectivity.push_back(segment_connectivity);
 
-      nodes.push_back(source);
-      nodes.push_back(target);
+    // Copy nodes
+    Vector<Real, dim> source;
+    Vector<Real, dim> target;
+    for (UInt j = 0; j < dim; j++) {
+      source(j) = segment.source()[j];
+      target(j) = segment.target()[j];
+    }
 
-      // Copy associated element info
-      if (valid_elemental_data) {
-        associated_element->push_back(Element{type, it->second, _not_ghost});
-        associated_physical_name->push_back(current_physical_name);
-      }
+    nodes.push_back(source);
+    nodes.push_back(target);
+
+    // Copy associated element info
+    if (valid_elemental_data) {
+      associated_element->push_back(Element{type, element, _not_ghost});
+      associated_physical_name->push_back(current_physical_name);
     }
   }
 
@@ -187,7 +188,7 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
     auto end = intersections.end();
 
     for (; it != end; ++it) {
-      UInt el = (*it)->second;
+      auto el = (*it)->second;
 
       // Result of intersection is a segment
       if (const K::Segment_3 * segment =
@@ -206,10 +207,10 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
           TreeTypeHelper<Triangle<K>, K>::container_type facets;
 
           const Array<Real> & nodes = this->mesh.getNodes();
-          Array<UInt>::const_vector_iterator connectivity_vec =
+          auto connectivity_vec =
               this->mesh.getConnectivity(type).begin(nb_nodes_per_element);
 
-          const Vector<UInt> & el_connectivity = connectivity_vec[el];
+          auto && el_connectivity = connectivity_vec[el];
 
           Matrix<Real> node_coordinates(dim, nb_nodes_per_element);
           for (Int i = 0; i < nb_nodes_per_element; i++) {

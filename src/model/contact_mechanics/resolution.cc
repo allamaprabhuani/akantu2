@@ -95,12 +95,15 @@ void Resolution::assembleInternalForces() {
     Vector<Real> local_ft(nb_nodes * spatial_dimension);
     computeTangentialForce(element, local_ft);
 
-    Vector<Real> local_fc(nb_nodes * spatial_dimension);
-    local_fc = local_fn + local_ft;
-
     assembleLocalToGlobalArray(element, local_fn, model.getNormalForce());
     assembleLocalToGlobalArray(element, local_ft, model.getTangentialForce());
-    assembleLocalToGlobalArray(element, local_fc, model.getInternalForce());
+  }
+
+  for (auto && [fc, ft, fn] :
+       zip(make_view(model.getInternalForce(), spatial_dimension),
+           make_view(model.getTangentialForce(), spatial_dimension),
+           make_view(model.getNormalForce(), spatial_dimension))) {
+    fc = ft + fn;
   }
 
   AKANTU_DEBUG_OUT();
@@ -120,26 +123,17 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
     return elem_conn;
   };
 
-  auto & surface_selector = model.getContactDetector().getSurfaceSelector();
-  auto & slave_list = surface_selector.getSlaveList();
-  auto & master_list = surface_selector.getMasterList();
-
   auto connectivity = get_connectivity(element.slave, element.master);
 
-  UInt nb_dofs = global.getNbComponent();
-  UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
+  auto nb_dofs = global.getNbComponent();
+  auto nb_nodes = is_master_deformable ? connectivity.size() : 1;
   Real alpha = is_master_deformable ? 0.5 : 1.;
 
+  MatrixProxy<Real> local_m(local.data(), nb_dofs, connectivity.cols());
+  auto global_it = make_view(global, nb_dofs).begin();
+
   for (Int i : arange(nb_nodes)) {
-    UInt n = connectivity[i];
-
-    auto slave_result = std::find(slave_list.begin(), slave_list.end(), n);
-    auto master_result = std::find(master_list.begin(), master_list.end(), n);
-
-    for (Int j : arange(nb_dofs)) {
-      UInt offset_node = n * nb_dofs + j;
-      global[offset_node] += alpha * local[i * nb_dofs + j];
-    }
+    global_it[connectivity(i)] = alpha * local_m(i);
   }
 }
 

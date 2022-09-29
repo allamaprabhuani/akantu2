@@ -219,11 +219,18 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /// extract coordinates of nodes from an element
+  template <typename T, class Derived1, class Derived2,
+            std::enable_if_t<aka::is_vector<Derived2>::value> * = nullptr>
+  inline void extractNodalValuesFromElement(
+      const Array<T> & nodal_values,
+      Eigen::MatrixBase<Derived1> & elemental_values,
+      const Eigen::MatrixBase<Derived2> & connectivity) const;
+
+  /// extract coordinates of nodes from an element
   template <typename T>
-  inline void extractNodalValuesFromElement(const Array<T> & nodal_values,
-                                            T * elemental_values,
-                                            Idx * connectivity, Int n_nodes,
-                                            Int nb_degree_of_freedom) const;
+  inline decltype(auto)
+  extractNodalValuesFromElement(const Array<T> & nodal_values,
+                                const Element & element) const;
 
   /// add a Array of connectivity for the given ElementType and GhostType .
   inline void addConnectivityType(ElementType type,
@@ -257,6 +264,8 @@ public:
                              Array<Element> & elements);
 
   void getAssociatedElements(const Idx & node, Array<Element> & elements) const;
+
+  inline decltype(auto) getAssociatedElements(const Idx & node) const;
 
 public:
   /// fills the nodes_to_elements for given dimension elements
@@ -355,6 +364,8 @@ public:
   template <class D, std::enable_if_t<aka::is_vector<D>::value> * = nullptr>
   inline void getBarycenter(const Element & element,
                             const Eigen::MatrixBase<D> & barycenter) const;
+
+  inline Vector<Real> getBarycenter(const Element & element) const;
 
   void getBarycenters(Array<Real> & barycenter, ElementType type,
                       GhostType ghost_type) const;

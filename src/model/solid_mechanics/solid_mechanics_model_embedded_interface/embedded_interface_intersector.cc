@@ -39,11 +39,9 @@
 #define INTERFACE_INTERSECTOR_CASE(dim, type)                                  \
   do {                                                                         \
     MeshSegmentIntersector<dim, type> intersector(this->mesh, interface_mesh); \
-    name_to_primitives_it = name_to_primitives_map.begin();                    \
-    for (; name_to_primitives_it != name_to_primitives_end;                    \
-         ++name_to_primitives_it) {                                            \
-      intersector.setPhysicalName(name_to_primitives_it->first);               \
-      intersector.buildResultFromQueryList(name_to_primitives_it->second);     \
+    for (auto && [name, segment_list] : name_to_primitives) {                  \
+      intersector.setPhysicalName(name);                                       \
+      intersector.buildResultFromQueryList(segment_list);                      \
     }                                                                          \
   } while (0)
 
@@ -88,62 +86,53 @@ void EmbeddedInterfaceIntersector::constructData(GhostType /*ghost_type*/) {
     throw e;
   }
 
-  const UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_segment_2);
+  constexpr Int nb_nodes_per_element = Mesh::getNbNodesPerElement(_segment_2);
   auto connectivity =
       primitive_mesh.getConnectivity(_segment_2).begin(nb_nodes_per_element);
 
-  auto names_it = physical_names->begin();
-  auto names_end = physical_names->end();
-
-  std::map<std::string, std::list<K::Segment_3>> name_to_primitives_map;
+  std::map<std::string, std::list<K::Segment_3>> name_to_primitives;
 
   // Loop over the physical names and register segment lists in
   // name_to_primitives_map
-  for (; names_it != names_end; ++names_it) {
-    UInt element_id = names_it - physical_names->begin();
-    const Vector<UInt> el_connectivity = connectivity[element_id];
+  for (auto && [element_id, name] : enumerate(*physical_names)) {
+    auto && el_connectivity = connectivity[element_id];
 
-    K::Segment_3 segment = this->createSegment(el_connectivity);
-    name_to_primitives_map[*names_it].push_back(segment);
+    auto segment = this->createSegment(el_connectivity);
+    name_to_primitives[name].push_back(segment);
   }
 
   // Loop over the background types of the mesh
-  auto name_to_primitives_end = name_to_primitives_map.end();
-  decltype(name_to_primitives_end) name_to_primitives_it;
-
   for (auto type : this->mesh.elementTypes(dim, _not_ghost)) {
     // Used in AKANTU_BOOST_ELEMENT_SWITCH
     AKANTU_DEBUG_INFO("Computing intersections with background element type "
                       << type);
 
-    switch (dim) {
-    case 1:
-      break;
-
-    case 2:
-      // Compute intersections for supported 2D elements
-      AKANTU_BOOST_ELEMENT_SWITCH(INTERFACE_INTERSECTOR_CASE_2D,
-                                  (_triangle_3)(_triangle_6));
-      break;
-
-    case 3:
-      // Compute intersections for supported 3D elements
-      AKANTU_BOOST_ELEMENT_SWITCH(INTERFACE_INTERSECTOR_CASE_3D,
-                                  (_tetrahedron_4));
-      break;
-    }
+    tuple_dispatch<
+        std::tuple<_element_type_triangle_3, _element_type_triangle_6,
+                   _element_type_tetrahedron_4>>(
+        [&](auto && enum_type) -> Int {
+          constexpr auto type = std::decay_t<decltype(enum_type)>::value;
+          constexpr auto dim = Mesh::getSpatialDimension(type);
+          MeshSegmentIntersector<dim, type> intersector(this->mesh,
+                                                        interface_mesh);
+          for (auto && [name, segment_list] : name_to_primitives) {
+            intersector.setPhysicalName(name);
+            intersector.buildResultFromQueryList(segment_list);
+          }
+        },
+        type);
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 K::Segment_3
-EmbeddedInterfaceIntersector::createSegment(const Vector<UInt> & connectivity) {
+EmbeddedInterfaceIntersector::createSegment(const Vector<Idx> & connectivity) {
   AKANTU_DEBUG_IN();
 
   std::unique_ptr<K::Point_3> source;
   std::unique_ptr<K::Point_3> target;
-  const Array<Real> & nodes = this->primitive_mesh.getNodes();
+  const auto & nodes = this->primitive_mesh.getNodes();
 
   if (this->mesh.getSpatialDimension() == 2) {
     source = std::make_unique<K::Point_3>(nodes(connectivity(0), 0),

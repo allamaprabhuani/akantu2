@@ -58,7 +58,7 @@ public:
 
 protected:
   /// local computation of normal traction due to penetration
-  Real computeNormalTraction(Real & gap) const override;
+  Real computeNormalTraction(const Real & gap) const override;
 };
 
 } // namespace akantu

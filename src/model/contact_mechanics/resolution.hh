@@ -194,7 +194,7 @@ using ResolutionFactory = Factory<Resolution, ID, UInt, const ID &,
                                   ContactMechanicsModel &, const ID &>;
 
 /// macaulay bracket to convert  positive gap to zero
-template <typename T> T macaulay(T var) { return var < 0 ? 0 : var; }
+template <typename T> T macaulay(T var) { return std::max(var, T()); }
 
 template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
 } // namespace akantu

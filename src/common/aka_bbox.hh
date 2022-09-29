@@ -53,7 +53,7 @@ public:
       : dim(spatial_dimension), lower_bounds(spatial_dimension),
         upper_bounds(spatial_dimension) {
     lower_bounds.fill(std::numeric_limits<Real>::max());
-    upper_bounds.fill(std::numeric_limits<Real>::lowest());
+    upper_bounds.fill(-std::numeric_limits<Real>::max());
   }
 
   BBox(const BBox & other)
@@ -161,7 +161,8 @@ public:
 
   /* ------------------------------------------------------------------------ */
   inline bool contains(const Vector<Real> & point) const {
-    return (point >= lower_bounds) and (point <= upper_bounds);
+    return (point.array() >= lower_bounds.array()).all() and
+           (point.array() <= upper_bounds.array()).all();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -173,9 +174,7 @@ public:
   /* --------------------------------------------------------------------------
    */
   inline void getCenter(Vector<Real> & center) {
-    center = upper_bounds;
-    center += lower_bounds;
-    center /= 2.;
+    center = (upper_bounds + lower_bounds) / 2.;
   }
 
   /* ------------------------------------------------------------------------ */
