@@ -41,6 +41,7 @@
 #include "communication_tag.hh"
 /* -------------------------------------------------------------------------- */
 #include <cmath>
+#include <cstdlib>
 #include <ctime>
 /* -------------------------------------------------------------------------- */
 
@@ -98,7 +99,10 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   }
 
   long int seed;
-  if (static_argparser.has("aka_seed")) {
+  char * env_seed = std::getenv("AKA_SEED");
+  if (env_seed != nullptr) {
+    seed = std::atol(env_seed);
+  } else if (static_argparser.has("aka_seed")) {
     seed = static_argparser["aka_seed"];
   } else {
     seed =
