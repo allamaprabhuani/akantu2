@@ -135,8 +135,7 @@ public:
   using DataMap = std::map<SupportType, Stored>;
 
   /// helper class to use in range for constructions
-  class type_iterator
-      : private std::iterator<std::forward_iterator_tag, const SupportType> {
+  class type_iterator {
   public:
     using value_type = const SupportType;
     using pointer = const SupportType *;
