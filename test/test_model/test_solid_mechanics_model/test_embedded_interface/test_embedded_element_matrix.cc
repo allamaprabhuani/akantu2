@@ -55,7 +55,7 @@ int main(int argc, char * argv[]) {
 
   reinforcement_mesh.addConnectivityType(type);
   auto & connectivity = reinforcement_mesh.getConnectivity(type);
-  connectivity.push_back(Vector<UInt>({0, 1}));
+  connectivity.push_back(Vector<Idx>({0, 1}));
 
   Array<std::string> names_vec(1, 1, "reinforcement", "reinforcement_names");
   reinforcement_mesh.getElementalData<std::string>("physical_names")

@@ -66,8 +66,6 @@ public:
   virtual void setOperators();
   void solve() override;
 
-  bool isFinite() const override;
-
 private:
   /// DOFManager correctly typed
   DOFManagerPETSc & dof_manager;

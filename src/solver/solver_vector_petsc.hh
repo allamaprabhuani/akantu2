@@ -119,12 +119,8 @@ public:
 
   void printself(std::ostream & stream, int indent = 0) const override;
 
-  virtual
-  bool
-  isDistributed()
-    const
-    override
-      { return true; }
+  bool isDistributed() const override { return true; }
+  bool isFinite() const override;
 
 protected:
   void applyModifications();

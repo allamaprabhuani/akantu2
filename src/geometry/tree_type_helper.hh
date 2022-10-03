@@ -95,10 +95,9 @@ template <class TTHelper, class Query> struct IntersectionTypeHelper;
   struct IntersectionTypeHelper<                                               \
       TreeTypeHelper<my_primitive<my_kernel>, /*NOLINT*/ my_kernel>,           \
       my_query> {                                                              \
-    typedef boost::optional<TreeTypeHelper<                                    \
+    using intersection_type = boost::optional<TreeTypeHelper<                  \
         my_primitive<my_kernel>, /*NOLINT*/                                    \
-        my_kernel>::tree::Intersection_and_primitive_id<my_query>::Type>       \
-        intersection_type;                                                     \
+        my_kernel>::tree::Intersection_and_primitive_id<my_query>::Type>;      \
   }
 
 TREE_TYPE_HELPER_MACRO(Triangle, cgal::Cartesian::Segment_3, cgal::Cartesian);

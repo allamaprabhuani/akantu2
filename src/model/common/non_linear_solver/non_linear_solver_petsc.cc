@@ -83,29 +83,40 @@ NonLinearSolverPETSc::~NonLinearSolverPETSc() {
 /* -------------------------------------------------------------------------- */
 class NonLinearSolverPETScCallback {
 public:
-  NonLinearSolverPETScCallback(DOFManagerPETSc & dof_manager,
+  NonLinearSolverPETScCallback(DOFManagerPETSc & dof_manager, SNES snes,
                                SolverVectorPETSc & x)
-      : dof_manager(dof_manager), x(x), x_prev(x, "previous_solution") {}
+      : dof_manager(dof_manager), snes(snes), x_prev(x, "previous solution") {}
 
-  void corrector() {
+  void corrector(Vec & x) {
+    PetscInt iteration;
+    PETSc_call(SNESGetIterationNumber, snes, &iteration);
+
+    if (prev_iteration == iteration) {
+      return;
+    }
+
+    prev_iteration = iteration;
+
     auto & dx = dof_manager.getSolution();
     PETSc_call(VecWAXPY, dx, -1., x_prev, x);
-
     dof_manager.splitSolutionPerDOFs();
+
     callback->corrector();
 
     PETSc_call(VecCopy, x, x_prev);
   }
 
-  void assembleResidual() {
-    corrector();
+  void assembleResidual(Vec x) {
+    corrector(x);
     callback->assembleResidual();
   }
 
-  void assembleJacobian() {
-    // corrector();
+  void assembleJacobian(Vec x) {
+    corrector(x);
     callback->assembleMatrix("J");
   }
+
+  void reset() { prev_iteration = -1; }
 
   void setInitialSolution(SolverVectorPETSc & x) {
     PETSc_call(VecCopy, x, x_prev);
@@ -114,28 +125,29 @@ public:
   void setCallback(SolverCallback & callback) { this->callback = &callback; }
 
 private:
-  // SNES & snes;
   SolverCallback * callback;
   DOFManagerPETSc & dof_manager;
+  SNES snes;
 
-  SolverVectorPETSc & x;
+  // SolverVectorPETSc & x;
   SolverVectorPETSc x_prev;
+  PetscInt prev_iteration{-1};
 }; // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-PetscErrorCode NonLinearSolverPETSc::FormFunction(SNES /*snes*/, Vec /*dx*/,
+PetscErrorCode NonLinearSolverPETSc::FormFunction(SNES /*snes*/, Vec x,
                                                   Vec /*f*/, void * ctx) {
   auto * _this = reinterpret_cast<NonLinearSolverPETScCallback *>(ctx);
-  _this->assembleResidual();
+  _this->assembleResidual(x);
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
-PetscErrorCode NonLinearSolverPETSc::FormJacobian(SNES /*snes*/, Vec /*dx*/,
+PetscErrorCode NonLinearSolverPETSc::FormJacobian(SNES /*snes*/, Vec x,
                                                   Mat /*J*/, Mat /*P*/,
                                                   void * ctx) {
   auto * _this = reinterpret_cast<NonLinearSolverPETScCallback *>(ctx);
-  _this->assembleJacobian();
+  _this->assembleJacobian(x);
   return 0;
 }
 
@@ -155,7 +167,9 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
   *x = global_x;
 
   if (not ctx) {
-    ctx = std::make_unique<NonLinearSolverPETScCallback>(dof_manager, *x);
+    ctx = std::make_unique<NonLinearSolverPETScCallback>(dof_manager, snes, *x);
+  } else {
+    ctx->reset();
   }
 
   ctx->setCallback(callback);
@@ -172,14 +186,13 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
   rhs.zero();
 
   callback.predictor();
-  callback.assembleResidual();
+  //  callback.assembleResidual();
 
   PETSc_call(SNESSolve, snes, nullptr, *x);
   PETSc_call(SNESGetConvergedReason, snes, &reason);
   PETSc_call(SNESGetIterationNumber, snes, &n_iter);
 
   PETSc_call(VecAXPY, global_x, -1.0, *x);
-
   dof_manager.splitSolutionPerDOFs();
   callback.corrector();
 

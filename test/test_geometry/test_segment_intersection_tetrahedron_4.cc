@@ -104,8 +104,8 @@ int main(int argc, char * argv[]) {
   Segment crossing_segment(c, d);
 
   intersector.computeIntersectionQuery(crossing_segment);
-  UInt el1 = interface_mesh.getNbElement(_segment_2) - 2;
-  UInt el2 = el1 + 1;
+  auto el1 = interface_mesh.getNbElement(_segment_2) - 2;
+  auto el2 = el1 + 1;
 
   test.element = el1;
   interface_mesh.getBarycenter(test, bary1);
@@ -126,7 +126,7 @@ int main(int argc, char * argv[]) {
   Point e(1, 0, 0), f(0, 1, 0);
   Segment edge_segment(e, f);
 
-  UInt current_nb_elements = interface_mesh.getNbElement(_segment_2);
+  auto current_nb_elements = interface_mesh.getNbElement(_segment_2);
 
   intersector.computeIntersectionQuery(edge_segment);
 

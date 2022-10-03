@@ -82,7 +82,7 @@ compareSegmentPairs(const std::pair<cgal::Cartesian::Segment_3, UInt> & a,
 struct segmentPairsLess {
   inline bool
   operator()(const std::pair<cgal::Cartesian::Segment_3, UInt> & a,
-             const std::pair<cgal::Cartesian::Segment_3, UInt> & b) {
+             const std::pair<cgal::Cartesian::Segment_3, UInt> & b) const {
     return static_cast<bool>(
                CGAL::compare_lexicographically(a.first.min(), b.first.min())) or
            static_cast<bool>(

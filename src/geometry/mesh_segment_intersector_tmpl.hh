@@ -83,9 +83,6 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
     valid_elemental_data = false;
   }
 
-  auto it = segment_set.begin();
-  auto end = segment_set.end();
-
   // Loop over the segment pairs
   for (auto && [segment, element] : segment_set) {
     if (segment.is_degenerate()) {
@@ -99,7 +96,7 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
     // Copy nodes
     Vector<Real, dim> source;
     Vector<Real, dim> target;
-    for (UInt j = 0; j < dim; j++) {
+    for (Int j = 0; j < dim; j++) {
       source(j) = segment.source()[j];
       target(j) = segment.target()[j];
     }
@@ -119,7 +116,7 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
 
 template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::computeMeshQueryIntersectionPoint(
-    const K::Segment_3 & /*query*/, UInt /*nb_old_nodes*/) {
+    const K::Segment_3 & /*query*/, Int /*nb_old_nodes*/) {
   AKANTU_ERROR("The method: computeMeshQueryIntersectionPoint has not "
                "been implemented in class MeshSegmentIntersector!");
 }
@@ -156,8 +153,8 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
     K::Ray_3 ray1(query.source(), query.target());
     K::Ray_3 ray2(query.target(), query.source());
 
-    std::set<UInt> ray1_results;
-    std::set<UInt> ray2_results;
+    std::set<Int> ray1_results;
+    std::set<Int> ray2_results;
 
     this->factory.getTree().all_intersected_primitives(
         ray1, std::inserter(ray1_results, ray1_results.begin()));
@@ -165,7 +162,7 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
         ray2, std::inserter(ray2_results, ray2_results.begin()));
 
     bool inside_primitive = false;
-    UInt primitive_id = 0;
+    Int primitive_id = 0;
 
     auto ray2_it = ray2_results.begin();
     auto ray2_end = ray2_results.end();
@@ -181,42 +178,34 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
     if (inside_primitive) {
       segments.insert(std::make_pair(query, primitive_id));
     }
-  }
-
-  else {
-    auto it = intersections.begin();
-    auto end = intersections.end();
-
-    for (; it != end; ++it) {
-      auto el = (*it)->second;
-
+  } else {
+    for (auto && intersection : intersections) {
+      auto && el = intersection->second;
       // Result of intersection is a segment
       if (const K::Segment_3 * segment =
-              boost::get<K::Segment_3>(&((*it)->first))) {
+              boost::get<K::Segment_3>(&intersection->first)) {
         // Check if the segment was alread created
         segments.insert(std::make_pair(*segment, el));
       }
-
       // Result of intersection is a point
       else if (const K::Point_3 * point =
-                   boost::get<K::Point_3>(&((*it)->first))) {
+                   boost::get<K::Point_3>(&intersection->first)) {
         // We only want to treat points differently if we're in 3D with Tetra4
         // elements This should be optimized by compilator
         if (dim == 3 && type == _tetrahedron_4) {
-          UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+          constexpr auto nb_nodes_per_element =
+              Mesh::getNbNodesPerElement(type);
           TreeTypeHelper<Triangle<K>, K>::container_type facets;
 
-          const Array<Real> & nodes = this->mesh.getNodes();
-          auto connectivity_vec =
-              this->mesh.getConnectivity(type).begin(nb_nodes_per_element);
+          const auto nodes = make_view<dim>(this->mesh.getNodes()).begin();
+          auto connectivity =
+              make_view<nb_nodes_per_element>(this->mesh.getConnectivity(type))
+                  .begin();
 
-          auto && el_connectivity = connectivity_vec[el];
-
-          Matrix<Real> node_coordinates(dim, nb_nodes_per_element);
-          for (Int i = 0; i < nb_nodes_per_element; i++) {
-            for (Int j = 0; j < dim; j++) {
-              node_coordinates(j, i) = nodes(el_connectivity(i), j);
-            }
+          Matrix<Real, dim, nb_nodes_per_element> node_coordinates;
+          for (auto && [node_coords, node] :
+               zip(node_coordinates, connectivity[el])) {
+            node_coords = nodes[node];
           }
 
           this->factory.addPrimitive(node_coordinates, el, facets);
@@ -231,12 +220,9 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
               query, std::back_inserter(local_intersections));
 
           bool out_point_found = false;
-          auto local_it = local_intersections.begin();
-          auto local_end = local_intersections.end();
-
-          for (; local_it != local_end; ++local_it) {
+          for (auto && local_intersection : local_intersections) {
             if (const auto * local_point =
-                    boost::get<K::Point_3>(&((*local_it)->first))) {
+                    boost::get<K::Point_3>(&local_intersection->first)) {
               if (!comparePoints(*point, *local_point)) {
                 K::Segment_3 seg(*point, *local_point);
                 segments.insert(std::make_pair(seg, el));

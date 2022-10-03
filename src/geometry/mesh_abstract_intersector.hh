@@ -62,10 +62,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the new_node_per_elem array
-  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<UInt> &);
+  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<Int> &);
   /// get the intersection_points array
-  AKANTU_GET_MACRO(IntersectionPoints, intersection_points,
-                   const Array<Real> *);
+  AKANTU_GET_MACRO(IntersectionPoints, *intersection_points,
+                   const Array<Real> &);
   /// get the nb_seg_by_el UInt
   AKANTU_GET_MACRO(NbSegByEl, nb_seg_by_el, UInt);
 
@@ -85,7 +85,7 @@ public:
   /// same primitives are not considered. A maximum intersection node per
   /// element is set : 2 in 2D and 4 in 3D
   virtual void computeMeshQueryIntersectionPoint(const Query & query,
-                                                 UInt nb_old_nodes) = 0;
+                                                 Int nb_old_nodes) = 0;
 
   /// Compute intersection between the mesh and a list of queries
   virtual void
@@ -94,7 +94,7 @@ public:
   /// Compute intersection points between the mesh and a list of queries
   virtual void
   computeMeshQueryListIntersectionPoint(const std::list<Query> & query_list,
-                                        UInt nb_old_nodes);
+                                        Int nb_old_nodes);
 
   /// Compute whatever result is needed from the user (should be move to the
   /// appropriate specific classe for genericity)
@@ -104,7 +104,7 @@ public:
 protected:
   /// new node per element (column 0: number of new nodes, then odd is the
   /// intersection node number and even the ID of the intersected segment)
-  Array<UInt> * new_node_per_elem{nullptr};
+  Array<Int> * new_node_per_elem{nullptr};
 
   /// intersection output: new intersection points
   /// (computeMeshQueryListIntersectionPoint)
@@ -112,7 +112,7 @@ protected:
 
   /// number of segment in a considered element of the templated type of element
   /// specialized intersector
-  const UInt nb_seg_by_el{0};
+  const Int nb_seg_by_el{0};
 };
 
 } // namespace akantu

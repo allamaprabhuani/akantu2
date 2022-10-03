@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
   nodes_vec.data()[2] = 1;
   nodes_vec.data()[3] = 0.5;
 
-  Array<UInt> conn_vec(1, 2, "reinforcement_connectivity");
+  Array<Idx> conn_vec(1, 2, "reinforcement_connectivity");
   conn_vec.data()[0] = 0;
   conn_vec.data()[1] = 1;
 

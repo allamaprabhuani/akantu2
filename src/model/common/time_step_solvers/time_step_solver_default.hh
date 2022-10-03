@@ -105,9 +105,7 @@ public:
 
 private:
   template <class Func> void for_each_integrator(Func && function) {
-    for (auto & pair : this->integration_schemes) {
-      const auto & dof_id = pair.first;
-      auto & integration_scheme = pair.second;
+    for (auto && [dof_id, integration_scheme] : this->integration_schemes) {
       function(dof_id, *integration_scheme);
     }
   }

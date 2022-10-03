@@ -120,7 +120,7 @@ void EmbeddedInterfaceModel::initModel() {
 
 /* -------------------------------------------------------------------------- */
 void EmbeddedInterfaceModel::assignMaterialToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
   delete interface_material_selector;
   interface_material_selector =
       new InterfaceMeshDataMaterialSelector<std::string>("physical_names",

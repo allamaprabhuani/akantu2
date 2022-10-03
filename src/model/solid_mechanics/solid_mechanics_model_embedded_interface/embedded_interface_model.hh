@@ -94,7 +94,7 @@ public:
 
   /// Initialise the materials
   void
-  assignMaterialToElements(const ElementTypeMapArray<UInt> * filter) override;
+  assignMaterialToElements(const ElementTypeMapArray<Idx> * filter) override;
 
   /// Initialize the embedded shape functions
   void initModel() override;
@@ -146,7 +146,7 @@ class InterfaceMeshDataMaterialSelector
 public:
   InterfaceMeshDataMaterialSelector(const std::string & name,
                                     const EmbeddedInterfaceModel & model,
-                                    UInt first_index = 1)
+                                    Int first_index = 1)
       : ElementDataMaterialSelector<T>(
             model.getInterfaceMesh().getData<T>(name), model, first_index) {}
 };

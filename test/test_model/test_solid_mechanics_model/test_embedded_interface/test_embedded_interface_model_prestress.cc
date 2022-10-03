@@ -53,20 +53,21 @@ struct StressSolution : public BC::Neumann::FromHigherDim {
       : BC::Neumann::FromHigherDim(Matrix<Real>(dim, dim)), M(M), I(I), yg(yg),
         pre_stress(pre_stress) {}
 
-  virtual ~StressSolution() {}
+  virtual ~StressSolution() = default;
 
   void operator()(const IntegrationPoint & /*quad_point*/, Vector<Real> & dual,
                   const Vector<Real> & coord,
                   const Vector<Real> & normals) const {
     Int dim = coord.size();
 
-    if (dim < 2)
+    if (dim < 2) {
       AKANTU_ERROR("Solution not valid for 1D");
+    }
 
     Matrix<Real> stress(dim, dim);
     stress.zero();
     stress(0, 0) = this->stress(coord(1));
-    dual.mul<false>(stress, normals);
+    dual = stress * normals;
   }
 
   inline Real stress(Real height) const {
@@ -120,16 +121,17 @@ int main(int argc, char * argv[]) {
   Real pre_stress = model.getMaterial("reinforcement").get("pre_stress");
   Real stress_norm = 0.;
 
-  StressSolution *concrete_stress = nullptr, *steel_stress = nullptr;
+  std::unique_ptr<StressSolution> concrete_stress;
+  std::unique_ptr<StressSolution> steel_stress;
 
   Real pre_force = pre_stress * steel_area;
   Real pre_moment = -pre_force * (YG - 0.25);
   Real neutral_axis = YG - I_eq / A_eq * pre_force / pre_moment;
 
-  concrete_stress = new StressSolution(dim, pre_moment, 7. * I_eq, YG,
-                                       -pre_force / (7. * A_eq));
-  steel_stress = new StressSolution(dim, pre_moment, I_eq, YG,
-                                    pre_stress - pre_force / A_eq);
+  concrete_stress = std::make_unique<StressSolution>(
+      dim, pre_moment, 7. * I_eq, YG, -pre_force / (7. * A_eq));
+  steel_stress = std::make_unique<StressSolution>(
+      dim, pre_moment, I_eq, YG, pre_stress - pre_force / A_eq);
 
   stress_norm =
       std::abs(concrete_stress->stress(1)) * (1 - neutral_axis) * 0.5 +
@@ -147,12 +149,7 @@ int main(int argc, char * argv[]) {
   analytical_residual.copy(model.getExternalForce());
   model.getExternalForce().zero();
 
-  delete concrete_stress;
-  delete steel_stress;
-
-  /* --------------------------------------------------------------------------
-   */
-
+  /* ------------------------------------------------------------------------ */
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "XBlocked");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "YBlocked");
 
@@ -171,8 +168,7 @@ int main(int argc, char * argv[]) {
 
   ElementGroup & xblocked = mesh.getElementGroup("XBlocked");
   NodeGroup & boundary_nodes = xblocked.getNodeGroup();
-  NodeGroup::const_node_iterator nodes_it = boundary_nodes.begin(),
-                                 nodes_end = boundary_nodes.end();
+
   model.assembleInternalForces();
   Array<Real> residual(mesh.getNbNodes(), dim, "my_residual");
   residual.copy(model.getInternalForce());
@@ -182,25 +178,24 @@ int main(int argc, char * argv[]) {
   auto position = mesh.getNodes().begin(dim);
 
   Real res_sum = 0.;
-  UInt lower_node = -1;
-  UInt upper_node = -1;
+  Idx lower_node = -1;
+  Idx upper_node = -1;
   Real lower_dist = 1;
   Real upper_dist = 1;
 
-  for (; nodes_it != nodes_end; ++nodes_it) {
-    UInt node_number = *nodes_it;
-    const Vector<Real> res = com_res[node_number];
-    const Vector<Real> pos = position[node_number];
+  for (auto && node : boundary_nodes) {
+    const auto & res = com_res[node];
+    const auto & pos = position[node];
 
     if (!Math::are_float_equal(pos(1), 0.25)) {
       if ((std::abs(pos(1) - 0.25) < lower_dist) && (pos(1) < 0.25)) {
         lower_dist = std::abs(pos(1) - 0.25);
-        lower_node = node_number;
+        lower_node = node;
       }
 
       if ((std::abs(pos(1) - 0.25) < upper_dist) && (pos(1) > 0.25)) {
         upper_dist = std::abs(pos(1) - 0.25);
-        upper_node = node_number;
+        upper_node = node;
       }
     }
 

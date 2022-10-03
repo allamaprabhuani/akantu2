@@ -60,7 +60,7 @@ class MeshSegmentIntersector
                                       K::Segment_3>::intersection_type;
 
   /// Pair of segments and element id
-  using pair_type = std::pair<K::Segment_3, UInt>;
+  using pair_type = std::pair<K::Segment_3, Idx>;
 
 public:
   /// Construct from mesh
@@ -79,7 +79,7 @@ public:
 
   /// Compute intersection points between the mesh and a query
   void computeMeshQueryIntersectionPoint(const K::Segment_3 & query,
-                                         UInt nb_old_nodes) override;
+                                         Int nb_old_nodes) override;
 
   /// Compute the embedded mesh
   void

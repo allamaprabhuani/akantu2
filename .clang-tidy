@@ -6,12 +6,15 @@ Checks: "
 
         cppcoreguidelines-*,
 
+        performance-*,
+
         readability-*,
         -readability-magic-numbers,
         -readability-redundant-access-specifiers,
         -readability-convert-member-functions-to-static,
         -readability-isolate-declaration,
         "
+
 AnalyzeTemporaryDtors: false
 HeaderFilterRegex:     'src/.*'
 FormatStyle:           file

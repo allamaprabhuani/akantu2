@@ -109,8 +109,10 @@ protected:
   void computeDirectingCosines(ElementType type, GhostType ghost_type);
 
   /// Compute the directing cosines matrix on quadrature points.
-  inline void computeDirectingCosinesOnQuad(const Matrix<Real> & nodes,
-                                            Matrix<Real> & cosines);
+  template <class Derived1, class Derived2>
+  inline void
+  computeDirectingCosinesOnQuad(const Eigen::MatrixBase<Derived1> & nodes,
+                                Eigen::MatrixBase<Derived2> & cosines);
 
   /// Add the prestress to the computed stress
   void addPrestress(ElementType type, GhostType ghost_type);
@@ -134,11 +136,11 @@ protected:
   void computeBackgroundShapeDerivatives(ElementType interface_type,
                                          ElementType bg_type,
                                          GhostType ghost_type,
-                                         const Array<UInt> & filter);
+                                         const Array<Idx> & filter);
 
   /// Filter elements crossed by interface of a type
-  void filterInterfaceBackgroundElements(Array<UInt> & foreground,
-                                         Array<UInt> & background,
+  void filterInterfaceBackgroundElements(Array<Idx> & foreground,
+                                         Array<Idx> & background,
                                          ElementType type,
                                          ElementType interface_type,
                                          GhostType ghost_type);
@@ -151,21 +153,15 @@ protected:
                                        ElementType background_type,
                                        GhostType ghost_type);
 
-  // TODO figure out why voigt size is 4 in 2D
-  inline void stressTensorToVoigtVector(const Matrix<Real> & tensor,
-                                        Vector<Real> & vector);
-  inline void strainTensorToVoigtVector(const Matrix<Real> & tensor,
-                                        Vector<Real> & vector);
-
   /// Get background filter
-  Array<UInt> & getBackgroundFilter(ElementType fg_type, ElementType bg_type,
-                                    GhostType ghost_type) {
+  Array<Idx> & getBackgroundFilter(ElementType fg_type, ElementType bg_type,
+                                   GhostType ghost_type) {
     return (*background_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
 
   /// Get foreground filter
-  Array<UInt> & getForegroundFilter(ElementType fg_type, ElementType bg_type,
-                                    GhostType ghost_type) {
+  Array<Idx> & getForegroundFilter(ElementType fg_type, ElementType bg_type,
+                                   GhostType ghost_type) {
     return (*foreground_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
 
@@ -195,10 +191,10 @@ protected:
   CrossMap<Real> shape_derivatives;
 
   /// Foreground mesh filter (contains segment ids)
-  CrossMap<UInt> foreground_filter;
+  CrossMap<Idx> foreground_filter;
 
   /// Background element filter (contains bg ids)
-  CrossMap<UInt> background_filter;
+  CrossMap<Idx> background_filter;
 };
 
 } // namespace akantu

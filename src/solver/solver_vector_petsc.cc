@@ -198,8 +198,7 @@ void SolverVectorPETSc::getValuesLocal(const Array<Int> & idx,
   }
 
   PETSc_call(VecSetOption, x_ghosted, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
-  PETSc_call(VecGetValues, x_ghosted, idx.size(), idx.data(),
-             values.data());
+  PETSc_call(VecGetValues, x_ghosted, idx.size(), idx.data(), values.data());
   PETSc_call(VecGhostRestoreLocalForm, x, &x_ghosted);
 }
 
@@ -249,8 +248,8 @@ void SolverVectorPETSc::addValuesLocal(const Array<Int> & lidx,
   PETSc_call(VecGetLocalToGlobalMapping, x, &is_ltog_map);
 
   Array<Int> gidx(lidx.size());
-  PETSc_call(ISLocalToGlobalMappingApply, is_ltog_map, lidx.size(),
-             lidx.data(), gidx.data());
+  PETSc_call(ISLocalToGlobalMappingApply, is_ltog_map, lidx.size(), lidx.data(),
+             gidx.data());
   addValues(gidx, values, scale_factor);
 }
 
@@ -288,6 +287,13 @@ SolverVector & SolverVectorPETSc::operator+(const SolverVector & y) {
   PETSc_call(VecAXPY, x, 1., y_.x);
   release_ = y_.release_;
   return *this;
+}
+
+bool SolverVectorPETSc::isFinite() const {
+  Real max, min;
+  PETSc_call(VecMax, x, PETSC_NULL, &max);
+  PETSc_call(VecMin, x, PETSC_NULL, &min);
+  return std::isfinite(min) and std::isfinite(max);
 }
 
 } // namespace akantu
