@@ -84,17 +84,15 @@ namespace {
         .def(
             "initialize",
             [](ElementTypeMapArray<T> & self, const Mesh & mesh,
-               GhostType ghost_type = _casper, UInt nb_component = 1,
-               UInt spatial_dimension = UInt(-2),
-               ElementKind element_kind = _ek_not_defined,
-               bool with_nb_element = false,
-               bool with_nb_nodes_per_element = false, T default_value = T(),
-               bool do_not_default = false) {
+               GhostType ghost_type, Int nb_component, Int spatial_dimension,
+               ElementKind element_kind, bool with_nb_element,
+               bool with_nb_nodes_per_element, T default_value,
+               bool do_not_default) {
               self.initialize(
                   mesh, _ghost_type = ghost_type, _nb_component = nb_component,
-                  _spatial_dimension = (spatial_dimension == UInt(-2)
-                                            ? mesh.getSpatialDimension()
-                                            : spatial_dimension),
+                  _spatial_dimension =
+                      (spatial_dimension == -2 ? mesh.getSpatialDimension()
+                                               : spatial_dimension),
                   _element_kind = element_kind,
                   _with_nb_element = with_nb_element,
                   _with_nb_nodes_per_element = with_nb_nodes_per_element,
@@ -102,8 +100,7 @@ namespace {
                   _do_not_default = do_not_default);
             },
             py::arg("mesh"), py::arg("ghost_type") = _casper,
-            py::arg("nb_component") = 1,
-            py::arg("spatial_dimension") = UInt(-2),
+            py::arg("nb_component") = 1, py::arg("spatial_dimension") = -2,
             py::arg("element_kind") = _ek_not_defined,
             py::arg("with_nb_element") = false,
             py::arg("with_nb_nodes_per_element") = false,
@@ -136,7 +133,7 @@ void register_mesh(py::module & mod) {
 
   py::class_<Mesh, GroupManager, Dumpable, MeshData>(mod, "Mesh",
                                                      py::multiple_inheritance())
-      .def(py::init<UInt, const ID &>(), py::arg("spatial_dimension"),
+      .def(py::init<Int, const ID &>(), py::arg("spatial_dimension"),
            py::arg("id") = "mesh")
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
@@ -158,11 +155,12 @@ void register_mesh(py::module & mod) {
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("distribute", [](Mesh & self) { self.distribute(); })
-      .def("isDistributed", [](const Mesh& self) { return self.isDistributed(); })
+      .def("isDistributed",
+           [](const Mesh & self) { return self.isDistributed(); })
       .def("fillNodesToElements", &Mesh::fillNodesToElements,
            py::arg("dimension") = _all_dimensions)
       .def("getAssociatedElements",
-           [](Mesh & self, const UInt & node, py::list list) {
+           [](Mesh & self, const Idx & node, py::list list) {
              Array<Element> elements;
              self.getAssociatedElements(node, elements);
              for (auto && element : elements) {
@@ -221,13 +219,13 @@ void register_mesh(py::module & mod) {
       .def(py::init<Mesh &>(), py::arg("mesh"))
       .def(
           "resizeConnectivity",
-          [](MeshAccessor & self, UInt new_size, ElementType type, GhostType gt)
+          [](MeshAccessor & self, Int new_size, ElementType type, GhostType gt)
               -> void { self.resizeConnectivity(new_size, type, gt); },
           py::arg("new_size"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost)
       .def(
           "resizeNodes",
-          [](MeshAccessor & self, UInt new_size) -> void {
+          [](MeshAccessor & self, Int new_size) -> void {
             self.resizeNodes(new_size);
           },
           py::arg("new_size"))
@@ -235,6 +233,7 @@ void register_mesh(py::module & mod) {
 
   register_element_type_map_array<Real>(mod, "Real");
   register_element_type_map_array<UInt>(mod, "UInt");
+  register_element_type_map_array<Int>(mod, "Int");
   // register_element_type_map_array<std::string>(mod, "String");
 }
 } // namespace akantu

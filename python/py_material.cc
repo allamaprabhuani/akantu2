@@ -92,7 +92,7 @@ namespace {
     }
 
     template <typename T>
-    void registerInternal(const std::string & name, UInt nb_component) {
+    void registerInternal(const std::string & name, Int nb_component) {
       auto && internal = std::make_shared<InternalField<T>>(name, *this);
       AKANTU_DEBUG_INFO("alloc internal " << name << " "
                                           << &this->internals[name]);
@@ -147,6 +147,7 @@ void register_material(py::module & mod) {
 
   register_internal_field<Real>(mod, "Real");
   register_internal_field<UInt>(mod, "UInt");
+  register_internal_field<Int>(mod, "Int");
 
   py::class_<Material, Parsable, PyMaterial<Material>>(
       mod, "Material", py::multiple_inheritance())
@@ -184,12 +185,12 @@ void register_material(py::module & mod) {
       .def("initMaterial", &Material::initMaterial)
       .def("getModel", &Material::getModel)
       .def("registerInternalReal",
-           [](Material & self, const std::string & name, UInt nb_component) {
+           [](Material & self, const std::string & name, Int nb_component) {
              return dynamic_cast<PyMaterial<Material> &>(self)
                  .registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
-           [](Material & self, const std::string & name, UInt nb_component) {
+           [](Material & self, const std::string & name, Int nb_component) {
              return dynamic_cast<PyMaterial<Material> &>(self)
                  .registerInternal<UInt>(name, nb_component);
            })

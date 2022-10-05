@@ -56,11 +56,11 @@ void register_solvers(py::module & mod) {
       .def("saveProfile", &SparseMatrix::saveProfile)
       .def("saveMatrix", &SparseMatrix::saveMatrix)
       .def(
-          "add", [](SparseMatrix & self, UInt i, UInt j) { self.add(i, j); },
+          "add", [](SparseMatrix & self, Int i, Int j) { self.add(i, j); },
           "Add entry in the profile")
       .def(
           "add",
-          [](SparseMatrix & self, UInt i, UInt j, Real value) {
+          [](SparseMatrix & self, Int i, Int j, Real value) {
             self.add(i, j, value);
           },
           "Add the value to the matrix")
@@ -74,9 +74,9 @@ void register_solvers(py::module & mod) {
       .def("isFinite", &SparseMatrix::isFinite)
 
       .def("getRelease",
-           [](const SparseMatrix & self) -> UInt { return self.getRelease(); })
+           [](const SparseMatrix & self) -> Int { return self.getRelease(); })
       .def("__call__",
-           [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
+           [](const SparseMatrix & self, Int i, Int j) { return self(i, j); })
       .def("getRelease", &SparseMatrix::getRelease);
 
   py::class_<SparseMatrixAIJ, SparseMatrix>(mod, "SparseMatrixAIJ")
@@ -107,7 +107,7 @@ void register_solvers(py::module & mod) {
       .def("getDOFIdN", &TermsToAssemble::getDOFIdN)
       .def(
           "__call__",
-          [](TermsToAssemble & self, UInt i, UInt j, Real val) {
+          [](TermsToAssemble & self, Int i, Int j, Real val) {
             auto & term = self(i, j);
             term = val;
             return term;

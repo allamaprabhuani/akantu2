@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
   model.setBaseNameToDumper("cohesive elements", "cohesive");
   model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
 
-  for (auto n : arange(n_steps)) {
+  for (auto _ [[gnu::unused]] : arange(n_steps)) {
     // Apply velocity at the extremities
     model.applyBC(BC::Dirichlet::IncrementValue(-vel * dt, _x), "left");
     model.applyBC(BC::Dirichlet::IncrementValue(vel * dt, _x), "right");
