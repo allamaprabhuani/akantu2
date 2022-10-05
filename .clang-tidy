@@ -18,6 +18,9 @@ Checks: "
 AnalyzeTemporaryDtors: false
 HeaderFilterRegex:     'src/.*'
 FormatStyle:           file
+UseColor:              true
+ExtraArgs:             -std=c++17
+
 CheckOptions:
   - key: readability-identifier-length.IgnoreVariableNames
     value: True

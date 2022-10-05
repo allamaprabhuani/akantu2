@@ -48,15 +48,16 @@ template <Int dim, ElementType type>
 MeshSphereIntersector<dim, type>::MeshSphereIntersector(Mesh & mesh)
     : parent_type(mesh), tol_intersection_on_node(1e-10) {
 #if defined(AKANTU_IGFEM)
-  if ((type == _triangle_3) || (type == _igfem_triangle_4) ||
-      (type == _igfem_triangle_5)) {
-    const_cast<UInt &>(this->nb_seg_by_el) = 3;
+  if constexpr ((type == _triangle_3) or (type == _igfem_triangle_4) or
+                (type == _igfem_triangle_5)) {
+    this->nb_seg_by_el = 3;
   } else {
     AKANTU_ERROR("Not ready for mesh type " << type);
   }
 #else
-  if ((type != _triangle_3))
+  if (type != _triangle_3) {
     AKANTU_ERROR("Not ready for mesh type " << type);
+  }
 #endif
 
   // initialize the intersection pointsss array with the spatial dimension
@@ -84,123 +85,121 @@ void MeshSphereIntersector<dim, type>::constructData(GhostType ghost_type) {
 
 template <Int dim, ElementType type>
 void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
-    const SK::Sphere_3 & query, UInt nb_old_nodes) {
+    const SK::Sphere_3 & query, Int nb_old_nodes) {
   /// function to replace computeIntersectionQuery in a more generic geometry
   /// module version
   // The newNodeEvent is not send from this method who only compute the
   // intersection points
   AKANTU_DEBUG_IN();
 
-  Array<Real> & nodes = this->mesh.getNodes();
-  UInt nb_node = nodes.size() + this->intersection_points->size();
+  auto & nodes = this->mesh.getNodes();
+  auto nb_node = nodes.size() + this->intersection_points->size();
 
   // Tolerance for proximity checks should be defined by user
   Real global_tolerance = Math::getTolerance();
   Math::setTolerance(tol_intersection_on_node);
-  typedef boost::variant<pair_type> sk_inter_res;
+  using sk_inter_res = boost::variant<pair_type>;
 
-  TreeTypeHelper<Line_arc<cgal::Spherical>, cgal::Spherical>::const_iterator
-      it = this->factory.getPrimitiveList().begin(),
-      end = this->factory.getPrimitiveList().end();
-
-  for (; it != end; ++it) { // loop on the primitives (segments)
+  // loop on the primitives (segments)
+  for (auto && primitive : this->factory.getPrimitiveList()) {
     std::list<sk_inter_res> s_results;
-    CGAL::intersection(*it, query, std::back_inserter(s_results));
+    CGAL::intersection(primitive, query, std::back_inserter(s_results));
 
-    if (s_results.size() == 1) { // just one point
-      if (pair_type * pair = boost::get<pair_type>(&s_results.front())) {
-        if (pair->second == 1) { // not a point tangent to the sphere
-          // the intersection point written as a vector
-          Vector<Real> new_node(dim, 0.0);
-          cgal::Cartesian::Point_3 point(CGAL::to_double(pair->first.x()),
-                                         CGAL::to_double(pair->first.y()),
-                                         CGAL::to_double(pair->first.z()));
-          for (Int i = 0; i < dim; i++) {
-            new_node(i) = point[i];
-          }
+    if (s_results.size() != 1) { // not just one point
+      continue;
+    }
 
-          /// boolean to decide wheter intersection point is on a standard node
-          /// of the mesh or not
-          bool is_on_mesh = false;
-          /// boolean to decide if this intersection point has been already
-          /// computed for a neighbor element
-          bool is_new = true;
+    auto * pair = boost::get<pair_type>(&s_results.front());
 
-          /// check if intersection point has already been computed
-          UInt n = nb_old_nodes;
+    if (not pair and pair->second != 1) {
+      continue;
+    }
 
-          // check if we already compute this intersection and add it as a node
-          // for a neighboor element of another type
-          auto existing_node = nodes.begin(dim);
+    // the intersection point written as a vector
+    Vector<Real> new_node(dim, 0.0);
+    cgal::Cartesian::Point_3 point(CGAL::to_double(pair->first.x()),
+                                   CGAL::to_double(pair->first.y()),
+                                   CGAL::to_double(pair->first.z()));
+    for (Int i = 0; i < dim; i++) {
+      new_node(i) = point[i];
+    }
 
-          for (; n < nodes.size(); ++n) { // loop on the nodes from nb_old_nodes
-            if (Math::are_vector_equal(dim, new_node.data(),
-                                       existing_node[n].data())) {
-              is_new = false;
-              break;
-            }
-          }
-          if (is_new) {
-            auto intersection_points_it = this->intersection_points->begin(dim);
-            auto intersection_points_end = this->intersection_points->end(dim);
-            for (; intersection_points_it != intersection_points_end;
-                 ++intersection_points_it, ++n) {
-              if (Math::are_vector_equal(dim, new_node.data(),
-                                         intersection_points_it->storage())) {
-                is_new = false;
-                break;
-              }
-            }
-          }
+    /// boolean to decide wheter intersection point is on a standard node
+    /// of the mesh or not
+    bool is_on_mesh = false;
+    /// boolean to decide if this intersection point has been already
+    /// computed for a neighbor element
+    bool is_new = true;
 
-          // get the initial and final points of the primitive (segment) and
-          // write them as vectors
-          cgal::Cartesian::Point_3 source_cgal(
-              CGAL::to_double(it->source().x()),
-              CGAL::to_double(it->source().y()),
-              CGAL::to_double(it->source().z()));
-          cgal::Cartesian::Point_3 target_cgal(
-              CGAL::to_double(it->target().x()),
-              CGAL::to_double(it->target().y()),
-              CGAL::to_double(it->target().z()));
-          Vector<Real> source(dim), target(dim);
-          for (Int i = 0; i < dim; i++) {
-            source(i) = source_cgal[i];
-            target(i) = target_cgal[i];
-          }
+    // check if intersection point has already been computed
+    auto old_node_id = nb_old_nodes;
+    // check if we already compute this intersection and add it as a node
+    // for a neighbor element of another type
+    auto node_view = make_view<dim>(nodes);
+    // loop on the nodes from nb_old_nodes
+    for (auto && existing_node :
+         range(node_view.begin() + nb_old_nodes, node_view.end())) {
+      if (new_node.isApprox(existing_node)) {
+        is_new = false;
+        break;
+      }
+      ++old_node_id;
+    }
 
-          // Check if we are close from a node of the primitive (segment)
-          if (Math::are_vector_equal(dim, source.data(), new_node.data()) ||
-              Math::are_vector_equal(dim, target.data(), new_node.data())) {
-            is_on_mesh = true;
-            is_new = false;
-          }
-
-          if (is_new) { // if the intersection point is a new one add it to the
-                        // list
-            this->intersection_points->push_back(new_node);
-            nb_node++;
-          }
-
-          // deduce the element id
-          UInt element_id = it->id();
-
-          // fill the new_node_per_elem array
-          if (!is_on_mesh) { // if the node is not on a mesh node
-            UInt & nb_new_nodes_per_el =
-                (*this->new_node_per_elem)(element_id, 0);
-            nb_new_nodes_per_el += 1;
-            AKANTU_DEBUG_ASSERT(
-                2 * nb_new_nodes_per_el <
-                    this->new_node_per_elem->getNbComponent(),
-                "You might have to interface crossing the same material");
-            (*this->new_node_per_elem)(element_id,
-                                       (2 * nb_new_nodes_per_el) - 1) = n;
-            (*this->new_node_per_elem)(element_id, 2 * nb_new_nodes_per_el) =
-                it->segId();
-          }
+    if (is_new) {
+      for (auto && intersection_point :
+           make_view<dim>(*this->intersection_points)) {
+        if (new_node.isApprox(intersection_point)) {
+          is_new = false;
+          break;
         }
       }
+    }
+
+    // get the initial and final points of the primitive (segment) and
+    // write them as vectors
+    cgal::Cartesian::Point_3 source_cgal(
+        CGAL::to_double(primitive.source().x()),
+        CGAL::to_double(primitive.source().y()),
+        CGAL::to_double(primitive.source().z()));
+    cgal::Cartesian::Point_3 target_cgal(
+        CGAL::to_double(primitive.target().x()),
+        CGAL::to_double(primitive.target().y()),
+        CGAL::to_double(primitive.target().z()));
+
+    Vector<Real, dim> source, target;
+    for (Int i = 0; i < dim; i++) {
+      source(i) = source_cgal[i];
+      target(i) = target_cgal[i];
+    }
+
+    // Check if we are close from a node of the primitive (segment)
+    if (source.isApprox(new_node) or target.isApprox(new_node)) {
+      is_on_mesh = true;
+      is_new = false;
+    }
+
+    // if the intersection point is a new one add it to the
+    // list
+    if (is_new) {
+      this->intersection_points->push_back(new_node);
+      nb_node++;
+    }
+
+    // deduce the element id
+    auto element_id = primitive.id();
+
+    // fill the new_node_per_elem array
+    if (not is_on_mesh) { // if the node is not on a mesh node
+      auto & nb_new_nodes_per_el = (*this->new_node_per_elem)(element_id, 0);
+      nb_new_nodes_per_el += 1;
+      AKANTU_DEBUG_ASSERT(
+          2 * nb_new_nodes_per_el < this->new_node_per_elem->getNbComponent(),
+          "You might have to interface crossing the same material");
+      (*this->new_node_per_elem)(element_id, (2 * nb_new_nodes_per_el) - 1) =
+          old_node_id;
+      (*this->new_node_per_elem)(element_id, 2 * nb_new_nodes_per_el) =
+          primitive.segId();
     }
   }
 

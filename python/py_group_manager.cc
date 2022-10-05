@@ -65,8 +65,13 @@ void register_group_manager(py::module & mod) {
       .def("clear", &NodeGroup::clear)
       .def("empty", &NodeGroup::empty)
       .def("append", &NodeGroup::append)
-      .def("add", &NodeGroup::add, py::arg("node"),
-           py::arg("check_for_duplicate") = true)
+      .def(
+          "add",
+          [](NodeGroup & self, UInt node, bool check_for_duplicate) {
+            auto && it = self.add(node, check_for_duplicate);
+            return *it;
+          },
+          py::arg("node"), py::arg("check_for_duplicate") = true)
       .def("remove", &NodeGroup::add);
 
   /* ------------------------------------------------------------------------ */

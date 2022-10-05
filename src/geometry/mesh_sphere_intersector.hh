@@ -54,16 +54,16 @@ class MeshSphereIntersector
   using K = cgal::Cartesian;
 
   /// Parent class type
-  typedef MeshGeomIntersector<dim, type, Line_arc<SK>, SK::Sphere_3, SK>
-      parent_type;
+  using parent_type =
+      MeshGeomIntersector<dim, type, Line_arc<SK>, SK::Sphere_3, SK>;
 
   /// Result of intersection function type
-  typedef typename IntersectionTypeHelper<TreeTypeHelper<Triangle<K>, K>,
-                                          K::Segment_3>::intersection_type
-      result_type;
+  using result_type =
+      typename IntersectionTypeHelper<TreeTypeHelper<Triangle<K>, K>,
+                                      K::Segment_3>::intersection_type;
 
   /// Pair of intersection points and element id
-  typedef std::pair<SK::Circular_arc_point_3, UInt> pair_type;
+  using pair_type = std::pair<SK::Circular_arc_point_3, Int>;
 
 public:
   /// Construct from mesh
@@ -74,12 +74,12 @@ public:
 
 public:
   /// Construct the primitive tree object
-  virtual void constructData(GhostType ghost_type = _not_ghost);
+  void constructData(GhostType ghost_type = _not_ghost) override;
 
   /**
    * @brief Computes the intersection of the mesh with a sphere
    */
-  virtual void computeIntersectionQuery(const SK::Sphere_3 & /* query */) {
+  void computeIntersectionQuery(const SK::Sphere_3 & /* query */) override {
     AKANTU_ERROR("This function is not implemented for spheres (It was "
                  "to generic and has been replaced by "
                  "computeMeshQueryIntersectionPoint");
@@ -91,12 +91,12 @@ public:
    * same primitives are not considered. A maximum is set to the number of
    * intersection nodes per element: 2 in 2D and 4 in 3D
    */
-  virtual void computeMeshQueryIntersectionPoint(const SK::Sphere_3 & query,
-                                                 UInt nb_old_nodes);
+  void computeMeshQueryIntersectionPoint(const SK::Sphere_3 & query,
+                                         Int nb_old_nodes) override;
 
   /// Build the IGFEM mesh
-  virtual void
-  buildResultFromQueryList(const std::list<SK::Sphere_3> & /*query*/) {
+  void
+  buildResultFromQueryList(const std::list<SK::Sphere_3> & /*query*/) override {
     AKANTU_ERROR("This function is no longer implemented to split "
                  "geometrical operations and dedicated result "
                  "construction");

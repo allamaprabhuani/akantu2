@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 #include "mesh_geom_common.hh"
 #include "mesh_geom_factory.hh"
+#include "mesh_iterators.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MESH_GEOM_FACTORY_TMPL_HH_
@@ -48,9 +49,7 @@ MeshGeomFactory<dim, type, Primitive, Kernel>::MeshGeomFactory(Mesh & mesh)
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, ElementType type, class Primitive, class Kernel>
-MeshGeomFactory<dim, type, Primitive, Kernel>::~MeshGeomFactory() {
-  delete data_tree;
-}
+MeshGeomFactory<dim, type, Primitive, Kernel>::~MeshGeomFactory() = default;
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -63,31 +62,25 @@ void MeshGeomFactory<dim, type, Primitive, Kernel>::constructData(
   AKANTU_DEBUG_IN();
 
   primitive_list.clear();
+
   constexpr auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-
-  const auto & connectivity = mesh.getConnectivity(type, ghost_type);
-  auto nodes = make_view<dim>(mesh.getNodes()).begin();
-
   Matrix<Real, dim, nb_nodes_per_element> node_coordinates;
 
   // This loop builds the list of primitives
-  for (auto && [el_index, el_connectivity] :
-       enumerate(make_view<nb_nodes_per_element>(connectivity))) {
-    for (auto && [node_coord, node] : zip(node_coordinates, el_connectivity)) {
-      node_coord = nodes[node];
-    }
-
-    // the unique elemental id assigned to the primitive is the
-    // linearized element index over ghost type
-    addPrimitive(node_coordinates, el_index);
+  for (auto && element :
+       element_range(mesh.getNbElement(type, ghost_type), type)) {
+    node_coordinates =
+        mesh.extractNodalValuesFromElement(mesh.getNodes(), element);
+    this->addPrimitive(node_coordinates, element.element);
   }
 
-  delete data_tree;
+  data_tree.reset();
 
   // This condition allows the use of the mesh geom module
   // even if types are not compatible with AABB tree algorithm
   if (TreeTypeHelper_::is_valid) {
-    data_tree = new TreeType(primitive_list.begin(), primitive_list.end());
+    data_tree = std::make_unique<TreeType>(primitive_list.begin(),
+                                           primitive_list.end());
   }
 
   AKANTU_DEBUG_OUT();
@@ -132,7 +125,7 @@ namespace details {
                             cgal::Cartesian> {
     using TreeTypeHelper_ = TreeTypeHelper<Primitive, cgal::Cartesian>;
     using ContainerType = typename TreeTypeHelper_::container_type;
-    static void addPrimitive(const Matrix<Real> & node_coordinates, UInt id,
+    static void addPrimitive(const Matrix<Real> & node_coordinates, Idx id,
                              ContainerType & list) {
       using Point = typename TreeTypeHelper_::point_type;
       Point a(node_coordinates(0, 0), node_coordinates(1, 0), 0.);
@@ -150,7 +143,7 @@ namespace details {
                             cgal::Spherical> {
     using TreeTypeHelper_ = TreeTypeHelper<Primitive, cgal::Spherical>;
     using ContainerType = typename TreeTypeHelper_::container_type;
-    static void addPrimitive(const Matrix<Real> & node_coordinates, UInt id,
+    static void addPrimitive(const Matrix<Real> & node_coordinates, Idx id,
                              ContainerType & list) {
       using Point = typename TreeTypeHelper_::point_type;
       Point a(node_coordinates(0, 0), node_coordinates(1, 0), 0.);
@@ -185,7 +178,7 @@ namespace details {
                             cgal::Cartesian> {
     using TreeTypeHelper_ = TreeTypeHelper<Primitive, cgal::Cartesian>;
     using ContainerType = typename TreeTypeHelper_::container_type;
-    static void addPrimitive(const Matrix<Real> & node_coordinates, UInt id,
+    static void addPrimitive(const Matrix<Real> & node_coordinates, Idx id,
                              ContainerType & list) {
       using Point = typename TreeTypeHelper_::point_type;
       Point a(node_coordinates(0, 0), node_coordinates(1, 0),
@@ -218,7 +211,7 @@ namespace details {
 /* -------------------------------------------------------------------------- */
 template <Int dim, ElementType type, class Primitive, class Kernel>
 void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
-    const Matrix<Real> & node_coordinates, UInt id, ContainerType & list) {
+    const Matrix<Real> & node_coordinates, Idx id, ContainerType & list) {
   details::AddPrimitiveHelper<details::GeometricalTypeHelper<type>::type,
                               Primitive, Kernel>::addPrimitive(node_coordinates,
                                                                id, list);
@@ -227,7 +220,7 @@ void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
 /* -------------------------------------------------------------------------- */
 template <Int dim, ElementType type, class Primitive, class Kernel>
 void MeshGeomFactory<dim, type, Primitive, Kernel>::addPrimitive(
-    const Matrix<Real> & node_coordinates, UInt id) {
+    const Matrix<Real> & node_coordinates, Idx id) {
   this->addPrimitive(node_coordinates, id, this->primitive_list);
 }
 

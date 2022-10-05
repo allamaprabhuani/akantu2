@@ -48,11 +48,12 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-class ElementGroup;
-class NodeGroup;
-class Mesh;
 class Element;
+class ElementGroup;
 class ElementSynchronizer;
+class Mesh;
+class NewNodesEvent;
+class NodeGroup;
 template <bool> class CommunicationBufferTemplated;
 namespace dumpers {
   class Field;
@@ -94,14 +95,14 @@ public:
       "(element|node)GroupExists")]] inline BOOST_PP_CAT(BOOST_PP_CAT(const_,      \
                                                                       group_type), \
                                                          _iterator)                \
-  BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {            \
+      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {        \
     return BOOST_PP_CAT(group_type, s).function(param_out);                        \
   };                                                                               \
                                                                                    \
   [[deprecated("use iterate(Element|Node)Groups or "                               \
                "(element|node)GroupExists")]] inline BOOST_PP_CAT(group_type,      \
                                                                   _iterator)       \
-  BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {                  \
+      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {              \
     return BOOST_PP_CAT(group_type, s).function(param_out);                        \
   }
 
@@ -268,6 +269,8 @@ public:
   createStridedNodalField(const ftype<type, flag> * field,
                           const std::string & group_name, Int size, Int stride,
                           Int padding_size);
+
+  void onNodesAdded(const Array<Idx> & new_nodes, const NewNodesEvent & event);
 
 protected:
   /// fill a buffer with all the group names

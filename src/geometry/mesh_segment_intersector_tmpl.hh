@@ -46,7 +46,7 @@ template <Int dim, ElementType type>
 MeshSegmentIntersector<dim, type>::MeshSegmentIntersector(Mesh & mesh,
                                                           Mesh & result_mesh)
     : parent_type(mesh), result_mesh(result_mesh) {
-  this->intersection_points = new Array<Real>(0, dim);
+  this->intersection_points = std::make_unique<Array<Real>>(0, dim);
   this->constructData();
 }
 
@@ -54,9 +54,6 @@ template <Int dim, ElementType type>
 void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
     const K::Segment_3 & query) {
   AKANTU_DEBUG_IN();
-
-  result_mesh.addConnectivityType(_segment_2, _not_ghost);
-  result_mesh.addConnectivityType(_segment_2, _ghost);
 
   std::list<result_type> result_list;
   std::set<std::pair<K::Segment_3, Int>, segmentPairsLess> segment_set;
@@ -72,7 +69,10 @@ void MeshSegmentIntersector<dim, type>::computeIntersectionQuery(
   // Arrays for storing associated element and physical name
   bool valid_elemental_data = true;
   Array<Element> * associated_element = nullptr;
-  Array<std::string> * associated_physical_name = nullptr;
+  Array<ID> * associated_physical_name = nullptr;
+
+  result_mesh.addConnectivityType(_segment_2, _not_ghost);
+  result_mesh.addConnectivityType(_segment_2, _ghost);
 
   try {
     associated_element =
@@ -178,86 +178,86 @@ void MeshSegmentIntersector<dim, type>::computeSegments(
     if (inside_primitive) {
       segments.insert(std::make_pair(query, primitive_id));
     }
-  } else {
-    for (auto && intersection : intersections) {
-      auto && el = intersection->second;
-      // Result of intersection is a segment
-      if (const K::Segment_3 * segment =
-              boost::get<K::Segment_3>(&intersection->first)) {
-        // Check if the segment was alread created
-        segments.insert(std::make_pair(*segment, el));
-      }
-      // Result of intersection is a point
-      else if (const K::Point_3 * point =
-                   boost::get<K::Point_3>(&intersection->first)) {
-        // We only want to treat points differently if we're in 3D with Tetra4
-        // elements This should be optimized by compilator
-        if (dim == 3 && type == _tetrahedron_4) {
-          constexpr auto nb_nodes_per_element =
-              Mesh::getNbNodesPerElement(type);
-          TreeTypeHelper<Triangle<K>, K>::container_type facets;
 
-          const auto nodes = make_view<dim>(this->mesh.getNodes()).begin();
-          auto connectivity =
-              make_view<nb_nodes_per_element>(this->mesh.getConnectivity(type))
-                  .begin();
+    return;
+  }
+  for (auto && intersection : intersections) {
+    auto && el = intersection->second;
+    // Result of intersection is a segment
+    if (const K::Segment_3 * segment =
+            boost::get<K::Segment_3>(&intersection->first)) {
+      // Check if the segment was alread created
+      segments.insert(std::make_pair(*segment, el));
+      continue;
+    }
 
-          Matrix<Real, dim, nb_nodes_per_element> node_coordinates;
-          for (auto && [node_coords, node] :
-               zip(node_coordinates, connectivity[el])) {
-            node_coords = nodes[node];
-          }
+    if (const K::Point_3 * point = boost::get<K::Point_3>(
+            &intersection->first)) { // Result of intersection is a point
+      // We only want to treat points differently if we're in 3D with Tetra4
+      // elements This should be optimized by compilator
+      if constexpr (dim == 3 and type == _tetrahedron_4) {
+        constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+        TreeTypeHelper<Triangle<K>, K>::container_type facets;
 
-          this->factory.addPrimitive(node_coordinates, el, facets);
+        const auto nodes = make_view<dim>(this->mesh.getNodes()).begin();
+        auto connectivity =
+            make_view<nb_nodes_per_element>(this->mesh.getConnectivity(type))
+                .begin();
 
-          // Local tree
-          auto * local_tree = new TreeTypeHelper<Triangle<K>, K>::tree(
-              facets.begin(), facets.end());
+        Matrix<Real, dim, nb_nodes_per_element> node_coordinates;
+        for (auto && [node_coords, node] :
+             zip(node_coordinates, connectivity[el])) {
+          node_coords = nodes[node];
+        }
 
-          // Compute local intersections (with current element)
-          std::list<result_type> local_intersections;
-          local_tree->all_intersections(
-              query, std::back_inserter(local_intersections));
+        this->factory.addPrimitive(node_coordinates, el, facets);
 
-          bool out_point_found = false;
-          for (auto && local_intersection : local_intersections) {
-            if (const auto * local_point =
-                    boost::get<K::Point_3>(&local_intersection->first)) {
-              if (!comparePoints(*point, *local_point)) {
-                K::Segment_3 seg(*point, *local_point);
-                segments.insert(std::make_pair(seg, el));
-                out_point_found = true;
-              }
-            }
-          }
+        // Local tree
+        auto local_tree =
+            std::make_unique<TreeTypeHelper<Triangle<K>, K>::tree>(
+                facets.begin(), facets.end());
 
-          if (!out_point_found) {
-            using Point = TreeTypeHelper<Triangle<K>, K>::point_type;
-            Point a(node_coordinates(0, 0), node_coordinates(1, 0),
-                    node_coordinates(2, 0));
-            Point b(node_coordinates(0, 1), node_coordinates(1, 1),
-                    node_coordinates(2, 1));
-            Point c(node_coordinates(0, 2), node_coordinates(1, 2),
-                    node_coordinates(2, 2));
-            Point d(node_coordinates(0, 3), node_coordinates(1, 3),
-                    node_coordinates(2, 3));
-            K::Tetrahedron_3 tetra(a, b, c, d);
-            const K::Point_3 * inside_point = nullptr;
-            if (tetra.has_on_bounded_side(query.source()) &&
-                !tetra.has_on_boundary(query.source())) {
-              inside_point = &query.source();
-            } else if (tetra.has_on_bounded_side(query.target()) &&
-                       !tetra.has_on_boundary(query.target())) {
-              inside_point = &query.target();
-            }
+        // Compute local intersections (with current element)
+        std::list<result_type> local_intersections;
+        local_tree->all_intersections(query,
+                                      std::back_inserter(local_intersections));
 
-            if (inside_point != nullptr) {
-              K::Segment_3 seg(*inside_point, *point);
+        bool out_point_found = false;
+        for (auto && local_intersection : local_intersections) {
+          if (const auto * local_point =
+                  boost::get<K::Point_3>(&local_intersection->first)) {
+            if (!comparePoints(*point, *local_point)) {
+              K::Segment_3 seg(*point, *local_point);
               segments.insert(std::make_pair(seg, el));
+              out_point_found = true;
             }
           }
+        }
 
-          delete local_tree;
+        if (not out_point_found) {
+          using Point = TreeTypeHelper<Triangle<K>, K>::point_type;
+          Point a(node_coordinates(0, 0), node_coordinates(1, 0),
+                  node_coordinates(2, 0));
+          Point b(node_coordinates(0, 1), node_coordinates(1, 1),
+                  node_coordinates(2, 1));
+          Point c(node_coordinates(0, 2), node_coordinates(1, 2),
+                  node_coordinates(2, 2));
+          Point d(node_coordinates(0, 3), node_coordinates(1, 3),
+                  node_coordinates(2, 3));
+          K::Tetrahedron_3 tetra(a, b, c, d);
+          const K::Point_3 * inside_point = nullptr;
+          if (tetra.has_on_bounded_side(query.source()) &&
+              !tetra.has_on_boundary(query.source())) {
+            inside_point = &query.source();
+          } else if (tetra.has_on_bounded_side(query.target()) &&
+                     !tetra.has_on_boundary(query.target())) {
+            inside_point = &query.target();
+          }
+
+          if (inside_point != nullptr) {
+            K::Segment_3 seg(*inside_point, *point);
+            segments.insert(std::make_pair(seg, el));
+          }
         }
       }
     }

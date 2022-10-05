@@ -16,6 +16,7 @@
     # Configure the project
     - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
       -DAKANTU_IMPLICIT:BOOL=TRUE
+      -DAKANTU_IMPLICIT_SOLVER"STRING="Mumps+PETSc"
       -DAKANTU_PARALLEL:BOOL=TRUE
       -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
       -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
@@ -33,7 +34,7 @@
 
     # Copy the compile commands for the code quality
     - if [ -e compile_commands.json ]; then
-    -   cp compile_commands.json ..
+    - cp compile_commands.json ..
     - fi
   artifacts:
     when: on_success
@@ -61,7 +62,7 @@
       - compile_commands.json
     expire_in: 10h
   timeout: 4h
-  
+
 # build the tests
 .build_tests:
   stage: build_tests
@@ -105,7 +106,7 @@
       - build/**/*.o
     expire_in: 10h
   timeout: 4h
-  
+
 # Run the tests
 .tests:
   stage: test
@@ -123,7 +124,7 @@
       --gcov-executable "${GCOV_EXECUTABLE}"
       --xml-pretty
       --exclude-unreachable-branches
-      --print-summary 
+      --print-summary
       --output coverage.xml
       --object-directory ${CI_PROJECT_DIR}/build
       --root ${CI_PROJECT_DIR}  -s || true

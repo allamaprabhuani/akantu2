@@ -195,20 +195,9 @@ if(AKANTU_LIBRARY_PRIVATE_HDRS)
   set_property(TARGET akantu PROPERTY PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS})
 endif()
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-  package_get_all_features_public(_PUBLIC_features)
-  package_get_all_features_private(_PRIVATE_features)
-  foreach(_type PRIVATE PUBLIC)
-    if(_${_type}_features)
-      target_compile_features(akantu ${_type} ${_${_type}_features})
-    endif()
-  endforeach()
-else()
-  set_target_properties(akantu
-    PROPERTIES
-    CXX_STANDARD ${AKANTU_CXX_STANDARD}
-    )
-endif()
+target_compile_features(akantu PUBLIC cxx_std_17)
+set_target_properties(akantu
+  PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
 
 package_get_all_extra_dependencies(_extra_target_dependencies)
 if(_extra_target_dependencies)

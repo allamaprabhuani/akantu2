@@ -56,7 +56,7 @@ ContactMechanicsModel::ContactMechanicsModel(
                                                Model::spatial_dimension);
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-                                 Model::spatial_dimension, _not_ghost,
+                                 Model::spatial_dimension - 1, _not_ghost,
                                  _ek_regular);
 
   this->registerDataAccessor(*this);
@@ -369,7 +369,7 @@ void ContactMechanicsModel::search() {
   this->detector->search(contact_elements, *gaps, *normals, *tangents,
                          *projections);
 
-  // intepenetration value must be positive for contact mechanics
+  // interpenetration value must be positive for contact mechanics
   // model to work by default the gap value from detector is negative
   std::for_each((*gaps).begin(), (*gaps).end(), [](Real & gap) { gap *= -1.; });
 

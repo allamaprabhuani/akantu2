@@ -67,7 +67,7 @@ public:
   AKANTU_GET_MACRO(IntersectionPoints, *intersection_points,
                    const Array<Real> &);
   /// get the nb_seg_by_el UInt
-  AKANTU_GET_MACRO(NbSegByEl, nb_seg_by_el, UInt);
+  AKANTU_GET_MACRO(NbSegByEl, nb_seg_by_el, Int);
 
   /**
    * @brief Compute the intersection with a query object
@@ -104,11 +104,11 @@ public:
 protected:
   /// new node per element (column 0: number of new nodes, then odd is the
   /// intersection node number and even the ID of the intersected segment)
-  Array<Int> * new_node_per_elem{nullptr};
+  std::unique_ptr<Array<Int>> new_node_per_elem;
 
   /// intersection output: new intersection points
   /// (computeMeshQueryListIntersectionPoint)
-  Array<Real> * intersection_points{nullptr};
+  std::unique_ptr<Array<Real>> intersection_points;
 
   /// number of segment in a considered element of the templated type of element
   /// specialized intersector

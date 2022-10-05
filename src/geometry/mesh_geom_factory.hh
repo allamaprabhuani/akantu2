@@ -80,9 +80,9 @@ public:
    * @param list the primitive list (not used inside MeshGeomFactory)
    */
   inline void addPrimitive(const Matrix<Real> & /*node_coordinates*/,
-                           UInt /*id*/, ContainerType & /*list*/);
+                           Idx /*id*/, ContainerType & /*list*/);
 
-  inline void addPrimitive(const Matrix<Real> & node_coordinates, UInt id);
+  inline void addPrimitive(const Matrix<Real> & node_coordinates, Idx id);
 
   /// Getter for the AABB tree
   auto getTree() const -> const TreeType & { return *data_tree; }
@@ -94,7 +94,7 @@ public:
 
 protected:
   /// AABB data tree
-  TreeType * data_tree{nullptr};
+  std::unique_ptr<TreeType> data_tree;
 
   /// Primitive list
   ContainerType primitive_list;
