@@ -101,7 +101,7 @@ void ContactDetectorInternodes::findContactNodes() {
   bool still_isolated_nodes = true;
   int iteration = 0;
   while(still_isolated_nodes) {
-    auto && nb_slave_nodes_inside_radius  = computeRadiuses(master_radiuses, 
+    auto && nb_slave_nodes_inside_radius  = computeRadiuses(master_radiuses,
             master_node_group, slave_node_group);
     auto && nb_master_nodes_inside_radius  = computeRadiuses(slave_radiuses,
         slave_node_group, master_node_group);
@@ -180,6 +180,7 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
   auto && positions = mesh.getNodes();
   auto && positions_view = make_view(positions, spatial_dimension).begin();
 
+  Array<Real> distances(eval_node_group.size());
   Matrix<Real> phi(ref_node_group.size(), eval_node_group.size());
   phi.set(0.);
 
@@ -187,7 +188,7 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
     auto i = std::get<0>(ref_node_data);
     auto ref_node = std::get<1>(ref_node_data);
 
-    auto distances = computeDistancesToRefNode(ref_node, eval_node_group);
+    computeDistancesToRefNode(ref_node, eval_node_group, distances);
 
     for (UInt j : arange(eval_node_group.size())) {
       if (distances(j) <= eval_radiuses(j)) {
@@ -204,7 +205,7 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 Array<UInt>
 ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
     const NodeGroup & ref_node_group, const NodeGroup & eval_node_group) {
-  // UInt n = 1; // fixed to 1 neareast neighboor 
+  // UInt n = 1; // fixed to 1 neareast neighboor
   Real c = 0.5;  // conditition (2)
   Real C = 0.95; // condition (3)
   // maximum number of support nodes
@@ -212,6 +213,8 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
   Real d = 0.05;      // tolerance, for radius of "attack" estimation
   UInt max_iter = 10; // maximum number of iterations
 
+  Array<Real> distances_neighboors(ref_node_group.size());
+  Array<Real> distances_opposites(eval_node_group.size());
 
   attack_radiuses.resize(ref_node_group.size());
 
@@ -227,12 +230,10 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
       auto ref_node = std::get<1>(ref_node_data);
 
       // distances to all nodes on same surface (aka neighboors)
-      auto && distances_neighboors =
-          computeDistancesToRefNode(ref_node, ref_node_group);
+      computeDistancesToRefNode(ref_node, ref_node_group, distances_neighboors);
 
       // get distances to all nodes on other surface (aka opposites)
-      auto && distances_opposites =
-          computeDistancesToRefNode(ref_node, eval_node_group);
+      computeDistancesToRefNode(ref_node, eval_node_group, distances_opposites);
 
       // minimal distance to neighboors i.e radius of "attack"
       // TODO: could be done in computeDistancesToRefNode method
@@ -301,23 +302,20 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
 }
 
 /* -------------------------------------------------------------------------- */
-Array<Real> ContactDetectorInternodes::computeDistancesToRefNode(
-    UInt & ref_node, const NodeGroup & eval_node_group) {
+void ContactDetectorInternodes::computeDistancesToRefNode(
+    UInt & ref_node, const NodeGroup & eval_node_group,
+    Array<Real> & out_array) {
   auto && positions = mesh.getNodes();
   auto && positions_view = make_view(positions, spatial_dimension).begin();
   Vector<Real> ref_pos = positions_view[ref_node];
-
-  Array<Real> distances(eval_node_group.size());
 
   for (auto && eval_node_data : enumerate(eval_node_group.getNodes())) {
     auto i = std::get<0>(eval_node_data);
     auto eval_node = std::get<1>(eval_node_data);
 
     auto && pos_eval = positions_view[eval_node];
-    distances(i) = ref_pos.distance(pos_eval);
+    out_array(i) = ref_pos.distance(pos_eval);
   }
-
-  return distances;
 }
 
 /* -------------------------------------------------------------------------- */

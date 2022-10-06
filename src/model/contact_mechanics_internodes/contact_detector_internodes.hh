@@ -80,9 +80,10 @@ private:
   /// radial basis function
   Real computeRadialBasisInterpolation(Real distance, Real radius);
 
-  /// distances between a reference node and a other nodes
-  Array<Real> computeDistancesToRefNode(UInt & ref_node,
-      const NodeGroup & eval_node_group);
+  /// distances between a reference node and other nodes
+  /// the out_array must already be allocated with sufficient size
+  void computeDistancesToRefNode(UInt & ref_node,
+       const NodeGroup & eval_node_group, Array<Real> & out_array);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
