@@ -152,110 +152,7 @@ ContactMechanicsInternodesModel::getMatrixType(const ID & matrix_id) const {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
   if (matrix_id == "K") {
-    solid->assembleStiffnessMatrix();
-
-    auto & initial_master_node_group = detector->getMasterNodeGroup();
-    auto & initial_slave_node_group = detector->getSlaveNodeGroup();
-
-    auto nb_initial_master_nodes = initial_master_node_group.getNodes().size();
-    auto nb_initial_slave_nodes = initial_slave_node_group.getNodes().size();
-
-    auto & master_node_group = detector->getMasterNodeGroup();
-    auto & slave_node_group = detector->getSlaveNodeGroup();
-
-    auto nb_master_nodes = master_node_group.getNodes().size();
-    auto nb_slave_nodes = slave_node_group.getNodes().size();
-
-    auto nb_nodes = mesh.getNbNodes();
-    auto nb_dofs = spatial_dimension * nb_nodes;
-    auto nb_constraint_dofs = spatial_dimension * nb_initial_master_nodes;
-
-    // R matrices, need for calculations of blocks
-    auto && R_master_slave = detector->constructInterpolationMatrix(
-        master_node_group, slave_node_group, detector->getSlaveRadiuses());
-    auto && R_slave_master = detector->constructInterpolationMatrix(
-        slave_node_group, master_node_group, detector->getMasterRadiuses());
-
-    // get interface masses
-    auto && M_master = assembleInterfaceMass(master_node_group);
-    auto && M_slave = assembleInterfaceMass(slave_node_group);
-
-    // assemble B and B_tilde
-    // B_master = - M_master;
-    auto B_slave = M_slave * R_slave_master;
-
-    //B_tilde_master = I;
-    //B_tilde_slave = - R_master_slave;
-
-    TermsToAssemble termsB("displacement", "lambdas");
-    TermsToAssemble termsB_tilde("lambdas", "displacement");
-
-    Real E = this->solid->getMaterial(0).get("E");
-
-    // fill in active nodes
-    for (auto && ref_node_data :
-        enumerate(initial_master_node_group.getNodes())) {
-      auto i = std::get<0>(ref_node_data);
-      auto ref_node = std::get<1>(ref_node_data);
-
-      auto local_i = master_node_group.find(ref_node);
-
-      if (local_i != UInt(-1)) {
-        for (auto && master_node_data :
-            enumerate(master_node_group.getNodes())) {
-          auto j = std::get<0>(master_node_data);
-          auto master_node = std::get<1>(master_node_data);
-
-          for (int dim = 0; dim < spatial_dimension; dim++) {
-            UInt idx_i = local_i*spatial_dimension + dim;
-            UInt idx_j = j*spatial_dimension + dim;
-            UInt global_idx_i = i*spatial_dimension + dim;
-            UInt global_idx_j = master_node*spatial_dimension + dim;
-
-              termsB(global_idx_j, global_idx_i) = - E*M_master(idx_j, idx_i);
-
-            if (idx_i == idx_j) {
-              termsB_tilde(global_idx_i, global_idx_j) = E;
-            }
-          }
-        }
-      }
-    }
-
-    for (auto && ref_node_data :
-        enumerate(initial_master_node_group.getNodes())) {
-      auto i = std::get<0>(ref_node_data);
-      auto ref_node = std::get<1>(ref_node_data);
-
-      auto local_i = master_node_group.find(ref_node);
-
-      if (local_i != UInt(-1)) {
-        for (auto && slave_node_data :
-            enumerate(slave_node_group.getNodes())) {
-          auto j = std::get<0>(slave_node_data);
-          auto slave_node = std::get<1>(slave_node_data);
-
-          for (int dim = 0; dim < spatial_dimension; dim++) {
-            UInt idx_i = local_i*spatial_dimension + dim;
-            UInt idx_j = j*spatial_dimension + dim;
-            UInt global_idx_i = i*spatial_dimension + dim;
-            UInt global_idx_j = slave_node*spatial_dimension + dim;
-
-              termsB(global_idx_j, global_idx_i) = E * B_slave(idx_j, idx_i);
-
-              termsB_tilde(global_idx_i, global_idx_j) =
-                - E * R_master_slave(idx_i, idx_j);
-          }
-        }
-      }
-    }
-
-    // assemble C (zeros)
-    TermsToAssemble termsC("lambdas", "lambdas");
-
-    this->dof_manager->assemblePreassembledMatrix("K", termsB);
-    this->dof_manager->assemblePreassembledMatrix("K", termsB_tilde);
-    this->dof_manager->assemblePreassembledMatrix("K", termsC);
+    assembleInternodesMatrix();
   }
 
   if (matrix_id == "M") {
@@ -272,7 +169,110 @@ void ContactMechanicsInternodesModel::assembleLumpedMatrix(
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
-  this->assembleMatrix("K");
+  solid->assembleStiffnessMatrix();
+
+  auto & initial_master_node_group = detector->getMasterNodeGroup();
+  auto & initial_slave_node_group = detector->getSlaveNodeGroup();
+
+  auto nb_initial_master_nodes = initial_master_node_group.getNodes().size();
+  auto nb_initial_slave_nodes = initial_slave_node_group.getNodes().size();
+
+  auto & master_node_group = detector->getMasterNodeGroup();
+  auto & slave_node_group = detector->getSlaveNodeGroup();
+
+  auto nb_master_nodes = master_node_group.getNodes().size();
+  auto nb_slave_nodes = slave_node_group.getNodes().size();
+
+  auto nb_nodes = mesh.getNbNodes();
+  auto nb_dofs = spatial_dimension * nb_nodes;
+  auto nb_constraint_dofs = spatial_dimension * nb_initial_master_nodes;
+
+  // R matrices, need for calculations of blocks
+  auto && R_master_slave = detector->constructInterpolationMatrix(
+      master_node_group, slave_node_group, detector->getSlaveRadiuses());
+  auto && R_slave_master = detector->constructInterpolationMatrix(
+      slave_node_group, master_node_group, detector->getMasterRadiuses());
+
+  // get interface masses
+  auto && M_master = assembleInterfaceMass(master_node_group);
+  auto && M_slave = assembleInterfaceMass(slave_node_group);
+
+  // assemble B and B_tilde
+  // B_master = - M_master;
+  auto B_slave = M_slave * R_slave_master;
+
+  //B_tilde_master = I;
+  //B_tilde_slave = - R_master_slave;
+
+  TermsToAssemble termsB("displacement", "lambdas");
+  TermsToAssemble termsB_tilde("lambdas", "displacement");
+
+  Real E = this->solid->getMaterial(0).get("E");
+
+  // fill in active nodes
+  for (auto && ref_node_data :
+       enumerate(initial_master_node_group.getNodes())) {
+    auto i = std::get<0>(ref_node_data);
+    auto ref_node = std::get<1>(ref_node_data);
+
+    auto local_i = master_node_group.find(ref_node);
+
+    if (local_i != UInt(-1)) {
+      for (auto && master_node_data :
+           enumerate(master_node_group.getNodes())) {
+        auto j = std::get<0>(master_node_data);
+        auto master_node = std::get<1>(master_node_data);
+
+        for (int dim = 0; dim < spatial_dimension; dim++) {
+          UInt idx_i = local_i*spatial_dimension + dim;
+          UInt idx_j = j*spatial_dimension + dim;
+          UInt global_idx_i = i*spatial_dimension + dim;
+          UInt global_idx_j = master_node*spatial_dimension + dim;
+
+          termsB(global_idx_j, global_idx_i) = - E*M_master(idx_j, idx_i);
+
+          if (idx_i == idx_j) {
+            termsB_tilde(global_idx_i, global_idx_j) = E;
+          }
+        }
+      }
+    }
+  }
+
+  for (auto && ref_node_data :
+       enumerate(initial_master_node_group.getNodes())) {
+    auto i = std::get<0>(ref_node_data);
+    auto ref_node = std::get<1>(ref_node_data);
+
+    auto local_i = master_node_group.find(ref_node);
+
+    if (local_i != UInt(-1)) {
+      for (auto && slave_node_data :
+           enumerate(slave_node_group.getNodes())) {
+        auto j = std::get<0>(slave_node_data);
+        auto slave_node = std::get<1>(slave_node_data);
+
+        for (int dim = 0; dim < spatial_dimension; dim++) {
+          UInt idx_i = local_i*spatial_dimension + dim;
+          UInt idx_j = j*spatial_dimension + dim;
+          UInt global_idx_i = i*spatial_dimension + dim;
+          UInt global_idx_j = slave_node*spatial_dimension + dim;
+
+          termsB(global_idx_j, global_idx_i) = E * B_slave(idx_j, idx_i);
+
+          termsB_tilde(global_idx_i, global_idx_j) =
+              - E * R_master_slave(idx_i, idx_j);
+        }
+      }
+    }
+  }
+
+  // assemble C (zeros)
+  TermsToAssemble termsC("lambdas", "lambdas");
+
+  this->dof_manager->assemblePreassembledMatrix("K", termsB);
+  this->dof_manager->assemblePreassembledMatrix("K", termsB_tilde);
+  this->dof_manager->assemblePreassembledMatrix("K", termsC);
 }
 
 /* -------------------------------------------------------------------------- */
