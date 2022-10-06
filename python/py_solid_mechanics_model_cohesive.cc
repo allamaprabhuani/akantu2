@@ -64,12 +64,14 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
       .def("setLimit", &CohesiveElementInserter::setLimit)
       .def(
           "getCheckFacets",
-          [](CohesiveElementInserter & self) { return self.getCheckFacets(); },
+          [](CohesiveElementInserter & self) -> decltype(auto) {
+            return self.getCheckFacets();
+          },
           py::return_value_policy::reference)
       .def(
           "getCheckFacets",
           [](CohesiveElementInserter & self, ElementType type,
-             GhostType ghost_type) {
+             GhostType ghost_type) -> decltype(auto) {
             return self.getCheckFacets(type, ghost_type);
           },
           py::return_value_policy::reference)
