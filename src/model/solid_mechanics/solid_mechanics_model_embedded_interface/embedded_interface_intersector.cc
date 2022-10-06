@@ -111,7 +111,7 @@ void EmbeddedInterfaceIntersector::constructData(GhostType /*ghost_type*/) {
         std::tuple<_element_type_triangle_3, _element_type_triangle_6,
                    _element_type_tetrahedron_4>>(
         [&](auto && enum_type) {
-          constexpr auto type = std::decay_t<decltype(enum_type)>::value;
+          constexpr auto type = aka::decay_v<decltype(enum_type)>;
           constexpr auto dim = Mesh::getSpatialDimension(type);
           MeshSegmentIntersector<dim, type> intersector(this->mesh,
                                                         interface_mesh);

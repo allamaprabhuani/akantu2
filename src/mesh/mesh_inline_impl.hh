@@ -355,7 +355,7 @@ Mesh::getSubelementToElementNC(const Element & element) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class D, std::enable_if_t<aka::is_vector<D>::value> *>
+template <class D, std::enable_if_t<aka::is_vector_v<D>> *>
 inline void
 Mesh::getBarycenter(const Element & element,
                     const Eigen::MatrixBase<D> & barycenter_) const {
@@ -382,7 +382,7 @@ inline Vector<Real> Mesh::getBarycenter(const Element & element) const {
 inline constexpr auto Mesh::getKind(ElementType type) -> ElementKind {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getKind();
       },
       type);
@@ -397,7 +397,7 @@ inline constexpr auto Element::kind() const -> ElementKind {
 inline constexpr auto Mesh::getP1ElementType(ElementType type) -> ElementType {
   return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getP1ElementType();
       },
       type, [](auto && /*enum_type*/) { return _not_defined; });
@@ -407,7 +407,7 @@ inline constexpr auto Mesh::getP1ElementType(ElementType type) -> ElementType {
 inline constexpr auto Mesh::getSpatialDimension(ElementType type) -> Int {
   return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getSpatialDimension();
       },
       type, [](auto && /*enum_type*/) { return 0; });
@@ -417,7 +417,7 @@ inline constexpr auto Mesh::getSpatialDimension(ElementType type) -> Int {
 inline constexpr auto Mesh::getNaturalSpaceDimension(ElementType type) -> Int {
   return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getNaturalSpaceDimension();
       },
       type, [](auto && /*enum_type*/) { return 0; });
@@ -428,7 +428,7 @@ inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/)
     -> Int {
   return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getNbFacetTypes();
       },
       type, [](auto && /*enum_type*/) { return 0; });
@@ -439,7 +439,7 @@ inline constexpr auto Mesh::getFacetType(ElementType type, Idx t)
     -> ElementType {
   return tuple_dispatch_with_default<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getFacetType(t);
       },
       type, [](auto && /*enum_type*/) { return _not_defined; });
@@ -449,7 +449,7 @@ inline constexpr auto Mesh::getFacetType(ElementType type, Idx t)
 inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         auto && map = ElementClass<type>::getFacetTypes();
         return Eigen::Map<const Eigen::Matrix<ElementType, Eigen::Dynamic, 1>>(
             map.data(), map.rows(), map.cols());
@@ -461,7 +461,7 @@ inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
 inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type, Idx t) {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getFacetLocalConnectivityPerElement(t);
       },
       type);
@@ -491,7 +491,7 @@ inline decltype(auto) Mesh::getConnectivityNC(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class Derived1, class Derived2,
-          std::enable_if_t<aka::is_vector<Derived2>::value> *>
+          std::enable_if_t<aka::is_vector_v<Derived2>> *>
 inline void Mesh::extractNodalValuesFromElement(
     const Array<T> & nodal_values,
     Eigen::MatrixBase<Derived1> & elemental_values,

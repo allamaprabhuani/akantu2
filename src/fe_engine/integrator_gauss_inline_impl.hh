@@ -580,7 +580,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::onElementsAdded(
 
     tuple_dispatch<ElementTypes_t<kind>>(
         [&](auto && enum_type) {
-          constexpr auto type = std::decay_t<decltype(enum_type)>::value;
+          constexpr auto type = aka::decay_v<decltype(enum_type)>;
 
           this->template onElementsAddedByType<type>(
               elements_range.getElements(), ghost_type);
@@ -609,7 +609,7 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::initIntegrator(
     const Array<Real> & nodes, ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<kind>>(
       [&](auto && enum_type) {
-        constexpr auto type = std::decay_t<decltype(enum_type)>::value;
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
 
         this->template initIntegrator<type>(nodes, ghost_type);
       },
@@ -625,7 +625,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::
         const Array<Idx> & filter_elements) const {
   tuple_dispatch<ElementTypes_t<kind>>(
       [&](auto && enum_type) {
-        constexpr auto type = std::decay_t<decltype(enum_type)>::value;
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
 
         this->template computeJacobiansOnIntegrationPoints<type>(
             nodes, quad_points, jacobians, ghost_type, filter_elements);

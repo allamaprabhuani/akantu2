@@ -71,10 +71,9 @@ inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
 
   auto & grad_u = tuple::get<"grad_u"_h>(args);
 
-  static_if(tuple::has_t<"inelastic_strain"_h, Args>())
-      .then([&grad_u](auto && args) {
-        grad_u -= tuple::get<"inelastic_strain"_h>(args);
-      })(std::forward<Args>(args));
+  if constexpr (tuple::has_t<"inelastic_strain"_h, Args>()) {
+    grad_u -= tuple::get<"inelastic_strain"_h>(args);
+  }
 
   Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
 
@@ -121,10 +120,9 @@ MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
   auto && dam = tuple::get<"damage"_h>(args);
   sigma *= 1 - dam;
 
-  static_if(tuple::has_t<"inelastic_strain"_h, Args>())
-      .then([&grad_u](auto && args) {
-        grad_u += tuple::get<"inelastic_strain"_h>(args);
-      })(std::forward<Args>(args));
+  if constexpr (tuple::has_t<"inelastic_strain"_h, Args>()) {
+    grad_u += tuple::get<"inelastic_strain"_h>(args);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

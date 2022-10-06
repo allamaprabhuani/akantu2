@@ -838,7 +838,7 @@ ElementTypeMapArray<T, SupportType>::get(const Element & element) const {
 template <class T, typename SupportType>
 template <typename... Ns,
           std::enable_if_t<
-              aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
+              std::conjunction_v<std::is_integral<std::decay_t<Ns>>...> and
               sizeof...(Ns) >= 1> *>
 inline decltype(auto)
 ElementTypeMapArray<T, SupportType>::get(const Element & element, Ns &&... ns) {
@@ -851,7 +851,7 @@ ElementTypeMapArray<T, SupportType>::get(const Element & element, Ns &&... ns) {
 template <class T, typename SupportType>
 template <typename... Ns,
           std::enable_if_t<
-              aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
+              std::conjunction_v<std::is_integral<std::decay_t<Ns>>...> and
               sizeof...(Ns) >= 1> *>
 inline decltype(auto)
 ElementTypeMapArray<T, SupportType>::get(const Element & element,

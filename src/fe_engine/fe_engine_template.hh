@@ -279,8 +279,8 @@ private:
   }
 
   template <ElementKind kind_ = kind, typename D1, typename D2,
-            std::enable_if_t<aka::is_vector<D1>::value and
-                             kind_ != _ek_cohesive> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<D1> and kind_ != _ek_cohesive> * =
+                nullptr>
   inline void
   computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real_coords,
                               Int element, ElementType type,
@@ -288,8 +288,8 @@ private:
                               GhostType ghost_type = _not_ghost) const;
 
   template <ElementKind kind_ = kind, typename D1, typename D2,
-            std::enable_if_t<aka::is_vector<D1>::value and
-                             kind_ == _ek_cohesive> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<D1> and kind_ == _ek_cohesive> * =
+                nullptr>
   inline void
   computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & /*real_coords*/,
                               Int /*element*/, ElementType /*type*/,

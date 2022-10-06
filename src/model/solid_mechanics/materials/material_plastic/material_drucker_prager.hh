@@ -87,7 +87,7 @@ public:
   // closet point projection method to compute stress state on the
   // yield surface
   template <typename D1, typename D2, typename D3,
-            aka::enable_if_t<aka::are_vectors<D2, D3>::value> * = nullptr>
+            aka::enable_if_t<aka::are_vectors_v<D2, D3>> * = nullptr>
   inline void computeGradientAndPlasticMultplier(
       const Eigen::MatrixBase<D1> & sigma_trial,
       Real & plastic_multiplier_guess, Eigen::MatrixBase<D2> & gradient_f,

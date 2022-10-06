@@ -110,12 +110,11 @@ public:
   inline std::string extractStream(std::size_t block_size);
 
   /// packing data
-  template <typename T,
-            std::enable_if_t<std::is_standard_layout<T>::value and
-                             not aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator<<(const T & to_pack);
 
-  template <typename T, std::enable_if_t<aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator<<(const T & to_pack);
 
   template <typename T>
@@ -125,12 +124,11 @@ public:
   inline CommunicationBufferTemplated & operator<<(const std::string & to_pack);
 
   /// unpacking data
-  template <typename T,
-            std::enable_if_t<std::is_standard_layout<T>::value and
-                             not aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator>>(T & to_unpack);
 
-  template <typename T, std::enable_if_t<aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator>>(T & to_pack);
 
   template <typename T>
@@ -146,12 +144,11 @@ private:
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T,
-            std::enable_if_t<std::is_standard_layout<T>::value and
-                             not aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
   static inline std::size_t sizeInBuffer(const T & data);
 
-  template <typename T, std::enable_if_t<aka::is_tensor<T>::value> * = nullptr>
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
   static inline std::size_t sizeInBuffer(const T & data);
 
   template <typename T>

@@ -66,13 +66,6 @@ namespace fe_engine {
   }   // namespace details
 } // namespace fe_engine
 
-#define DISPATCH_HELPER(Func, ...)                                             \
-  auto && call = [&](auto && enum_type) {                                      \
-    constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;     \
-    this->Func<type>(__VA_ARGS__);                                             \
-  };                                                                           \
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
-
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IOF>
@@ -80,8 +73,13 @@ void FEEngineTemplate<I, S, kind, IOF>::assembleFieldLumped(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     ElementType type, GhostType ghost_type) const {
-  DISPATCH_HELPER(assembleFieldLumped, field_funct, matrix_id, dof_id,
-                  dof_manager, ghost_type);
+  tuple_dispatch<ElementTypes_t<kind>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        this->assembleFieldLumped<type>(field_funct, matrix_id, dof_id,
+                                        dof_manager, ghost_type);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -262,8 +260,13 @@ void FEEngineTemplate<I, S, kind, IOF>::assembleFieldMatrixImpl(
     const std::function<void(Matrix<Real> &, const Element &)> & field_funct,
     const ID & matrix_id, const ID & dof_id, DOFManager & dof_manager,
     ElementType type, GhostType ghost_type) const {
-  DISPATCH_HELPER(assembleFieldMatrix, field_funct, matrix_id, dof_id,
-                  dof_manager, ghost_type);
+  tuple_dispatch<ElementTypes_t<kind>>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        this->assembleFieldMatrix<type>(field_funct, matrix_id, dof_id,
+                                        dof_manager, ghost_type);
+      },
+      type);
 }
 
 template <template <ElementKind, class> class I, template <ElementKind> class S,

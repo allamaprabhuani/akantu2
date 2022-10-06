@@ -165,8 +165,8 @@ public:
     return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
-  template <typename Tensor, std::enable_if_t<aka::conjunction<
-                                 aka::is_tensor<Tensor>>::value> * = nullptr>
+  template <typename Tensor,
+            std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr>
   inline void
   send(const Tensor & values, Int receiver, Int tag,
        const CommunicationMode & mode = CommunicationMode::_auto) const {
@@ -206,11 +206,10 @@ public:
   }
 
   template <typename Tensor>
-  inline CommunicationRequest
-  asyncSend(const Tensor & values, Int receiver, Int tag,
-            const CommunicationMode & mode = CommunicationMode::_auto,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                nullptr) const {
+  inline CommunicationRequest asyncSend(
+      const Tensor & values, Int receiver, Int tag,
+      const CommunicationMode & mode = CommunicationMode::_auto,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
     return this->asyncSendImpl(values.data(), values.size(), receiver, tag,
                                mode);
   }
@@ -245,7 +244,7 @@ public:
   }
 
   template <typename Tensor,
-            typename = std::enable_if_t<aka::is_tensor<Tensor>::value>>
+            typename = std::enable_if_t<aka::is_tensor_v<Tensor>>>
   inline CommunicationRequest asyncReceive(Tensor & values, Int sender,
                                            Int tag) const {
     return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
@@ -291,10 +290,9 @@ public:
   }
 
   template <typename Tensor>
-  inline void
-  scan(Tensor & values, SynchronizerOperation op,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-           nullptr) const {
+  inline void scan(
+      Tensor & values, SynchronizerOperation op,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
     this->scanImpl(values.data(), values.data(), values.size(), op);
   }
 
@@ -315,9 +313,10 @@ public:
   }
 
   template <typename Tensor>
-  inline void exclusiveScan(
-      Tensor & values, SynchronizerOperation op = SynchronizerOperation::_sum,
-      std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+  inline void
+  exclusiveScan(Tensor & values,
+                SynchronizerOperation op = SynchronizerOperation::_sum,
+                std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr) const {
     this->exclusiveScanImpl(values.data(), values.size(), op);
   }
 
@@ -347,7 +346,7 @@ public:
   }
 
   template <typename Tensor,
-            typename = std::enable_if_t<aka::is_tensor<Tensor>::value>>
+            typename = std::enable_if_t<aka::is_tensor_v<Tensor>>>
   inline void allGather(Tensor & values) const {
     AKANTU_DEBUG_ASSERT(values.size() / getNbProc() > 0,
                         "The vector size is not correct");
@@ -370,10 +369,9 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename Tensor>
-  inline void
-  gather(Tensor & values, int root = 0,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-             nullptr) const {
+  inline void gather(
+      Tensor & values, int root = 0,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
     this->gatherImpl(values.data(), values.getNbComponent(), root);
   }
   template <typename T>
@@ -385,10 +383,9 @@ public:
   }
   /* ------------------------------------------------------------------------ */
   template <typename Tensor, typename T>
-  inline void
-  gather(Tensor & values, Array<T> & gathered,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-             nullptr) const {
+  inline void gather(
+      Tensor & values, Array<T> & gathered,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
     AKANTU_DEBUG_ASSERT(values.size() == gathered.getNbComponent(),
                         "The array size is not correct");
     gathered.resize(getNbProc());

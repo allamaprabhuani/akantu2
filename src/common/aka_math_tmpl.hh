@@ -52,7 +52,7 @@
 namespace akantu {
 namespace Math {
   /* ------------------------------------------------------------------------ */
-  template <class D1, aka::enable_if_t<aka::is_vector<D1>::value> *>
+  template <class D1, aka::enable_if_t<aka::is_vector_v<D1>> *>
   inline Vector<Real> normal(const Eigen::MatrixBase<D1> & vec) {
     Vector<Real> normal_(vec);
     normal_[0] = vec[1];

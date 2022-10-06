@@ -97,7 +97,7 @@ private:
 public:
   /// checks whether the natural projection is valid or not
   template <class Derived,
-            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<Derived>> * = nullptr>
   inline bool
   checkValidityOfProjection(Eigen::MatrixBase<Derived> & projection) const;
 
@@ -108,7 +108,7 @@ public:
 
   /// computes the optimal cell size for grid
   template <class Derived,
-            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<Derived>> * = nullptr>
   inline void computeCellSpacing(Eigen::MatrixBase<Derived> & spacing) const;
 
   /// constructs a grid containing nodes lying within bounding box
@@ -128,7 +128,7 @@ public:
 
   /// computes normal on an element
   template <class Derived,
-            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<Derived>> * = nullptr>
   inline void computeNormalOnElement(const Element & element,
                                      Eigen::MatrixBase<Derived> & normal) const;
 
@@ -152,7 +152,7 @@ public:
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
   template <class Derived,
-            std::enable_if_t<aka::is_vector<Derived>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<Derived>> * = nullptr>
   inline bool
   isValidSelfContact(const Idx & slave_node, const Real & gap,
                      const Eigen::MatrixBase<Derived> & normal) const;

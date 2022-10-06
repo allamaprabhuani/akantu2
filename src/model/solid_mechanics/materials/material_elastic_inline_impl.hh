@@ -47,9 +47,9 @@ inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
   auto && grad_u = tuple::get<"grad_u"_h>(args);
   Real sigma_th = 0.;
 
-  static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
+  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
     sigma_th = tuple::get<"sigma_th"_h>(args);
-  })(std::forward<Args>(args));
+  }
 
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
@@ -67,9 +67,9 @@ inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
   auto && grad_u = tuple::get<"grad_u"_h>(args);
   Real sigma_th = 0.;
 
-  static_if(tuple::has_t<"sigma_th"_h, Args>()).then([&sigma_th](auto && args) {
+  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
     sigma_th = tuple::get<"sigma_th"_h>(args);
-  })(std::forward<Args>(args));
+  }
 
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
 }

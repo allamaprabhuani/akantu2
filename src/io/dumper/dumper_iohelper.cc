@@ -303,7 +303,7 @@ template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
 Int getIOHelperType(ElementType type) {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return getIOHelperType<type>();
       },
       type);

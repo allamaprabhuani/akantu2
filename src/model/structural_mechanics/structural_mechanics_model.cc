@@ -61,7 +61,7 @@ namespace akantu {
 inline UInt StructuralMechanicsModel::getNbDegreeOfFreedom(ElementType type) {
   return tuple_dispatch<ElementTypes_t<_ek_structural>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getNbDegreeOfFreedom();
       },
       type);
@@ -118,7 +118,7 @@ void StructuralMechanicsModel::initFullImpl(const ModelOptions & options) {
     // Getting number of components for each element type
     auto nb_components = tuple_dispatch<ElementTypes_t<_ek_structural>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           return ElementClass<type>::getNbStressComponents();
         },
         type);
@@ -221,7 +221,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
     tuple_dispatch<ElementTypes_t<_ek_structural>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           this->assembleStiffnessMatrix<type>();
         },
         type);
@@ -240,7 +240,7 @@ void StructuralMechanicsModel::computeStresses() {
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
     tuple_dispatch<ElementTypes_t<_ek_structural>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           this->computeStressOnQuad<type>();
         },
         type);

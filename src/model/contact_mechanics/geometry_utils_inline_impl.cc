@@ -39,9 +39,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline bool GeometryUtils::isBoundaryElement(const Mesh &mesh,
-                                             const Element &subelement) {
-  const auto &element_to_subelement =
+inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
+                                             const Element & subelement) {
+  const auto & element_to_subelement =
       mesh.getElementToSubelement(subelement.type)(subelement.element);
 
   // for regular boundary elements when surfaceselector is set to
@@ -82,7 +82,7 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh &mesh,
 /* -------------------------------------------------------------------------- */
 template <class Derived>
 inline bool
-GeometryUtils::isValidProjection(const Eigen::MatrixBase<Derived> &projection,
+GeometryUtils::isValidProjection(const Eigen::MatrixBase<Derived> & projection,
                                  Real extension_tolerance) {
   Int nb_xi_inside = 0;
   for (auto xi : projection) {
@@ -95,9 +95,9 @@ GeometryUtils::isValidProjection(const Eigen::MatrixBase<Derived> &projection,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Real> GeometryUtils::outsideDirection(const Mesh &mesh,
-                                                    const Element &element) {
-  const auto &element_to_subelement = mesh.getElementToSubelement()(element);
+inline Vector<Real> GeometryUtils::outsideDirection(const Mesh & mesh,
+                                                    const Element & element) {
+  const auto & element_to_subelement = mesh.getElementToSubelement()(element);
 
   Vector<Real> outside = mesh.getBarycenter(element);
 
@@ -114,9 +114,9 @@ inline Vector<Real> GeometryUtils::outsideDirection(const Mesh &mesh,
 
 /* -------------------------------------------------------------------------- */
 template <class Derived>
-Vector<Real> GeometryUtils::normal(const Mesh &mesh,
-                                   const Eigen::MatrixBase<Derived> &coords,
-                                   const Element &element, bool outward) {
+Vector<Real> GeometryUtils::normal(const Mesh & mesh,
+                                   const Eigen::MatrixBase<Derived> & coords,
+                                   const Element & element, bool outward) {
   Int spatial_dimension = coords.rows();
   Vector<Real> normal(spatial_dimension);
 
@@ -150,8 +150,8 @@ Vector<Real> GeometryUtils::normal(const Mesh &mesh,
 
 /* -------------------------------------------------------------------------- */
 template <class Derived>
-Vector<Real> GeometryUtils::normal(const Mesh &mesh, const Element &element,
-                                   Eigen::MatrixBase<Derived> &tangents,
+Vector<Real> GeometryUtils::normal(const Mesh & mesh, const Element & element,
+                                   Eigen::MatrixBase<Derived> & tangents,
                                    bool outward) {
   auto spatial_dimension = mesh.getSpatialDimension();
   // to ensure that normal is always outwards from master surface we
@@ -190,14 +190,14 @@ Vector<Real> GeometryUtils::normal(const Mesh &mesh, const Element &element,
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2>
 inline Matrix<Real>
-GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> &coords,
-                              const Element &element,
-                              Eigen::MatrixBase<Derived2> &natural_coord) {
-  auto &&dnds =
+GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> & coords,
+                              const Element & element,
+                              Eigen::MatrixBase<Derived2> & natural_coord) {
+  auto && dnds =
       ElementClassHelper<_ek_regular>::getDNDS(natural_coord, element.type);
 
   Matrix<Real> tangents_transpose = coords * dnds.transpose();
-  for (auto &&vect : tangents_transpose) {
+  for (auto && vect : tangents_transpose) {
     vect = vect.normalized();
   }
 
@@ -207,10 +207,10 @@ GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> &coords,
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2, class Derived3>
 inline Matrix<Real>
-GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> &coords,
-                              const Element &element,
-                              const Eigen::MatrixBase<Derived2> &normal,
-                              Eigen::MatrixBase<Derived3> &natural_coord) {
+GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> & coords,
+                              const Element & element,
+                              const Eigen::MatrixBase<Derived2> & normal,
+                              Eigen::MatrixBase<Derived3> & natural_coord) {
   auto tangents = covariantBasis(coords, element, natural_coord);
 
   // to ensure that direction of tangents are correct, cross product
@@ -251,10 +251,10 @@ GeometryUtils::covariantBasis(const Eigen::MatrixBase<Derived1> &coords,
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2>
 inline Matrix<Real>
-GeometryUtils::curvature(const Eigen::MatrixBase<Derived1> &coords,
-                         const Element &element,
-                         const Eigen::MatrixBase<Derived2> &natural_coord) {
-  auto &&d2nds2 =
+GeometryUtils::curvature(const Eigen::MatrixBase<Derived1> & coords,
+                         const Element & element,
+                         const Eigen::MatrixBase<Derived2> & natural_coord) {
+  auto && d2nds2 =
       ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, element.type);
   return coords * d2nds2.transpose();
 }
@@ -263,37 +263,38 @@ GeometryUtils::curvature(const Eigen::MatrixBase<Derived1> &coords,
 template <class Derived1, class Derived2, class Derived3, class Derived4,
           class ElementList>
 Element GeometryUtils::orthogonalProjection(
-    const Mesh &mesh, const Array<Real> &positions,
-    const Eigen::MatrixBase<Derived1> &slave, const ElementList &elements,
-    Real &gap, Eigen::MatrixBase<Derived2> &natural_projection,
-    Eigen::MatrixBase<Derived3> &normal, Eigen::MatrixBase<Derived4> &tangent,
+    const Mesh & mesh, const Array<Real> & positions,
+    const Eigen::MatrixBase<Derived1> & slave, const ElementList & elements,
+    Real & gap, Eigen::MatrixBase<Derived2> & natural_projection,
+    Eigen::MatrixBase<Derived3> & normal, Eigen::MatrixBase<Derived4> & tangent,
     Real /*alpha*/, Int max_iterations, Real projection_tolerance,
     Real extension_tolerance) {
 
   auto found_element = ElementNull;
   auto min_gap = std::numeric_limits<Real>::max();
 
-  const auto &contact_group = mesh.getElementGroup("contact_surface");
+  const auto & contact_group = mesh.getElementGroup("contact_surface");
 
-  for (auto &&element : elements) {
+  for (auto && element : elements) {
     // filter out elements which are not there in the element group
     // contact surface created by the surface selector and is stored
     // in the mesh or mesh_facet, if a element is not there it
     // returnas UInt(-1)
 
-    const auto &elements_of_type = contact_group.getElements(element.type);
+    const auto & elements_of_type = contact_group.getElements(element.type);
     if (elements_of_type.find(element.element) == -1) {
       continue;
     }
 
     auto coords = mesh.extractNodalValuesFromElement(positions, element);
 
-    auto &&[xi_ele, master] = GeometryUtils::naturalProjection(
+    auto && [xi_ele, master] = GeometryUtils::naturalProjection(
         coords, element, slave, max_iterations, projection_tolerance);
 
-    auto &&tangent_ele = GeometryUtils::covariantBasis(coords, element, xi_ele);
+    auto && tangent_ele =
+        GeometryUtils::covariantBasis(coords, element, xi_ele);
 
-    auto &&normal_ele = GeometryUtils::normal(mesh, element, tangent_ele);
+    auto && normal_ele = GeometryUtils::normal(mesh, element, tangent_ele);
 
     // if gap between master projection and slave point is zero, then
     // it means that slave point lies on the master element, hence the
@@ -328,9 +329,9 @@ Element GeometryUtils::orthogonalProjection(
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2, class Derived3>
 Vector<Real>
-GeometryUtils::realProjection(const Eigen::MatrixBase<Derived1> &coords,
-                              const Eigen::MatrixBase<Derived2> &slave,
-                              const Eigen::MatrixBase<Derived3> &normal) {
+GeometryUtils::realProjection(const Eigen::MatrixBase<Derived1> & coords,
+                              const Eigen::MatrixBase<Derived2> & slave,
+                              const Eigen::MatrixBase<Derived3> & normal) {
   auto alpha = (slave - coords(0)).dot(normal);
   return slave - alpha * normal;
 }
@@ -338,8 +339,8 @@ GeometryUtils::realProjection(const Eigen::MatrixBase<Derived1> &coords,
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2>
 Vector<Real> GeometryUtils::realProjection(
-    const Eigen::MatrixBase<Derived1> &coords, const Element &element,
-    const Eigen::MatrixBase<Derived2> &natural_coord) {
+    const Eigen::MatrixBase<Derived1> & coords, const Element & element,
+    const Eigen::MatrixBase<Derived2> & natural_coord) {
   auto shapes =
       ElementClassHelper<_ek_regular>::getN(natural_coord, element.type);
   return coords * shapes;
@@ -348,8 +349,8 @@ Vector<Real> GeometryUtils::realProjection(
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2>
 std::pair<Vector<Real>, Vector<Real>> GeometryUtils::naturalProjection(
-    const Eigen::MatrixBase<Derived1> &coords, const Element &element,
-    const Eigen::MatrixBase<Derived2> &slave_coords, Int max_iterations,
+    const Eigen::MatrixBase<Derived1> & coords, const Element & element,
+    const Eigen::MatrixBase<Derived2> & slave_coords, Int max_iterations,
     Real projection_tolerance) {
 
   auto spatial_dimension = coords.rows();
@@ -382,7 +383,7 @@ std::pair<Vector<Real>, Vector<Real>> GeometryUtils::naturalProjection(
   Matrix<Real> d2nds2(surface_dimension * surface_dimension, coords.cols());
 
   auto compute_double_gradient = [&d2nds2, &coords, surface_dimension,
-                                  spatial_dimension](Int &alpha, Int &beta) {
+                                  spatial_dimension](Int & alpha, Int & beta) {
     auto index = alpha * surface_dimension + beta;
     Vector<Real> d_alpha_beta(spatial_dimension);
 
@@ -398,14 +399,14 @@ std::pair<Vector<Real>, Vector<Real>> GeometryUtils::naturalProjection(
   auto update_f = [&f, &master_coords, &natural_projection, &coords,
                    &slave_coords, &gradient, surface_dimension, type]() {
     // compute real coords on natural projection
-    auto &&shapes =
+    auto && shapes =
         ElementClassHelper<_ek_regular>::getN(natural_projection, type);
 
     master_coords = coords * shapes;
     auto distance = slave_coords - master_coords;
 
     // first derivative of shape function at natural projection
-    auto &&dnds =
+    auto && dnds =
         ElementClassHelper<_ek_regular>::getDNDS(natural_projection, type);
     gradient = dnds * coords.transpose();
 
@@ -460,16 +461,16 @@ std::pair<Vector<Real>, Vector<Real>> GeometryUtils::naturalProjection(
 
 /* -------------------------------------------------------------------------- */
 template <class Derived>
-Matrix<Real>
-GeometryUtils::contravariantBasis(const Eigen::MatrixBase<Derived> &covariant) {
-  auto &&inv_A = GeometryUtils::contravariantMetricTensor(covariant);
+Matrix<Real> GeometryUtils::contravariantBasis(
+    const Eigen::MatrixBase<Derived> & covariant) {
+  auto && inv_A = GeometryUtils::contravariantMetricTensor(covariant);
   return inv_A * covariant;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Derived>
 Matrix<Real> GeometryUtils::covariantMetricTensor(
-    const Eigen::MatrixBase<Derived> &covariant_bases) {
+    const Eigen::MatrixBase<Derived> & covariant_bases) {
   auto A = covariant_bases.transpose() * covariant_bases;
   return A;
 }
@@ -477,24 +478,24 @@ Matrix<Real> GeometryUtils::covariantMetricTensor(
 /* -------------------------------------------------------------------------- */
 template <class Derived>
 Matrix<Real> GeometryUtils::contravariantMetricTensor(
-    const Eigen::MatrixBase<Derived> &covariant_bases) {
-  auto A = GeometryUtils::covariantMetricTensor(covariant_bases).inverse();
-  return A;
+    const Eigen::MatrixBase<Derived> & covariant_bases) {
+  Matrix<Real> A_inv = GeometryUtils::covariantMetricTensor(covariant_bases);
+  return A_inv.inverse();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Derived1, class Derived2, class Derived3>
 Matrix<Real> GeometryUtils::covariantCurvatureTensor(
-    const Eigen::MatrixBase<Derived1> &coords, const Element &element,
-    const Eigen::MatrixBase<Derived2> &natural_coord,
-    const Eigen::MatrixBase<Derived3> &normal) {
+    const Eigen::MatrixBase<Derived1> & coords, const Element & element,
+    const Eigen::MatrixBase<Derived2> & natural_coord,
+    const Eigen::MatrixBase<Derived3> & normal) {
 
   auto spatial_dimension = coords.rows();
   auto surface_dimension = spatial_dimension - 1;
 
   auto type = element.type;
 
-  auto &&d2nds2 =
+  auto && d2nds2 =
       ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, type);
 
   Matrix<Real> curvature = coords * d2nds2.transpose();

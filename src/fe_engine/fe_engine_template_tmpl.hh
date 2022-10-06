@@ -722,9 +722,8 @@ FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapesImpl(
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
-template <
-    ElementKind kind_, typename D1, typename D2,
-    std::enable_if_t<aka::is_vector<D1>::value and kind_ != _ek_cohesive> *>
+template <ElementKind kind_, typename D1, typename D2,
+          std::enable_if_t<aka::is_vector_v<D1> and kind_ != _ek_cohesive> *>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeShapeDerivativesImpl(const Eigen::MatrixBase<D1> & real_coords,
                                 Int element, ElementType type,

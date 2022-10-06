@@ -61,7 +61,7 @@
       - build-${output}-err.log
       - compile_commands.json
     expire_in: 10h
-  timeout: 4h
+  timeout: 5h
 
 # build the tests
 .build_tests:
@@ -105,7 +105,7 @@
     exclude:
       - build/**/*.o
     expire_in: 10h
-  timeout: 4h
+  timeout: 5h
 
 # Run the tests
 .tests:

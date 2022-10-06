@@ -68,7 +68,7 @@ Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 
   Real integral = tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return integrator.integrate<type>(f, ghost_type, filter_elements);
       },
       type);
@@ -112,7 +112,7 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         integrator.integrate<type>(f, intf, nb_degree_of_freedom, ghost_type,
                                    filter_elements);
       },

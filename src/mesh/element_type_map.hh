@@ -359,17 +359,15 @@ public:
   inline decltype(auto) get(const Element & element);
   inline decltype(auto) get(const Element & element) const;
 
-  template <
-      typename... Ns,
-      std::enable_if_t<
-          aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
-          sizeof...(Ns) >= 1> * = nullptr>
+  template <typename... Ns,
+            std::enable_if_t<
+                std::conjunction_v<std::is_integral<std::decay_t<Ns>>...> and
+                sizeof...(Ns) >= 1> * = nullptr>
   inline decltype(auto) get(const Element & element, Ns &&... ns);
-  template <
-      typename... Ns,
-      std::enable_if_t<
-          aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value and
-          sizeof...(Ns) >= 1> * = nullptr>
+  template <typename... Ns,
+            std::enable_if_t<
+                std::conjunction_v<std::is_integral<std::decay_t<Ns>>...> and
+                sizeof...(Ns) >= 1> * = nullptr>
   inline decltype(auto) get(const Element & element, Ns &&... ns) const;
 
   /* get a reference to the array of certain type

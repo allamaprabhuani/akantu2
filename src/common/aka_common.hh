@@ -616,26 +616,24 @@ namespace aka {
 template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
-          std::enable_if_t<std::is_reference<T>::value> * = nullptr>
+          std::enable_if_t<std::is_reference_v<T>> * = nullptr>
 auto is_of_type(T && t) -> bool {
-  return (
-      dynamic_cast<std::add_pointer_t<
-          std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
-                             std::add_const_t<R>, R>>>(&t) != nullptr);
+  return (dynamic_cast<std::add_pointer_t<
+              std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
+                                 std::add_const_t<R>, R>>>(&t) != nullptr);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
 auto is_of_type(std::unique_ptr<T> & t) -> bool {
-  return (
-      dynamic_cast<std::add_pointer_t<
-          std::conditional_t<std::is_const<T>::value, std::add_const_t<R>, R>>>(
-          t.get()) != nullptr);
+  return (dynamic_cast<std::add_pointer_t<
+              std::conditional_t<std::is_const_v<T>, std::add_const_t<R>, R>>>(
+              t.get()) != nullptr);
 }
 
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
-          std::enable_if_t<std::is_reference<T>::value> * = nullptr>
+          std::enable_if_t<std::is_reference_v<T>> * = nullptr>
 decltype(auto) as_type(T && t) {
   static_assert(
       disjunction<
@@ -660,6 +658,8 @@ template <typename R, typename T>
 decltype(auto) as_type(const std::shared_ptr<T> & t) {
   return std::dynamic_pointer_cast<R>(t);
 }
+
+template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;
 
 } // namespace aka
 

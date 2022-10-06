@@ -57,11 +57,10 @@ namespace Math {
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
   /// compute normal a normal to a vector
-  template <class D1, std::enable_if_t<aka::is_vector<D1>::value> * = nullptr>
+  template <class D1, std::enable_if_t<aka::is_vector_v<D1>> * = nullptr>
   inline Vector<Real> normal(const Eigen::MatrixBase<D1> & vec);
 
-  template <class D1,
-            aka::enable_if_t<not aka::is_vector<D1>::value> * = nullptr>
+  template <class D1, aka::enable_if_t<not aka::is_vector_v<D1>> * = nullptr>
   inline Vector<Real> normal(const Eigen::MatrixBase<D1> & /*vec*/) {
     AKANTU_TO_IMPLEMENT();
   }

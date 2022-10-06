@@ -10,6 +10,6 @@ int main() {
       [](auto && type) {
         std::cout << std::decay_t<decltype(type)>::value << std::endl;
       },
-      2, [](auto && type) { std::cout << "Default" << std::endl; },
+      2, [](auto && /*type*/) { std::cout << "Default" << std::endl; },
       std::make_index_sequence<2>{});
 }

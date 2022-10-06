@@ -112,9 +112,8 @@ namespace {
     Matrix<Real, dim, dim> A_diag;
     A.eig(A_eigs, A_directions);
 
-    for (auto && data : enumerate(A_eigs)) {
-      auto i = std::get<0>(data);
-      A_diag(i, i) = oper(std::max(std::get<1>(data), 0.), i);
+    for (auto && [i, eig] : enumerate(A_eigs)) {
+      A_diag(i, i) = oper(std::max(eig, 0.), i);
     }
 
     return A_directions * A_diag * A_directions.transpose();
@@ -129,6 +128,7 @@ namespace {
   template <Int dim, class D, class Op>
   auto tensorPlusOp(const Eigen::MatrixBase<D> & A, Op && oper) {
     Matrix<Real, dim, dim> A_directions;
+    A_directions.zero();
     return tensorPlusOp<dim>(A, A_directions, std::forward<Op>(oper));
   }
 

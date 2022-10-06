@@ -190,23 +190,21 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 
   tuple_dispatch<AllSpatialDimensions>(
       [&](auto && _) {
-        constexpr auto dim = std::decay_t<decltype(_)>::value;
+        constexpr auto dim = aka::decay_v<decltype(_)>;
 
         for (auto && type :
              element_filter.elementTypes(spatial_dimension, ghost_type)) {
           if (not finite_deformation) {
             tuple_dispatch<AllElementTypes>(
                 [&](auto && enum_type) {
-                  constexpr auto type =
-                      std::decay_t<decltype(enum_type)>::value;
+                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
                   this->assembleInternalForces<dim, type>(ghost_type);
                 },
                 type);
           } else {
             tuple_dispatch<AllElementTypes>(
                 [&](auto && enum_type) {
-                  constexpr auto type =
-                      std::decay_t<decltype(enum_type)>::value;
+                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
                   this->assembleInternalForcesFiniteDeformation<dim, type>(
                       ghost_type);
                 },
@@ -264,7 +262,7 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
     tuple_dispatch<AllSpatialDimensions>(
         [&](auto && _) {
-          constexpr auto dim = std::decay_t<decltype(_)>::value;
+          constexpr auto dim = aka::decay_v<decltype(_)>;
           this->StoCauchy<dim>(type, ghost_type);
         },
         spatial_dimension);
@@ -331,15 +329,14 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 
   tuple_dispatch<AllSpatialDimensions>(
       [&](auto && _) {
-        constexpr auto dim = std::decay_t<decltype(_)>::value;
+        constexpr auto dim = aka::decay_v<decltype(_)>;
 
         for (auto type :
              element_filter.elementTypes(spatial_dimension, ghost_type)) {
           if (finite_deformation) {
             tuple_dispatch<AllElementTypes>(
                 [&](auto && enum_type) {
-                  constexpr auto type =
-                      std::decay_t<decltype(enum_type)>::value;
+                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
                   assembleStiffnessMatrixNL<dim, type>(ghost_type);
                   assembleStiffnessMatrixL2<dim, type>(ghost_type);
                 },
@@ -347,8 +344,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
           } else {
             tuple_dispatch<AllElementTypes>(
                 [&](auto && enum_type) {
-                  constexpr auto type =
-                      std::decay_t<decltype(enum_type)>::value;
+                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
                   this->assembleStiffnessMatrix<dim, type>(ghost_type);
                 },
                 type);

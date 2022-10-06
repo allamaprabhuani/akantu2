@@ -52,7 +52,7 @@ inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
     ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         this->setIntegrationPointsByType<type>(integration_points, ghost_type);
         this->precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);
         this->precomputeShapeDerivativesOnIntegrationPoints<type>(nodes,
@@ -104,7 +104,7 @@ ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Idx> & filter_elements) const {
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         this->computeShapeDerivativesOnIntegrationPoints<type>(
             nodes, integration_points, shape_derivatives, ghost_type,
             filter_elements);

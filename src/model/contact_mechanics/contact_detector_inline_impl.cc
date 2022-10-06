@@ -39,7 +39,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class Derived, std::enable_if_t<aka::is_vector<Derived>::value> *>
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
 inline bool ContactDetector::checkValidityOfProjection(
     Eigen::MatrixBase<Derived> & projection) const {
   Real tolerance = 1e-3;
@@ -57,7 +57,7 @@ inline void ContactDetector::coordinatesOfElement(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Derived, std::enable_if_t<aka::is_vector<Derived>::value> *>
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
 inline void ContactDetector::computeCellSpacing(
     Eigen::MatrixBase<Derived> & spacing) const {
   spacing.fill(std::sqrt(2.0) * max_dd);
@@ -142,7 +142,7 @@ ContactDetector::constructConnectivity(Idx & slave,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Derived, std::enable_if_t<aka::is_vector<Derived>::value> *>
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
 inline void ContactDetector::computeNormalOnElement(
     const Element & element, Eigen::MatrixBase<Derived> & normal) const {
   Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
@@ -242,19 +242,17 @@ inline void ContactDetector::filterBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Derived, std::enable_if_t<aka::is_vector<Derived>::value> *>
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
 inline bool ContactDetector::isValidSelfContact(
     const Idx & slave_node, const Real & gap,
     const Eigen::MatrixBase<Derived> & normal) const {
   Idx master_node{-1};
 
   // finding the master node corresponding to slave node
-  for (auto && pair : contact_pairs) {
-    if (pair.first == slave_node) {
-      master_node = pair.second;
-      break;
-    }
-  }
+  auto it = std::find_if(
+      contact_pairs.begin(), contact_pairs.end(),
+      [slave_node](auto && pair) { return pair.first == slave_node; });
+  master_node = it->second;
 
   Array<Element> slave_elements;
   this->mesh.getAssociatedElements(slave_node, slave_elements);

@@ -41,7 +41,7 @@ namespace akantu {
 /// Yield Stress
 template <Int dim>
 inline Real
-MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> &sigma) {
+MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> & sigma) {
   return this->alpha * sigma.trace() - this->k;
 }
 
@@ -49,7 +49,7 @@ MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> &sigma) {
 /// Yield function
 template <Int dim>
 inline Real
-MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> &sigma) {
+MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> & sigma) {
   Matrix<Real, dim, dim> sigma_dev = Material::computeDeviatoric<dim>(sigma);
 
   // compute deviatoric invariant J2
@@ -64,11 +64,11 @@ MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> &sigma) {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <typename D1, typename D2, typename D3,
-          aka::enable_if_t<aka::are_vectors<D2, D3>::value> *>
+          aka::enable_if_t<aka::are_vectors_v<D2, D3>> *>
 inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
-    const Eigen::MatrixBase<D1> &sigma_trial, Real &plastic_multiplier_guess,
-    Eigen::MatrixBase<D2> &gradient_f,
-    Eigen::MatrixBase<D3> &delta_inelastic_strain, Int max_iterations,
+    const Eigen::MatrixBase<D1> & sigma_trial, Real & plastic_multiplier_guess,
+    Eigen::MatrixBase<D2> & gradient_f,
+    Eigen::MatrixBase<D3> & delta_inelastic_strain, Int max_iterations,
     Real tolerance) {
 
   const Int size = voigt_h::size;
@@ -117,7 +117,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   Real yield_function;
 
   // if sigma is above the threshold value
-  auto above_threshold = [&sigma_guess](Real &k, Real &alpha) {
+  auto above_threshold = [&sigma_guess](Real & k, Real & alpha) {
     auto I1 = sigma_guess.trace();
     return I1 >= k / alpha;
   };
@@ -131,7 +131,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
       return error;
     };
 
-    auto update_sec_obj = [&sigma_guess](Real &k, Real &alpha) {
+    auto update_sec_obj = [&sigma_guess](Real & k, Real & alpha) {
       auto error = alpha * sigma_guess.trace() - k;
       return error;
     };
@@ -163,7 +163,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
 
   // lambda function to compute gradient of yield surface in voigt notation
   auto compute_gradient_f = [&sigma_guess, &scaling_matrix, &kronecker_delta,
-                             &gradient_f](Real &alpha) {
+                             &gradient_f](Real & alpha) {
     auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
     Vector<Real> sigma_dev_voigt = voigt_h::matrixToVoigt(sigma_dev);
 
@@ -201,7 +201,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   auto update_f = [&f, &sigma_guess, &sigma_trial, &plastic_multiplier_guess,
                    &Ce, &De, &yield_function, &gradient_f,
                    &delta_inelastic_strain,
-                   &compute_gradient_f](Real &k, Real &alpha) {
+                   &compute_gradient_f](Real & k, Real & alpha) {
     // compute gradient
     compute_gradient_f(alpha);
 
@@ -287,12 +287,12 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
 /// Infinitesimal deformations
 template <Int dim>
 template <class Args>
-inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args &&args) {
-  const auto &grad_u = tuple::get<"grad_u"_h>(args);
-  const auto &previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
-  const auto &previous_sigma = tuple::get<"previous_sigma"_h>(args);
-  const auto &sigma_th = tuple::get<"sigma_th"_h>(args);
-  const auto &previous_sigma_th = tuple::get<"previous_sigma_th"_h>(args);
+inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
+  const auto & grad_u = tuple::get<"grad_u"_h>(args);
+  const auto & previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
+  const auto & previous_sigma = tuple::get<"previous_sigma"_h>(args);
+  const auto & sigma_th = tuple::get<"sigma_th"_h>(args);
+  const auto & previous_sigma_th = tuple::get<"previous_sigma_th"_h>(args);
 
   Real delta_sigma_th = sigma_th - previous_sigma_th;
 

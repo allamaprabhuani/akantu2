@@ -60,7 +60,7 @@ template <Int dim> struct Verification {};
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<1> {
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void displacement(Eigen::MatrixBase<D1> & disp,
                     const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & x = coord(_x);
@@ -69,7 +69,7 @@ template <> struct Verification<1> {
   }
 
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void velocity(Eigen::MatrixBase<D1> & vel,
                 const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & x = coord(_x);
@@ -81,7 +81,7 @@ template <> struct Verification<1> {
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<2> {
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void displacement(Eigen::MatrixBase<D1> & disp,
                     const Eigen::MatrixBase<D2> & X, Real current_time) {
     Vector<Real> kshear{k[1], k[0]};
@@ -97,7 +97,7 @@ template <> struct Verification<2> {
   }
 
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void velocity(Eigen::MatrixBase<D1> & vel, const Eigen::MatrixBase<D2> & X,
                 Real current_time) {
     Vector<Real> kshear{k[1], k[0]};
@@ -117,7 +117,7 @@ template <> struct Verification<2> {
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<3> {
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void displacement(Eigen::MatrixBase<D1> & disp,
                     const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & X = coord;
@@ -136,7 +136,7 @@ template <> struct Verification<3> {
   }
 
   template <typename D1, typename D2,
-            std::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
   void velocity(Eigen::MatrixBase<D1> & vel,
                 const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & X = coord;

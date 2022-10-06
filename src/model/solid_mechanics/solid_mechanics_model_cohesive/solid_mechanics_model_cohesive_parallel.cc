@@ -204,13 +204,8 @@ template <typename T, bool pack_helper>
 void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & elements) const {
-  auto current_element_type = _not_defined;
-  auto current_ghost_type = _casper;
   bool element_rank = false;
   auto & mesh_facets = inserter->getMeshFacets();
-
-  const Array<std::vector<Element>> * element_to_facet = nullptr;
-  view_iterator<Tensor3Proxy<T>> data_it;
 
   auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (auto && el : elements) {
@@ -219,29 +214,19 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
           "packUnpackFacetStressDataHelper called with wrong inputs");
     }
 
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-      element_to_facet =
-          &(mesh_facets.getElementToSubelement(el.type, el.ghost_type));
-
-      auto nb_quad_per_elem =
-          fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
-      data_it =
-          make_view(data_to_pack(el.type, el.ghost_type),
-                    spatial_dimension * spatial_dimension, 2, nb_quad_per_elem)
-              .begin();
-    }
-
-    auto ghost_type = (*element_to_facet)(el.element)[0].ghost_type;
+    auto ghost_type = mesh_facets.getElementToSubelement()(el)[0].ghost_type;
     if (pack_helper) {
       element_rank = ghost_type != _not_ghost;
     } else {
       element_rank = ghost_type == _not_ghost;
     }
 
-    for (auto && data_per_quad : data_it[el.element]) {
+    auto nb_quad_per_elem =
+        fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
+
+    auto && data_per_element = data_to_pack.get(
+        el, spatial_dimension * spatial_dimension, 2, nb_quad_per_elem);
+    for (auto && data_per_quad : data_per_element) {
       auto && data = data_per_quad(element_rank);
 
       if (pack_helper) {
@@ -257,20 +242,10 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
 Int SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(
     const Array<Element> & elements) const {
   Int nb_quads = 0;
-  Int nb_quad_per_facet = 0;
-
-  auto current_element_type = _not_defined;
-  auto current_ghost_type = _casper;
   const auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (const auto & el : elements) {
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-
-      nb_quad_per_facet =
-          fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
-    }
+    auto nb_quad_per_facet =
+        fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
 
     nb_quads += nb_quad_per_facet;
   }
@@ -304,7 +279,7 @@ Int SolidMechanicsModelCohesive::getNbData(
       for (auto && element : elements) {
         if (Mesh::getSpatialDimension(element.type) ==
             (spatial_dimension - 1)) {
-          size += sizeof(UInt);
+          size += sizeof(Idx);
         }
       }
 
@@ -436,12 +411,6 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
 
   if (elements(0).kind() == _ek_regular) {
     switch (tag) {
-    // case SynchronizationTag::_smmc_facets: {
-    //   unpackElementalDataHelper(inserter->getInsertionFacetsByElement(),
-    //   buffer,
-    //                             elements, false, getFEEngine());
-    //   break;
-    // }
     case SynchronizationTag::_smmc_facets_stress: {
       unpackFacetStressDataHelper(facet_stress, buffer, elements);
       break;

@@ -43,7 +43,7 @@ static bool material_is_alocated_anisotropic_damage [[gnu::unused]] =
            const ID & id) -> std::unique_ptr<Material> {
           return tuple_dispatch<AllSpatialDimensions>(
               [&](auto && _) -> std::unique_ptr<Material> {
-                constexpr auto dim_ = std::decay_t<decltype(_)>::value;
+                constexpr auto dim_ = aka::decay_v<decltype(_)>;
 
                 if (option.empty() or option == "mazars") {
                   return std::make_unique<MaterialAnisotropicDamage<

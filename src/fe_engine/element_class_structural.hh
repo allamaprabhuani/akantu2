@@ -273,7 +273,7 @@ public:
   }
 
   template <typename D1, typename D2, typename D3,
-            std::enable_if_t<aka::is_vector<D3>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<D3>> * = nullptr>
   static inline void computeJacobian(const Eigen::MatrixBase<D1> & Xs,
                                      const Eigen::MatrixBase<D2> & xs,
                                      Eigen::MatrixBase<D3> & jacobians) {

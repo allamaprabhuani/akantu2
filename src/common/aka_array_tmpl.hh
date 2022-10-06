@@ -967,7 +967,7 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    return aka::apply([&](auto... n) { return iterator(data, n...); },
+    return std::apply([&](auto... n) { return iterator(data, n...); },
                       take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
   }
 } // namespace detail
@@ -1068,7 +1068,7 @@ namespace detail {
     constexpr ArrayView & operator=(ArrayView && array_view) noexcept = default;
 
     auto begin() {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(array.get(), array.get().data(),
                                         std::forward<decltype(ns)>(ns)...);
@@ -1077,7 +1077,7 @@ namespace detail {
     }
 
     auto begin() const {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(array.get(), array.get().data(),
                                         std::forward<decltype(ns)>(ns)...);
@@ -1086,7 +1086,7 @@ namespace detail {
     }
 
     auto end() {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(
                 array.get(),
@@ -1098,7 +1098,7 @@ namespace detail {
     }
 
     auto end() const {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(
                 array.get(),
@@ -1139,7 +1139,7 @@ namespace detail {
     constexpr ArrayView & operator=(ArrayView && array_view) = default;
 
     auto begin() const {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return array.get().begin_reinterpret(
                 std::forward<decltype(ns)>(ns)...);
@@ -1148,7 +1148,7 @@ namespace detail {
     }
 
     auto end() const {
-      return aka::apply(
+      return std::apply(
           [&](auto &&... ns) {
             return array.get().end_reinterpret(
                 std::forward<decltype(ns)>(ns)...);

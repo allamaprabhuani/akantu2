@@ -450,13 +450,12 @@ void ShapeStructural<_ek_structural>::computeNtb(
     const Array<Idx> & filter_elements) const {
   constexpr auto itp_type = ElementClassProperty<type>::interpolation_type;
   constexpr auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
-
-  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  constexpr auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
   const auto & shapes = this->shapes(itp_type, ghost_type);
 
   Array<Real> shapes_filtered(0, shapes.getNbComponent());
-  auto && view = make_view(shapes, nb_dof, nb_dof * nb_nodes_per_element);
+  auto && view = make_view<nb_dof, nb_dof * nb_nodes_per_element>(shapes);
   auto N_it = view.begin();
   auto N_end = view.end();
 
@@ -464,16 +463,14 @@ void ShapeStructural<_ek_structural>::computeNtb(
     FEEngine::filterElementalData(this->mesh, shapes, shapes_filtered, type,
                                   ghost_type, filter_elements);
     auto && view =
-        make_view(shapes_filtered, nb_dof, nb_dof * nb_nodes_per_element);
+        make_view<nb_dof, nb_dof * nb_nodes_per_element>(shapes_filtered);
     N_it = view.begin();
     N_end = view.end();
   }
 
-  for (auto && values : zip(range(N_it, N_end), make_view(bs, nb_dof),
-                            make_view(Ntbs, nb_dof * nb_nodes_per_element))) {
-    const auto & N = std::get<0>(values);
-    const auto & b = std::get<1>(values);
-    auto & Nt_b = std::get<2>(values);
+  for (auto && [N, b, Nt_b] :
+       zip(range(N_it, N_end), make_view<nb_dof>(bs),
+           make_view<nb_dof * nb_nodes_per_element>(Ntbs))) {
     Nt_b = N.transpose() * b;
   }
 }
@@ -491,7 +488,7 @@ inline void ShapeStructural<_ek_structural>::initShapeFunctions(
     ElementType type, GhostType ghost_type) {
   tuple_dispatch<ElementTypes_t<_ek_structural>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         this->setIntegrationPointsByType<type>(integration_points, ghost_type);
         this->precomputeRotationMatrices<type>(nodes, ghost_type);
         this->precomputeShapesOnIntegrationPoints<type>(nodes, ghost_type);

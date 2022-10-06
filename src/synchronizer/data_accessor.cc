@@ -43,26 +43,10 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
     Array<T> & data, CommunicationBuffer & buffer,
     const Array<Element> & elements, const Mesh & mesh) {
   Int nb_component = data.getNbComponent();
-  Int nb_nodes_per_element = 0;
-
-  auto current_element_type = _not_defined;
-  auto current_ghost_type = _casper;
-  const_view_iterator<VectorProxy<Idx>> conn_it;
-
   auto data_it = make_view(data, nb_component).begin();
 
   for (const auto & el : elements) {
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-      nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-      conn_it = make_view(mesh.getConnectivity(el.type, el.ghost_type),
-                          nb_nodes_per_element)
-                    .begin();
-    }
-
-    auto && conn = conn_it[el.element];
+    auto && conn = mesh.getConnectivity(el);
 
     for (auto node : conn) {
       auto && data_vect = data_it[node];
@@ -81,25 +65,14 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & element, bool per_quadrature_point_data,
     const FEEngine & fem) {
-  auto current_element_type = _not_defined;
-  auto current_ghost_type = _casper;
-  view_iterator<VectorProxy<T>> data_it;
-
   for (const auto & el : element) {
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-      auto nb_quad_per_elem =
-          per_quadrature_point_data
-              ? fem.getNbIntegrationPoints(el.type, el.ghost_type)
-              : 1;
-      auto && array = data_to_pack(el.type, el.ghost_type);
-      auto nb_component = array.getNbComponent();
-      data_it = make_view(array, nb_component * nb_quad_per_elem).begin();
-    }
+    auto nb_quad_per_elem =
+        per_quadrature_point_data
+            ? fem.getNbIntegrationPoints(el.type, el.ghost_type)
+            : 1;
+    auto nb_component = data_to_pack(el.type, el.ghost_type).getNbComponent();
+    auto && data = data_to_pack.get(el, nb_component * nb_quad_per_elem);
 
-    auto && data = data_it[el.element];
     if (pack_helper) {
       buffer << data;
     } else {

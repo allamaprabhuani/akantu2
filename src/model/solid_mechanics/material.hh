@@ -790,7 +790,7 @@ namespace {
         [](Int dim, const ID &, SolidMechanicsModel & model, const ID & id) {
           return tuple_dispatch<AllSpatialDimensions>(
               [&](auto && _) -> std::unique_ptr<Material> {
-                constexpr auto && dim_ = std::decay_t<decltype(_)>::value;
+                constexpr auto && dim_ = aka::decay_v<decltype(_)>;
                 return std::make_unique<Mat<dim_>>(model, id);
               },
               dim);

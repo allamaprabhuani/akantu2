@@ -233,7 +233,7 @@ namespace dumpers {
 
         tuple_dispatch<AllSpatialDimensions>(
             [&grad_u, &strain](auto && dim_t) {
-              constexpr auto dim = std::decay_t<decltype(dim_t)>::value;
+              constexpr auto dim = aka::decay_v<decltype(dim_t)>;
               if (green_strain) {
                 Material::gradUToE<dim>(grad_u, strain);
               } else {

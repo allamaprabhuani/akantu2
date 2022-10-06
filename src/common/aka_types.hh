@@ -133,14 +133,22 @@ namespace aka {
 template <typename Derived>
 using is_vector = aka::bool_constant<
     std::remove_reference_t<std::decay_t<Derived>>::IsVectorAtCompileTime>;
+template <class V> inline constexpr bool is_vector_v = is_vector<V>::value;
 
 template <typename Derived> using is_matrix = aka::negation<is_vector<Derived>>;
+template <class M> inline constexpr bool is_matrix_v = is_matrix<M>::value;
 
 template <typename... Ds>
 using are_vectors = aka::conjunction<is_vector<Ds>...>;
 
+template <class... Vs>
+inline constexpr bool are_vectors_v = are_vectors<Vs...>::value;
+
 template <typename... Ds>
 using are_matrices = aka::conjunction<is_matrix<Ds>...>;
+
+template <class... Ms>
+inline constexpr bool are_matrices_v = are_matrices<Ms...>::value;
 
 template <typename... Ds>
 using enable_if_matrices_t = std::enable_if_t<are_matrices<Ds...>::value>;
@@ -166,6 +174,11 @@ struct is_tensor<Eigen::Matrix<T, m, n>> : public std::true_type {};
 
 template <typename T, size_t n>
 using is_tensor_n = std::is_base_of<akantu::TensorTrait<n>, T>;
+
+template <class T> inline constexpr bool is_tensor_v = is_tensor<T>::value;
+
+template <class T, size_t n>
+inline constexpr bool is_tensor_n_v = is_tensor_n<T, n>::value;
 
 template <std::size_t n, typename T = void, typename... Ts>
 using enable_if_tensors_n = std::enable_if<
@@ -429,10 +442,11 @@ MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) const {
 
   // as advised by the Eigen developers even though this is a UB
   // auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
-  akantu::static_if(std::is_floating_point<OtherScalar>{})
-      .then([&](auto && solver) { values = solver.eigenvalues().real(); })
-      .else_([&](auto && solver) { values = solver.eigenvalues(); })(
-          std::forward<decltype(solver)>(solver));
+  if constexpr (std::is_floating_point<OtherScalar>{}) {
+    values = solver.eigenvalues().real();
+  } else {
+    values = solver.eigenvalues();
+  }
 }
 
 template <typename Derived>
@@ -458,15 +472,13 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
   }
 
   if (not sort) {
-    akantu::static_if(std::is_floating_point<OtherScalar>{})
-        .then([&](auto && solver) {
-          values = solver.eigenvalues().real();
-          vectors = solver.eigenvectors().real();
-        })
-        .else_([&](auto && solver) {
-          values = solver.eigenvalues();
-          vectors = solver.eigenvectors();
-        })(std::forward<decltype(solver)>(solver));
+    if constexpr (std::is_floating_point<OtherScalar>{}) {
+      values = solver.eigenvalues().real();
+      vectors = solver.eigenvectors().real();
+    } else {
+      values = solver.eigenvalues();
+      vectors = solver.eigenvectors();
+    }
     return;
   }
 
@@ -484,11 +496,10 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
               return (values(a) - values(b)) > 0;
             });
 
-  akantu::static_if(std::is_floating_point<OtherScalar>{})
-      .then([&](auto && solver) {
-        values = P.transpose() * values;
-        vectors = solver.eigenvectors().real() * P;
-      })(std::forward<decltype(solver)>(solver));
+  if constexpr (std::is_floating_point<OtherScalar>{}) {
+    values = P.transpose() * values;
+    vectors = solver.eigenvectors().real() * P;
+  }
   return;
 }
 

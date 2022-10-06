@@ -47,11 +47,10 @@ inline void
 MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && args) {
 
   Real delta_sigma_th = 0.;
-  static_if(tuple::has_t<"sigma_th"_h, Args>())
-      .then([&delta_sigma_th](auto && args) {
-        delta_sigma_th = tuple::get<"previous_sigma_th"_h>(args) -
-                         tuple::get<"sigma_th"_h>(args);
-      })(std::forward<Args>(args));
+  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
+    delta_sigma_th = tuple::get<"previous_sigma_th"_h>(args) -
+                     tuple::get<"sigma_th"_h>(args);
+  }
 
   auto && grad_u = tuple::get<"grad_u"_h>(args);
   auto && previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
@@ -114,11 +113,10 @@ MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && args) {
   UInt n = 0;
 
   Real delta_sigma_th = 0.;
-  static_if(tuple::has_t<"sigma_th"_h, Args>())
-      .then([&delta_sigma_th](auto && args) {
-        delta_sigma_th = tuple::get<"previous_sigma_th"_h>(args) -
-                         tuple::get<"sigma_th"_h>(args);
-      })(std::forward<Args>(args));
+  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
+    delta_sigma_th = tuple::get<"previous_sigma_th"_h>(args) -
+                     tuple::get<"sigma_th"_h>(args);
+  }
 
   auto && grad_u = tuple::get<"grad_u"_h>(args);
   auto && previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
@@ -199,6 +197,8 @@ MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(Args && args) {
     // F}{\partial S} = \frac{3}{2\sigma_{effective}}}S_{dev}
     // delta_inelastic_strain.copy(sigma_tr_dev);
     // delta_inelastic_strain *= 3./2. * dp / sigma_tr_dev_eff;
+  } else {
+    delta_inelastic_strain.zero();
   }
 
   MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(tuple::append(

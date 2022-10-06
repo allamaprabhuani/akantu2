@@ -220,7 +220,7 @@ public:
 
   /// extract coordinates of nodes from an element
   template <typename T, class Derived1, class Derived2,
-            std::enable_if_t<aka::is_vector<Derived2>::value> * = nullptr>
+            std::enable_if_t<aka::is_vector_v<Derived2>> * = nullptr>
   inline void extractNodalValuesFromElement(
       const Array<T> & nodal_values,
       Eigen::MatrixBase<Derived1> & elemental_values,
@@ -361,7 +361,7 @@ public:
                            ElementKind kind = _ek_not_defined) const;
 
   /// compute the barycenter of a given element
-  template <class D, std::enable_if_t<aka::is_vector<D>::value> * = nullptr>
+  template <class D, std::enable_if_t<aka::is_vector_v<D>> * = nullptr>
   inline void getBarycenter(const Element & element,
                             const Eigen::MatrixBase<D> & barycenter) const;
 
@@ -694,7 +694,7 @@ inline std::ostream & operator<<(std::ostream & stream, const Mesh & _this) {
 inline constexpr auto Mesh::getNbNodesPerElement(ElementType type) -> Int {
   return tuple_dispatch_with_default<AllElementTypes>(
       [](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getNbNodesPerElement();
       },
       type, [](auto && /*type*/) { return 0; });

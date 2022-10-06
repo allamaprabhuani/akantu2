@@ -33,8 +33,8 @@
 
 /* -------------------------------------------------------------------------- */
 //#include "material_cohesive_linear.hh"
-#include "solid_mechanics_model_cohesive.hh"
 #include "aka_static_if.hh"
+#include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -61,18 +61,15 @@ Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
   /// in 3D tangential components must be summed
   Real tangent_contrib = 0;
 
-  static_if(aka::bool_constant<dim == 2>{})
-      .then([&tangent_contrib, &normal_traction](auto && tangent) {
-        Real tangent_contrib_tmp = normal_traction.dot(tangent);
-        tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
-      })
-      .else_if(aka::bool_constant<dim == 3>{})
-      .then([&tangent_contrib, &normal_traction](auto && tangent) {
-        for (auto && tangent_v : tangent) {
-          Real tangent_contrib_tmp = normal_traction.dot(tangent_v);
-          tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
-        }
-      })(tangent);
+  if constexpr (dim == 2) {
+    Real tangent_contrib_tmp = normal_traction.dot(tangent);
+    tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
+  } else if constexpr (dim == 3) {
+    for (auto && tangent_v : tangent) {
+      Real tangent_contrib_tmp = normal_traction.dot(tangent_v);
+      tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
+    }
+  }
 
   tangent_contrib = std::sqrt(tangent_contrib);
   normal_contrib = std::max(Real(0.), normal_contrib);

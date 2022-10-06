@@ -71,10 +71,11 @@ MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, Int spatial_dimension,
       sizeof(Int) == sizeof(SCOTCH_Num),
       "The integer type of Akantu does not match the one from Scotch");
 
-  static_if(aka::bool_constant<scotch_version >= 6>{})
-      .then([](auto && y) { SCOTCH_randomSeed(y); })
-      .else_([](auto && y) { srandom(y); })(
-          std::forward<UInt>(RandomGenerator<UInt>::seed()));
+  if constexpr (scotch_version >= 6) {
+    SCOTCH_randomSeed(RandomGenerator<Int>::seed());
+  } else {
+    srandom(RandomGenerator<Int>::seed());
+  }
 
   AKANTU_DEBUG_OUT();
 }

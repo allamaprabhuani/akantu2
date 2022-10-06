@@ -173,8 +173,7 @@ void ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
 
       tuple_dispatch<ElementTypes_t<_ek_regular>>(
           [&](auto && enum_type) {
-            constexpr ElementType type =
-                std::decay_t<decltype(enum_type)>::value;
+            constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
             this->initElementalFieldInterpolationFromIntegrationPoints<type>(
                 interpolation_points_coordinates(type, ghost_type),
                 interpolation_points_coordinates_matrices,
@@ -222,7 +221,7 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 
     tuple_dispatch<ElementTypes_t<_ek_regular>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           this->interpolateElementalFieldFromIntegrationPoints<type>(
               field(type, ghost_type),
               interpolation_points_coordinates_matrices(type, ghost_type),

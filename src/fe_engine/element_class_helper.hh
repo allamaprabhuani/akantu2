@@ -15,7 +15,7 @@ public:
                                   ElementType type) {
     return tuple_dispatch<ElementTypes_t<_ek_regular>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           constexpr auto nb_nodes_per_element =
               ElementClass<type>::getNbNodesPerElement();
           Vector<Real> shapes(nb_nodes_per_element);
@@ -30,7 +30,7 @@ public:
                                      ElementType type) {
     return tuple_dispatch<ElementTypes_t<_ek_regular>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           constexpr auto nb_nodes_per_element =
               ElementClass<type>::getNbNodesPerElement();
           Matrix<Real> dnds(natural_coords.size(), nb_nodes_per_element);
@@ -45,7 +45,7 @@ public:
                                        ElementType type) {
     return tuple_dispatch<ElementTypes_t<_ek_regular>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           constexpr auto nb_nodes_per_element =
               ElementClass<type>::getNbNodesPerElement();
           auto dim = natural_coords.size();
@@ -62,7 +62,7 @@ public:
                                      ElementType type) {
     return tuple_dispatch<ElementTypes_t<_ek_regular>>(
         [&](auto && enum_type) {
-          constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+          constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
           constexpr auto nb_nodes_per_element =
               ElementClass<type>::getNbNodesPerElement();
           Matrix<Real> dnds(natural_coords.size(), nb_nodes_per_element);

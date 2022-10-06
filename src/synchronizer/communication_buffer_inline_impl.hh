@@ -37,17 +37,17 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
-                                       not aka::is_tensor<T>::value> *>
+template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                       not aka::is_tensor_v<T>> *>
 inline std::size_t
 CommunicationBufferTemplated<is_static>::sizeInBuffer(const T & /*unused*/) {
   return sizeof(T);
 }
 
 template <bool is_static>
-template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
+template <typename Tensor, std::enable_if_t<aka::is_tensor_v<Tensor>> *>
 inline std::size_t
-CommunicationBufferTemplated<is_static>::sizeInBuffer(const Tensor &data) {
+CommunicationBufferTemplated<is_static>::sizeInBuffer(const Tensor & data) {
   std::size_t size = data.size() * sizeof(typename Tensor::Scalar);
   return size;
 }
@@ -55,14 +55,14 @@ CommunicationBufferTemplated<is_static>::sizeInBuffer(const Tensor &data) {
 template <bool is_static>
 template <typename T>
 inline std::size_t CommunicationBufferTemplated<is_static>::sizeInBuffer(
-    const std::vector<T> &data) {
+    const std::vector<T> & data) {
   std::size_t size = data.size() * sizeof(T) + sizeof(size_t);
   return size;
 }
 
 template <bool is_static>
-inline std::size_t
-CommunicationBufferTemplated<is_static>::sizeInBuffer(const std::string &data) {
+inline std::size_t CommunicationBufferTemplated<is_static>::sizeInBuffer(
+    const std::string & data) {
   std::size_t size =
       data.size() * sizeof(std::string::value_type) + sizeof(size_t);
   return size;
@@ -73,7 +73,7 @@ template <bool is_static>
 inline void
 CommunicationBufferTemplated<is_static>::packResize(std::size_t size) {
   if (not is_static) {
-    char *values = buffer.data();
+    char * values = buffer.data();
     auto nb_packed = ptr_pack - values;
 
     if (std::size_t(buffer.size()) > nb_packed + size) {
@@ -88,10 +88,10 @@ CommunicationBufferTemplated<is_static>::packResize(std::size_t size) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
-                                       not aka::is_tensor<T>::value> *>
+template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                       not aka::is_tensor_v<T>> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator<<(const T &to_pack) {
+CommunicationBufferTemplated<is_static>::operator<<(const T & to_pack) {
   std::size_t size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
@@ -104,16 +104,16 @@ CommunicationBufferTemplated<is_static>::operator<<(const T &to_pack) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename T, std::enable_if_t<std::is_standard_layout<T>::value and
-                                       not aka::is_tensor<T>::value> *>
+template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                       not aka::is_tensor_v<T>> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(T &to_unpack) {
+CommunicationBufferTemplated<is_static>::operator>>(T & to_unpack) {
   std::size_t size = sizeInBuffer(to_unpack);
 
   alignas(alignof(T)) std::array<char, sizeof(T)> aligned_ptr;
   memcpy(aligned_ptr.data(), ptr_unpack, size);
 
-  auto *tmp = reinterpret_cast<T *>(aligned_ptr.data());
+  auto * tmp = reinterpret_cast<T *>(aligned_ptr.data());
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
       "Unpacking too much data in the CommunicationBufferTemplated");
@@ -125,9 +125,9 @@ CommunicationBufferTemplated<is_static>::operator>>(T &to_unpack) {
 
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
-template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
+template <typename Tensor, std::enable_if_t<aka::is_tensor_v<Tensor>> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator<<(const Tensor &to_pack) {
+CommunicationBufferTemplated<is_static>::operator<<(const Tensor & to_pack) {
   std::size_t size = sizeInBuffer(to_pack);
   packResize(size);
   AKANTU_DEBUG_ASSERT(
@@ -141,9 +141,9 @@ CommunicationBufferTemplated<is_static>::operator<<(const Tensor &to_pack) {
 /* --------------------------------------------------------------------------
  */
 template <bool is_static>
-template <typename Tensor, std::enable_if_t<aka::is_tensor<Tensor>::value> *>
+template <typename Tensor, std::enable_if_t<aka::is_tensor_v<Tensor>> *>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(Tensor &to_unpack) {
+CommunicationBufferTemplated<is_static>::operator>>(Tensor & to_unpack) {
   std::size_t size = sizeInBuffer(to_unpack);
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
@@ -157,7 +157,7 @@ CommunicationBufferTemplated<is_static>::operator>>(Tensor &to_unpack) {
  */
 template <bool is_static>
 template <typename T>
-inline void CommunicationBufferTemplated<is_static>::packIterable(T &to_pack) {
+inline void CommunicationBufferTemplated<is_static>::packIterable(T & to_pack) {
   operator<<(std::size_t(to_pack.size()));
   auto it = to_pack.begin();
   auto end = to_pack.end();
@@ -171,7 +171,7 @@ inline void CommunicationBufferTemplated<is_static>::packIterable(T &to_pack) {
 template <bool is_static>
 template <typename T>
 inline void
-CommunicationBufferTemplated<is_static>::unpackIterable(T &to_unpack) {
+CommunicationBufferTemplated<is_static>::unpackIterable(T & to_unpack) {
   std::size_t size;
   operator>>(size);
 
@@ -193,7 +193,7 @@ template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(
-    const std::vector<T> &to_pack) {
+    const std::vector<T> & to_pack) {
   packIterable(to_pack);
   return *this;
 }
@@ -203,7 +203,8 @@ CommunicationBufferTemplated<is_static>::operator<<(
 template <bool is_static>
 template <typename T>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(std::vector<T> &to_unpack) {
+CommunicationBufferTemplated<is_static>::operator>>(
+    std::vector<T> & to_unpack) {
   unpackIterable(to_unpack);
   return *this;
 }
@@ -217,7 +218,7 @@ CommunicationBufferTemplated<is_static>::operator>>(std::vector<T> &to_unpack) {
 template <bool is_static>
 inline CommunicationBufferTemplated<is_static> &
 CommunicationBufferTemplated<is_static>::operator<<(
-    const std::string &to_pack) {
+    const std::string & to_pack) {
   packIterable(to_pack);
   return *this;
 }
@@ -226,7 +227,7 @@ CommunicationBufferTemplated<is_static>::operator<<(
  */
 template <bool is_static>
 inline CommunicationBufferTemplated<is_static> &
-CommunicationBufferTemplated<is_static>::operator>>(std::string &to_unpack) {
+CommunicationBufferTemplated<is_static>::operator>>(std::string & to_unpack) {
   unpackIterable(to_unpack);
   return *this;
 }
@@ -238,7 +239,7 @@ template <typename T>
 inline std::string
 CommunicationBufferTemplated<is_static>::extractStream(std::size_t block_size) {
   std::stringstream str;
-  auto *ptr = reinterpret_cast<T *>(buffer.data());
+  auto * ptr = reinterpret_cast<T *>(buffer.data());
   auto sz = buffer.size() / sizeof(T);
   auto sz_block = block_size / sizeof(T);
 
@@ -273,7 +274,7 @@ inline void CommunicationBufferTemplated<is_static>::resize(std::size_t size) {
  */
 template <bool is_static>
 inline void CommunicationBufferTemplated<is_static>::reserve(std::size_t size) {
-  char *values = buffer.data();
+  char * values = buffer.data();
   std::size_t nb_packed = ptr_pack - values;
 
   buffer.resize(size);

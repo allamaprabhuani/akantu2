@@ -50,7 +50,7 @@ FEEngine::getElementInradius(const Eigen::MatrixBase<Derived> & coord,
                              ElementType type) {
   return tuple_dispatch<AllElementTypes>(
       [&coord](auto && enum_type) -> Real {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getInradius(coord);
       },
       type);
@@ -84,7 +84,7 @@ inline constexpr ElementType
 FEEngine::getCohesiveElementType(ElementType type) {
   return tuple_dispatch_with_default<ElementTypes_t<_ek_regular>>(
       [&](auto && enum_type) -> ElementType {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return CohesiveFacetProperty<type>::cohesive_type;
       },
       type, [](auto && /*enum_type*/) { return _not_defined; });
@@ -100,7 +100,7 @@ namespace akantu {
 inline Vector<ElementType> FEEngine::getIGFEMElementTypes(ElementType type) {
   tuple_dispatch<ElementTypes_t<_ek_regular>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return IGFEMHelper::getIGFEMElementTypes<type>();
       },
       type);

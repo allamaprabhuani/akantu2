@@ -361,7 +361,7 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
 
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         fem_cohesive.getShapeFunctions()
             .computeNormalsOnIntegrationPoints<type,
                                                CohesiveReduceFunctionMean>(
@@ -383,7 +383,7 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
 
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
-        constexpr ElementType type = std::decay_t<decltype(enum_type)>::value;
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         fem_cohesive.getShapeFunctions()
             .interpolateOnIntegrationPoints<type,
                                             CohesiveReduceFunctionOpening>(
