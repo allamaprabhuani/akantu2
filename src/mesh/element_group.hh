@@ -46,6 +46,7 @@
 namespace akantu {
 class Mesh;
 class Element;
+class NewNodesEvent;
 } // namespace akantu
 
 namespace akantu {
@@ -135,6 +136,8 @@ public:
 
   /// change the dimension if needed
   void addDimension(UInt dimension);
+
+  void onNodesAdded(const Array<UInt> & new_nodes, const NewNodesEvent & event);
 
 private:
   inline void addElement(ElementType elem_type, UInt elem_id,

@@ -48,11 +48,12 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-class ElementGroup;
-class NodeGroup;
-class Mesh;
 class Element;
+class ElementGroup;
 class ElementSynchronizer;
+class Mesh;
+class NewNodesEvent;
+class NodeGroup;
 template <bool> class CommunicationBufferTemplated;
 namespace dumpers {
   class Field;
@@ -268,6 +269,8 @@ public:
   createStridedNodalField(const ftype<type, flag> * field,
                           const std::string & group_name, UInt size,
                           UInt stride, UInt padding_size);
+
+  void onNodesAdded(const Array<UInt> & new_nodes, const NewNodesEvent & event);
 
 protected:
   /// fill a buffer with all the group names
