@@ -96,7 +96,6 @@ void ContactMechanicsInternodesModel::assembleResidual() {
     for (int dim = 0; dim < spatial_dimension; dim++) {
       positions_master(spatial_dimension*i + dim) = pos(dim);
     }
-    ++i;
   }
 
   for (auto && node_data : enumerate(slave_node_group.getNodes())) {
@@ -267,12 +266,8 @@ void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
     }
   }
 
-  // assemble C (zeros)
-  TermsToAssemble termsC("lambdas", "lambdas");
-
   this->dof_manager->assemblePreassembledMatrix("K", termsB);
   this->dof_manager->assemblePreassembledMatrix("K", termsB_tilde);
-  this->dof_manager->assemblePreassembledMatrix("K", termsC);
 }
 
 /* -------------------------------------------------------------------------- */

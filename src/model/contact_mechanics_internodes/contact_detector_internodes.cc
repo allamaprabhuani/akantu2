@@ -108,22 +108,11 @@ void ContactDetectorInternodes::findContactNodes() {
 
     still_isolated_nodes = false;
 
-    UInt i = 0;
-    for (UInt master_node : master_node_group.getNodes()) {
-      if (nb_master_nodes_inside_radius(i) == 0) {
-        master_node_group.remove(master_node);
+    for (auto && data : enumerate(master_node_group.getNodes())) {
+      if (nb_master_nodes_inside_radius(std::get<0>(data)) == 0) {
+        master_node_group.remove(std::get<1>(data));
         still_isolated_nodes = true;
       }
-    ++i;
-    }
-
-    i = 0;
-    for (UInt slave_node : slave_node_group.getNodes()) {
-      if (nb_slave_nodes_inside_radius(i) == 0) {
-        slave_node_group.remove(slave_node);
-        still_isolated_nodes = true;
-      }
-    ++i;
     }
 
     master_node_group.optimize();
@@ -296,6 +285,10 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
 
       nb_iter++;
     }
+  }
+
+  if (nb_iter == max_iter) {
+    AKANTU_EXCEPTION(nb_iter << " exceeds the maximum number of iterations");
   }
 
   return nb_opposite_nodes_inside_radiuses;
