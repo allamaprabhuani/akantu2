@@ -379,6 +379,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
 
   Matrix<Real, 2 * Dim, 2 * Dim> C_expected;
   C_expected.zero();
+
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
   C_expected(2, 2) = G12;
@@ -386,10 +387,12 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
   C_expected(1, 0) = C_expected(0, 1) = gamma * E1 * nu21;
 
   // epsilon is computed directly in the *material* frame of reference
-  Matrix<Real, Dim, Dim> epsilon = 0.5 * (grad_u + grad_u.transpose());
+  Matrix<Real, Dim, Dim> epsilon = (grad_u + grad_u.transpose()) / 2.;
 
   // sigma_expected is computed directly in the *material* frame of reference
   Matrix<Real, Dim, Dim> sigma_expected;
+  sigma_expected.zero();
+
   for (Int i = 0; i < Dim; ++i) {
     for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
@@ -430,6 +433,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeTangentModuli() {
 
   Matrix<Real> C_expected(3, 3);
   C_expected.zero();
+
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
   C_expected(2, 2) = G12;
@@ -454,6 +458,8 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<2>>::testCelerity() {
   Real gamma = 1 / (1 - nu12 * nu21);
 
   Matrix<Real, 3, 3> C_expected;
+  C_expected.zero();
+
   C_expected(0, 0) = gamma * E1;
   C_expected(1, 1) = gamma * E2;
   C_expected(2, 2) = G12;
@@ -547,6 +553,8 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
                     2 * nu21 * nu32 * nu13);
 
   Matrix<Real, 2 * Dim, 2 * Dim> C_expected;
+  C_expected.zero();
+
   C_expected(0, 0) = gamma * E1 * (1 - nu23 * nu32);
   C_expected(1, 1) = gamma * E2 * (1 - nu13 * nu31);
   C_expected(2, 2) = gamma * E3 * (1 - nu12 * nu21);
@@ -564,6 +572,8 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
 
   // sigma_expected is computed directly in the *material* frame of reference
   Matrix<Real, Dim, Dim> sigma_expected;
+  sigma_expected.zero();
+
   for (Int i = 0; i < Dim; ++i) {
     for (Int j = 0; j < Dim; ++j) {
       sigma_expected(i, i) += C_expected(i, j) * epsilon(j, j);
