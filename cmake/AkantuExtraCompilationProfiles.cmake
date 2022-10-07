@@ -90,7 +90,7 @@ declare_compilation_profile(PROFILING
 
 # Valgrind
 declare_compilation_profile(VALGRIND
-  COMPILER "-g -ggdb3 -O3")
+  COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -O3")
 
 # Coverage
 declare_compilation_profile(COVERAGE
