@@ -128,7 +128,7 @@ configure:ubuntu_lts_gcc:
   needs:
     - version_determination
 
-build:ubuntu_lts_gcc:
+build_libs:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
