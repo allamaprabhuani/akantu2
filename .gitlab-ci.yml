@@ -311,7 +311,7 @@ cq:code_quality:
   extends:
     - .code_quality_gitlab_template
   needs:
-    - job: build:debian_bullseye_clang
+    - job: configure:debian_bullseye_clang
   artifacts:
     paths:
       - gl-code-quality-report.json
@@ -330,7 +330,7 @@ cq:clang_tidy:
             clang-tidy
             -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
   needs:
-    - job: build:debian_bullseye_clang
+    - job: configure:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-tidy-report.json
@@ -346,7 +346,7 @@ cq:clang_format:
             clang-format
             -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
   needs:
-    - job: build:debian_bullseye_clang
+    - job: configure:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-format-report.json
