@@ -48,10 +48,10 @@
   stage: build_libs
   script:
     - echo BUILD_TYPE=${BUILD_TYPE}
-    - cmake --build build --target akantu -j2
+    - cmake --build build/src -j2
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build --target py11_akantu -j2
+    - cmake --build build/python -j2
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   artifacts:
@@ -68,6 +68,9 @@
   stage: build_tests
   script:
     - cmake --build build -j2
+      > >(tee -a build-${output}-out.log)
+      2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/examples
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   artifacts:
