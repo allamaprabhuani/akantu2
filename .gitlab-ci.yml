@@ -56,13 +56,21 @@ configure:debian_bullseye_gcc:
   needs:
     - version_determination
     
-build:debian_bullseye_gcc:
+build_libs:debian_bullseye_gcc:
+  extends:
+    - .debian_bullseye_gcc
+    - .build_release
+    - .build_libs
+  needs:
+    - job: configure:debian_bullseye_gcc
+
+build_tests:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
     - .build_release
     - .build_all
   needs:
-    - job: configure:debian_bullseye_gcc
+    - job: build_libs:debian_bullseye_gcc
 
 test:debian_bullseye_gcc:
   extends:
@@ -71,7 +79,7 @@ test:debian_bullseye_gcc:
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_bullseye_gcc
+    - job: build_tests:debian_bullseye_gcc
 
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with Clang
@@ -84,13 +92,21 @@ configure:debian_bullseye_clang:
   needs:
     - version_determination
 
-build:debian_bullseye_clang:
+build_libs:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
     - .build_release
-    - .build_all
+    - .build_libs
   needs:
     - job: configure:debian_bullseye_clang
+
+build_tests:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
+    - .build_release
+    - .build_tests
+  needs:
+    - job: build_libs:debian_bullseye_clang
 
 test:debian_bullseye_clang:
   extends:
@@ -99,7 +115,7 @@ test:debian_bullseye_clang:
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_bullseye_clang
+    - job: build_tests:debian_bullseye_clang
 
 # ------------------------------------------------------------------------------
 # Ubuntu LTS compiled with GCC
@@ -116,9 +132,17 @@ build:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
-    - .build_all
+    - .build_libs
   needs:
     - job: configure:ubuntu_lts_gcc
+
+build_tests:ubuntu_lts_gcc:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_release
+    - .build_tests
+  needs:
+    - job: build_libs:ubuntu_lts_gcc
 
 test:ubuntu_lts_gcc:
   extends:
@@ -126,7 +150,7 @@ test:ubuntu_lts_gcc:
     - .build_release
     - .tests
   needs:
-    - job: build:ubuntu_lts_gcc
+    - job: build_tests:ubuntu_lts_gcc
 
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with GCC tested with valgrind
@@ -139,13 +163,21 @@ configure:ubuntu_lts_gcc_valgrind:
   needs:
     - version_determination
 
-build:ubuntu_lts_gcc_valgrind:
+build_libs:ubuntu_lts_gcc_valgrind:
   extends:
     - .ubuntu_lts_gcc
     - .build_valgrind
-    - .build_all
+    - .build_libs
   needs:
     - job: configure:ubuntu_lts_gcc_valgrind
+
+build_tests:ubuntu_lts_gcc_valgrind:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_valgrind
+    - .build_tests
+  needs:
+    - job: build_libs:ubuntu_lts_gcc_valgrind
 
 test:ubuntu_lts_gcc_valgrind:
   extends:
@@ -153,7 +185,7 @@ test:ubuntu_lts_gcc_valgrind:
     - .build_valgrind
     - .tests
   needs:
-    - job: build:ubuntu_lts_gcc_valgrind
+    - job: build_tests:ubuntu_lts_gcc_valgrind
    
 # ------------------------------------------------------------------------------
 # Manylinux to build python packages
