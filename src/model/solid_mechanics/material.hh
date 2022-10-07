@@ -310,8 +310,17 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// assemble the internal forces
+  template <Int dim>
+  void assembleInternalForces(ElementType type, GhostType ghost_type);
+
+  /// assemble the internal forces
   template <Int dim, ElementType type>
   void assembleInternalForces(GhostType ghost_type);
+
+  /// assemble the internal forces  in the case of finite deformation
+  template <Int dim>
+  void assembleInternalForcesFiniteDeformation(ElementType type,
+                                               GhostType ghost_type);
 
   /// assemble the internal forces  in the case of finite deformation
   template <Int dim, ElementType type>
@@ -320,6 +329,14 @@ protected:
   template <Int dim>
   void computeAllStressesFromTangentModuli(ElementType type,
                                            GhostType ghost_type);
+
+  template <Int dim>
+  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
+
+  /// assembling in finite deformation
+  template <Int dim>
+  void assembleStiffnessMatrixFiniteDeformation(ElementType type,
+                                                GhostType ghost_type);
 
   template <Int dim, ElementType type>
   void assembleStiffnessMatrix(GhostType ghost_type);

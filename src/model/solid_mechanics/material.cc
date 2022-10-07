@@ -195,20 +195,10 @@ void Material::assembleInternalForces(GhostType ghost_type) {
         for (auto && type :
              element_filter.elementTypes(spatial_dimension, ghost_type)) {
           if (not finite_deformation) {
-            tuple_dispatch<AllElementTypes>(
-                [&](auto && enum_type) {
-                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
-                  this->assembleInternalForces<dim, type>(ghost_type);
-                },
-                type);
+            this->assembleInternalForces<dim>(type, ghost_type);
           } else {
-            tuple_dispatch<AllElementTypes>(
-                [&](auto && enum_type) {
-                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
-                  this->assembleInternalForcesFiniteDeformation<dim, type>(
-                      ghost_type);
-                },
-                type);
+            this->assembleInternalForcesFiniteDeformation<dim>(type,
+                                                               ghost_type);
           }
         }
       },
@@ -334,26 +324,27 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
         for (auto type :
              element_filter.elementTypes(spatial_dimension, ghost_type)) {
           if (finite_deformation) {
-            tuple_dispatch<AllElementTypes>(
-                [&](auto && enum_type) {
-                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
-                  assembleStiffnessMatrixNL<dim, type>(ghost_type);
-                  assembleStiffnessMatrixL2<dim, type>(ghost_type);
-                },
-                type);
+            this->assembleStiffnessMatrixFiniteDeformation<dim>(type,
+                                                                ghost_type);
           } else {
-            tuple_dispatch<AllElementTypes>(
-                [&](auto && enum_type) {
-                  constexpr auto type = aka::decay_v<decltype(enum_type)>;
-                  this->assembleStiffnessMatrix<dim, type>(ghost_type);
-                },
-                type);
+            this->assembleStiffnessMatrix<dim>(type, ghost_type);
           }
         }
       },
       spatial_dimension);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleStiffnessMatrix<dim, type>(ghost_type);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -407,6 +398,19 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
       "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void Material::assembleStiffnessMatrixFiniteDeformation(ElementType type,
+                                                        GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleStiffnessMatrixNL<dim, type>(ghost_type);
+        this->assembleStiffnessMatrixL2<dim, type>(ghost_type);
+      },
+      type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -547,6 +551,17 @@ void Material::assembleStiffnessMatrixL2(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
+template <Int dim>
+void Material::assembleInternalForces(ElementType type, GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleInternalForces<dim, type>(ghost_type);
+      },
+      type);
+}
+
+/* -------------------------------------------------------------------------- */
 template <Int dim, ElementType type>
 void Material::assembleInternalForces(GhostType ghost_type) {
   auto & internal_force = model.getInternalForce();
@@ -593,6 +608,18 @@ void Material::assembleInternalForces(GhostType ghost_type) {
       *int_sigma_dphi_dx, internal_force, type, ghost_type, -1, elem_filter);
   delete int_sigma_dphi_dx;
 }
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void Material::assembleInternalForcesFiniteDeformation(ElementType type,
+                                                       GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleInternalForcesFiniteDeformation<dim, type>(ghost_type);
+      },
+      type);
+}
+
 /* -------------------------------------------------------------------------- */
 template <Int dim, ElementType type>
 void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
