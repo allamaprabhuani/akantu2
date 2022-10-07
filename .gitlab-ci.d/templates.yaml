@@ -59,6 +59,7 @@
     paths:
       - build/
       - build-${output}-err.log
+      - third-party/eigen3
       - compile_commands.json
     expire_in: 10h
   timeout: 5h

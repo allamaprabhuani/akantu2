@@ -72,7 +72,7 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
       continue;
     }
 
-    if (mesh.getKind(type) != _kind) {
+    if (Mesh::getKind(type) != _kind) {
       continue;
     }
 

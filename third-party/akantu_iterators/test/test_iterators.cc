@@ -585,6 +585,23 @@ TEST(TestFilteredIterator, Temporary) {
 }
 
 /* -------------------------------------------------------------------------- */
+TEST(TestFilteredIfIterator, Simple) {
+  std::vector<int> values{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  for (auto && data : filter_if(values, [](auto && a) { return a % 2 == 0; })) {
+    std::cout << data << std::endl;
+    EXPECT_EQ(data % 2, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+TEST(TestFilteredIfIterator, Temporary) {
+  for (auto && data :
+       filter_if(arange(10), [](auto && a) { return a % 2 == 0; })) {
+    EXPECT_EQ(data % 2, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 TEST(TestConcatenateIterator, SimpleTest) {
   for (auto && data : zip(arange(0, 13), concat(arange(0, 5), arange(5, 10),
                                                 arange(10, 13)))) {

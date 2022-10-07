@@ -254,16 +254,14 @@ inline bool ContactDetector::isValidSelfContact(
       [slave_node](auto && pair) { return pair.first == slave_node; });
   master_node = it->second;
 
-  Array<Element> slave_elements;
-  this->mesh.getAssociatedElements(slave_node, slave_elements);
+  auto && slave_elements = this->mesh.getAssociatedElements(slave_node);
 
   // Check 1 : master node is not connected to elements connected to
   // slave node
   Vector<Real> slave_normal(spatial_dimension);
-  for (auto & element : slave_elements) {
-    if (element.kind() != _ek_regular) {
-      continue;
-    }
+  for (auto & element : filter_if(slave_elements, [](auto && element) {
+         return element.kind() == _ek_regular;
+       })) {
 
     auto && connectivity = this->mesh.getConnectivity(element);
 

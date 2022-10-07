@@ -187,7 +187,7 @@ void ElementGroup::addDimension(Int dimension) {
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::onNodesAdded(const Array<Idx> & /*new_nodes*/,
-                                const NewNodesEvent & event) {
+                                const NewNodesEvent & event [[gnu::unused]]) {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     // nodes might have changed in the connectivity

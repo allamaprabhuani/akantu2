@@ -450,7 +450,7 @@ void ShapeStructural<_ek_structural>::computeNtb(
     const Array<Idx> & filter_elements) const {
   constexpr auto itp_type = ElementClassProperty<type>::interpolation_type;
   constexpr auto nb_dof = ElementClass<type>::getNbDegreeOfFreedom();
-  constexpr auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
   const auto & shapes = this->shapes(itp_type, ghost_type);
 

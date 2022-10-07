@@ -68,7 +68,7 @@ build_tests:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
     - .build_release
-    - .build_all
+    - .build_tests
   needs:
     - job: build_libs:debian_bullseye_gcc
 

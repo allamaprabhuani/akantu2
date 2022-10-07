@@ -260,15 +260,20 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
 
   nb_element = x_el.size();
 
+  Array<Real> zeros(nb_element, spatial_dimension, 0.);
+
   const auto has_extra_normal =
       mesh.hasData<Real>("extra_normal", type, ghost_type);
-  Array<Real>::const_vector_iterator extra_normal [[gnu::unused]];
-  Array<Real>::const_vector_iterator extra_normal_begin [[gnu::unused]];
+  auto extra_normal_begin = make_const_view(zeros, spatial_dimension).begin();
+
   if (has_extra_normal) {
-    extra_normal = mesh.getData<Real>("extra_normal", type, ghost_type)
-                       .begin(spatial_dimension);
-    extra_normal_begin = extra_normal;
+    extra_normal_begin =
+        make_const_view(mesh.getData<Real>("extra_normal", type, ghost_type),
+                        spatial_dimension)
+            .begin();
   }
+
+  auto extra_normal = extra_normal_begin;
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (Idx elem = 0; elem < nb_element; ++elem, ++x_it) {
@@ -283,11 +288,7 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
     auto & J = *jacobians_it;
     Matrix<Real, nb_dofs, nb_dofs> R;
 
-    if (has_extra_normal) {
-      ElementClass<type>::computeRotationMatrix(R, X, *extra_normal);
-    } else {
-      ElementClass<type>::computeRotationMatrix(R, X, Vector<Real>(X.rows()));
-    }
+    ElementClass<type>::computeRotationMatrix(R, X, *extra_normal);
 
     const Int natural_space = ElementClass<type>::getNaturalSpaceDimension();
     const Int nb_nodes = ElementClass<type>::getNbNodesPerElement();
@@ -574,7 +575,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::onElementsAdded(
       continue;
     }
 
-    if (mesh.getKind(type) != kind) {
+    if (Mesh::getKind(type) != kind) {
       continue;
     }
 

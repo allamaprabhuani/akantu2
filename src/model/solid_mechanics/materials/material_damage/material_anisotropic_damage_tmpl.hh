@@ -116,7 +116,9 @@ namespace {
       A_diag(i, i) = oper(std::max(eig, 0.), i);
     }
 
-    return A_directions * A_diag * A_directions.transpose();
+    Matrix<Real, dim, dim> res =
+        A_directions * A_diag * A_directions.transpose();
+    return res;
   }
 
   template <Int dim, class D1, class D2, class Op>

@@ -9,44 +9,70 @@
 inline std::string ParaviewHelper::dataTypeToStr(DataType data_type) {
   std::string str;
   switch (data_type) {
-  case _bool   : str = "UInt8"  ; break;
-  case _uint   : str = "UInt32" ; break;
-  case _int    : str = "Int32"  ; break;
-  case _float  : str = "Float32"; break;
-  case _double : str = "Float64"; break;
-  case _uint64 : str = "UInt64" ; break;
-  case _int64  : str = "Int64"  ; break;
-  case _uint8  : str = "UInt8"  ; break;
+  case _bool:
+    str = "UInt8";
+    break;
+  case _uint:
+    str = "UInt32";
+    break;
+  case _int:
+    str = "Int32";
+    break;
+  case _float:
+    str = "Float32";
+    break;
+  case _double:
+    str = "Float64";
+    break;
+  case _uint64:
+    str = "UInt64";
+    break;
+  case _int64:
+    str = "Int64";
+    break;
+  case _uint8:
+    str = "UInt8";
+    break;
   }
   return str;
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::visitField(T & visited){
+template <typename T> inline void ParaviewHelper::visitField(T & visited) {
   this->position_flag = false;
   switch (current_stage) {
-  case _s_writeFieldProperty:   writeFieldProperty(visited); break;
-  case _s_writePosition:        this->position_flag = true;  /* FALLTHRU */
-  // [[fallthrough]] un-comment when compiler gets it
-  case _s_writeField:           writeField(visited);         break;
-  case _s_writeConnectivity:    writeConnectivity(visited);  break;
-  case _s_writeElemType:        writeElemType(visited);      break;
-  case _s_buildOffsets:         writeOffsets(visited);       break;
+  case _s_writeFieldProperty:
+    writeFieldProperty(visited);
+    break;
+  case _s_writePosition:
+    this->position_flag = true;
+    [[fallthrough]]; /* FALLTHRU */
+  case _s_writeField:
+    writeField(visited);
+    break;
+  case _s_writeConnectivity:
+    writeConnectivity(visited);
+    break;
+  case _s_writeElemType:
+    writeElemType(visited);
+    break;
+  case _s_buildOffsets:
+    writeOffsets(visited);
+    break;
   default:
     std::stringstream sstr;
-    sstr << "the stage " << current_stage << " is not a known paraviewhelper stage";
-    IOHELPER_THROW(sstr.str(),
-		   IOHelperException::_et_unknown_visitor_stage);
+    sstr << "the stage " << current_stage
+         << " is not a known paraview helper stage";
+    IOHELPER_THROW(sstr.str(), IOHelperException::_et_unknown_visitor_stage);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::writeFieldProperty(T & data){
+template <typename T> inline void ParaviewHelper::writeFieldProperty(T & data) {
   if (not static_cast<bool>(data.isHomogeneous()))
-    IOHELPER_THROW(std::string("try to write field property of a non homogeneous field"),
-		   IOHelperException::_et_non_homogeneous_data);
+    IOHELPER_THROW(
+        std::string("try to write field property of a non homogeneous field"),
+        IOHelperException::_et_non_homogeneous_data);
 
   UInt dim = data.getDim();
   std::string name = data.getName();
@@ -54,8 +80,7 @@ inline void ParaviewHelper::writeFieldProperty(T & data){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::writeField(T & data){
+template <typename T> inline void ParaviewHelper::writeField(T & data) {
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -69,8 +94,7 @@ inline void ParaviewHelper::writeField(T & data){
     for (; it != end; ++it) {
       pushData((*it), dim);
     }
-  }
-  else {
+  } else {
     for (; it != end; ++it) {
       pushData((*it));
     }
@@ -78,8 +102,7 @@ inline void ParaviewHelper::writeField(T & data){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::writeConnectivity(T & data) {
+template <typename T> inline void ParaviewHelper::writeConnectivity(T & data) {
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -98,8 +121,7 @@ inline void ParaviewHelper::writeConnectivity(T & data) {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::writeElemType(T & data){
+template <typename T> inline void ParaviewHelper::writeElemType(T & data) {
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
 
@@ -110,8 +132,7 @@ inline void ParaviewHelper::writeElemType(T & data){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline void ParaviewHelper::writeOffsets(T & data){
+template <typename T> inline void ParaviewHelper::writeOffsets(T & data) {
 
   typename T::iterator it = data.begin();
   typename T::iterator end = data.end();
@@ -142,19 +163,17 @@ inline void ParaviewHelper::pushData(const Cont & n, UInt dim) {
   using Idx = decltype(n.rows());
   for (Idx i = 0; i < Idx(dim); ++i) {
     for (Idx j = 0; j < Idx(dim); ++j) {
-      if(i >= n.rows() or j >= n.cols()) {
+      if (i >= n.rows() or j >= n.cols()) {
         pushDatum<T>(T(), dim);
       } else {
-        pushDatum<T>(n(i,j), dim);
+        pushDatum<T>(n(i, j), dim);
       }
     }
   }
 }
 
-
 /* -------------------------------------------------------------------------- */
-template <typename Cont>
-inline void ParaviewHelper::pushData(const Cont & n) {
+template <typename Cont> inline void ParaviewHelper::pushData(const Cont & n) {
   pushData(n, n.size());
 }
 
@@ -196,7 +215,7 @@ inline void ParaviewHelper::writePVTU(T & per_node_data, T & per_elem_data,
   file << "  <PCellData>" << std::endl;
   auto itElemField = per_elem_data.begin();
   auto endElemField = per_elem_data.end();
-  for (; itElemField != endElemField ; ++itElemField) {
+  for (; itElemField != endElemField; ++itElemField) {
     std::string name = (*itElemField).first;
     if (name == "connectivities" || name == "element_type") {
       continue;
@@ -232,7 +251,7 @@ void ParaviewHelper::pushDataFields(T & per_node_data, T & per_elem_data) {
       startData(f.getName(), f.getDim(), dataTypeToStr(f.getDataType()));
       pushField(f);
       endData();
-  }
+    }
   }
   endPointDataList();
 
@@ -248,15 +267,14 @@ void ParaviewHelper::pushDataFields(T & per_node_data, T & per_elem_data) {
       startData(f.getName(), f.getDim(), dataTypeToStr(f.getDataType()));
       pushField(f);
       endData();
-  }
+    }
   }
   endCellDataList();
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline  void ParaviewHelper::pushDatum(const T & n,
-				       __attribute__((unused)) UInt size){
+inline void ParaviewHelper::pushDatum(const T & n, UInt /*size*/) {
   if (bflag == BASE64) {
     b64.push<T>(n);
   } else {
@@ -270,8 +288,7 @@ inline  void ParaviewHelper::pushDatum(const T & n,
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline  void ParaviewHelper::pushDatum<double>(const double & n,
-					       UInt size){
+inline void ParaviewHelper::pushDatum<double>(const double & n, UInt size) {
   if (bflag == BASE64) {
     b64.push<double>(n);
   } else {
