@@ -54,12 +54,16 @@
     - cmake --build build/python
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
+  cache:
+    key: ${output}_${BUILD_TYPE}-build-tmp
+    policy: push
+    paths:
+      - build/
+      - third-party/eigen3
   artifacts:
     when: on_success
     paths:
-      - build/
       - build-${output}-err.log
-      - third-party/eigen3
       - compile_commands.json
     expire_in: 10h
   timeout: 5h
@@ -74,6 +78,12 @@
     - cmake --build build/examples
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
+  cache:
+    key: ${output}_${BUILD_TYPE}-build-tmp
+    policy: pull
+    paths:
+      - build/
+      - third-party/eigen3
   artifacts:
     when: on_success
     paths:
