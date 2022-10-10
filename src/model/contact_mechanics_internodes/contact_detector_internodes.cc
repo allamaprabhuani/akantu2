@@ -95,8 +95,6 @@ NodeGroup & ContactDetectorInternodes::getSlaveNodeGroup() {
 void ContactDetectorInternodes::findContactNodes() {
   auto & master_node_group = getMasterNodeGroup();
   auto & slave_node_group = getSlaveNodeGroup();
-  auto & master_radiuses = getMasterRadiuses();
-  auto & slave_radiuses = getSlaveRadiuses();
 
   bool still_isolated_nodes = true;
   int iteration = 0;
@@ -117,7 +115,7 @@ void ContactDetectorInternodes::findContactNodes() {
 
     master_node_group.optimize();
     slave_node_group.optimize();
-  };
+  }
 }
 
 /* -------------------------------------------------------------------------- */

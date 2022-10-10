@@ -173,18 +173,8 @@ void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
   auto & initial_master_node_group = detector->getMasterNodeGroup();
   auto & initial_slave_node_group = detector->getSlaveNodeGroup();
 
-  auto nb_initial_master_nodes = initial_master_node_group.getNodes().size();
-  auto nb_initial_slave_nodes = initial_slave_node_group.getNodes().size();
-
   auto & master_node_group = detector->getMasterNodeGroup();
   auto & slave_node_group = detector->getSlaveNodeGroup();
-
-  auto nb_master_nodes = master_node_group.getNodes().size();
-  auto nb_slave_nodes = slave_node_group.getNodes().size();
-
-  auto nb_nodes = mesh.getNbNodes();
-  auto nb_dofs = spatial_dimension * nb_nodes;
-  auto nb_constraint_dofs = spatial_dimension * nb_initial_master_nodes;
 
   // R matrices, need for calculations of blocks
   auto && R_master_slave = detector->constructInterpolationMatrix(
