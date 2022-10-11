@@ -266,7 +266,7 @@ Matrix<Real> ContactMechanicsInternodesModel::assembleInterfaceMass(
 
   // get interface mass for a node group
   this->assembleMatrix("M");
-  auto & M = this->dof_manager->getMatrix("M");
+  const auto & M = this->dof_manager->getMatrix("M");
 
   auto nb_contact_nodes = contact_node_group.size();
 
@@ -289,12 +289,9 @@ Matrix<Real> ContactMechanicsInternodesModel::assembleInterfaceMass(
         UInt idx_ref = i*spatial_dimension + dim;
         UInt idx = j*spatial_dimension + dim;
 
-        try {
-          M_contact(idx_ref, idx) = M(global_idx_ref, global_idx);
-        }
-        catch(...) {
-          M_contact(idx_ref, idx) = 0.;
-        }
+        // M must be constant otherwise the modifying overload of operator() is
+        // used, which throws if the entry is absent
+        M_contact(idx_ref, idx) = M(global_idx_ref, global_idx);
       }
     }
   }
