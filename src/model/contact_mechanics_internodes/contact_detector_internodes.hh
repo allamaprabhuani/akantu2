@@ -75,7 +75,8 @@ private:
 
   /// compute radius to detect contact nodes
   Array<UInt> computeRadiuses(Array<Real> & attack_radiuses,
-      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group);
+      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group,
+      Real c = 0.5, Real C = 0.95, Real d = 0.05, const UInt max_iter = 10);
 
   /// radial basis function
   Real computeRadialBasisInterpolation(Real distance, Real radius);

@@ -191,15 +191,11 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 /* -------------------------------------------------------------------------- */
 Array<UInt>
 ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
-    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group) {
-  // UInt n = 1; // fixed to 1 neareast neighboor
-  Real c = 0.5;  // conditition (2)
-  Real C = 0.95; // condition (3)
+    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group,
+    Real c, Real C, Real d, const UInt max_iter) {
   // maximum number of support nodes
   UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
-  Real d = 0.05;      // tolerance, for radius of "attack" estimation
-  UInt max_iter = 10; // maximum number of iterations
-
+ 
   Array<Real> distances_neighboors(ref_node_group.size());
   Array<Real> distances_opposites(eval_node_group.size());
 
