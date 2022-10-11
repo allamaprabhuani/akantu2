@@ -57,14 +57,6 @@
 # Build the libraries
 .build_libs:
   stage: build_libs
-  script:
-    - echo BUILD_TYPE=${BUILD_TYPE}
-    - cmake --build build/src
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/python
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
   cache:
     - key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
       policy: push
@@ -80,6 +72,15 @@
       policy: pull-push
       paths:
         - .ccache/
+  script:
+    - echo BUILD_TYPE=${BUILD_TYPE}
+    - cmake --build build/src
+      > >(tee -a build-${output}-out.log)
+      2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/python
+      > >(tee -a build-${output}-out.log)
+      2> >(tee -a build-${output}-err.log >&2)
+    - ls build/test
   artifacts:
     when: on_success
     paths:
