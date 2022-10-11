@@ -197,7 +197,7 @@ configure:python_package:
     - .build_release
   cache:
     - key: ${output}_${BUILD_TYPE}-ccache
-      policy: push-pull
+      policy: pull-push
       paths:
         - .ccache/
   script:
@@ -257,7 +257,7 @@ build_pip:python_package:
     - .manylinux_2010_x64_gcc
   cache:
     - key: ${output}_${BUILD_TYPE}-ccache
-      policy: push-pull
+      policy: pull-push
       paths:
         - .ccache/
   script:
