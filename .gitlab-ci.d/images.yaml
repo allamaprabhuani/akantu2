@@ -23,10 +23,6 @@
     CCACHE_BASEDIR: ${CI_PROJECT_DIR}/
     CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
     CCACHE_MAXSIZE: 1Gi
-  cache:
-    key: ${output}_${BUILD_TYPE}
-    paths:
-      - .ccache/
   before_script:
     - ccache --zero-stats || true
   after_script:

@@ -14,6 +14,10 @@
         - third-party/eigen3
         - third-party/pybind11
         - third-party/google-test
+    - key: ${output}_${BUILD_TYPE}-ccache
+      policy: push-pull
+      paths:
+        - .ccache/
   script:
     # Create the build folder
     - cmake -E make_directory build
@@ -68,6 +72,10 @@
         - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+    - key: ${output}_${BUILD_TYPE}-ccache
+      policy: push-pull
+      paths:
+        - .ccache/
   artifacts:
     when: on_success
     paths:
@@ -93,39 +101,16 @@
         - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+    - key: ${output}_${BUILD_TYPE}-ccache
+      policy: push-pull
+      paths:
+        - .ccache/
   artifacts:
     when: on_success
     paths:
       - build-${output}-err.log
       - compile_commands.json
     expire_in: 10h
-
-# Build all
-.build_all:
-  stage: build_libs
-  script:
-    - cmake --build build/src
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/python
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/test/
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/examples
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-  artifacts:
-    when: on_success
-    paths:
-      - build/
-      - build-${output}-err.log
-      - compile_commands.json
-    exclude:
-      - build/**/*.o
-    expire_in: 10h
-  timeout: 5h
 
 # Run the tests
 .tests:

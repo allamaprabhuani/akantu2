@@ -195,6 +195,11 @@ configure:python_package:
   extends:
     - .manylinux_2010_x64_gcc
     - .build_release
+  cache:
+    - key: ${output}_${BUILD_TYPE}-ccache
+      policy: push-pull
+      paths:
+        - .ccache/
   script:
     # create the build folder
     - cmake -E make_directory build
@@ -250,6 +255,11 @@ build_pip:python_package:
   extends:
     - .build_release
     - .manylinux_2010_x64_gcc
+  cache:
+    - key: ${output}_${BUILD_TYPE}-ccache
+      policy: push-pull
+      paths:
+        - .ccache/
   script:
     - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
     - export CMAKE_PREFIX_PATH=/softs/view:${CI_AKANTU_INSTALL_PREFIX}
