@@ -7,6 +7,13 @@
     BLA_VENDOR: "Generic"
     CMAKE_GENERATOR: "Unix Makefiles"
   #    CMAKE_GENERATOR: 'Ninja'
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: push
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
   script:
     # Create the build folder
     - cmake -E make_directory build
@@ -55,11 +62,12 @@
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   cache:
-    key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
-    policy: push
-    paths:
-      - build/
-      - third-party/eigen3
+    - key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
+      policy: push
+      paths:
+        - build/
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
   artifacts:
     when: on_success
     paths:
@@ -79,11 +87,12 @@
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   cache:
-    key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
-    policy: pull-push
-    paths:
-      - build/
-      - third-party/eigen3
+    - key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
+      policy: pull-push
+      paths:
+        - build/
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
   artifacts:
     when: on_success
     paths:
@@ -143,7 +152,6 @@
   cache:
     key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
     policy: pull
-
   artifacts:
     when: always
     expire_in: 2 days

@@ -310,6 +310,9 @@ package:python_pypi:
 cq:code_quality:
   extends:
     - .code_quality_gitlab_template
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -319,6 +322,9 @@ cq:code_quality:
 cq:clang_tidy:
   extends:
     - .clang_tools
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
   script:
     - test/ci/scripts/cq
             -x third-party
@@ -338,6 +344,9 @@ cq:clang_tidy:
 cq:clang_format:
   extends:
     - .clang_tools
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
   script:
     - test/ci/scripts/cq
             -x third-party
