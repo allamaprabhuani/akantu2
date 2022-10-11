@@ -323,6 +323,10 @@ cq:code_quality:
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -335,6 +339,10 @@ cq:clang_tidy:
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
   script:
     - test/ci/scripts/cq
             -x third-party
@@ -354,9 +362,6 @@ cq:clang_tidy:
 cq:clang_format:
   extends:
     - .clang_tools
-  cache:
-    - key: ${CI_COMMIT_REF_SLUG}-third-party
-      policy: pull
   script:
     - test/ci/scripts/cq
             -x third-party

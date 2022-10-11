@@ -72,6 +72,10 @@
         - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
     - key: ${output}_${BUILD_TYPE}-ccache
       policy: pull-push
       paths:
@@ -94,6 +98,10 @@
         - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
     - key: ${output}_${BUILD_TYPE}-ccache
       policy: pull-push
       paths:
