@@ -55,7 +55,7 @@
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   cache:
-    key: ${output}_${BUILD_TYPE}-build-tmp
+    key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
     policy: push
     paths:
       - build/
@@ -79,19 +79,16 @@
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   cache:
-    key: ${output}_${BUILD_TYPE}-build-tmp
-    policy: pull
+    key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
+    policy: pull-push
     paths:
       - build/
       - third-party/eigen3
   artifacts:
     when: on_success
     paths:
-      - build/
       - build-${output}-err.log
       - compile_commands.json
-    exclude:
-      - build/**/*.o
     expire_in: 10h
 
 # Build all
@@ -143,6 +140,10 @@
       --object-directory ${CI_PROJECT_DIR}/build
       --root ${CI_PROJECT_DIR}  -s || true
     - fi
+  cache:
+    key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
+    policy: pull
+
   artifacts:
     when: always
     expire_in: 2 days
