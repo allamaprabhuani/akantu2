@@ -15,7 +15,7 @@
         - third-party/pybind11
         - third-party/google-test
     - key: ${output}_${BUILD_TYPE}-ccache
-      policy: push-pull
+      policy: pull-push
       paths:
         - .ccache/
   script:
@@ -73,7 +73,7 @@
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
     - key: ${output}_${BUILD_TYPE}-ccache
-      policy: push-pull
+      policy: pull-push
       paths:
         - .ccache/
   artifacts:
@@ -87,13 +87,6 @@
 # build the tests
 .build_tests:
   stage: build_tests
-  script:
-    - cmake --build build/test
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/examples
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
   cache:
     - key: ${output}_${BUILD_TYPE}_build_${CI_COMMIT_SHORT_SHA}
       policy: pull-push
@@ -102,9 +95,16 @@
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
     - key: ${output}_${BUILD_TYPE}-ccache
-      policy: push-pull
+      policy: pull-push
       paths:
         - .ccache/
+  script:
+    - cmake --build build/test
+      > >(tee -a build-${output}-out.log)
+      2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build/examples
+      > >(tee -a build-${output}-out.log)
+      2> >(tee -a build-${output}-err.log >&2)
   artifacts:
     when: on_success
     paths:
