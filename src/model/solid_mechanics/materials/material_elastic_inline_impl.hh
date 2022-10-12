@@ -85,19 +85,21 @@ MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
   constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
 
   // Real Ep = E/((1+nu)*(1-2*nu));
+
+  if constexpr (dim == 1) {
+    tangent(0, 0) = this->E;
+    return;
+  }
+
   auto Miiii = lambda + 2 * mu;
   auto Miijj = lambda;
   auto Mijij = mu;
 
-  if (dim == 1) {
-    tangent(0, 0) = this->E;
-  } else {
-    tangent(0, 0) = Miiii;
-  }
+  tangent(0, 0) = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the
   // template
-  if (dim >= 2) {
+  if constexpr (dim >= 2) {
     tangent(1, 1) = Miiii;
     tangent(0, 1) = Miijj;
     tangent(1, 0) = Miijj;
@@ -105,7 +107,7 @@ MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
     tangent(n - 1, n - 1) = Mijij;
   }
 
-  if (dim == 3) {
+  if constexpr (dim == 3) {
     tangent(2, 2) = Miiii;
     tangent(0, 2) = Miijj;
     tangent(1, 2) = Miijj;
@@ -116,14 +118,6 @@ MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
     tangent(4, 4) = Mijij;
   }
 }
-
-/* -------------------------------------------------------------------------- */
-// template <>
-// template <typename Derived>
-// inline void MaterialElastic<1>::computeTangentModuliOnQuad(
-//     Eigen::MatrixBase<Derived> & tangent) const {
-//   tangent(0, 0) = E;
-// }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>

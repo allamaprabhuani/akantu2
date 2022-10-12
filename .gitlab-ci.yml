@@ -196,7 +196,7 @@ configure:python_package:
     - .manylinux_2010_x64_gcc
     - .build_release
   cache:
-    - key: ${output}_${BUILD_TYPE}-ccache
+    - key: ${output}-${BUILD_TYPE}-ccache
       policy: pull-push
       paths:
         - .ccache/
@@ -256,7 +256,7 @@ build_pip:python_package:
     - .build_release
     - .manylinux_2010_x64_gcc
   cache:
-    - key: ${output}_${BUILD_TYPE}-ccache
+    - key: ${output}-${BUILD_TYPE}-ccache
       policy: pull-push
       paths:
         - .ccache/
@@ -320,13 +320,6 @@ package:python_pypi:
 cq:code_quality:
   extends:
     - .code_quality_gitlab_template
-  cache:
-    - key: ${CI_COMMIT_REF_SLUG}-third-party
-      policy: pull
-      paths:
-        - third-party/eigen3
-        - third-party/pybind11
-        - third-party/google-test
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -336,13 +329,6 @@ cq:code_quality:
 cq:clang_tidy:
   extends:
     - .clang_tools
-  cache:
-    - key: ${CI_COMMIT_REF_SLUG}-third-party
-      policy: pull
-      paths:
-        - third-party/eigen3
-        - third-party/pybind11
-        - third-party/google-test
   script:
     - test/ci/scripts/cq
             -x third-party

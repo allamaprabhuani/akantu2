@@ -96,24 +96,28 @@ template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::updateInternalParameters() {
   MaterialElastic<dim>::updateInternalParameters();
 
-  Real pre_mult = 1 / (1 + this->nu) / (1 - 2 * this->nu);
-  UInt n = voigt_h::size;
-  Real Miiii = pre_mult * (1 - this->nu);
-  Real Miijj = pre_mult * this->nu;
-  Real Mijij = pre_mult * 0.5 * (1 - 2 * this->nu);
+  [[maybe_unused]] auto pre_mult = 1 / (1 + this->nu) / (1 - 2 * this->nu);
 
-  Real Diiii = 1;
-  Real Diijj = -this->nu;
-  Real Dijij = (2 + 2 * this->nu);
+  [[maybe_unused]] auto Miiii = pre_mult * (1 - this->nu);
+  [[maybe_unused]] auto Miijj = pre_mult * this->nu;
+  [[maybe_unused]] auto Mijij = pre_mult * 0.5 * (1 - 2 * this->nu);
 
-  if (dim == 1) {
+  [[maybe_unused]] auto Diiii = 1;
+  [[maybe_unused]] auto Diijj = -this->nu;
+  [[maybe_unused]] auto Dijij = (2 + 2 * this->nu);
+
+  C.zero();
+  D.zero();
+
+  if constexpr (dim == 1) {
     C(0, 0) = 1;
     D(0, 0) = 1;
   } else {
     C(0, 0) = Miiii;
     D(0, 0) = Diiii;
   }
-  if (dim >= 2) {
+  if constexpr (dim >= 2) {
+    auto n = voigt_h::size;
     C(1, 1) = Miiii;
     C(0, 1) = Miijj;
     C(1, 0) = Miijj;
@@ -125,7 +129,7 @@ void MaterialViscoelasticMaxwell<dim>::updateInternalParameters() {
     D(n - 1, n - 1) = Dijij;
   }
 
-  if (dim == 3) {
+  if constexpr (dim == 3) {
     C(2, 2) = Miiii;
     C(0, 2) = Miijj;
     C(1, 2) = Miijj;
@@ -142,33 +146,6 @@ void MaterialViscoelasticMaxwell<dim>::updateInternalParameters() {
     D(3, 3) = Dijij;
     D(4, 4) = Dijij;
   }
-}
-
-/* -------------------------------------------------------------------------- */
-template <> void MaterialViscoelasticMaxwell<2>::updateInternalParameters() {
-  MaterialElastic<2>::updateInternalParameters();
-
-  Real pre_mult = 1 / (1 + this->nu) / (1 - 2 * this->nu);
-  UInt n = voigt_h::size;
-  Real Miiii = pre_mult * (1 - this->nu);
-  Real Miijj = pre_mult * this->nu;
-  Real Mijij = pre_mult * 0.5 * (1 - 2 * this->nu);
-
-  Real Diiii = 1;
-  Real Diijj = -this->nu;
-  Real Dijij = (2 + 2 * this->nu);
-
-  C(0, 0) = Miiii;
-  C(1, 1) = Miiii;
-  C(0, 1) = Miijj;
-  C(1, 0) = Miijj;
-  C(n - 1, n - 1) = Mijij;
-
-  D(0, 0) = Diiii;
-  D(1, 1) = Diiii;
-  D(0, 1) = Diijj;
-  D(1, 0) = Diijj;
-  D(n - 1, n - 1) = Dijij;
 }
 
 /* -------------------------------------------------------------------------- */
