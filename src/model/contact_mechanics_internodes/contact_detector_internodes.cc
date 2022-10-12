@@ -113,6 +113,13 @@ void ContactDetectorInternodes::findContactNodes() {
       }
     }
 
+    for (auto && data : enumerate(slave_node_group.getNodes())) {
+      if (nb_slave_nodes_inside_radius(std::get<0>(data)) == 0) {
+        slave_node_group.remove(std::get<1>(data));
+        still_isolated_nodes = true;
+      }
+    }
+
     master_node_group.optimize();
     slave_node_group.optimize();
   }
