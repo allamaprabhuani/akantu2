@@ -215,10 +215,18 @@ public:
     Parameter::setAuto(value);
     if constexpr (n == 1) {
       Vector<Real> tmp = value;
-      param = tmp.block(0, 0, param.rows(), 1);
+      if (param.rows() != 0) {
+        param = tmp.block(0, 0, param.rows(), 1);
+      } else {
+        param = tmp;
+      }
     } else {
       Matrix<Real> tmp = value;
-      param = tmp.block(0, 0, param.rows(), param.cols());
+      if (param.rows() != 0 and param.cols() != 0) {
+        param = tmp.block(0, 0, param.rows(), param.cols());
+      } else {
+        param = tmp;
+      }
     }
   }
 

@@ -52,7 +52,7 @@ namespace akantu {
   (heat)                                                                \
   (integration_scheme)                                                  \
   (material)                                                            \
-  (phasefield)								\
+  (phasefield)                                                          \
   (mesh)                                                                \
   (model)                                                               \
   (model_solver)                                                        \
@@ -65,8 +65,8 @@ namespace akantu {
   (time_step_solver)                                                    \
   (user)                                                                \
   (weight_function)                                                     \
-  (contact_detector)							\
-  (contact_resolution)							\
+  (contact_detector)                                                    \
+  (contact_resolution)                                                  \
   (not_defined)
 // clang-format on
 

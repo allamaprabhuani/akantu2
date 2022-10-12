@@ -110,7 +110,8 @@ public:
   template <typename D1, typename D2>
   void updateIntVarOnQuad(const Eigen::MatrixBase<D1> & grad_u,
                           const Eigen::MatrixBase<D2> & previous_grad_u,
-                          Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v);
+                          Tensor3Proxy<Real> & sigma_v,
+                          Tensor3Proxy<Real> & epsilon_v);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
@@ -132,8 +133,8 @@ public:
 protected:
   template <typename D>
   void computePotentialEnergyOnQuad(const Eigen::MatrixBase<D> & grad_u,
-                                    Real & epot, Tensor3<Real> & sigma_v,
-                                    Tensor3<Real> & epsilon_v);
+                                    Real & epot, Tensor3Proxy<Real> & sigma_v,
+                                    Tensor3Proxy<Real> & epsilon_v);
 
   /// update the dissipated energy, is called after the stress have been
   /// computed
@@ -153,7 +154,7 @@ protected:
   void computeStressOnQuad(const Eigen::MatrixBase<D1> & grad_u,
                            const Eigen::MatrixBase<D2> & previous_grad_u,
                            Eigen::MatrixBase<D3> & sigma,
-                           Tensor3<Real> & sigma_v, const Real & sigma_th);
+                           Tensor3Proxy<Real> & sigma_v, const Real & sigma_th);
 
   /// compute tangent moduli on a quadrature point
   template <typename D1>

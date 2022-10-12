@@ -194,9 +194,8 @@ void MaterialViscoelasticMaxwell<dim>::computeStress(ElementType el_type,
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  Tensor3<Real> sigma_v = *sigma_v_it;
-
-  computeStressOnQuad(grad_u, *previous_gradu_it, sigma, sigma_v, *sigma_th_it);
+  computeStressOnQuad(grad_u, *previous_gradu_it, sigma, *sigma_v_it,
+                      *sigma_th_it);
 
   ++sigma_th_it;
   ++previous_gradu_it;
@@ -213,36 +212,36 @@ template <typename D1, typename D2, typename D3>
 void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
     const Eigen::MatrixBase<D1> & grad_u,
     const Eigen::MatrixBase<D2> & previous_grad_u,
-    Eigen::MatrixBase<D3> & sigma, Tensor3<Real> & sigma_v,
+    Eigen::MatrixBase<D3> & sigma, Tensor3Proxy<Real> & sigma_v,
     const Real & sigma_th) {
   Real dt = this->model.getTimeStep();
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
-  Vector<Real, voigt_h::size> voigt_current_strain =
+  auto voigt_current_strain =
       Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_u));
-  Vector<Real, voigt_h::size> voigt_previous_strain =
-      Material::strainToVoigt<dim>(
-          Material::gradUToEpsilon<dim>(previous_grad_u));
+  auto voigt_previous_strain = Material::strainToVoigt<dim>(
+      Material::gradUToEpsilon<dim>(previous_grad_u));
 
   Vector<Real, voigt_h::size> voigt_stress =
       this->Einf * this->C * voigt_current_strain;
 
-  auto stress = this->C * (voigt_current_strain - voigt_previous_strain);
+  Vector<Real, voigt_h::size> stress =
+      this->C * (voigt_current_strain - voigt_previous_strain);
 
-  for (Int k = 0; k < Eta.size(); ++k) {
-    auto lambda = this->Eta(k) / this->Ev(k);
+  for (auto && [Eta, Ev, sigma] : zip(this->Eta, this->Ev, sigma_v)) {
+    auto lambda = Eta / Ev;
     auto exp_dt_lambda = exp(-dt / lambda);
     Real E_additional;
 
     if (exp_dt_lambda == 1) {
-      E_additional = this->Ev(k);
+      E_additional = Ev;
     } else {
-      E_additional = (1 - exp_dt_lambda) * this->Ev(k) * lambda / dt;
+      E_additional = (1 - exp_dt_lambda) * Ev * lambda / dt;
     }
 
     voigt_stress += E_additional * stress +
-                    exp_dt_lambda * Material::stressToVoigt<dim>(sigma_v(k));
+                    exp_dt_lambda * Material::stressToVoigt<dim>(sigma);
   }
 
   for (Int I = 0; I < voigt_h::size; ++I) {
@@ -267,9 +266,7 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergy(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
-  Tensor3<Real> sigma_v = *sigma_v_it;
-  Tensor3<Real> epsilon_v = *epsilon_v_it;
-  this->computePotentialEnergyOnQuad(grad_u, *epot, sigma_v, epsilon_v);
+  this->computePotentialEnergyOnQuad(grad_u, *epot, *sigma_v_it, *epsilon_v_it);
 
   ++epot;
   ++sigma_v_it;
@@ -284,12 +281,13 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergy(
 template <Int dim>
 template <typename D1>
 void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
-    const Eigen::MatrixBase<D1> & grad_u, Real & epot, Tensor3<Real> & sigma_v,
-    Tensor3<Real> & epsilon_v) {
+    const Eigen::MatrixBase<D1> & grad_u, Real & epot,
+    Tensor3Proxy<Real> & sigma_v, Tensor3Proxy<Real> & epsilon_v) {
 
   auto voigt_strain =
       Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_u));
-  auto voigt_stress = this->Einf * this->C * voigt_strain;
+  Vector<Real, voigt_h::size> voigt_stress =
+      this->Einf * this->C * voigt_strain;
 
   epot = 0.5 * voigt_stress.dot(voigt_strain);
 
@@ -303,7 +301,6 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::afterSolveStep(bool converged) {
-
   Material::afterSolveStep(converged);
 
   if (not converged) {
@@ -324,10 +321,8 @@ void MaterialViscoelasticMaxwell<dim>::afterSolveStep(bool converged) {
 
       MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
-      Tensor3<Real> sigma_v = *sigma_v_it;
-      Tensor3<Real> epsilon_v = *epsilon_v_it;
-
-      updateIntVarOnQuad(grad_u, *previous_gradu_it, sigma_v, epsilon_v);
+      updateIntVarOnQuad(grad_u, *previous_gradu_it, *sigma_v_it,
+                         *epsilon_v_it);
 
       ++previous_gradu_it;
       ++sigma_v_it;
@@ -343,15 +338,14 @@ template <Int dim>
 template <typename D1, typename D2>
 void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
     const Eigen::MatrixBase<D1> & grad_u,
-    const Eigen::MatrixBase<D2> & previous_grad_u, Tensor3<Real> & sigma_v,
-    Tensor3<Real> & epsilon_v) {
+    const Eigen::MatrixBase<D2> & previous_grad_u, Tensor3Proxy<Real> & sigma_v,
+    Tensor3Proxy<Real> & epsilon_v) {
 
-  Matrix<Real> grad_delta_u(grad_u);
-  grad_delta_u -= previous_grad_u;
+  Matrix<Real, dim, dim> grad_delta_u = grad_u - previous_grad_u;
 
   Real dt = this->model.getTimeStep();
 
-  Vector<Real, voigt_h::size> voigt_delta_strain =
+  auto voigt_delta_strain =
       Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_delta_u));
 
   for (Idx k = 0; k < this->Eta.size(); ++k) {
@@ -365,8 +359,7 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
       E_ef_v = (1 - exp_dt_lambda) * this->Ev(k) * lambda / dt;
     }
 
-    Vector<Real, voigt_h::size> voigt_sigma_v =
-        Material::stressToVoigt<dim>(sigma_v(k));
+    auto voigt_sigma_v = Material::stressToVoigt<dim>(sigma_v(k));
 
     Vector<Real, voigt_h::size> voigt_epsilon_v =
         exp_dt_lambda * voigt_sigma_v + E_ef_v * this->C * voigt_delta_strain;
@@ -430,8 +423,6 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::updateIntVariables() {
 
     auto previous_gradu_it =
         this->gradu.previous(el_type, _not_ghost).begin(dim, dim);
-    auto previous_sigma_it =
-        this->stress.previous(el_type, _not_ghost).begin(dim, dim);
 
     auto sigma_v_it =
         this->sigma_v(el_type, _not_ghost).begin(dim, dim, this->Eta.size());
@@ -441,10 +432,7 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::updateIntVariables() {
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
-    Tensor3<Real> sigma_v = *sigma_v_it;
-    Tensor3<Real> epsilon_v = *epsilon_v_it;
-
-    updateIntVarOnQuad(grad_u, *previous_gradu_it, sigma_v, epsilon_v);
+    updateIntVarOnQuad(grad_u, *previous_gradu_it, *sigma_v_it, *epsilon_v_it);
 
     ++previous_gradu_it;
     ++sigma_v_it;

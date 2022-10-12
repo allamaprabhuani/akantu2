@@ -280,7 +280,7 @@ namespace parser {
         cols = std::max(cols, it_rows->_cells.size());
       }
 
-      Matrix<Real> tmp(_cells.size(), _cells[0]._cells.size());
+      Matrix<Real> tmp(_cells.size(), cols);
       tmp.fill(0.);
 
       it_rows = _cells.begin();

@@ -46,7 +46,7 @@ using namespace akantu;
 /* Main                                                                       */
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   akantu::initialize("material_viscoelastic_maxwell.dat", argc, argv);
 
   // sim data
@@ -71,14 +71,13 @@ int main(int argc, char *argv[]) {
   std::ofstream output_data;
   output_data.open(filename_sstr.str().c_str());
 
-  Material &mat = model.getMaterial(0);
+  Material & mat = model.getMaterial(0);
 
   Real time_step = 0.1;
 
-  Int nb_nodes = mesh.getNbNodes();
-  const Array<Real> &coordinate = mesh.getNodes();
-  Array<Real> &displacement = model.getDisplacement();
-  Array<bool> &blocked = model.getBlockedDOFs();
+  const Array<Real> & coordinate = mesh.getNodes();
+  Array<Real> & displacement = model.getDisplacement();
+  Array<bool> & blocked = model.getBlockedDOFs();
 
   /// Setting time step
 
@@ -96,7 +95,7 @@ int main(int argc, char *argv[]) {
   Int max_steps = sim_time / time_step + 1;
   Real time = 0.;
 
-  auto &solver = model.getNonLinearSolver();
+  auto & solver = model.getNonLinearSolver();
   solver.set("max_iterations", 10);
   solver.set("threshold", 1e-7);
   solver.set("convergence_type", SolveConvergenceCriteria::_residual);
@@ -117,33 +116,32 @@ int main(int argc, char *argv[]) {
       epsilon = eps;
     }
 
-    for (Int n = 0; n < nb_nodes; ++n) {
-      if (Math::are_float_equal(coordinate(n, 0), 0.0)) {
-        displacement(n, 0) = 0;
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 1), 0.0)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = 0;
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 0), 0.001)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 1), 0.001)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
+    for (auto && [coord, disp, block] :
+         zip(make_view(coordinate, dim), make_view(displacement, dim),
+             make_view(blocked, dim))) {
+      if (Math::are_float_equal(coord(_x), 0.0)) {
+        disp(_x) = 0;
+        disp(_y) = epsilon * coord(_y);
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_y), 0.0)) {
+        disp(_x) = epsilon * coord(_x);
+        disp(_y) = 0;
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_x), 0.001)) {
+        disp = epsilon * coord;
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_y), 0.001)) {
+        disp = epsilon * coord;
+        block.set(true);
       }
     }
 
     try {
       model.solveStep();
-    } catch (debug::Exception &e) {
+    } catch (debug::NLSNotConvergedException & e) {
+      std::cout << "Didn't converge after " << e.niter
+                << " iterations. Error is " << e.error << std::endl;
+      return EXIT_FAILURE;
     }
 
     // for debugging
@@ -152,16 +150,7 @@ int main(int argc, char *argv[]) {
     // K.saveMatrix("K.mtx");
 
     Int nb_iter = solver.get("nb_iterations");
-    Real error = solver.get("error");
-    bool converged = solver.get("converged");
-
-    if (converged) {
-      std::cout << "Converged in " << nb_iter << " iterations" << std::endl;
-    } else {
-      std::cout << "Didn't converge after " << nb_iter
-                << " iterations. Error is " << error << std::endl;
-      return EXIT_FAILURE;
-    }
+    std::cout << "Converged in " << nb_iter << " iterations" << std::endl;
 
     model.dump();
 

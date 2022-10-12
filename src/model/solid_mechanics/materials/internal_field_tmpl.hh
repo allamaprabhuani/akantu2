@@ -53,8 +53,8 @@ template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, FEEngine & fem,
     const ElementTypeMapArray<Idx> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()),
-      material(material), fem(&fem), element_filter(element_filter),
+    : ElementTypeMapArray<T>(id, material.getID()), material(material),
+      fem(&fem), element_filter(element_filter),
       spatial_dimension(material.getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
@@ -62,9 +62,8 @@ template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, Int dim, FEEngine & fem,
     const ElementTypeMapArray<Idx> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()),
-      material(material), fem(&fem), element_filter(element_filter),
-      spatial_dimension(dim) {}
+    : ElementTypeMapArray<T>(id, material.getID()), material(material),
+      fem(&fem), element_filter(element_filter), spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
@@ -113,6 +112,7 @@ void InternalFieldTmpl<Material, T>::initializeHistory() {
   if (!previous_values) {
     previous_values = std::make_unique<InternalFieldTmpl<Material, T>>(
         "previous_" + this->getID(), *this);
+    previous_values->reset();
   }
 }
 
@@ -163,8 +163,8 @@ void InternalFieldTmpl<Material, T>::reset() {
     for (const auto & type : this->elementTypes(ghost_type)) {
       Array<T> & vect = (*this)(type, ghost_type);
       // vect.zero();
-      this->setArrayValues(
-          vect.data(), vect.data() + vect.size() * vect.getNbComponent());
+      this->setArrayValues(vect.data(),
+                           vect.data() + vect.size() * vect.getNbComponent());
     }
   }
 }
