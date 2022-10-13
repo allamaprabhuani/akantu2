@@ -59,10 +59,6 @@
 .build_libs:
   stage: build_libs
   cache:
-    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: push
-      paths:
-        - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
       paths:
@@ -87,6 +83,7 @@
     paths:
       - build-${output}-err.log
       - compile_commands.json
+      - build
     expire_in: 10h
   timeout: 5h
 
@@ -94,10 +91,6 @@
 .build_tests:
   stage: build_tests
   cache:
-    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: pull-push
-      paths:
-        - build/
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: pull
       paths:
@@ -122,16 +115,14 @@
     paths:
       - build-${output}-err.log
       - compile_commands.json
+      - build
+    exclude:
+      - build/**/*.o
     expire_in: 10h
 
 # Run the tests
 .tests:
   stage: test
-  cache:
-    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: pull
-      paths:
-        - build/
   script:
     - cd build
     - ctest -T test --output-on-failure --no-compress-output --timeout 1800

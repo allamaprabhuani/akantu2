@@ -160,6 +160,21 @@ configure:ubuntu_lts_gcc_valgrind:
     - .ubuntu_lts_gcc
     - .build_valgrind
     - .configure
+  cache:
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: push
+      paths:
+        - build/
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: push
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
+    - key: ${output}-${BUILD_TYPE}-ccache
+      policy: pull-push
+      paths:
+        - .ccache/
   needs:
     - version_determination
 
@@ -168,14 +183,50 @@ build_libs:ubuntu_lts_gcc_valgrind:
     - .ubuntu_lts_gcc
     - .build_valgrind
     - .build_libs
+  cache:
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull-push
+      paths:
+        - build/
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
+    - key: ${output}-${BUILD_TYPE}-ccache
+      policy: pull-push
+      paths:
+        - .ccache/
   needs:
     - job: configure:ubuntu_lts_gcc_valgrind
+  artifacts:
+    when: on_success
+    paths:
+      - build-${output}-err.log
+      - compile_commands.json
+    expire_in: 10h
 
 build_tests:ubuntu_lts_gcc_valgrind:
   extends:
     - .ubuntu_lts_gcc
     - .build_valgrind
     - .build_tests
+  cache:
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull
+      paths:
+        - build/
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
+    - key: ${output}-${BUILD_TYPE}-ccache
+      policy: pull-push
+      paths:
+        - .ccache/
   needs:
     - job: build_libs:ubuntu_lts_gcc_valgrind
 

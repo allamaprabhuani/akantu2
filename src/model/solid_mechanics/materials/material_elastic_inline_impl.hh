@@ -92,8 +92,8 @@ MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
   }
 
   auto Miiii = lambda + 2 * mu;
-  auto Miijj = lambda;
-  auto Mijij = mu;
+  [[maybe_unused]] auto Miijj = lambda;
+  [[maybe_unused]] auto Mijij = mu;
 
   tangent(0, 0) = Miiii;
 
