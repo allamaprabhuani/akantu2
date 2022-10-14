@@ -19,6 +19,10 @@
       policy: pull-push
       paths:
         - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: push
+      paths:
+        - build/
   script:
     # Create the build folder
     - cmake -E make_directory build
@@ -69,6 +73,10 @@
       policy: pull-push
       paths:
         - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull-push
+      paths:
+        - build/
   script:
     - echo BUILD_TYPE=${BUILD_TYPE}
     - cmake --build build/src
@@ -101,6 +109,10 @@
       policy: pull-push
       paths:
         - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull
+      paths:
+        - build/
   script:
     - ls
     - ls build
