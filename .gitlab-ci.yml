@@ -200,6 +200,10 @@ configure:python_package:
       policy: pull-push
       paths:
         - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: push
+      paths:
+        - build/
   script:
     # create the build folder
     - cmake -E make_directory build
@@ -229,7 +233,6 @@ configure:python_package:
   artifacts:
     when: on_success
     paths:
-      - build/
       - VERSION
     expire_in: 10h
 
@@ -260,6 +263,10 @@ build_pip:python_package:
       policy: pull-push
       paths:
         - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull
+      paths:
+        - build/
   script:
     - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
     - export CMAKE_PREFIX_PATH=/softs/view:${CI_AKANTU_INSTALL_PREFIX}
