@@ -91,7 +91,6 @@
     paths:
       - build-${output}-err.log
       - compile_commands.json
-      - build
     expire_in: 10h
   timeout: 5h
 
