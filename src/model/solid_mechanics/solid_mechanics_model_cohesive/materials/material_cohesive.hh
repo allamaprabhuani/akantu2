@@ -84,7 +84,7 @@ public:
                                  Array<Real> & /*result*/) {}
 
   /// compute the stresses
-  void computeAllStresses(GhostType /*ghost_type*/ = _not_ghost) override{};
+  void computeAllStresses(GhostType /*ghost_type*/ = _not_ghost) final{};
 
   // add the facet to be handled by the material
   UInt addFacet(const Element & element);
