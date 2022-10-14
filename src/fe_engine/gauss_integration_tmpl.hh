@@ -125,7 +125,7 @@ namespace _aka_gauss_helpers {
         -> Vector<Real,
                   GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
       constexpr auto nb_points = git_np::nb_points;
-      using Vector = Eigen::Matrix<Real, nb_points>;
+      using Vector = Eigen::Matrix<Real, nb_points, 1>;
       Vector weights = Eigen::Map<const Vector>(git_data::quad_weights);
       return weights;
     }
