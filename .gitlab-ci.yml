@@ -197,17 +197,14 @@ configure:python_package:
     - .build_release
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
-      policy: pull
       paths:
         - third-party/eigen3
         - third-party/pybind11
         - third-party/google-test
-     - key: ${output}-${BUILD_TYPE}-ccache
-      policy: pull-push
+    - key: ${output}-${BUILD_TYPE}-ccache
       paths:
         - .ccache/
     - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: push
       paths:
         - build/
   script:
@@ -266,17 +263,14 @@ build_pip:python_package:
     - .manylinux_2010_x64_gcc
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
-      policy: pull
       paths:
         - third-party/eigen3
         - third-party/pybind11
         - third-party/google-test
     - key: ${output}-${BUILD_TYPE}-ccache
-      policy: pull-push
       paths:
         - .ccache/
     - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: pull
       paths:
         - build/
   script:
