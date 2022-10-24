@@ -47,9 +47,7 @@ public:
   ResolutionPenaltyQuadratic(ContactMechanicsModel & model, const ID & id = "");
 
   ~ResolutionPenaltyQuadratic() override = default;
-
-  /// Penalty type to be used for penetration function
-  PenaltyType penalty_type;
+  
 };
 
 } // namespace akantu
