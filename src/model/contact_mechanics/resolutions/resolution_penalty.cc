@@ -38,11 +38,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ResolutionPenalty::ResolutionPenalty(ContactMechanicsModel & model,
-                                     const ID & id)
+                                     const ID & id, PenaltyType penalty_type)
     : Resolution(model, id) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
+  this->penalty_type = penalty_type;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +58,13 @@ void ResolutionPenalty::initialize() {
 
 /* -------------------------------------------------------------------------- */
 Real ResolutionPenalty::computeNormalTraction(Real & gap) const {
-  return epsilon_n * macaulay(gap);
+  switch(this->penalty_type) {
+  case penalty_linear:
+    return epsilon_n * macaulay(gap);
+  case penalty_quadratic:
+    return epsilon_n * (macaulay(gap) * macaulay(gap) + macaulay(gap));
+  default: AKANTU_ERROR("This case should not happen!!");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -384,7 +391,15 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   tmp.mul<false, false>(n_outer_n, A);
 
   k_main.mul<true, false>(A, tmp);
-  k_main *= epsilon_n * heaviside(gap) * nodal_area;
+  switch(this->penalty_type) {
+  case penalty_linear:
+    k_main *= epsilon_n * heaviside(gap) * nodal_area;
+    break;
+  case penalty_quadratic:
+    k_main *= epsilon_n * heaviside(gap) * (2 * gap + 1) * nodal_area;
+    break;
+  default: AKANTU_ERROR("This case should not happen!!");
+  }
 
   // construct the rotational part of the normal matrix
   auto & tangents = model.getTangents();
@@ -451,8 +466,17 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
     }
   }
 
-  k_rot1 *= -epsilon_n * heaviside(gap) * gap * nodal_area;
-  k_rot2 *= -epsilon_n * heaviside(gap) * gap * nodal_area;
+  switch(this->penalty_type) {
+  case penalty_linear:
+    k_rot1 *= -epsilon_n * heaviside(gap) * gap * nodal_area;
+    k_rot2 *= -epsilon_n * heaviside(gap) * gap * nodal_area;
+    break;
+  case penalty_quadratic:
+    k_rot1 *= -epsilon_n * heaviside(gap) * (gap * gap + gap) * nodal_area;
+    k_rot2 *= -epsilon_n * heaviside(gap) * (gap * gap + gap) * nodal_area;
+    break;
+  default: AKANTU_ERROR("This case should not happen!!");
+  }
 
   stiffness += k_main + k_rot1 + k_rot2;
 }

@@ -38,12 +38,18 @@
 #define __AKANTU_RESOLUTION_PENALTY_HH__
 
 namespace akantu {
+enum PenaltyType {
+  penalty_linear,
+  penalty_quadratic
+};
+
 class ResolutionPenalty : public Resolution {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "");
+  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "",
+                    PenaltyType penalty_type = penalty_linear);
 
   ~ResolutionPenalty() override = default;
 
@@ -126,6 +132,9 @@ protected:
 
   /// penalty parameter for tangential traction
   Real epsilon_t;
+
+  /// Penalty type to be used for penetration function
+  PenaltyType penalty_type;
 };
 
 } // namespace akantu
