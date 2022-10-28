@@ -39,19 +39,6 @@
 
 namespace akantu {
 
-// Define function and derivative for quadratic penalty method
-template <typename T> T quadraticPenetrationFunction(T var) {
-  return var*var + var;
-}
-
-template <typename T> T quadraticPenetrationDerivative(T var) {
-  return 2.0*var + 1.0;
-}
-
-// Instantiate quadratic penalty as a resolution
-INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyTemplate, Real,
-                       quadraticPenetrationFunction, quadraticPenetrationDerivative);
-
 } // namespace akantu
 
 #endif /* __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__ */

@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Thu Jan 17 2019
- * @date last modification: Fri Oct 21 2022
+ * @date last modification: Fri Oct 28 2022
  *
  * @brief  Implementation of common part of the contact resolution class
  *

@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Oct 21 2022
+ * @date last modification: Fri Oct 28 2022
  *
  * @brief  Mother class for all contact resolutions
  *
@@ -207,23 +207,20 @@ template <typename T> T macaulay(T var) { return var < 0 ? 0 : var; }
 template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
 } // namespace akantu
 
-#define INSTANTIATE_RESOLUTION_ONLY(res_name, dtype, pen_fun, pen_der)         \
-  class res_name<dtype, pen_fun<dtype>, pen_der<dtype>>
+#define INSTANTIATE_RESOLUTION_ONLY(res_name, dtype, pen_fun)                  \
+  class res_name<dtype, pen_fun<dtype>>
 
-#define RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR( \
-    id, res_name, dtype, pen_fun, pen_der)\
+#define RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR(                                  \
+    id, res_name, dtype, pen_fun)                                              \
   [](UInt dim, const ID &, ContactMechanicsModel & model,                      \
      const ID & id) -> std::unique_ptr<Resolution> {                           \
     switch (dim) {                                                             \
     case 1:                                                                    \
-      return std::make_unique<res_name<dtype, pen_fun<dtype>, pen_der<dtype>>>(\
-          model, id);\
+      return std::make_unique<res_name<dtype, pen_fun<dtype>>>(model, id);     \
     case 2:                                                                    \
-      return std::make_unique<res_name<dtype, pen_fun<dtype>, pen_der<dtype>>>(\
-          model, id);\
+      return std::make_unique<res_name<dtype, pen_fun<dtype>>>(model, id);     \
     case 3:                                                                    \
-      return std::make_unique<res_name<dtype, pen_fun<dtype>, pen_der<dtype>>>(\
-          model, id);\
+      return std::make_unique<res_name<dtype, pen_fun<dtype>>>(model, id);     \
     default:                                                                   \
       AKANTU_EXCEPTION(                                                        \
           "The dimension "                                                     \
@@ -232,11 +229,11 @@ template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
     }                                                                          \
   }
 
-#define INSTANTIATE_RESOLUTION(id, res_name, dtype, pen_fun, pen_der)          \
-  INSTANTIATE_RESOLUTION_ONLY(res_name, dtype, pen_fun, pen_der);              \
+#define INSTANTIATE_RESOLUTION(id, res_name, dtype, pen_fun)                   \
+  INSTANTIATE_RESOLUTION_ONLY(res_name, dtype, pen_fun);                       \
   static bool resolution_is_alocated_##id [[gnu::unused]] =                    \
       ResolutionFactory::getInstance().registerAllocator(                      \
           #id, RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR(                           \
-                   id, res_name, dtype,pen_fun, pen_der))
+                   id, res_name, dtype, pen_fun))
 
 #endif /* __AKANTU_RESOLUTION_HH__  */

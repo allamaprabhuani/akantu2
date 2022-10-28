@@ -4,7 +4,7 @@
 * @author Fabio Matti <fabio.matti@epfl.ch>
 *
 * @date creation: Fri Oct 21 2022
-* @date last modification: Fri Oct 21 2022
+* @date last modification: Fri Oct 28 2022
 *
 * @brief  Implementation of the templated penalty method
 *
@@ -31,6 +31,8 @@
 
 #include "resolution_penalty.hh"
 #include "element_class_helper.hh"
+#include "penalty_function_linear.hh"
+#include "penalty_function_quadratic.hh"
 
 #ifndef AKANTU_RESOLUTION_PENALTY_TMPL_HH
 #define AKANTU_RESOLUTION_PENALTY_TMPL_HH
@@ -38,18 +40,17 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::ResolutionPenaltyTemplate(ContactMechanicsModel & model,
-                                     const ID & id)
-    : Resolution(model, id) {
+template <typename T, class PenaltyFunction>
+ResolutionPenaltyTmpl<T, PenaltyFunction>::ResolutionPenaltyTmpl(
+    ContactMechanicsModel & model, const ID & id) : Resolution(model, id) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::initialize() {
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::initialize() {
   this->registerParam("epsilon_n", epsilon_n, Real(0.),
                       _pat_parsable | _pat_modifiable,
                       "Normal penalty parameter");
@@ -59,15 +60,14 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::i
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-Real ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeNormalTraction(Real & gap) const {
-  return epsilon_n * penetrationFunction(macaulay(gap));
-}
+template <typename T, class PenaltyFunction>
+Real ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalTraction(
+  Real & gap) const { return epsilon_n * this->penalty_function(macaulay(gap));}
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeNormalForce(const ContactElement & element,
-                                           Vector<Real> & force) {
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalForce(
+    const ContactElement & element, Vector<Real> & force) {
 
   force.zero();
 
@@ -97,9 +97,9 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeTangentialForce(const ContactElement & element,
-                                               Vector<Real> & force) {
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialForce(
+    const ContactElement & element, Vector<Real> & force) {
 
   if (mu == 0) {
     return;
@@ -167,8 +167,8 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeTangentialTraction(
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction_tangential) {
 
@@ -214,8 +214,8 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeTrialTangentialTraction(
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTrialTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction) {
 
@@ -306,16 +306,16 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeStickTangentialTraction(
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickTangentialTraction(
     const ContactElement & /*element*/, Vector<Real> & traction_trial,
     Vector<Real> & traction_tangential) {
   traction_tangential = traction_trial;
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeSlipTangentialTraction(
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction_trial, Vector<Real> & traction_tangential) {
   UInt surface_dimension = spatial_dimension - 1;
@@ -345,9 +345,9 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeNormalModuli(const ContactElement & element,
-                                            Matrix<Real> & stiffness) {
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalModuli(
+    const ContactElement & element, Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
@@ -395,7 +395,8 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
   tmp.mul<false, false>(n_outer_n, A);
 
   k_main.mul<true, false>(A, tmp);
-  k_main *= epsilon_n * heaviside(gap) * penetrationDerivative(gap) * nodal_area;
+  k_main *= (epsilon_n * heaviside(gap) * this->penalty_function.derivative(gap)
+              * nodal_area);
 
   // construct the rotational part of the normal matrix
   auto & tangents = model.getTangents();
@@ -462,15 +463,17 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
     }
   }
 
-  k_rot1 *= -epsilon_n * heaviside(gap) * penetrationFunction(gap) * nodal_area;
-  k_rot2 *= -epsilon_n * heaviside(gap) * penetrationFunction(gap) * nodal_area;
+  k_rot1 *= (-epsilon_n * heaviside(gap) * this->penalty_function(gap)
+               * nodal_area);
+  k_rot2 *= (-epsilon_n * heaviside(gap) * this->penalty_function(gap)
+               * nodal_area);
 
   stiffness += k_main + k_rot1 + k_rot2;
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeTangentialModuli(const ContactElement & element,
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialModuli(const ContactElement & element,
                                                 Matrix<Real> & stiffness) {
   if (mu == 0) {
     return;
@@ -496,8 +499,8 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeStickModuli(const ContactElement & element,
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickModuli(const ContactElement & element,
                                            Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -650,9 +653,9 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::computeSlipModuli(const ContactElement & element,
-                                          Matrix<Real> & stiffness) {
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipModuli(
+    const ContactElement & element, Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
@@ -847,25 +850,25 @@ void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::c
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::beforeSolveStep() {}
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
-template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
-void ResolutionPenaltyTemplate<T, penetrationFunction, penetrationDerivative>::afterSolveStep(__attribute__((unused)) bool converged) {}
+template <typename T, class PenaltyFunction>
+void ResolutionPenaltyTmpl<T, PenaltyFunction>::afterSolveStep(
+    __attribute__((unused)) bool converged) {}
 
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-// Define function and derivative for linear penalty method
-template <typename T> T linearPenetrationFunction(T var) { return var; }
-template <typename T> T linearPenetrationDerivative(T var) { return 1.0; }
-
 // Instantiate linear penalty as a resolution
-INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenaltyTemplate, Real,
-                       linearPenetrationFunction, linearPenetrationDerivative);
+INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenaltyTmpl, Real,
+                       PenaltyFunctionLinear);
+
+INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyTmpl, Real,
+                       PenaltyFunctionQuadratic);
 
 } // namespace akantu
 

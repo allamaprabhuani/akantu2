@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Thu Jan 17 2019
- * @date last modification: Fri Oct 21 2022
+ * @date last modification: Fri Oct 28 2022
  *
  * @brief  Specialization of the resolution class for the penalty method
  *
@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "resolution_penalty_tmpl.hh"
+#include "resolution_penalty.hh"
 #include "element_class_helper.hh"
 /* -------------------------------------------------------------------------- */
 
