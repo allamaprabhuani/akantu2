@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Jun 09 2021
+ * @date last modification: Fri Oct 21 2022
  *
  * @brief  Linear Penalty Resolution for Contact Mechanics Model
  *
@@ -38,20 +38,16 @@
 #define __AKANTU_RESOLUTION_PENALTY_HH__
 
 namespace akantu {
-enum PenaltyType {
-  penalty_linear,
-  penalty_quadratic
-};
 
-class ResolutionPenalty : public Resolution {
+template <typename T, T penetrationFunction(T), T penetrationDerivative(T)>
+class ResolutionPenaltyTemplate : public Resolution {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "",
-                    PenaltyType penalty_type = penalty_linear);
+  ResolutionPenaltyTemplate(ContactMechanicsModel & model, const ID & id = "");
 
-  ~ResolutionPenalty() override = default;
+  ~ResolutionPenaltyTemplate() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -132,9 +128,6 @@ protected:
 
   /// penalty parameter for tangential traction
   Real epsilon_t;
-
-  /// Penalty type to be used for penetration function
-  PenaltyType penalty_type;
 };
 
 } // namespace akantu

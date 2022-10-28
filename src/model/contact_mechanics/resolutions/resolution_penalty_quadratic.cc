@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Thu Jan 17 2019
- * @date last modification: Wed Jun 09 2021
+ * @date last modification: Fri Oct 21 2022
  *
  * @brief  Specialization of the resolution class for the quadratic penalty
  * method
@@ -36,16 +36,5 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-ResolutionPenaltyQuadratic::ResolutionPenaltyQuadratic(
-    ContactMechanicsModel & model, const ID & id)
-    : ResolutionPenalty(model, id, penalty_quadratic) {
-  AKANTU_DEBUG_IN();
-  this->initialize();
-  AKANTU_DEBUG_OUT();
-}
-
-INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyQuadratic);
 
 } // namespace akantu

@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Mon Aug 10 2020
+ * @date last modification: Fri Oct 21 2022
  *
  * @brief  Quadratic Penalty Resolution for Contact Mechanics Model
  *
@@ -39,16 +39,18 @@
 
 namespace akantu {
 
-class ResolutionPenaltyQuadratic : public ResolutionPenalty {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
-  ResolutionPenaltyQuadratic(ContactMechanicsModel & model, const ID & id = "");
+// Define function and derivative for quadratic penalty method
+template <typename T> T quadraticPenetrationFunction(T var) {
+  return var*var + var;
+}
 
-  ~ResolutionPenaltyQuadratic() override = default;
-  
-};
+template <typename T> T quadraticPenetrationDerivative(T var) {
+  return 2.0*var + 1.0;
+}
+
+// Instantiate quadratic penalty as a resolution
+INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyTemplate, Real,
+                       quadraticPenetrationFunction, quadraticPenetrationDerivative);
 
 } // namespace akantu
 
