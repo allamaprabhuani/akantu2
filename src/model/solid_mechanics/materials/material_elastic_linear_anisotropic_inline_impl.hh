@@ -45,8 +45,8 @@ template <Int dim>
 template <typename Args>
 inline void
 MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(Args && args) const {
-  auto && sigma = tuple::get<"sigma"_h>(args);
-  auto && grad_u = tuple::get<"grad_u"_h>(args);
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
 
   auto voigt_strain = strainToVoigt<dim>(gradUToEpsilon<dim>(grad_u));
   auto voigt_stress = this->C * voigt_strain;
@@ -58,7 +58,7 @@ template <Int dim>
 template <class Args>
 inline void MaterialElasticLinearAnisotropic<dim>::computeTangentModuliOnQuad(
     Args && args) const {
-  tuple::get<"tangent_moduli"_h>(args) = this->C;
+  args["tangent_moduli"_n] = this->C;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -71,8 +71,7 @@ inline void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyOnQuad(
                       "The elastic constants matrix is not symmetric,"
                       "energy is not path independent.");
 
-  epot =
-      tuple::get<"sigma"_h>(args).doubleDot(tuple::get<"grad_u"_h>(args)) / 2.;
+  epot = args["sigma"_n].doubleDot(args["grad_u"_n]) / 2.;
 }
 
 } // namespace akantu

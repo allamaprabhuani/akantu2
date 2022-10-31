@@ -100,11 +100,11 @@ public:
 
   inline decltype(auto) getArguments(ElementType el_type,
                                      GhostType ghost_type = _not_ghost) {
-    return zip_append(Parent::getArguments(el_type, ghost_type),
-                      tuple::get<"sigma_dev"_h>() =
-                          make_view<dim, dim>(stress_dev(el_type, ghost_type)),
-                      tuple::get<"history"_h>() = make_view<dim, dim>(
-                          history_integral(el_type, ghost_type)));
+    return zip_append(
+        Parent::getArguments(el_type, ghost_type),
+        "sigma_dev"_n = make_view<dim, dim>(stress_dev(el_type, ghost_type)),
+        "history"_n =
+            make_view<dim, dim>(history_integral(el_type, ghost_type)));
   }
 
 protected:

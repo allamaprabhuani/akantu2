@@ -203,7 +203,7 @@ namespace tuple {
           std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
     }
 
-    template <std::size_t nth, size_t HashCode, class Tuple, class Value,
+    template <std::size_t nth, typename Tag, class Tuple, class Value,
               std::size_t... Is_before, std::size_t... Is_after>
     auto replace_named_impl(std::index_sequence<Is_before...> && /*unused*/,
                             std::index_sequence<Is_after...> && /*unused*/,
@@ -211,8 +211,7 @@ namespace tuple {
       using tuple_type = std::decay_t<Tuple>;
       return make_named_tuple_no_decay(
           std::tuple<
-              tuple::tuple_name_tag_t<Is_before, tuple_type>...,
-              std::integral_constant<size_t, HashCode>,
+              tuple::tuple_name_tag_t<Is_before, tuple_type>..., Tag,
               tuple::tuple_name_tag_t<Is_after + nth + 1, tuple_type>...>{},
           std::get<Is_before>(std::forward<Tuple>(tuple))...,
           std::forward<Value>(value),
@@ -380,13 +379,12 @@ namespace tuple {
   }
 
   template <
-      tuple::hash_type HashCode, class Tuple,
+      typename Tag, class Tuple,
       std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
   auto remove(Tuple && tuple) -> decltype(auto) {
-    static_assert(tuple::has<HashCode, Tuple>(),
+    static_assert(tuple.has(Tag{}),
                   "You are trying to remove a non existing entry");
-    constexpr auto nth =
-        tuple.template get_element_index(tuple::get<HashCode>());
+    constexpr auto nth = tuple.get_element_index(Tag{});
     return details::remove_named_impl<nth>(
         std::make_index_sequence<nth>{},
         std::make_index_sequence<
@@ -407,21 +405,29 @@ namespace tuple {
   }
 
   template <
-      tuple::hash_type HashCode, class Tuple, class Value,
+      typename Tag, class Tuple, class Value,
       std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
   auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
-    static_assert(tuple::has<HashCode, Tuple>(),
+    static_assert(tuple::has<Tag, Tuple>(),
                   "You are trying to replace a non existing entry");
-    constexpr std::size_t nth =
-        std::decay_t<Tuple>::template get_element_index_helper<
-            std::integral_constant<tuple::hash_type, HashCode>, 0>::value;
-    return details::replace_named_impl<nth, HashCode>(
+    constexpr std::size_t nth = tuple.get_element_index(Tag{});
+    return details::replace_named_impl<nth, typename Tag::_tag>(
         std::make_index_sequence<nth>{},
         std::make_index_sequence<
             std::tuple_size<typename std::decay_t<Tuple>::parent>::value - nth -
             1>{},
         std::forward<Tuple>(tuple), std::forward<Value>(value));
   }
+
+  template <class Tuple, class Value,
+            std::enable_if_t<is_named_tuple_v<std::decay_t<Tuple>> and
+                             is_named_tag_v<Value>> * = nullptr>
+  auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
+    using Tag = decltype(make_named_tag<typename std::decay_t<Value>::_tag>());
+    return replace<Tag>(std::forward<Tuple>(tuple),
+                        std::forward<decltype(value._value)>(value._value));
+  }
+
 } // namespace tuple
 
 } // namespace AKANTU_ITERATORS_NAMESPACE

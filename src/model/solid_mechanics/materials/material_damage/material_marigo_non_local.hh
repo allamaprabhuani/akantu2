@@ -78,14 +78,14 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_replace<"Y"_h>(parent::getArguments(el_type, ghost_type),
-                              make_view(this->Y(el_type, ghost_type)));
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Y"_n = make_view(this->Y(el_type, ghost_type)));
   }
 
   decltype(auto) getArgumentsNonLocal(ElementType el_type,
                                       GhostType ghost_type) {
-    return zip_replace<"Y"_h>(parent::getArguments(el_type, ghost_type),
-                              make_view(this->Ynl(el_type, ghost_type)));
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Y"_n = make_view(this->Ynl(el_type, ghost_type)));
   }
 
 public:

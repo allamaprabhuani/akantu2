@@ -93,15 +93,13 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
         this->applyRotation(grad_u, rotation_matrix);
 
     this->computeStressOnQuad(make_named_tuple(
-        tuple::get<"grad_u"_h>() = grad_u_rot,
-        tuple::get<"sigma"_h>() = sigma_rot,
-        tuple::get<"previous_sigma"_h>() = previous_sigma_rot,
-        tuple::get<"previous_grad_u"_h>() = previous_grad_u_rot,
-        tuple::get<"inelastic_strain"_h>() = inelastic_strain_rot,
-        tuple::get<"previous_inelastic_strain"_h>() =
-            previous_inelastic_strain_rot,
-        tuple::get<"iso_hardening"_h>() = iso_hardening,
-        tuple::get<"previous_iso_hardening"_h>() = previous_iso_hardening));
+        "grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot,
+        "previous_sigma"_n = previous_sigma_rot,
+        "previous_grad_u"_n = previous_grad_u_rot,
+        "inelastic_strain"_n = inelastic_strain_rot,
+        "previous_inelastic_strain"_n = previous_inelastic_strain_rot,
+        "iso_hardening"_n = iso_hardening,
+        "previous_iso_hardening"_n = previous_iso_hardening));
 
     Matrix<Real, 3, 3> sigma =
         this->reverseRotation(sigma_rot, rotation_matrix);
@@ -136,15 +134,13 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
     Real previous_iso_hardening{0.};
 
     this->computeStressOnQuad(make_named_tuple(
-        tuple::get<"grad_u"_h>() = grad_u_rot,
-        tuple::get<"sigma"_h>() = sigma_rot,
-        tuple::get<"previous_grad_u"_h>() = previous_grad_u_rot,
-        tuple::get<"previous_sigma"_h>() = previous_sigma_rot,
-        tuple::get<"inelastic_strain"_h>() = inelastic_strain_rot,
-        tuple::get<"previous_inelastic_strain"_h>() =
-            previous_inelastic_strain_rot,
-        tuple::get<"iso_hardening"_h>() = iso_hardening,
-        tuple::get<"previous_iso_hardening"_h>() = previous_iso_hardening));
+        "grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot,
+        "previous_grad_u"_n = previous_grad_u_rot,
+        "previous_sigma"_n = previous_sigma_rot,
+        "inelastic_strain"_n = inelastic_strain_rot,
+        "previous_inelastic_strain"_n = previous_inelastic_strain_rot,
+        "iso_hardening"_n = iso_hardening,
+        "previous_iso_hardening"_n = previous_iso_hardening));
 
     auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
     auto inelastic_strain =

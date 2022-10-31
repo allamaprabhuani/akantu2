@@ -70,8 +70,7 @@ template <> void FriendMaterial<MaterialElastic<1>>::testComputeStress() {
   Matrix<Real> sigma(1, 1);
   Real sigma_th = 2;
   this->computeStressOnQuad(make_named_tuple(
-      tuple::get<"grad_u"_h>() = eps, tuple::get<"sigma"_h>() = sigma,
-      tuple::get<"sigma_th"_h>() = sigma_th));
+      "grad_u"_n = eps, "sigma"_n = sigma, "sigma_th"_n = sigma_th));
 
   auto solution = E * eps(0, 0) + sigma_th;
   EXPECT_NEAR(sigma(0, 0), solution, 1e-14);
@@ -82,8 +81,8 @@ template <> void FriendMaterial<MaterialElastic<1>>::testEnergyDensity() {
   Real eps = 2, sigma = 2;
   Real epot = 0;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = Matrix<Real>{{eps}},
-                       tuple::get<"sigma"_h>() = Matrix<Real>{{sigma}}),
+      make_named_tuple("grad_u"_n = Matrix<Real>{{eps}},
+                       "sigma"_n = Matrix<Real>{{sigma}}),
       epot);
   Real solution = 2;
   EXPECT_NEAR(epot, solution, 1e-14);
@@ -94,7 +93,7 @@ template <>
 void FriendMaterial<MaterialElastic<1>>::testComputeTangentModuli() {
   Matrix<Real> tangent(1, 1);
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
   EXPECT_NEAR(tangent(0, 0), E, 1e-14);
 }
 
@@ -127,10 +126,8 @@ template <> void FriendMaterial<MaterialElastic<2>>::testComputeStress() {
   auto grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
 
   Matrix<Real, 2, 2> sigma_rot;
-  this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot,
-                       tuple::get<"sigma_th"_h>() = sigma_th));
+  this->computeStressOnQuad(make_named_tuple(
+      "grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot, "sigma_th"_n = sigma_th));
 
   auto sigma = this->reverseRotation(sigma_rot, rotation_matrix);
 
@@ -157,9 +154,7 @@ template <> void FriendMaterial<MaterialElastic<2>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 2.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -179,7 +174,7 @@ void FriendMaterial<MaterialElastic<2>>::testComputeTangentModuli() {
   solution *= E / ((1 + nu) * (1 - 2 * nu));
 
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
   Real tangent_error = (tangent - solution).lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
 
@@ -196,7 +191,7 @@ void FriendMaterial<MaterialElastic<2>>::testComputeTangentModuli() {
   solution *= E / (1 - nu * nu);
 
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
   tangent_error = (tangent - solution).lpNorm<Eigen::Infinity>();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
 }
@@ -240,10 +235,8 @@ template <> void FriendMaterial<MaterialElastic<3>>::testComputeStress() {
   Matrix<Real, 3, 3> grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
 
   Matrix<Real, 3, 3> sigma_rot;
-  this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot,
-                       tuple::get<"sigma_th"_h>() = sigma_th));
+  this->computeStressOnQuad(make_named_tuple(
+      "grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot, "sigma_th"_n = sigma_th));
 
   Matrix<Real, 3, 3> sigma = this->reverseRotation(sigma_rot, rotation_matrix);
 
@@ -269,9 +262,7 @@ template <> void FriendMaterial<MaterialElastic<3>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 5.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -293,7 +284,7 @@ void FriendMaterial<MaterialElastic<3>>::testComputeTangentModuli() {
   solution *= E / ((1 + nu) * (1 - 2 * nu));
 
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
   Real tangent_error = (tangent - solution).norm();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
 }
@@ -365,8 +356,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeStress() {
   // stress in the canonical basis
   Matrix<Real, Dim, Dim> sigma_rot;
   this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot));
+      make_named_tuple("grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot));
 
   // stress in the material reference (we need to apply the rotation)
   auto sigma = this->applyRotation(sigma_rot, rotation_matrix);
@@ -416,9 +406,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 2.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -442,7 +430,7 @@ void FriendMaterial<MaterialElasticOrthotropic<2>>::testComputeTangentModuli() {
 
   Matrix<Real> tangent(3, 3);
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
 
   Real tangent_error = (tangent - C_expected).norm();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
@@ -537,8 +525,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeStress() {
   // stress in the canonical basis
   Matrix<Real> sigma_rot(3, 3);
   this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot));
+      make_named_tuple("grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot));
 
   // stress in the material reference (we need to apply the rotation)
   auto sigma = this->applyRotation(sigma_rot, rotation_matrix);
@@ -601,9 +588,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 5.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -639,7 +624,7 @@ void FriendMaterial<MaterialElasticOrthotropic<3>>::testComputeTangentModuli() {
 
   Matrix<Real> tangent(6, 6);
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
 
   Real tangent_error = (tangent - C_expected).norm();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
@@ -725,8 +710,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testComputeStress() {
   // stress in the canonical basis
   Matrix<Real, 2, 2> sigma_rot;
   this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot));
+      make_named_tuple("grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot));
 
   // stress in the material reference (we need to apply the rotation)
   auto sigma = this->applyRotation(sigma_rot, rotation_matrix);
@@ -756,9 +740,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 2.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -768,7 +750,7 @@ void FriendMaterial<
     MaterialElasticLinearAnisotropic<2>>::testComputeTangentModuli() {
   Matrix<Real> tangent(3, 3);
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
 
   Real tangent_error = (tangent - C).norm();
   EXPECT_NEAR(tangent_error, 0, 1e-14);
@@ -838,8 +820,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<3>>::testComputeStress() {
   // stress in the canonical basis
   Matrix<Real, 3, 3> sigma_rot;
   this->computeStressOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = grad_u_rot,
-                       tuple::get<"sigma"_h>() = sigma_rot));
+      make_named_tuple("grad_u"_n = grad_u_rot, "sigma"_n = sigma_rot));
 
   // stress in the material reference (we need to apply the rotation)
   auto sigma = this->applyRotation(sigma_rot, rotation_matrix);
@@ -868,9 +849,7 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<3>>::testEnergyDensity() {
   Real epot = 0;
   Real solution = 5.5;
   this->computePotentialEnergyOnQuad(
-      make_named_tuple(tuple::get<"grad_u"_h>() = eps,
-                       tuple::get<"sigma"_h>() = sigma),
-      epot);
+      make_named_tuple("grad_u"_n = eps, "sigma"_n = sigma), epot);
   EXPECT_NEAR(epot, solution, 1e-14);
 }
 
@@ -880,7 +859,7 @@ void FriendMaterial<
     MaterialElasticLinearAnisotropic<3>>::testComputeTangentModuli() {
   Matrix<Real, 6, 6> tangent;
   this->computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = tangent));
+      make_named_tuple("tangent_moduli"_n = tangent));
 
   Real tangent_error = (tangent - C).norm();
   EXPECT_NEAR(tangent_error, 0, 1e-14);

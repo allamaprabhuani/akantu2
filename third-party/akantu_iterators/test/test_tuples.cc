@@ -125,8 +125,8 @@ TEST(NamedTuples, GNUExtension) {
 }
 
 TEST(NamedTuples, MixGNUExtensionHash) {
-  const auto tuple = make_named_tuple(get<"nom"_h>() = std::string("Roger"),
-                                      get<"age"_h>() = 47);
+  const auto tuple =
+      make_named_tuple("nom"_n = std::string("Roger"), get<"age"_h>() = 47);
 
   EXPECT_EQ(47, tuple.get("age"_n));
 }

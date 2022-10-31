@@ -56,27 +56,29 @@ struct TestMaterialCohesiveLinear
   }
 
   void resetInternal() override {
-    normal_opening = Vector<Real>::Zero(dim);
-    tangential_opening = Vector<Real>::Zero(dim);
-    contact_traction = Vector<Real>::Zero(dim);
-    contact_opening = Vector<Real>::Zero(dim);
+    // normal_opening_ = Vector<Real>::Zero(dim);
+    // tangential_opening_ = Vector<Real>::Zero(dim);
+    contact_traction_ = Vector<Real>::Zero(dim);
+    contact_opening_ = Vector<Real>::Zero(dim);
   }
 
   void computeTractions(Array<Real> & openings, const Vector<Real> & normal,
                         Array<Real> & tractions) override {
-    for (auto && data :
+    for (auto && [opening, traction] :
          zip(make_view(openings, dim), make_view(tractions, dim))) {
-      auto & opening = std::get<0>(data);
-      auto & traction = std::get<1>(data);
 
-      this->computeTractionOnQuad(
-          traction, opening, normal, delta_max, this->delta_c_,
-          this->insertion_stress_, this->sigma_c_, normal_opening,
-          tangential_opening, normal_opening_norm, tangential_opening_norm,
-          damage, penetration, contact_traction, contact_opening);
+      auto && args = tuple::make_named_tuple(
+          "normal"_n = normal, "opening"_n = opening, "traction"_n = traction,
+          "contact_opening"_n = contact_opening_,
+          "contact_traction"_n = contact_traction_, "delta_max"_n = delta_max_,
+          "sigma_c"_n = this->sigma_c_, "damage"_n = damage_,
+          "delta_c"_n = this->delta_c_,
+          "insertion_stress"_n = this->insertion_stress_);
 
-      opening += contact_opening;
-      traction += contact_traction;
+      this->computeTractionOnQuad(args);
+
+      opening += contact_opening_;
+      traction += contact_traction_;
     }
   }
 
@@ -128,22 +130,22 @@ struct TestMaterialCohesiveLinear
   }
 
 public:
-  Real delta_c_{0};
+  Real delta_c_{0.};
 
-  Real delta_max{0.};
-  Real normal_opening_norm{0};
-  Real tangential_opening_norm{0};
-  Real damage{0};
-  bool penetration{false};
+  Real delta_max_{0.};
+  // Real normal_opening_norm_{0.};
+  // Real tangential_opening_norm{0.};
+  Real damage_{0.};
+  bool penetration_{false};
 
   Real etot{0.};
   Real edis{0.};
 
-  Vector<Real> normal_opening;
-  Vector<Real> tangential_opening;
+  Vector<Real> normal_opening_;
+  Vector<Real> tangential_opening_;
 
-  Vector<Real> contact_traction;
-  Vector<Real> contact_opening;
+  Vector<Real> contact_traction_;
+  Vector<Real> contact_opening_;
 };
 
 template <typename dim_>

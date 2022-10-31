@@ -56,19 +56,18 @@ void MaterialLinearIsotropicHardening<dim>::computeStress(
              make_view<dim, dim>(this->green_strain(el_type, ghost_type)))) {
       auto && args = std::get<0>(data);
       auto & green_strain = std::get<1>(data);
-      auto & grad_u = tuple::get<"grad_u"_h>(args);
-      auto & previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
+      auto & grad_u = args["grad_u"_n];
+      auto & previous_grad_u = args["previous_grad_u"_n];
 
       Material::gradUToE<dim>(grad_u, green_strain);
       Matrix<Real, dim, dim> previous_green_strain =
           Material::gradUToE<dim>(previous_grad_u);
       Matrix<Real, dim, dim> F_tensor = Material::gradUToF<dim>(grad_u);
 
-      computeStressOnQuad(
-          tuple::append(tuple::replace<"previous_grad_u"_h>(
-                            tuple::replace<"grad_u"_h>(args, green_strain),
-                            previous_green_strain),
-                        tuple::get<"F"_h>() = F_tensor));
+      computeStressOnQuad(tuple::append(
+          tuple::replace(tuple::replace(args, "grad_u"_n = green_strain),
+                         "previous_grad_u"_n = previous_green_strain),
+          "F"_n = F_tensor));
 
       computeStressOnQuad(args);
     }

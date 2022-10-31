@@ -317,84 +317,22 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialCohesiveLinear<dim>::computeTraction(const Array<Real> & normal,
-                                                  ElementType el_type,
+void MaterialCohesiveLinear<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  /// define iterators
-  auto traction_it = tractions(el_type, ghost_type).begin(dim);
-  auto opening_it = opening(el_type, ghost_type).begin(dim);
-  auto contact_traction_it = contact_tractions(el_type, ghost_type).begin(dim);
-  auto contact_opening_it = contact_opening(el_type, ghost_type).begin(dim);
-
-  auto normal_it = normal.begin(dim);
-  auto traction_end = tractions(el_type, ghost_type).end(dim);
-  auto sigma_c_it = sigma_c_eff(el_type, ghost_type).begin();
-  auto delta_max_it = delta_max(el_type, ghost_type).begin();
-  auto delta_c_it = delta_c_eff(el_type, ghost_type).begin();
-  auto damage_it = damage(el_type, ghost_type).begin();
-  auto insertion_stress_it = insertion_stress(el_type, ghost_type).begin(dim);
-
-  Vector<Real> normal_opening(dim);
-  Vector<Real> tangential_opening(dim);
-
-  /// loop on each quadrature point
-  for (; traction_it != traction_end;
-       ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
-       ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
-       ++contact_opening_it) {
-    Real normal_opening_norm{0};
-    Real tangential_opening_norm{0};
-    bool penetration{false};
-    this->computeTractionOnQuad(
-        *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
-        *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
-        normal_opening_norm, tangential_opening_norm, *damage_it, penetration,
-        *contact_traction_it, *contact_opening_it);
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    this->computeTractionOnQuad(args);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinear<dim>::computeTangentTraction(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    const Array<Real> & normal, GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  /// define iterators
-  auto tangent_it = tangent_matrix.begin(dim, dim);
-
-  auto tangent_end = tangent_matrix.end(dim, dim);
-
-  auto normal_it = normal.begin(dim);
-
-  auto opening_it = opening(el_type, ghost_type).begin(dim);
-
-  /// NB: delta_max_it points on delta_max_previous, i.e. the
-  /// delta_max related to the solution of the previous incremental
-  /// step
-  auto delta_max_it = delta_max.previous(el_type, ghost_type).begin();
-  auto sigma_c_it = sigma_c_eff(el_type, ghost_type).begin();
-  auto delta_c_it = delta_c_eff(el_type, ghost_type).begin();
-  auto damage_it = damage(el_type, ghost_type).begin();
-  auto contact_opening_it = contact_opening(el_type, ghost_type).begin(dim);
-
-  Vector<Real> normal_opening(dim);
-  Vector<Real> tangential_opening(dim);
-
-  for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it,
-                                    ++delta_max_it, ++sigma_c_it, ++delta_c_it,
-                                    ++damage_it, ++contact_opening_it) {
-    Real normal_opening_norm{0};
-    Real tangential_opening_norm{0};
-    bool penetration{false};
-    this->computeTangentTractionOnQuad(
-        *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *opening_it,
-        *normal_it, normal_opening, tangential_opening, normal_opening_norm,
-        tangential_opening_norm, *damage_it, penetration, *contact_opening_it);
+  for (auto && [args, tangent] : zip(getArguments(el_type, ghost_type),
+                                     make_view<dim, dim>(tangent_matrix))) {
+    computeTangentTractionOnQuad(tangent, args);
   }
 
   AKANTU_DEBUG_OUT();

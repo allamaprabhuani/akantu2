@@ -33,6 +33,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material.hh"
+#include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include "cohesive_internal_field.hh"
 /* -------------------------------------------------------------------------- */
@@ -89,10 +90,29 @@ public:
   // add the facet to be handled by the material
   Idx addFacet(const Element & element);
 
+  template <Int dim>
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
+    return zip(
+        "normal"_n = make_view<dim>(this->normals(element_type, ghost_type)),
+        "opening"_n = make_view<dim>(this->opening(element_type, ghost_type)),
+        "traction"_n =
+            make_view<dim>(this->tractions(element_type, ghost_type)),
+        "contact_opening"_n =
+            make_view<dim>(this->contact_opening(element_type, ghost_type)),
+        "contact_traction"_n =
+            make_view<dim>(this->contact_tractions(element_type, ghost_type)),
+        "previous_opening"_n =
+            make_view<dim>(this->opening.previous(element_type, ghost_type)),
+        "previous_traction"_n =
+            make_view<dim>(this->tractions.previous(element_type, ghost_type)),
+        "delta_max"_n = this->delta_max(element_type, ghost_type),
+        "damage"_n = this->damage(element_type, ghost_type));
+  }
+
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
                                       Array<Real> & /*tangent_matrix*/,
-                                      const Array<Real> & /*normal*/,
                                       GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -113,12 +133,12 @@ protected:
   void assembleStiffnessMatrix(GhostType ghost_type) override;
 
   /// constitutive law
-  virtual void computeTraction(const Array<Real> & normal, ElementType el_type,
+  virtual void computeTraction(ElementType el_type,
                                GhostType ghost_type = _not_ghost) = 0;
 
   /// parallelism functions
   inline Int getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -221,7 +241,7 @@ protected:
   Real delta_c;
 
   /// array to temporarily store the normals
-  Array<Real> normal;
+  CohesiveInternalField<Real> normals;
 };
 
 } // namespace akantu

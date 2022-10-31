@@ -44,10 +44,10 @@ namespace akantu {
 template <Int dim>
 template <typename Args>
 inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
-  auto && sigma = tuple::get<"sigma"_h>(arguments);
-  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
-  auto && dam = tuple::get<"damage"_h>(arguments);
-  auto && Y = tuple::get<"Y"_h>(arguments);
+  auto && sigma = arguments["sigma"_n];
+  auto && grad_u = arguments["grad_u"_n];
+  auto && dam = arguments["damage"_n];
+  auto && Y = arguments["Y"_n];
 
   MaterialElastic<dim>::computeStressOnQuad(arguments);
 
@@ -71,10 +71,10 @@ template <Int dim>
 template <typename Args>
 inline void
 MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) {
-  auto && sigma = tuple::get<"sigma"_h>(arguments);
-  auto && dam = tuple::get<"damage"_h>(arguments);
-  auto && Y = tuple::get<"Y"_h>(arguments);
-  auto && Yd = tuple::get<"Yd"_h>(arguments);
+  auto && sigma = arguments["sigma"_n];
+  auto && dam = arguments["damage"_n];
+  auto && Y = arguments["Y"_n];
+  auto && Yd = arguments["Yd"_n];
 
   Real Fd = Y - Yd - Sd * dam;
 

@@ -74,12 +74,12 @@ public:
 protected:
   /// Infinitesimal deformations
   template <class Args,
-            std::enable_if_t<not tuple::has_t<"F"_h, Args>::value> * = nullptr>
+            std::enable_if_t<not named_tuple_t<Args>::has("F"_n)> * = nullptr>
   inline void computeStressOnQuad(Args && arguments);
 
   /// Finite deformations
   template <class Args,
-            std::enable_if_t<tuple::has_t<"F"_h, Args>::value> * = nullptr>
+            std::enable_if_t<named_tuple_t<Args>::has("F"_n)> * = nullptr>
   inline void computeStressOnQuad(Args && arguments);
 
   template <class Args>

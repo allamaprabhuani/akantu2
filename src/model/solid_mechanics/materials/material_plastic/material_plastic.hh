@@ -77,35 +77,30 @@ public:
 
 protected:
   /// compute the stress and inelastic strain for the quadrature point
-  template <
-      class Args,
-      std::enable_if_t<tuple::has_t<"delta_grad_u"_h, Args>::value> * = nullptr>
+  template <class Args, std::enable_if_t<named_tuple_t<Args>::has(
+                            "delta_grad_u"_n)> * = nullptr>
   inline void computeStressAndInelasticStrainOnQuad(Args && args) const {
     Matrix<Real, dim, dim> delta_grad_u_elastic =
-        tuple::get<"delta_grad_u"_h>(args) -
-        tuple::get<"delta_inelastic_strain"_h>(args);
+        args["delta_grad_u"_n] - args["delta_inelastic_strain"_n];
 
     Matrix<Real, dim, dim> sigma_elastic;
-    MaterialElastic<dim>::computeStressOnQuad(
-        tuple::make_named_tuple(tuple::get<"grad_u"_h>() = delta_grad_u_elastic,
-                                tuple::get<"sigma"_h>() = sigma_elastic));
+    MaterialElastic<dim>::computeStressOnQuad(tuple::make_named_tuple(
+        "grad_u"_n = delta_grad_u_elastic, "sigma"_n = sigma_elastic));
 
-    tuple::get<"sigma"_h>(args) =
-        tuple::get<"previous_sigma"_h>(args) + sigma_elastic;
+    args["sigma"_n] = args["previous_sigma"_n] + sigma_elastic;
 
-    tuple::get<"inelastic_strain"_h>(args) =
-        tuple::get<"previous_inelastic_strain"_h>(args) +
-        tuple::get<"delta_inelastic_strain"_h>(args);
+    args["inelastic_strain"_n] =
+        args["previous_inelastic_strain"_n] + args["delta_inelastic_strain"_n];
   }
 
-  template <class Args, std::enable_if_t<not tuple::has_t<
-                            "delta_grad_u"_h, Args>::value> * = nullptr>
+  template <class Args, std::enable_if_t<not named_tuple_t<Args>::has(
+                            "delta_grad_u"_n)> * = nullptr>
   inline void computeStressAndInelasticStrainOnQuad(Args && args) const {
     Matrix<Real, dim, dim> delta_grad_u =
-        tuple::get<"grad_u"_h>(args) - tuple::get<"previous_grad_u"_h>(args);
+        args["grad_u"_n] - args["previous_grad_u"_n];
 
     computeStressAndInelasticStrainOnQuad(
-        tuple::append(args, tuple::get<"delta_grad_u"_h>() = delta_grad_u));
+        tuple::append(args, "delta_grad_u"_n = delta_grad_u));
   }
 
   /// Get the integrated plastic energy for the time step
@@ -115,13 +110,12 @@ protected:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         MaterialElastic<dim>::getArguments(el_type, ghost_type),
-        tuple::get<"iso_hardening"_h>() =
-            make_view(this->iso_hardening(el_type, ghost_type)),
-        tuple::get<"previous_iso_hardening"_h>() =
+        "iso_hardening"_n = make_view(this->iso_hardening(el_type, ghost_type)),
+        "previous_iso_hardening"_n =
             make_view(this->iso_hardening.previous(el_type, ghost_type)),
-        tuple::get<"inelastic_strain"_h>() =
+        "inelastic_strain"_n =
             make_view<dim, dim>(this->inelastic_strain(el_type, ghost_type)),
-        tuple::get<"previous_inelastic_strain"_h>() = make_view<dim, dim>(
+        "previous_inelastic_strain"_n = make_view<dim, dim>(
             this->inelastic_strain.previous(el_type, ghost_type)));
   }
 

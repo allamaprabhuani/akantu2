@@ -87,7 +87,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template <Int spatial_dimension>
 void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
-    const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -102,7 +102,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
 
-  auto normal_it = normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
 
   auto traction_end =
       this->tractions(el_type, ghost_type).end(spatial_dimension);

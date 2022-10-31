@@ -181,9 +181,9 @@ void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
 /* -------------------------------------------------------------------------- */
 template <Int spatial_dimension>
 void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(
-    const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  MaterialCohesiveLinear<spatial_dimension>::computeTraction(normal, el_type,
+  MaterialCohesiveLinear<spatial_dimension>::computeTraction(el_type,
                                                              ghost_type);
 
   // adjust damage

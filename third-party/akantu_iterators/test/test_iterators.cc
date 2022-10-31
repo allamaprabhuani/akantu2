@@ -277,8 +277,7 @@ TEST_F(TestZipFixutre, Remove) {
 /* -------------------------------------------------------------------------- */
 TEST_F(TestZipFixutre, SimpleNamedTest) {
   size_t i = 0;
-  for (auto && pair :
-       zip(tuple::get<"a"_h>() = this->a, tuple::get<"b"_h>() = this->b)) {
+  for (auto && pair : zip("a"_n = this->a, "b"_n = this->b)) {
     this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
     ++i;
   }
@@ -288,7 +287,7 @@ TEST_F(TestZipFixutre, NamedConstTest) {
   size_t i = 0;
   const auto & ca = this->a;
   const auto & cb = this->b;
-  for (auto && pair : zip(tuple::get<"a"_h>() = ca, tuple::get<"b"_h>() = cb)) {
+  for (auto && pair : zip("a"_n = ca, "b"_n = cb)) {
     this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
     EXPECT_EQ(
         true,
@@ -305,7 +304,7 @@ TEST_F(TestZipFixutre, NamedConstTest) {
 TEST_F(TestZipFixutre, NamedMixteTest) {
   size_t i = 0;
   const auto & cb = this->b;
-  for (auto && pair : zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = cb)) {
+  for (auto && pair : zip("a"_n = a, "b"_n = cb)) {
     this->check(std::get<0>(pair), std::get<1>(pair), i, 0, 0);
     EXPECT_EQ(
         false,
@@ -321,16 +320,15 @@ TEST_F(TestZipFixutre, NamedMixteTest) {
 
 TEST_F(TestZipFixutre, MoveNamedTest) {
   size_t i = 0;
-  for (auto && pair :
-       zip(tuple::get<"a"_h>() = C<int>(0, this->size),
-       tuple::get<"b"_h>() = C<int>(this->size, 2 * this->size))) {
+  for (auto && pair : zip("a"_n = C<int>(0, this->size),
+                      "b"_n = C<int>(this->size, 2 * this->size))) {
     this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 1);
     ++i;
   }
 }
 
 TEST_F(TestZipFixutre, BidirectionalNamed) {
-  auto _zip = zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
+  auto _zip = zip("a"_n = a, "b"_n = b);
   auto begin = _zip.begin();
 
   auto it = begin;
@@ -349,7 +347,7 @@ TEST_F(TestZipFixutre, BidirectionalNamed) {
 }
 
 TEST_F(TestZipFixutre, RandomAccessNamed) {
-  auto _zip = zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
+  auto _zip = zip("a"_n = a, "b"_n = b);
   auto begin = _zip.begin();
   auto end = _zip.end();
 
@@ -368,8 +366,8 @@ TEST_F(TestZipFixutre, RandomAccessNamed) {
 // TEST_F(TestZipFixutre, NamedCat) {
 //   size_t i = 0;
 //   for (auto && data :
-//        zip_cat(zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b),
-//                zip(tuple::get<"c"_h>() = a, tuple::get<"d"_h>() = b))) {
+//        zip_cat(zip("a"_n = a, "b"_n = b),
+//                zip("c"_n = a, "d"_n = b))) {
 //     this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
 //     this->check(std::get<2>(data), std::get<3>(data), i, 0, 0);
 //     ++i;
@@ -379,14 +377,10 @@ TEST_F(TestZipFixutre, RandomAccessNamed) {
 TEST_F(TestZipFixutre, NamedAppend) {
   size_t i = 0;
 
-  auto func = [&]() {
-    return zip(tuple::get<"a"_h>() = a,
-               tuple::get<"temporary"_h>() = arange(size));
-  };
+  auto func = [&]() { return zip("a"_n = a, "temporary"_n = arange(size)); };
 
-  auto && _zip =
-      zip_append(zip_append(func(), tuple::get<"b"_h>() = b),
-                 tuple::get<"c"_h>() = arange(size), tuple::get<"d"_h>() = b);
+  auto && _zip = zip_append(zip_append(func(), "b"_n = b), "c"_n = arange(size),
+                            "d"_n = b);
   for (auto && data : _zip) {
     this->check(tuple::get<"a"_h>(data), tuple::get<"b"_h>(data), i, 0, 0);
     EXPECT_EQ(tuple::get<"c"_h>(data), i);
@@ -396,11 +390,10 @@ TEST_F(TestZipFixutre, NamedAppend) {
 
 TEST_F(TestZipFixutre, NamedReplace) {
   size_t i = 0;
-  for (auto && data :
-       zip_replace<"b"_h>(zip_replace<"b"_h>(zip(tuple::get<"a"_h>() = a,
-       tuple::get<"b"_h>() = a, tuple::get<"c"_h>() = b),
-                                             arange(size)),
-                          b)) {
+  for (auto && data : zip_replace<"b"_h>(
+           zip_replace<"b"_h>(zip("a"_n = a, "b"_n = a, "c"_n = b),
+                              arange(size)),
+           b)) {
     this->check(tuple::get<"a"_h>(data), tuple::get<"b"_h>(data), i, 0, 0);
     this->check(tuple::get<"a"_h>(data), tuple::get<"c"_h>(data), i, 0, 0);
     ++i;
@@ -410,10 +403,9 @@ TEST_F(TestZipFixutre, NamedReplace) {
 TEST_F(TestZipFixutre, NamedRemove) {
   size_t i = 0;
   for (auto && data :
-       zip_remove<"a2"_h>(zip(tuple::get<"a"_h>() = a,
-       tuple::get<"a2"_h>() = arange(size), tuple::get<"b"_h>() = b))) {
+       zip_remove<"a2"_h>(zip("a"_n = a, "a2"_n = arange(size), "b"_n = b))) {
     EXPECT_EQ(data.has<"a2"_h>(), false);
-    this->check(tuple::get<"a"_h>(data), tuple::get<"b"_h>(data), i, 0, 0);
+    this->check(data["a"_n], data["b"_n], i, 0, 0);
     ++i;
   }
 }
@@ -424,15 +416,15 @@ TEST(TestNamedZipFixutre, Simple) {
 
   using namespace tuple;
   for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
-    auto & a = tuple::get<"a"_h>(data);
-    auto & b = tuple::get<"b"_h>(data);
+    auto & a = data["a"_n];
+    auto & b = data["b"_n];
     b *= 10;
     EXPECT_EQ(b, a);
   }
 
   for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
-    auto & a = tuple::get<"a"_h>(data);
-    auto & b = tuple::get<"b"_h>(data);
+    auto & a = data["a"_n];
+    auto & b = data["b"_n];
     EXPECT_EQ(b, a);
   }
 }

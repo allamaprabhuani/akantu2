@@ -75,8 +75,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_replace<"Ehat"_h>(parent::getArguments(el_type, ghost_type),
-                                 make_view(this->Ehat(el_type, ghost_type)));
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Ehat"_n = make_view(this->Ehat(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */

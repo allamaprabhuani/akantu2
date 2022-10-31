@@ -236,10 +236,10 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyByElement(
 
   Matrix<Real> grad_u(dim, dim);
 
-  for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
-                   tuple::get<"sigma"_h>() = range(stress_it, stress_end),
-                   tuple::get<"Epot"_h>() = epot_on_quad_points)) {
-    this->computePotentialEnergyOnQuad(data, tuple::get<"Epot"_h>(data));
+  for (auto data : zip("grad_u"_n = range(gradu_it, gradu_end),
+                   "sigma"_n = range(stress_it, stress_end),
+                   "Epot"_n = epot_on_quad_points)) {
+    this->computePotentialEnergyOnQuad(data, data["Epot"_n]);
   }
 }
 

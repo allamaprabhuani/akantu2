@@ -36,8 +36,8 @@ template <class Args>
 inline void MaterialPhaseField<dim>::computeStressOnQuad(Args && args) {
   MaterialElastic<dim>::computeStressOnQuad(args);
 
-  auto && dam = tuple::get<"damage"_h>(args);
-  tuple::get<"sigma"_h>(args) *= (1 - dam) * (1 - dam) + eta;
+  auto && dam = args["damage"_n];
+  args["sigma"_n] *= (1 - dam) * (1 - dam) + eta;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -46,8 +46,8 @@ template <class Args>
 void MaterialPhaseField<dim>::computeTangentModuliOnQuad(Args && args) {
   MaterialElastic<dim>::computeTangentModuliOnQuad(args);
 
-  auto dam = tuple::get<"damage"_h>(args);
-  tuple::get<"tangent_moduli"_h>(args) *= (1 - dam) * (1 - dam) + eta;
+  auto dam = args["damage"_n];
+  args["tangent_moduli"_n] *= (1 - dam) * (1 - dam) + eta;
 }
 
 } // namespace akantu

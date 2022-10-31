@@ -69,10 +69,10 @@ template <typename Args>
 inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
   Parent<dim>::computeStressOnQuad(args);
 
-  auto & grad_u = tuple::get<"grad_u"_h>(args);
+  auto & grad_u = args["grad_u"_n];
 
-  if constexpr (tuple::has_t<"inelastic_strain"_h, Args>()) {
-    grad_u -= tuple::get<"inelastic_strain"_h>(args);
+  if constexpr (named_tuple_t<Args>::has("inelastic_strain"_n)) {
+    grad_u -= args["inelastic_strain"_n];
   }
 
   Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
@@ -82,7 +82,7 @@ inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
   Vector<Real, 3> Fdiag;
   epsilon.eig(Fdiag);
 
-  auto && Ehat = tuple::get<"Ehat"_h>(args);
+  auto & Ehat = args["Ehat"_n];
 
   Ehat = 0.;
   for (Int i = 0; i < 3; ++i) {
@@ -105,7 +105,7 @@ template <Int dim, template <Int> class Parent>
 template <typename Args>
 inline void
 MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
-  auto && grad_u = tuple::get<"grad_u"_h>(args);
+  auto && grad_u = args["grad_u"_n];
   if (not damage_in_compute_stress) {
     Vector<Real, 3> Fdiag;
     Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
@@ -116,12 +116,12 @@ MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
     computeDamageOnQuad(args, Fdiag);
   }
 
-  auto && sigma = tuple::get<"sigma"_h>(args);
-  auto && dam = tuple::get<"damage"_h>(args);
+  auto && sigma = args["sigma"_n];
+  auto && dam = args["damage"_n];
   sigma *= 1 - dam;
 
-  if constexpr (tuple::has_t<"inelastic_strain"_h, Args>()) {
-    grad_u += tuple::get<"inelastic_strain"_h>(args);
+  if constexpr (named_tuple_t<Args>::has("inelastic_strain"_n)) {
+    grad_u += args["inelastic_strain"_n];
   }
 }
 
@@ -130,8 +130,8 @@ template <Int dim, template <Int> class Parent>
 template <typename Args, typename Derived>
 inline void MaterialMazars<dim, Parent>::computeDamageOnQuad(
     Args && args, const Eigen::MatrixBase<Derived> & epsilon_princ) {
-  auto && dam = tuple::get<"damage"_h>(args);
-  auto && Ehat = tuple::get<"Ehat"_h>(args);
+  auto && dam = args["damage"_n];
+  auto && Ehat = args["Ehat"_n];
 
   auto Fs = Ehat - K0;
 

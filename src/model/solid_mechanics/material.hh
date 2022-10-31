@@ -272,22 +272,22 @@ protected:
 
   template <Int dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    using namespace tuple;
     auto && args =
-        zip(tuple::get<"grad_u"_h>() =
-                make_view<dim, dim>(this->gradu(el_type, ghost_type)),
-            tuple::get<"previous_sigma"_h>() =
+        zip("grad_u"_n = make_view<dim, dim>(this->gradu(el_type, ghost_type)),
+            "previous_sigma"_n =
                 make_view<dim, dim>(this->stress.previous(el_type, ghost_type)),
-            tuple::get<"previous_grad_u"_h>() =
+            "previous_grad_u"_n =
                 make_view<dim, dim>(this->gradu.previous(el_type, ghost_type)));
 
     if (not finite_deformation) {
-      return zip_append(std::forward<decltype(args)>(args),
-                        tuple::get<"sigma"_h>() = make_view<dim, dim>(
-                            this->stress(el_type, ghost_type)));
+      return zip_append(
+          std::forward<decltype(args)>(args),
+          "sigma"_n = make_view<dim, dim>(this->stress(el_type, ghost_type)));
     }
 
     return zip_append(std::forward<decltype(args)>(args),
-                      tuple::get<"sigma"_h>() = make_view<dim, dim>(
+                      "sigma"_n = make_view<dim, dim>(
                           this->piola_kirchhoff_2(el_type, ghost_type)));
   }
 
@@ -295,10 +295,11 @@ protected:
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
                                      ElementType el_type,
                                      GhostType ghost_type) {
+    using namespace tuple;
     constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
-    return zip(tuple::get<"tangent_moduli"_h>() =
+    return zip("tangent_moduli"_n =
                    make_view<tangent_size, tangent_size>(tangent_matrix),
-               tuple::get<"grad_u"_h>() =
+               "grad_u"_n =
                    make_view<dim, dim>(this->gradu(el_type, ghost_type)));
   }
 

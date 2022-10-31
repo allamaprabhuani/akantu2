@@ -119,7 +119,7 @@ void MaterialDamage<dim, Parent>::computeTangentModuli(
 
   for (auto && data :
        zip_append(getArguments(el_type, ghost_type),
-                  tuple::get<"tangent_moduli"_h>() =
+                  "tangent_moduli"_n =
                       make_view<tangent_size, tangent_size>(tangent_matrix))) {
     Parent<dim>::computeTangentModuliOnQuad(data);
     computeTangentModuliOnQuad(data);
@@ -133,8 +133,7 @@ template <Int dim, template <Int> class Parent>
 template <class Args>
 void MaterialDamage<dim, Parent>::computeTangentModuliOnQuad(
     Args && arguments) {
-  tuple::get<"tangent_moduli"_h>(arguments).array() *=
-      (1 - tuple::get<"damage"_h>(arguments));
+  arguments["tangent_moduli"_n].array() *= (1 - arguments["damage"_n]);
 }
 
 /* -------------------------------------------------------------------------- */

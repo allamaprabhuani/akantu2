@@ -126,10 +126,10 @@ void MaterialPlastic<dim>::computePotentialEnergy(ElementType el_type) {
 
   for (auto && args : getArguments(el_type)) {
     Matrix<Real, dim, dim> elastic_strain =
-        tuple::get<"grad_u"_h>(args) - tuple::get<"inelastic_strain"_h>(args);
+        args["grad_u"_n] - args["inelastic_strain"_n];
 
     MaterialElastic<dim>::computePotentialEnergyOnQuad(
-        tuple::replace<"grad_u"_h>(args, elastic_strain), *epot);
+        tuple::replace(args, "grad_u"_n = elastic_strain), *epot);
   }
 }
 
@@ -138,22 +138,19 @@ template <Int dim>
 void MaterialPlastic<dim>::updateEnergies(ElementType el_type) {
   MaterialElastic<dim>::updateEnergies(el_type);
 
-  for (auto && args :
-       zip_append(getArguments(el_type),
-                  tuple::get<"pe"_h>() = this->plastic_energy(el_type),
-                  tuple::get<"wp"_h>() = this->d_plastic_energy(el_type))) {
+  for (auto && args : zip_append(getArguments(el_type),
+                                 "pe"_n = this->plastic_energy(el_type),
+                                 "wp"_n = this->d_plastic_energy(el_type))) {
 
     Matrix<Real, dim, dim> delta_strain_it =
-        tuple::get<"inelastic_strain"_h>(args) -
-        tuple::get<"previous_inelastic_strain"_h>(args);
+        args["inelastic_strain"_n] - args["previous_inelastic_strain"_n];
 
-    Matrix<Real, dim, dim> sigma_h =
-        tuple::get<"sigma"_h>(args) + tuple::get<"previous_sigma"_h>(args);
+    Matrix<Real, dim, dim> sigma_h = args["sigma"_n] + args["previous_sigma"_n];
 
-    auto && wp = tuple::get<"wp"_h>(args);
+    auto && wp = args["wp"_n];
     wp = .5 * sigma_h.doubleDot(delta_strain_it);
 
-    tuple::get<"pe"_h>(args) += wp;
+    args["pe"_n] += wp;
   }
 }
 

@@ -43,12 +43,12 @@ namespace akantu {
 template <Int dim>
 template <typename Args>
 inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
-  auto && sigma = tuple::get<"sigma"_h>(args);
-  auto && grad_u = tuple::get<"grad_u"_h>(args);
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
   Real sigma_th = 0.;
 
-  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
-    sigma_th = tuple::get<"sigma_th"_h>(args);
+  if constexpr (named_tuple_t<Args>::has("sigma_th"_n)) {
+    sigma_th = args["sigma_th"_n];
   }
 
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
@@ -63,12 +63,12 @@ inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
 template <>
 template <typename Args>
 inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
-  auto && sigma = tuple::get<"sigma"_h>(args);
-  auto && grad_u = tuple::get<"grad_u"_h>(args);
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
   Real sigma_th = 0.;
 
-  if constexpr (tuple::has_t<"sigma_th"_h, Args>()) {
-    sigma_th = tuple::get<"sigma_th"_h>(args);
+  if constexpr (std::decay_t<Args>::has("sigma_th"_n)) {
+    sigma_th = args["sigma_th"_n];
   }
 
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
@@ -79,7 +79,7 @@ template <Int dim>
 template <typename Args>
 inline void
 MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
-  auto && tangent = tuple::get<"tangent_moduli"_h>(args);
+  auto && tangent = args["tangent_moduli"_n];
   tangent.zero();
 
   constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
@@ -124,8 +124,7 @@ template <Int dim>
 template <class Args>
 inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(Args && args,
                                                                Real & epot) {
-  epot =
-      .5 * tuple::get<"sigma"_h>(args).doubleDot(tuple::get<"grad_u"_h>(args));
+  epot = .5 * args["sigma"_n].doubleDot(args["grad_u"_n]);
 }
 
 } // namespace akantu

@@ -91,8 +91,8 @@ public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent_damage::getArguments(el_type, ghost_type),
-        tuple::get<"K0"_h>() = make_view(this->K0(el_type, ghost_type)),
-        tuple::get<"Ehat"_h>() =
+        "K0"_n = make_view(this->K0(el_type, ghost_type)),
+        "Ehat"_n =
             broadcast(this->Ehat, this->damage(el_type, ghost_type).size()));
   }
 

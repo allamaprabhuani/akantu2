@@ -80,50 +80,56 @@ Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-template <class D1, class D2, class D3, class D4, class D5, class D6, class D7,
-          class D8>
-inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
-    Eigen::MatrixBase<D1> & traction, Eigen::MatrixBase<D2> & opening,
-    const Eigen::MatrixBase<D3> & normal, Real & delta_max,
-    const Real & delta_c, const Eigen::MatrixBase<D4> & insertion_stress,
-    const Real & sigma_c, Eigen::MatrixBase<D5> & normal_opening,
-    Eigen::MatrixBase<D6> & tangential_opening, Real & normal_opening_norm,
-    Real & tangential_opening_norm, Real & damage, bool & penetration,
-    Eigen::MatrixBase<D7> & contact_traction,
-    Eigen::MatrixBase<D8> & contact_opening) const {
+template <typename Args>
+constexpr inline void
+MaterialCohesiveLinear<dim>::computeTractionOnQuad(Args && args) {
+  auto && delta_c = args["delta_c"_n];
+  auto && sigma_c = args["sigma_c"_n];
+  auto && delta_max = args["delta_max"_n];
+
+  auto && normal = args["normal"_n];
+  auto && opening = args["opening"_n];
+  auto && traction = args["traction"_n];
+
+  auto && damage = args["damage"_n];
+  auto && insertion_stress = args["insertion_stress"_n];
 
   /// compute normal and tangential opening vectors
-  normal_opening_norm = opening.dot(normal);
-  normal_opening = normal * normal_opening_norm;
+  auto norm = opening.dot(normal);
+  this->normal_opening_norm = norm;
+  this->normal_opening = normal * this->normal_opening_norm;
 
-  tangential_opening = opening - normal_opening;
-  tangential_opening_norm = tangential_opening.norm();
+  this->tangential_opening = opening - normal_opening;
+  this->tangential_opening_norm = this->tangential_opening.norm();
 
   /**
    * compute effective opening displacement
    * @f$ \delta = \sqrt{
    * \frac{\beta^2}{\kappa^2} \Delta_t^2 + \Delta_n^2 } @f$
    */
-  Real delta =
-      tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
+  auto delta = this->tangential_opening_norm * this->tangential_opening_norm *
+               this->beta2_kappa2;
 
-  penetration = normal_opening_norm / delta_c < -Math::getTolerance();
+  penetration = this->normal_opening_norm / delta_c < -Math::getTolerance();
 
   // penetration = normal_opening_norm < 0.;
   if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
 
+  auto && contact_traction = args.get("contact_traction"_n);
+  auto && contact_opening = args.get("contact_opening"_n);
+
   if (penetration) {
     /// use penalty coefficient in case of penetration
-    contact_traction = normal_opening * this->penalty;
-    contact_opening = normal_opening;
+    contact_traction = this->normal_opening * this->penalty;
+    contact_opening = this->normal_opening;
 
     /// don't consider penetration contribution for delta
     opening = tangential_opening;
-    normal_opening.zero();
+    this->normal_opening.zero();
   } else {
-    delta += normal_opening_norm * normal_opening_norm;
+    delta += this->normal_opening_norm * this->normal_opening_norm;
     contact_traction.zero();
     contact_opening.zero();
   }
@@ -153,40 +159,44 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
     AKANTU_DEBUG_ASSERT(delta_max != 0.,
                         "Division by zero, tolerance might be too low");
 
-    traction = (tangential_opening * this->beta2_kappa + normal_opening) *
-               sigma_c / delta_max * (1. - damage);
+    traction =
+        (this->tangential_opening * this->beta2_kappa + this->normal_opening) *
+        sigma_c / delta_max * (1. - damage);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-template <class D1, class D2, class D3, class D4, class D5, class D6>
+template <class Derived, class Args>
 inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
-    Eigen::MatrixBase<D1> & tangent, Real & delta_max, const Real & delta_c,
-    const Real & sigma_c, Eigen::MatrixBase<D2> & opening,
-    const Eigen::MatrixBase<D3> & normal,
-    Eigen::MatrixBase<D4> & normal_opening,
-    Eigen::MatrixBase<D5> & tangential_opening, Real & normal_opening_norm,
-    Real & tangential_opening_norm, Real & damage, bool & penetration,
-    Eigen::MatrixBase<D6> & contact_opening) const {
-
+    Eigen::MatrixBase<Derived> & tangent, Args && args) {
   /**
    * During the update of the residual the interpenetrations are
    * stored in the array "contact_opening", therefore, in the case
    * of penetration, in the array "opening" there are only the
    * tangential components.
    */
+
+  auto && delta_c = args["delta_c"_n];
+  auto && delta_max = args["delta_max"_n];
+
+  auto && normal = args["normal"_n];
+  auto && opening = args["opening"_n];
+  auto && contact_opening = args["contact_opening"_n];
+
+  auto && damage = args["damage"_n];
+
   opening += contact_opening;
 
   /// compute normal and tangential opening vectors
-  normal_opening_norm = opening.dot(normal);
-  normal_opening = normal * normal_opening_norm;
+  this->normal_opening_norm = opening.dot(normal);
+  this->normal_opening = normal * normal_opening_norm;
 
-  tangential_opening = opening - normal_opening;
-  tangential_opening_norm = tangential_opening.norm();
+  this->tangential_opening = opening - normal_opening;
+  this->tangential_opening_norm = tangential_opening.norm();
 
-  auto delta =
-      tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
+  auto delta = this->tangential_opening_norm * this->tangential_opening_norm *
+               this->beta2_kappa2;
 
   penetration = normal_opening_norm < 0.0;
   if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {

@@ -50,13 +50,13 @@ template <Int dim>
 template <class Args>
 inline void MaterialNeohookean<dim>::computeStressOnQuad(Args && args) {
   // Neo hookean book
-  auto && F = Material::gradUToF<dim>(tuple::get<"grad_u"_h>(args));
+  auto && F = Material::gradUToF<dim>(args["grad_u"_n]);
   auto && C = Material::rightCauchy<dim>(F);
   // the term  sqrt(C33) corresponds to the off plane strain (2D plane stress)
-  auto J = F.determinant() * std::sqrt(tuple::get<"C33"_h>(args));
+  auto J = F.determinant() * std::sqrt(args["C33"_n]);
 
-  tuple::get<"sigma"_h>(args) = Matrix<Real, dim, dim>::Identity() * mu +
-                                (lambda * log(J) - mu) * C.inverse();
+  args["sigma"_n] = Matrix<Real, dim, dim>::Identity() * mu +
+                    (lambda * log(J) - mu) * C.inverse();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,11 +93,11 @@ template <class Args>
 inline void
 MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(Args && args) {
   // Neo hookean book
-  auto F = Material::gradUToF<dim>(tuple::get<"grad_u"_h>(args));
+  auto F = Material::gradUToF<dim>(args["grad_u"_n]);
   auto C = Material::rightCauchy<dim>(F);
 
   Math::NewtonRaphson<Real> nr(1e-5, 100);
-  auto & C33 = tuple::get<"C33"_h>(args);
+  auto & C33 = args["C33"_n];
 
   C33 = nr.solve(C33_NR("Neohookean_plan_stress", this->lambda, this->mu, C),
                  C33);
@@ -142,11 +142,11 @@ inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(
 template <Int dim>
 template <class Args>
 inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Args && args) {
-  auto & tangent = tuple::get<"tangent_moduli"_h>(args);
+  auto & tangent = args["tangent_moduli"_n];
   // Neo hookean book
   auto cols = tangent.cols();
   auto rows = tangent.rows();
-  auto F = Material::gradUToF<dim>(tuple::get<"grad_u"_h>(args));
+  auto F = Material::gradUToF<dim>(args["grad_u"_n]);
   auto C = Material::rightCauchy<dim>(F);
   auto J = F.determinant() * sqrt(C33);
 

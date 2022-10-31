@@ -59,17 +59,14 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         Parent<dim>::getArguments(el_type, ghost_type),
-        tuple::get<"damage"_h>() =
-            make_view<dim, dim>(this->damage(el_type, ghost_type)),
-        tuple::get<"sigma_el"_h>() =
+        "damage"_n = make_view<dim, dim>(this->damage(el_type, ghost_type)),
+        "sigma_el"_n =
             make_view<dim, dim>(this->elastic_stress(el_type, ghost_type)),
-        tuple::get<"epsilon_hat"_h>() =
-            this->equivalent_strain(el_type, ghost_type),
-        tuple::get<"TrD"_h>() = this->trace_damage(el_type, ghost_type),
-        tuple::get<"TrD_n_1"_h>() =
-            this->trace_damage.previous(el_type, ghost_type),
-        tuple::get<"equivalent_strain_data"_h>() = equivalent_strain_function,
-        tuple::get<"damage_threshold_data"_h>() = damage_threshold_function);
+        "epsilon_hat"_n = this->equivalent_strain(el_type, ghost_type),
+        "TrD"_n = this->trace_damage(el_type, ghost_type),
+        "TrD_n_1"_n = this->trace_damage.previous(el_type, ghost_type),
+        "equivalent_strain_data"_n = equivalent_strain_function,
+        "damage_threshold_data"_n = damage_threshold_function);
   }
 
   template <class Args> void computeStressOnQuad(Args && args);

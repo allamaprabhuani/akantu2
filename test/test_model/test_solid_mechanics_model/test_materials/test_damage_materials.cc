@@ -105,7 +105,7 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto &&data : enumerate(epsilons)) {
+  for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -126,13 +126,12 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto &&epsilon : epsilons) {
+  for (auto && epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
 
-    computeStressOnQuad(make_named_tuple(
-        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
-        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -149,7 +148,7 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto &&data : enumerate(epsilons)) {
+  for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -171,14 +170,13 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto &&epsilon : epsilons) {
+  for (auto && epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = -this->nu * epsilon;
 
-    computeStressOnQuad(make_named_tuple(
-        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
-        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -195,7 +193,7 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Array<Real> sigmas(1001, 1);
   Array<Real> damages(1001, 1);
 
-  for (auto &&data : enumerate(epsilons)) {
+  for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
   Real _K0 = K0;
@@ -217,14 +215,13 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
   Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
-  for (auto &&epsilon : epsilons) {
+  for (auto && epsilon : epsilons) {
     strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = strain(2, 2) = -this->nu * epsilon;
 
-    computeStressOnQuad(make_named_tuple(
-        tuple::get<"grad_u"_h>() = strain, tuple::get<"sigma"_h>() = sigma,
-        tuple::get<"damage"_h>() = dam, tuple::get<"Ehat"_h>() = ehat));
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =

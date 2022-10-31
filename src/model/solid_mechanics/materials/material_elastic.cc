@@ -126,8 +126,8 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
     }
   } else {
     for (auto && args : arguments) {
-      auto && E = this->template gradUToE<dim>(tuple::get<"grad_u"_h>(args));
-      this->computeStressOnQuad(tuple::replace<"grad_u"_h>(args, E));
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computeStressOnQuad(tuple::replace(args, "grad_u"_n = E));
     }
   }
 
@@ -178,17 +178,16 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
   auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
   if (not this->finite_deformation) {
-    for (auto && args :
+    for (auto && [args, epot] :
          zip(arguments, this->potential_energy(el_type, _not_ghost))) {
-      this->computePotentialEnergyOnQuad(std::get<0>(args), std::get<1>(args));
+      this->computePotentialEnergyOnQuad(args, epot);
     }
   } else {
-    for (auto && data :
+    for (auto && [args, epot] :
          zip(arguments, this->potential_energy(el_type, _not_ghost))) {
-      auto && args = std::get<0>(data);
-      auto && E = this->template gradUToE<dim>(tuple::get<"grad_u"_h>(args));
-      this->computePotentialEnergyOnQuad(tuple::replace<"grad_u"_h>(args, E),
-                                         std::get<1>(data));
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computePotentialEnergyOnQuad(tuple::replace(args, "grad_u"_n = E),
+                                         epot);
     }
   }
 
@@ -219,18 +218,18 @@ void MaterialElastic<dim>::computePotentialEnergyByElement(
   Matrix<Real> grad_u(dim, dim);
 
   if (this->finite_deformation) {
-    for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
-                     tuple::get<"sigma"_h>() = range(stress_it, stress_end),
-                     tuple::get<"Epot"_h>() = epot_on_quad_points)) {
-      auto E = this->template gradUToE<dim>(std::get<0>(data));
-      this->computePotentialEnergyOnQuad(tuple::replace<"grad_u"_h>(data, E),
-                                         tuple::get<"Epot"_h>(data));
+    for (auto && data : zip("grad_u"_n = range(gradu_it, gradu_end),
+                        "sigma"_n = range(stress_it, stress_end),
+                        "Epot"_n = epot_on_quad_points)) {
+      auto E = this->template gradUToE<dim>(data["grad_u"_n]);
+      this->computePotentialEnergyOnQuad(tuple::replace(data, "grad_u"_n = E),
+                                         data["Epot"_n]);
     }
   } else {
-    for (auto data : zip(tuple::get<"grad_u"_h>() = range(gradu_it, gradu_end),
-                     tuple::get<"sigma"_h>() = range(stress_it, stress_end),
-                     tuple::get<"Epot"_h>() = epot_on_quad_points)) {
-      this->computePotentialEnergyOnQuad(data, tuple::get<"Epot"_h>(data));
+    for (auto && data : zip("grad_u"_n = range(gradu_it, gradu_end),
+                        "sigma"_n = range(stress_it, stress_end),
+                        "Epot"_n = epot_on_quad_points)) {
+      this->computePotentialEnergyOnQuad(data, data["Epot"_n]);
     }
   }
 }

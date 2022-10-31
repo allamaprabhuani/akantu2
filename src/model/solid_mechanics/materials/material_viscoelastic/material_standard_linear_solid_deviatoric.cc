@@ -87,9 +87,9 @@ void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
     ElementType el_type, GhostType ghost_type) {
   /// Loop on all quadrature points
   for (auto && args : this->getArguments(el_type, ghost_type)) {
-    const auto & grad_u = tuple::get<"grad_u"_h>(args);
-    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto & h = tuple::get<"history"_h>(args);
+    const auto & grad_u = args["grad_u"_n];
+    auto & dev_s = args["sigma_dev"_n];
+    auto & h = args["history"_n];
 
     /// Compute the first invariant of strain
     Real Theta = grad_u.trace();
@@ -123,10 +123,10 @@ void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
   auto && arguments = this->getArguments(el_type, ghost_type);
   /// Loop on all quadrature points
   for (auto && args : arguments) {
-    auto && grad_u = tuple::get<"grad_u"_h>(args);
-    auto && sigma = tuple::get<"sigma"_h>(args);
-    auto && dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto && h = tuple::get<"history"_h>(args);
+    auto && grad_u = args["grad_u"_n];
+    auto && sigma = args["sigma"_n];
+    auto && dev_s = args["sigma_dev"_n];
+    auto && h = args["history"_n];
 
     s.zero();
     sigma.zero();
@@ -167,9 +167,9 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
                           dissipated_energy(el_type, ghost_type))) {
     auto && args = std::get<0>(data);
     auto & dis_energy = std::get<1>(data);
-    const auto & grad_u = tuple::get<"grad_u"_h>(args);
-    auto & dev_s = tuple::get<"sigma_dev"_h>(args);
-    auto & h = tuple::get<"history"_h>(args);
+    const auto & grad_u = args["grad_u"_n];
+    auto & dev_s = args["sigma_dev"_n];
+    auto & h = args["history"_n];
 
     /// Compute the first invariant of strain
     epsilon_d = Material::gradUToEpsilon<dim>(grad_u);

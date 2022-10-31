@@ -104,7 +104,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   // elastic stifnness tensor
   Matrix<Real, size, size> De;
   MaterialElastic<dim>::computeTangentModuliOnQuad(
-      make_named_tuple(tuple::get<"tangent_moduli"_h>() = De));
+      make_named_tuple("tangent_moduli"_n = De));
 
   // elastic compliance tensor
   Matrix<Real, size, size> Ce = De.inverse();
@@ -288,11 +288,11 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
 template <Int dim>
 template <class Args>
 inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
-  const auto & grad_u = tuple::get<"grad_u"_h>(args);
-  const auto & previous_grad_u = tuple::get<"previous_grad_u"_h>(args);
-  const auto & previous_sigma = tuple::get<"previous_sigma"_h>(args);
-  const auto & sigma_th = tuple::get<"sigma_th"_h>(args);
-  const auto & previous_sigma_th = tuple::get<"previous_sigma_th"_h>(args);
+  const auto & grad_u = args["grad_u"_n];
+  const auto & previous_grad_u = args["previous_grad_u"_n];
+  const auto & previous_sigma = args["previous_sigma"_n];
+  const auto & sigma_th = args["sigma_th"_n];
+  const auto & previous_sigma_th = args["previous_sigma_th"_n];
 
   Real delta_sigma_th = sigma_th - previous_sigma_th;
 
@@ -302,9 +302,8 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
   // Compute trial stress, sigma_tr
   Matrix<Real> sigma_tr(dim, dim);
   MaterialElastic<dim>::computeStressOnQuad(
-      tuple::make_named_tuple(tuple::get<"grad_u"_h>() = grad_delta_u,
-                              tuple::get<"sigma"_h>() = sigma_tr,
-                              tuple::get<"sigma_th"_h>() = delta_sigma_th));
+      tuple::make_named_tuple("grad_u"_n = grad_delta_u, "sigma"_n = sigma_tr,
+                              "sigma_th"_n = delta_sigma_th));
   sigma_tr += previous_sigma;
 
   bool initial_yielding = (this->computeYieldFunction(sigma_tr) > 0);
@@ -340,9 +339,9 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
   }
 
   // Compute the increment in inelastic strain
-  MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(tuple::append(
-      args, tuple::get<"delta_grad_u"_h>() = grad_delta_u,
-      tuple::get<"delta_inelastic_strain"_h>() = delta_inelastic_strain));
+  MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
+      tuple::append(args, "delta_grad_u"_n = grad_delta_u,
+                    "delta_inelastic_strain"_n = delta_inelastic_strain));
 }
 
 } // namespace akantu

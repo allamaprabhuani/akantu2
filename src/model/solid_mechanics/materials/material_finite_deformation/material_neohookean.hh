@@ -100,7 +100,7 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         Material::getArguments<dim>(el_type, ghost_type),
-        tuple::get<"C33"_h>() =
+        "C33"_n =
             broadcast(C33, this->element_filter(el_type, ghost_type).size()));
   }
 
@@ -109,7 +109,7 @@ public:
                                      GhostType ghost_type = _not_ghost) {
     return zip_append(
         Material::getArgumentsTangent<dim>(tangent_matrix, el_type, ghost_type),
-        tuple::get<"C33"_h>() =
+        "C33"_n =
             broadcast(C33, this->element_filter(el_type, ghost_type).size()));
   }
 

@@ -84,15 +84,15 @@ void MaterialMazarsNonLocal<dim, Parent>::computeNonLocalStress(
   auto & non_loc_var = non_local_variable(el_type, ghost_type);
 
   if (this->damage_in_compute_stress) {
-    auto && arguments = zip_replace<"damage"_h>(
-        getArguments(el_type, ghost_type), make_view(non_loc_var));
+    auto && arguments = zip_replace(getArguments(el_type, ghost_type),
+                                    "damage"_n = make_view(non_loc_var));
 
     for (auto && data : arguments) {
       parent::MaterialParent::computeDamageAndStressOnQuad(data);
     }
   } else {
-    auto && arguments = zip_replace<"Ehat"_h>(getArguments(el_type, ghost_type),
-                                              make_view(non_loc_var));
+    auto && arguments = zip_replace(getArguments(el_type, ghost_type),
+                                    "Ehat"_n = make_view(non_loc_var));
 
     for (auto && data : arguments) {
       parent::MaterialParent::computeDamageAndStressOnQuad(data);

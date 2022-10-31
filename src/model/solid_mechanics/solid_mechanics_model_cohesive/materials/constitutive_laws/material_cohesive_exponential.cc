@@ -81,19 +81,19 @@ template <Int dim> void MaterialCohesiveExponential<dim>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialCohesiveExponential<dim>::computeTraction(
-    const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
+void MaterialCohesiveExponential<dim>::computeTraction(ElementType el_type,
+                                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// compute scalars
   Real beta2 = beta * beta;
 
   /// loop on each quadrature point
-  for (auto && data :
-       zip(make_view<dim>(tractions(el_type, ghost_type)),
-           make_view<dim>(opening(el_type, ghost_type)), make_view<dim>(normal),
-           delta_max(el_type, ghost_type),
-           delta_max.previous(el_type, ghost_type))) {
+  for (auto && data : zip(make_view<dim>(tractions(el_type, ghost_type)),
+                          make_view<dim>(opening(el_type, ghost_type)),
+                          make_view<dim>(normals(el_type, ghost_type)),
+                          delta_max(el_type, ghost_type),
+                          delta_max.previous(el_type, ghost_type))) {
     auto & traction = std::get<0>(data);
     auto & opening = std::get<1>(data);
     auto & normal = std::get<2>(data);
@@ -190,8 +190,7 @@ void MaterialCohesiveExponential<dim>::computeCompressiveTraction(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveExponential<dim>::computeTangentTraction(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    const Array<Real> & normal, GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real beta2 = beta * beta;
@@ -214,10 +213,10 @@ void MaterialCohesiveExponential<dim>::computeTangentTraction(
    *  \end{array}\right. @f$
    **/
 
-  for (auto && data :
-       zip(make_view<dim, dim>(tangent_matrix),
-           make_view<dim>(opening(el_type, ghost_type)), make_view<dim>(normal),
-           delta_max.previous(el_type, ghost_type))) {
+  for (auto && data : zip(make_view<dim, dim>(tangent_matrix),
+                          make_view<dim>(opening(el_type, ghost_type)),
+                          make_view<dim>(normals(el_type, ghost_type)),
+                          delta_max.previous(el_type, ghost_type))) {
     auto && tangent = std::get<0>(data);
     auto && opening = std::get<1>(data);
     auto && normal = std::get<2>(data);

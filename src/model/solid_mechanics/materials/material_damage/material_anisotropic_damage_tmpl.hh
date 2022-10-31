@@ -198,15 +198,15 @@ template <Int dim, template <Int> class EquivalentStrain,
 template <class Args>
 void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
                                Parent>::computeStressOnQuad(Args && args) {
-  auto & sigma = tuple::get<"sigma"_h>(args);
-  auto & grad_u = tuple::get<"grad_u"_h>(args);
-  auto & sigma_el = tuple::get<"sigma_el"_h>(args);
-  auto & epsilon_hat = tuple::get<"epsilon_hat"_h>(args);
-  auto & D = tuple::get<"damage"_h>(args);
-  auto & TrD_n_1 = tuple::get<"TrD_n_1"_h>(args);
-  auto & TrD = tuple::get<"TrD"_h>(args);
-  auto & equivalent_strain_data = tuple::get<"equivalent_strain_data"_h>(args);
-  auto & damage_threshold_data = tuple::get<"damage_threshold_data"_h>(args);
+  auto & sigma = args["sigma"_n];
+  auto & grad_u = args["grad_u"_n];
+  auto & sigma_el = args["sigma_el"_n];
+  auto & epsilon_hat = args["epsilon_hat"_n];
+  auto & D = args["damage"_n];
+  auto & TrD_n_1 = args["TrD_n_1"_n];
+  auto & TrD = args["TrD"_n];
+  auto & equivalent_strain_data = args["equivalent_strain_data"_n];
+  auto & damage_threshold_data = args["damage_threshold_data"_n];
 
   Matrix<Real, dim, dim> Dtmp;
   Real TrD_n_1_tmp;

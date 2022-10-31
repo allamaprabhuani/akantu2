@@ -77,7 +77,7 @@ template <Int dim> void MaterialCohesiveLinearUncoupled<dim>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
-    const Array<Real> &, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   delta_n_max.resize();
@@ -96,7 +96,7 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(dim);
 
-  auto normal_it = this->normal.begin(dim);
+  auto normal_it = this->normals(el_type, ghost_type).begin(dim);
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_n_max_it = delta_n_max(el_type, ghost_type).begin();
   auto delta_t_max_it = delta_t_max(el_type, ghost_type).begin();
@@ -210,14 +210,13 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
-    ElementType el_type, Array<Real> & tangent_matrix, const Array<Real> &,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
   auto tangent_it = tangent_matrix.begin(dim, dim);
   auto tangent_end = tangent_matrix.end(dim, dim);
-  auto normal_it = this->normal.begin(dim);
+  auto normal_it = this->normals(el_type, ghost_type).begin(dim);
   auto opening_it = this->opening(el_type, ghost_type).begin(dim);
 
   /// NB: delta_max_it points on delta_max_previous, i.e. the

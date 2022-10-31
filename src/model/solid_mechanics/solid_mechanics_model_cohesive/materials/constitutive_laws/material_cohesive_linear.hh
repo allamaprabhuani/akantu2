@@ -52,8 +52,7 @@ namespace akantu {
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
-template <Int spatial_dimension>
-class MaterialCohesiveLinear : public MaterialCohesive {
+template <Int dim> class MaterialCohesiveLinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -81,12 +80,11 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type) override;
 
   /**
@@ -100,28 +98,23 @@ protected:
    */
   void scaleInsertionTraction();
 
-  /// compute the traction for a given quadrature point
-  template <class D1, class D2, class D3, class D4, class D5, class D6,
-            class D7, class D8>
-  inline void computeTractionOnQuad(
-      Eigen::MatrixBase<D1> & traction, Eigen::MatrixBase<D2> & opening,
-      const Eigen::MatrixBase<D3> & normal, Real & delta_max,
-      const Real & delta_c, const Eigen::MatrixBase<D4> & insertion_stress,
-      const Real & sigma_c, Eigen::MatrixBase<D5> & normal_opening,
-      Eigen::MatrixBase<D6> & tangential_opening, Real & normal_opening_norm,
-      Real & tangential_opening_norm, Real & damage, bool & penetration,
-      Eigen::MatrixBase<D7> & contact_traction,
-      Eigen::MatrixBase<D8> & contact_opening) const;
+  decltype(auto) getArguments(ElementType element_type, GhostType ghost_type) {
+    using namespace tuple;
+    return zip_append(
+        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
+        "sigma_c"_n = this->sigma_c_eff(element_type, ghost_type),
+        "delta_c"_n = this->delta_c_eff(element_type, ghost_type),
+        "insertion_stress"_n =
+            make_view<dim>(this->insertion_stress(element_type, ghost_type)));
+  }
 
-  template <class D1, class D2, class D3, class D4, class D5, class D6>
-  inline void computeTangentTractionOnQuad(
-      Eigen::MatrixBase<D1> & tangent, Real & delta_max, const Real & delta_c,
-      const Real & sigma_c, Eigen::MatrixBase<D2> & opening,
-      const Eigen::MatrixBase<D3> & normal,
-      Eigen::MatrixBase<D4> & normal_opening,
-      Eigen::MatrixBase<D5> & tangential_opening, Real & normal_opening_norm,
-      Real & tangential_opening_norm, Real & damage, bool & penetration,
-      Eigen::MatrixBase<D6> & contact_opening) const;
+  /// compute the traction for a given quadrature point
+  template <typename Args>
+  constexpr inline void computeTractionOnQuad(Args && args);
+
+  template <class Derived, class Args>
+  inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent,
+                                           Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -182,6 +175,12 @@ protected:
   /// insertion of cohesive element when stress is high enough just on
   /// one quadrature point
   bool max_quad_stress_insertion;
+
+  Vector<Real, dim> normal_opening;
+  Vector<Real, dim> tangential_opening;
+  Real normal_opening_norm{0.};
+  Real tangential_opening_norm{0.};
+  bool penetration{false};
 };
 
 /* -------------------------------------------------------------------------- */

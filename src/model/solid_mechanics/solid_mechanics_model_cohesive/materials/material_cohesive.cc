@@ -39,7 +39,6 @@
 #include "fe_engine_template.hh"
 #include "integrator_gauss.hh"
 #include "shape_cohesive.hh"
-#include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -57,7 +56,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       contact_opening("contact_opening", *this), delta_max("delta max", *this),
       use_previous_delta_max(false), use_previous_opening(false),
       damage("damage", *this), sigma_c("sigma_c", *this),
-      normal(0, spatial_dimension, "normal") {
+      normals("normal", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -89,6 +88,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
 
   this->opening.initialize(spatial_dimension);
   this->opening.initializeHistory();
+
+  this->normals.initialize(spatial_dimension);
 
   this->delta_max.initialize(1);
   this->damage.initialize(1);
@@ -248,9 +249,9 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     auto tangent_stiffness_matrix = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points,
         spatial_dimension * spatial_dimension, "tangent_stiffness_matrix");
-    normal.resize(nb_quadrature_points);
 
-    computeNormal(model->getCurrentPosition(), normal, type, ghost_type);
+    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+                  ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
     // computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
@@ -258,7 +259,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     tangent_stiffness_matrix->zero();
 
-    computeTangentTraction(type, *tangent_stiffness_matrix, normal, ghost_type);
+    computeTangentTraction(type, *tangent_stiffness_matrix, ghost_type);
 
     UInt size_at_nt_d_n_a = spatial_dimension * nb_nodes_per_element *
                             spatial_dimension * nb_nodes_per_element;
@@ -329,20 +330,16 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
       continue;
     }
 
-    auto nb_quadrature_points =
-        nb_element * fem_cohesive.getNbIntegrationPoints(type, ghost_type);
-
-    normal.resize(nb_quadrature_points);
-
     /// compute normals @f$\mathbf{n}@f$
-    computeNormal(model->getCurrentPosition(), normal, type, ghost_type);
+    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+                  ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
     /// compute traction @f$\mathbf{t}@f$
-    computeTraction(normal, type, ghost_type);
+    computeTraction(type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();

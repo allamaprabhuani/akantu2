@@ -65,13 +65,12 @@ public:
 
   /* ------------------------------------------------------------------------ */
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_append(Material::getArguments<dim>(el_type, ghost_type),
-                      tuple::get<"delta_T"_h>() =
-                          make_view(this->delta_T(el_type, ghost_type)),
-                      tuple::get<"sigma_th"_h>() =
-                          make_view(this->sigma_th(el_type, ghost_type)),
-                      tuple::get<"previous_sigma_th"_h>() = make_view(
-                          this->sigma_th.previous(el_type, ghost_type)));
+    return zip_append(
+        Material::getArguments<dim>(el_type, ghost_type),
+        "delta_T"_n = make_view(this->delta_T(el_type, ghost_type)),
+        "sigma_th"_n = make_view(this->sigma_th(el_type, ghost_type)),
+        "previous_sigma_th"_n =
+            make_view(this->sigma_th.previous(el_type, ghost_type)));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrices,
@@ -108,16 +107,16 @@ protected:
 template <Int dim>
 template <class Args>
 inline void MaterialThermal<dim>::computeStressOnQuad(Args && args) {
-  auto && sigma = tuple::get<"sigma_th"_h>(args);
-  auto && deltaT = tuple::get<"delta_T"_h>(args);
+  auto && sigma = args["sigma_th"_n];
+  auto && deltaT = args["delta_T"_n];
   sigma = -this->E / (1. - 2. * this->nu) * this->alpha * deltaT;
 }
 
 template <>
 template <class Args>
 inline void MaterialThermal<1>::computeStressOnQuad(Args && args) {
-  auto && sigma = tuple::get<"sigma_th"_h>(args);
-  auto && deltaT = tuple::get<"delta_T"_h>(args);
+  auto && sigma = args["sigma_th"_n];
+  auto && deltaT = args["delta_T"_n];
   sigma = -this->E * this->alpha * deltaT;
 }
 
