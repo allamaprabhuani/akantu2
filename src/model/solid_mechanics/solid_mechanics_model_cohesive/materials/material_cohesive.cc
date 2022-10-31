@@ -125,11 +125,6 @@ void MaterialCohesive::initMaterial() {
 void MaterialCohesive::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-#if defined(AKANTU_DEBUG_TOOLS)
-  debug::element_manager.printData(debug::_dm_material_cohesive,
-                                   "Cohesive Tractions", tractions);
-#endif
-
   auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type,
@@ -366,11 +361,6 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
  */
 void MaterialCohesive::computeTraction(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-#if defined(AKANTU_DEBUG_TOOLS)
-  debug::element_manager.printData(debug::_dm_material_cohesive,
-                                   "Cohesive Openings", opening);
-#endif
 
   for (const auto & type : element_filter.elementTypes(
            spatial_dimension, ghost_type, _ek_cohesive)) {

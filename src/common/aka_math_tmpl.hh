@@ -98,9 +98,8 @@ namespace Math {
     std::fill_n(y, in, 0.);
     for (UInt i = 0; i < im; ++i) {
       for (UInt j = 0; j < in; ++j) {
-        y[j] += A[j * im + i] * x[i];
+        y[j] += alpha * A[j * im + i] * x[i];
       }
-      y[i] *= alpha;
     }
 #endif
   }
