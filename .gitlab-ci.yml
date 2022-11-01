@@ -351,7 +351,7 @@ cq:clang_tidy:
             -x build
             ${FILE_LIST_ARG}
             clang-tidy
-            -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
+            -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -367,7 +367,7 @@ cq:clang_format:
             -x extra-packages
             -x build
             clang-format
-            -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
+            -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
