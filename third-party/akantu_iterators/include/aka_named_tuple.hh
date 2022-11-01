@@ -80,12 +80,6 @@ namespace tuple {
     static constexpr tuple::hash_type hash =
         hash::details::fnv1a<tuple::hash_type, CharT, chars...>();
     using hash_type = std::integral_constant<tuple::hash_type, hash>;
-
-    constexpr static const std::string to_string() {
-      std::string tmp;
-      std::initializer_list<int>{((tmp = tmp + chars), 0)...};
-      return tmp;
-    }
   };
 
   /* ------------------------------------------------------------------------ */

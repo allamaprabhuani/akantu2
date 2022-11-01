@@ -404,13 +404,14 @@ namespace tuple {
         std::forward<Tuple>(tuple), std::forward<Value>(value));
   }
 
-  template <
-      typename Tag, class Tuple, class Value,
-      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  template <typename Tag, class Tuple, class Value,
+            std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value and
+                             not is_named_tag_v<Value>> * = nullptr>
   auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
     static_assert(tuple::has<Tag, Tuple>(),
                   "You are trying to replace a non existing entry");
-    constexpr std::size_t nth = tuple.get_element_index(Tag{});
+    constexpr std::size_t nth =
+        std::decay_t<Tuple>::template get_element_index<Tag>();
     return details::replace_named_impl<nth, typename Tag::_tag>(
         std::make_index_sequence<nth>{},
         std::make_index_sequence<
