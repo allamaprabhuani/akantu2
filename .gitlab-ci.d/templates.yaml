@@ -55,8 +55,8 @@
   artifacts:
     when: on_success
     paths:
-      - compile_commands.json
       - VERSION
+      - compile_commands.json
     expire_in: 10h
 
 # Build the libraries
@@ -89,9 +89,9 @@
   artifacts:
     when: on_success
     paths:
+      - VERSION
       - build-${output}-err.log
       - compile_commands.json
-      - VERSION
     expire_in: 10h
   timeout: 5h
 
@@ -125,9 +125,12 @@
   artifacts:
     when: on_success
     paths:
+      - VERSION
       - build-${output}-err.log
       - compile_commands.json
-      - VERSION
+      - build
+    exclude:
+      - build/**/*.o
     expire_in: 10h
 
 # Run the tests
