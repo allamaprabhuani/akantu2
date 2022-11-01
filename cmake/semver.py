@@ -81,6 +81,7 @@ def get_git_version():
         ["describe", "--tags", "--dirty", "--always", "--match", "v*"]
     )
 
+    _eprint(f"git describe {git_describe}")
     if "-g" in git_describe:
         # TAG-DISTANCE-gHEX
         pieces = _split_git_describe(git_describe)
