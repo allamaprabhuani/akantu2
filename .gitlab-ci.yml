@@ -36,7 +36,7 @@ version_determination:
   image: python:latest
   variables:
     GIT_STRATEGY: fetch
-    GIT_DEPTH: 0
+    GIT_DEPTH: 500
   script:
     - python3 cmake/semver.py > VERSION
     - cat VERSION
