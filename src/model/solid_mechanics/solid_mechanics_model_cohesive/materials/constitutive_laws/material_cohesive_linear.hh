@@ -98,7 +98,8 @@ protected:
    */
   void scaleInsertionTraction();
 
-  decltype(auto) getArguments(ElementType element_type, GhostType ghost_type) {
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
     using namespace tuple;
     return zip_append(
         MaterialCohesive::getArguments<dim>(element_type, ghost_type),
@@ -109,8 +110,7 @@ protected:
   }
 
   /// compute the traction for a given quadrature point
-  template <typename Args>
-  constexpr inline void computeTractionOnQuad(Args && args);
+  template <typename Args> inline void computeTractionOnQuad(Args && args);
 
   template <class Derived, class Args>
   inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent,

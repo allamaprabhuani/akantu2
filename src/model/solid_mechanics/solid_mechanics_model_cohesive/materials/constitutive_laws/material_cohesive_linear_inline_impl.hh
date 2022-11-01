@@ -81,8 +81,7 @@ Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <typename Args>
-constexpr inline void
-MaterialCohesiveLinear<dim>::computeTractionOnQuad(Args && args) {
+inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(Args && args) {
   auto && delta_c = args["delta_c"_n];
   auto && sigma_c = args["sigma_c"_n];
   auto && delta_max = args["delta_max"_n];
