@@ -111,6 +111,87 @@ def wendland_rbf(distances, radiuses):
     """
     return wendland(distances / radiuses)
 
+def compute_rbf_radius_parameters(positions, positions_ref, c=0.5, C=0.95, max_iter=10):
+    """Iteratively compute radius parameters for radial basis functions until
+    invertibility conditions are satisfied (increase 'c' in every iteration).
+
+    Parameters
+    ----------
+    c : float in (0, 1), default is 0.5
+        [1], Page 51, Section 2.3, Equation 2
+        (The empirical default value is given at the right on same page)
+    C : float in (c, 1), default is 0.5
+        [1], Page 51, Section 2.3, Equation 3
+        (The empirical default value is given at the bottom right on same page)
+    d0 : float, default is 0.05
+        The amount of overlap needed to count as penetration.
+    max_iter : int, default is 10
+        Maximum number of iterations for finding suitable radius parameters.
+
+    Returns
+    -------
+    rbf_radius_parameters : np.ndarray
+        The radius parameters to use in the radial basis function.
+    n_supports_reference : np.ndarray
+        Number of radial basis functions to whose "shrunk" support (by factor C)
+        each reference node belongs ([1], Page 51, Section 2.3, Equation 3)
+
+    Reference
+    ---------
+    [1], Page 51, Section 2.3
+    """
+    # Compute distance matrices among nodes and from nodes to reference nodes:
+    # distance_matrix(X, Y)[i, j] = ||x_i - y_j||
+    distance_matrix_MM = sp.spatial.distance.cdist(positions, positions)
+    distance_matrix_NM = sp.spatial.distance.cdist(positions_ref, positions)
+
+    # Minimum distance of each node from closest distinct interpolation node
+    np.fill_diagonal(distance_matrix_MM, np.inf)
+    min_distance_MM = np.min(distance_matrix_MM, axis=0)
+
+    # Extremely heuristic: Estimate for the minimum distance of the nodes
+    # from the reference nodes (min_distance_MM/2 is supposed to be
+    # representative of the distance an orthogonal projection of the
+    # reference nodes onto the interface is away from the closest node)
+    # d0 = 0.05
+    # min_distance_NM = (d0**2 + (min_distance_MM/2)**2)**0.5
+
+    # Minimum distance of each interpolation node from closest reference node
+    min_distance_NM = np.min(distance_matrix_NM, axis=0)
+
+    # Take maximum of the two minimum distances from the closest nodes
+    candidate_radiuses = np.maximum(min_distance_MM, min_distance_NM)
+
+    # Iteratively increase parameter 'c' if necessary
+    for _ in range(max_iter):
+
+        # Criterion for strict diagonal dominance by rows
+        # [1], Page 51, Section 2.3, Equation 4
+        max_n_supports_interpolation = np.floor(1 / wendland(c))
+
+        # Enforce condition [1], Page 51, Section 2.3, Equation 2
+        # (Also mentioned in [1], Page 51, Section 2.3, right center)
+        rbf_radius_parameters = np.minimum(candidate_radiuses, min_distance_MM / c)
+
+        # Number radial basis functions in whose support interpolation nodes are
+        n_supports_interpolation = np.sum(distance_matrix_MM < rbf_radius_parameters, axis=0)
+
+        # Number of radial basis functions in whose support reference nodes are
+        # belong (support is shrunk by C: [1], Page 51, Section 2.3, Equation 3)
+        n_supports_reference = np.sum(distance_matrix_NM < C*rbf_radius_parameters, axis=0)
+
+        # Check if criterion [1], Page 51, Section 2.3, Equation 4 is satisfied
+        # for all interpolation nodes
+        if np.max(n_supports_interpolation) <= max_n_supports_interpolation:
+            break
+
+        # If criterion was not satisfied, increase c and reiterate the procedure
+        c = (c + 1) / 2
+        if c >= C:
+            ValueError("Tried to increase c to", c, "which is larger than C.")
+
+    return rbf_radius_parameters, n_supports_reference
+
 def construct_rbf_matrix(positions, positions_ref, radiuses_ref, rbf):
     """Construct radial basis matrix $\Phi_{NM}$.
     
@@ -127,6 +208,7 @@ def construct_interpolation_matrix(positions, positions_ref, radiuses_ref, rbf):
     ---------
     [1], Page 49, Section 2.1, Bottom right
     """
+    # Construct radial basis function matrices $\Phi_{MM}$ and $\Phi_{NM}$
     rbf_matrix_MM = construct_rbf_matrix(positions_ref, positions_ref, radiuses_ref, rbf)
     rbf_matrix_NM = construct_rbf_matrix(positions, positions_ref, radiuses_ref, rbf)
 
@@ -136,77 +218,6 @@ def construct_interpolation_matrix(positions, positions_ref, radiuses_ref, rbf):
     # Compute the diagonal rescaling factors (diagonal entries of $D_{NN}$)
     rescaling_factors = np.sum(interpolation_matrix, axis=1)[:, np.newaxis]
     return sp.sparse.csr_matrix(interpolation_matrix / rescaling_factors)
-
-def compute_rbf_radius_parameters(positions, positions_ref, c=0.5, C=0.95, attack_radius_tolerance=0.05, max_iter=10):
-    """Compute radius parameters for radial basis functions.
-
-    Parameters
-    ----------
-    lower_distance_bound : float in (0, 1), default is 0.5
-        [1], Page 51, Section 2.3, Equation 2
-        (The empirical default value is given at the right on same page)
-    upper_distance_bound : float in (c, 1), default is 0.5
-        [1], Page 51, Section 2.3, Equation 3
-        (The empirical default value is given at the bottom right on same page)
-    attack_radius_tolerance : float, default is 0.05
-        TODO: makes no sense...
-    max_iter : int, default is 10
-        Maximum number of iterations for finding suitable radius parameters.
-
-    Returns
-    -------
-    rbf_radius_parameters : np.ndarray
-        The radius parameters to use in the radial basis function.
-    n_nnz_elements_PHI_NM
-        TODO: No idea what this is.
-
-    Reference
-    ---------
-    TODO: Where is this algorithm exactly coming from?! Heuristic?
-    """
-
-    # Iteratively increase parameter 'c' until good radius parameters are found
-    for _ in range(max_iter):
-
-        # Criterion for strict diagonal dominance by rows
-        # [1], Page 51, Section 2.3, Equation 4
-        max_n_supports = np.floor(1 / wendland(c))
-
-        # Compute distance matrices between positions and reference positions
-        distance_matrix_MM = sp.spatial.distance.cdist(positions, positions)
-        distance_matrix_NM = sp.spatial.distance.cdist(positions_ref, positions)
-
-        # Set self-distance (distance between a position and itself) to infinite
-        np.fill_diagonal(distance_matrix_MM, np.inf)
-
-        # Minimum distance between two distinct positions
-        min_distance_MM = np.min(distance_matrix_MM, axis=1)
-    
-        # Minimum distance between a position and a reference position?!?!
-        # TODO: Find out what this magic does. Is 0.25 = c^2? And why not np.min?!
-        min_distance_NM = (attack_radius_tolerance**2 + 0.25*min_distance_MM**2)**0.5
-
-        # Set radius parameters to the largest value satisfying the conditions
-        # Candidate radiuses are maximum between closest interpolation point
-        # and TODO: what is min_distance_NM?!?!
-        # [1], Page 51, Section 2.3, right center
-        candidate_radiuses = np.maximum(min_distance_MM, min_distance_NM)
-        rbf_radius_parameters = np.minimum(candidate_radiuses, min_distance_MM / c)
-
-        # Number of non-zero off-diagonal elements in rows of $\Phi_{MM}$ 
-        n_nnz_elements_PHI_MM = np.sum(distance_matrix_MM < rbf_radius_parameters, axis=1)
-
-        # TODO: What exactly is this?
-        n_nnz_elements_PHI_NM = np.sum(distance_matrix_NM < C*rbf_radius_parameters, axis=1)
-
-        # Check if criterion for strict diagonal dominance by rows is satisfied
-        if np.max(n_nnz_elements_PHI_MM) <= max_n_supports:
-            break
-
-        # Increase c
-        c = (c + 1) / 2
-
-    return rbf_radius_parameters, n_nnz_elements_PHI_NM
 
 class ContactMechanicsInternodes(object):
 
@@ -226,13 +237,11 @@ class ContactMechanicsInternodes(object):
         self.positions_interface_slave = mesh.getNodes()[self.nodes_interface_slave]
         self.dofs_interface_master = nodes_to_dofs(self.nodes_interface_master, dim=self.dim)
         self.dofs_interface_slave = nodes_to_dofs(self.nodes_interface_slave, dim=self.dim)
-        self.n_dofs_interface_master = len(self.dofs_interface_master)
 
         # All dofs, blocked dofs, and free dobs
         self.dofs = np.arange(mesh.getNbNodes()*self.dim)
         self.dofs_blocked = self.dofs[model.getBlockedDOFs().ravel()]
         self.dofs_free = self.dofs[~model.getBlockedDOFs().ravel()]
-        self.n_dofs_free = len(self.dofs_free)
 
         # Connectivity of the model (line segments and triangular elements)
         self.connectivity_segments = mesh.getConnectivity(aka._segment_2)
@@ -267,27 +276,37 @@ class ContactMechanicsInternodes(object):
         [1], Page 51, Section 2.3, Equation 2 and 3
         """
         while True:
-            # Determine the radial basis function radius parameters
-            self.rbf_radius_parameters_master, nnzR21 = compute_rbf_radius_parameters(self.positions_interface_master, self.positions_interface_slave)
-            self.rbf_radius_parameters_slave, nnzR12 = compute_rbf_radius_parameters(self.positions_interface_slave, self.positions_interface_master)
+            # Determine the radial basis function radius parameters and to how
+            # many opposite radial basis function supports each node belongs
+            self.rbf_radius_parameters_master, n_supports_in_slave = compute_rbf_radius_parameters(self.positions_interface_master, self.positions_interface_slave)
+            self.rbf_radius_parameters_slave, n_supports_in_master = compute_rbf_radius_parameters(self.positions_interface_slave, self.positions_interface_master)
+            
+            # Update interface nodes by removing isolated nodes
+            self.nodes_interface_master = self.nodes_interface_master[n_supports_in_slave > 0]
+            self.nodes_interface_slave = self.nodes_interface_slave[n_supports_in_master > 0]
+            
+            # Update interface positions by removing isolated nodes
+            self.positions_interface_master = self.positions_interface_master[n_supports_in_slave > 0]
+            self.positions_interface_slave = self.positions_interface_slave[n_supports_in_master > 0]
 
-            # Update interface positions
-            self.positions_interface_master = self.positions_interface_master[nnzR12 > 0]
-            self.positions_interface_slave = self.positions_interface_slave[nnzR21 > 0]
-            
-            # Update interface nodes
-            self.nodes_interface_master = self.nodes_interface_master[nnzR12 > 0]
-            self.nodes_interface_slave = self.nodes_interface_slave[nnzR21 > 0]
-            
             # Stop algorithm if for all slave and master interface nodes
             # [1], Page 51, Section 2.3, Equation 3 is satisfied
-            if np.all(nnzR12 > 0) and np.all(nnzR21 > 0):
+            if np.all(n_supports_in_slave > 0) and np.all(n_supports_in_master > 0):
                 break
 
-        # Update the corresponding degrees of freedom
-        self.dofs_interface_master = nodes_to_dofs(self.nodes_interface_master, dim=self.dim).ravel()
-        self.dofs_interface_slave = nodes_to_dofs(self.nodes_interface_slave, dim=self.dim).ravel()
-        self.n_dofs_interface_master = len(self.dofs_interface_master)
+        # Update degrees of freedom with node indices obtained after convergence
+        self.dofs_interface_master = nodes_to_dofs(self.nodes_interface_master, dim=self.dim)
+        self.dofs_interface_slave = nodes_to_dofs(self.nodes_interface_slave, dim=self.dim)
+
+    def assemble_interpolation_matrices(self):
+        """Assemble the interpolation matrices $R_{12}$ and $R_{21}$.
+        
+        Reference
+        ---------
+        [1], Page 53, Section 3.4, Bottom right
+        """
+        self.R12 = construct_interpolation_matrix(self.positions_interface_master, self.positions_interface_slave, self.rbf_radius_parameters_slave, self.rbf)
+        self.R21 = construct_interpolation_matrix(self.positions_interface_slave, self.positions_interface_master, self.rbf_radius_parameters_master, self.rbf)
 
     def assemble_interface_mass_matrices(self):
         """Assemble the interface mass matrices $M_1, M_2$.
@@ -299,21 +318,21 @@ class ContactMechanicsInternodes(object):
         self.model.assembleMass()
         mass_matrix = self.model.getDOFManager().getMatrix('M')
         mass_matrix = aka.AkantuSparseMatrix(mass_matrix).toarray()
-        mass_matrix = sp.sparse.csr_matrix(mass_matrix)
 
         # Slice global mass matrix into master and slave matrices by dofs
         self.M1 = mass_matrix[np.ix_(self.dofs_interface_master, self.dofs_interface_master)]
         self.M2 = mass_matrix[np.ix_(self.dofs_interface_slave, self.dofs_interface_slave)]
 
-    def assemble_interpolation_matrices(self):
-        """Assemble the interpolation matrices $R_{12}$ and $R_{21}$.
-        
-        Reference
-        ---------
-        [1], Page 53, Section 3.4, Bottom right
-        """
-        self.R12 = construct_interpolation_matrix(self.positions_interface_master, self.positions_interface_slave, self.rbf_radius_parameters_slave, self.rbf)
-        self.R21 = construct_interpolation_matrix(self.positions_interface_slave, self.positions_interface_master, self.rbf_radius_parameters_master, self.rbf)
+        # Convert matrices to sparse csr format
+        self.M1 = sp.sparse.csr_matrix(self.M1)
+        self.M2 = sp.sparse.csr_matrix(self.M2)
+
+    def assemble_stiffness_matrix(self):
+        """Assemble the global stiffness matrix $K$."""
+        self.model.assembleStiffnessMatrix()
+        self.K = self.model.getDOFManager().getMatrix('K')
+        self.K = aka.AkantuSparseMatrix(self.K).toarray()
+        self.K = sp.sparse.csr_matrix(self.K)
 
     def assemble_B_matrices(self):
         """Assemble block components of INTERNODES matrix.
@@ -327,22 +346,19 @@ class ContactMechanicsInternodes(object):
         idx_interface_slave = np.argwhere(np.in1d(self.dofs_free, self.dofs_interface_slave)).squeeze()
 
         # Initialize the matrices
-        self.B = sp.sparse.csr_matrix((self.n_dofs_free, self.n_dofs_interface_master), dtype=np.float64)
-        self.B_tilde = sp.sparse.csr_matrix((self.n_dofs_interface_master, self.n_dofs_free), dtype=np.float64)
+        self.B = sp.sparse.lil_matrix((len(self.dofs_free), len(self.dofs_interface_master)), dtype=np.float64)
+        self.B_tilde = sp.sparse.lil_matrix((len(self.dofs_interface_master), len(self.dofs_free)), dtype=np.float64)
 
         # Fill in the blocks as described in the reference [1]
         self.B[idx_interface_master, :] = - self.M1
         self.B[idx_interface_slave, :] = self.M2 * expand_to_dim(self.R21, dim=self.dim)
 
-        self.B_tilde[:, idx_interface_master] = sp.sparse.eye(self.n_dofs_interface_master, dtype=np.float64, format="csr")
+        self.B_tilde[:, idx_interface_master] = sp.sparse.eye(len(self.dofs_interface_master), dtype=np.float64, format="lil")
         self.B_tilde[:, idx_interface_slave] = - expand_to_dim(self.R12, dim=self.dim)
 
-    def assemble_stiffness_matrix(self):
-        """Assemble the global stiffness matrix $K$."""
-        self.model.assembleStiffnessMatrix()
-        self.K = self.model.getDOFManager().getMatrix('K')
-        self.K = aka.AkantuSparseMatrix(self.K).toarray()
-        self.K = sp.sparse.csr_matrix(self.K)
+        # Convert sparsity format to csr
+        self.B = sp.sparse.csr_matrix(self.B)
+        self.B_tilde = sp.sparse.csr_matrix(self.B_tilde)
 
     def assemble_internodes_matrix(self):
         """Assemble the INTERNODES matrix.
@@ -409,11 +425,11 @@ class ContactMechanicsInternodes(object):
         x = sp.sparse.linalg.spsolve(self.internodes_matrix, self.force_term)
 
         # FIll in the computed displacements at the free dofs
-        displacements[self.dofs_free] = x[:self.n_dofs_free]
+        displacements[self.dofs_free] = x[:len(self.dofs_free)]
         positions_new = self.mesh.getNodes() + displacements.reshape((-1, self.dim))
 
         # Reshape and revert the rescaling of the Lagrange multipliers $\lambda$
-        lambdas = x[self.n_dofs_free:].reshape((-1, self.dim)) * self.rescaling_factor
+        lambdas = x[len(self.dofs_free):].reshape((-1, self.dim)) * self.rescaling_factor
 
         return positions_new, displacements, lambdas
 
@@ -437,10 +453,10 @@ class ContactMechanicsInternodes(object):
         [2], Page 23, Algorithm 2, Lines 5-16
         """
         # Get the connectivities of master and slave
-        connectivity_segments_master = remove_rows_without_items(self.connectivity_segments, self.nodes_interface_master)
-        connectivity_segments_slave = remove_rows_without_items(self.connectivity_segments, self.nodes_interface_slave)
-        connectivity_triangles_master = remove_rows_without_items(self.connectivity_triangles, self.nodes_interface_master)
-        connectivity_triangles_slave = remove_rows_without_items(self.connectivity_triangles, self.nodes_interface_slave)
+        connectivity_segments_master = remove_rows_without_items(self.connectivity_segments, self.nodes_candidate_master)
+        connectivity_segments_slave = remove_rows_without_items(self.connectivity_segments, self.nodes_candidate_slave)
+        connectivity_triangles_master = remove_rows_without_items(self.connectivity_triangles, self.nodes_candidate_master)
+        connectivity_triangles_slave = remove_rows_without_items(self.connectivity_triangles, self.nodes_candidate_slave)
 
         # Compute the normals
         normals_candidate_master = self.compute_normals(positions_new, self.nodes_candidate_master, connectivity_segments_master, connectivity_triangles_master)
@@ -500,12 +516,13 @@ class ContactMechanicsInternodes(object):
         -------
         normals_avg : np.ndarray
         """
+
         # Determine boundary nodes that aren't interface elements
         nodesb_body = np.setdiff1d(connectivity_triangles, nodes)
-
+        
         if self.dim == 2:
             tangent1 = positions_new[connectivity_segments[:, 1]] - positions_new[connectivity_segments[:, 0]]
-            tangent2 = [0, 0, -1]
+            tangent2 = [0, 0, -1] # Doesn't matter
         elif self.dim == 3:  # Do this for only interface edges
             tangent1 = positions_new[connectivity_triangles[:, 1]] - positions_new[connectivity_triangles[:, 0]]
             tangent2 = positions_new[connectivity_triangles[:, 2]] - positions_new[connectivity_triangles[:, 0]]
