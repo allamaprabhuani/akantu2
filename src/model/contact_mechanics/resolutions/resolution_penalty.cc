@@ -30,8 +30,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "resolution_penalty.hh"
+#include "resolution_penalty_tmpl.hh"
 #include "element_class_helper.hh"
+#include "penalty_function_linear.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {

@@ -40,14 +40,14 @@
 namespace akantu {
 
 template <typename T, class PenaltyFunction>
-class ResolutionPenaltyTmpl : public Resolution {
+class ResolutionPenalty : public Resolution {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ResolutionPenaltyTmpl(ContactMechanicsModel & model, const ID & id = "");
+  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "");
 
-  ~ResolutionPenaltyTmpl() override = default;
+  ~ResolutionPenalty() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

@@ -41,7 +41,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-ResolutionPenaltyTmpl<T, PenaltyFunction>::ResolutionPenaltyTmpl(
+ResolutionPenalty<T, PenaltyFunction>::ResolutionPenalty(
     ContactMechanicsModel & model, const ID & id) : Resolution(model, id) {
   AKANTU_DEBUG_IN();
   this->initialize();
@@ -50,7 +50,7 @@ ResolutionPenaltyTmpl<T, PenaltyFunction>::ResolutionPenaltyTmpl(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::initialize() {
+void ResolutionPenalty<T, PenaltyFunction>::initialize() {
   this->registerParam("epsilon_n", epsilon_n, Real(0.),
                       _pat_parsable | _pat_modifiable,
                       "Normal penalty parameter");
@@ -61,12 +61,12 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::initialize() {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-Real ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalTraction(
+Real ResolutionPenalty<T, PenaltyFunction>::computeNormalTraction(
   Real & gap) const { return epsilon_n * this->penalty_function(macaulay(gap));}
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalForce(
+void ResolutionPenalty<T, PenaltyFunction>::computeNormalForce(
     const ContactElement & element, Vector<Real> & force) {
 
   force.zero();
@@ -98,7 +98,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalForce(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialForce(
+void ResolutionPenalty<T, PenaltyFunction>::computeTangentialForce(
     const ContactElement & element, Vector<Real> & force) {
 
   if (mu == 0) {
@@ -168,7 +168,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialForce(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialTraction(
+void ResolutionPenalty<T, PenaltyFunction>::computeTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction_tangential) {
 
@@ -215,7 +215,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialTraction(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTrialTangentialTraction(
+void ResolutionPenalty<T, PenaltyFunction>::computeTrialTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction) {
 
@@ -307,7 +307,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTrialTangentialTraction(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickTangentialTraction(
+void ResolutionPenalty<T, PenaltyFunction>::computeStickTangentialTraction(
     const ContactElement & /*element*/, Vector<Real> & traction_trial,
     Vector<Real> & traction_tangential) {
   traction_tangential = traction_trial;
@@ -315,7 +315,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickTangentialTraction(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipTangentialTraction(
+void ResolutionPenalty<T, PenaltyFunction>::computeSlipTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
     Vector<Real> & traction_trial, Vector<Real> & traction_tangential) {
   UInt surface_dimension = spatial_dimension - 1;
@@ -346,7 +346,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipTangentialTraction(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalModuli(
+void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
     const ContactElement & element, Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -473,7 +473,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeNormalModuli(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialModuli(const ContactElement & element,
+void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(const ContactElement & element,
                                                 Matrix<Real> & stiffness) {
   if (mu == 0) {
     return;
@@ -500,7 +500,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeTangentialModuli(const Co
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickModuli(const ContactElement & element,
+void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(const ContactElement & element,
                                            Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -654,7 +654,7 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeStickModuli(const Contact
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipModuli(
+void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
     const ContactElement & element, Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -851,11 +851,11 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::computeSlipModuli(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::beforeSolveStep() {}
+void ResolutionPenalty<T, PenaltyFunction>::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenaltyTmpl<T, PenaltyFunction>::afterSolveStep(
+void ResolutionPenalty<T, PenaltyFunction>::afterSolveStep(
     __attribute__((unused)) bool converged) {}
 
 } // namespace akantu
@@ -864,10 +864,10 @@ void ResolutionPenaltyTmpl<T, PenaltyFunction>::afterSolveStep(
 namespace akantu {
 
 // Instantiate linear penalty as a resolution
-INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenaltyTmpl, Real,
+INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenalty, Real,
                        PenaltyFunctionLinear);
 
-INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyTmpl, Real,
+INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenalty, Real,
                        PenaltyFunctionQuadratic);
 
 } // namespace akantu

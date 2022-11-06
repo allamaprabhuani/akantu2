@@ -35,8 +35,8 @@
 template <typename T>
 class PenaltyFunctionQuadratic {
 public:
-  T operator()(T var) { return var*var + var; }
-  T derivative(T var) { return 2.0*var + 1.0; }
+  T operator()(T& var) { return var*var + var; }
+  T derivative(T& var) { return 2.0*var + 1.0; }
 };
 
 #endif // AKANTU_PENALTY_FUNCTION_QUADRATIC_HH
