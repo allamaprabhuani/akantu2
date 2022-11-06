@@ -22,11 +22,11 @@ model.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
 
 model.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top')
 nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
-displacements = displacements.reshape([-1, 2])
+displacements = displacements.reshape([-1, spatial_dimension])
 displacements[nodes_top, 1] = -0.1
 displacements = displacements.ravel()
 
-internodes_model = ContactMechanicsInternodes(2, mesh, model, 'lower_top', 'upper_bottom')
+internodes_model = ContactMechanicsInternodes(spatial_dimension, mesh, model, 'lower_top', 'upper_bottom')
 
 f_free = model.getExternalForce().ravel()
 f_free = f_free[internodes_model.dofs_free]
@@ -48,10 +48,10 @@ for i in range(10):
     # select nodes belonging to interface
     internodes_model.find_contact_nodes()
 
-    # assemble model matrices
+    # assemble model matrices (explicit for debugging)
     internodes_model.assemble_stiffness_matrix()
-    internodes_model.assemble_interface_mass_matrices()
     internodes_model.assemble_interpolation_matrices()
+    internodes_model.assemble_interface_mass_matrices()
     internodes_model.assemble_B_matrices()
     internodes_model.assemble_internodes_matrix()
     internodes_model.assemble_force_term(f_free, displacements)
@@ -69,7 +69,7 @@ for i in range(10):
     plt.show()
 
     # add or remove nodes
-    converged = internodes_model.remove_traction(positions_new, lambdas)
+    converged = internodes_model.update_interface(positions_new, lambdas)
 
     if converged:
         print('\nsuccessfully converged in', i+1, 'iterations')
