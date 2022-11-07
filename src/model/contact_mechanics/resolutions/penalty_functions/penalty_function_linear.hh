@@ -4,7 +4,7 @@
  * @author Fabio Matti <fabio.matti@epfl.ch>
  *
  * @date creation: Fri Oct 28 2022
- * @date last modification: Fri Oct 28 2022
+ * @date last modification: Mon Nov 07 2022
  *
  * @brief  Linear penalty function
  *
@@ -35,8 +35,8 @@
 template <typename T>
 class PenaltyFunctionLinear {
 public:
-  T operator()(T& var) { return var; }
-  T derivative(T& var) { return 1.0; }
+  T operator()(const T& var) const { return var; }
+  T derivative(const T& var) const { return 1.0; }
 };
 
 #endif // AKANTU_PENALTY_FUNCTION_LINEAR_HH

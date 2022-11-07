@@ -4,7 +4,7 @@
 * @author Fabio Matti <fabio.matti@epfl.ch>
 *
 * @date creation: Fri Oct 21 2022
-* @date last modification: Fri Oct 28 2022
+* @date last modification: Mon Nov 07 2022
 *
 * @brief  Implementation of the templated penalty method
 *
@@ -29,10 +29,8 @@
 *
 */
 
-#include "resolution_penalty.hh"
 #include "element_class_helper.hh"
-#include "penalty_function_linear.hh"
-#include "penalty_function_quadratic.hh"
+#include "resolution_penalty.hh"
 
 #ifndef AKANTU_RESOLUTION_PENALTY_TMPL_HH
 #define AKANTU_RESOLUTION_PENALTY_TMPL_HH
@@ -61,8 +59,8 @@ void ResolutionPenalty<T, PenaltyFunction>::initialize() {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-Real ResolutionPenalty<T, PenaltyFunction>::computeNormalTraction(
-  Real & gap) const { return epsilon_n * this->penalty_function(macaulay(gap));}
+Real ResolutionPenalty<T, PenaltyFunction>::computeNormalTraction(Real & gap)
+    const { return epsilon_n * this->penalty_function(macaulay(gap)); }
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
@@ -473,8 +471,8 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(const ContactElement & element,
-                                                Matrix<Real> & stiffness) {
+void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(
+    const ContactElement & element, Matrix<Real> & stiffness) {
   if (mu == 0) {
     return;
   }
@@ -500,8 +498,8 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(const Contac
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(const ContactElement & element,
-                                           Matrix<Real> & stiffness) {
+void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
+    const ContactElement & element, Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
@@ -857,18 +855,6 @@ void ResolutionPenalty<T, PenaltyFunction>::beforeSolveStep() {}
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::afterSolveStep(
     __attribute__((unused)) bool converged) {}
-
-} // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-namespace akantu {
-
-// Instantiate linear penalty as a resolution
-INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenalty, Real,
-                       PenaltyFunctionLinear);
-
-INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenalty, Real,
-                       PenaltyFunctionQuadratic);
 
 } // namespace akantu
 

@@ -30,11 +30,22 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "resolution_penalty.hh"
 #include "resolution_penalty_tmpl.hh"
-#include "element_class_helper.hh"
 #include "penalty_function_linear.hh"
+#include "penalty_function_quadratic.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+
+// Instantiate linear penalty as a resolution
+using ResolutionPenaltyLinear = ResolutionPenalty<
+    Real, PenaltyFunctionLinear<Real>>;
+INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenaltyLinear);
+
+// Instantiate quadratic penalty as a resolution
+using ResolutionPenaltyQuadratic = ResolutionPenalty<
+    Real, PenaltyFunctionQuadratic<Real>>;
+INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyQuadratic);
 
 } // namespace akantu
