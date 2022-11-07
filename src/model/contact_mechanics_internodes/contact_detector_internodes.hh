@@ -75,8 +75,7 @@ private:
 
   /// compute radius to detect contact nodes
   Array<UInt> computeRadiuses(Array<Real> & attack_radiuses,
-      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group,
-      Real c = 0.5, Real C = 0.95, Real d = 0.05, const UInt max_iter = 10);
+      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group);
 
   /// radial basis function
   Real computeRadialBasisInterpolation(Real distance, Real radius);
@@ -135,6 +134,11 @@ private:
 
   /// blocked boundary dofs array
   std::unique_ptr<Array<Real>> blocked_dofs;
+
+  /// maximum number of iterations for radius computation:
+  /// after each iteration, c is replaced by (1+c)/2, so if this value is ever
+  /// reached it means that c is close to 1 and we won't find suitable radii.
+  const UInt MAX_RADIUS_ITERATIONS = 10;
 };
 
 } // namespace akantu

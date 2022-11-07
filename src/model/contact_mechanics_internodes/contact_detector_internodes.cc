@@ -198,8 +198,10 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 /* -------------------------------------------------------------------------- */
 Array<UInt>
 ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
-    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group,
-    Real c, Real C, Real d, const UInt max_iter) {
+    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group) {
+  Real c = 0.5;
+  Real C = 0.95;
+  Real d = 0.05;
   // maximum number of support nodes
   UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
  
@@ -214,7 +216,7 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
   UInt nb_iter = 0;
   UInt max_nb_supports = std::numeric_limits<int>::max();
 
-  while (max_nb_supports > f && nb_iter < max_iter) {
+  while (max_nb_supports > f && nb_iter < MAX_RADIUS_ITERATIONS) {
     for (auto && ref_node_data : enumerate(ref_node_group.getNodes())) {
       auto j = std::get<0>(ref_node_data);
       auto ref_node = std::get<1>(ref_node_data);
@@ -288,8 +290,8 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
     }
   }
 
-  if (nb_iter == max_iter) {
-    AKANTU_EXCEPTION(nb_iter << " exceeds the maximum number of iterations");
+  if (nb_iter == MAX_RADIUS_ITERATIONS) {
+    AKANTU_EXCEPTION("Could not find suitable radii, maximum number of iterations (" << nb_iter << ") was exceeded");
   }
 
   return nb_opposite_nodes_inside_radiuses;
