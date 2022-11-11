@@ -152,13 +152,20 @@ void register_mesh(py::module & mod) {
           },
           py::return_value_policy::reference)
       .def(
+          "getConnectivities",
+          [](Mesh & self) -> decltype(auto) {
+            return self.getConnectivities();
+          },
+          py::return_value_policy::reference)
+      .def(
           "addConnectivityType",
           [](Mesh & self, ElementType type, GhostType ghost_type) -> void {
             self.addConnectivityType(type, ghost_type);
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("distribute", [](Mesh & self) { self.distribute(); })
-      .def("isDistributed", [](const Mesh& self) { return self.isDistributed(); })
+      .def("isDistributed",
+           [](const Mesh & self) { return self.isDistributed(); })
       .def("fillNodesToElements", &Mesh::fillNodesToElements,
            py::arg("dimension") = _all_dimensions)
       .def("getAssociatedElements",
@@ -210,6 +217,12 @@ void register_mesh(py::module & mod) {
       .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
       .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
       .def("isPeriodicMaster", &Mesh::isPeriodicMaster)
+      .def(
+          "getMeshFacets",
+          [](const Mesh & self) -> const Mesh & {
+            return self.getMeshFacets();
+          },
+          py::return_value_policy::reference)
       .def("initMeshFacets", &Mesh::initMeshFacets,
            py::arg("id") = "mesh_facets", py::return_value_policy::reference);
 
@@ -235,6 +248,7 @@ void register_mesh(py::module & mod) {
 
   register_element_type_map_array<Real>(mod, "Real");
   register_element_type_map_array<UInt>(mod, "UInt");
+  register_element_type_map_array<bool>(mod, "bool");
   // register_element_type_map_array<std::string>(mod, "String");
 }
 } // namespace akantu

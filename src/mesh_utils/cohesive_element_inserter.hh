@@ -77,6 +77,12 @@ public:
   /// limit check facets to match given insertion limits
   void limitCheckFacets();
 
+  /// limit insertion to the surfaces
+  void addPhysicalSurface(const ID & surface_name);
+
+  /// limit insertion to the volumes
+  void addPhysicalVolume(const ID & surface_name);
+
 protected:
   void parseSection(const ParserSection & section) override;
 
