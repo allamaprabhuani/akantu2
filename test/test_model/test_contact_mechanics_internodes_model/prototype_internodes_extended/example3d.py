@@ -11,9 +11,9 @@ def plot_mesh(positions, triangle_indices):
     plt.axis('scaled')
     plt.show()
 
-mesh_file = 'contact.msh'
+mesh_file = 'contact3d.msh'
 material_file = 'material.dat'
-spatial_dimension = 2
+spatial_dimension = 3
 aka.parseInput(material_file)
 
 mesh = aka.Mesh(spatial_dimension)
@@ -24,12 +24,14 @@ model.initFull(_analysis_method=aka._implicit_dynamic)
 
 model.applyBC(aka.FixedValue(0., aka._x), 'lower_bottom')
 model.applyBC(aka.FixedValue(0., aka._y), 'lower_bottom')
+model.applyBC(aka.FixedValue(0., aka._z), 'lower_bottom')
 model.applyBC(aka.FixedValue(0., aka._x), 'upper_top')
-model.applyBC(aka.FixedValue(-0.1, aka._y), 'upper_top')
+model.applyBC(aka.FixedValue(-0.01, aka._y), 'upper_top')
+model.applyBC(aka.FixedValue(0., aka._z), 'upper_top')
 
 nodes_top = mesh.getElementGroup('upper_top').getNodeGroup().getNodes().ravel()
 displacements = np.zeros((mesh.getNbNodes(), spatial_dimension))
-displacements[nodes_top, 1] = -0.1
+displacements[nodes_top, 1] = -0.01
 displacements = displacements.ravel()
 
 internodes_model = ContactMechanicsInternodes(spatial_dimension, mesh, model, 'lower_top', 'upper_bottom', blocked_nodes_name='blocked_nodes')

@@ -5,16 +5,16 @@ Point(1) = {0, 0, 0, l};
 Point(2) = {1, 0, 0, l};
 Point(3) = {1, 1, 0, l};
 Point(4) = {0, 1, 0, l};
-Point(5) = {0, 1.1, 0, l};
-Point(6) = {1, 1.1, 0, l};
-Point(7) = {1, 2, 0, l};
-Point(8) = {0, 2, 0, l};
-
-// upper points
 Point(11) = {0, 0, 1, l};
 Point(12) = {1, 0, 1, l};
 Point(13) = {1, 1, 1, l};
 Point(14) = {0, 1, 1, l};
+
+// upper points
+Point(5) = {0, 1.1, 0, l};
+Point(6) = {1, 1.1, 0, l};
+Point(7) = {1, 2, 0, l};
+Point(8) = {0, 2, 0, l};
 Point(15) = {0, 1.1, 1, l};
 Point(16) = {1, 1.1, 1, l};
 Point(17) = {1, 2, 1, l};
@@ -23,6 +23,7 @@ Point(18) = {0, 2, 1, l};
 // circle center points
 Point(21) = {0.5, 2.1, 0, l};
 Point(22) = {0.5, 2.1, 1, l};
+Physical Point("blocked_nodes") = {21, 22};
 
 // lower lines
 Line(1) = {1, 2};
@@ -128,4 +129,4 @@ Physical Volume("body_lower") = {1};
 // upper surfaces
 Surface Loop(2) = {11, 12, 13, 14, 15, 16};
 Volume(2) = {2};
-Physical Volume("body_lower") = {2};
+Physical Volume("body_upper") = {2};
