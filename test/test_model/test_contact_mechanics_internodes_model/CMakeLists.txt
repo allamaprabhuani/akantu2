@@ -36,5 +36,5 @@ register_test(test_internodes
   PYTHON
   FILES_TO_COPY prototype_internodes/material.dat
   DEPENDS contact_mesh
-  PACKAGE python_interface contact_mechanics_internodes_model
+  PACKAGE python_interface contact_mechanics_internodes
   )
