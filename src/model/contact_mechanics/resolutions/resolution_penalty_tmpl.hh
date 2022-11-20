@@ -1,46 +1,51 @@
 /**
-* @file   resolution_penalty_tmpl.hh
-*
-* @author Fabio Matti <fabio.matti@epfl.ch>
-*
-* @date creation: Fri Oct 21 2022
-* @date last modification: Mon Nov 07 2022
-*
-* @brief  Implementation of the templated penalty method
-*
-*
-* @section LICENSE
-*
-* Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
-* Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
-*
-* Akantu is free software: you can redistribute it and/or modify it under the
-* terms of the GNU Lesser General Public License as published by the Free
-* Software Foundation, either version 3 of the License, or (at your option) any
-* later version.
-*
-* Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
-* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-* A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-* details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with Akantu. If not, see <http://www.gnu.org/licenses/>.
-*
-*/
+ * @file   resolution_penalty_tmpl.hh
+ *
+ * @author Fabio Matti <fabio.matti@epfl.ch>
+ *
+ * @date creation: Fri Oct 21 2022
+ * @date last modification: Sun Nov 20 2022
+ *
+ * @brief  Implementation of the templated penalty method
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
+/* -------------------------------------------------------------------------- */
 #include "element_class_helper.hh"
 #include "resolution_penalty.hh"
+/* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_RESOLUTION_PENALTY_TMPL_HH
-#define AKANTU_RESOLUTION_PENALTY_TMPL_HH
+#ifndef __AKANTU_RESOLUTION_PENALTY_TMPL_HH__
+#define __AKANTU_RESOLUTION_PENALTY_TMPL_HH__
+
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 ResolutionPenalty<T, PenaltyFunction>::ResolutionPenalty(
-    ContactMechanicsModel & model, const ID & id) : Resolution(model, id) {
+    ContactMechanicsModel &model, const ID &id)
+    : Resolution(model, id) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
@@ -59,19 +64,21 @@ void ResolutionPenalty<T, PenaltyFunction>::initialize() {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
-Real ResolutionPenalty<T, PenaltyFunction>::computeNormalTraction(Real & gap)
-    const { return epsilon_n * this->penalty_function(macaulay(gap)); }
+Real ResolutionPenalty<T, PenaltyFunction>::computeNormalTraction(
+    Real &gap) const {
+  return epsilon_n * this->penalty_function(macaulay(gap));
+}
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeNormalForce(
-    const ContactElement & element, Vector<Real> & force) {
+    const ContactElement &element, Vector<Real> &force) {
 
   force.zero();
 
-  auto & gaps = model.getGaps();
-  auto & projections = model.getProjections();
-  auto & normals = model.getNormals();
+  auto &gaps = model.getGaps();
+  auto &projections = model.getProjections();
+  auto &normals = model.getNormals();
 
   auto surface_dimension = spatial_dimension - 1;
 
@@ -79,7 +86,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalForce(
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  auto &nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
 
   // compute normal traction
   Real p_n = computeNormalTraction(gap);
@@ -97,7 +104,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalForce(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeTangentialForce(
-    const ContactElement & element, Vector<Real> & force) {
+    const ContactElement &element, Vector<Real> &force) {
 
   if (mu == 0) {
     return;
@@ -108,31 +115,31 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialForce(
   UInt surface_dimension = spatial_dimension - 1;
 
   // compute covariant basis
-  auto & projections = model.getProjections();
+  auto &projections = model.getProjections();
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
 
-  auto & normals = model.getNormals();
+  auto &normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
 
-  auto & tangents = model.getTangents();
+  auto &tangents = model.getTangents();
   Matrix<Real> covariant_basis(
       tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
 
   // check for no-contact to contact condition
   // need a better way to check if new node added is not presnt in the
   // previous master elemets
-  auto & previous_master_elements = model.getPreviousMasterElements();
+  auto &previous_master_elements = model.getPreviousMasterElements();
   if (element.slave >= previous_master_elements.size()) {
     return;
   }
 
-  auto & previous_element = previous_master_elements[element.slave];
+  auto &previous_element = previous_master_elements[element.slave];
   if (previous_element.type == _not_defined) {
     return;
   }
 
   // compute tangential traction using return map algorithm
-  auto & tangential_tractions = model.getTangentialTractions();
+  auto &tangential_tractions = model.getTangentialTractions();
   Vector<Real> tangential_traction(
       tangential_tractions.begin(surface_dimension)[element.slave]);
   this->computeTangentialTraction(element, covariant_basis,
@@ -147,14 +154,14 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialForce(
   auto contravariant_metric_tensor =
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  auto &nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
-    for (auto && values2 : enumerate(tangential_traction)) {
-      auto & beta = std::get<0>(values2);
-      auto & traction_beta = std::get<1>(values2);
+  for (auto &&values1 : enumerate(covariant_basis.transpose())) {
+    auto &alpha = std::get<0>(values1);
+    auto &tangent_alpha = std::get<1>(values1);
+    for (auto &&values2 : enumerate(tangential_traction)) {
+      auto &beta = std::get<0>(values2);
+      auto &traction_beta = std::get<1>(values2);
       Vector<Real> tmp(force.size());
       tmp.mul<true>(shape_matric, tangent_alpha, traction_beta);
       tmp *=
@@ -167,13 +174,13 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialForce(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeTangentialTraction(
-    const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_tangential) {
+    const ContactElement &element, const Matrix<Real> &covariant_basis,
+    Vector<Real> &traction_tangential) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
+  auto &gaps = model.getGaps();
+  auto &gap = gaps.begin()[element.slave];
 
   // Return map algorithm is employed
   // compute trial traction
@@ -194,8 +201,8 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialTraction(
   traction_trial_norm = sqrt(traction_trial_norm);
 
   // check stick or slip condition
-  auto & contact_state = model.getContactState();
-  auto & state = contact_state.begin()[element.slave];
+  auto &contact_state = model.getContactState();
+  auto &state = contact_state.begin()[element.slave];
 
   Real p_n = computeNormalTraction(gap);
   bool stick = (traction_trial_norm <= mu * p_n);
@@ -214,16 +221,16 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialTraction(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeTrialTangentialTraction(
-    const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction) {
+    const ContactElement &element, const Matrix<Real> &covariant_basis,
+    Vector<Real> &traction) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
-  auto & projections = model.getProjections();
+  auto &projections = model.getProjections();
   Vector<Real> current_projection(
       projections.begin(surface_dimension)[element.slave]);
 
-  auto & previous_projections = model.getPreviousProjections();
+  auto &previous_projections = model.getPreviousProjections();
   Vector<Real> previous_projection(
       previous_projections.begin(surface_dimension)[element.slave]);
 
@@ -243,11 +250,11 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTrialTangentialTraction(
   auto covariant_metric_tensor =
       GeometryUtils::covariantMetricTensor(covariant_basis);
 
-  auto & previous_tangential_tractions = model.getPreviousTangentialTractions();
+  auto &previous_tangential_tractions = model.getPreviousTangentialTractions();
   Vector<Real> previous_traction(
       previous_tangential_tractions.begin(surface_dimension)[element.slave]);
 
-  auto & previous_tangents = model.getPreviousTangents();
+  auto &previous_tangents = model.getPreviousTangents();
   Matrix<Real> previous_covariant_basis(previous_tangents.begin(
       surface_dimension, spatial_dimension)[element.slave]);
   auto previous_contravariant_metric_tensor =
@@ -269,8 +276,8 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTrialTangentialTraction(
     }
   }
 
-  auto & previous_master_elements = model.getPreviousMasterElements();
-  auto & previous_element = previous_master_elements[element.slave];
+  auto &previous_master_elements = model.getPreviousMasterElements();
+  auto &previous_element = previous_master_elements[element.slave];
 
   Vector<Real> previous_real_projection(spatial_dimension);
   GeometryUtils::realProjection(
@@ -306,20 +313,20 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTrialTangentialTraction(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeStickTangentialTraction(
-    const ContactElement & /*element*/, Vector<Real> & traction_trial,
-    Vector<Real> & traction_tangential) {
+    const ContactElement & /*element*/, Vector<Real> &traction_trial,
+    Vector<Real> &traction_tangential) {
   traction_tangential = traction_trial;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeSlipTangentialTraction(
-    const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_trial, Vector<Real> & traction_tangential) {
+    const ContactElement &element, const Matrix<Real> &covariant_basis,
+    Vector<Real> &traction_trial, Vector<Real> &traction_tangential) {
   UInt surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
+  auto &gaps = model.getGaps();
+  auto &gap = gaps.begin()[element.slave];
 
   // compute norm of trial traction
   Real traction_trial_norm = 0;
@@ -345,28 +352,28 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipTangentialTraction(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
-    const ContactElement & element, Matrix<Real> & stiffness) {
+    const ContactElement &element, Matrix<Real> &stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
+  auto &gaps = model.getGaps();
   Real gap(gaps.begin()[element.slave]);
 
-  auto & projections = model.getProjections();
+  auto &projections = model.getProjections();
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
 
-  auto & nodal_areas = model.getNodalArea();
-  auto & nodal_area = nodal_areas.begin()[element.slave];
+  auto &nodal_areas = model.getNodalArea();
+  auto &nodal_area = nodal_areas.begin()[element.slave];
 
-  auto & normals = model.getNormals();
+  auto &normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
 
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
+  const ElementType &type = element.master.type;
+  auto &&shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -393,11 +400,11 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
   tmp.mul<false, false>(n_outer_n, A);
 
   k_main.mul<true, false>(A, tmp);
-  k_main *= (epsilon_n * heaviside(gap) * this->penalty_function.derivative(gap)
-              * nodal_area);
+  k_main *= (epsilon_n * heaviside(gap) *
+             this->penalty_function.derivative(gap) * nodal_area);
 
   // construct the rotational part of the normal matrix
-  auto & tangents = model.getTangents();
+  auto &tangents = model.getTangents();
   Matrix<Real> covariant_basis(
       tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
 
@@ -405,7 +412,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
   // computing shape derivatives
-  auto && shape_derivatives =
+  auto &&shape_derivatives =
       ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   // consists of 2 rotational parts
@@ -415,7 +422,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
                       nb_nodes_per_contact * spatial_dimension);
   Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
 
-  auto construct_Aj = [&](auto && dnds) {
+  auto construct_Aj = [&](auto &&dnds) {
     for (auto i : arange(nb_nodes_per_contact)) {
       for (auto j : arange(spatial_dimension)) {
         if (i == 0) {
@@ -427,9 +434,9 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
     }
   };
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent = std::get<1>(values1);
+  for (auto &&values1 : enumerate(covariant_basis.transpose())) {
+    auto &alpha = std::get<0>(values1);
+    auto &tangent = std::get<1>(values1);
 
     Matrix<Real> n_outer_t(spatial_dimension, spatial_dimension);
     Matrix<Real> mat_t(tangent.storage(), tangent.size(), 1.);
@@ -438,9 +445,9 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
     Matrix<Real> t_outer_n(spatial_dimension, spatial_dimension);
     t_outer_n.mul<false, true>(mat_t, mat_n);
 
-    for (auto && values2 : enumerate(shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & dnds = std::get<1>(values2);
+    for (auto &&values2 : enumerate(shape_derivatives.transpose())) {
+      auto &beta = std::get<0>(values2);
+      auto &dnds = std::get<1>(values2);
       // construct Aj from shape function wrt to jth natural
       // coordinate
       construct_Aj(dnds);
@@ -461,10 +468,10 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
     }
   }
 
-  k_rot1 *= (-epsilon_n * heaviside(gap) * this->penalty_function(gap)
-               * nodal_area);
-  k_rot2 *= (-epsilon_n * heaviside(gap) * this->penalty_function(gap)
-               * nodal_area);
+  k_rot1 *=
+      (-epsilon_n * heaviside(gap) * this->penalty_function(gap) * nodal_area);
+  k_rot2 *=
+      (-epsilon_n * heaviside(gap) * this->penalty_function(gap) * nodal_area);
 
   stiffness += k_main + k_rot1 + k_rot2;
 }
@@ -472,14 +479,14 @@ void ResolutionPenalty<T, PenaltyFunction>::computeNormalModuli(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(
-    const ContactElement & element, Matrix<Real> & stiffness) {
+    const ContactElement &element, Matrix<Real> &stiffness) {
   if (mu == 0) {
     return;
   }
 
   stiffness.zero();
 
-  auto & contact_state = model.getContactState();
+  auto &contact_state = model.getContactState();
   auto state = contact_state.begin()[element.slave];
 
   switch (state) {
@@ -499,22 +506,22 @@ void ResolutionPenalty<T, PenaltyFunction>::computeTangentialModuli(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
-    const ContactElement & element, Matrix<Real> & stiffness) {
+    const ContactElement &element, Matrix<Real> &stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
-  auto & projections = model.getProjections();
+  auto &projections = model.getProjections();
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
 
-  auto & nodal_areas = model.getNodalArea();
-  auto & nodal_area = nodal_areas.begin()[element.slave];
+  auto &nodal_areas = model.getNodalArea();
+  auto &nodal_area = nodal_areas.begin()[element.slave];
 
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
+  const ElementType &type = element.master.type;
+  auto &&shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -530,12 +537,12 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
   }
 
   // computing shape derivatives
-  auto && shape_derivatives =
+  auto &&shape_derivatives =
       ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
 
-  auto construct_Aj = [&](auto && dnds) {
+  auto construct_Aj = [&](auto &&dnds) {
     for (auto i : arange(nb_nodes_per_contact)) {
       for (auto j : arange(spatial_dimension)) {
         if (i == 0) {
@@ -548,7 +555,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
   };
 
   // tangents should have been calculated in normal modulii
-  auto & tangents = model.getTangents();
+  auto &tangents = model.getTangents();
   Matrix<Real> covariant_basis(
       tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
 
@@ -559,16 +566,16 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
   Matrix<Real> k_main(nb_nodes_per_contact * spatial_dimension,
                       nb_nodes_per_contact * spatial_dimension);
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
+  for (auto &&values1 : enumerate(covariant_basis.transpose())) {
+    auto &alpha = std::get<0>(values1);
+    auto &tangent_alpha = std::get<1>(values1);
 
     Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
     Matrix<Real> mat_t_alpha(tangent_alpha.storage(), tangent_alpha.size(), 1.);
 
-    for (auto && values2 : enumerate(covariant_basis.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & tangent_beta = std::get<1>(values2);
+    for (auto &&values2 : enumerate(covariant_basis.transpose())) {
+      auto &beta = std::get<0>(values2);
+      auto &tangent_beta = std::get<1>(values2);
 
       Matrix<Real> mat_t_beta(tangent_beta.storage(), tangent_beta.size(), 1.);
       t_outer_t.mul<false, true>(mat_t_alpha, mat_t_beta);
@@ -587,7 +594,7 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
   k_main *= -epsilon_t;
 
   // construct 2nd part of the stick modulii
-  auto & tangential_tractions = model.getTangentialTractions();
+  auto &tangential_tractions = model.getTangentialTractions();
   Vector<Real> tangential_traction(
       tangential_tractions.begin(surface_dimension)[element.slave]);
 
@@ -599,23 +606,23 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
     Matrix<Real> k_sum(nb_nodes_per_contact * spatial_dimension,
                        nb_nodes_per_contact * spatial_dimension);
 
-    for (auto && values1 : enumerate(shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values1);
-      auto & dnds = std::get<1>(values1);
+    for (auto &&values1 : enumerate(shape_derivatives.transpose())) {
+      auto &beta = std::get<0>(values1);
+      auto &dnds = std::get<1>(values1);
       // construct Aj from shape function wrt to jth natural
       // coordinate
       construct_Aj(dnds);
-      for (auto && values2 : enumerate(covariant_basis.transpose())) {
-        auto & gamma = std::get<0>(values2);
-        auto & tangent_gamma = std::get<1>(values2);
+      for (auto &&values2 : enumerate(covariant_basis.transpose())) {
+        auto &gamma = std::get<0>(values2);
+        auto &tangent_gamma = std::get<1>(values2);
 
         Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
         Matrix<Real> mat_t_gamma(tangent_gamma.storage(), tangent_gamma.size(),
                                  1.);
 
-        for (auto && values3 : enumerate(covariant_basis.transpose())) {
-          auto & theta = std::get<0>(values3);
-          auto & tangent_theta = std::get<1>(values3);
+        for (auto &&values3 : enumerate(covariant_basis.transpose())) {
+          auto &theta = std::get<0>(values3);
+          auto &tangent_theta = std::get<1>(values3);
 
           Matrix<Real> mat_t_theta(tangent_theta.storage(),
                                    tangent_theta.size(), 1.);
@@ -653,23 +660,23 @@ void ResolutionPenalty<T, PenaltyFunction>::computeStickModuli(
 /* -------------------------------------------------------------------------- */
 template <typename T, class PenaltyFunction>
 void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
-    const ContactElement & element, Matrix<Real> & stiffness) {
+    const ContactElement &element, Matrix<Real> &stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
+  auto &gaps = model.getGaps();
   Real gap(gaps.begin()[element.slave]);
 
-  auto & nodal_areas = model.getNodalArea();
-  auto & nodal_area = nodal_areas.begin()[element.slave];
+  auto &nodal_areas = model.getNodalArea();
+  auto &nodal_area = nodal_areas.begin()[element.slave];
 
   // compute normal traction
   Real p_n = computeNormalTraction(gap);
 
-  auto & projections = model.getProjections();
+  auto &projections = model.getProjections();
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
 
-  auto & normals = model.getNormals();
+  auto &normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
 
   // restructure normal as a matrix for an outer product
@@ -679,8 +686,8 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
+  const ElementType &type = element.master.type;
+  auto &&shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -696,12 +703,12 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
   }
 
   // computing shape derivatives
-  auto && shape_derivatives =
+  auto &&shape_derivatives =
       ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
 
-  auto construct_Aj = [&](auto && dnds) {
+  auto construct_Aj = [&](auto &&dnds) {
     for (auto i : arange(nb_nodes_per_contact)) {
       for (auto j : arange(spatial_dimension)) {
         if (i == 0) {
@@ -714,11 +721,11 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
   };
 
   // tangents should have been calculated in normal modulii
-  auto & tangents = model.getTangents();
+  auto &tangents = model.getTangents();
   Matrix<Real> covariant_basis(
       tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
 
-  auto & tangential_tractions = model.getTangentialTractions();
+  auto &tangential_tractions = model.getTangentialTractions();
   Vector<Real> tangential_traction(
       tangential_tractions.begin(surface_dimension)[element.slave]);
 
@@ -745,21 +752,21 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
   Matrix<Real> k_fourth(nb_nodes_per_contact * spatial_dimension,
                         nb_nodes_per_contact * spatial_dimension);
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
+  for (auto &&values1 : enumerate(covariant_basis.transpose())) {
+    auto &alpha = std::get<0>(values1);
+    auto &tangent_alpha = std::get<1>(values1);
 
     Matrix<Real> mat_t_alpha(tangent_alpha.storage(), tangent_alpha.size(), 1.);
 
     Matrix<Real> t_outer_n(spatial_dimension, spatial_dimension);
     Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
 
-    for (auto && values2 :
+    for (auto &&values2 :
          zip(arange(surface_dimension), covariant_basis.transpose(),
              shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & tangent_beta = std::get<1>(values2);
-      auto & dnds = std::get<2>(values2);
+      auto &beta = std::get<0>(values2);
+      auto &tangent_beta = std::get<1>(values2);
+      auto &dnds = std::get<2>(values2);
       // construct Aj from shape function wrt to jth natural
       // coordinate
       construct_Aj(dnds);
@@ -792,16 +799,16 @@ void ResolutionPenalty<T, PenaltyFunction>::computeSlipModuli(
 
       k_second += tmp1 * nodal_area;
 
-      for (auto && values3 : enumerate(covariant_basis.transpose())) {
-        auto & gamma = std::get<0>(values3);
-        auto & tangent_gamma = std::get<1>(values3);
+      for (auto &&values3 : enumerate(covariant_basis.transpose())) {
+        auto &gamma = std::get<0>(values3);
+        auto &tangent_gamma = std::get<1>(values3);
 
         Matrix<Real> mat_t_gamma(tangent_gamma.storage(), tangent_gamma.size(),
                                  1.);
 
-        for (auto && values4 : enumerate(covariant_basis.transpose())) {
-          auto & theta = std::get<0>(values4);
-          auto & tangent_theta = std::get<1>(values4);
+        for (auto &&values4 : enumerate(covariant_basis.transpose())) {
+          auto &theta = std::get<0>(values4);
+          auto &tangent_theta = std::get<1>(values4);
 
           Matrix<Real> mat_t_theta(tangent_theta.storage(),
                                    tangent_theta.size(), 1.);
@@ -858,4 +865,4 @@ void ResolutionPenalty<T, PenaltyFunction>::afterSolveStep(
 
 } // namespace akantu
 
-#endif // AKANTU_RESOLUTION_PENALTY_TMPL_HH
+#endif /* __AKANTU_RESOLUTION_PENALTY_TMPL_HH__  */

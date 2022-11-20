@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Oct 28 2022
+ * @date last modification: Sun Nov 20 2022
  *
  * @brief  Linear Penalty Resolution for Contact Mechanics Model
  *
@@ -45,7 +45,7 @@ class ResolutionPenalty : public Resolution {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "");
+  ResolutionPenalty(ContactMechanicsModel &model, const ID &id = "");
 
   ~ResolutionPenalty() override = default;
 

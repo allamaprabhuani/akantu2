@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Thu Jan 17 2019
- * @date last modification: Fri Oct 28 2022
+ * @date last modification: Sun Nov 20 2022
  *
  * @brief  Specialization of the resolution class for the penalty method
  *
@@ -39,13 +39,13 @@
 namespace akantu {
 
 // Instantiate linear penalty as a resolution
-using ResolutionPenaltyLinear = ResolutionPenalty<
-    Real, PenaltyFunctionLinear<Real>>;
+using ResolutionPenaltyLinear =
+    ResolutionPenalty<Real, PenaltyFunctionLinear<Real>>;
 INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenaltyLinear);
 
 // Instantiate quadratic penalty as a resolution
-using ResolutionPenaltyQuadratic = ResolutionPenalty<
-    Real, PenaltyFunctionQuadratic<Real>>;
+using ResolutionPenaltyQuadratic =
+    ResolutionPenalty<Real, PenaltyFunctionQuadratic<Real>>;
 INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyQuadratic);
 
 } // namespace akantu
