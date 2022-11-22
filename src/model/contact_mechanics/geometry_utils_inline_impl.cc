@@ -44,22 +44,22 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
   const auto & element_to_subelement =
       mesh.getElementToSubelement(subelement.type)(subelement.element);
 
-  // for regular boundary elements when surfaceselector is set to
+  // for regular boundary elements when akantu::SurfaceSelector is set to
   // physical surfaces, the mesh contains only 1 element attached to a
-  // boundary subelement
+  // boundary sub-element
   if (element_to_subelement.size() == 1 and
       element_to_subelement[0].kind() == _ek_regular) {
     return true;
   }
 
-  // for cohesive interface elements when surfaceSelector is set
+  // for cohesive interface elements when akantu::SurfaceSelector is set
   // either cohesive surface selector or all surface selector, in this
   // case mesh passed is actually mesh_facet and for boundary or
-  // cohesive  interface 2 elements are associated to a subelement
-  // we want only one regular element attached to the subelement
+  // cohesive  interface 2 elements are associated to a sub-element
+  // we want only one regular element attached to the sub-element
 
-  Int nb_elements_regular = 0;
-  Int nb_elements_cohesive = 0;
+  Int nb_elements_regular{0};
+  // Int nb_elements_cohesive{0};
 
   for (auto elem : element_to_subelement) {
     if (elem == ElementNull) {
@@ -70,9 +70,9 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
       ++nb_elements_regular;
     }
 
-    if (elem.kind() == _ek_cohesive) {
-      ++nb_elements_cohesive;
-    }
+    // if (elem.kind() == _ek_cohesive) {
+    //   ++nb_elements_cohesive;
+    // }
   }
 
   Int nb_elements = element_to_subelement.size();

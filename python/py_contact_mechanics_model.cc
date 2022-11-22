@@ -167,7 +167,8 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function_nocopy(getGaps)
       .def_function_nocopy(getNormals)
       .def_function_nocopy(getNodalArea)
-      .def_function_nocopy(getContactDetector)
+      .def("getContactDetector", &ContactMechanicsModel::getContactDetector,
+           py::return_value_policy::reference)
       .def("getContactElements", [](ContactMechanicsModel & self) {
         return ContactElementsView(self.getContactElements());
       });

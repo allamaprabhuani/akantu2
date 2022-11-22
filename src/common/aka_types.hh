@@ -543,8 +543,8 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
               return (values(a) - values(b)) > 0;
             });
 
-  values = P.transpose() * values();
-  vectors = solver.eigenvectors() * P;
+  values = P.transpose() * values;
+  vectors = solver.eigenvectors() * P; // permutes the columns (eigen vectors)
 }
 
 } // namespace Eigen

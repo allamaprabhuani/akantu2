@@ -631,6 +631,12 @@ auto is_of_type(std::unique_ptr<T> & t) -> bool {
               t.get()) != nullptr);
 }
 
+/* -------------------------------------------------------------------------- */
+template <typename R, typename T>
+decltype(auto) as_type(const std::shared_ptr<T> & t) {
+  return std::dynamic_pointer_cast<R>(t);
+}
+
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
@@ -651,12 +657,6 @@ template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
 decltype(auto) as_type(T && t) {
   return &as_type<R>(*t);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename R, typename T>
-decltype(auto) as_type(const std::shared_ptr<T> & t) {
-  return std::dynamic_pointer_cast<R>(t);
 }
 
 template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;

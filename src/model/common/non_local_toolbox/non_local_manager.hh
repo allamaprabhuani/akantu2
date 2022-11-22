@@ -177,8 +177,10 @@ public:
 
   inline const Array<Real> & getJacobians(ElementType type,
                                           GhostType ghost_type) {
-    return *jacobians(type, ghost_type);
+    return (*jacobians)(type, ghost_type);
   }
+
+  inline const ElementTypeMapArray<Real> & getJacobians() { return *jacobians; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -213,7 +215,7 @@ protected:
   Model & model;
 
   /// jacobians for all the elements in the mesh
-  ElementTypeMap<const Array<Real> *> jacobians;
+  const ElementTypeMapArray<Real> * jacobians{nullptr};
 
   /// store the position of the quadrature points
   ElementTypeMapReal integration_points_positions;

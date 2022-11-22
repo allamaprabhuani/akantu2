@@ -14,3 +14,4 @@ leak:resize_compact
 leak:vasprintf_internal
 leak:interceptor_strdup
 leak:interceptor_malloc
+leak:_imp_create_dynamic

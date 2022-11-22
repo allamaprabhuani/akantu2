@@ -115,7 +115,7 @@ private:
   std::array<std::unique_ptr<Array<Real>>, 2> pair_weight;
 
   /// weight function
-  std::unique_ptr<WeightFunction> weight_function;
+  std::shared_ptr<WeightFunction> weight_function;
 };
 
 } // namespace akantu

@@ -209,13 +209,13 @@ protected:
   virtual void printself(std::ostream & stream, int indent) const;
 
 protected:
-  /// Parameters map
-  using Parameters = std::map<std::string, Parameter *>;
-  Parameters params;
+  /// list of registered parameters, shared_ptr instead of unique_ptr is only
+  /// for py11 interface to compile propoerly
+  std::map<std::string, std::shared_ptr<Parameter>> params;
 
   /// list of sub-registries
-  using SubRegisteries = std::map<std::string, ParameterRegistry *>;
-  SubRegisteries sub_registries;
+  std::map<std::string, std::reference_wrapper<ParameterRegistry>>
+      sub_registries;
 
   /// should accessor check in sub registries
   bool consisder_sub{true};

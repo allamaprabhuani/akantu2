@@ -638,7 +638,7 @@ Int ContactMechanicsModel::getNbData(const Array<Element> & elements,
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
-  return size;
+  return size * nb_nodes_per_element;
 }
 
 /* -------------------------------------------------------------------------- */

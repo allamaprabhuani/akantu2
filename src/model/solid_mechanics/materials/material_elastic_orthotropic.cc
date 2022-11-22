@@ -138,7 +138,7 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   /* 1) rotation of C into the global frame */
   this->rotateCprime();
-  this->C.eig(this->eigC);
+  this->C.eigh(this->eigC);
 }
 
 /* -------------------------------------------------------------------------- */

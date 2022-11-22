@@ -43,6 +43,7 @@
 
 namespace akantu {
 class FEEngine;
+class IntegrationPoint;
 } // namespace akantu
 
 namespace akantu {
@@ -356,8 +357,19 @@ public:
   inline auto operator()(const Element & element, Int component = 0) -> T &;
 
   /// access the data of an element, this combine the map and array accessor
+  inline auto operator()(const IntegrationPoint & point,
+                         Int component = 0) const -> const T &;
+
+  /// access the data of an element, this combine the map and array accessor
+  inline auto operator()(const IntegrationPoint & point, Int component = 0)
+      -> T &;
+
+  /// access the data of an element, this combine the map and array accessor
   inline decltype(auto) get(const Element & element);
   inline decltype(auto) get(const Element & element) const;
+
+  inline decltype(auto) get(const IntegrationPoint & point);
+  inline decltype(auto) get(const IntegrationPoint & point) const;
 
   template <typename... Ns,
             std::enable_if_t<

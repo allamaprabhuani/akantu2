@@ -455,7 +455,7 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<2>>::testCelerity() {
   C_expected(1, 0) = C_expected(0, 1) = gamma * E1 * nu21;
 
   Vector<Real, 3> eig_expected;
-  C_expected.eig(eig_expected);
+  C_expected.eigh(eig_expected);
 
   auto celerity_expected = std::sqrt(eig_expected(0) / rho);
 
@@ -659,7 +659,7 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<3>>::testCelerity() {
   C_expected(5, 5) = G12;
 
   Vector<Real> eig_expected(6);
-  C_expected.eig(eig_expected);
+  C_expected.eigh(eig_expected);
 
   auto celerity_expected = std::sqrt(eig_expected(0) / rho);
 
@@ -760,7 +760,7 @@ void FriendMaterial<
 template <>
 void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testCelerity() {
   Vector<Real> eig_expected(3);
-  C.eig(eig_expected);
+  C.eigh(eig_expected);
 
   auto celerity_expected = std::sqrt(eig_expected(0) / this->rho);
   auto celerity = this->getCelerity(Element());
@@ -869,7 +869,7 @@ void FriendMaterial<
 template <>
 void FriendMaterial<MaterialElasticLinearAnisotropic<3>>::testCelerity() {
   Vector<Real, 6> eig_expected;
-  C.eig(eig_expected);
+  C.eigh(eig_expected);
 
   auto celerity_expected = std::sqrt(eig_expected(0) / this->rho);
 

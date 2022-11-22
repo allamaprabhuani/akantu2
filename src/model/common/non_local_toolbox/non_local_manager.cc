@@ -107,14 +107,8 @@ void NonLocalManager::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::setJacobians(const FEEngine & fe_engine,
-                                   ElementKind kind) {
-  Mesh & mesh = this->model.getMesh();
-  for (auto ghost_type : ghost_types) {
-    for (auto type : mesh.elementTypes(spatial_dimension, ghost_type, kind)) {
-      jacobians(type, ghost_type) =
-          &fe_engine.getIntegratorInterface().getJacobians(type, ghost_type);
-    }
-  }
+                                   ElementKind /*kind*/) {
+  jacobians = &(fe_engine.getIntegratorInterface().getJacobians());
 }
 
 /* -------------------------------------------------------------------------- */

@@ -357,8 +357,9 @@ void ParameterRegistry::registerParam(const std::string & name, T & variable,
     AKANTU_CUSTOM_EXCEPTION(debug::ParameterException(
         name, "Parameter named " + name + " already registered."));
   }
-  auto * param = new ParameterTyped<T>(name, description, type, variable);
-  params[name] = param;
+  auto && param =
+      std::make_shared<ParameterTyped<T>>(name, description, type, variable);
+  params[name] = std::move(param);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -377,8 +378,8 @@ void ParameterRegistry::setMixed(const std::string & name, const V & value) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
-        it->second->setMixed<T>(name, value);
+      for (auto && [_, registery] : sub_registries) {
+        registery.get().template setMixed<T>(name, value);
       }
     } else {
       AKANTU_CUSTOM_EXCEPTION(debug::ParameterUnexistingException(name, *this));
@@ -400,9 +401,9 @@ template <typename T> T & ParameterRegistry::get_(const std::string & name) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get_<T>(name);
+          return registery.get().template get_<T>(name);
         } catch (...) {
         }
       }
@@ -421,9 +422,9 @@ const Parameter & ParameterRegistry::get(const std::string & name) const {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get(name);
+          return registery.get().get(name);
         } catch (...) {
         }
       }
@@ -442,9 +443,9 @@ Parameter & ParameterRegistry::get(const std::string & name) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get(name);
+          return registery.get().get(name);
         } catch (...) {
         }
       }

@@ -101,8 +101,6 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
   AKANTU_DEBUG_IN();
 
   this->weight_function->setRadius(this->neighborhood_radius);
-  Vector<Real> q1_coord(this->spatial_dimension);
-  Vector<Real> q2_coord(this->spatial_dimension);
 
   Int nb_weights_per_pair = 2; /// w1: q1->q2, w2: q2->q1
 
@@ -118,60 +116,45 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
 
   for (auto ghost_type : ghost_types) {
     /// allocate the array to store the weight, if it doesn't exist already
-    if (!(pair_weight[ghost_type])) {
+    if (not pair_weight[ghost_type]) {
       pair_weight[ghost_type] =
           std::make_unique<Array<Real>>(0, nb_weights_per_pair);
     }
 
-    /// resize the array to the correct size
-    pair_weight[ghost_type]->resize(pair_list[ghost_type].size());
-    /// set entries to zero
-    pair_weight[ghost_type]->zero();
+    auto && pair_lists = pair_list[ghost_type];
+    auto && pair_weights = *pair_weight[ghost_type];
+    pair_weights.resize(pair_lists.size());
+    pair_weights.zero();
 
     /// loop over all pairs in the current pair list array and their
     /// corresponding weights
-    auto first_pair = pair_list[ghost_type].begin();
-    auto last_pair = pair_list[ghost_type].end();
-    auto weight_it = pair_weight[ghost_type]->begin(nb_weights_per_pair);
-
     // Compute the weights
-    for (; first_pair != last_pair; ++first_pair, ++weight_it) {
-      auto && weight = *weight_it;
-      const auto & q1 = first_pair->first;
-      const auto & q2 = first_pair->second;
+    for (auto && [weight, pairs] :
+         zip(make_view(pair_weights, nb_weights_per_pair), pair_lists)) {
+      const auto & [q1, q2] = pairs;
 
       /// get the coordinates for the given pair of quads
-      auto coords_type_1_it = this->quad_coordinates(q1.type, q1.ghost_type)
-                                  .begin(this->spatial_dimension);
-      q1_coord = coords_type_1_it[q1.global_num];
-      auto coords_type_2_it = this->quad_coordinates(q2.type, q2.ghost_type)
-                                  .begin(this->spatial_dimension);
-      q2_coord = coords_type_2_it[q2.global_num];
+      auto && q1_coord = this->quad_coordinates.get(q1);
+      auto && q2_coord = this->quad_coordinates.get(q2);
 
-      auto & quad_volumes_1 = quadrature_points_volumes(q1.type, q1.ghost_type);
-      const auto & jacobians_2 =
-          this->non_local_manager.getJacobians(q2.type, q2.ghost_type);
-      const auto & q2_wJ = jacobians_2(q2.global_num);
+      auto && quad_volumes_1 = quadrature_points_volumes(q1);
+      const auto & q2_wJ = this->non_local_manager.getJacobians()(q2);
 
       /// compute distance between the two quadrature points
       auto r = q1_coord.distance(q2_coord);
 
       /// compute the weight for averaging on q1 based on the distance
-      auto w1 = this->weight_function->operator()(r, q1, q2);
-      weight(0) = q2_wJ * w1;
+      weight(0) = q2_wJ * (*this->weight_function)(r, q1, q2);
 
-      quad_volumes_1(q1.global_num) += weight(0);
+      quad_volumes_1 += weight(0);
 
       if (q2.ghost_type != _ghost && q1.global_num != q2.global_num) {
-        const auto & jacobians_1 =
-            this->non_local_manager.getJacobians(q1.type, q1.ghost_type);
-        auto & quad_volumes_2 =
-            quadrature_points_volumes(q2.type, q2.ghost_type);
+        const auto & q1_wJ = this->non_local_manager.getJacobians()(q1);
+        auto && quad_volumes_2 = quadrature_points_volumes(q2);
+
         /// compute the weight for averaging on q2
-        const auto & q1_wJ = jacobians_1(q1.global_num);
-        auto w2 = this->weight_function->operator()(r, q2, q1);
-        weight(1) = q1_wJ * w2;
-        quad_volumes_2(q2.global_num) += weight(1);
+        weight(1) = q1_wJ * (*this->weight_function)(r, q2, q1);
+        quad_volumes_2 += weight(1);
       } else {
         weight(1) = 0.;
       }

@@ -41,7 +41,7 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
     fracture_stress = A;
 
   Vector<Real> principal_stress(spatial_dimension);
-  sigma.eig(principal_stress);
+  sigma.eigh(principal_stress);
   sigma_equivalent = principal_stress(0);
   for (Int i = 1; i < spatial_dimension; ++i)
     sigma_equivalent = std::max(sigma_equivalent, principal_stress(i));

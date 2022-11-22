@@ -105,7 +105,7 @@ void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
     MaterialIGFEMSawToothDamage<
         spatial_dimension>::computeDamageAndStressOnQuad(sigma, *dam_it);
     /// compute eigenvalues
-    sigma.eig(eigenvalues);
+    sigma.eigh(eigenvalues);
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =

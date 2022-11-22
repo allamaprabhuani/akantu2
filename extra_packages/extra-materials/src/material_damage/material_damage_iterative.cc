@@ -81,7 +81,7 @@ void MaterialDamageIterative<spatial_dimension>::
     computeDamageAndStressOnQuad(sigma, *dam);
 
     /// compute eigenvalues
-    sigma.eig(eigenvalues);
+    sigma.eigh(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
         *(std::max_element(eigenvalues.data(),

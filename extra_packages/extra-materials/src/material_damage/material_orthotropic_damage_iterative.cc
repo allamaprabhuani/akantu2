@@ -131,7 +131,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
                                  first_term, third_term);
 
     /// compute the maximum principal stresses and their directions
-    sigma.eig(eigenvalues, *stress_dir_it);
+    sigma.eigh(eigenvalues, *stress_dir_it);
     *equivalent_stress_it = eigenvalues(0) / *(Sc_it);
     ++damage_dir_it;
     ++damage_iterator;
@@ -140,7 +140,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
   // for(;sigma_it != sigma_end; ++sigma_it,
   // 	++Sc_it, ++equivalent_stress_it, ++stress_dir_it) {
   //   /// compute the maximum principal stresses and their directions
-  //   (*sigma_it).eig(eigenvalues, *stress_dir_it);
+  //   (*sigma_it).eigh(eigenvalues, *stress_dir_it);
   //   *equivalent_stress_it = eigenvalues(0) / *(Sc_it);
   // }
 
@@ -216,7 +216,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
           dam_in_stress_frame(0, 0) += prescribed_dam;
           /// find new principal directions of damage
           Vector<Real> dam_eigenvalues(spatial_dimension);
-          dam_in_stress_frame.eig(dam_eigenvalues);
+          dam_in_stress_frame.eigh(dam_eigenvalues);
           bool limit_reached = false;
           for (Int i = 0; i < spatial_dimension; ++i) {
             if (dam_eigenvalues(i) + Math::getTolerance() > this->max_damage)
@@ -346,7 +346,7 @@ UInt MaterialOrthotropicDamageIterative<spatial_dimension>::updateDamage() {
     dam_in_stress_frame(0, 0) += prescribed_dam;
     /// find new principal directions of damage
     Vector<Real> dam_eigenvalues(spatial_dimension);
-    dam_in_stress_frame.eig(dam_eigenvalues, q_dam_dir);
+    dam_in_stress_frame.eigh(dam_eigenvalues, q_dam_dir);
     for (Int i = 0; i < spatial_dimension; ++i) {
       q_dam(i, i) = dam_eigenvalues(i);
       if (q_dam(i, i) + Math::getTolerance() >= dam_threshold)

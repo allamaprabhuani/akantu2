@@ -107,7 +107,7 @@ void StressBasedWeightFunction::updatePrincipalStress(__attribute__((unused))
   //     UInt q = 0;
   //     for(;eigenvalues != eigenvalues_end; ++sigma, ++eigenvalues,
   //     ++eigenvector, ++cl, ++q) {
-  //       sigma->eig(*eigenvalues, *eigenvector);
+  //       sigma->eigh(*eigenvalues, *eigenvector);
   //       *eigenvalues /= ft;
   // #ifndef __trick__
   //       // specify a lower bound for principal stress based on the size of

@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_static_if.hh"
-//#include "element_type_map.hh"
+#include "integration_point.hh"
 //#include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include "element_type_conversion.hh"
@@ -818,6 +818,24 @@ ElementTypeMapArray<T, SupportType>::operator()(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType>
+inline T &
+ElementTypeMapArray<T, SupportType>::operator()(const IntegrationPoint & point,
+                                                Int component) {
+  return this->operator()(point.type, point.ghost_type)(point.global_num,
+                                                        component);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
+inline const T &
+ElementTypeMapArray<T, SupportType>::operator()(const IntegrationPoint & point,
+                                                Int component) const {
+  return this->operator()(point.type, point.ghost_type)(point.global_num,
+                                                        component);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
 inline decltype(auto)
 ElementTypeMapArray<T, SupportType>::get(const Element & element) {
   auto & array = operator()(element.type, element.ghost_type);
@@ -832,6 +850,24 @@ ElementTypeMapArray<T, SupportType>::get(const Element & element) const {
   const auto & array = operator()(element.type, element.ghost_type);
   auto it = array.begin(array.getNbComponent());
   return it[element.element];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
+inline decltype(auto)
+ElementTypeMapArray<T, SupportType>::get(const IntegrationPoint & point) {
+  auto & array = operator()(point.type, point.ghost_type);
+  auto it = array.begin(array.getNbComponent());
+  return it[point.global_num];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, typename SupportType>
+inline decltype(auto)
+ElementTypeMapArray<T, SupportType>::get(const IntegrationPoint & point) const {
+  const auto & array = operator()(point.type, point.ghost_type);
+  auto it = array.begin(array.getNbComponent());
+  return it[point.global_num];
 }
 
 /* -------------------------------------------------------------------------- */
