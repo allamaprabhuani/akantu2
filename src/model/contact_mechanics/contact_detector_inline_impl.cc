@@ -49,22 +49,6 @@ ContactDetector::checkValidityOfProjection(Vector<Real> & projection) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ContactDetector::coordinatesOfElement(const Element & el,
-                                                  Matrix<Real> & coords) const {
-
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-  const Vector<UInt> connect = mesh.getConnectivity(el.type, _not_ghost)
-                                   .begin(nb_nodes_per_element)[el.element];
-
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt node = connect[n];
-    for (UInt s : arange(spatial_dimension)) {
-      coords(s, n) = this->positions(node, s);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline void ContactDetector::computeCellSpacing(Vector<Real> & spacing) const {
   for (UInt s : arange(spatial_dimension)) {
     spacing(s) = std::sqrt(2.0) * max_dd;
@@ -76,10 +60,7 @@ inline void
 ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
                                const Array<UInt> & nodes_list) const {
   auto to_grid = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
+    auto pos = getNodePosition(node);
 
     if (bbox.contains(pos)) {
       grid.insert(node, pos);
@@ -94,11 +75,7 @@ inline void
 ContactDetector::constructBoundingBox(BBox & bbox,
                                       const Array<UInt> & nodes_list) const {
   auto to_bbox = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
-    bbox += pos;
+    bbox += getNodePosition(node);
   };
 
   std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox);
@@ -114,32 +91,13 @@ ContactDetector::constructBoundingBox(BBox & bbox,
 
 /* -------------------------------------------------------------------------- */
 inline void ContactDetector::computeMaximalDetectionDistance() {
-  Real elem_size;
-  Real max_elem_size = std::numeric_limits<Real>::min();
-  Real min_elem_size = std::numeric_limits<Real>::max();
+  auto sizes = computeElementSizes(this->surface_selector->getMasterList());
 
-  auto & master_nodes = this->surface_selector->getMasterList();
+  AKANTU_DEBUG_INFO("The maximum element size : " << sizes.max_size);
 
-  for (auto & master : master_nodes) {
-    Array<Element> elements;
-    this->mesh.getAssociatedElements(master, elements);
-
-    for (auto element : elements) {
-      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element.type);
-      Matrix<Real> elem_coords(spatial_dimension, nb_nodes_per_element);
-      this->coordinatesOfElement(element, elem_coords);
-
-      elem_size = FEEngine::getElementInradius(elem_coords, element.type);
-      max_elem_size = std::max(max_elem_size, elem_size);
-      min_elem_size = std::min(min_elem_size, elem_size);
-    }
-  }
-
-  AKANTU_DEBUG_INFO("The maximum element size : " << max_elem_size);
-
-  this->min_dd = min_elem_size;
-  this->max_dd = max_elem_size;
-  this->max_bb = max_elem_size;
+  this->min_dd = sizes.min_size;
+  this->max_dd = sizes.max_size;
+  this->max_bb = sizes.max_size;
 }
 
 /* -------------------------------------------------------------------------- */

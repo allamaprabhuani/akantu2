@@ -82,8 +82,8 @@ public:
   /// append a group to current one
   void append(const NodeGroup & other_group);
 
-  /// apply a filter on current node group
-  template <typename T> void applyNodeFilter(T & filter);
+  /// apply a filter on current node group, return how many nodes were filtered out
+  template <typename T> UInt applyNodeFilter(const T & filter);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

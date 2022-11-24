@@ -30,6 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "contact_detector_shared.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -44,7 +45,7 @@ class NodeGroup;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactDetectorInternodes : public Parsable {
+class ContactDetectorInternodes : public Parsable, public AbstractContactDetector {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
@@ -73,9 +74,15 @@ private:
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
 
+  /// construct a spatial grid with the given nodes and spacing
+  SpatialGrid<UInt> constructGrid(const NodeGroup & node_group, Real spacing) const;
+
   /// compute radius to detect contact nodes
-  Array<UInt> computeRadiuses(Array<Real> & attack_radiuses,
-      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group);
+  std::map<UInt, UInt> computeRadiuses(Array<Real> & attack_radiuses,
+                                       const NodeGroup & ref_node_group,
+                                       const SpatialGrid<UInt> & ref_grid,
+                                       const NodeGroup & eval_node_group,
+                                       const SpatialGrid<UInt> & eval_grid);
 
   /// radial basis function
   Real computeRadialBasisInterpolation(Real distance, Real radius);
@@ -85,13 +92,14 @@ private:
   void computeDistancesToRefNode(UInt & ref_node,
        const NodeGroup & eval_node_group, Array<Real> & out_array);
 
+  inline Real computeDistance(UInt node1, UInt node2) const {
+    return getNodePosition(node1).distance(getNodePosition(node2));
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the mesh
-  AKANTU_GET_MACRO(Mesh, mesh, Mesh &)
-
   /// get radiuses of attack of master nodes
   AKANTU_GET_MACRO_NOT_CONST(MasterRadiuses, master_radiuses, Array<Real> &)
 
@@ -114,12 +122,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// mesh
-  Mesh & mesh;
-
-  /// dimension of the model
-  UInt spatial_dimension{0};
-
   /// id of master node group, i.e nodes on interface
   ID id_master_nodes{};
 
