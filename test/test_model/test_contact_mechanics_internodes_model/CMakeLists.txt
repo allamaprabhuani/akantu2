@@ -35,6 +35,10 @@ register_test(test_internodes
   SCRIPT test_internodes.py
   PYTHON
   FILES_TO_COPY prototype_internodes/material.dat
+        prototype_internodes/example_direct.py
+        prototype_internodes/functions.py
+        prototype_internodes/functions_contact_probl.py
+        prototype_internodes/init_model.py
   DEPENDS contact_mesh
   PACKAGE python_interface contact_mechanics_internodes
   )

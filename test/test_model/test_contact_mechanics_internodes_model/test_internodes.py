@@ -7,16 +7,26 @@ import scipy
 import pytest
 import matplotlib.pyplot as plt
 
+# with this "hack", we also support running from tests where all the files are in one folder
+import os.path
+import sys
+
+file_prefix = ""
+
+if os.path.isdir("prototype_internodes"):
+    sys.path.append("prototype_internodes")
+    file_prefix = "prototype_internodes/"
+
 # import functions for reference solution
-from prototype_internodes.functions import * 
-from prototype_internodes.functions_contact_probl import * 
-from prototype_internodes.init_model import init_model
-from prototype_internodes.example_direct import solve_step_direct 
+from functions import *
+from functions_contact_probl import *
+from init_model import init_model
+from example_direct import solve_step_direct
 
 
 def reference_setup():
     mesh_file = 'contact.msh'
-    material_file = 'prototype_internodes/material.dat'
+    material_file = file_prefix + 'material.dat'
 
     aka.parseInput(material_file)
     spatial_dimension = 2

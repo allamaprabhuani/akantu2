@@ -9,11 +9,9 @@ import matplotlib.pyplot as plt
 from scipy.sparse.linalg import LinearOperator
 from sksparse.cholmod import cholesky
 
-import sys
-sys.path.append("..")
-from prototype_internodes.functions import * 
-from prototype_internodes.functions_contact_probl import * 
-from prototype_internodes.init_model import init_model
+from functions import *
+from functions_contact_probl import *
+from init_model import init_model
 
 
 # example

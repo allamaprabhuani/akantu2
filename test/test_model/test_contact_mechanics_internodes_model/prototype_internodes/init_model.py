@@ -5,8 +5,8 @@ import akantu as aka
 import numpy as np
 
 import sys
-sys.path.append("..")
-from prototype_internodes.functions import nodes_to_dofs
+
+from functions import nodes_to_dofs
 
 
 def init_model(model, mesh, mesh_file, material_file, spatial_dimension,

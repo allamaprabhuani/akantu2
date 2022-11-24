@@ -6,9 +6,7 @@ import scipy as sp
 from scipy.linalg import lstsq 
 from scipy import spatial
 
-import sys
-sys.path.append("..")
-from prototype_internodes.functions import nodes_to_dofs
+from functions import nodes_to_dofs
 
 
 def find_contact_nodes(nodes1i, nodes2i, positions1i, positions2i):

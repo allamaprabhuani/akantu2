@@ -5,12 +5,11 @@ import akantu as aka
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-
 import sys
-sys.path.append("..")
-from prototype_internodes.functions import * 
-from prototype_internodes.functions_contact_probl import * 
-from prototype_internodes.init_model import init_model
+
+from functions import *
+from functions_contact_probl import *
+from init_model import init_model
 
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=250)
