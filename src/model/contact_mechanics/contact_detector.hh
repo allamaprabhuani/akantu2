@@ -33,6 +33,7 @@
 #include "aka_bbox.hh"
 #include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
+#include "contact_detector_shared.hh"
 #include "contact_element.hh"
 #include "element_class.hh"
 #include "element_group.hh"
@@ -53,16 +54,13 @@ enum class Surface { master, slave };
 
 /* -------------------------------------------------------------------------- */
 
-class ContactDetector : public Parsable {
+class ContactDetector : public Parsable, public AbstractContactDetector {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   ContactDetector(Mesh & /*mesh*/, const ID & id = "contact_detector");
-
-  ContactDetector(Mesh & /*mesh*/, Array<Real> positions,
-                  const ID & id = "contact_detector");
 
   ~ContactDetector() override = default;
 
@@ -98,10 +96,6 @@ private:
 public:
   /// checks whether the natural projection is valid or not
   inline bool checkValidityOfProjection(Vector<Real> & projection) const;
-
-  /// extracts the coordinates of an element
-  inline void coordinatesOfElement(const Element & el,
-                                   Matrix<Real> & coords) const;
 
   /// computes the optimal cell size for grid
   inline void computeCellSpacing(Vector<Real> & spacing) const;
@@ -147,9 +141,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the mesh
-  AKANTU_GET_MACRO(Mesh, mesh, Mesh &)
-
   /// returns the maximum detection distance
   AKANTU_GET_MACRO(MaximumDetectionDistance, max_dd, Real);
   AKANTU_SET_MACRO(MaximumDetectionDistance, max_dd, Real);
@@ -161,9 +152,6 @@ public:
   /// returns the minimum detection distance
   AKANTU_GET_MACRO(MinimumDetectionDistance, min_dd, Real);
   AKANTU_SET_MACRO(MinimumDetectionDistance, min_dd, Real);
-
-  AKANTU_GET_MACRO_NOT_CONST(Positions, positions, Array<Real> &);
-  AKANTU_SET_MACRO(Positions, positions, Array<Real>);
 
   AKANTU_GET_MACRO_NOT_CONST(SurfaceSelector, *surface_selector,
                              SurfaceSelector &);
@@ -192,20 +180,11 @@ private:
   /// tolerance for extending a master elements on all sides
   Real extension_tolerance;
 
-  /// Mesh
-  Mesh & mesh;
-
-  /// dimension of the model
-  UInt spatial_dimension{0};
-
   /// node selector for selecting master and slave nodes
   std::shared_ptr<SurfaceSelector> surface_selector;
 
   /// contact pair slave node to closet master node
   std::vector<std::pair<UInt, UInt>> contact_pairs;
-
-  /// contains the updated positions of the nodes
-  Array<Real> positions;
 
   /// type of detection explicit/implicit
   DetectionType detection_type;

@@ -168,7 +168,7 @@ public:
       const CellID & cell_id;
     };
 
-    decltype(auto) neighbors() { return Neighbors(*this); }
+    decltype(auto) neighbors() const { return Neighbors(*this); }
 
   private:
     friend class cells_iterator;
@@ -313,6 +313,25 @@ public:
   inline decltype(auto) end() const {
     auto end = this->cells.end();
     return cells_iterator(end);
+  }
+
+  /// Add values in cell and neighboring cells to the vector
+  void listNeighboring(const CellID & cell, std::vector<T> & neighboringValues) const {
+    for (auto && neighbor : cell.neighbors()) {
+      for (auto value : getCell(neighbor)) {
+        neighboringValues.push_back(value);
+      }
+    }
+  }
+
+  /// Clear vector, add close values to the vector, and return the vector reference.
+  // TODO: I don't like this... the point is to avoid overallocation, maybe it's overkill.
+  // TODO: an alternative would be a "neighbor iterator"
+  template <class vector_type>
+  std::vector<T> & setToNeighboring(const vector_type & position, std::vector<T> & neighboringValues) const {
+    neighboringValues.clear();
+    listNeighboring(getCellID(position), neighboringValues);
+    return neighboringValues;
   }
 
   template <class vector_type>

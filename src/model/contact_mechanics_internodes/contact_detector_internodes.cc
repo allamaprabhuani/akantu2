@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "contact_detector_internodes.hh"
+#include "contact_detector_shared.hh"
 #include "element_group.hh"
 #include "node_group.hh"
 #include "parsable.hh"
@@ -40,9 +41,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ContactDetectorInternodes::ContactDetectorInternodes(Mesh & mesh, const ID & id)
-    : Parsable(ParserType::_contact_detector, id), mesh(mesh) {
-
-  this->spatial_dimension = mesh.getSpatialDimension();
+    : Parsable(ParserType::_contact_detector, id),
+      AbstractContactDetector(mesh) {
 
   const Parser & parser = getStaticParser();
   const ParserSection & section =
@@ -71,6 +71,7 @@ void ContactDetectorInternodes::parseSection(const ParserSection & section) {
   this->id_slave_nodes = section.getParameterValue<std::string>("slave");
 }
 
+// TODO: why are these initial node groups a thing?
 /* -------------------------------------------------------------------------- */
 NodeGroup & ContactDetectorInternodes::getInitialMasterNodeGroup() {
   return mesh.getNodeGroup("initial_contact_master_nodes");
@@ -96,33 +97,53 @@ void ContactDetectorInternodes::findContactNodes() {
   auto & master_node_group = getMasterNodeGroup();
   auto & slave_node_group = getSlaveNodeGroup();
 
+  auto element_sizes = computeElementSizes(arange(mesh.getNbNodes()));
+  Real security_factor = 3; // TODO: allow user to pick this via material file
+  Real grid_spacing = element_sizes.max_size * security_factor;
+
   bool still_isolated_nodes = true;
-  int iteration = 0;
-  while(still_isolated_nodes) {
-    auto && nb_slave_nodes_inside_radius  = computeRadiuses(master_radiuses,
-            master_node_group, slave_node_group);
-    auto && nb_master_nodes_inside_radius  = computeRadiuses(slave_radiuses,
-        slave_node_group, master_node_group);
+  while (still_isolated_nodes) {
+    auto master_grid = constructGrid(master_node_group, grid_spacing);
+    auto slave_grid = constructGrid(slave_node_group, grid_spacing);
+
+    auto && nb_slave_nodes_inside_radius =
+        computeRadiuses(master_radiuses, master_node_group, master_grid,
+                        slave_node_group, slave_grid);
+    auto && nb_master_nodes_inside_radius =
+        computeRadiuses(slave_radiuses, slave_node_group, slave_grid,
+                        master_node_group, master_grid);
 
     still_isolated_nodes = false;
 
-    for (auto && data : enumerate(master_node_group.getNodes())) {
-      if (nb_master_nodes_inside_radius(std::get<0>(data)) == 0) {
-        master_node_group.remove(std::get<1>(data));
-        still_isolated_nodes = true;
-      }
+    if (master_node_group.applyNodeFilter([&](auto && node) {
+      return nb_master_nodes_inside_radius[node] > 0;
+    }) > 0) {
+      still_isolated_nodes = true;
     }
 
-    for (auto && data : enumerate(slave_node_group.getNodes())) {
-      if (nb_slave_nodes_inside_radius(std::get<0>(data)) == 0) {
-        slave_node_group.remove(std::get<1>(data));
-        still_isolated_nodes = true;
-      }
+    if (slave_node_group.applyNodeFilter([&](auto && node) {
+      return nb_slave_nodes_inside_radius[node] > 0;
+    }) > 0) {
+      still_isolated_nodes = true;
     }
 
+    // TODO: These calls are useless when we're only removing nodes...
     master_node_group.optimize();
     slave_node_group.optimize();
   }
+}
+
+/* -------------------------------------------------------------------------- */
+SpatialGrid<UInt> ContactDetectorInternodes::constructGrid(const akantu::NodeGroup & node_group, akantu::Real spacing) const {
+  SpatialGrid<UInt> grid(spatial_dimension);
+  auto spacing_vector = Vector<Real>(spatial_dimension, spacing);
+  grid.setSpacing(spacing_vector);
+
+  for (UInt node : node_group) {
+    grid.insert(node, getNodePosition(node));
+  }
+
+  return grid;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -196,22 +217,22 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt>
-ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
-    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group) {
+std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
+    Array<Real> & attack_radiuses, const NodeGroup & ref_node_group,
+    const SpatialGrid<UInt> & ref_grid, const NodeGroup & eval_node_group,
+    const SpatialGrid<UInt> & eval_grid) {
   Real c = 0.5;
   Real C = 0.95;
   Real d = 0.05;
   // maximum number of support nodes
   UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
- 
-  Array<Real> distances_neighboors(ref_node_group.size());
-  Array<Real> distances_opposites(eval_node_group.size());
+
+  std::vector<UInt> temp_nodes;
 
   attack_radiuses.resize(ref_node_group.size());
 
-  Array<UInt> nb_neighboor_nodes_inside_radiuses(ref_node_group.size(), 1, 0);
-  Array<UInt> nb_opposite_nodes_inside_radiuses(eval_node_group.size(), 1, 0);
+  std::map<UInt, UInt> nb_neighboor_nodes_inside_radiuses;
+  std::map<UInt, UInt> nb_opposite_nodes_inside_radiuses;
 
   UInt nb_iter = 0;
   UInt max_nb_supports = std::numeric_limits<int>::max();
@@ -221,25 +242,12 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
       auto j = std::get<0>(ref_node_data);
       auto ref_node = std::get<1>(ref_node_data);
 
-      // distances to all nodes on same surface (aka neighboors)
-      computeDistancesToRefNode(ref_node, ref_node_group, distances_neighboors);
-
-      // get distances to all nodes on other surface (aka opposites)
-      computeDistancesToRefNode(ref_node, eval_node_group, distances_opposites);
-
-      // minimal distance to neighboors i.e radius of "attack"
-      // TODO: could be done in computeDistancesToRefNode method
+      // compute radius of attack, i.e. distance to closest neighbor node
       Real attack_radius = std::numeric_limits<double>::max();
-
-      // compute radius of attack
-      for (auto && neighboor_node_data : enumerate(ref_node_group.getNodes())) {
-        auto i = std::get<0>(neighboor_node_data);
-        auto neighboor_node = std::get<1>(neighboor_node_data);
-
+      for (auto neighboor_node : ref_grid.setToNeighboring(getNodePosition(ref_node), temp_nodes)) {
         if (neighboor_node != ref_node) {
-          if (distances_neighboors(i) <= attack_radius) {
-            attack_radius = distances_neighboors(i);
-          }
+          Real distance = computeDistance(ref_node, neighboor_node);
+          attack_radius = std::min(distance, attack_radius);
         }
       }
 
@@ -248,23 +256,26 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
       correction_radius = std::max<Real>(attack_radius, correction_radius);
 
       if (correction_radius > attack_radius / c) {
+        // TODO: shouldn't this be correction_radius * c ?
         attack_radius = correction_radius / c;
       } else {
         attack_radius = correction_radius;
       }
       attack_radiuses(j) = attack_radius;
 
-      // compute number of neighboor nodes inside radius
-      for (UInt i : arange(ref_node_group.size())) {
-        if (distances_neighboors(i) < attack_radius) {
-          nb_neighboor_nodes_inside_radiuses(i)++;
+      // compute number of neighboor nodes inside attack radius
+      for (auto neighbor_node : eval_grid.setToNeighboring(getNodePosition(ref_node), temp_nodes)) {
+        Real distance = computeDistance(ref_node, neighbor_node);
+        if (distance <= attack_radius) {
+          nb_neighboor_nodes_inside_radiuses[neighbor_node]++;
         }
       }
 
-      // compute number of opposite nodes inside C*radius
-      for (UInt i : arange(eval_node_group.size())) {
-        if (distances_opposites(i) < C * attack_radius) {
-          nb_opposite_nodes_inside_radiuses(i)++;
+      // compute number of opposite nodes inside C * attack_radius
+      for (auto opposite_node : eval_grid.setToNeighboring(getNodePosition(ref_node), temp_nodes)) {
+        Real distance = computeDistance(ref_node, opposite_node);
+        if (distance < C * attack_radius) {
+          nb_opposite_nodes_inside_radiuses[opposite_node]++;
         }
       }
     }
@@ -272,10 +283,8 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
     // maximum number of neighboors inside radius
     // aka maximum number of supports
     max_nb_supports = 0;
-    for (auto nb_neighboors : nb_neighboor_nodes_inside_radiuses) {
-      if (nb_neighboors > max_nb_supports) {
-        max_nb_supports = nb_neighboors;
-      }
+    for (const auto & entry : nb_neighboor_nodes_inside_radiuses) {
+      max_nb_supports = std::max(max_nb_supports, entry.second);
     }
 
     // correct maximum number of support nodes
@@ -283,8 +292,8 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
       c = 0.5 * (1 + c);
       f = floor(1 / (pow(1 - c, 4) * (1 + 4 * c)));
 
-      nb_neighboor_nodes_inside_radiuses.set(0);
-      nb_opposite_nodes_inside_radiuses.set(0);
+      nb_neighboor_nodes_inside_radiuses.clear();
+      nb_opposite_nodes_inside_radiuses.clear();
 
       nb_iter++;
     }

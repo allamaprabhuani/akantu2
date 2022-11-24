@@ -81,22 +81,27 @@ inline UInt NodeGroup::size() const { return node_group.size(); }
 /* -------------------------------------------------------------------------- */
 struct FilterFunctor;
 
-template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
+template <typename T> UInt NodeGroup::applyNodeFilter(const T & filter) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(T::type == FilterFunctor::_node_filter_functor,
-                      "NodeFilter can only apply node filter functor");
+  // TODO: I don't think this is needed/can be used if we want to accept lambdas?
+  //AKANTU_DEBUG_ASSERT(T::type == FilterFunctor::_node_filter_functor,
+  //                    "NodeFilter can only apply node filter functor");
 
+  UInt removedNodes = 0;
   Array<UInt>::iterator<> it = this->node_group.begin();
 
   for (; it != node_group.end(); ++it) {
     /// filter == true -> keep node
     if (!filter(*it)) {
       it = node_group.erase(it);
+      removedNodes++;
     }
   }
 
   AKANTU_DEBUG_OUT();
+
+  return removedNodes;
 }
 
 } // namespace akantu
