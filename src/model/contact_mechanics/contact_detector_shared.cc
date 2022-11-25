@@ -2,12 +2,10 @@
 
 namespace akantu {
 
-AbstractContactDetector::AbstractContactDetector(akantu::Mesh & mesh)
+AbstractContactDetector::AbstractContactDetector(akantu::Mesh & mesh, Array<Real> initial_positions)
     : mesh(mesh),
       spatial_dimension(mesh.getSpatialDimension()),
-      positions(0, spatial_dimension) {
-
-  this->positions.copy(mesh.getNodes());
+      positions(initial_positions) {
 }
 
 } // namespace akantu

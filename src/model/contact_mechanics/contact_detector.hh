@@ -62,6 +62,9 @@ class ContactDetector : public Parsable, public AbstractContactDetector {
 public:
   ContactDetector(Mesh & /*mesh*/, const ID & id = "contact_detector");
 
+  ContactDetector(Mesh & /*mesh*/, Array<Real> positions,
+                  const ID & id = "contact_detector");
+
   ~ContactDetector() override = default;
 
   /* ------------------------------------------------------------------------ */

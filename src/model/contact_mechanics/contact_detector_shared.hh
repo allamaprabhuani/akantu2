@@ -14,13 +14,16 @@ class AbstractContactDetector {
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  AbstractContactDetector(Mesh & mesh);
+  AbstractContactDetector(Mesh & mesh, Array<Real> initial_positions);
+
   virtual ~AbstractContactDetector() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 protected:
+  // TODO: move body to tmpl header file
+
   /// Return a new vector with the positions of a node.
   inline Vector<Real> getNodePosition(UInt node) const {
     Vector<Real> position(spatial_dimension);
@@ -95,7 +98,7 @@ protected:
   const UInt spatial_dimension;
 
   /// contains the updated positions of the nodes
-  Array<Real> positions;
+  Array<Real> positions; // TODO: get on the fly, storing is wasteful
 };
 
 } // namespace akantu

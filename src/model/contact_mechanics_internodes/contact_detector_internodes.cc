@@ -42,7 +42,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 ContactDetectorInternodes::ContactDetectorInternodes(Mesh & mesh, const ID & id)
     : Parsable(ParserType::_contact_detector, id),
-      AbstractContactDetector(mesh) {
+      AbstractContactDetector(mesh, mesh.getNodes()) {
 
   const Parser & parser = getStaticParser();
   const ParserSection & section =
