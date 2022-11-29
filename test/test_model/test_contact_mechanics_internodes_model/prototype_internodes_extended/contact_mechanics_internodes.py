@@ -196,7 +196,7 @@ def compute_rbf_radius_parameters(positions, positions_ref, c=0.5, C=0.95, rbf=w
     # Minimum distance of each node from closest distinct interpolation node
     np.fill_diagonal(distance_matrix_MM, np.inf)
     min_distance_MM = np.min(distance_matrix_MM, axis=0)
-
+    
     # Extremely heuristic: Estimate for the minimum distance of the nodes
     # from the reference nodes (min_distance_MM/2 is supposed to be
     # representative of the distance an orthogonal projection of the
@@ -207,6 +207,9 @@ def compute_rbf_radius_parameters(positions, positions_ref, c=0.5, C=0.95, rbf=w
     #min_distance_NM = np.min(distance_matrix_NM, axis=0)
     # Take maximum of the two minimum distances from the closest nodes
     #rbf_radius_parameters = np.maximum(min_distance_MM, min_distance_NM)
+
+    #rbf_radius_parameters = min_distance_MM / c
+    #n_supports_reference = np.sum(distance_matrix_NM < C*rbf_radius_parameters, axis=0)
 
     # Iteratively increase parameter 'c' if necessary
     while True:
@@ -288,7 +291,7 @@ def construct_rbf_matrix(positions, positions_ref, radiuses_ref, rbf):
     ---------
     [1], Page 49, Section 2.1, Point 1
     """
-    return rbf(sp.spatial.distance.cdist(positions, positions_ref), radiuses_ref)
+    return rbf(sp.spatial.distance.cdist(positions.reshape(len(positions), -1), positions_ref.reshape(len(positions_ref), -1)), radiuses_ref)
 
 def construct_interpolation_matrix(positions, positions_ref, radiuses_ref, rbf):
     """Construct interpolation matrix $\R_{NM}$.
@@ -336,8 +339,11 @@ class ContactMechanicsInternodes(object):
         self.dofs_free = self.dofs[~blocked_dofs.ravel()]
 
         # Connectivity of the model (line segments and triangular elements)
-        self.nodes_segments = mesh.getConnectivity(aka._segment_2)
-        self.nodes_triangles = mesh.getConnectivity(aka._triangle_3)
+        triangles = mesh.getConnectivity(aka._triangle_3)
+        if self.dim == 2:
+            self.connectivity = triangles[:, np.array([0, 1, 0, 2, 1, 2])].reshape(-1, 2)
+        elif self.dim == 3:
+            self.connectivity = triangles
 
         # Radial basis function and the corresponding radius parameters
         self.rbf = rbf
@@ -541,18 +547,17 @@ class ContactMechanicsInternodes(object):
         [2], Page 23, Algorithm 2, Lines 5-16
         """
         # Get connectivities (triangle/segment indices) between candidate nodes
-        segments_candidate_primary = remove_rows_without_all_items(self.nodes_segments, self.nodes_candidate_primary)
-        segments_candidate_secondary = remove_rows_without_all_items(self.nodes_segments, self.nodes_candidate_secondary)
-        triangles_candidate_primary = remove_rows_without_all_items(self.nodes_triangles, self.nodes_candidate_primary)
-        triangles_candidate_secondary = remove_rows_without_all_items(self.nodes_triangles, self.nodes_candidate_secondary)
-
+        connectivity_candidate_primary = remove_rows_without_all_items(self.connectivity, self.nodes_candidate_primary)
+        connectivity_candidate_secondary = remove_rows_without_all_items(self.connectivity, self.nodes_candidate_secondary)
+        
         # Compute the normals
-        normals_candidate_primary = self.compute_normals(positions_new, self.nodes_candidate_primary, segments_candidate_primary, triangles_candidate_primary)
-        normals_candidate_secondary = self.compute_normals(positions_new, self.nodes_candidate_secondary, segments_candidate_secondary, triangles_candidate_secondary)
+        normals_candidate_primary = self.compute_normals(positions_new, self.nodes_candidate_primary, connectivity_candidate_primary)
+        normals_candidate_secondary = self.compute_normals(positions_new, self.nodes_candidate_secondary, connectivity_candidate_secondary)
         normals_interface_primary = normals_candidate_primary[np.in1d(self.nodes_candidate_primary, self.nodes_interface_primary)]
         normals_interface_secondary = normals_candidate_secondary[np.in1d(self.nodes_candidate_secondary, self.nodes_interface_secondary)]
 
         # Interpolate the Lagrange multipliers of the secondary
+        # [1], Page 53, Section 3.2, Equation (11)
         lambdas_secondary = - self.R21 * lambdas
 
         # Mark nodes with positive projected Lagrange multipliers for dumping
@@ -561,18 +566,18 @@ class ContactMechanicsInternodes(object):
         nodes_to_dump_primary = self.nodes_interface_primary[positive_lambda_proj_primary]
         nodes_to_dump_secondary = self.nodes_interface_secondary[positive_lambda_proj_secondary]
 
+        # Add new nodes to primary and secondary
+        nodes_to_add_primary, nodes_to_add_secondary = self.detect_penetration_nodes(positions_new, normals_candidate_primary, normals_candidate_secondary)
+        self.nodes_interface_primary = np.union1d(self.nodes_interface_primary, nodes_to_add_primary)
+        self.nodes_interface_secondary = np.union1d(self.nodes_interface_secondary, nodes_to_add_secondary)
+
         # If projected Lagrange multipliers are all negative
         if not (positive_lambda_proj_primary.any() or positive_lambda_proj_secondary.any()):
-            nodes_to_add_primary, nodes_to_add_secondary = self.detect_penetration_nodes(positions_new, normals_candidate_primary, normals_candidate_secondary)
 
             # Convergence if all penetration nodes are already in interface
             if (np.all(np.in1d(nodes_to_add_primary, self.nodes_interface_primary))
              or np.all(np.in1d(nodes_to_add_secondary, self.nodes_interface_secondary))):
                 return True
-
-            # Add new nodes to primary and secondary
-            self.nodes_interface_primary = np.union1d(self.nodes_interface_primary, nodes_to_add_primary)
-            self.nodes_interface_secondary = np.union1d(self.nodes_interface_secondary, nodes_to_add_secondary)
 
         else:
             # Dump nodes from primary and secondary
@@ -585,7 +590,7 @@ class ContactMechanicsInternodes(object):
 
         return False
 
-    def compute_normals(self, positions_new, nodes, segments, triangles):
+    def compute_normals(self, positions_new, nodes, connectivity):
         """Compute the normals.
 
         Parameters
@@ -609,27 +614,24 @@ class ContactMechanicsInternodes(object):
 
         # Compute tangents corresponding to the elements at new positions
         if self.dim == 2:
-            tangent1 = positions_new[segments[:, 1]] - positions_new[segments[:, 0]]
-            tangent2 = [0, 0, -1]
+            tangent1 = positions_new[connectivity[:, 1]] - positions_new[connectivity[:, 0]]
+            tangent2 = [0, 0, 1]
         elif self.dim == 3:
-            tangent1 = positions_new[triangles[:, 1]] - positions_new[triangles[:, 0]]
-            tangent2 = positions_new[triangles[:, 2]] - positions_new[triangles[:, 0]]
+            tangent1 = positions_new[connectivity[:, 1]] - positions_new[connectivity[:, 0]]
+            tangent2 = positions_new[connectivity[:, 2]] - positions_new[connectivity[:, 0]]
 
         # Compute normal vectors
-        normals = - np.cross(tangent1, tangent2)[:, :self.dim]
+        normals = np.cross(tangent1, tangent2)[:, :self.dim]
 
         normals_avg = np.zeros((len(nodes), self.dim))
         for j, node in enumerate(nodes):
-            if self.dim == 2:
-                id = np.isin(segments, node).any(axis=1)
-            elif self.dim == 3:
-                id = np.isin(triangles, node).any(axis=1)
+            id = np.isin(connectivity, node).any(axis=1)
 
             # Compute average surface normal for each candidate node
             normals_avg[j] = np.sum(normals[id] / np.linalg.norm(normals[id], axis=1)[:, np.newaxis], axis=0)
 
             """
-            # This below algorithm is unnecessary if meshed right!
+            # This below steps are unnecessary if mesh oriented correctly!
             step_size=1e-3
 
             # Compute average normal on interface boundary
@@ -651,7 +653,7 @@ class ContactMechanicsInternodes(object):
 
         return normals_avg
 
-    def detect_penetration_nodes(self, positions_new, normals_candidates_primary, normals_candidates_secondary, tolerance=0.9, mesh_size=0.05):
+    def detect_penetration_nodes(self, positions_new, normals_candidates_primary, normals_candidates_secondary, tolerance=0.9, mesh_size=0.1):
         """Detect the nodes on secondary and primary interface that penetrate.
         TODO: Require reference and make mesh size configurable!!
 
@@ -683,17 +685,25 @@ class ContactMechanicsInternodes(object):
         # Find contact nodes with contact detection algorithm
         rbf_radius_parameters_primary, rbf_radius_parameters_secondary, nodes_interface_primary, nodes_interface_secondary = find_interface_nodes(positions_candidate_primary, positions_candidate_secondary, self.nodes_candidate_primary, self.nodes_candidate_secondary)
 
-        R12 = construct_interpolation_matrix(positions_candidate_primary, positions_candidate_secondary, rbf_radius_parameters_secondary, self.rbf)
-        R21 = construct_interpolation_matrix(positions_candidate_secondary, positions_candidate_primary, rbf_radius_parameters_primary, self.rbf)
+        # Update positions of primary and secondary nodes along interface
+        positions_interface_primary = positions_new[nodes_interface_primary]
+        positions_interface_secondary = positions_new[nodes_interface_secondary]
+
+        # Update normals of primary and secondary nodes along interface
+        normals_interface_primary = normals_candidates_primary[np.in1d(self.nodes_candidate_primary, nodes_interface_primary)]
+        normals_interface_secondary = normals_candidates_secondary[np.in1d(self.nodes_candidate_secondary, nodes_interface_secondary)]
+
+        R12 = construct_interpolation_matrix(positions_interface_primary, positions_interface_secondary, rbf_radius_parameters_secondary, self.rbf)
+        R21 = construct_interpolation_matrix(positions_interface_secondary, positions_interface_primary, rbf_radius_parameters_primary, self.rbf)
   
         # Determine the size of the nodal gaps on interface
-        nodal_gaps_primary = R12 * positions_candidate_secondary - positions_candidate_primary
-        nodal_gaps_secondary = R21 * positions_candidate_primary - positions_candidate_secondary
+        nodal_gaps_primary = R12 * positions_interface_secondary - positions_interface_primary
+        nodal_gaps_secondary = R21 * positions_interface_primary - positions_interface_secondary
 
         # Penetration if projected nodal gap onto normal is sufficiently small
         threshold = - tolerance * mesh_size
-        penetrates_secondary = np.sum(nodal_gaps_primary * normals_candidates_primary, axis=1) < threshold
-        penetrates_primary = np.sum(nodal_gaps_secondary * normals_candidates_secondary, axis=1) < threshold
+        penetrates_secondary = np.sum(nodal_gaps_primary * normals_interface_primary, axis=1) < threshold
+        penetrates_primary = np.sum(nodal_gaps_secondary * normals_interface_secondary, axis=1) < threshold
 
         # Add the nodes where penetration is observed to the interface
         nodes_penetration_primary = nodes_interface_primary[penetrates_secondary]

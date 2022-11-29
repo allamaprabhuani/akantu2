@@ -3,9 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from contact_mechanics_internodes import ContactMechanicsInternodes
 
-mesh_file = 'contact3d.msh'
+def plot_mesh(positions, triangle_indices):
+    plt.figure()
+    plt.triplot(positions[:, 0], positions[:, 1], triangle_indices)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.axis('scaled')
+    plt.show()
+
+mesh_file = 'contact2d.msh'
 material_file = 'material.dat'
-spatial_dimension = 3
+spatial_dimension = 2
 aka.parseInput(material_file)
 
 mesh = aka.Mesh(spatial_dimension)
@@ -16,10 +24,8 @@ model.initFull(_analysis_method=aka._implicit_dynamic)
 
 model.applyBC(aka.FixedValue(0., aka._x), 'primary_fixed')
 model.applyBC(aka.FixedValue(0., aka._y), 'primary_fixed')
-model.applyBC(aka.FixedValue(0., aka._z), 'primary_fixed')
 model.applyBC(aka.FixedValue(0., aka._x), 'secondary_fixed')
 model.applyBC(aka.FixedValue(-0.1, aka._y), 'secondary_fixed')
-model.applyBC(aka.FixedValue(0., aka._z), 'secondary_fixed')
 
 nodes_top = mesh.getElementGroup('secondary_fixed').getNodeGroup().getNodes().ravel()
 displacements = np.zeros((mesh.getNbNodes(), spatial_dimension))
