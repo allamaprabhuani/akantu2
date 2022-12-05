@@ -59,6 +59,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("external_force");
   model.addDumpField("internal_force");
   model.addDumpField("grad_u");
+  model.addDumpField("stress");
 
   /// Dirichlet boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed_x");
@@ -72,7 +73,6 @@ int main(int argc, char * argv[]) {
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   model.solveStep();
-
   model.dump();
 
   finalize();
