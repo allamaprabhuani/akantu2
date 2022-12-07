@@ -43,16 +43,6 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-Model::Model(Mesh & mesh, const ModelType & type,
-             std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID & id)
-    : ModelSolver(mesh, type, id, std::move(dof_manager)), mesh(mesh),
-      spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
-                                               : dim),
-      parser(getStaticParser()) {
-  this->mesh.registerEventHandler(*this, _ehp_model);
-}
-
-/* -------------------------------------------------------------------------- */
 Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id)
     : ModelSolver(mesh, type, id), mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()

@@ -74,12 +74,14 @@ namespace heat_transfer {
 /* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
                                      std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_heat_transfer_model, dof_manager, dim, id),
+    : Model(mesh, ModelType::_heat_transfer_model, dim, id),
       temperature_gradient("temperature_gradient", id),
       temperature_on_qpoints("temperature_on_qpoints", id),
       conductivity_on_qpoints("conductivity_on_qpoints", id),
       k_gradt_on_qpoints("k_gradt_on_qpoints", id) {
   AKANTU_DEBUG_IN();
+
+  this->initDOFManager(dof_manager);
 
   conductivity = Matrix<Real>(this->spatial_dimension, this->spatial_dimension);
 
