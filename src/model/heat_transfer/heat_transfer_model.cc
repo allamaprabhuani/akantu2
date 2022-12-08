@@ -119,6 +119,8 @@ void HeatTransferModel::initModel() {
   conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
                                                           spatial_dimension);
   k_gradt_on_qpoints.initialize(fem, _nb_component = spatial_dimension);
+
+  this->initBC(*this, *temperature, *increment, *external_heat_rate);
 }
 
 /* -------------------------------------------------------------------------- */

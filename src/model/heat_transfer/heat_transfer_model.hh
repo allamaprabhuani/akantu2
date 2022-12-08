@@ -37,6 +37,8 @@
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "model.hh"
+#include "boundary_condition.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <array>
 /* -------------------------------------------------------------------------- */
@@ -53,6 +55,7 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 class HeatTransferModel : public Model,
+                          public BoundaryCondition<HeatTransferModel>,
                           public DataAccessor<Element>,
                           public DataAccessor<UInt> {
   /* ------------------------------------------------------------------------ */
@@ -227,12 +230,11 @@ public:
   Real getThermalEnergy(ElementType type, UInt index);
   /// get the thermal energy for a given element
   Real getThermalEnergy();
-
-protected:
-  /* ------------------------------------------------------------------------ */
+  /// get the FEEngine object to apply Neumann BCs
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
-  /* ----------------------------------------------------------------------- */
+protected:
+    /* ----------------------------------------------------------------------- */
   template <class iterator>
   void getThermalEnergy(iterator Eth, Array<Real>::const_iterator<Real> T_it,
                         const Array<Real>::const_iterator<Real> & T_end) const;
