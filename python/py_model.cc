@@ -80,6 +80,7 @@ void register_model(py::module & mod) {
           py::arg("callback"), py::arg("solver_id") = "");
 
   py::class_<Model, ModelSolver>(mod, "Model", py::multiple_inheritance())
+      .def("getSpatialDimension", &Model::getSpatialDimension)
       .def("setBaseName", &Model::setBaseName)
       .def("setDirectory", &Model::setDirectory)
       .def("getFEEngine", &Model::getFEEngine, py::arg("name") = "",

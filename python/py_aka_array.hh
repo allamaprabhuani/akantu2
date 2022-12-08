@@ -139,8 +139,13 @@ namespace detail {
   template <typename T>
   decltype(auto) create_proxy(array_type_t<_aka::Array<T>> & ref,
                               const _aka::Array<T> * /*unused*/) {
+    int size = ref.shape(0);
+    int nb_components = 1;
+    if (ref.ndim() > 1) {
+      nb_components = ref.shape(1);
+    }
     return std::make_unique<_aka::detail::ProxyType_t<_aka::Array<T>>>(
-        ref.mutable_data(), ref.shape(0), ref.shape(1));
+        ref.mutable_data(), size, nb_components);
   }
 
   /* ------------------------------------------------------------------------ */

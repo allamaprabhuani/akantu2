@@ -175,7 +175,19 @@ void register_dof_manager(py::module & mod) {
       .def("assemblePreassembledMatrix",
            &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
            py::arg("terms"))
-      .def("zeroResidual", &DOFManager::zeroResidual);
+      .def("zeroResidual", &DOFManager::zeroResidual)
+      .def(
+          "assembleElementalArrayLocalArray",
+          [](DOFManager & self, const Array<Real> & elementary_vect,
+             Array<Real> & array_assembeled, ElementType type,
+             GhostType ghost_type, Real scale_factor) {
+            self.assembleElementalArrayLocalArray(elementary_vect,
+                                                  array_assembeled, type,
+                                                  ghost_type, scale_factor);
+          },
+          py::arg("elementary_vect"), py::arg("array_assembeled"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("scale_factor") = 1.);
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")
       .def(

@@ -91,12 +91,25 @@ void register_heat_transfer_model(py::module & mod) {
       .def_function(getStableTimeStep)
       .def_function_nocopy(getTemperature)
       .def_function_nocopy(getBlockedDOFs)
+      .def_function_nocopy(getExternalHeatRate)
+      .def_function_nocopy(getBlockedDOFs)
+      .def_function_nocopy(getMesh)
       .def("getTemperatureGradient", &HeatTransferModel::getTemperatureGradient,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
       .def("getKgradT", &HeatTransferModel::getKgradT, py::arg("el_type"),
            py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def("applyBC",
+           [](HeatTransferModel & self, BC::Dirichlet::DirichletFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           })
+      .def("applyBC",
+           [](HeatTransferModel & self, BC::Neumann::NeumannFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           });
 }
 
 } // namespace akantu

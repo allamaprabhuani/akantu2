@@ -197,6 +197,9 @@ void register_mesh(py::module & mod) {
       .def_static(
           "getSpatialDimension",
           [](ElementType & type) { return Mesh::getSpatialDimension(type); })
+      .def_static(
+          "getNbNodesPerElement",
+          [](ElementType & type) { return Mesh::getNbNodesPerElement(type); })
       .def(
           "getDataReal",
           [](Mesh & _this, const ID & name, ElementType type,
@@ -224,9 +227,23 @@ void register_mesh(py::module & mod) {
           },
           py::return_value_policy::reference)
       .def("initMeshFacets", &Mesh::initMeshFacets,
-           py::arg("id") = "mesh_facets", py::return_value_policy::reference);
+           py::arg("id") = "mesh_facets", py::return_value_policy::reference)
+      .def(
+          "elementTypes",
+          [](Mesh & self, UInt spatial_dimension, GhostType ghost_type,
+             ElementKind kind) -> std::vector<ElementType> {
+            auto types = self.elementTypes(spatial_dimension, ghost_type, kind);
+            std::vector<ElementType> _types;
+            for (auto && t : types) {
+              _types.push_back(t);
+            }
+            return _types;
+          },
+          py::arg("spatial_dimension") = _all_dimensions,
+          py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular);
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   py::class_<MeshUtils>(mod, "MeshUtils")
       .def_static("buildFacets", &MeshUtils::buildFacets);
 

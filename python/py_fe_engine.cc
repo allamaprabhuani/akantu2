@@ -86,8 +86,28 @@ void register_fe_engine(py::module & mod) {
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
           py::arg("filter_elements") = nullptr)
       .def(
+          "gradientOnIntegrationPoints",
+          [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
+             UInt nb_degree_of_freedom, ElementType type,
+             GhostType ghost_type) {
+            fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
+                                            type, ghost_type);
+          },
+          py::arg("u"), py::arg("nablauq"), py::arg("nb_degree_of_freedom"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def(
           "interpolateOnIntegrationPoints",
-          [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
+          [](FEEngine & self, Array<Real> & u, Array<Real> & uq,
+             UInt nb_degree_of_freedom, ElementType type,
+             GhostType ghost_type) {
+            self.interpolateOnIntegrationPoints(u, uq, nb_degree_of_freedom,
+                                                type, ghost_type);
+          },
+          py::arg("u"), py::arg("uq"), py::arg("nb_degree_of_freedom"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def(
+          "interpolateOnIntegrationPoints",
+          [](FEEngine & self, Array<Real> & u, Array<Real> & uq,
              UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
              const Array<UInt> * filter_elements) {
             if (filter_elements == nullptr) {
@@ -153,7 +173,93 @@ void register_fe_engine(py::module & mod) {
       .def("getNormalsOnIntegrationPoints",
            &FEEngine::getNormalsOnIntegrationPoints, py::arg("type"),
            py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def(
+          "computeNtb",
+          [](FEEngine & fem, const Array<Real> & bs, Array<Real> & Ntbs,
+             ElementType type, GhostType ghost_type) {
+            fem.computeNtb(bs, Ntbs, type, ghost_type);
+          },
+          py::arg("bs"), py::arg("Ntbs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeNtb",
+          [](FEEngine & fem, const Array<Real> & bs, Array<Real> & Ntbs,
+             ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
+            if (filter_elements == nullptr) {
+              // This is due to the ArrayProxy that looses the
+              // empty_filter information
+              filter_elements = &empty_filter;
+            }
+            fem.computeNtb(bs, Ntbs, type, ghost_type, *filter_elements);
+          },
+          py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = nullptr)
+      .def(
+          "computeBtD",
+          [](FEEngine & fem, const Array<Real> & Ds, Array<Real> & BtDs,
+             ElementType type, GhostType ghost_type) {
+            fem.computeBtD(Ds, BtDs, type, ghost_type);
+          },
+          py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeBtD",
+          [](FEEngine & fem, const Array<Real> & Ds, Array<Real> & BtDs,
+             ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
+            if (filter_elements == nullptr) {
+              // This is due to the ArrayProxy that looses the
+              // empty_filter information
+              filter_elements = &empty_filter;
+            }
+            fem.computeBtD(Ds, BtDs, type, ghost_type, *filter_elements);
+          },
+          py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = nullptr)
+      .def(
+          "getShapes",
+          [](FEEngine & fem, const ElementType & type,
+             const GhostType & ghost_type,
+             UInt id) { return fem.getShapes(type, ghost_type, id); },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("id") = 0)
+      .def(
+          "getShapesDerivatives",
+          [](FEEngine & fem, const ElementType & type,
+             const GhostType & ghost_type, UInt id) {
+            return fem.getShapesDerivatives(type, ghost_type, id);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("id") = 0)
+      .def(
+          "integrate",
+          [](FEEngine & fem, const Array<Real> & f, Array<Real> & intf,
+             UInt nb_degree_of_freedom, ElementType type,
+             GhostType ghost_type) {
+            fem.integrate(f, intf, nb_degree_of_freedom, type, ghost_type);
+          },
+          py::arg("f"), py::arg("intf"), py::arg("nb_degree_of_feedom"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def(
+          "integrate",
+          [](FEEngine & fem, const Array<Real> & f, Array<Real> & intf,
+             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
+            if (filter_elements == nullptr) {
+              // This is due to the ArrayProxy that looses the
+              // empty_filter information
+              filter_elements = &empty_filter;
+            }
+            fem.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
+                          *filter_elements);
+          },
+          py::arg("f"), py::arg("intf"), py::arg("nb_degree_of_feedom"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = nullptr);
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
