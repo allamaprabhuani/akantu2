@@ -70,8 +70,8 @@ public:
       const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
 
   /// compute radius to detect contact nodes
-  void computeRadiuses(Array<Real> & attack_radiuses,
-      const NodeGroup & node_group, Real c = 0.5);
+  void computeRadiuses(Array<Real> & radius_parameters,
+      const NodeGroup & node_group, Real c = 0.5, Real C = 0.95);
 
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
@@ -134,10 +134,6 @@ private:
   /// blocked boundary dofs array
   std::unique_ptr<Array<Real>> blocked_dofs;
 
-  /// maximum number of iterations for radius computation:
-  /// after each iteration, c is replaced by (1+c)/2, so if this value is ever
-  /// reached it means that c is close to 1 and we won't find suitable radii.
-  const UInt MAX_RADIUS_ITERATIONS = 10;
 };
 
 } // namespace akantu

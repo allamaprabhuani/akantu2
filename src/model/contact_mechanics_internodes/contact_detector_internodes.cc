@@ -96,41 +96,46 @@ void ContactDetectorInternodes::findContactNodes(Real C) {
   auto & master_node_group = getMasterNodeGroup();
   auto & slave_node_group = getSlaveNodeGroup();
 
+  // while there still exist isolated nodes, recompute radius parameters
   bool still_isolated_nodes = true;
   while(still_isolated_nodes) {
+    still_isolated_nodes = false;
+  
     computeRadiuses(master_radiuses, master_node_group);
     computeRadiuses(slave_radiuses, slave_node_group);
 
-    still_isolated_nodes = false;
-
-    for (auto && data : enumerate(master_node_group.getNodes())) {
+    for (auto && master_node_data : enumerate(master_node_group.getNodes())) {
+      auto master_node_index = std::get<0>(master_node_data);
+      auto master_node = std::get<1>(master_node_data);
 
       Array<Real> distances_to_slave_nodes(slave_node_group.size());
-      computeDistancesToRefNode(std::get<1>(data), slave_node_group, distances_to_slave_nodes);
+      computeDistancesToRefNode(master_node, slave_node_group, distances_to_slave_nodes);
 
       UInt counter = 0;
       for (int i = 0; i < slave_node_group.size(); i++)
-        if (distances_to_slave_nodes(i) < C*master_radiuses(std::get<0>(data)))
+        if (distances_to_slave_nodes(i) < C*master_radiuses(master_node_index))
           counter += 1;
 
       if (counter == 0) {
-        master_node_group.remove(std::get<1>(data));
+        master_node_group.remove(master_node);
         still_isolated_nodes = true;
       }
     }
 
-    for (auto && data : enumerate(slave_node_group.getNodes())) {
+    for (auto && slave_node_data : enumerate(slave_node_group.getNodes())) {
+      auto slave_node_index = std::get<0>(slave_node_data);
+      auto slave_node = std::get<1>(slave_node_data);
 
       Array<Real> distances_to_master_nodes(master_node_group.size());
-      computeDistancesToRefNode(std::get<1>(data), master_node_group, distances_to_master_nodes);
+      computeDistancesToRefNode(slave_node, master_node_group, distances_to_master_nodes);
 
       UInt counter = 0;
       for (int i = 0; i < master_node_group.size(); i++)
-        if (distances_to_master_nodes(i) < C*slave_radiuses(std::get<0>(data)))
+        if (distances_to_master_nodes(i) < C*slave_radiuses(slave_node_index))
           counter += 1;
 
       if (counter == 0) {
-        slave_node_group.remove(std::get<1>(data));
+        slave_node_group.remove(slave_node);
         still_isolated_nodes = true;
       }
     }
@@ -212,76 +217,61 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 
 /* -------------------------------------------------------------------------- */
 void
-ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
-    const NodeGroup & ref_node_group, Real c) {
+ContactDetectorInternodes::computeRadiuses(Array<Real> & radius_parameters,
+    const NodeGroup & ref_node_group, Real c, Real C) {
 
-  // maximum number of support nodes
-  UInt f = std::floor(1 / evaluateRadialBasisFunction(c, 1.0));
- 
-  Array<Real> distances_neighboors(ref_node_group.size());
+  Array<Real> distances_ref_nodes(ref_node_group.size());
+  radius_parameters.resize(ref_node_group.size());
 
-  attack_radiuses.resize(ref_node_group.size());
+  // array keeping track of how many other nodes which are in a node's support
+  Array<UInt> nb_supported_nodes(ref_node_group.size(), 1, 0);
+  UInt max_nb_supported_nodes;
 
-  Array<UInt> nb_neighboor_nodes_inside_radiuses(ref_node_group.size(), 1, 0);
-
-  UInt nb_iter = 0;
-  UInt max_nb_supports = std::numeric_limits<int>::max();
-
-  while (max_nb_supports > f && nb_iter < MAX_RADIUS_ITERATIONS) {
+  // iteratively increase the parameter c until all conditions are satisfied
+  while (true) {
     for (auto && ref_node_data : enumerate(ref_node_group.getNodes())) {
-      auto j = std::get<0>(ref_node_data);
+      auto ref_node_index = std::get<0>(ref_node_data);
       auto ref_node = std::get<1>(ref_node_data);
 
-      // distances to all nodes on same surface (aka neighboors)
-      computeDistancesToRefNode(ref_node, ref_node_group, distances_neighboors);
+      // compute distance of node to all other nodes
+      computeDistancesToRefNode(ref_node, ref_node_group, distances_ref_nodes);
 
-      // minimal distance to neighboors i.e radius of "attack"
-      // TODO: could be done in computeDistancesToRefNode method
-      Real attack_radius = std::numeric_limits<double>::max();
+      // compute minimum of distances of node to all other nodes (except itself)
+      Real minimum_distance = std::numeric_limits<double>::max();
+      for (auto && neighbor_node_data : enumerate(ref_node_group.getNodes())) {
+        auto neighbor_node_index = std::get<0>(neighbor_node_data);
+        auto neighbor_node = std::get<1>(neighbor_node_data);
 
-      // compute radius of attack
-      for (auto && neighboor_node_data : enumerate(ref_node_group.getNodes())) {
-        auto i = std::get<0>(neighboor_node_data);
-        auto neighboor_node = std::get<1>(neighboor_node_data);
-
-        if (neighboor_node != ref_node) {
-          if (distances_neighboors(i) <= attack_radius) {
-            attack_radius = distances_neighboors(i);
-          }
-        }
+        // only account for minimum distance of distinct nodes from ref node
+        if (neighbor_node != ref_node)
+          if (distances_ref_nodes(neighbor_node_index) <= minimum_distance)
+            minimum_distance = distances_ref_nodes(neighbor_node_index);
       }
 
-      attack_radiuses(j) = attack_radius / c;
+      // set radius parameter to largest value without violating condition
+      radius_parameters(ref_node_index) = minimum_distance / c;
 
-      // compute number of neighboor nodes inside radius
-      for (UInt i : arange(ref_node_group.size())) {
-        if (distances_neighboors(i) < attack_radius) {
-          nb_neighboor_nodes_inside_radiuses(i)++;
-        }
-      }
+      // update the counters of number of other node's supports it belongs to
+      for (UInt i : arange(ref_node_group.size()))
+        if (distances_ref_nodes(i) < radius_parameters(ref_node_index))
+          nb_supported_nodes(i)++;
     }
 
-    // maximum number of neighboors inside radius
-    // aka maximum number of supports
-    max_nb_supports = 0;
-    for (auto nb_neighboors : nb_neighboor_nodes_inside_radiuses) {
-      if (nb_neighboors > max_nb_supports) {
-        max_nb_supports = nb_neighboors;
-      }
-    }
+    // take maximum of number of other nodes which are in a a node's support
+    max_nb_supported_nodes = 0;
+    for (auto nb_supports : nb_supported_nodes)
+      if (nb_supports > max_nb_supported_nodes)
+        max_nb_supported_nodes = nb_supports;
 
-    // correct maximum number of support nodes
-    if (max_nb_supports > f) {
-      c = 0.5 * (1 + c);
-      f = floor(1 / (pow(1 - c, 4) * (1 + 4 * c)));
+    // stop if condition on number of mutually supported nodes is satisfied
+    if (max_nb_supported_nodes < 1 / evaluateRadialBasisFunction(c, 1.0))
+      break;
 
-      nb_neighboor_nodes_inside_radiuses.set(0);
-      nb_iter++;
-    }
-  }
-
-  if (nb_iter == MAX_RADIUS_ITERATIONS) {
-    AKANTU_EXCEPTION("Could not find suitable radii, maximum number of iterations (" << nb_iter << ") was exceeded");
+    // increase parameter c if no suitable radius parameters were found
+    c = (1.0 + c) / 2.0;
+    if (c >= C)
+      AKANTU_EXCEPTION("No suitable radius parameters found for given c and C");
+    nb_supported_nodes.set(0);
   }
 }
 
