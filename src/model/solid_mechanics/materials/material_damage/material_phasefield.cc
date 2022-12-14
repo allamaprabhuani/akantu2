@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_phasefield.hh"
+#include "aka_common.hh"
 #include "solid_mechanics_model.hh"
 
 namespace akantu {
@@ -39,12 +40,13 @@ namespace akantu {
 template <UInt spatial_dimension>
 MaterialPhaseField<spatial_dimension>::MaterialPhaseField(
     SolidMechanicsModel & model, const ID & id)
-    : Parent(model, id) {
+    : Parent(model, id), effective_damage("effective_damage", *this) {
 
   AKANTU_DEBUG_IN();
 
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
   this->damage.initialize(0);
+  this->effective_damage.initialize(0);
 
   AKANTU_DEBUG_OUT();
 }
@@ -55,11 +57,13 @@ void MaterialPhaseField<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto dam = this->damage(el_type, ghost_type).begin();
+  computeEffectiveDamage(el_type, ghost_type);
+  auto dam = this->effective_damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  computeStressOnQuad(grad_u, sigma, *dam);
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  sigma *= (1. - *dam) * (1. - *dam);
 
   ++dam;
 
@@ -76,11 +80,12 @@ void MaterialPhaseField<spatial_dimension>::computeTangentModuli(
 
   Parent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  computeEffectiveDamage(el_type, ghost_type);
+  auto dam = this->effective_damage(el_type, ghost_type).begin();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  computeTangentModuliOnQuad(tangent, *dam);
 
+  tangent *= (1. - *dam) * (1. - *dam) + eta;
   ++dam;
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
@@ -90,9 +95,21 @@ void MaterialPhaseField<spatial_dimension>::computeTangentModuli(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, Real & dam) {
-  tangent *= (1 - dam) * (1 - dam) + eta;
+void MaterialPhaseField<spatial_dimension>::computeEffectiveDamage(
+    ElementType el_type, GhostType ghost_type) {
+
+  auto && grad_u_view =
+      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,
+                this->spatial_dimension);
+
+  for (auto && data : zip(grad_u_view, this->damage(el_type, ghost_type),
+                          this->effective_damage(el_type, ghost_type))) {
+    auto & grad_u = std::get<0>(data);
+    auto & dam = std::get<1>(data);
+    auto & eff_dam = std::get<2>(data);
+
+    computeEffectiveDamageOnQuad(grad_u, dam, eff_dam);
+  }
 }
 
 INSTANTIATE_MATERIAL(phasefield, MaterialPhaseField);
