@@ -23,6 +23,54 @@ from functions_contact_probl import *
 from init_model import init_model
 from example_direct import solve_step_direct
 
+### HELPER FUNCTIONS FOR TESTS
+
+def _get_uniform_interface_grid(dim, graph, x_min=-1, x_max=1, n_grid=10):
+    linspace = np.linspace(x_min, x_max, n_grid)
+    meshgrid = np.meshgrid(*[linspace]*(dim-1))
+    grid = np.c_[[meshgrid[i].ravel() for i in range(dim-1)]]
+    mesh = np.c_[grid.T, graph(grid)]
+    return mesh
+
+def _get_random_interface_grid(dim, graph, x_min=-1, x_max=1, n_grid=10, seed=0):
+    np.random.seed(0)
+    grid = np.random.uniform(x_min, x_max, (dim-1, n_grid**(dim-1)))
+    mesh = np.c_[grid.T, graph(grid)]
+    return mesh
+
+def _check_rbf_radius_conditions(positions, rbf_radius_parameters, c_min=0.49, c_max=0.95):
+    # Check condition: [1], Page 51, Section 2.3, Equation 2
+    dist_MM = sp.spatial.distance.cdist(positions, positions)
+    np.fill_diagonal(dist_MM, np.inf)
+    min_ratio = np.min(dist_MM / rbf_radius_parameters, axis=1)
+    np.testing.assert_array_less(c_min*np.ones_like(min_ratio),  min_ratio)
+
+    # Check condition: [1], Page 51, Section 2.3, Equation 4
+    n_supports = np.sum(dist_MM < rbf_radius_parameters, axis=0)
+    n_supports_max = np.ones_like(n_supports) / (1-c_max)**4*(1+4*c_max)
+    np.testing.assert_array_less(n_supports,  n_supports_max)
+
+def _check_node_contained_in_support(positions, positions_ref, rbf_radius_parameters, C_max=0.99):
+    # Check condition: [1], Page 51, Section 2.3, Equation 3
+    dist_MN = sp.spatial.distance.cdist(positions_ref, positions)
+    min_ratio = np.min(dist_MN / rbf_radius_parameters, axis=1)
+    np.testing.assert_array_less(min_ratio, C_max*np.ones_like(min_ratio))
+
+def _get_theoretical_contact_radius(R, d):
+    return (d*R)**0.5
+
+def _get_theoretical_pressure_amplitude(R, d, E, nu):
+    a = _get_theoretical_contact_radius(R, d)
+    E_red = E/(2*(1-nu**2))
+    F = 4/3 * E_red * R**0.5 * d**1.5
+    return 3*F / (2*np.pi*a**2)
+
+def _get_theoretical_normal_displacement(R, d, E, nu):
+    a = _get_theoretical_contact_radius(R, d)
+    p0 = _get_theoretical_pressure_amplitude(R, d, E, nu)
+    return - (1-nu**2)/E * np.pi/2 * p0 * a
+
+### COMPARISON TESTS WITH PYTHON REFERENCE
 
 def reference_setup(d=0.1):
     mesh_file = 'contact.msh'
@@ -61,31 +109,6 @@ def reference_setup(d=0.1):
             displacements, 'lower_top', 'upper_bottom')
 
     return model, mesh, data
-
-def test_findContactNodes():
-    # reference
-    ref_model, mesh, ref_data = reference_setup()
-
-    nodes1i, nodes2i, positions1i, positions2i, radiuses1, radiuses2 = \
-        find_contact_nodes(ref_data['nodes1b'], ref_data['nodes2b'],
-            ref_data['positions1b'], ref_data['positions2b'])
-
-    # akantu
-    contact_model = aka.ContactMechanicsInternodesModel(mesh)
-    detector = contact_model.getContactDetectorInternodes()
-
-    detector.findContactNodes()
-
-    master_nodes = detector.getMasterNodeGroup().getNodes().ravel()
-    slave_nodes = detector.getSlaveNodeGroup().getNodes().ravel()
-
-    master_radiuses = detector.getMasterRadiuses().ravel()
-    slave_radiuses = detector.getSlaveRadiuses().ravel()
-
-    np.testing.assert_equal(master_nodes, nodes1i)
-    np.testing.assert_equal(slave_nodes, nodes2i)
-    np.testing.assert_equal(master_radiuses, radiuses1)
-    np.testing.assert_equal(slave_radiuses, radiuses2)
 
 def test_assembleInterfaceMass():
     # reference
@@ -207,38 +230,34 @@ def test_solveStep():
 
     np.testing.assert_allclose(positions_new, positions_new_ref)
 
+### PROPER TESTS OF C++ IMPLEMENTATION
+
+def test_findContactNodes():
+    # reference
+    ref_model, mesh, ref_data = reference_setup()
+
+    nodes1i, nodes2i, positions1i, positions2i, radiuses1, radiuses2 = \
+        find_contact_nodes(ref_data['nodes1b'], ref_data['nodes2b'],
+            ref_data['positions1b'], ref_data['positions2b'])
+
+    # akantu
+    contact_model = aka.ContactMechanicsInternodesModel(mesh)
+    detector = contact_model.getContactDetectorInternodes()
+
+    detector.findContactNodes()
+    nodal_positions = mesh.getNodes()
+    master_nodes = detector.getMasterNodeGroup().getNodes().ravel()
+    slave_nodes = detector.getSlaveNodeGroup().getNodes().ravel()
+
+    master_radiuses = detector.getMasterRadiuses().ravel()
+    slave_radiuses = detector.getSlaveRadiuses().ravel()
+
+    _check_rbf_radius_conditions(nodal_positions[master_nodes], master_radiuses)
+    _check_rbf_radius_conditions(nodal_positions[slave_nodes], slave_radiuses)
+    _check_node_contained_in_support(nodal_positions[master_nodes], nodal_positions[slave_nodes], master_radiuses)
+    _check_node_contained_in_support(nodal_positions[slave_nodes], nodal_positions[master_nodes], slave_radiuses)
+
 ### TEST PYTHON REFERENCE IMPLEMENTATION
-
-def _get_uniform_interface_grid(dim, graph, x_min=-1, x_max=1, n_grid=10):
-    linspace = np.linspace(x_min, x_max, n_grid)
-    meshgrid = np.meshgrid(*[linspace]*(dim-1))
-    grid = np.c_[[meshgrid[i].ravel() for i in range(dim-1)]]
-    mesh = np.c_[grid.T, graph(grid)]
-    return mesh
-
-def _get_random_interface_grid(dim, graph, x_min=-1, x_max=1, n_grid=10, seed=0):
-    np.random.seed(0)
-    grid = np.random.uniform(x_min, x_max, (dim-1, n_grid**(dim-1)))
-    mesh = np.c_[grid.T, graph(grid)]
-    return mesh
-
-def _check_rbf_radius_conditions(positions, rbf_radius_parameters, c_min=0.49, c_max=0.95):
-    # Check condition: [1], Page 51, Section 2.3, Equation 2
-    dist_MM = sp.spatial.distance.cdist(positions, positions)
-    np.fill_diagonal(dist_MM, np.inf)
-    min_ratio = np.min(dist_MM / rbf_radius_parameters, axis=1)
-    np.testing.assert_array_less(c_min*np.ones_like(min_ratio),  min_ratio)
-
-    # Check condition: [1], Page 51, Section 2.3, Equation 4
-    n_supports = np.sum(dist_MM < rbf_radius_parameters, axis=0)
-    n_supports_max = np.ones_like(n_supports) / (1-c_max)**4*(1+4*c_max)
-    np.testing.assert_array_less(n_supports,  n_supports_max)
-
-def _check_node_contained_in_support(positions, positions_ref, rbf_radius_parameters, C_max=0.99):
-    # Check condition: [1], Page 51, Section 2.3, Equation 3
-    dist_MN = sp.spatial.distance.cdist(positions_ref, positions)
-    min_ratio = np.min(dist_MN / rbf_radius_parameters, axis=1)
-    np.testing.assert_array_less(min_ratio, C_max*np.ones_like(min_ratio))
 
 def test_compute_rbf_radius_parameters_regular():
 
@@ -351,20 +370,6 @@ def test_construct_gap_function_interpolation_random():
 
     np.testing.assert_allclose(g_parabolic(positions1i_interp[:, :-1].T), positions1i_interp[:, -1], atol=2e-2)
     np.testing.assert_allclose(g_zeros(positions2i_interp[:, :-1].T), positions2i_interp[:, -1], atol=2e-2)
-
-def _get_theoretical_contact_radius(R, d):
-    return (d*R)**0.5
-
-def _get_theoretical_pressure_amplitude(R, d, E, nu):
-    a = _get_theoretical_contact_radius(R, d)
-    E_red = E/(2*(1-nu**2))
-    F = 4/3 * E_red * R**0.5 * d**1.5
-    return 3*F / (2*np.pi*a**2)
-
-def _get_theoretical_normal_displacement(R, d, E, nu):
-    a = _get_theoretical_contact_radius(R, d)
-    p0 = _get_theoretical_pressure_amplitude(R, d, E, nu)
-    return - (1-nu**2)/E * np.pi/2 * p0 * a
 
 def test_contact2d_problem():
 

@@ -59,7 +59,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// find contact nodes for iteration
-  void findContactNodes();
+  void findContactNodes(Real C = 0.95);
 
   /// construct interpolation matrices 
   Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
@@ -69,16 +69,15 @@ public:
   Matrix<Real> constructPhiMatrix(const NodeGroup & ref_node_group,
       const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
 
-private:
+  /// compute radius to detect contact nodes
+  void computeRadiuses(Array<Real> & attack_radiuses,
+      const NodeGroup & node_group, Real c = 0.5);
+
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
 
-  /// compute radius to detect contact nodes
-  Array<UInt> computeRadiuses(Array<Real> & attack_radiuses,
-      const NodeGroup & ref_node_group, const NodeGroup & eval_node_group);
-
   /// radial basis function
-  Real computeRadialBasisInterpolation(Real distance, Real radius);
+  Real evaluateRadialBasisFunction(Real distance, Real radius);
 
   /// distances between a reference node and other nodes
   /// the out_array must already be allocated with sufficient size

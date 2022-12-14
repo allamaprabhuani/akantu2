@@ -92,29 +92,44 @@ NodeGroup & ContactDetectorInternodes::getSlaveNodeGroup() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetectorInternodes::findContactNodes() {
+void ContactDetectorInternodes::findContactNodes(Real C) {
   auto & master_node_group = getMasterNodeGroup();
   auto & slave_node_group = getSlaveNodeGroup();
 
   bool still_isolated_nodes = true;
-  int iteration = 0;
   while(still_isolated_nodes) {
-    auto && nb_slave_nodes_inside_radius  = computeRadiuses(master_radiuses,
-            master_node_group, slave_node_group);
-    auto && nb_master_nodes_inside_radius  = computeRadiuses(slave_radiuses,
-        slave_node_group, master_node_group);
+    computeRadiuses(master_radiuses, master_node_group);
+    computeRadiuses(slave_radiuses, slave_node_group);
 
     still_isolated_nodes = false;
 
     for (auto && data : enumerate(master_node_group.getNodes())) {
-      if (nb_master_nodes_inside_radius(std::get<0>(data)) == 0) {
+
+      Array<Real> distances_to_slave_nodes(slave_node_group.size());
+      computeDistancesToRefNode(std::get<1>(data), slave_node_group, distances_to_slave_nodes);
+
+      UInt counter = 0;
+      for (int i = 0; i < slave_node_group.size(); i++)
+        if (distances_to_slave_nodes(i) < C*master_radiuses(std::get<0>(data)))
+          counter += 1;
+
+      if (counter == 0) {
         master_node_group.remove(std::get<1>(data));
         still_isolated_nodes = true;
       }
     }
 
     for (auto && data : enumerate(slave_node_group.getNodes())) {
-      if (nb_slave_nodes_inside_radius(std::get<0>(data)) == 0) {
+
+      Array<Real> distances_to_master_nodes(master_node_group.size());
+      computeDistancesToRefNode(std::get<1>(data), master_node_group, distances_to_master_nodes);
+
+      UInt counter = 0;
+      for (int i = 0; i < master_node_group.size(); i++)
+        if (distances_to_master_nodes(i) < C*slave_radiuses(std::get<0>(data)))
+          counter += 1;
+
+      if (counter == 0) {
         slave_node_group.remove(std::get<1>(data));
         still_isolated_nodes = true;
       }
@@ -186,7 +201,7 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 
     for (UInt j : arange(eval_node_group.size())) {
       if (distances(j) <= eval_radiuses(j)) {
-        phi(i, j) = computeRadialBasisInterpolation(distances(j),
+        phi(i, j) = evaluateRadialBasisFunction(distances(j),
             eval_radiuses(j));
       }
     }
@@ -196,22 +211,18 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt>
+void
 ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
-    const NodeGroup & ref_node_group, const NodeGroup & eval_node_group) {
-  Real c = 0.5;
-  Real C = 0.95;
-  Real d = 0.05;
+    const NodeGroup & ref_node_group, Real c) {
+
   // maximum number of support nodes
-  UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
+  UInt f = std::floor(1 / evaluateRadialBasisFunction(c, 1.0));
  
   Array<Real> distances_neighboors(ref_node_group.size());
-  Array<Real> distances_opposites(eval_node_group.size());
 
   attack_radiuses.resize(ref_node_group.size());
 
   Array<UInt> nb_neighboor_nodes_inside_radiuses(ref_node_group.size(), 1, 0);
-  Array<UInt> nb_opposite_nodes_inside_radiuses(eval_node_group.size(), 1, 0);
 
   UInt nb_iter = 0;
   UInt max_nb_supports = std::numeric_limits<int>::max();
@@ -223,9 +234,6 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
 
       // distances to all nodes on same surface (aka neighboors)
       computeDistancesToRefNode(ref_node, ref_node_group, distances_neighboors);
-
-      // get distances to all nodes on other surface (aka opposites)
-      computeDistancesToRefNode(ref_node, eval_node_group, distances_opposites);
 
       // minimal distance to neighboors i.e radius of "attack"
       // TODO: could be done in computeDistancesToRefNode method
@@ -243,28 +251,12 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
         }
       }
 
-      Real correction_radius =
-          std::sqrt(d * d + 0.25 * std::pow(attack_radius, 2));
-      correction_radius = std::max<Real>(attack_radius, correction_radius);
-
-      if (correction_radius > attack_radius / c) {
-        attack_radius = correction_radius / c;
-      } else {
-        attack_radius = correction_radius;
-      }
-      attack_radiuses(j) = attack_radius;
+      attack_radiuses(j) = attack_radius / c;
 
       // compute number of neighboor nodes inside radius
       for (UInt i : arange(ref_node_group.size())) {
         if (distances_neighboors(i) < attack_radius) {
           nb_neighboor_nodes_inside_radiuses(i)++;
-        }
-      }
-
-      // compute number of opposite nodes inside C*radius
-      for (UInt i : arange(eval_node_group.size())) {
-        if (distances_opposites(i) < C * attack_radius) {
-          nb_opposite_nodes_inside_radiuses(i)++;
         }
       }
     }
@@ -284,8 +276,6 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
       f = floor(1 / (pow(1 - c, 4) * (1 + 4 * c)));
 
       nb_neighboor_nodes_inside_radiuses.set(0);
-      nb_opposite_nodes_inside_radiuses.set(0);
-
       nb_iter++;
     }
   }
@@ -293,8 +283,6 @@ ContactDetectorInternodes::computeRadiuses(Array<Real> & attack_radiuses,
   if (nb_iter == MAX_RADIUS_ITERATIONS) {
     AKANTU_EXCEPTION("Could not find suitable radii, maximum number of iterations (" << nb_iter << ") was exceeded");
   }
-
-  return nb_opposite_nodes_inside_radiuses;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -315,7 +303,7 @@ void ContactDetectorInternodes::computeDistancesToRefNode(
 }
 
 /* -------------------------------------------------------------------------- */
-Real ContactDetectorInternodes::computeRadialBasisInterpolation(
+Real ContactDetectorInternodes::evaluateRadialBasisFunction(
     const Real distance, const Real radius) {
   /// rescaled radial basis function: Wendland
   Real ratio = distance / radius;
