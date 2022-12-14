@@ -4,7 +4,7 @@
  * @author Moritz Waldleben <moritz.waldleben@epfl.ch>
  *
  * @date creation: Thu Jul 09 2022
- * @date last modification: Thu Jul 17 2022
+ * @date last modification: Wed Dec 14 2022
  *
  * @brief Algorithm to detetect contact nodes
  *
@@ -61,17 +61,21 @@ public:
   /// find contact nodes for iteration
   void findContactNodes(Real C = 0.95);
 
-  /// construct interpolation matrices 
-  Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
-      const NodeGroup & eval_node_group, Array<Real> eval_radiuses);
+  /// construct interpolation matrices
+  Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group,
+                                            const NodeGroup & eval_node_group,
+                                            Array<Real> eval_radiuses);
 
   /// construct Phi matrix used for interpolation
   Matrix<Real> constructPhiMatrix(const NodeGroup & ref_node_group,
-      const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
+                                  const NodeGroup & eval_node_group,
+                                  Array<Real> & eval_radiuses);
 
+private:
   /// compute radius to detect contact nodes
   void computeRadiuses(Array<Real> & radius_parameters,
-      const NodeGroup & node_group, Real c = 0.5, Real C = 0.95);
+                       const NodeGroup & node_group, Real c = 0.5,
+                       Real C = 0.95);
 
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
@@ -82,7 +86,8 @@ public:
   /// distances between a reference node and other nodes
   /// the out_array must already be allocated with sufficient size
   void computeDistancesToRefNode(UInt & ref_node,
-       const NodeGroup & eval_node_group, Array<Real> & out_array);
+                                 const NodeGroup & eval_node_group,
+                                 Array<Real> & out_array);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -133,7 +138,6 @@ private:
 
   /// blocked boundary dofs array
   std::unique_ptr<Array<Real>> blocked_dofs;
-
 };
 
 } // namespace akantu

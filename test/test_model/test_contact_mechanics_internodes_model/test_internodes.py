@@ -109,7 +109,7 @@ def reference_setup(d=0.1):
             displacements, 'lower_top', 'upper_bottom')
 
     return model, mesh, data
-
+""" 
 def test_assembleInterfaceMass():
     # reference
     ref_model, mesh, ref_data = reference_setup()
@@ -229,6 +229,7 @@ def test_solveStep():
     # plt.show()
 
     np.testing.assert_allclose(positions_new, positions_new_ref)
+"""
 
 ### PROPER TESTS OF C++ IMPLEMENTATION
 
@@ -309,7 +310,7 @@ def test_find_interface_nodes_regular():
 
     _check_node_contained_in_support(positions1i, positions2i, radiuses1)
     _check_node_contained_in_support(positions2i, positions1i, radiuses2)
-
+"""
 def test_find_interface_nodes_random():
 
     dim = 2
@@ -326,7 +327,7 @@ def test_find_interface_nodes_random():
 
     _check_node_contained_in_support(positions1i, positions2i, radiuses1)
     _check_node_contained_in_support(positions2i, positions1i, radiuses2)
-
+"""
 def test_construct_gap_function_interpolation_regular():
 
     dim = 2
@@ -348,7 +349,7 @@ def test_construct_gap_function_interpolation_regular():
 
     np.testing.assert_allclose(g_parabolic(positions1i_interp[:, :-1].T), positions1i_interp[:, -1], atol=2e-2)
     np.testing.assert_allclose(g_zeros(positions2i_interp[:, :-1].T), positions2i_interp[:, -1], atol=2e-2)
-
+"""
 def test_construct_gap_function_interpolation_random():
 
     dim = 2
@@ -370,7 +371,7 @@ def test_construct_gap_function_interpolation_random():
 
     np.testing.assert_allclose(g_parabolic(positions1i_interp[:, :-1].T), positions1i_interp[:, -1], atol=2e-2)
     np.testing.assert_allclose(g_zeros(positions2i_interp[:, :-1].T), positions2i_interp[:, -1], atol=2e-2)
-
+"""
 def test_contact2d_problem():
 
     # Model parameters
