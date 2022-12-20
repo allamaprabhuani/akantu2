@@ -64,14 +64,31 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
       .def("setLimit", &CohesiveElementInserter::setLimit)
       .def(
           "getCheckFacets",
-          [](CohesiveElementInserter & self) { return self.getCheckFacets(); },
+          [](CohesiveElementInserter & self) -> decltype(auto) {
+            return self.getCheckFacets();
+          },
           py::return_value_policy::reference)
       .def(
           "getCheckFacets",
           [](CohesiveElementInserter & self, ElementType type,
-             GhostType ghost_type) {
+             GhostType ghost_type) -> decltype(auto) {
             return self.getCheckFacets(type, ghost_type);
           },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
+          "getInsertionFacets",
+          [](CohesiveElementInserter & self) -> decltype(auto) {
+            return self.getInsertionFacetsByElement();
+          },
+          py::return_value_policy::reference)
+      .def(
+          "getInsertionFacets",
+          [](CohesiveElementInserter & self, ElementType type,
+             GhostType ghost_type) -> decltype(auto) {
+            return self.getInsertionFacets(type, ghost_type);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
           py::return_value_policy::reference)
 
       .def("addPhysicalSurface", &CohesiveElementInserter::addPhysicalSurface)
@@ -102,6 +119,12 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
            &SolidMechanicsModelCohesive::checkCohesiveStress)
       .def("getElementInserter",
            &SolidMechanicsModelCohesive::getElementInserter,
+           py::return_value_policy::reference)
+      .def("getStressOnFacets", &SolidMechanicsModelCohesive::getStressOnFacets,
+           py::arg("type"), py::arg("ghost_type") = _not_ghost,
+           py::return_value_policy::reference)
+      .def("getTangents", &SolidMechanicsModelCohesive::getTangents,
+           py::arg("type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
       .def("updateAutomaticInsertion",
            &SolidMechanicsModelCohesive::updateAutomaticInsertion);

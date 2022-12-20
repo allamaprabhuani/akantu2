@@ -146,9 +146,14 @@ void register_fe_engine(py::module & mod) {
           py::arg("field_funct"), py::arg("matrix_id"), py::arg("dof_id"),
           py::arg("dof_manager"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost)
-      .def("getElementInradius", [](FEEngine & self, const Element & element) {
-        return self.getElementInradius(element);
-      });
+      .def("getElementInradius",
+           [](FEEngine & self, const Element & element) {
+             return self.getElementInradius(element);
+           })
+      .def("getNormalsOnIntegrationPoints",
+           &FEEngine::getNormalsOnIntegrationPoints, py::arg("type"),
+           py::arg("ghost_type") = _not_ghost,
+           py::return_value_policy::reference);
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
