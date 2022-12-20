@@ -1,8 +1,8 @@
 .docker_build:
-  image: "docker:19.03.11"
+  image: "docker:20.10.21"
   stage: .pre
   services:
-    - docker:19.03.11-dind
+    - docker:20.10.21-dind
   variables:
     # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
     DOCKER_HOST: tcp://docker:2376
