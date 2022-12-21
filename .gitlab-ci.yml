@@ -28,7 +28,7 @@ docker build:ubuntu-lts:
 
 docker build:manylinux:
   variables:
-    IMAGE_NAME: manylinux:2010_x86_64
+    IMAGE_NAME: manylinux:2014_x86_64
   extends: .docker_build
 
 version_determination:

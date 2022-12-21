@@ -3,7 +3,7 @@ set -eo pipefail
 
 set +x
 
-export PLAT=manylinux2010_x86_64
+export PLAT=manylinux2014_x86_64
 
 source /etc/profile
 

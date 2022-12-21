@@ -43,7 +43,7 @@
   image: registry.gitlab.com/akantu/akantu/ubuntu:lts
 
 .image_manylinux:
-  image: registry.gitlab.com/akantu/akantu/manylinux:2010_x86_64
+  image: registry.gitlab.com/akantu/akantu/manylinux:2014_x86_64
 
 # ------------------------------------------------------------------------------
 .compiler_gcc:
