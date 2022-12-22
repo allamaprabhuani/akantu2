@@ -43,7 +43,7 @@
   image: registry.gitlab.com/akantu/akantu/ubuntu:lts
 
 .image_manylinux:
-  image: registry.gitlab.com/akantu/akantu/manylinux:2010_x86_64
+  image: registry.gitlab.com/akantu/akantu/manylinux:2014_x86_64
 
 # ------------------------------------------------------------------------------
 .compiler_gcc:
@@ -100,9 +100,9 @@
     - .image_ubuntu_lts
     - .cache_build
 
-.manylinux_2010_x64_gcc:
+.manylinux_2014_x64_gcc:
   variables:
-    output: manylinux_2010_x64_gcc
+    output: manylinux_2014_x64_gcc
   extends:
     - .compiler_gcc
     - .image_manylinux
