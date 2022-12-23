@@ -64,12 +64,6 @@ public:
   Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
         const ID & id = "model");
 
-  /// Model constructor the the dof manager is created externally, for example
-  /// in a ModelCoupler
-  Model(Mesh & mesh, const ModelType & type,
-        std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
-        const ID & id = "model");
-
   ~Model() override;
 
   using FEEngineMap = std::map<std::string, std::unique_ptr<FEEngine>>;

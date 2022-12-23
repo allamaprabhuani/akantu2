@@ -41,8 +41,9 @@ template <>
 CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
     CouplerSolidContactTemplate(Mesh & mesh, UInt dim, const ID & id,
                                 std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_coupler_solid_cohesive_contact, dof_manager, dim,
-            id) {
+    : Model(mesh, ModelType::_coupler_solid_cohesive_contact, dim, id) {
+  this->initDOFManager(dof_manager);
+
   this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact",
                                             id, true);
   this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh,
