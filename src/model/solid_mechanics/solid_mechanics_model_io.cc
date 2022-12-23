@@ -280,44 +280,44 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Int step) {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump(dumper_name, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Real time,
                                Int step) {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump(dumper_name, time, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump() {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump();
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(Int step) {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(Real time, Int step) {
-  this->onDump();
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  this->onDump();
   mesh.dump(time, step);
 }
 

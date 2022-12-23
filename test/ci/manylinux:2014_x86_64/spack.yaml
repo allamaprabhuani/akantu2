@@ -2,11 +2,11 @@ spack:
   compilers:
     - compiler:
         paths:
-          cc: /opt/rh/devtoolset-8/root/usr/bin/gcc
-          cxx: /opt/rh/devtoolset-8/root/usr/bin/g++
-          f77: /opt/rh/devtoolset-8/root/usr/bin/gfortran
-          fc: /opt/rh/devtoolset-8/root/usr/bin/gfortran
-        operating_system: centos6
+          cc: /opt/rh/devtoolset-10/root/usr/bin/gcc
+          cxx: /opt/rh/devtoolset-10/root/usr/bin/g++
+          f77: /opt/rh/devtoolset-10/root/usr/bin/gfortran
+          fc: /opt/rh/devtoolset-10/root/usr/bin/gfortran
+        operating_system: centos7
         target: x86_64
         modules: []
         environment:
@@ -14,7 +14,7 @@ spack:
             LD_LIBRARY_PATH: /usr/local/lib
         extra_rpaths: []
         flags: {}
-        spec: gcc@8.3.1
+        spec: gcc@10.2.1
 
   include:
     - /softs/spack/etc/spack/packages.yaml
@@ -23,12 +23,12 @@ spack:
     install_tree: /softs/software
 
   specs:
+    - cmake@3.18.2 ~ncurses
+    - zlib
     - boost ~atomic ~chrono ~clanglibcpp ~container ~context ~coroutine ~date_time ~debug ~exception ~fiber ~filesystem ~graph ~icu~iostreams ~locale ~log ~math ~mpi ~multithreaded ~numpy ~pic ~program_options ~python ~random ~regex ~serialization ~shared ~signals ~singlethreaded ~system ~taggedlayout ~test ~thread ~timer ~wave
-    - cmake@3.18.2 ~ncurses ~openssl
+    - openblas +pic
     - eigen
     - mumps ~mpi ~complex ~float
-    - openblas +pic
-    - zlib
-  concretization: together
-
   view: /softs/view
+  concretizer:
+    unify: true

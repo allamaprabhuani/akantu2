@@ -2,10 +2,10 @@
 # yaml-language-server: $format.enable=false
 
 .docker_build:
-  image: "docker:20.10.18"
+  image: "docker:20.10.21"
   stage: .pre
   services:
-    - docker:20.10.18-dind
+    - docker:20.10.21-dind
   variables:
     # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
     DOCKER_HOST: tcp://docker:2376
@@ -39,7 +39,7 @@
   image: registry.gitlab.com/akantu/akantu/ubuntu:lts
 
 .image_manylinux:
-  image: registry.gitlab.com/akantu/akantu/manylinux:2010_x86_64
+  image: registry.gitlab.com/akantu/akantu/manylinux:2014_x86_64
 
 # ------------------------------------------------------------------------------
 .compiler_gcc:
@@ -103,9 +103,9 @@
     - .image_ubuntu_lts
     - .cache_build
 
-.manylinux_2010_x64_gcc:
+.manylinux_2014_x64_gcc:
   variables:
-    output: manylinux_2010_x64_gcc
+    output: manylinux_2014_x64_gcc
   extends:
     - .compiler_gcc
     - .image_manylinux

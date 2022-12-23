@@ -61,18 +61,6 @@ ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
       mesh(mesh) {}
 
 /* -------------------------------------------------------------------------- */
-ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-                         std::shared_ptr<DOFManager> dof_manager)
-    : ModelSolver(mesh, type, id) {
-  if (not dof_manager) {
-    this->initDOFManager();
-  } else {
-    this->dof_manager = dof_manager;
-    this->setDOFManager(*this->dof_manager);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 ModelSolver::~ModelSolver() = default;
 
 /* -------------------------------------------------------------------------- */
@@ -95,7 +83,14 @@ std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
 }
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<DOFManager> ModelSolver::initDOFManager() {
+std::shared_ptr<DOFManager>
+ModelSolver::initDOFManager(std::shared_ptr<DOFManager> dof_manager) {
+  if (dof_manager) {
+    this->dof_manager = dof_manager;
+    this->setDOFManager(*this->dof_manager);
+    return this->dof_manager;
+  }
+
   // default without external solver activated at compilation same as mumps that
   // is the historical solver but with only the lumped solver
   ID solver_type = "default";

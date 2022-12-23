@@ -11,7 +11,7 @@ stages:
   - deploy
 
 include:
-  local: '.gitlab-ci.d/*.yaml'
+  local: ".gitlab-ci.d/*.yaml"
 
 #-------------------------------------------------------------------------------
 # Rebuilding the docker images if needed
@@ -28,7 +28,7 @@ docker build:ubuntu-lts:
 
 docker build:manylinux:
   variables:
-    IMAGE_NAME: manylinux:2010_x86_64
+    IMAGE_NAME: manylinux:2014_x86_64
   extends: .docker_build
 
 version_determination:
@@ -55,7 +55,7 @@ configure:debian_bullseye_gcc:
     - .configure
   needs:
     - version_determination
-    
+
 build_libs:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
@@ -193,7 +193,7 @@ test:ubuntu_lts_gcc_valgrind:
 configure:python_package:
   stage: configure
   extends:
-    - .manylinux_2010_x64_gcc
+    - .manylinux_2014_x64_gcc
     - .build_release
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
@@ -218,19 +218,19 @@ configure:python_package:
 
     # Configure in sequential and without tests or examples
     - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
-            -DAKANTU_IMPLICIT:BOOL=TRUE
-            -DAKANTU_PARALLEL:BOOL=FALSE
-            -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
-            -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
-            -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
-            -DAKANTU_PHASE_FIELD:BOOL=TRUE
-            -DAKANTU_PYTHON_INTERFACE:BOOL=FALSE
-            -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
-            -DAKANTU_EXAMPLES:BOOL=FALSE
-            -DAKANTU_TESTS:BOOL=FALSE
-            -DMUMPS_DETECT_DEBUG:BOOL=TRUE
-            -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
-            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+      -DAKANTU_IMPLICIT:BOOL=TRUE
+      -DAKANTU_PARALLEL:BOOL=FALSE
+      -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
+      -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
+      -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
+      -DAKANTU_PHASE_FIELD:BOOL=TRUE
+      -DAKANTU_PYTHON_INTERFACE:BOOL=FALSE
+      -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
+      -DAKANTU_EXAMPLES:BOOL=FALSE
+      -DAKANTU_TESTS:BOOL=FALSE
+      -DMUMPS_DETECT_DEBUG:BOOL=TRUE
+      -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
+      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
   needs:
     - version_determination
   artifacts:
@@ -243,7 +243,7 @@ build_akantu:python_package:
   extends:
     - .build_libs
     - .build_release
-    - .manylinux_2010_x64_gcc
+    - .manylinux_2014_x64_gcc
   script:
     - cmake --build build --target akantu -j1
     - cmake --install build
@@ -260,7 +260,7 @@ build_pip:python_package:
   stage: build_tests
   extends:
     - .build_release
-    - .manylinux_2010_x64_gcc
+    - .manylinux_2014_x64_gcc
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       paths:
@@ -305,9 +305,9 @@ package:python_gitlab:
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token
-          python3 -m twine upload
-            --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
-            wheelhouse/*
+      python3 -m twine upload
+      --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
+      wheelhouse/*
   needs:
     - job: build_pip:python_package
     - job: test:python_package
@@ -320,7 +320,7 @@ package:python_pypi:
   script:
     - pip install twine
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__
-          python3 -m twine upload --verbose wheelhouse/*
+      python3 -m twine upload --verbose wheelhouse/*
   needs:
     - job: build_pip:python_package
     - job: test:python_package
@@ -381,11 +381,11 @@ cq:compilation_warnings:
     - pip install warning-parser termcolor Click
     - ls build-*-err.log
     - test/ci/scripts/cq
-            -x third-party
-            -x extra-packages
-            -x build
-            warnings
-            build-*-err.log > gl-warnings-report.json
+      -x third-party
+      -x extra-packages
+      -x build
+      warnings
+      build-*-err.log > gl-warnings-report.json
   needs:
     - job: build_libs:debian_bullseye_clang
     - job: build_libs:debian_bullseye_gcc

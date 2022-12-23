@@ -73,10 +73,11 @@ namespace akantu {
 SolidMechanicsModel::SolidMechanicsModel(
     Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, std::move(dof_manager), dim, id),
-      material_index("material index", id),
+    : Model(mesh, model_type, dim, id), material_index("material index", id),
       material_local_numbering("material local numbering", id) {
   AKANTU_DEBUG_IN();
+
+  this->initDOFManager(dof_manager);
 
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);

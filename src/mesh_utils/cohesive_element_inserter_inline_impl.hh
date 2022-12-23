@@ -40,6 +40,18 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
+inline void
+CohesiveElementInserter::addPhysicalSurface(const ID & surface_name) {
+  physical_surfaces.insert(surface_name);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void
+CohesiveElementInserter::addPhysicalVolume(const ID & surface_name) {
+  physical_zones.insert(surface_name);
+}
+
+/* -------------------------------------------------------------------------- */
 inline Int
 CohesiveElementInserter::getNbData(const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {

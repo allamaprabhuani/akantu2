@@ -48,9 +48,11 @@ namespace akantu {
 ContactMechanicsModel::ContactMechanicsModel(
     Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id) {
+    : Model(mesh, model_type, dim, id) {
 
   AKANTU_DEBUG_IN();
+
+  this->initDOFManager(dof_manager);
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
                                                Model::spatial_dimension);
