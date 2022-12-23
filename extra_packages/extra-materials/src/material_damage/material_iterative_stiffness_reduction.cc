@@ -112,7 +112,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
     MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
         sigma, *dam_it);
     /// compute eigenvalues
-    sigma.eigh(eigenvalues);
+    sigma.eig(eigenvalues);
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =

@@ -243,7 +243,7 @@ namespace dumpers {
             spatial_dimension);
 
         auto && principal_strain = ret_all_strain(d);
-        strain.eigh(principal_strain);
+        strain.eig(principal_strain);
       }
 
       return ret_all_strain;

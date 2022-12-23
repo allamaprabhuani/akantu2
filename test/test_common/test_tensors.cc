@@ -538,7 +538,7 @@ TEST_F(TensorFixture, MatrixEigs) {
   Vector<double, 4> lambda;
   lambda.zero();
   v.zero();
-  A.eigh(lambda, v);
+  A.eig(lambda, v);
 
   Vector<double> eigs_ref{2, 1., -1., -2};
 

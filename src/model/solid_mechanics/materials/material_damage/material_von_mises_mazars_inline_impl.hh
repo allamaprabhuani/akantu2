@@ -45,7 +45,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeStressOnQuad(
   epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon(grad_u);
 
   Vector<Real, 3> Fdiag(3);
-  epsilon.eigh(Fdiag);
+  epsilon.eig(Fdiag);
 
   Ehat = 0.;
   for (UInt i = 0; i < 3; ++i) {
@@ -75,7 +75,7 @@ inline void MaterialVonMisesMazars<dim, Parent>::computeDamageAndStressOnQuad(
 
     auto && epsilon = Matrix<Real, 3, 3>::Zero();
     epsilon.block(0, 0, dim, dim) = Material::gradUToEpsilon<dim>(grad_u);
-    epsilon.eigh(Fdiag);
+    epsilon.eig(Fdiag);
 
     computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
   }

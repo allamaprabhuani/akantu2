@@ -83,7 +83,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
     computeDamageAndStressOnQuad(sigma, *dam);
 
     /// compute eigenvalues
-    sigma.eigh(eigenvalues);
+    sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
         *(std::max_element(eigenvalues.data(),

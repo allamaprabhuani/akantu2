@@ -80,7 +80,7 @@ inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
   epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
   Vector<Real, 3> Fdiag;
-  epsilon.eigh(Fdiag);
+  epsilon.eig(Fdiag);
 
   auto & Ehat = args["Ehat"_n];
 
@@ -112,7 +112,7 @@ MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
 
     epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
-    epsilon.eigh(Fdiag);
+    epsilon.eig(Fdiag);
     computeDamageOnQuad(args, Fdiag);
   }
 

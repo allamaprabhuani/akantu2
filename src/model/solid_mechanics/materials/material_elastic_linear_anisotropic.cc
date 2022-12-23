@@ -95,7 +95,7 @@ void MaterialElasticLinearAnisotropic<dim>::updateInternalParameters() {
     }
   }
   this->rotateCprime();
-  this->C.eigh(this->eigC);
+  this->C.eig(this->eigC);
 
   this->was_stiffness_assembled = false;
 }
