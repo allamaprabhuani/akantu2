@@ -1,5 +1,4 @@
 FROM debian:bullseye
-MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 # library dependencies
 RUN apt -qq update && apt -qq -y install \

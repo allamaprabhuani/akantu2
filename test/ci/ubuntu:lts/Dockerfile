@@ -1,5 +1,4 @@
-FROM ubuntu:18.04
-MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
+FROM ubuntu:20.04
 
 ENV TZ=Europe/Zurich
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

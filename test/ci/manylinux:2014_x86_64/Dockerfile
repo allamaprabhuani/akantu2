@@ -1,5 +1,4 @@
 FROM quay.io/pypa/manylinux2014_x86_64 as builder
-MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 ENV LANG en_US.UTF-8
 
