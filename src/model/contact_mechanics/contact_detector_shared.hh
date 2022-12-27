@@ -13,10 +13,11 @@ class AbstractContactDetector {
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   AbstractContactDetector(Mesh & mesh, Array<Real> initial_positions);
 
-  virtual ~AbstractContactDetector() = 0;
+public:
+  virtual ~AbstractContactDetector() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
