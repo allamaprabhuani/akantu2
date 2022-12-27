@@ -48,6 +48,8 @@ ContactMechanicsInternodesModel::ContactMechanicsInternodesModel(
   this->solid = std::make_unique<SolidMechanicsModel>(
       this->mesh, spatial_dimension, id + ":solid_mechanics_model",
       this->dof_manager);
+
+  setYoungsModulus(this->solid->getMaterial(0).get("E"));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -112,12 +114,8 @@ void ContactMechanicsInternodesModel::assembleResidual() {
   Array<Real> differences(initial_master_node_group.size(),
       spatial_dimension, 0.);
 
-  // scale with E for lower condition number
-  // TODO: correct lambdas with lambda / E
-  Real E = this->solid->getMaterial(0).get("E");
-
   // R_master_slave_ext * positions_slave - positions_master
-  Vector<Real> tmp = (R_master_slave_ext * positions_slave - positions_master) * E;
+  Vector<Real> tmp = (R_master_slave_ext * positions_slave - positions_master) * this->E;
 
   UInt next_active_node = 0;
   for (auto && node_data : enumerate(initial_master_node_group.getNodes())) {
@@ -195,8 +193,6 @@ void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
   // Only used with a "diagonal 1" for "inactive" nodes, to make the matrix non-singular
   TermsToAssemble termsLambdaDiag("lambdas", "lambdas");
 
-  Real E = this->solid->getMaterial(0).get("E");
-
   // fill in active nodes
   for (auto && ref_node_data :
        enumerate(initial_master_node_group.getNodes())) {
@@ -217,17 +213,17 @@ void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
           UInt global_idx_i = i*spatial_dimension + dim;
           UInt global_idx_j = master_node*spatial_dimension + dim;
 
-          termsB(global_idx_j, global_idx_i) = - E*M_master(idx_j, idx_i);
+          termsB(global_idx_j, global_idx_i) = - this->E*M_master(idx_j, idx_i);
 
           if (idx_i == idx_j) {
-            termsB_tilde(global_idx_i, global_idx_j) = E;
+            termsB_tilde(global_idx_i, global_idx_j) = this->E;
           }
         }
       }
     } else {
       for (int s = 0; s < spatial_dimension; s++) {
         UInt global_idx = i * spatial_dimension + s;
-        termsLambdaDiag(global_idx, global_idx) = E;
+        termsLambdaDiag(global_idx, global_idx) = this->E * this->E;
       }
     }
   }
@@ -251,16 +247,16 @@ void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
           UInt global_idx_i = i*spatial_dimension + dim;
           UInt global_idx_j = slave_node*spatial_dimension + dim;
 
-          termsB(global_idx_j, global_idx_i) = E * B_slave(idx_j, idx_i);
+          termsB(global_idx_j, global_idx_i) = this->E * B_slave(idx_j, idx_i);
 
           termsB_tilde(global_idx_i, global_idx_j) =
-              - E * R_master_slave(idx_i, idx_j);
+              - this->E * R_master_slave(idx_i, idx_j);
         }
       }
     } else {
       for (int s = 0; s < spatial_dimension; s++) {
         UInt global_idx = i * spatial_dimension + s;
-        termsLambdaDiag(global_idx, global_idx) = E;
+        termsLambdaDiag(global_idx, global_idx) = this->E * this->E;
       }
     }
   }
@@ -309,44 +305,6 @@ Matrix<Real> ContactMechanicsInternodesModel::assembleInterfaceMass(
   return M_contact;
 }
 
-std::set<UInt> ContactMechanicsInternodesModel::findPenetratingNodes(
-    const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses) {
-  // TODO don't hardcode this, should be mesh_size * relative_tolerance
-  const Real penetration_tolerance = -0.01;
-
-  const auto R_ref_eval = detector->constructInterpolationMatrix(ref_group, eval_group, eval_radiuses);
-
-  std::set<UInt> ref_penetration_nodes;
-  for (auto && entry : enumerate(ref_group)) {
-    auto i = std::get<0>(entry);
-    auto ref_node = std::get<1>(entry);
-
-    // 1) Compute gap: ref gaps = R_ref_eval * eval_positions - ref_positions
-    // (pointing towards the inside of the ref body if penetrating)
-    Vector<Real> gap(spatial_dimension);
-    for (auto && inner_entry : enumerate(eval_group)) {
-      auto j = std::get<0>(inner_entry);
-      auto eval_node = std::get<1>(inner_entry);
-
-      for (UInt s : arange(spatial_dimension)) {
-        gap(s) += R_ref_eval(i * spatial_dimension + s, j * spatial_dimension + s)
-                  * detector->getPositions()(eval_node, s);
-      }
-    }
-    gap -= detector->getNodePosition(ref_node);
-
-    // 2) Compute normal at ref_node by averaging element normals
-    auto normal = getInterfaceNormalAtNode(ref_group, ref_node);
-
-    // 3) Penetration if dot(gap, normal) is negative (with some tolerance)
-    if (normal.dot(gap) < penetration_tolerance) {
-      ref_penetration_nodes.insert(ref_node);
-    }
-  }
-
-  return ref_penetration_nodes;
-}
-
 /* -------------------------------------------------------------------------- */
 bool ContactMechanicsInternodesModel::updateAfterStep() {
   // Update positions
@@ -360,7 +318,7 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
   std::set<UInt> to_remove_master, to_remove_slave;
   {
     // Master
-    // TODO: scaling factor of E needs to be applied here too
+    // Note: the lambdas are actually lambdas/E, but that's fine for our sign check
     const auto & lambda_solution = dof_manager->getSolution("lambdas");
     Vector<Real> lambdas_master(master_node_group.size() * spatial_dimension);
     // We need to filter out unused lambdas
@@ -380,13 +338,13 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
       auto i = std::get<0>(entry);
       auto node = std::get<1>(entry);
 
-      auto normal = getInterfaceNormalAtNode(master_node_group, node);
+      auto normal = detector->getInterfaceNormalAtNode(master_node_group, node);
       Real dot_product = 0;
       for (UInt s : arange(spatial_dimension)) {
         dot_product += lambdas_master(i * spatial_dimension + s) * normal(s);
       }
 
-      if (dot_product > 0) {
+      if (dot_product > 1e-9) {
         to_remove_master.insert(node);
       }
     }
@@ -403,13 +361,13 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
       auto i = std::get<0>(entry);
       auto node = std::get<1>(entry);
 
-      auto normal = getInterfaceNormalAtNode(slave_node_group, node);
+      auto normal = detector->getInterfaceNormalAtNode(slave_node_group, node);
       Real dot_product = 0;
       for (UInt s : arange(spatial_dimension)) {
         dot_product += lambdas_slave(i * spatial_dimension + s) * normal(s);
       }
 
-      if (dot_product > 0) {
+      if (dot_product > 1e-9) {
         to_remove_slave.insert(node);
       }
     }
@@ -431,10 +389,10 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
 
     // Compute penetrating nodes (i.e. nodes to add to the interface)
     to_add_master =
-        findPenetratingNodes(penetration_master_group, penetration_slave_group,
+        detector->findPenetratingNodes(penetration_master_group, penetration_slave_group,
                              detector->getSlaveRadiuses());
     to_add_slave =
-        findPenetratingNodes(penetration_slave_group, penetration_master_group,
+        detector->findPenetratingNodes(penetration_slave_group, penetration_master_group,
                              detector->getMasterRadiuses());
   }
 
@@ -575,9 +533,9 @@ void ContactMechanicsInternodesModel::initSolver(
   this->lambdas = std::make_unique<Array<Real>>(nb_initial_master_nodes,
       spatial_dimension, id + ":lambdas");
 
-  // allocate constraints 
-  this->constraints = std::make_unique<Array<Real>>(nb_initial_master_nodes,
-      spatial_dimension, id + ":constraints");
+  // Note that we always allocate the lambdas for all the initial master nodes.
+  // If we decide to remove some initial master nodes from the interface, we
+  // will fill the system with an "identity matrix" for the removed nodes.
 
   // allocate blocked dofs for lambdas
   this->blocked_dofs = std::make_unique<Array<bool>>(

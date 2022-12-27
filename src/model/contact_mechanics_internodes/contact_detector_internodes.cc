@@ -103,6 +103,8 @@ NodeGroup & ContactDetectorInternodes::getSlaveNodeGroup() {
 
 /* -------------------------------------------------------------------------- */
 void ContactDetectorInternodes::findContactNodes(NodeGroup & master_node_group, NodeGroup & slave_node_group) {
+  // We need to find master->slave and slave->master interpolation nodes and
+  // radii that satisfy the conditions from [1], page 51, equations (2) and (3).
   Real grid_spacing = this->max_element_size * this->relative_grid_spacing_factor;
 
   bool still_isolated_nodes = true;
@@ -110,6 +112,7 @@ void ContactDetectorInternodes::findContactNodes(NodeGroup & master_node_group, 
     auto master_grid = constructGrid(master_node_group, grid_spacing);
     auto slave_grid = constructGrid(slave_node_group, grid_spacing);
 
+    // computeRadiuses will produce a result satisfying equation (2).
     auto && nb_slave_nodes_inside_radius =
         computeRadiuses(master_radiuses, master_node_group, master_grid,
                         slave_node_group, slave_grid);
@@ -117,6 +120,7 @@ void ContactDetectorInternodes::findContactNodes(NodeGroup & master_node_group, 
         computeRadiuses(slave_radiuses, slave_node_group, slave_grid,
                         master_node_group, master_grid);
 
+    // Check equation (3): if a node is still isolated, remove it and iterate.
     still_isolated_nodes = false;
 
     if (master_node_group.applyNodeFilter([&](auto && node) {
@@ -136,9 +140,8 @@ void ContactDetectorInternodes::findContactNodes(NodeGroup & master_node_group, 
     slave_node_group.optimize();
   }
 
-  // TODO: ugly but useful
-  const bool debug = true;
-  if (debug) {
+  // Check that equation (3) is satisfied.
+  if (DEBUG_VERIFY_INTERPOLATION_CONDITIONS) {
     for (UInt eval_node : slave_node_group) {
       bool ok = false;
       for (auto entry : enumerate(master_node_group)) {
@@ -256,14 +259,92 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 }
 
 /* -------------------------------------------------------------------------- */
+std::set<UInt> ContactDetectorInternodes::findPenetratingNodes(
+    const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses) {
+  const Real penetration_tolerance = -this->max_element_size * this->relative_penetration_tolerance;
+
+  const auto R_ref_eval = constructInterpolationMatrix(ref_group, eval_group, eval_radiuses);
+
+  std::set<UInt> ref_penetration_nodes;
+  for (auto && entry : enumerate(ref_group)) {
+    auto i = std::get<0>(entry);
+    auto ref_node = std::get<1>(entry);
+
+    // 1) Compute gap: ref gaps = R_ref_eval * eval_positions - ref_positions
+    // (pointing towards the inside of the ref body if penetrating)
+    Vector<Real> gap(spatial_dimension);
+    for (auto && inner_entry : enumerate(eval_group)) {
+      auto j = std::get<0>(inner_entry);
+      auto eval_node = std::get<1>(inner_entry);
+
+      for (UInt s : arange(spatial_dimension)) {
+        gap(s) += R_ref_eval(i * spatial_dimension + s, j * spatial_dimension + s)
+                  * positions(eval_node, s);
+      }
+    }
+    gap -= positions(ref_node);
+
+    // 2) Compute normal at ref_node by averaging element normals
+    auto normal = getInterfaceNormalAtNode(ref_group, ref_node);
+
+    // 3) Penetration if dot(gap, normal) is negative (with some tolerance)
+    if (normal.dot(gap) < penetration_tolerance) {
+      ref_penetration_nodes.insert(ref_node);
+    }
+  }
+
+  return ref_penetration_nodes;
+}
+
+/* -------------------------------------------------------------------------- */
+Vector<Real> ContactDetectorInternodes::getInterfaceNormalAtNode(const NodeGroup & interface_group, UInt node) const {
+  if (spatial_dimension != 2) {
+    AKANTU_EXCEPTION("Only spatial dimensions of 2 are supported at the moment");
+  }
+
+  Vector<Real> tangent2 {{0, 0, 1}};
+
+  Vector<Real> normal(3);
+  Array<Element> node_elements;
+  mesh.getAssociatedElements(node, node_elements);
+  for (auto && element : node_elements) {
+    // We only consider boundary elements, i.e. elements that only contain nodes in the interface
+    bool element_ok = true;
+    int element_size = 0;
+    auto && connectivity = mesh.getConnectivity(element);
+    for (auto other_node : connectivity) {
+      element_size++;
+      if (interface_group.find(other_node) == -1) {
+        element_ok = false;
+      }
+    }
+
+    if (!element_ok || element_size != 2) {
+      continue;
+    }
+
+    auto tangent1 = getNodePosition(connectivity(1)) - getNodePosition(connectivity(0));
+    // We need it in 3D for the cross product
+    Vector<Real> tangent1_3d(3);
+    for (UInt i = 0; i < 2; ++i) {
+      tangent1_3d(i) = tangent1(i);
+    }
+    normal += tangent1_3d.crossProduct(tangent2);
+  }
+
+  // Normalize the normal
+  normal.normalize();
+
+  return normal;
+}
+
+/* -------------------------------------------------------------------------- */
 std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
     Array<Real> & attack_radiuses, const NodeGroup & ref_node_group,
     const SpatialGrid<UInt> & ref_grid, const NodeGroup & eval_node_group,
     const SpatialGrid<UInt> & eval_grid) {
   Real c = 0.5;
   Real C = 0.95;
-  // maximum number of support nodes
-  UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
 
   std::vector<UInt> temp_nodes;
 
@@ -275,11 +356,16 @@ std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
   UInt nb_iter = 0;
 
   while (nb_iter < MAX_RADIUS_ITERATIONS) {
+    // maximum number of support nodes
+    UInt f = std::floor(1 / (std::pow(1 - c, 4) * (1 + 4 * c)));
+
     for (auto && ref_node_data : enumerate(ref_node_group.getNodes())) {
       auto j = std::get<0>(ref_node_data);
       auto ref_node = std::get<1>(ref_node_data);
 
-      // compute radius of attack, i.e. distance to closest neighbor node
+      // Compute radius of attack, i.e. distance to closest neighbor node with
+      // a scaling factor of c.
+      // This guarantees that [1], page 51, equation (2) is satisfied.
       Real attack_radius = std::numeric_limits<double>::max();
       for (auto neighboor_node : ref_grid.setToNeighboring(getNodePosition(ref_node), temp_nodes)) {
         if (neighboor_node != ref_node) {
@@ -313,6 +399,8 @@ std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
       max_nb_supports = std::max(max_nb_supports, entry.second);
     }
 
+    // Enforce strict diagonal dominance by rows.
+    // See [1], page 51, equation (4).
     if (max_nb_supports <= f) {
       // ok!
       break;
@@ -320,7 +408,6 @@ std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
 
     // correct maximum number of support nodes and then iterate again
     c = 0.5 * (1 + c);
-    f = floor(1 / (pow(1 - c, 4) * (1 + 4 * c)));
 
     nb_neighboor_nodes_inside_radiuses.clear();
     nb_opposite_nodes_inside_radiuses.clear();
@@ -332,9 +419,7 @@ std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
     AKANTU_EXCEPTION("Could not find suitable radii, maximum number of iterations (" << nb_iter << ") was exceeded");
   }
 
-  // TODO: ugly but useful, what to do with this?
-  const bool debug = true;
-  if (debug) {
+  if (DEBUG_VERIFY_INTERPOLATION_CONDITIONS) {
     for (UInt ref_node : ref_node_group) {
       for (auto entry : enumerate(ref_node_group)) {
         auto j = std::get<0>(entry);

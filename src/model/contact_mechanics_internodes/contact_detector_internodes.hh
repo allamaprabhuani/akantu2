@@ -70,6 +70,12 @@ public:
   Matrix<Real> constructPhiMatrix(const NodeGroup & ref_node_group,
       const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
 
+  /// find nodes in the ref_group that are penetrating the eval_group
+  std::set<UInt> findPenetratingNodes(const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses);
+
+  /// compute interface normal at a node
+  Vector<Real> getInterfaceNormalAtNode(const NodeGroup & interface_group, UInt node) const;
+
 private:
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
@@ -140,9 +146,6 @@ private:
   /// attack radiuses for master nodes
   Array<Real> slave_radiuses{0};
 
-  /// blocked boundary dofs array
-  std::unique_ptr<Array<Real>> blocked_dofs;
-
   /// maximum element inradius
   Real max_element_size;
 
@@ -150,6 +153,11 @@ private:
   /// after each iteration, c is replaced by (1+c)/2, so if this value is ever
   /// reached it means that c is close to 1 and we won't find suitable radii.
   const UInt MAX_RADIUS_ITERATIONS = 10;
+
+  /// true to validate the interpolation conditions
+  /// the method should always produce node groups satisfying the conditions
+  /// should only be used to debug the method
+  const bool DEBUG_VERIFY_INTERPOLATION_CONDITIONS = false;
 };
 
 } // namespace akantu
