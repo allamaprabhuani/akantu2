@@ -1363,8 +1363,12 @@ Array<T, is_scal>::erase(const iterator<R> & it) {
   T * curr = it.data();
   UInt pos = (curr - this->values) / this->nb_component;
   erase(pos);
-  iterator<R> rit = it;
-  return --rit;
+  if (this->empty()) {
+    // The iterator isn't valid anymore because the memory was freed by erase.
+    return this->end();
+  } else {
+    return it;
+  }
 }
 
 } // namespace akantu

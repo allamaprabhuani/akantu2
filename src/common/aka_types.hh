@@ -1481,7 +1481,7 @@ Vector<T> operator-(const Vector<T> & a, const Vector<T> & b) {
 
 template <typename T>
 Vector<T> operator*(const Matrix<T> & A, const Vector<T> & b) {
-  Vector<T> r(b.size());
+  Vector<T> r(A.rows());
   r.template mul<false>(A, b);
   return r;
 }

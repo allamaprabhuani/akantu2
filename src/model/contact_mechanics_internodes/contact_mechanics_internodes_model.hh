@@ -80,7 +80,53 @@ public:
   /// assemble an interface matrix, eather master or slave
   Matrix<Real> assembleInterfaceMass(const NodeGroup & contact_node_group);
 
+  /// update nodes in the interface after a solve step, return true if something was updated (i.e. we need more iteration)
+  bool updateAfterStep();
+
 protected:
+  std::set<UInt> findPenetratingNodes(const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses);
+
+  inline Vector<Real> getInterfaceNormalAtNode(const NodeGroup & interface_group, UInt node) const {
+    if (spatial_dimension != 2) {
+      AKANTU_EXCEPTION("Only spatial dimensions of 2 are supported at the moment");
+    }
+
+    Vector<Real> tangent2 {{0, 0, 1}};
+
+    Vector<Real> normal(3);
+    Array<Element> node_elements;
+    mesh.getAssociatedElements(node, node_elements);
+    for (auto && element : node_elements) {
+      // We only consider boundary elements, i.e. elements that only contain nodes in the interface
+      bool element_ok = true;
+      int element_size = 0;
+      auto && connectivity = mesh.getConnectivity(element);
+      for (auto other_node : connectivity) {
+        element_size++;
+        if (interface_group.find(other_node) == -1) {
+          element_ok = false;
+        }
+      }
+
+      if (!element_ok || element_size != 2) {
+        continue;
+      }
+
+      auto tangent1 = detector->getNodePosition(connectivity(1)) - detector->getNodePosition(connectivity(0));
+      // We need it in 3D for the cross product
+      Vector<Real> tangent1_3d(3);
+      for (UInt i = 0; i < 2; ++i) {
+        tangent1_3d(i) = tangent1(i);
+      }
+      normal += tangent1_3d.crossProduct(tangent2);
+    }
+
+    // Normalize the normal
+    normal.normalize();
+
+    return normal;
+  }
+
   // call back for the solver, computes the force residual
   void assembleResidual() override;
 
@@ -148,6 +194,7 @@ private:
   std::unique_ptr<Array<Real>> lambdas;
 
   /// contstraints for lambdas array
+  // TODO: is this even used?
   std::unique_ptr<Array<Real>> constraints;
 
   /// blocked dofs for lambdas

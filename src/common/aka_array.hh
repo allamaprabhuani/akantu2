@@ -353,7 +353,8 @@ public:
 
   /// erase the value at position i
   inline void erase(UInt i);
-  /// ask Nico, clarify
+  /// erase the value at the iterator, and return an iterator pointing at the
+  /// following element
   template <typename R> inline iterator<R> erase(const iterator<R> & it);
 
   /// @see Array::find(const_reference elem) const

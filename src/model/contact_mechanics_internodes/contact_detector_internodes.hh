@@ -60,7 +60,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// find contact nodes for iteration
-  void findContactNodes();
+  void findContactNodes(NodeGroup & master_group, NodeGroup & slave_group);
 
   /// construct interpolation matrices 
   Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
@@ -128,6 +128,12 @@ private:
   /// id of slave nodes group, i.e nodes on interface
   ID id_slave_nodes{};
 
+  /// relative security factory for detection of close nodes
+  Real relative_grid_spacing_factor;
+
+  /// relative tolerance for detection of penetration
+  Real relative_penetration_tolerance;
+
   /// attack radiuses for master nodes
   Array<Real> master_radiuses{0};
 
@@ -136,6 +142,9 @@ private:
 
   /// blocked boundary dofs array
   std::unique_ptr<Array<Real>> blocked_dofs;
+
+  /// maximum element inradius
+  Real max_element_size;
 
   /// maximum number of iterations for radius computation:
   /// after each iteration, c is replaced by (1+c)/2, so if this value is ever

@@ -21,9 +21,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
-protected:
-  // TODO: move body to tmpl header file
-
+public:
   /// Return a new vector with the positions of a node.
   inline Vector<Real> getNodePosition(UInt node) const {
     Vector<Real> position(spatial_dimension);
@@ -32,6 +30,9 @@ protected:
     }
     return position;
   }
+
+protected:
+  // TODO: move body to tmpl header file
 
   /// Fill the matrix with the coordinates of an element.
   inline void coordinatesOfElement(const Element & el,
@@ -50,6 +51,7 @@ protected:
   }
 
   /// Compute the minimum and maximum element sizes.
+  /// Make sure to call fillNodesToElements on the mesh before.
   template <typename vector_type>
   inline auto computeElementSizes(vector_type && nodes) const {
     struct {
