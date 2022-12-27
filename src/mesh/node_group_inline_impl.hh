@@ -91,11 +91,13 @@ template <typename T> UInt NodeGroup::applyNodeFilter(const T & filter) {
   UInt removedNodes = 0;
   Array<UInt>::iterator<> it = this->node_group.begin();
 
-  for (; it != node_group.end(); ++it) {
+  while (it != node_group.end()) {
     /// filter == true -> keep node
     if (!filter(*it)) {
       it = node_group.erase(it);
       removedNodes++;
+    } else {
+      ++it;
     }
   }
 
