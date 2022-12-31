@@ -64,7 +64,7 @@ namespace akantu {
 ///     applications in contact mechanics.
 ///     <p>Master's thesis EPFL, 2021.</li>
 /// </ol>
-class ContactMechanicsInternodesModel : public Model {
+class ContactMechanicsInternodesModel : public AbstractContactMechanicsModel {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -74,6 +74,7 @@ public:
       Mesh & mesh, UInt dim = _all_dimensions,
       const ID & id = "contact_mechanics_internodes_model",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
+      // TODO: fix model type
       ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~ContactMechanicsInternodesModel() override;
@@ -92,9 +93,8 @@ protected:
   /* Solver interface                                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  /// costum solve step for Internodes
-  void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
-  void solveStep(const ID & solver_id = "") override;
+  /// Perform contact detector search
+  void search() override;
 
   // assemble extended matrix K
   void assembleInternodesMatrix();
@@ -123,17 +123,6 @@ protected:
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
-  /// callback for the solver, this is called at beginning of solve
-  void predictor() override;
-  /// callback for the solver, this is called at end of solve
-  void corrector() override;
-
-  /// callback for the solver, this is called at beginning of solve
-  void beforeSolveStep() override;
-
-  /// callback for the solver, this is called at end of solve
-  void afterSolveStep(bool converged = true) override;
-
   /// allocate all vectors
   void initSolver(TimeStepSolverType time_step_solver_type,
       NonLinearSolverType non_linear_solver_type) override;
@@ -149,11 +138,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get contact detector
-  AKANTU_GET_MACRO(ContactDetectorInternodes, *detector,
-                   ContactDetectorInternodes &);
-
-  /// get solid mechanics model
-  AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
+  AKANTU_GET_MACRO(ContactDetector, *detector, ContactDetectorInternodes &);
 
   /// get lambdas from internodes formulation
   AKANTU_GET_MACRO(Lambdas, *lambdas, Array<Real>);
@@ -168,9 +153,6 @@ private:
   /// contact detector
   std::unique_ptr<ContactDetectorInternodes> detector;
 
-  /// solid mechanics model
-  std::unique_ptr<SolidMechanicsModel> solid;
-
   /// lambdas array
   std::unique_ptr<Array<Real>> lambdas;
 
@@ -180,6 +162,11 @@ private:
   /// Young's modulus of one of the materials
   /// used as a scaling factor for lambdas, to lower condition number
   Real E;
+
+  template <class Model_, class ContactModel_>
+  friend class AbstractCouplerSolidContactTemplate;
+  template <class Model_>
+  friend class CouplerSolidContactInternodesTemplate;
 };
 
 } // namespace akantu

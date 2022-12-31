@@ -575,7 +575,12 @@ protected:
 
   friend class Material;
 
-  template <class Model_> friend class CouplerSolidContactTemplate;
+  template <class Model_, class ContactModel_>
+  friend class AbstractCouplerSolidContactTemplate;
+  template <class Model_>
+  friend class CouplerSolidContactTemplate;
+  template <class Model_>
+  friend class CouplerSolidContactInternodesTemplate;
 };
 
 /* -------------------------------------------------------------------------- */

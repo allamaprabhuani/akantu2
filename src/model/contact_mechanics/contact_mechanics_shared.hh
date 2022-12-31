@@ -1,9 +1,14 @@
-#ifndef __AKANTU_CONTACT_DETECTOR_SHARED_HH__
-#define __AKANTU_CONTACT_DETECTOR_SHARED_HH__
+#ifndef __AKANTU_CONTACT_MECHANICS_SHARED_HH__
+#define __AKANTU_CONTACT_MECHANICS_SHARED_HH__
 
 #include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
 #include "fe_engine.hh"
+#include "model.hh"
+
+/* -------------------------------------------------------------------------- */
+/* Shared abstractions across different contact mechanics models              */
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -59,8 +64,21 @@ protected:
   Array<Real> positions;
 };
 
+/// Base class for contact mechanics models
+// TODO: evaluate whether this is _really_ useful or not...
+class AbstractContactMechanicsModel : public Model {
+public:
+  AbstractContactMechanicsModel(Mesh & mesh, const ModelType & type,
+        std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID id);
+
+  /// Perform the contact search.
+  /// This is called by the coupler before the relevant terms are assembled, to
+  /// update the internal state of the contact model.
+  virtual void search() = 0;
+};
+
 } // namespace akantu
 
-#include "contact_detector_shared_inline_impl.cc"
+#include "contact_mechanics_shared_inline_impl.cc"
 
-#endif // __AKANTU_CONTACT_DETECTOR_SHARED_HH__
+#endif // __AKANTU_CONTACT_MECHANICS_SHARED_HH__

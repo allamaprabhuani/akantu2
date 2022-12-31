@@ -38,11 +38,13 @@
 namespace akantu {
 
 template <>
-CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
+CouplerSolidCohesiveContact::
     CouplerSolidContactTemplate(Mesh & mesh, UInt dim, const ID & id,
                                 std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_coupler_solid_cohesive_contact, dof_manager, dim,
-            id) {
+    : AbstractCouplerSolidContactTemplate<SolidMechanicsModelCohesive,
+                                          ContactMechanicsModel>(
+          mesh, ModelType::_coupler_solid_cohesive_contact, dim, id,
+          dof_manager) {
   this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact",
                                             id, true);
   this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh,
@@ -61,7 +63,8 @@ CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
 
 /* -------------------------------------------------------------------------- */
 template <>
-void CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::initFullImpl(
+void AbstractCouplerSolidContactTemplate<SolidMechanicsModelCohesive,
+                                 ContactMechanicsModel>::initFullImpl(
     const ModelOptions & options) {
   Model::initFullImpl(options);
 

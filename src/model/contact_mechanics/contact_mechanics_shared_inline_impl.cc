@@ -1,8 +1,8 @@
-#ifndef __AKANTU_CONTACT_DETECTOR_SHARED_INLINE_IMPL_CC__
-#define __AKANTU_CONTACT_DETECTOR_SHARED_INLINE_IMPL_CC__
+#ifndef __AKANTU_CONTACT_MECHANICS_SHARED_INLINE_IMPL_CC__
+#define __AKANTU_CONTACT_MECHANICS_SHARED_INLINE_IMPL_CC__
 
 /* -------------------------------------------------------------------------- */
-#include "contact_detector_shared.hh"
+#include "contact_mechanics_shared.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -61,4 +61,4 @@ inline auto AbstractContactDetector::computeElementSizes(vector_type && nodes) c
 
 } // namespace akantu
 
-#endif // __AKANTU_CONTACT_DETECTOR_SHARED_INLINE_IMPL_CC__
+#endif // __AKANTU_CONTACT_MECHANICS_SHARED_INLINE_IMPL_CC__

@@ -48,27 +48,35 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class SolidMechanicsModelType>
-class CouplerSolidContactTemplate : public Model,
+template <class SolidMechanicsModelType, class ContactMechanicsModelType>
+class AbstractCouplerSolidContactTemplate : public Model,
                                     public DataAccessor<Element>,
                                     public DataAccessor<UInt> {
   static_assert(
       std::is_base_of<SolidMechanicsModel, SolidMechanicsModelType>::value,
       "SolidMechanicsModelType should be derived from SolidMechanicsModel");
+  static_assert(
+      std::is_base_of<AbstractContactMechanicsModel, ContactMechanicsModelType>::value,
+      "ContactMechanicsModelType should be derived from AbstractContactMechanicsModel");
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
-public:
-  CouplerSolidContactTemplate(
-      Mesh & mesh, UInt dim = _all_dimensions,
-      const ID & id = "coupler_solid_contact",
+protected:
+  AbstractCouplerSolidContactTemplate(
+      Mesh & mesh, const ModelType & type, UInt dim, const ID & id,
       std::shared_ptr<DOFManager> dof_manager = nullptr);
 
-  ~CouplerSolidContactTemplate() override;
+  ~AbstractCouplerSolidContactTemplate() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+  /// solid mechanics model
+  std::unique_ptr<SolidMechanicsModelType> solid;
+
+  /// contact mechanics model
+  std::unique_ptr<ContactMechanicsModelType> contact;
+
 protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
@@ -81,12 +89,6 @@ protected:
   /* Solver Interface                                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  /// assembles the contact stiffness matrix
-  virtual void assembleStiffnessMatrix();
-
-  /// assembles the contant internal forces
-  virtual void assembleInternalForces();
-
 #if defined(AKANTU_COHESIVE_ELEMENT)
   template <class Model_ = SolidMechanicsModelType,
             std::enable_if_t<std::is_same<
@@ -115,17 +117,13 @@ public:
 
 protected:
   /// callback for the solver, this adds f_{ext} - f_{int} to the residual
-  void assembleResidual() override;
-
-  /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
-  void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() const override { return true; }
+  void assembleResidual() override = 0;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override;
+  MatrixType getMatrixType(const ID & matrix_id) const override = 0;
 
   /// callback for the solver, this assembles different matrices
-  void assembleMatrix(const ID & matrix_id) override;
+  void assembleMatrix(const ID & matrix_id) override = 0;
 
   /// callback for the solver, this assembles the stiffness matrix
   void assembleLumpedMatrix(const ID & matrix_id) override;
@@ -145,23 +143,6 @@ protected:
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType time_step_solver_type,
                   NonLinearSolverType non_linear_solver_type) override;
-
-  /* ------------------------------------------------------------------------ */
-  /* Mass matrix for solid mechanics model                                    */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// assemble the lumped mass matrix
-  void assembleMassLumped();
-
-  /// assemble the mass matrix for consistent mass resolutions
-  void assembleMass();
-
-protected:
-  /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassLumped(GhostType ghost_type);
-
-  /// assemble the mass matrix for either _ghost or _not_ghost elements
-  void assembleMass(GhostType ghost_type);
 
 protected:
   /* ------------------------------------------------------------------------ */
@@ -219,7 +200,7 @@ public:
   }
 
   /// get the contact mechanics model
-  AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &)
+  AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModelType &)
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -258,13 +239,43 @@ public:
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 private:
-  /// solid mechanics model
-  std::unique_ptr<SolidMechanicsModelType> solid;
-
-  /// contact mechanics model
-  std::unique_ptr<ContactMechanicsModel> contact;
-
   UInt step;
+};
+
+template <class SolidMechanicsModelType>
+class CouplerSolidContactTemplate : public AbstractCouplerSolidContactTemplate<
+    SolidMechanicsModelType, ContactMechanicsModel> {
+public:
+  CouplerSolidContactTemplate(
+      Mesh & mesh, UInt dim = _all_dimensions,
+      const ID & id = "coupler_solid_contact",
+      std::shared_ptr<DOFManager> dof_manager = nullptr);
+
+  ~CouplerSolidContactTemplate() override = default;
+
+protected:
+  /// callback for the solver, this adds f_{ext} - f_{int} to the residual
+  void assembleResidual() override;
+
+  /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
+  void assembleResidual(const ID & residual_part) override;
+  bool canSplitResidual() const override { return true; }
+
+  /// get the type of matrix needed
+  MatrixType getMatrixType(const ID & matrix_id) const override;
+
+  /// callback for the solver, this assembles different matrices
+  void assembleMatrix(const ID & matrix_id) override;
+
+  /// callback for the solver, this is called at end of solve
+  void corrector() override;
+
+private:
+  /// assembles the contant internal forces
+  void assembleInternalForces();
+
+  /// assembles the contact stiffness matrix
+  void assembleStiffnessMatrix();
 };
 
 using CouplerSolidContact = CouplerSolidContactTemplate<SolidMechanicsModel>;

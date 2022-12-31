@@ -33,8 +33,6 @@
 #include "boundary_condition.hh"
 #include "contact_detector.hh"
 #include "data_accessor.hh"
-#include "fe_engine.hh"
-#include "model.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
@@ -51,7 +49,7 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactMechanicsModel : public Model,
+class ContactMechanicsModel : public AbstractContactMechanicsModel,
                               public DataAccessor<Element>,
                               public DataAccessor<UInt>,
                               public BoundaryCondition<ContactMechanicsModel> {
@@ -120,7 +118,7 @@ protected:
   /* Contact Detection                                                        */
   /* ------------------------------------------------------------------------ */
 public:
-  void search();
+  void search() override;
 
   void computeNodalAreas(GhostType ghost_type = _not_ghost);
 

@@ -31,7 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "contact_detector_internodes.hh"
-#include "contact_detector_shared.hh"
+#include "contact_mechanics_shared.hh"
 #include "element_group.hh"
 #include "node_group.hh"
 #include "parsable.hh"

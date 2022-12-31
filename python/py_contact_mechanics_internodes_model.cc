@@ -102,8 +102,7 @@ void register_contact_mechanics_internodes_model(py::module & mod) {
             },
             py::arg("_analysis_method"))
         .def_function_nocopy(assembleInternodesMatrix)
-        .def_function_nocopy(getSolidMechanicsModel)
-        .def_function_nocopy(getContactDetectorInternodes)
+        .def_function_nocopy(getContactDetector)
         .def_function_nocopy(getLambdas)
         .def_function_nocopy(updateAfterStep)
         .def("assembleInterfaceMass",

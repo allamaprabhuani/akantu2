@@ -39,4 +39,8 @@ package_declare_sources(contact_mechanics_internodes
   model/contact_mechanics_internodes/contact_mechanics_internodes_model.cc
   model/contact_mechanics_internodes/contact_detector_internodes.hh
   model/contact_mechanics_internodes/contact_detector_internodes.cc
+
+  model/model_couplers/coupler_solid_contact_internodes.hh
+  model/model_couplers/coupler_solid_contact_internodes.cc
+  model/model_couplers/coupler_solid_contact_internodes_tmpl.hh
   )

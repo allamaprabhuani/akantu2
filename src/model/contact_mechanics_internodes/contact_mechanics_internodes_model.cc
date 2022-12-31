@@ -40,16 +40,10 @@ namespace akantu {
 ContactMechanicsInternodesModel::ContactMechanicsInternodesModel(
     Mesh & mesh, UInt dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id) {
+    : AbstractContactMechanicsModel(mesh, model_type, dof_manager, dim, id) {
 
   this->detector = std::make_unique<ContactDetectorInternodes>(
       this->mesh, id + ":contact_detector");
-
-  this->solid = std::make_unique<SolidMechanicsModel>(
-      this->mesh, spatial_dimension, id + ":solid_mechanics_model",
-      this->dof_manager);
-
-  setYoungsModulus(this->solid->getMaterial(0).get("E"));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -65,20 +59,11 @@ void ContactMechanicsInternodesModel::initFullImpl(
         "ContactMechanicsInternodesModel");
   }
 
-  // run contact detection
-  detector->findContactNodes(detector->getMasterNodeGroup(), detector->getSlaveNodeGroup());
-
   Model::initFullImpl(options);
-
-  // init solid mechanics model
-  solid->initFull(options);
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::assembleResidual() {
-  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.assembleResidual();
-
   auto & master_node_group = detector->getMasterNodeGroup();
   auto & initial_master_node_group = detector->getInitialMasterNodeGroup();
   auto & slave_node_group = detector->getSlaveNodeGroup();
@@ -147,10 +132,6 @@ void ContactMechanicsInternodesModel::assembleMatrix(const ID & matrix_id) {
   if (matrix_id == "K") {
     assembleInternodesMatrix();
   }
-
-  if (matrix_id == "M") {
-    solid->assembleMass();
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -162,10 +143,7 @@ void ContactMechanicsInternodesModel::assembleLumpedMatrix(
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::assembleInternodesMatrix() {
-  solid->assembleStiffnessMatrix();
-
   auto & initial_master_node_group = detector->getInitialMasterNodeGroup();
-  auto & initial_slave_node_group = detector->getInitialSlaveNodeGroup();
 
   auto & master_node_group = detector->getMasterNodeGroup();
   auto & slave_node_group = detector->getSlaveNodeGroup();
@@ -307,9 +285,6 @@ Matrix<Real> ContactMechanicsInternodesModel::assembleInterfaceMass(
 
 /* -------------------------------------------------------------------------- */
 bool ContactMechanicsInternodesModel::updateAfterStep() {
-  // Update positions
-  detector->getPositions().copy(solid->getCurrentPosition());
-
   auto & initial_master_node_group = detector->getInitialMasterNodeGroup();
   auto & master_node_group = detector->getMasterNodeGroup();
   auto & slave_node_group = detector->getSlaveNodeGroup();
@@ -438,39 +413,8 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::solveStep(SolverCallback & callback,
-    const ID & solver_id) {
-  ModelSolver::solveStep(callback, solver_id);
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::solveStep(const ID & solver_id) {
-
-  ModelSolver::solveStep(solver_id);
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::predictor() {
-  auto & solid_callback = aka::as_type<SolverCallback>(*solid);
-  solid_callback.predictor();
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::corrector() {
-  auto & solid_callback = aka::as_type<SolverCallback>(*solid);
-  solid_callback.corrector();
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::beforeSolveStep() {
-  auto & solid_callback = aka::as_type<SolverCallback>(*solid);
-  solid_callback.beforeSolveStep();
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::afterSolveStep(bool converged) {
-  auto & solid_callback = aka::as_type<SolverCallback>(*solid);
-  solid_callback.afterSolveStep(converged);
+void ContactMechanicsInternodesModel::search() {
+  detector->findContactNodes(detector->getMasterNodeGroup(), detector->getSlaveNodeGroup());
 }
 
 void ContactMechanicsInternodesModel::printself(std::ostream & stream,
@@ -523,10 +467,6 @@ ModelSolverOptions ContactMechanicsInternodesModel::getDefaultSolverOptions(
 void ContactMechanicsInternodesModel::initSolver(
     TimeStepSolverType time_step_solver_type,
     NonLinearSolverType non_linear_solver_type) {
-
-  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.initSolver(time_step_solver_type, non_linear_solver_type);
-
   auto nb_initial_master_nodes = detector->getInitialMasterNodeGroup().size();
 
   // allocate lambdas

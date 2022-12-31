@@ -41,7 +41,9 @@ template <>
 CouplerSolidContactTemplate<SolidMechanicsModel>::CouplerSolidContactTemplate(
     Mesh & mesh, UInt dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_coupler_solid_contact, dof_manager, dim, id) {
+    : AbstractCouplerSolidContactTemplate<SolidMechanicsModel,
+                                          ContactMechanicsModel>(
+          mesh, ModelType::_coupler_solid_contact, dim, id, dof_manager) {
   this->mesh.registerDumper<DumperParaview>("coupler_solid_contact", id, true);
   this->mesh.addDumpMeshToDumper("coupler_solid_contact", mesh,
                                  Model::spatial_dimension, _not_ghost,
@@ -58,8 +60,8 @@ CouplerSolidContactTemplate<SolidMechanicsModel>::CouplerSolidContactTemplate(
 
 /* -------------------------------------------------------------------------- */
 template <>
-void CouplerSolidContactTemplate<SolidMechanicsModel>::initFullImpl(
-    const ModelOptions & options) {
+void AbstractCouplerSolidContactTemplate<SolidMechanicsModel, ContactMechanicsModel>
+    ::initFullImpl(const ModelOptions & options) {
   Model::initFullImpl(options);
 
   solid->initFull(_analysis_method = this->method);
