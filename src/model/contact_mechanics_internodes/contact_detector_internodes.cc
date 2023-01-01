@@ -260,6 +260,88 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 }
 
 /* -------------------------------------------------------------------------- */
+Vector<Real> ContactDetectorInternodes::getInterfaceNormalAtNode(
+    const NodeGroup & interface_group, UInt node) const {
+  if (spatial_dimension != 2) {
+    AKANTU_EXCEPTION("Only spatial dimensions of 2 are supported at the moment");
+  }
+
+  Vector<Real> tangent2 {{0, 0, 1}};
+
+  Vector<Real> normal(3);
+  Array<Element> node_elements;
+  mesh.getAssociatedElements(node, node_elements);
+  for (auto && element : node_elements) {
+    // We only consider boundary elements, i.e. elements that only contain nodes in the interface
+    bool element_ok = true;
+    int element_size = 0;
+    auto && connectivity = mesh.getConnectivity(element);
+    for (auto other_node : connectivity) {
+      element_size++;
+      if (interface_group.find(other_node) == -1) {
+        element_ok = false;
+      }
+    }
+
+    if (!element_ok || element_size != 2) {
+      continue;
+    }
+
+    auto tangent1 = getNodePosition(connectivity(1)) - getNodePosition(connectivity(0));
+    // We need it in 3D for the cross product
+    Vector<Real> tangent1_3d(3);
+    for (UInt i = 0; i < 2; ++i) {
+      tangent1_3d(i) = tangent1(i);
+    }
+    normal += tangent1_3d.crossProduct(tangent2);
+  }
+
+  // Normalize the normal
+  normal.normalize();
+
+  return normal;
+}
+
+/* -------------------------------------------------------------------------- */
+std::set<UInt> ContactDetectorInternodes::findPenetratingNodes(
+    const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses) {
+  // TODO don't hardcode this, should be mesh_size * relative_tolerance
+  const Real penetration_tolerance = -0.01;
+
+  const auto R_ref_eval = constructInterpolationMatrix(ref_group, eval_group, eval_radiuses);
+
+  std::set<UInt> ref_penetration_nodes;
+  for (auto && entry : enumerate(ref_group)) {
+    auto i = std::get<0>(entry);
+    auto ref_node = std::get<1>(entry);
+
+    // 1) Compute gap: ref gaps = R_ref_eval * eval_positions - ref_positions
+    // (pointing towards the inside of the ref body if penetrating)
+    Vector<Real> gap(spatial_dimension);
+    for (auto && inner_entry : enumerate(eval_group)) {
+      auto j = std::get<0>(inner_entry);
+      auto eval_node = std::get<1>(inner_entry);
+
+      for (UInt s : arange(spatial_dimension)) {
+        gap(s) += R_ref_eval(i * spatial_dimension + s, j * spatial_dimension + s)
+                  * positions(eval_node, s);
+      }
+    }
+    gap -= getNodePosition(ref_node);
+
+    // 2) Compute normal at ref_node by averaging element normals
+    auto normal = getInterfaceNormalAtNode(ref_group, ref_node);
+
+    // 3) Penetration if dot(gap, normal) is negative (with some tolerance)
+    if (normal.dot(gap) < penetration_tolerance) {
+      ref_penetration_nodes.insert(ref_node);
+    }
+  }
+
+  return ref_penetration_nodes;
+}
+
+/* -------------------------------------------------------------------------- */
 std::map<UInt, UInt> ContactDetectorInternodes::computeRadiuses(
     Array<Real> & attack_radiuses, const NodeGroup & ref_node_group,
     const SpatialGrid<UInt> & ref_grid, const NodeGroup & eval_node_group,

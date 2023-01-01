@@ -74,6 +74,13 @@ public:
   Matrix<Real> constructPhiMatrix(const NodeGroup & ref_node_group,
       const NodeGroup & eval_node_group, Array<Real> & eval_radiuses);
 
+  /// find nodes in the ref_group that are penetrating the eval_group
+  std::set<UInt> findPenetratingNodes(const NodeGroup & ref_group,
+      const NodeGroup & eval_group, const Array<Real> & eval_radiuses);
+
+  /// compute interface normal at a node
+  Vector<Real> getInterfaceNormalAtNode(const NodeGroup & interface_group, UInt node) const;
+
 private:
   /// reads the input file to get contact detection options
   void parseSection(const ParserSection & section) override;
