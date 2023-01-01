@@ -42,6 +42,7 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/contact_detector_inline_impl.cc
   model/contact_mechanics/contact_detector_shared.hh
   model/contact_mechanics/contact_detector_shared.cc
+  model/contact_mechanics/contact_detector_shared_inline_impl.cc
   model/contact_mechanics/contact_element.hh
   model/contact_mechanics/geometry_utils.hh
   model/contact_mechanics/geometry_utils.cc

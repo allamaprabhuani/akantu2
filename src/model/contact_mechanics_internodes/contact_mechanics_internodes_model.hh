@@ -41,7 +41,29 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
+/// Implementation of a contact detector using the internodes method.
+/// <p>
+/// The pseudo-code for the internodes method is as follows:
+/// <ol>
+///     <li>Find contact nodes.</li>
+///     <li>Assemble and solve internodes system.</li>
+///     <li>If all the Lagrange multipliers are positive and all the penetrating
+///     nodes are part of the interface, we are finished.</li>
+///     <li>Otherwise, remove nodes with positive Lagrange multipliers, add
+///     missing penetrating nodes, and go back to 1.</li>
+/// </ol>
+/// <p>
+/// <h3>References</h3>
+/// <ol>
+///     <li>Y. Voet et. al.: The INTERNODES method for applications in contact
+///     mechanics and dedicated preconditioning techniques.
+///     <p><a href="https://doi.org/10.1016/j.camwa.2022.09.019">Computers &
+///     Mathematics with Applications, vol. 127, 2022, pp. 48-64.</a></li>
+///
+///     <li>Y. Voet: On the preconditioning of the INTERNODES matrix for
+///     applications in contact mechanics.
+///     <p>Master's thesis EPFL, 2021.</li>
+/// </ol>
 class ContactMechanicsInternodesModel : public Model {
 
   /* ------------------------------------------------------------------------ */
@@ -80,7 +102,8 @@ public:
   /// assemble an interface matrix, eather master or slave
   Matrix<Real> assembleInterfaceMass(const NodeGroup & contact_node_group);
 
-  /// update nodes in the interface after a solve step, return true if something was updated (i.e. we need more iteration)
+  /// update nodes in the interface after a solve step, return true if the
+  /// contact nodes have changed (i.e. we need more iteration)
   bool updateAfterStep();
 
 protected:
@@ -177,9 +200,6 @@ public:
 
   /// get lambdas from internodes formulation
   AKANTU_GET_MACRO(Lambdas, *lambdas, Array<Real>);
-
-  /// get constraints 
-  AKANTU_GET_MACRO(Contstraints, *constraints, Array<Real>);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -192,10 +212,6 @@ private:
 
   /// lambdas array
   std::unique_ptr<Array<Real>> lambdas;
-
-  /// contstraints for lambdas array
-  // TODO: is this even used?
-  std::unique_ptr<Array<Real>> constraints;
 
   /// blocked dofs for lambdas
   std::unique_ptr<Array<bool>> blocked_dofs;

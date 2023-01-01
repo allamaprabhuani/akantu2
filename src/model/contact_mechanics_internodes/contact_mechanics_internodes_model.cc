@@ -360,7 +360,7 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
   std::set<UInt> to_remove_master, to_remove_slave;
   {
     // Master
-    // TODO: scaling factor of E needs to be applied here too
+    // The lambdas are actually lambdas/E, but that's fine for our sign check
     const auto & lambda_solution = dof_manager->getSolution("lambdas");
     Vector<Real> lambdas_master(master_node_group.size() * spatial_dimension);
     // We need to filter out unused lambdas
@@ -431,11 +431,13 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
 
     // Compute penetrating nodes (i.e. nodes to add to the interface)
     to_add_master =
-        findPenetratingNodes(penetration_master_group, penetration_slave_group,
-                             detector->getSlaveRadiuses());
+        findPenetratingNodes(penetration_master_group,
+                                       penetration_slave_group,
+                                       detector->getSlaveRadiuses());
     to_add_slave =
-        findPenetratingNodes(penetration_slave_group, penetration_master_group,
-                             detector->getMasterRadiuses());
+        findPenetratingNodes(penetration_slave_group,
+                                       penetration_master_group,
+                                       detector->getMasterRadiuses());
   }
 
   // Remove nodes with positive projected Lagrange multipliers
@@ -569,15 +571,14 @@ void ContactMechanicsInternodesModel::initSolver(
   auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
   solid_model_solver.initSolver(time_step_solver_type, non_linear_solver_type);
 
+  // Note that we always allocate the lambdas for all the initial master nodes.
+  // If we decide to remove some initial master nodes from the interface, we
+  // will fill the system with an "identity matrix" for the removed nodes.
   auto nb_initial_master_nodes = detector->getInitialMasterNodeGroup().size();
 
   // allocate lambdas
   this->lambdas = std::make_unique<Array<Real>>(nb_initial_master_nodes,
       spatial_dimension, id + ":lambdas");
-
-  // allocate constraints 
-  this->constraints = std::make_unique<Array<Real>>(nb_initial_master_nodes,
-      spatial_dimension, id + ":constraints");
 
   // allocate blocked dofs for lambdas
   this->blocked_dofs = std::make_unique<Array<bool>>(

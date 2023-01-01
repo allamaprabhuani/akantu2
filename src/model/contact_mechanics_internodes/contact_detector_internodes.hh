@@ -62,6 +62,10 @@ public:
   /// find contact nodes for iteration
   void findContactNodes(NodeGroup & master_group, NodeGroup & slave_group);
 
+  inline void findContactNodes() { // TODO: remove
+    findContactNodes(getMasterNodeGroup(), getSlaveNodeGroup());
+  }
+
   /// construct interpolation matrices 
   Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
       const NodeGroup & eval_node_group, Array<Real> eval_radiuses);
@@ -150,6 +154,11 @@ private:
   /// after each iteration, c is replaced by (1+c)/2, so if this value is ever
   /// reached it means that c is close to 1 and we won't find suitable radii.
   const UInt MAX_RADIUS_ITERATIONS = 10;
+
+  /// true to validate the interpolation conditions
+  /// the method should always produce node groups satisfying the conditions
+  /// should only be used to debug the method
+  const bool DEBUG_VERIFY_INTERPOLATION_CONDITIONS = false;
 };
 
 } // namespace akantu
