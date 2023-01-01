@@ -63,16 +63,12 @@ void ContactMechanicsInternodesModel::initFullImpl(
         "ContactMechanicsInternodesModel");
   }
 
-  // run contact detection
-  // TODO: remove this
-  detector->findContactNodes(detector->getMasterNodeGroup(), detector->getSlaveNodeGroup());
-
   Model::initFullImpl(options);
 
   // init solid mechanics model
   solid->initFull(options);
 
-  // store Young's modulus
+  // store Young's modulus for better numerical accuracy
   this->E = solid->getMaterial(0).get("E");
 }
 
@@ -444,13 +440,28 @@ bool ContactMechanicsInternodesModel::updateAfterStep() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsInternodesModel::solveStep(SolverCallback & callback,
     const ID & solver_id) {
-  ModelSolver::solveStep(callback, solver_id);
-}
+  const UInt MAX_STEPS = 10; // security value for now, increase later if needed
 
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsInternodesModel::solveStep(const ID & solver_id) {
+  UInt step = 0;
+  while (true) {
+    this->start_iteration_callback();
 
-  ModelSolver::solveStep(solver_id);
+    // Always search before every step
+    detector->findContactNodes(detector->getMasterNodeGroup(),
+                               detector->getSlaveNodeGroup());
+
+    // Perform regular solve
+    Model::solveStep(callback, solver_id);
+
+    // Perform any required update, and solve again if needed
+    if (!updateAfterStep()) {
+      break;
+    }
+
+    if (++step >= MAX_STEPS) {
+      AKANTU_EXCEPTION("Reached maximum number of internodes steps: " << step);
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

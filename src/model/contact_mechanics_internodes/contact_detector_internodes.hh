@@ -62,10 +62,6 @@ public:
   /// find contact nodes for iteration
   void findContactNodes(NodeGroup & master_group, NodeGroup & slave_group);
 
-  inline void findContactNodes() { // TODO: remove
-    findContactNodes(getMasterNodeGroup(), getSlaveNodeGroup());
-  }
-
   /// construct interpolation matrices 
   Matrix<Real> constructInterpolationMatrix(const NodeGroup & ref_node_group, 
       const NodeGroup & eval_node_group, Array<Real> eval_radiuses);

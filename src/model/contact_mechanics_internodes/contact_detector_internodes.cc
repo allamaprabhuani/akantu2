@@ -305,8 +305,7 @@ Vector<Real> ContactDetectorInternodes::getInterfaceNormalAtNode(
 /* -------------------------------------------------------------------------- */
 std::set<UInt> ContactDetectorInternodes::findPenetratingNodes(
     const NodeGroup & ref_group, const NodeGroup & eval_group, const Array<Real> & eval_radiuses) {
-  // TODO don't hardcode this, should be mesh_size * relative_tolerance
-  const Real penetration_tolerance = -0.01;
+  const Real penetration_tolerance = -max_element_size * relative_penetration_tolerance;
 
   const auto R_ref_eval = constructInterpolationMatrix(ref_group, eval_group, eval_radiuses);
 

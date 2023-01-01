@@ -30,7 +30,7 @@ Line(6) = {6, 1};
 
 Physical Curve("primary_fixed") = {1};
 Physical Curve("primary_bulk") = {2, 3, 5, 6};
-Physical Curve("primary_candidates") = {4};
+Physical Curve("lower_top") = {4};
 
 Transfinite Curve{4} = n;
 
@@ -87,7 +87,7 @@ Circle(L4) = {P3, C, P4};
 L5 = newl;
 Line(L5) = {P4, C};
 
-Physical Curve("secondary_candidates") = {L3};
+Physical Curve("upper_bottom") = {L3};
 Physical Curve("secondary_bulk") = {L2, L4};
 Physical Curve("secondary_fixed") = {L1, L5};
 

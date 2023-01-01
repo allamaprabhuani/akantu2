@@ -92,10 +92,30 @@ protected:
   /* Solver interface                                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  /// costum solve step for Internodes
+  /// custom solve step for Internodes that handles the iterations
   void solveStep(SolverCallback & callback, const ID & solver_id = "") override;
-  void solveStep(const ID & solver_id = "") override;
 
+  template <typename FunctorType>
+  inline void applyBC(const FunctorType & func) {
+    solid->applyBC(func);
+  }
+
+  template <class FunctorType>
+  inline void applyBC(const FunctorType & func,
+                      const std::string & group_name) {
+    solid->applyBC(func, group_name);
+  }
+
+  template <class FunctorType>
+  inline void applyBC(const FunctorType & func,
+                      const ElementGroup & element_group) {
+    solid->applyBC(func, element_group);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Implementation details                                                   */
+  /* ------------------------------------------------------------------------ */
+public:
   // assemble extended matrix K
   void assembleInternodesMatrix();
 
@@ -157,6 +177,11 @@ public:
 
   /// get lambdas from internodes formulation
   AKANTU_GET_MACRO(Lambdas, *lambdas, Array<Real>);
+
+  /// set debugging callback
+  AKANTU_SET_MACRO(StartIterationCallback, start_iteration_callback,
+                   std::function<void()>);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -176,6 +201,9 @@ private:
   /// Young's modulus of one of the materials
   /// used as a scaling factor for lambdas, to lower condition number
   Real E;
+
+  /// called at the beginning of each internodes iteration, for debugging
+  std::function<void()> start_iteration_callback = [] {};
 };
 
 } // namespace akantu

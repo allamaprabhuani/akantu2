@@ -37,6 +37,7 @@
 #include <parsable.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
 #include <pybind11/stl.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
@@ -71,7 +72,6 @@ void register_contact_mechanics_internodes_model(py::module & mod) {
                       py::multiple_inheritance())
       .def(py::init<Mesh &, const ID &>(), py::arg("mesh"),
            py::arg("id") = "contact_detector_internodes")
-      .def_function_nocopy_detector(findContactNodes)
       .def_function_nocopy_detector(getInitialMasterNodeGroup)
       .def_function_nocopy_detector(getInitialSlaveNodeGroup)
       .def_function_nocopy_detector(getMasterNodeGroup)
@@ -110,7 +110,19 @@ void register_contact_mechanics_internodes_model(py::module & mod) {
         .def("assembleInterfaceMass",
             [](ContactMechanicsInternodesModel & self, NodeGroup & contact_node_group)
                 -> decltype(auto) { return self.assembleInterfaceMass(contact_node_group); },
-            py::arg("contact_node_group"), py::return_value_policy::copy);
+            py::arg("contact_node_group"), py::return_value_policy::copy)
+        .def("applyBC",
+             [](ContactMechanicsInternodesModel & self,
+                BC::Dirichlet::DirichletFunctor & func,
+                const std::string & element_group) {
+               self.applyBC(func, element_group);
+             })
+        .def("applyBC",
+             [](ContactMechanicsInternodesModel & self, BC::Neumann::NeumannFunctor & func,
+                const std::string & element_group) {
+               self.applyBC(func, element_group);
+             })
+        .def("setStartIterationCallback", &ContactMechanicsInternodesModel::setStartIterationCallback);
 }
 
 } // namespace akantu
