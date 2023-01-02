@@ -72,6 +72,12 @@ void register_contact_mechanics_internodes_model(py::module & mod) {
                       py::multiple_inheritance())
       .def(py::init<Mesh &, const ID &>(), py::arg("mesh"),
            py::arg("id") = "contact_detector_internodes")
+      .def("findContactNodes",
+             [](ContactDetectorInternodes & self,
+                NodeGroup & master_group,
+                NodeGroup & slave_group) {
+               self.findContactNodes(master_group, slave_group);
+             })
       .def_function_nocopy_detector(getInitialMasterNodeGroup)
       .def_function_nocopy_detector(getInitialSlaveNodeGroup)
       .def_function_nocopy_detector(getMasterNodeGroup)

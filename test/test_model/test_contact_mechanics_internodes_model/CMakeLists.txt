@@ -4,14 +4,14 @@
 # @author Moritz Waldleben <moritz.waldleben@gmail.com>
 #
 # @date creation: Thu 16 2022 
-# @date last modification: Thue 16 2022 
+# @date last modification: Mon Jan 02 2023
 #
 # @brief  configuration python contact mechanics internodes test
 #
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free software: you can redistribute it and/or modify it under the
@@ -29,16 +29,16 @@
 #
 #===============================================================================
 
-add_mesh(contact_mesh prototype_internodes/contact.geo DIM 2 ORDER 1 OUTPUT contact.msh)
-
-register_test(test_internodes
-  SCRIPT test_internodes.py
+register_test(test_contact_detector_internodes
+  SCRIPT test_contact_detector_internodes.py
   PYTHON
-  FILES_TO_COPY prototype_internodes/material.dat
-        prototype_internodes/example_direct.py
-        prototype_internodes/functions.py
-        prototype_internodes/functions_contact_probl.py
-        prototype_internodes/init_model.py
-  DEPENDS contact_mesh
+  FILES_TO_COPY contact2d_material.dat contact2d_plane_circle.msh
+  PACKAGE python_interface contact_mechanics_internodes
+  )
+
+register_test(test_contact_mechanics_internodes_model
+  SCRIPT test_contact_mechanics_internodes_model.py
+  PYTHON
+  FILES_TO_COPY contact2d_material.dat contact2d_plane_circle.msh contact2d_circle_circle.msh
   PACKAGE python_interface contact_mechanics_internodes
   )
