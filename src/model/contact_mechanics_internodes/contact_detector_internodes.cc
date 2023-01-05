@@ -262,11 +262,9 @@ ContactDetectorInternodes::constructPhiMatrix(const NodeGroup & ref_node_group,
 /* -------------------------------------------------------------------------- */
 Vector<Real> ContactDetectorInternodes::getInterfaceNormalAtNode(
     const NodeGroup & interface_group, UInt node) const {
-  if (spatial_dimension != 2) {
-    AKANTU_EXCEPTION("Only spatial dimensions of 2 are supported at the moment");
-  }
 
-  Vector<Real> tangent2 {{0, 0, 1}};
+  Vector<Real> tangent1(3);
+  Vector<Real> tangent2(3);
 
   Vector<Real> normal(3);
   Array<Element> node_elements;
@@ -283,17 +281,23 @@ Vector<Real> ContactDetectorInternodes::getInterfaceNormalAtNode(
       }
     }
 
-    if (!element_ok || element_size != 2) {
+    if (!element_ok || element_size != spatial_dimension) {
       continue;
     }
 
-    auto tangent1 = getNodePosition(connectivity(1)) - getNodePosition(connectivity(0));
-    // We need it in 3D for the cross product
-    Vector<Real> tangent1_3d(3);
-    for (UInt i = 0; i < 2; ++i) {
-      tangent1_3d(i) = tangent1(i);
+    auto temp = getNodePosition(connectivity(1)) - getNodePosition(connectivity(0));
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      tangent1(i) = temp(i);
     }
-    normal += tangent1_3d.crossProduct(tangent2);
+
+    if (spatial_dimension == 2) {
+      // Normal in 2d is obtained by taking cross-product with z unit vector
+      tangent2 = Vector<Real>{{0, 0, 1}};
+    }
+    else if (spatial_dimension == 3) {
+      tangent2 = getNodePosition(connectivity(2)) - getNodePosition(connectivity(0));
+    }
+    normal += tangent1.crossProduct(tangent2);
   }
 
   // Normalize the normal

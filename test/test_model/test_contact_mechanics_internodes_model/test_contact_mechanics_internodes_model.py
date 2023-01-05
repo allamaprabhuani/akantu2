@@ -100,5 +100,91 @@ def test_contact2d_circle_circle():
     # Check if secondary interface nodes are close to y=0
     np.testing.assert_allclose(positions_interface_secondary[:, 1], np.zeros(len(positions_interface_secondary)), atol=1e-2)
 
+def test_contact3d_plane_sphere():
+
+    # Set up contact problem
+    mesh_file = 'contact3d_plane_sphere.msh'
+    material_file = 'contact2d_material.dat'
+    spatial_dimension = 3
+    aka.parseInput(material_file)
+
+    d0 = 0.05  # Initial overlap between primary and secondary mesh
+    R = 0.5  # Radius of circle
+    d = 0.1  # Displacement enforced on top of circle
+
+    # Read mesh
+    mesh = aka.Mesh(spatial_dimension)
+    mesh.read(mesh_file)
+
+    model = aka.ContactMechanicsInternodesModel(mesh)
+    detector = model.getContactDetectorInternodes()
+    solid = model.getSolidMechanicsModel()
+
+    model.initFull(_analysis_method=aka._static)
+
+    # Apply boundary conditions
+    model.applyBC(aka.FixedValue(0., aka._x), 'primary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._y), 'primary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._z), 'primary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._x), 'secondary_fixed')
+    model.applyBC(aka.FixedValue(-d+d0, aka._y), 'secondary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._z), 'secondary_fixed')
+
+    model.solveStep()
+
+    positions = model.getSolidMechanicsModel().getCurrentPosition()
+    positions_interface_secondary = positions[detector.getSlaveNodeGroup().getNodes().ravel()]
+
+    a = np.max(sp.spatial.distance.cdist(positions_interface_secondary, positions_interface_secondary))/2
+    u = np.min(positions_interface_secondary[:, 1])
+
+    E = solid.getMaterial(0).getReal("E")
+    nu = solid.getMaterial(0).getReal("nu")
+
+    # Check if normal displacement corresponds to theoretical expectation
+    np.testing.assert_allclose(_get_theoretical_normal_displacement(R, d, E, nu), u, atol=5e-3)
+
+    # Check if contact radius corresponds to theoretical expectation
+    np.testing.assert_allclose(_get_theoretical_contact_radius(R, d), a, atol=5e-2)
+
+def test_contact3d_sphere_sphere():
+
+    # Set up contact problem
+    mesh_file = 'contact3d_sphere_sphere.msh'
+    material_file = 'contact2d_material.dat'
+    spatial_dimension = 3
+    aka.parseInput(material_file)
+
+    d0 = 0.05  # Initial overlap between primary and secondary mesh
+    d = 0.1  # Displacement enforced on top of circle
+
+    mesh = aka.Mesh(spatial_dimension)
+    mesh.read(mesh_file)
+
+    model = aka.ContactMechanicsInternodesModel(mesh)
+    detector = model.getContactDetectorInternodes()
+
+    model.initFull(_analysis_method=aka._static)
+
+    # Apply boundary conditions
+    model.applyBC(aka.FixedValue(0., aka._x), 'primary_fixed')
+    model.applyBC(aka.FixedValue((d-d0)/2., aka._y), 'primary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._z), 'primary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._x), 'secondary_fixed')
+    model.applyBC(aka.FixedValue((-d+d0)/2, aka._y), 'secondary_fixed')
+    model.applyBC(aka.FixedValue(0., aka._z), 'secondary_fixed')
+
+    model.solveStep()
+
+    positions = model.getSolidMechanicsModel().getCurrentPosition()
+    positions_interface_primary = positions[detector.getMasterNodeGroup().getNodes().ravel()]
+    positions_interface_secondary = positions[detector.getSlaveNodeGroup().getNodes().ravel()]
+
+    # Check if primary interface nodes are close to y=0
+    np.testing.assert_allclose(positions_interface_primary[:, 1], np.zeros(len(positions_interface_primary)), atol=5e-2)
+
+    # Check if secondary interface nodes are close to y=0
+    np.testing.assert_allclose(positions_interface_secondary[:, 1], np.zeros(len(positions_interface_secondary)), atol=5e-2)
+
 if __name__ == '__main__':
     pytest.main()
