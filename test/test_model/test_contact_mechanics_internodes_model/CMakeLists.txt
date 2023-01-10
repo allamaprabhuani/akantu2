@@ -32,13 +32,13 @@
 register_test(test_contact_detector_internodes
   SCRIPT test_contact_detector_internodes.py
   PYTHON
-  FILES_TO_COPY contact2d_material.dat contact2d_plane_circle.msh
+  FILES_TO_COPY material.dat contact2d_plane_circle.msh
   PACKAGE python_interface contact_mechanics_internodes
   )
 
 register_test(test_contact_mechanics_internodes_model
   SCRIPT test_contact_mechanics_internodes_model.py
   PYTHON
-  FILES_TO_COPY contact2d_material.dat contact2d_plane_circle.msh contact2d_circle_circle.msh contact3d_plane_sphere.msh contact3d_sphere_sphere.msh
+  FILES_TO_COPY material.dat contact2d_plane_circle.msh contact2d_circle_circle.msh contact3d_plane_sphere.msh contact3d_sphere_sphere.msh
   PACKAGE python_interface contact_mechanics_internodes
   )
