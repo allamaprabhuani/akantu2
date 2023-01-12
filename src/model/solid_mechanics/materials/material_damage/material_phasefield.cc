@@ -46,7 +46,7 @@ MaterialPhaseField<spatial_dimension>::MaterialPhaseField(
 
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
   this->damage.initialize(0);
-  this->effective_damage.initialize(0);
+  this->effective_damage.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
