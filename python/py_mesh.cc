@@ -210,7 +210,7 @@ void register_mesh(py::module & mod) {
       .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
       .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
       .def("isPeriodicMaster", &Mesh::isPeriodicMaster)
-      .def("getBarycenter", &Mesh::getBarycenter);
+      .def("getBarycenter", &Mesh::getBarycenter)
       .def("initMeshFacets", &Mesh::initMeshFacets,
            py::arg("id") = "mesh_facets", py::return_value_policy::reference);
 
