@@ -60,7 +60,7 @@ protected:
                                         Real & /*driving_force_quad*/);
 
   inline void computeDamageEnergyDensityOnQuad(const Real & /*phi_quad*/,
-                                               Real & /*dam_energy_quad*/);
+                                               Real & /*dam_energy_quad*/, const Real & /*g_c_quad*/);
 
 public:
   void updateInternalParameters() override;

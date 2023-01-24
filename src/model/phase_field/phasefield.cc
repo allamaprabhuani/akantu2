@@ -103,6 +103,8 @@ void PhaseField::initialize() {
   phi.initialize(1);
   driving_force.initialize(1);
 
+  g_c.initialize(1);
+
   strain.initialize(spatial_dimension * spatial_dimension);
   damage_energy_density.initialize(1);
   damage_energy.initialize(spatial_dimension * spatial_dimension);

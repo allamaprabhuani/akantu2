@@ -32,6 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phasefield_exponential.hh"
+#include "aka_common.hh"
+#include <tuple>
 
 namespace akantu {
 
@@ -44,9 +46,21 @@ PhaseFieldExponential::PhaseFieldExponential(PhaseFieldModel & model,
 void PhaseFieldExponential::updateInternalParameters() {
   PhaseField::updateInternalParameters();
 
-  Matrix<Real> d(spatial_dimension, spatial_dimension);
-  d.eye(this->g_c * this->l0);
-  damage_energy.set(d);
+  for (const auto & type :
+       element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+    auto & elem_filter = element_filter(type, _not_ghost);
+    if (elem_filter.empty()) {
+      continue;
+    }
+    for (auto && tuple : zip(make_view(this->damage_energy(type, _not_ghost),
+                                       spatial_dimension, spatial_dimension),
+                             this->g_c(type, _not_ghost))) {
+      Matrix<Real> d(spatial_dimension, spatial_dimension);
+      // eye g_c * l0
+      d.eye(std::get<1>(tuple) * this->l0);
+      std::get<0>(tuple) = d;
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -57,10 +71,12 @@ void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
                            this->driving_force(el_type, ghost_type),
                            this->damage_energy_density(el_type, ghost_type),
                            make_view(this->strain(el_type, ghost_type),
-                                     spatial_dimension, spatial_dimension))) {
+                                     spatial_dimension, spatial_dimension),
+                           this->g_c(el_type, ghost_type))) {
     computePhiOnQuad(std::get<4>(tuple), std::get<0>(tuple),
                      std::get<1>(tuple));
-    computeDamageEnergyDensityOnQuad(std::get<0>(tuple), std::get<3>(tuple));
+    computeDamageEnergyDensityOnQuad(std::get<0>(tuple), std::get<3>(tuple),
+                                     std::get<5>(tuple));
     computeDrivingForceOnQuad(std::get<0>(tuple), std::get<2>(tuple));
   }
 }

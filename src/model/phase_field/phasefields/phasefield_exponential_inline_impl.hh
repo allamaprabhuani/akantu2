@@ -11,8 +11,8 @@ PhaseFieldExponential::computeDrivingForceOnQuad(const Real & phi_quad,
 
 /* -------------------------------------------------------------------------- */
 inline void PhaseFieldExponential::computeDamageEnergyDensityOnQuad(
-    const Real & phi_quad, Real & dam_energy_quad) {
-  dam_energy_quad = 2.0 * phi_quad + this->g_c / this->l0;
+    const Real & phi_quad, Real & dam_energy_quad, const Real & g_c_quad) {
+  dam_energy_quad = 2.0 * phi_quad + g_c_quad / this->l0;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -232,7 +232,8 @@ protected:
   Real l0;
 
   /// critical energy release rate
-  Real g_c;
+  // Real g_c;
+  RandomInternalField<Real, InternalPhaseField> g_c;
 
   /// Young's modulus
   Real E;
