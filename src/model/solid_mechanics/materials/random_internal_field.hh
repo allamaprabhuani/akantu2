@@ -51,6 +51,8 @@ class RandomInternalField : public BaseField<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  using Material = typename BaseField<T>::Material;
+
   RandomInternalField(const ID & id, Material & material);
 
   ~RandomInternalField() override;
