@@ -900,6 +900,11 @@ void Material::interpolateStressOnFacets(
 
 /* -------------------------------------------------------------------------- */
 void Material::addElements(const Array<Element> & elements_to_add) {
+
+  if (elements_to_add.empty()) {
+    return;  	  //noops if no changes
+  }
+
   AKANTU_DEBUG_IN();
 
   UInt mat_id = model.getMaterialIndex(name);
@@ -916,16 +921,16 @@ void Material::addElements(const Array<Element> & elements_to_add) {
 
 /* -------------------------------------------------------------------------- */
 void Material::removeElements(const Array<Element> & elements_to_remove) {
-  AKANTU_DEBUG_IN();
-
-  auto el_begin = elements_to_remove.begin();
-  auto el_end = elements_to_remove.end();
 
   if (elements_to_remove.empty()) {
-    return;
+    return;   	  //noops if no changes
   }
 
-  auto & mesh = this->model.getMesh();
+  AKANTU_DEBUG_IN();
+
+  auto & mesh     = this->model.getMesh();
+  auto   el_begin = elements_to_remove.begin();
+  auto   el_end   = elements_to_remove.end();
 
   ElementTypeMapArray<UInt> material_local_new_numbering(
       "remove mat filter elem", id);

@@ -221,8 +221,13 @@ void SolidMechanicsModel::reassignMaterial() {
     auto mat_index = std::get<0>(data);
     auto & mat = *std::get<1>(data);
 
-    mat.removeElements(element_to_remove[mat_index]);
-    mat.addElements(element_to_add[mat_index]);
+    /* Only update if there are changes. */
+    if (element_to_remove[mat_index].empty() == false) {
+      mat.removeElements(element_to_remove[mat_index]);
+    }
+    if (element_to_add[mat_index].empty() == false) {
+      mat.addElements(element_to_add[mat_index]);
+    }
   }
 
   AKANTU_DEBUG_OUT();
