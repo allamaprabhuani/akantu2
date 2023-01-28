@@ -28,5 +28,5 @@ COPY .openmpi /root/.openmpi
 
 # for debug
 RUN apt-get -qq update && apt-get -qq -y install \
-    gdb valgrind \
+    gdb valgrind emacs-nox \
     && rm -rf /var/lib/apt/lists/*
