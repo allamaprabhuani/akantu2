@@ -43,8 +43,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh,
-                                             Int spatial_dimension,
+MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh, Int spatial_dimension,
                                              const ID & id)
     : MeshPartition(mesh, spatial_dimension, id) {
   AKANTU_DEBUG_IN();
@@ -56,8 +55,7 @@ MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh,
 MeshPartitionMeshData::MeshPartitionMeshData(
     Mesh & mesh, const ElementTypeMapArray<Idx> & mapping,
     Int spatial_dimension, const ID & id)
-    : MeshPartition(mesh, spatial_dimension, id),
-      partition_mapping(&mapping) {
+    : MeshPartition(mesh, spatial_dimension, id), partition_mapping(&mapping) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -66,8 +64,9 @@ MeshPartitionMeshData::MeshPartitionMeshData(
 /* -------------------------------------------------------------------------- */
 void MeshPartitionMeshData::partitionate(
     Int nb_part,
-    const std::function<Int(const Element &, const Element &)> &/*edge_load_func*/,
-    const std::function<Int(const Element &)> &/*vertex_load_func*/) {
+    const std::function<Int(const Element &,
+                            const Element &)> & /*edge_load_func*/,
+    const std::function<Int(const Element &)> & /*vertex_load_func*/) {
   AKANTU_DEBUG_IN();
 
   if (mesh.isPeriodic()) {

@@ -60,8 +60,7 @@ void NodeGroup::clear() { node_group.resize(0); }
 /* -------------------------------------------------------------------------- */
 void NodeGroup::optimize() {
   std::sort(node_group.begin(), node_group.end());
-  auto end =
-      std::unique(node_group.begin(), node_group.end());
+  auto end = std::unique(node_group.begin(), node_group.end());
   node_group.resize(end - node_group.begin());
 }
 

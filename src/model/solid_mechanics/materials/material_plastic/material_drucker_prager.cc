@@ -60,8 +60,6 @@ template <Int dim> void MaterialDruckerPrager<dim>::initialize() {
                       "Compressive strength");
   this->registerParam("radial_return", radial_return_mapping, bool(true),
                       _pat_parsable | _pat_modifiable, "Radial return mapping");
-
-  this->updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */

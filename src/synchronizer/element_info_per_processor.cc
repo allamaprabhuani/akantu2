@@ -66,8 +66,7 @@ bool ElementInfoPerProc::synchronize() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementInfoPerProc::fillCommunicationScheme(
-    const Array<Int> & partition) {
+void ElementInfoPerProc::fillCommunicationScheme(const Array<Int> & partition) {
   AKANTU_DEBUG_IN();
 
   Element element;

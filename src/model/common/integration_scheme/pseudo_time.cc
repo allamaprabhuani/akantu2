@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PseudoTime::PseudoTime(DOFManager &dof_manager, const ID &dof_id)
+PseudoTime::PseudoTime(DOFManager & dof_manager, const ID & dof_id)
     : IntegrationScheme(dof_manager, dof_id, 0) {}
 
 /* -------------------------------------------------------------------------- */
@@ -49,14 +49,14 @@ void PseudoTime::predictor(Real /*delta_t*/) {}
 
 /* -------------------------------------------------------------------------- */
 void PseudoTime::corrector(const SolutionType & /*type*/, Real /*delta_t*/) {
-  auto &us = this->dof_manager.getDOFs(this->dof_id);
-  const auto &deltas = this->dof_manager.getSolution(this->dof_id);
-  const auto &blocked_dofs = this->dof_manager.getBlockedDOFs(this->dof_id);
+  auto & us = this->dof_manager.getDOFs(this->dof_id);
+  const auto & deltas = this->dof_manager.getSolution(this->dof_id);
+  const auto & blocked_dofs = this->dof_manager.getBlockedDOFs(this->dof_id);
 
-  for (auto &&tuple : zip(make_view(us), deltas, make_view(blocked_dofs))) {
-    auto &u = std::get<0>(tuple);
-    const auto &delta = std::get<1>(tuple);
-    const auto &bld = std::get<2>(tuple);
+  for (auto && tuple : zip(make_view(us), deltas, make_view(blocked_dofs))) {
+    auto & u = std::get<0>(tuple);
+    const auto & delta = std::get<1>(tuple);
+    const auto & bld = std::get<2>(tuple);
     if (not bld) {
       u += delta;
     }
@@ -66,8 +66,8 @@ void PseudoTime::corrector(const SolutionType & /*type*/, Real /*delta_t*/) {
 /* -------------------------------------------------------------------------- */
 void PseudoTime::assembleJacobian(const SolutionType & /*type*/,
                                   Real /*delta_t*/) {
-  SparseMatrix &J = this->dof_manager.getMatrix("J");
-  const SparseMatrix &K = this->dof_manager.getMatrix("K");
+  SparseMatrix & J = this->dof_manager.getMatrix("J");
+  const SparseMatrix & K = this->dof_manager.getMatrix("K");
 
   bool does_j_need_update = false;
   does_j_need_update |= K.getRelease() != k_release;

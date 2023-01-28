@@ -48,16 +48,13 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
   DamagedWeightFunction(NonLocalManager & manager)
-      : BaseWeightFunction(manager, "damaged"), damage(nullptr) {
+      : BaseWeightFunction(manager, "damaged") {
     this->init();
   }
 
-  /* --------------------------------------------------------------------------
-   */
-  /* Base Weight Function inherited methods */
-  /* --------------------------------------------------------------------------
-   */
-
+  /* ------------------------------------------------------------------------ */
+  /* Base Weight Function inherited methods                                   */
+  /* ------------------------------------------------------------------------ */
   /// set the pointers of internals to the right flattend version
   void init() override;
 
@@ -71,7 +68,7 @@ private:
   /* ------------------------------------------------------------------------ */
 
   /// internal pointer to the current damage vector
-  ElementTypeMapReal * damage;
+  ElementTypeMapReal * damage{nullptr};
 };
 
 } // namespace akantu

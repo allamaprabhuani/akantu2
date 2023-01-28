@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-"""patch_test_linear_heat_transfer_fixture.py: heat transfer patch test in
-python"""
+"""ypatch_test_linear_heat_transfer_fixture.py: heat transfer patch test in
+python."""
 
 __author__ = "Guillaume Anciaux"
 __credits__ = [

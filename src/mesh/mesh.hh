@@ -125,8 +125,6 @@ public:
   Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
        const ID & id = "mesh");
 
-  ~Mesh() override;
-
   /// read the mesh from a file
   void read(const std::string & filename,
             const MeshIOType & mesh_io_type = _miot_auto);
@@ -356,7 +354,7 @@ public:
                            GhostType ghost_type = _not_ghost) const;
 
   /// get the number of element for a given ghost_type and a given dimension
-  inline auto getNbElement(const Int spatial_dimension = _all_dimensions,
+  inline auto getNbElement(Int spatial_dimension = _all_dimensions,
                            GhostType ghost_type = _not_ghost,
                            ElementKind kind = _ek_not_defined) const;
 
@@ -718,8 +716,9 @@ inline auto Mesh::getNbElement(const Int spatial_dimension,
                                               << " and is greater than 3 !");
   Int nb_element = 0;
 
-  for (auto type : elementTypes(spatial_dimension, ghost_type, kind))
+  for (auto type : elementTypes(spatial_dimension, ghost_type, kind)) {
     nb_element += getNbElement(type, ghost_type);
+  }
 
   return nb_element;
 }

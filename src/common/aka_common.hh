@@ -701,6 +701,7 @@ template <typename a, typename b> struct hash<std::pair<a, b>> {
   hash() = default;
   auto operator()(const std::pair<a, b> & p) const -> std::size_t {
     size_t seed = ah(p.first);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
     return bh(p.second) + AKANTU_HASH_COMBINE_MAGIC_NUMBER + (seed << 6) +
            (seed >> 2);
   }

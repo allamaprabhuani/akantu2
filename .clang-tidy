@@ -5,6 +5,8 @@ Checks: "
         -modernize-use-trailing-return-type*,
 
         cppcoreguidelines-*,
+        -cppcoreguidelines-macro-usage,
+        -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
 
         performance-*,
 
@@ -13,16 +15,16 @@ Checks: "
         -readability-redundant-access-specifiers,
         -readability-convert-member-functions-to-static,
         -readability-isolate-declaration,
+        -readability-identifier-length,
         "
 
 AnalyzeTemporaryDtors: false
 HeaderFilterRegex:     'src/.*'
 FormatStyle:           file
 UseColor:              true
-ExtraArgs:             -std=c++17
 
 CheckOptions:
   - key: readability-identifier-length.IgnoreVariableNames
     value: True
-  - key: readability-identifier-length.IgnoreLoopCounterNames
-    value: True
+  - key: readability-identifier-length.MinimumLoopCounterNameLength
+    value: 1

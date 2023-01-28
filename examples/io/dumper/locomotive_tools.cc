@@ -39,9 +39,9 @@
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
-void applyRotation(const Vector<Real> &center, Real angle,
-                   const Array<Real> &nodes, Array<Real> &displacement,
-                   const Array<Idx> &node_group) {
+void applyRotation(const Vector<Real> & center, Real angle,
+                   const Array<Real> & nodes, Array<Real> & displacement,
+                   const Array<Idx> & node_group) {
   auto nodes_it = nodes.begin(nodes.getNbComponent());
   auto disp_it = displacement.begin(center.size());
   auto node_num_it = node_group.begin();
@@ -72,11 +72,11 @@ void applyRotation(const Vector<Real> &center, Real angle,
 }
 
 /* -------------------------------------------------------------------------- */
-void fillColour(const Mesh &mesh, ElementTypeMapArray<Int> &colour) {
-  const ElementTypeMapArray<std::string> &phys_data =
+void fillColour(const Mesh & mesh, ElementTypeMapArray<Int> & colour) {
+  const ElementTypeMapArray<std::string> & phys_data =
       mesh.getData<std::string>("physical_names");
-  const Array<std::string> &txt_colour = phys_data(_triangle_3);
-  auto &id_colour = colour(_triangle_3);
+  const Array<std::string> & txt_colour = phys_data(_triangle_3);
+  auto & id_colour = colour(_triangle_3);
 
   for (Int i = 0; i < txt_colour.size(); ++i) {
     std::string phy_name = txt_colour(i);

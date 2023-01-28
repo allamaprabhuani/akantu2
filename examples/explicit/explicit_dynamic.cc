@@ -38,7 +38,7 @@
 
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 3;
@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
   model.setTimeStep(time_step);
 
   /// boundary and initial conditions
-  Array<Real> &displacement = model.getDisplacement();
-  const Array<Real> &nodes = mesh.getNodes();
+  Array<Real> & displacement = model.getDisplacement();
+  const Array<Real> & nodes = mesh.getNodes();
 
   for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     Real x = nodes(n) - 2;

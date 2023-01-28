@@ -42,7 +42,7 @@ using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize(argc, argv);
   // Defining the mesh
   Mesh beams(2);
@@ -55,11 +55,11 @@ int main(int argc, char *argv[]) {
   auto nb_element = nb_nodes - 1;
 
   MeshAccessor mesh_accessor(beams);
-  Array<Real> &nodes = mesh_accessor.getNodes();
+  Array<Real> & nodes = mesh_accessor.getNodes();
   nodes.resize(nb_nodes);
 
   beams.addConnectivityType(_bernoulli_beam_2);
-  auto &connectivity = mesh_accessor.getConnectivity(_bernoulli_beam_2);
+  auto & connectivity = mesh_accessor.getConnectivity(_bernoulli_beam_2);
   connectivity.resize(nb_element);
 
   nodes.zero();
@@ -93,12 +93,12 @@ int main(int argc, char *argv[]) {
   // Defining the forces
   model.initFull();
 
-  auto &forces = model.getExternalForce();
-  auto &displacement = model.getDisplacement();
-  auto &boundary = model.getBlockedDOFs();
-  const auto &N_M = model.getStress(_bernoulli_beam_2);
+  auto & forces = model.getExternalForce();
+  auto & displacement = model.getDisplacement();
+  auto & boundary = model.getBlockedDOFs();
+  const auto & N_M = model.getStress(_bernoulli_beam_2);
 
-  auto &element_material = model.getElementMaterial(_bernoulli_beam_2);
+  auto & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
   boundary.set(false);
   forces.zero();

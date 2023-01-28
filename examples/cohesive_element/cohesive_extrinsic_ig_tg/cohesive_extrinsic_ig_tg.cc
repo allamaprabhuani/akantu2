@@ -42,26 +42,27 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 class Velocity : public BC::Dirichlet::DirichletFunctor {
 public:
-  explicit Velocity(SolidMechanicsModel &model, Real vel, BC::Axis ax = _x)
+  explicit Velocity(SolidMechanicsModel & model, Real vel, BC::Axis ax = _x)
       : DirichletFunctor(ax), model(model), vel(vel) {
     disp = vel * model.getTimeStep();
   }
 
 public:
   inline void operator()(UInt node, Vector<bool> & /*flags*/,
-                         Vector<Real> &disp, const Vector<Real> &coord) const {
+                         Vector<Real> & disp,
+                         const Vector<Real> & coord) const {
     Real sign = std::signbit(coord(axis)) ? -1. : 1.;
     disp(axis) += sign * this->disp;
     model.getVelocity()(node, axis) = sign * vel;
   }
 
 private:
-  SolidMechanicsModel &model;
+  SolidMechanicsModel & model;
   Real vel, disp;
 };
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]) {
   auto bulk_material_selector =
       std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
                                                               model);
-  auto &&current_selector = model.getMaterialSelector();
+  auto && current_selector = model.getMaterialSelector();
 
   cohesive_material_selector->setFallback(bulk_material_selector);
   bulk_material_selector->setFallback(current_selector);
@@ -97,8 +98,8 @@ int main(int argc, char *argv[]) {
 
   model.assembleMassLumped();
 
-  auto &position = mesh.getNodes();
-  auto &velocity = model.getVelocity();
+  auto & position = mesh.getNodes();
+  auto & velocity = model.getVelocity();
 
   model.applyBC(BC::Dirichlet::FlagOnly(_y), "top");
   model.applyBC(BC::Dirichlet::FlagOnly(_y), "bottom");
@@ -120,8 +121,8 @@ int main(int argc, char *argv[]) {
   Real loading_rate = 0.1;
   // bar_height  = 2
   Real VI = loading_rate * 2 * 0.5;
-  for (auto &&data : zip(make_view(position, spatial_dimension),
-                         make_view(velocity, spatial_dimension))) {
+  for (auto && data : zip(make_view(position, spatial_dimension),
+                          make_view(velocity, spatial_dimension))) {
     std::get<1>(data) = loading_rate * std::get<0>(data);
   }
 

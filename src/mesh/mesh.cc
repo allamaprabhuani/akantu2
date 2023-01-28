@@ -312,9 +312,6 @@ void Mesh::defineMeshParent(const Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
-Mesh::~Mesh() = default;
-
-/* -------------------------------------------------------------------------- */
 void Mesh::read(const std::string & filename, const MeshIOType & mesh_io_type) {
 
   AKANTU_DEBUG_ASSERT(not is_distributed,

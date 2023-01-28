@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-# coding: utf-8
 
-""" structural_mechanics_dynamics.py: Dynamics structural mechanics example"""
+"""Structural_mechanics_dynamics.py: Dynamics structural mechanics example."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -128,7 +127,9 @@ C_.add(M_, 0.00001)
 C_.add(K_, 0.00001)
 
 
-def analytical_solution(time, L, rho, E, A, I, F):   # noqa: E741
+def analytical_solution(time, L=1., rho=1.,
+                        E=1., A=1., I=1., F=1.):   # noqa: E741
+    """Compute the analytical solution of the beam bending at a give time."""
     omega = np.pi**2 / L**2 * np.sqrt(E * I / rho)
     sum = 0.
     N = 110
@@ -167,8 +168,9 @@ for i in range(1, N):
 
 
 def sol(x):
-    return analytical_solution(x, L, mat1.rho, mat1.E,
-                               mat1.A, mat1.I, F)
+    """Wrap the call to the analytical solution using mat1."""
+    return analytical_solution(x, L=L, rho=mat1.rho, E=mat1.E,
+                               A=mat1.A, I=mat1.I, F=F)
 
 
 if has_matplotlib:

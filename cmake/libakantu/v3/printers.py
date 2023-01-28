@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" printers.py: gdb pretty printers"""
+"""printers.py: gdb pretty printers."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -20,7 +20,6 @@ __license__ = "LGPLv3"
 #
 import gdb
 import re
-import sys
 import itertools
 
 try:
@@ -40,7 +39,6 @@ class AkantuPrinter(object):
     @classmethod
     def get_basic_type(cls, value):
         """Determines the type associated to a value"""
-
         _type = value.type
         # If it points to a reference, get the reference.
         if _type.code == gdb.TYPE_CODE_REF:
@@ -52,12 +50,12 @@ class AkantuPrinter(object):
         return _type.tag
 
 
-__akantu_pretty_printers__ = gdb.printing.RegexpCollectionPrettyPrinter("libakantu-v3")
+__akantu_pretty_printers__ = \
+    gdb.printing.RegexpCollectionPrettyPrinter("libakantu-v3")
 
 
 def register_pretty_printer(pretty_printer):
-    "Registers a Pretty Printer"
-
+    """Registers a Pretty Printer"""
     __akantu_pretty_printers__.add_printer(
         pretty_printer.name, pretty_printer.regex, pretty_printer
     )
@@ -69,7 +67,7 @@ class AkaArrayPrinter(AkantuPrinter):
     """Pretty printer for akantu::Array<T>"""
 
     regex = re.compile(
-        "^akantu::Array<(.*?), (true|false)>$|^akantu::ArrayDataLayer<(.*?), \(akantu::ArrayAllocationType\)1>$"
+        "^akantu::Array<(.*?), (true|false)>$|^akantu::ArrayDataLayer<(.*?), \(akantu::ArrayAllocationType\)1>$"  # noqa
     )
     name = "akantu::Array"
 
@@ -181,7 +179,7 @@ class AkaElementTypeMapArrayPrinter(AkantuPrinter):
     """Pretty printer for akantu::ElementTypeMap<Array<T>>"""
 
     regex = re.compile(
-        "^akantu::ElementTypeMap<akantu::Array<(.*?), (true|false)>\*, akantu::(.*?)>$"
+        "^akantu::ElementTypeMap<akantu::Array<(.*?), (true|false)>\*, akantu::(.*?)>$"  # noqa
     )  # noqa: E501,W605
     name = "akantu::ElementTypeMapArray"
 
@@ -229,11 +227,10 @@ class AkaElementTypeMapArrayPrinter(AkantuPrinter):
 
     def to_string(self):
         m = self.regex.search(self.typename)
-        return "ElementTypMapArray<{0}> with " "{1} _not_ghost and {2} _ghost".format(
-            m.group(1),
-            len(RbtreeIterator(self.data)),
-            len(RbtreeIterator(self.ghost_data)),
-        )
+        return "ElementTypMapArray<{0}> with " "{1} _not_ghost and {2} _ghost".format(  # noqa
+                m.group(1),
+                len(RbtreeIterator(self.data)),
+                len(RbtreeIterator(self.ghost_data)))
 
     def children(self):
         # m = self.regex.search(self.typename)
@@ -268,7 +265,8 @@ class AkaTensorPrinter(AkantuPrinter):
             return "{0}".format((self.ptr + m * j + i).dereference())
 
         def line(i, m, n):
-            return "[{0}]".format(", ".join((ij2str(i, j, m) for j in range(n))))
+            return "[{0}]".format(
+                ", ".join((ij2str(i, j, m) for j in range(n))))
 
         m = int(self.dims[0])
         if self.ndims == 1:
@@ -311,7 +309,7 @@ class AkaVectorPrinter(AkaTensorPrinter):
 
 @register_pretty_printer
 class AkaMatrixPrinter(AkaTensorPrinter):
-    """Pretty printer for akantu::Matrix<T>"""
+    """Pretty printer for akantu::Matrix<T>."""
 
     regex = re.compile("^akantu::Matrix<(.*)>$")
     name = "akantu::Matrix"
@@ -332,7 +330,7 @@ class AkaMatrixPrinter(AkaTensorPrinter):
 
 @register_pretty_printer
 class AkaElementPrinter(AkantuPrinter):
-    """Pretty printer for akantu::Element"""
+    """Pretty printer for akantu::Element."""
 
     regex = re.compile("^akantu::Element$")
     name = "akantu::Element"
@@ -362,5 +360,5 @@ class AkaElementPrinter(AkantuPrinter):
 
 
 def register_akantu_printers(obj):
-    "Register Akantu Pretty Printers."
+    """Register Akantu Pretty Printers."""
     gdb.printing.register_pretty_printer(obj, __akantu_pretty_printers__)

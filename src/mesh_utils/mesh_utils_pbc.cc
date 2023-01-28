@@ -44,8 +44,8 @@ namespace akantu {
 /// class that sorts a set of nodes of same coordinates in 'dir' direction
 class CoordinatesComparison {
 public:
-  CoordinatesComparison(const Int dimension, const Int dir_1,
-                        const Int dir_2, Real normalization, Real tolerance,
+  CoordinatesComparison(const Int dimension, const Int dir_1, const Int dir_2,
+                        Real normalization, Real tolerance,
                         const Array<Real> & coords)
       : dim(dimension), dir_1(dir_1), dir_2(dir_2),
         normalization(normalization), tolerance(tolerance),
@@ -159,7 +159,7 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
   // find min and max of surface nodes
   for (auto it = selected_first.begin(); it != selected_first.end(); ++it) {
     for (Int i = 0; i < dim; ++i) {
-        if (first_min[i] > coords(*it, i)) {
+      if (first_min[i] > coords(*it, i)) {
         first_min[i] = coords(*it, i);
       }
       if (first_max[i] < coords(*it, i)) {

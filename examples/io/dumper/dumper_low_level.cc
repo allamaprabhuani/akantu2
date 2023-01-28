@@ -44,7 +44,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
 
   /* This example aims at illustrating how to manipulate low-level methods of
      DumperIOHelper.
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("swiss_train.msh");
 
-  Array<Real> &nodes = mesh.getNodes();
+  Array<Real> & nodes = mesh.getNodes();
   Int nb_nodes = mesh.getNbNodes();
 
   /* swiss_train.msh has the following physical groups that can be viewed with
@@ -79,20 +79,20 @@ int main(int argc, char *argv[]) {
    */
 
   // Grouping nodes and elements belonging to train wheels (=four mesh data)
-  ElementGroup &wheels_elements =
+  ElementGroup & wheels_elements =
       mesh.createElementGroup("wheels", spatial_dimension);
   wheels_elements.append(mesh.getElementGroup("lwheel_1"));
   wheels_elements.append(mesh.getElementGroup("lwheel_2"));
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<Idx> &lnode_1 =
+  const Array<Idx> & lnode_1 =
       (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> &lnode_2 =
+  const Array<Idx> & lnode_2 =
       (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
-  const Array<Idx> &rnode_1 =
+  const Array<Idx> & rnode_1 =
       (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
-  const Array<Idx> &rnode_2 =
+  const Array<Idx> & rnode_2 =
       (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
   /* Note this Array is constructed with three components in order to warp train

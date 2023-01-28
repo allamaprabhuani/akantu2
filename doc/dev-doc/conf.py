@@ -194,7 +194,8 @@ mathjax2_config = {
         "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
     },
 }
-#for old versions
+
+# for old versions
 mathjax_config = mathjax2_config
 
 mathjax3_config = {
@@ -237,7 +238,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Akantu.tex", "Akantu Documentation", "Nicolas Richart", "manual"),
+    (master_doc, "Akantu.tex", "Akantu Documentation",
+     "Nicolas Richart", "manual"),
 ]
 
 
@@ -302,12 +304,12 @@ else:
 
 j2_args = {
     "akantu_source_path": akantu_source_path,
-    #'akantu_version': version.replace('v', ''),
 }
 
 print(akantu_path)
 j2_env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(j2_template_path), undefined=jinja2.DebugUndefined
+    loader=jinja2.FileSystemLoader(j2_template_path),
+    undefined=jinja2.DebugUndefined
 )
 
 j2_template = j2_env.get_template("akantu.dox.j2")

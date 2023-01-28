@@ -35,6 +35,8 @@
 #ifndef AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 #define AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 
+#include "element_class.hh"
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */

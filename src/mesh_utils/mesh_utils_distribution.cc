@@ -48,8 +48,7 @@ namespace MeshUtilsDistribution {
   void distributeMeshCentralized(Mesh & mesh, UInt /*unused*/,
                                  const MeshPartition & partition) {
     MeshAccessor mesh_accessor(mesh);
-    auto & element_synchronizer =
-        mesh_accessor.getElementSynchronizer();
+    auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
     auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
     const auto & comm = element_synchronizer.getCommunicator();
@@ -117,8 +116,7 @@ namespace MeshUtilsDistribution {
   /* ------------------------------------------------------------------------ */
   void distributeMeshCentralized(Mesh & mesh, UInt root) {
     MeshAccessor mesh_accessor(mesh);
-    auto & element_synchronizer =
-        mesh_accessor.getElementSynchronizer();
+    auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
     auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
     const auto & comm = element_synchronizer.getCommunicator();
