@@ -125,6 +125,13 @@ public:
   Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
        const ID & id = "mesh");
 
+  ~Mesh() override;
+
+  Mesh(const Mesh &) = delete;
+  Mesh(Mesh &&) = delete;
+  Mesh & operator=(const Mesh &) = delete;
+  Mesh & operator=(Mesh &&) = delete;
+
   /// read the mesh from a file
   void read(const std::string & filename,
             const MeshIOType & mesh_io_type = _miot_auto);

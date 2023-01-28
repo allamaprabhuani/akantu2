@@ -130,7 +130,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
   postComm(send_dir, send_buffers, send_requests);
 
   // treat the receive requests
-  Idx request_ready;
+  Idx request_ready{-1};
   while ((request_ready = Communicator::waitAny(recv_requests)) != -1) {
     auto & req = recv_requests[request_ready];
     auto proc = req.getSource();
@@ -281,10 +281,8 @@ void SynchronizerImpl<Entity>::computeBufferSizeImpl(
   }
 
   for (auto sr : iterate_send_recv) {
-    for (auto && pair : this->communications.iterateSchemes(sr)) {
-      auto proc = pair.first;
-      const auto & scheme = pair.second;
-      Int size = 0;
+    for (auto && [proc, scheme] : this->communications.iterateSchemes(sr)) {
+      Int size{0};
 #ifndef AKANTU_NDEBUG
       size += this->sanityCheckDataSize(scheme, tag);
 #endif
@@ -503,7 +501,7 @@ void SynchronizerImpl<Entity>::unpackSanityCheckData(
   decltype(proc) recv_proc;
   decltype(rank) recv_rank;
 
-  SynchronizationTag t;
+  SynchronizationTag t{0};
   buffer >> t;
   buffer >> recv_nb_data;
   buffer >> recv_proc;
@@ -547,11 +545,8 @@ void SynchronizerImpl<Entity>::initScatterGatherCommunicationScheme() {
 /* -------------------------------------------------------------------------- */
 template <>
 inline void SynchronizerImpl<Idx>::initScatterGatherCommunicationScheme() {
-  AKANTU_DEBUG_IN();
-
   if (this->nb_proc == 1) {
     entities_changed = false;
-    AKANTU_DEBUG_OUT();
     return;
   }
 
@@ -600,8 +595,6 @@ inline void SynchronizerImpl<Idx>::initScatterGatherCommunicationScheme() {
   entities_changed = false;
   Communicator::waitAll(requests);
   Communicator::freeCommunicationRequest(requests);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

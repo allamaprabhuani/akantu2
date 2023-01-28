@@ -95,10 +95,11 @@ Mesh::Mesh(Int spatial_dimension, const ID & id)
 Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
            const ID & id)
     : Mesh(spatial_dimension, id, Communicator::getStaticCommunicator()) {
+  // NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   this->nodes = nodes;
-
   this->nb_global_nodes = this->nodes->size();
-
+  // NOLINTEND(cppcoreguidelines-prefer-member-initializer)
+  //
   this->nodes_to_elements.resize(nodes->size());
   for (auto & node_set : nodes_to_elements) {
     node_set = std::make_unique<std::set<Element>>();
@@ -106,6 +107,9 @@ Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
 
   this->computeBoundingBox();
 }
+
+/* -------------------------------------------------------------------------- */
+Mesh::~Mesh() = default;
 
 /* -------------------------------------------------------------------------- */
 void Mesh::getBarycenters(Array<Real> & barycenter, ElementType type,
@@ -128,8 +132,8 @@ public:
     mesh.getGlobalConnectivity(global_connectivity);
   }
 
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override {
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override {
     Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
       Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
@@ -165,7 +169,7 @@ public:
 
   AKANTU_GET_MACRO(GlobalConnectivity, (global_connectivity), decltype(auto));
 
-protected:
+private:
   ElementTypeMapArray<Idx> global_connectivity;
 };
 
@@ -547,7 +551,7 @@ void Mesh::getAssociatedElements(const Idx & node,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::fillNodesToElements(Int dimension) {
-  Element element;
+  Element element{ElementNull};
 
   auto nb_nodes = nodes->size();
   this->nodes_to_elements.resize(nb_nodes);
@@ -621,8 +625,8 @@ void Mesh::eraseElements(const Array<Element> & elements) {
       auto nb_element = mesh.getNbElement(el.type, el.ghost_type);
       auto & numbering =
           new_numbering.alloc(nb_element, 1, el.type, el.ghost_type);
-      for (auto && pair : enumerate(numbering)) {
-        std::get<1>(pair) = std::get<0>(pair);
+      for (auto && [i, numb] : enumerate(numbering)) {
+        numb = i;
       }
     }
 

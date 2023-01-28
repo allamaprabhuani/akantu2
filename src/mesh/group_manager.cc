@@ -41,9 +41,12 @@
 #include "element_synchronizer.hh"
 #include "mesh.hh"
 #include "mesh_accessor.hh"
+#include "mesh_global_data_updater.hh"
 #include "mesh_iterators.hh"
 #include "mesh_utils.hh"
 #include "node_group.hh"
+#include "node_synchronizer.hh"
+#include "periodic_node_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <iterator>
@@ -238,7 +241,7 @@ public:
                       std::string cluster_name_prefix,
                       ElementTypeMapArray<Idx> & element_to_fragment,
                       const ElementSynchronizer & element_synchronizer,
-                      UInt nb_cluster)
+                      Int nb_cluster)
       : group_manager(group_manager), element_dimension(element_dimension),
         cluster_name_prefix(std::move(cluster_name_prefix)),
         element_to_fragment(element_to_fragment),
@@ -255,7 +258,7 @@ public:
     comm.allGather(nb_cluster_per_proc);
 
     starting_index = std::accumulate(nb_cluster_per_proc.begin(),
-                                     nb_cluster_per_proc.begin() + rank, 0U);
+                                     nb_cluster_per_proc.begin() + rank, 0);
 
     auto global_nb_fragment =
         std::accumulate(nb_cluster_per_proc.begin() + rank,
@@ -266,17 +269,17 @@ public:
                                          SynchronizationTag::_gm_clusters);
 
     /// count total number of pairs
-    Array<int> nb_pairs(nb_proc); // This is potentially a bug for more than
+    Array<Int> nb_pairs(nb_proc); // This is potentially a bug for more than
     // 2**31 pairs, but due to a all gatherv after
     // it must be int to match MPI interfaces
-    nb_pairs(rank) = distant_ids.size();
+    nb_pairs(rank) = Int(distant_ids.size());
     comm.allGather(nb_pairs);
 
     auto total_nb_pairs = std::accumulate(nb_pairs.begin(), nb_pairs.end(), 0);
 
     /// generate pairs global array
     auto local_pair_index =
-        std::accumulate(nb_pairs.data(), nb_pairs.data() + rank, 0);
+        std::accumulate(nb_pairs.begin(), nb_pairs.end() + rank, 0);
 
     Array<Int> total_pairs(total_nb_pairs, 2);
 
@@ -416,15 +419,15 @@ private:
 
 private:
   GroupManager & group_manager;
-  Int element_dimension;
+  Int element_dimension{-1};
   std::string cluster_name_prefix;
   ElementTypeMapArray<Idx> & element_to_fragment;
   const ElementSynchronizer & element_synchronizer;
 
-  Int nb_cluster;
+  Int nb_cluster{0};
   DistantIDs distant_ids;
 
-  Idx starting_index;
+  Idx starting_index{0};
 }; // namespace akantu
 
 /* -------------------------------------------------------------------------- */
