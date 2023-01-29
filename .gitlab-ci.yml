@@ -186,7 +186,7 @@ test:ubuntu_lts_gcc_valgrind:
     - .tests
   needs:
     - job: build_tests:ubuntu_lts_gcc_valgrind
-   
+
 # ------------------------------------------------------------------------------
 # Manylinux to build python packages
 # ------------------------------------------------------------------------------
@@ -344,14 +344,14 @@ cq:clang_tidy:
     - .clang_tools
   script:
     - test/ci/scripts/cq
-            -x third-party
-            -x extra-packages
-            -x pybind11
-            -x test
-            -x build
-            ${FILE_LIST_ARG}
-            clang-tidy
-            -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
+      -x third-party
+      -x extra-packages
+      -x pybind11
+      -x test
+      -x build
+      ${FILE_LIST_ARG}
+      clang-tidy
+      -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -363,11 +363,11 @@ cq:clang_format:
     - .clang_tools
   script:
     - test/ci/scripts/cq
-            -x third-party
-            -x extra-packages
-            -x build
-            clang-format
-            -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
+      -x third-party
+      -x extra-packages
+      -x build
+      clang-format
+      -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -408,6 +408,8 @@ cq:merge_code_quality:
   artifacts:
     reports:
       codequality: [gl-codequality.json]
+    paths:
+      - gl-codequality.json
 
 # ------------------------------------------------------------------------------
 # Deploy pages
