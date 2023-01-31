@@ -334,7 +334,7 @@ cq:code_quality:
   extends:
     - .code_quality_gitlab_template
   needs:
-    - job: configure:debian_bullseye_clang
+    - job: build_libs:debian_bullseye_clang
   artifacts:
     paths:
       - gl-code-quality-report.json

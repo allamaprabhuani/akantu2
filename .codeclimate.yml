@@ -7,6 +7,7 @@ checks:
   structure:
     enabled: true
     exclude_patterns:
+      - "cmake/"
       - "test/"
       - "examples/"
 
@@ -21,9 +22,13 @@ plugins:
   pylint:
     enabled: true
     exclude_patterns:
-      - "test/test_fe_engine/py_engine/py_engine.py"
       - "cmake"
       - "doc"
+      - "test/test_fe_engine/py_engine/py_engine.py"
+      - "test/ci"
+    PYTHONPATH:
+      - python
+      - build/python
   pep8:
     enabled: true
     exclude_patterns:
