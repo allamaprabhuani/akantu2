@@ -229,7 +229,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   # ADD here the symbols needed to compile
   set(_mumps_dep_compile_MPI mpi.h)
   # ADD here the symbols needed to link
-  set(_mumps_dep_link_MPI mpi_send mpi_type_free mpi_allreduce)
+  set(_mumps_dep_link_MPI mpi_send mpi_type_free mpi_allreduce MPI_)
   set(_mumps_dep_link_BLAS ${_first_precision}gemm)
   set(_mumps_dep_link_ScaLAPACK numroc)
   set(_mumps_dep_link_LAPACK ilaenv)
@@ -240,9 +240,8 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_link_pord SPACE_ordering)
   set(_mumps_dep_link_METIS metis_nodend)
   set(_mumps_dep_link_Threads pthread_create)
-  set(_mumps_dep_link_OpenMP GOMP_loop_end_nowait)
+  set(_mumps_dep_link_OpenMP omp_ GOMP_loop_end_nowait)
   set(_mumps_dep_link_gfortran gfortran)
-  # TODO find missing symbols for IOMP
   set(_mumps_dep_link_Math lround)
   set(_mumps_dep_link_ParMETIS ParMETIS_V3_NodeND)
 

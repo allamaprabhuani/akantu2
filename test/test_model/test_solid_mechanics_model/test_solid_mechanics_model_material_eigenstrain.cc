@@ -89,7 +89,7 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize("material_elastic_plane_strain.dat", argc, argv);
 
   Int dim = 3;
@@ -109,21 +109,21 @@ int main(int argc, char *argv[]) {
 
   // model.getNewSolver("static", TimeStepSolverType::_static,
   // NonLinearSolverType::_newton_raphson_modified);
-  auto &solver = model.getNonLinearSolver("static");
+  auto & solver = model.getNonLinearSolver("static");
   solver.set("threshold", 2e-4);
   solver.set("max_iterations", 2);
   solver.set("convergence_type", SolveConvergenceCriteria::_residual);
 
-  const Array<Real> &coordinates = mesh.getNodes();
-  Array<Real> &displacement = model.getDisplacement();
-  Array<bool> &boundary = model.getBlockedDOFs();
+  const Array<Real> & coordinates = mesh.getNodes();
+  Array<Real> & displacement = model.getDisplacement();
+  Array<bool> & boundary = model.getBlockedDOFs();
   MeshUtils::buildFacets(mesh);
 
   mesh.createBoundaryGroupFromGeometry();
 
   // Loop over (Sub)Boundar(ies)
-  for (auto &group : mesh.iterateElementGroups()) {
-    for (const auto &n : group.getNodeGroup()) {
+  for (auto & group : mesh.iterateElementGroups()) {
+    for (const auto & n : group.getNodeGroup()) {
       std::cout << "Node " << n << std::endl;
       for (Int i = 0; i < dim; ++i) {
         displacement(n, i) = alpha(i, 0);
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Apply eigenstrain in each element */
   /* ------------------------------------------------------------------------ */
-  Array<Real> &eigengradu_vect =
+  Array<Real> & eigengradu_vect =
       model.getMaterial(0).getInternal<Real>("eigen_grad_u")(element_type);
   auto eigengradu_it = eigengradu_vect.begin(dim, dim);
   auto eigengradu_end = eigengradu_vect.end(dim, dim);
@@ -158,7 +158,8 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
-  const Array<Real> &stress_vect = model.getMaterial(0).getStress(element_type);
+  const Array<Real> & stress_vect =
+      model.getMaterial(0).getStress(element_type);
 
   auto stress_it = stress_vect.begin(dim, dim);
   auto stress_end = stress_vect.end(dim, dim);
@@ -169,7 +170,7 @@ int main(int argc, char *argv[]) {
   Real stress_tolerance = 1e-13;
 
   for (; stress_it != stress_end; ++stress_it) {
-    const auto &stress = *stress_it;
+    const auto & stress = *stress_it;
     Matrix<Real> diff(dim, dim);
 
     diff = stress;

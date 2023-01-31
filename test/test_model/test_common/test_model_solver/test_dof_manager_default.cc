@@ -44,7 +44,7 @@ using namespace akantu;
  */
 class MySolverCallback : public SolverCallback {
 public:
-  MySolverCallback(Real F, DOFManagerDefault &dof_manager, Int nb_dofs = 3)
+  MySolverCallback(Real F, DOFManagerDefault & dof_manager, Int nb_dofs = 3)
       : dof_manager(dof_manager), dispacement(nb_dofs, 1, "disp"),
         blocked(nb_dofs, 1), forces(nb_dofs, 1), nb_dofs(nb_dofs) {
     dof_manager.registerDOFs("disp", dispacement, _dst_generic);
@@ -58,11 +58,11 @@ public:
     blocked(0, _x) = true;
   }
 
-  void assembleMatrix(const ID &matrix_id) override {
+  void assembleMatrix(const ID & matrix_id) override {
     if (matrix_id != "K")
       return;
 
-    auto &K = dynamic_cast<SparseMatrixAIJ &>(dof_manager.getMatrix("K"));
+    auto & K = dynamic_cast<SparseMatrixAIJ &>(dof_manager.getMatrix("K"));
     K.zero();
 
     for (Int i = 1; i < nb_dofs - 1; ++i)
@@ -77,7 +77,7 @@ public:
     K *= nb_dofs - 1;
   }
 
-  MatrixType getMatrixType(const ID &matrix_id) const override {
+  MatrixType getMatrixType(const ID & matrix_id) const override {
     if (matrix_id == "K")
       return _symmetric;
     return _mt_not_defined;
@@ -91,7 +91,7 @@ public:
   void predictor() override {}
   void corrector() override {}
 
-  DOFManagerDefault &dof_manager;
+  DOFManagerDefault & dof_manager;
   Array<Real> dispacement;
   Array<bool> blocked;
   Array<Real> forces;
@@ -99,15 +99,15 @@ public:
   Int nb_dofs;
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
   DOFManagerDefault dof_manager("test_dof_manager");
   MySolverCallback callback(10., dof_manager, 11);
 
-  NonLinearSolver &nls =
+  NonLinearSolver & nls =
       dof_manager.getNewNonLinearSolver("my_nls", NonLinearSolverType::_linear);
-  TimeStepSolver &tss = dof_manager.getNewTimeStepSolver(
+  TimeStepSolver & tss = dof_manager.getNewTimeStepSolver(
       "my_tss", TimeStepSolverType::_static, nls, callback);
   tss.setIntegrationScheme("disp", IntegrationSchemeType::_pseudo_time);
   tss.solveStep(callback);

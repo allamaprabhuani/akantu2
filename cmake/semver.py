@@ -64,12 +64,14 @@ semver_re = re.compile(
 
 
 def _parse_semver(version):
-    pieces = {}
     semver_mo = semver_re.search(version)
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
+    if not semver_mo:
+        return {}
+
+    pieces = {}
+    for p in ["major", "minor", "patch", "prerelease", "build"]:
+        if semver_mo.group(p):
+            pieces[p] = semver_mo.group(p)
     return pieces
 
 
@@ -96,10 +98,12 @@ def get_git_version():
         return None
 
     semver_mo = semver_re.search(pieces["tag"][1:])
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
+    if not semver_mo:
+        return pieces
+
+    for p in ["major", "minor", "patch", "prerelease", "build"]:
+        if semver_mo.group(p):
+            pieces[p] = semver_mo.group(p)
 
     return pieces
 

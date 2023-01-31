@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-""" structural_mechanics.py: Simple structural mechanics example"""
+"""structural_mechanics.py: Simple structural mechanics example."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -18,9 +17,9 @@ __license__ = "LGPLv3"
 import numpy as np
 try:
     import matplotlib.pyplot as plt
-    has_matplotlib = True
+    HAS_MATPLOTLIB = True
 except ImportError:
-    has_matplotlib = False
+    HAS_MATPLOTLIB = False
 import akantu as aka
 
 # ### Creating the Mesh
@@ -136,7 +135,7 @@ for d in disps:
     maxMin[0] = max(np.max(d), maxMin[0])
     maxMin[1] = min(np.min(d), maxMin[1])
 
-if has_matplotlib:
+if HAS_MATPLOTLIB:
     plt.plot(disp1, times, color='g', label="middle node")
     plt.plot(disp2, times, color='b', label="right node")
 

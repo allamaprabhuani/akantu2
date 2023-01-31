@@ -1,28 +1,33 @@
 #!/usr/bin/env python3
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
+"""Example of custom cohesive material written in python."""
 
 import numpy as np
 import akantu as aka
 
 spatial_dimension = 2
 
-# ------------------------------------------------------------------------------
+
 class LinearCohesive(aka.MaterialCohesive):
     """Material Cohesive Linear."""
 
     def __init__(self, model, _id):
+        """Construct the material and register the parameters to the parser."""
         super().__init__(model, _id)
         super().registerParamReal(
             "G_c", aka._pat_readable | aka._pat_parsable, "Fracture energy"
         )
-        super().registerParamReal("beta", aka._pat_readable | aka._pat_parsable, "beta")
+        super().registerParamReal("beta",
+                                  aka._pat_readable | aka._pat_parsable)
         self.registerInternalReal("delta_max", 1)
-        self.beta = 0
-        self.sigma_c = 0
-        self.delta_c = 0
+        self.beta = 0.
+        self.sigma_c = 0.
+        self.delta_c = 0.
+        self.G_c = 0.
 
     def initMaterial(self):
+        """Initialize the parameters for the material."""
         super().initMaterial()
         self.sigma_c = self.getReal("sigma_c")
         self.G_c = self.getReal("G_c")
@@ -30,6 +35,7 @@ class LinearCohesive(aka.MaterialCohesive):
         self.delta_c = 2 * self.G_c / self.sigma_c
 
     def checkInsertion(self, check_only):
+        """Check if need to insert a cohesive element."""
         model = self.getModel()
         facets = self.getFacetFilter()
         inserter = model.getElementInserter()
@@ -87,6 +93,7 @@ class LinearCohesive(aka.MaterialCohesive):
 
     # constitutive law
     def computeTraction(self, normals, el_type, ghost_type):
+        """Compute the traction for a given opening."""
         openings = self.getOpening(el_type, ghost_type)
         tractions = self.getTraction(el_type, ghost_type)
 
@@ -100,7 +107,8 @@ class LinearCohesive(aka.MaterialCohesive):
             delta_s = opening - delta_n
 
             delta = (
-                self.beta * np.linalg.norm(delta_s) ** 2 + np.linalg.norm(delta_n) ** 2
+                self.beta * np.linalg.norm(delta_s) ** 2 +
+                np.linalg.norm(delta_n) ** 2
             )
 
             delta_max[el] = max(delta_max[el], delta)
@@ -113,8 +121,8 @@ class LinearCohesive(aka.MaterialCohesive):
             )
 
 
-# register material to the MaterialFactory
 def allocator(_dim, unused, model, _id):
+    """Register the material to the material factory."""
     return LinearCohesive(model, _id)
 
 

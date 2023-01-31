@@ -44,7 +44,7 @@ const Int spatial_dimension = 2;
 void applyDisplacement(SolidMechanicsModel &, Real &);
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
 
   std::ofstream os("data-explicit.csv");
   os << "#strain stress damage analytical_sigma analytical_damage error_stress "
@@ -57,8 +57,8 @@ int main(int argc, char *argv[]) {
   mesh.read("test_one_element.msh");
 
   CouplerSolidPhaseField coupler(mesh);
-  auto &model = coupler.getSolidMechanicsModel();
-  auto &phase = coupler.getPhaseFieldModel();
+  auto & model = coupler.getSolidMechanicsModel();
+  auto & phase = coupler.getPhaseFieldModel();
 
   model.initFull(_analysis_method = _explicit_lumped_mass);
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
   Real stable_time_step = model.getStableTimeStep() * time_factor;
   model.setTimeStep(stable_time_step);
 
-  auto &&selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
+  auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
       "physical_names", phase);
   phase.setPhaseFieldSelector(selector);
   phase.initFull(_analysis_method = _static);
@@ -81,13 +81,13 @@ int main(int argc, char *argv[]) {
   Int nbSteps = 1000;
   Real increment = 1e-4;
 
-  auto &stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
-  auto &damage = model.getMaterial(0).getArray<Real>("damage", _quadrangle_4);
+  auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
+  auto & damage = model.getMaterial(0).getArray<Real>("damage", _quadrangle_4);
 
   Real analytical_damage{0.};
   Real analytical_sigma{0.};
 
-  auto &phasefield = phase.getPhaseField(0);
+  auto & phasefield = phase.getPhaseField(0);
 
   const Real E = phasefield.getParam("E");
   const Real nu = phasefield.getParam("nu");
@@ -132,11 +132,11 @@ int main(int argc, char *argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void applyDisplacement(SolidMechanicsModel &model, Real &increment) {
-  auto &displacement = model.getDisplacement();
+void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
+  auto & displacement = model.getDisplacement();
 
-  auto &positions = model.getMesh().getNodes();
-  auto &blocked_dofs = model.getBlockedDOFs();
+  auto & positions = model.getMesh().getNodes();
+  auto & blocked_dofs = model.getBlockedDOFs();
 
   for (Int n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -0.5) {

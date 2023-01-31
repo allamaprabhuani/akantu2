@@ -52,7 +52,7 @@
 #include "structural_element_bernoulli_beam_3.hh"
 #include "structural_element_kirchhoff_shell.hh"
 /* -------------------------------------------------------------------------- */
-//#include "structural_mechanics_model_inline_impl.hh"
+// #include "structural_mechanics_model_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -112,7 +112,6 @@ void StructuralMechanicsModel::initFullImpl(const ModelOptions & options) {
   // Initializing stresses
   ElementTypeMap<UInt> stress_components;
 
-  /// TODO this is ugly af, maybe add a function to FEEngine
   for (auto && type : mesh.elementTypes(_spatial_dimension = _all_dimensions,
                       _element_kind = _ek_structural)) {
     // Getting number of components for each element type
@@ -138,7 +137,7 @@ void StructuralMechanicsModel::initFullImpl(const ModelOptions & options) {
 /* -------------------------------------------------------------------------- */
 
 void StructuralMechanicsModel::initFEEngineBoundary() {
-  /// TODO: this function should not be reimplemented
+  /// this function should not be reimplemented
   /// we're just avoiding a call to Model::initFEEngineBoundary()
 }
 
