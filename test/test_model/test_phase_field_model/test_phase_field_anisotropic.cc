@@ -7,6 +7,7 @@
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
+#include <cmath>
 #include <fstream>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
@@ -75,9 +76,9 @@ int main(int argc, char * argv[]) {
     if (s < 500) {
       axial_strain = increment * s;
     } else if (s < 1000) {
-      axial_strain = (1500 - 2 * s) * increment;
+      axial_strain = (1500 - 2 * double(s)) * increment;
     } else {
-      axial_strain = (3 * s - 3500) * increment;
+      axial_strain = (3 * double(s) - 3500) * increment;
     }
     applyDisplacement(model, axial_strain);
 
@@ -100,7 +101,7 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if (error_damage > 1e-8 and error_stress > 1e-8) {
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and std::abs(axial_strain) < 1e-13) {
       return EXIT_FAILURE;
     }
 

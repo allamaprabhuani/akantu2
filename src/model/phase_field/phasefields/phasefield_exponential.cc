@@ -48,10 +48,6 @@ void PhaseFieldExponential::updateInternalParameters() {
 
   for (const auto & type :
        element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    auto & elem_filter = element_filter(type, _not_ghost);
-    if (elem_filter.empty()) {
-      continue;
-    }
     for (auto && tuple : zip(make_view(this->damage_energy(type, _not_ghost),
                                        spatial_dimension, spatial_dimension),
                              this->g_c(type, _not_ghost))) {

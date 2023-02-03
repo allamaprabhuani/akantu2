@@ -75,10 +75,10 @@ blocked_dofs = blocked_dofs.reshape(nb_dofs)
 
 damage = phase.getDamage()
 
-tolerance = 1e-6
+tolerance = 1e-5
 
-steps = 1500
-increment = 1e-5
+steps = 1000
+increment = 5e-6
 
 for n in range(steps):
     print("Computing iteration " + str(n + 1) + "/" + str(steps))

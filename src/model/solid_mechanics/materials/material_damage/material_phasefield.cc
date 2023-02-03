@@ -63,7 +63,7 @@ void MaterialPhaseField<spatial_dimension>::computeStress(
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
-  sigma *= (1. - *dam) * (1. - *dam);
+  sigma *= (1. - *dam) * (1. - *dam) + eta;
 
   ++dam;
 
