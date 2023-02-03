@@ -155,7 +155,7 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
     }
   }
 
-  phi_quad = 0.5 * sigma_plus.doubleDot(strain_quad);
+  phi_quad = 0.5 * sigma_plus.doubleDot(strain_plus);
   if (phi_quad < phi_hist_quad) {
     phi_quad = phi_hist_quad;
   }

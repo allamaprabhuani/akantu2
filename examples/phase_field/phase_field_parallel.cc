@@ -85,11 +85,11 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "bottom");
   model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
 
-  phase.setBaseName("phase_notch_parallel");
-  //model.addDumpField("stress");
-  //model.addDumpField("grad_u");
-  //model.addDumpFieldVector("displacement");
-  phase.addDumpField("damage");
+  model.setBaseName("phase_notch_parallel");
+  model.addDumpField("stress");
+  model.addDumpField("grad_u");
+  model.addDumpFieldVector("displacement");
+  model.addDumpField("damage");
   if (mesh.isDistributed()) {
     //phase.addDumpField("partitions");
   }
@@ -123,7 +123,7 @@ int main(int argc, char * argv[]) {
     coupler.solve();
 
     if (s % 100 == 0) {
-      phase.dump();
+      model.dump();
     }
   }
 

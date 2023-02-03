@@ -414,7 +414,7 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     auto & dam = std::get<0>(values);
     auto & prev_dam = std::get<1>(values);
 
-    dam -= prev_dam;
+    // dam -= prev_dam;
     prev_dam = dam;
   }
 }

@@ -165,17 +165,17 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  Real damage_limit = 0.08;
-  auto global_nb_clusters =
-    mesh.createClusters(spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
+  // Real damage_limit = 0.08;
+  // auto global_nb_clusters =
+  //   mesh.createClusters(spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
 
-  
-  auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
+  // 
+  // auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
 
-  model.dumpGroup("crack_0");
-  
-  std::cout << global_nb_clusters << std::endl;
-  std::cout << nb_fragment << std::endl;
+  // model.dumpGroup("crack");
+  // 
+  // std::cout << global_nb_clusters << std::endl;
+  // std::cout << nb_fragment << std::endl;
   
   finalize();
   return EXIT_SUCCESS;
