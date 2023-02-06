@@ -64,11 +64,8 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  // inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-  //                                Real & dam);
 
   /// compute the tangent stiffness matrix for a given quadrature point
-  // inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
 
   void computeEffectiveDamage(ElementType el_type,
                               GhostType ghost_type = _not_ghost);
