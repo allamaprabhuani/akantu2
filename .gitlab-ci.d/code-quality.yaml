@@ -9,10 +9,10 @@
 .code_quality_gitlab_template:
   extends:
     - .code_quality_common
-  image: docker:20.10.18
+  image: docker:20.10.21
   allow_failure: true
   services:
-    - docker:20.10.18-dind
+    - docker:20.10.21-dind
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
