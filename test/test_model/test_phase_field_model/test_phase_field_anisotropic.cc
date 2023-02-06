@@ -101,7 +101,12 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if ((error_damage > 1e-8 or error_stress > 1e-8) and std::abs(axial_strain) < 1e-13) {
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+        std::abs(axial_strain) < 1e-13) {
+      std::cerr << std::left << std::setw(15)
+                << "Error damage: " << error_damage << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error stress: " << error_stress << std::endl;
       return EXIT_FAILURE;
     }
 
