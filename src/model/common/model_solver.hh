@@ -61,13 +61,12 @@ class ModelSolver : public Parsable,
   /* ------------------------------------------------------------------------ */
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
-  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-              std::shared_ptr<DOFManager> dof_manager);
 
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
-  std::shared_ptr<DOFManager> initDOFManager();
+  std::shared_ptr<DOFManager>
+  initDOFManager(std::shared_ptr<DOFManager> dof_manager = nullptr);
   /// initialize the dof manager based on the used chosen solver type
   std::shared_ptr<DOFManager> initDOFManager(const ID & solver_type);
 

@@ -1,9 +1,9 @@
-FROM quay.io/pypa/manylinux2010_x86_64 as builder
+FROM quay.io/pypa/manylinux2014_x86_64 as builder
 MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 ENV LANG en_US.UTF-8
 
-RUN yum install -y xz zlib-devel
+RUN yum install -y xz zlib-devel openssl-devel
 # What we want to install and how we want to install it
 # is specified in a manifest file (spack.yaml)
 RUN mkdir -p /softs/spack-environment
@@ -14,7 +14,7 @@ RUN mkdir -p /softs && chown -R app:app /softs
 
 USER app
 
-RUN cd /softs && git clone https://github.com/spack/spack.git -b v0.16.3
+RUN cd /softs && git clone https://github.com/spack/spack.git -b v0.19.0
 
 RUN cd /softs && git clone https://gitlab.com/epfl-lsms/spack-packages.git
 
@@ -39,7 +39,7 @@ RUN cd /softs/spack-environment && \
     /opt/python/cp36-cp36m/bin/python /softs/spack/bin/spack env activate --sh -d . >> /etc/profile.d/z10_spack_environment.sh
 
 # Bare OS image to run the installed executables
-FROM quay.io/pypa/manylinux2010_x86_64
+FROM quay.io/pypa/manylinux2014_x86_64
 
 RUN yum install -y xz zlib-devel ccache
 
