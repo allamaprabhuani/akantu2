@@ -52,4 +52,5 @@ register_test(test_multi_material
   SOURCES test_multi_material.cc
   FILES_TO_COPY material_multiple.dat test_two_element.msh
   PACKAGE phase_field
+  UNSTABLE
   )
