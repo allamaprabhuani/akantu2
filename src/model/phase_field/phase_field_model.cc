@@ -45,18 +45,21 @@
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
+#include <utility>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
-				 std::shared_ptr<DOFManager> dof_manager,
+                                 std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
-  : Model(mesh, model_type, std::move(dof_manager), dim, id),
-    phasefield_index("phasefield index", id),
-    phasefield_local_numbering("phasefield local numbering", id) {
-  
+    : Model(mesh, model_type, dim, id),
+      phasefield_index("phasefield index", id),
+      phasefield_local_numbering("phasefield local numbering", id) {
+
   AKANTU_DEBUG_IN();
+
+  this->initDOFManager(std::move(dof_manager));
 
   this->registerFEEngineObject<FEEngineType>("PhaseFieldFEEngine", mesh,
                                              Model::spatial_dimension);
@@ -72,11 +75,12 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_phasefield_id);
+    this->registerSynchronizer(synchronizer,
+                               SynchronizationTag::_phasefield_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -209,12 +213,11 @@ void PhaseFieldModel::initPhaseFields() {
     /// init internals properties
     phasefield->initPhaseField();
   }
-
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-			       const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<UInt> * filter) {
 
   for_each_element(
       mesh,
@@ -287,13 +290,11 @@ FEEngine & PhaseFieldModel::getFEEngineBoundary(const ID & name) {
   return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<FEEngineType>(name));
 }
 
-
 /* -------------------------------------------------------------------------- */
 TimeStepSolverType PhaseFieldModel::getDefaultSolverType() const {
   return TimeStepSolverType::_static;
 }
 
-  
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 PhaseFieldModel::getDefaultSolverID(const AnalysisMethod & method) {
@@ -350,7 +351,7 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
   return options;
 }
 
-  /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Real PhaseFieldModel::getEnergy() {
   AKANTU_DEBUG_IN();
 
@@ -370,11 +371,10 @@ Real PhaseFieldModel::getEnergy() {
 Real PhaseFieldModel::getEnergy(ElementType type, UInt index) {
   AKANTU_DEBUG_IN();
 
-
   UInt phase_index = this->phasefield_index(type, _not_ghost)(index);
-  UInt phase_loc_num = this->phasefield_local_numbering(type, _not_ghost)(index);
-  Real energy =
-      this->phasefields[phase_index]->getEnergy(type, phase_loc_num);
+  UInt phase_loc_num =
+      this->phasefield_local_numbering(type, _not_ghost)(index);
+  Real energy = this->phasefields[phase_index]->getEnergy(type, phase_loc_num);
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -395,7 +395,6 @@ Real PhaseFieldModel::getEnergy(const ID & group_id) {
 
   return energy;
 }
-
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::beforeSolveStep() {
@@ -447,13 +446,13 @@ void PhaseFieldModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble the internal forces");
 
   this->internal_force->zero();
-  
+
   this->synchronize(SynchronizationTag::_pfm_damage);
 
   for (auto & phasefield : phasefields) {
     phasefield->computeAllDrivingForces(_not_ghost);
   }
-  
+
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
   for (auto & phasefield : phasefields) {
@@ -465,7 +464,6 @@ void PhaseFieldModel::assembleInternalForces() {
   for (auto & phasefield : phasefields) {
     phasefield->assembleInternalForces(_ghost);
   }
-  
 }
 
 /* -------------------------------------------------------------------------- */
@@ -490,7 +488,7 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
 
   switch (tag) {
   case SynchronizationTag::_phasefield_id: {
-    size += elements.size() * sizeof(UInt); 
+    size += elements.size() * sizeof(UInt);
     break;
   }
   case SynchronizationTag::_for_dump: {
@@ -520,7 +518,7 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                             getFEEngine());
     break;
   }
-   case SynchronizationTag::_for_dump: {
+  case SynchronizationTag::_for_dump: {
     packNodalDataHelper(*damage, buffer, elements, mesh);
     break;
   }
@@ -532,15 +530,13 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
     AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
-
-
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
                                  const SynchronizationTag & tag) {
-AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_IN();
 
   switch (tag) {
   case SynchronizationTag::_phasefield_id: {
@@ -572,16 +568,14 @@ AKANTU_DEBUG_IN();
   }
   }
 
-
   AKANTU_DEBUG_OUT();
-
 }
 
 /* -------------------------------------------------------------------------- */
 UInt PhaseFieldModel::getNbData(const Array<UInt> & dofs,
                                 const SynchronizationTag & tag) const {
   UInt size = 0;
-  
+
   switch (tag) {
   case SynchronizationTag::_for_dump: {
     size += sizeof(Real);
@@ -631,7 +625,7 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
     break;
   }
   default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 }
@@ -686,8 +680,7 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
 /* -------------------------------------------------------------------------- */
 ElementTypeMapArray<Real> &
 PhaseFieldModel::flattenInternal(const std::string & field_name,
-				 ElementKind kind,
-				 const GhostType ghost_type) {
+                                 ElementKind kind, const GhostType ghost_type) {
   auto key = std::make_pair(field_name, kind);
 
   ElementTypeMapArray<Real> * internal_flat;
@@ -720,26 +713,22 @@ PhaseFieldModel::flattenInternal(const std::string & field_name,
   return *internal_flat;
 }
 
-
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::inflateInternal(
-    const std::string & field_name, const ElementTypeMapArray<Real> & field,
-    ElementKind kind, GhostType ghost_type) {
+void PhaseFieldModel::inflateInternal(const std::string & field_name,
+                                      const ElementTypeMapArray<Real> & field,
+                                      ElementKind kind, GhostType ghost_type) {
 
   for (auto & phasefield : phasefields) {
     if (phasefield->isInternal<Real>(field_name, kind)) {
       phasefield->inflateInternal(field_name, field, ghost_type, kind);
-    }
-    else {
+    } else {
       AKANTU_ERROR("A internal of name \'"
-                 << field_name
-                 << "\' has not been defined in the phasefield");
+                   << field_name
+                   << "\' has not been defined in the phasefield");
     }
   }
 }
 
-
-  
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
