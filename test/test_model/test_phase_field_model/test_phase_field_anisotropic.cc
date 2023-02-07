@@ -1,38 +1,13 @@
-/**
- * @file   test_phase_solid_explicit.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Sun Feb 28 2021
- * @date last modification: Fri Jun 25 2021
- *
- * @brief  test of the class PhaseFieldModel on the 2d square
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
- *
- * Akantu is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- */
 
-/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "coupler_solid_phasefield.hh"
+#include "material.hh"
+#include "material_phasefield.hh"
 #include "non_linear_solver.hh"
+#include "phase_field_model.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
+#include <cmath>
 #include <fstream>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
@@ -46,10 +21,8 @@ void applyDisplacement(SolidMechanicsModel &, Real &);
 
 int main(int argc, char * argv[]) {
 
-  std::ofstream os("data-explicit.csv");
-  os << "#strain stress damage analytical_sigma analytical_damage error_stress "
-        "error_damage"
-     << std::endl;
+  std::ofstream os("data.csv");
+  os << "#strain stress damage analytical_sigma analytical_damage" << std::endl;
 
   initialize("material_coupling.dat", argc, argv);
 
@@ -60,11 +33,7 @@ int main(int argc, char * argv[]) {
   auto & model = coupler.getSolidMechanicsModel();
   auto & phase = coupler.getPhaseFieldModel();
 
-  model.initFull(_analysis_method = _explicit_lumped_mass);
-
-  Real time_factor = 0.8;
-  Real stable_time_step = model.getStableTimeStep() * time_factor;
-  model.setTimeStep(stable_time_step);
+  model.initFull(_analysis_method = _static);
 
   auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
       "physical_names", phase);
@@ -78,7 +47,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1000;
+  UInt nbSteps = 1500;
   Real increment = 1e-4;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
@@ -97,24 +66,43 @@ int main(int argc, char * argv[]) {
   const Real l0 = phasefield.getParam("l0");
 
   Real error_stress{0.};
+
   Real error_damage{0.};
 
+  Real max_strain{0.};
+
   for (UInt s = 0; s < nbSteps; ++s) {
-    Real axial_strain = increment * s;
+    Real axial_strain{0.};
+    if (s < 500) {
+      axial_strain = increment * s;
+    } else if (s < 1000) {
+      axial_strain = (1500 - 2 * double(s)) * increment;
+    } else {
+      axial_strain = (3 * double(s) - 3500) * increment;
+    }
     applyDisplacement(model, axial_strain);
 
-    coupler.solve("explicit_lumped", "static");
+    if (axial_strain > max_strain) {
+      max_strain = axial_strain;
+    }
 
-    analytical_damage = axial_strain * axial_strain * c22 /
-                        (gc / l0 + axial_strain * axial_strain * c22);
-    analytical_sigma =
-        c22 * axial_strain * (1 - analytical_damage) * (1 - analytical_damage);
+    coupler.solve("static", "static");
+
+    analytical_damage = max_strain * max_strain * c22 /
+                        (gc / l0 + max_strain * max_strain * c22);
+    if (axial_strain < 0.) {
+      analytical_sigma = c22 * axial_strain;
+    } else {
+      analytical_sigma = c22 * axial_strain * (1 - analytical_damage) *
+                         (1 - analytical_damage);
+    }
 
     error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if (error_damage > 1e-8 and error_stress > 1e-8) {
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+        std::abs(axial_strain) < 1e-13) {
       std::cerr << std::left << std::setw(15)
                 << "Error damage: " << error_damage << std::endl;
       std::cerr << std::left << std::setw(15)
@@ -156,3 +144,5 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
     }
   }
 }
+
+/* -------------------------------------------------------------------------- */

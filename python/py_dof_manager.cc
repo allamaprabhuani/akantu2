@@ -177,7 +177,7 @@ void register_dof_manager(py::module & mod) {
            py::arg("terms"))
       .def("zeroResidual", &DOFManager::zeroResidual);
 
-  py::class_<NonLinearSolver>(mod, "NonLinearSolver")
+  py::class_<NonLinearSolver, Parsable>(mod, "NonLinearSolver")
       .def(
           "set",
           [](NonLinearSolver & self, const std::string & id, const Real & val) {
