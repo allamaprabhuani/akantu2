@@ -47,12 +47,14 @@ class FEEngine;
  * class for the internal fields of materials
  * to store values for each quadrature
  */
-template <class Material, typename T>
+template <class Material_, typename T>
 class InternalFieldTmpl : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  using Material = Material_;
+
   InternalFieldTmpl(const ID & id, Material & material);
   ~InternalFieldTmpl() override;
 

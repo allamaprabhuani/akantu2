@@ -43,6 +43,7 @@ package_declare_sources(phase_field
 
   model/phase_field/phasefields/phasefield_exponential.hh
   model/phase_field/phasefields/phasefield_exponential.cc
+  model/phase_field/phasefields/phasefield_exponential_inline_impl.hh
   
   model/phase_field/phase_field_model.cc
   model/phase_field/phase_field_model.hh

@@ -64,11 +64,14 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-                                  Real & dam);
 
   /// compute the tangent stiffness matrix for a given quadrature point
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
+
+  void computeEffectiveDamage(ElementType el_type,
+                              GhostType ghost_type = _not_ghost);
+
+  inline void computeEffectiveDamageOnQuad(Matrix<Real> & grad_u, Real & dam,
+                                           Real & eff_dam);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -79,14 +82,18 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   Real eta;
+
+  // effective damage to conserve stiffness in compression
+  InternalField<Real> effective_damage;
 };
+
+
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_phasefield_inline_impl.cc"
-
-} // namespace akantu
+#include "material_phasefield_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_PHASEFIELD_HH__ */

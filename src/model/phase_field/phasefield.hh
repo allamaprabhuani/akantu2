@@ -55,6 +55,15 @@ namespace akantu {
 template <typename T>
 using InternalPhaseField = InternalFieldTmpl<PhaseField, T>;
 
+template <>
+inline void
+ParameterTyped<RandomInternalField<Real, InternalPhaseField>>::setAuto(
+    const ParserParameter & in_param) {
+  Parameter::setAuto(in_param);
+  RandomParameter<Real> random_param = in_param;
+  param.setRandomDistribution(random_param);
+}
+
 using PhaseFieldFactory =
     Factory<PhaseField, ID, const ID &, PhaseFieldModel &, const ID &>;
 
@@ -124,7 +133,6 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
- 
   /// compute the dissipated energy by element
   void computeDissipatedEnergyByElements();
 
@@ -144,14 +152,12 @@ protected:
   /// compute the dissiapted energy
   virtual void computeDissipatedEnergy(ElementType el_type);
 
-   /// compute the potential energy for an element
+  /// compute the potential energy for an element
   virtual void
   computeDissipatedEnergyByElement(ElementType /*type*/, UInt /*index*/,
-				   Vector<Real> & /*edis_on_quad_points*/) {
+                                   Vector<Real> & /*edis_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
-
-
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -184,14 +190,12 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-   /// return the damage energyfor the subset of elements contained
+  /// return the damage energyfor the subset of elements contained
   /// by the phasefield
   virtual Real getEnergy();
   /// return the damage energyfor the provided element
   virtual Real getEnergy(ElementType type, UInt index);
 
-  
-  
   AKANTU_GET_MACRO(Name, name, const std::string &);
 
   AKANTU_GET_MACRO(Model, model, const PhaseFieldModel &)
@@ -206,15 +210,16 @@ public:
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage_on_qpoints, Real);
 
-  AKANTU_GET_MACRO_NOT_CONST(Damage, damage_on_qpoints, ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Damage, damage_on_qpoints, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Damage, damage_on_qpoints,
+                             ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(Damage, damage_on_qpoints,
+                   const ElementTypeMapArray<Real> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
 
   AKANTU_GET_MACRO(ElementFilter, element_filter,
                    const ElementTypeMapArray<UInt> &);
 
-  
   template <typename T>
   const Array<T> & getArray(const ID & id, ElementType type,
                             GhostType ghost_type = _not_ghost) const;
@@ -232,7 +237,6 @@ public:
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
 
- 
   template <typename T>
   void flattenInternal(const std::string & field_id,
                        ElementTypeMapArray<T> & internal_flat,
@@ -245,8 +249,6 @@ public:
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined);
 
-
-  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -274,7 +276,8 @@ protected:
   Real l0;
 
   /// critical energy release rate
-  Real g_c;
+  // Real g_c;
+  RandomInternalField<Real, InternalPhaseField> g_c;
 
   /// Young's modulus
   Real E;
@@ -314,13 +317,12 @@ protected:
 
   /// damage energy ordered by element types
   InternalPhaseField<Real> damage_energy;
- 
+
   /// damage energy density ordered by element types
   InternalPhaseField<Real> damage_energy_density;
-  
+
   /// dissipated energy by element
   InternalPhaseField<Real> dissipated_energy;
-
 };
 
 /// standard output stream operator

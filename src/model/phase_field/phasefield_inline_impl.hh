@@ -107,13 +107,12 @@ PhaseField::isInternal<Real>(const ID & id,
            internal_array->second->getElementKind() != element_kind);
 }
 
-
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void PhaseField::flattenInternal(const std::string & field_id,
-				 ElementTypeMapArray<T> & internal_flat,
-				 const GhostType ghost_type,
-				 ElementKind element_kind) const {
+                                 ElementTypeMapArray<T> & internal_flat,
+                                 const GhostType ghost_type,
+                                 ElementKind element_kind) const {
 
   if (!this->template isInternal<T>(field_id, element_kind)) {
     AKANTU_EXCEPTION("Cannot find internal field " << id << " in phasefield "
@@ -161,14 +160,16 @@ void PhaseField::flattenInternal(const std::string & field_id,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void PhaseField::inflateInternal(const std::string & field_id,
-                               const ElementTypeMapArray<T> & field,
-                               GhostType ghost_type, ElementKind element_kind) {
+                                 const ElementTypeMapArray<T> & field,
+                                 GhostType ghost_type,
+                                 ElementKind element_kind) {
   if (!this->template isInternal<T>(field_id, element_kind)) {
     AKANTU_EXCEPTION("Cannot find internal field " << id << " in phasefield "
                                                    << this->name);
   }
 
-  InternalPhaseField<T> & internal_field = this->template getInternal<T>(field_id);
+  InternalPhaseField<T> & internal_field =
+      this->template getInternal<T>(field_id);
   const FEEngine & fe_engine = internal_field.getFEEngine();
 
   for (auto && type : field.elementTypes(spatial_dimension, ghost_type)) {
@@ -201,7 +202,6 @@ void PhaseField::inflateInternal(const std::string & field_id,
   }
 }
 
-  
 /* -------------------------------------------------------------------------- */
 inline UInt PhaseField::getNbData(const Array<Element> & elements,
                                   const SynchronizationTag & tag) const {
@@ -212,17 +212,12 @@ inline UInt PhaseField::getNbData(const Array<Element> & elements,
 /* -------------------------------------------------------------------------- */
 inline void PhaseField::packData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
-                                 const SynchronizationTag & tag) const {
-
-}
+                                 const SynchronizationTag & tag) const {}
 
 /* -------------------------------------------------------------------------- */
-inline void
-PhaseField::unpackData(CommunicationBuffer & buffer,
-                       const Array<Element> & elements,
-                       const SynchronizationTag & tag) {
-
-}
+inline void PhaseField::unpackData(CommunicationBuffer & buffer,
+                                   const Array<Element> & elements,
+                                   const SynchronizationTag & tag) {}
 
 /* -------------------------------------------------------------------------- */
 inline const Parameter & PhaseField::getParam(const ID & param) const {
@@ -252,7 +247,6 @@ inline void PhaseField::unpackElementDataHelper(
                                              true, model.getFEEngine(fem_id));
 }
 
-  
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline const InternalPhaseField<T> &
@@ -275,10 +269,10 @@ inline const InternalPhaseField<Real> &
 PhaseField::getInternal(const ID & int_id) const {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
+    AKANTU_SILENT_EXCEPTION("The phasefield "
+                            << name << "(" << getID()
+                            << ") does not contain an internal " << int_id
+                            << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
@@ -288,10 +282,10 @@ template <>
 inline InternalPhaseField<Real> & PhaseField::getInternal(const ID & int_id) {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
+    AKANTU_SILENT_EXCEPTION("The phasefield "
+                            << name << "(" << getID()
+                            << ") does not contain an internal " << int_id
+                            << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
@@ -302,10 +296,10 @@ inline const InternalPhaseField<UInt> &
 PhaseField::getInternal(const ID & int_id) const {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
+    AKANTU_SILENT_EXCEPTION("The phasefield "
+                            << name << "(" << getID()
+                            << ") does not contain an internal " << int_id
+                            << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
@@ -315,37 +309,38 @@ template <>
 inline InternalPhaseField<UInt> & PhaseField::getInternal(const ID & int_id) {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
+    AKANTU_SILENT_EXCEPTION("The phasefield "
+                            << name << "(" << getID()
+                            << ") does not contain an internal " << int_id
+                            << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline const Array<T> & PhaseField::getArray(const ID & vect_id, ElementType type,
-                                           GhostType ghost_type) const {
+inline const Array<T> & PhaseField::getArray(const ID & vect_id,
+                                             ElementType type,
+                                             GhostType ghost_type) const {
   try {
     return this->template getInternal<T>(vect_id)(type, ghost_type);
   } catch (debug::Exception & e) {
     AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain a vector "
-                                            << vect_id << " [" << e << "]");
+                                              << ") does not contain a vector "
+                                              << vect_id << " [" << e << "]");
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline Array<T> & PhaseField::getArray(const ID & vect_id, ElementType type,
-				       GhostType ghost_type) {
+                                       GhostType ghost_type) {
   try {
     return this->template getInternal<T>(vect_id)(type, ghost_type);
   } catch (debug::Exception & e) {
     AKANTU_SILENT_EXCEPTION("The phasefield " << name << "(" << getID()
-                                            << ") does not contain a vector "
-                                            << vect_id << " [" << e << "]");
+                                              << ") does not contain a vector "
+                                              << vect_id << " [" << e << "]");
   }
 }
 

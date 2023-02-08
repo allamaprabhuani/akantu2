@@ -29,13 +29,16 @@
  *
  */
 
+#include "material_phasefield.hh"
+
+#ifndef AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
+#define AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
 /* -------------------------------------------------------------------------- */
+namespace akantu {
 
 template <UInt spatial_dimension>
-inline void MaterialPhaseField<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam) {
-
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+inline void MaterialPhaseField<spatial_dimension>::computeEffectiveDamageOnQuad(
+    Matrix<Real> & grad_u, Real & dam, Real & eff_dam) {
 
   Matrix<Real> strain(spatial_dimension, spatial_dimension);
   Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
@@ -80,7 +83,11 @@ inline void MaterialPhaseField<spatial_dimension>::computeStressOnQuad(
                           2 * mu * strain_minus(i, j);
     }
   }
+  auto strain_energy_plus = 0.5 * sigma_plus.doubleDot(strain_plus);
+  auto strain_energy_minus = 0.5 * sigma_minus.doubleDot(strain_minus);
 
-  // sigma = (1 - dam) * sigma_plus + sigma_minus;
-  sigma *= (1 - dam) * (1 - dam) + eta;
+  eff_dam = dam * static_cast<Real>(strain_energy_minus < strain_energy_plus);
 }
+} // namespace akantu
+
+#endif
