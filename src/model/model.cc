@@ -177,7 +177,7 @@ void Model::addDumpFieldTensor(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-  void Model::setBaseName(const std::string & field_id) {
+void Model::setBaseName(const std::string & field_id) {
   mesh.setBaseName(field_id);
 }
 /* -------------------------------------------------------------------------- */

@@ -44,7 +44,7 @@ namespace akantu {
 CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
                                                const ID & id,
                                                const ModelType model_type)
-  : Model(mesh, model_type, dim, id) {
+    : Model(mesh, model_type, dim, id) {
 
   AKANTU_DEBUG_IN();
 
@@ -344,18 +344,19 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 void CouplerSolidPhaseField::computeDamageOnQuadPoints(
     const GhostType & ghost_type) {
 
-  /*auto & solid_dam_internal = solid->flattenInternal("damage", _ek_regular, ghost_type);
-  auto & phase_dam_internal = phase->flattenInternal("damage", _ek_regular, ghost_type);
+  /*auto & solid_dam_internal = solid->flattenInternal("damage", _ek_regular,
+  ghost_type); auto & phase_dam_internal = phase->flattenInternal("damage",
+  _ek_regular, ghost_type);
 
   auto & mesh = solid->getMesh();
-  
+
   for (const auto & type :
-	 mesh.elementTypes(spatial_dimension, ghost_type)) {
+     mesh.elementTypes(spatial_dimension, ghost_type)) {
     auto & solid_dam_vect = solid_dam_internal(type, ghost_type);
     const auto & phase_dam_vect =  phase_dam_internal(type, ghost_type);
     for (auto && values :
-	   zip(make_view(phase_dam_vect),
-	       make_view(solid_dam_vect))) {
+       zip(make_view(phase_dam_vect),
+           make_view(solid_dam_vect))) {
       const auto & phase_dam = std::get<0>(values);
       auto & solid_dam = std::get<1>(values);
       solid_dam = phase_dam;
@@ -363,8 +364,6 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(
     }
     }*/
 
-
-  
   AKANTU_DEBUG_IN();
 
   auto & fem = phase->getFEEngine();
@@ -437,23 +436,25 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
     const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto & gradu_internal = solid->flattenInternal("grad_u", _ek_regular, ghost_type);
-  auto & strain_internal = phase->flattenInternal("strain", _ek_regular, ghost_type);
+  auto & gradu_internal =
+      solid->flattenInternal("grad_u", _ek_regular, ghost_type);
+  auto & strain_internal =
+      phase->flattenInternal("strain", _ek_regular, ghost_type);
 
   auto & mesh = solid->getMesh();
   auto & fem = solid->getFEEngine();
 
   ElementTypeMapArray<Real> strain_tmp("temporary strain on quads");
-  strain_tmp.initialize(fem, _nb_component = spatial_dimension * spatial_dimension,
-			_spatial_dimension = spatial_dimension, _ghost_type = ghost_type);
-    
-  for (const auto & type :
-	 mesh.elementTypes(spatial_dimension, ghost_type)) {
+  strain_tmp.initialize(
+      fem, _nb_component = spatial_dimension * spatial_dimension,
+      _spatial_dimension = spatial_dimension, _ghost_type = ghost_type);
+
+  for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
     auto & strain_vect = strain_tmp(type, ghost_type);
-    const auto & gradu_vect =  gradu_internal(type, ghost_type);
+    const auto & gradu_vect = gradu_internal(type, ghost_type);
     for (auto && values :
-	   zip(make_view(gradu_vect, spatial_dimension, spatial_dimension),
-	       make_view(strain_vect, spatial_dimension, spatial_dimension))) {
+         zip(make_view(gradu_vect, spatial_dimension, spatial_dimension),
+             make_view(strain_vect, spatial_dimension, spatial_dimension))) {
       const auto & grad_u = std::get<0>(values);
       auto & strain = std::get<1>(values);
       gradUToEpsilon(grad_u, strain);
@@ -462,7 +463,6 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
 
   phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
 
-  
   /*auto & mesh = solid->getMesh();
 
   auto nb_materials = solid->getNbMaterials();
@@ -514,21 +514,20 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
   solid->solveStep(solid_solver_id);
 
   solid->synchronize(SynchronizationTag::_smm_gradu);
-    
+
   AKANTU_DEBUG_INFO("exchange strain for local elements");
   this->computeStrainOnQuadPoints(_not_ghost);
 
   AKANTU_DEBUG_INFO("exchange strain for ghost elements");
   this->computeStrainOnQuadPoints(_ghost);
 
-  
   phase->solveStep(phase_solver_id);
-  
+
   phase->synchronize(SynchronizationTag::_pfm_damage);
-  
+
   AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
-  
+
   AKANTU_DEBUG_INFO("exchange damage for ghost elements");
   this->computeDamageOnQuadPoints(_ghost);
 
@@ -584,7 +583,6 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   Real tolerance = 1e-8;
   return error < tolerance;
 }
-
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(

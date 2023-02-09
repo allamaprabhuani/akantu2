@@ -70,10 +70,10 @@ register_phase_field_model(py::module & mod) {
   py::class_<PhaseFieldModel, Model>(mod, "PhaseFieldModel",
                                      py::multiple_inheritance())
       .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
-	   const ModelType>(),
+                    const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "phase_field_model",
-	   py::arg("dof_manager") = nullptr,
+           py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_phase_field_model)
       .def(
           "initFull",
@@ -100,15 +100,13 @@ register_phase_field_model(py::module & mod) {
            })
       .def("setTimeStep", &PhaseFieldModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
-      .def( "getEnergy",
-	   [](PhaseFieldModel & self) {
-	     return self.getEnergy();
-	   })
-      .def("getEnergy",
-	   [](PhaseFieldModel & self, const std::string & group_id) {
-	     return self.getEnergy(group_id);
-	   },
-	   py::arg("group_id"))
+      .def("getEnergy", [](PhaseFieldModel & self) { return self.getEnergy(); })
+      .def(
+          "getEnergy",
+          [](PhaseFieldModel & self, const std::string & group_id) {
+            return self.getEnergy(group_id);
+          },
+          py::arg("group_id"))
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
       .def_function_nocopy(getDamage)

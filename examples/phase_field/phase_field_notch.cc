@@ -31,10 +31,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_phasefield.hh"
+#include "group_manager.hh"
 #include "non_linear_solver.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
-#include "group_manager.hh"
 /* -------------------------------------------------------------------------- */
 #include <chrono>
 #include <fstream>
@@ -52,12 +52,11 @@ const UInt spatial_dimension = 2;
 class PhaseFieldElementFilter : public GroupManager::ClusteringFilter {
 public:
   PhaseFieldElementFilter(const PhaseFieldModel & model,
-			  const Real max_damage = 1.)
-    : model(model), is_unbroken(max_damage) {}
+                          const Real max_damage = 1.)
+      : model(model), is_unbroken(max_damage) {}
 
-  
   bool operator()(const Element & el) const override {
-    
+
     const Array<UInt> & mat_indexes =
         model.getPhaseFieldByElement(el.type, el.ghost_type);
     const Array<UInt> & mat_loc_num =
@@ -93,9 +92,7 @@ private:
 
   const PhaseFieldModel & model;
   const IsUnbrokenFunctor is_unbroken;
-  
 };
-
 
 int main(int argc, char * argv[]) {
 
@@ -155,7 +152,7 @@ int main(int argc, char * argv[]) {
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
-    
+
     coupler.solve();
 
     auto energy = phase.getEnergy();
@@ -167,16 +164,17 @@ int main(int argc, char * argv[]) {
 
   // Real damage_limit = 0.08;
   // auto global_nb_clusters =
-  //   mesh.createClusters(spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
+  //   mesh.createClusters(spatial_dimension, "crack",
+  //   PhaseFieldElementFilter(phase, damage_limit));
 
-  // 
+  //
   // auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
 
   // model.dumpGroup("crack");
-  // 
+  //
   // std::cout << global_nb_clusters << std::endl;
   // std::cout << nb_fragment << std::endl;
-  
+
   finalize();
   return EXIT_SUCCESS;
 }

@@ -32,10 +32,10 @@
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "coupler_solid_phasefield.hh"
+#include "group_manager.hh"
 #include "non_linear_solver.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
-#include "group_manager.hh"
 /* -------------------------------------------------------------------------- */
 #include <chrono>
 #include <fstream>
@@ -49,14 +49,13 @@ using millisecond = std::chrono::duration<double, std::milli>;
 
 const UInt spatial_dimension = 2;
 
-
 int main(int argc, char * argv[]) {
 
   initialize("material_notch.dat", argc, argv);
 
   // create mesh
   Mesh mesh(spatial_dimension);
-  
+
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
   if (prank == 0) {
@@ -91,7 +90,7 @@ int main(int argc, char * argv[]) {
   model.addDumpFieldVector("displacement");
   model.addDumpField("damage");
   if (mesh.isDistributed()) {
-    //phase.addDumpField("partitions");
+    // phase.addDumpField("partitions");
   }
   phase.dump();
 
@@ -119,7 +118,7 @@ int main(int argc, char * argv[]) {
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
-    
+
     coupler.solve();
 
     if (s % 100 == 0) {
@@ -127,7 +126,6 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  
   finalize();
   return EXIT_SUCCESS;
 }
