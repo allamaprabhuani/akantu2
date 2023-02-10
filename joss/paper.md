@@ -102,23 +102,24 @@ At its heart, Akantu leverages a SOA (structure of array) architecture in order
 to take advantage from object-oriented high-level abstraction, and maintain
 performance in the critical areas of the code. In addition Akantu, benefits from
 distributed memory parallelization, and on the contrary to many finite-element
-codes, Akantu as a element centric parallelization that make it easier to
-implement algorithm like the dynamic insertion of extrinsic cohesive elements.
+codes, Akantu as a element centric parallelization that makes it easier to
+implement algorithms like the dynamic insertion of extrinsic cohesive elements.
 
 
 # Scaling analysis
 
 ![Time to solution with and without cohesive
-insertion.\label{fig:tts}](results/TTS.svg) The idea of high performance and
-scalability is a necessity for the resolution needed by fracture and contact
-simulation. To illustrate this a 3D simulation with a simple cube, composed of
-4'392'180 tetrahedra and 734'594 nodes, is compressed and sheared. This
-simulation as for only aim to stress the code by forcing a lot of fragmentation
-to take place, ~460'000 cohesive elements inserted. This simulation was ran for
-1 to 720 cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36
-cores, 512Gb of RAM and a dual 25Gb Ethernet links. The median time to solution (TTS)
-between six runs per number of cores is shown in Figure \autoref{fig:tts} with and
-without cohesive element begin inserted.
+insertion.\label{fig:tts}](results/TTS.svg) High performance and
+scalability is a necessity for the resolution of fracture and contact
+simulations. To illustrate the possibilities offered by Akantu, a 3D simulation is presented
+where a cube composed of 4'392'180 tetrahedra and 734'594 nodes is being compressed and sheared.
+This simulation has for only purpose to demonstrate how Akantu behaves during a simulation 
+where massive fragmentation takes place: ~460'000 cohesive elements were inserted during the run. 
+This simulation was ran on 1 up to 720 cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36
+cores, 512Gb of RAM and dual 25Gb Ethernet links. The average time to solution (TTS)
+computed over six different runs is computed for each core number on the $x$-axis in Figure \autoref{fig:tts}.
+The overhead due to cohesive element insertion is also highlighted by providing the timings when cohesive element insertions
+are precluded.
 
 # Publications
 The following publications have been made possible with Akantu:
