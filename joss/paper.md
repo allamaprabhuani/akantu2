@@ -118,16 +118,16 @@ place: about 460'000 cohesive elements are inserted during the run. This
 simulation was run on 1 up to 720 cores, on a cluster composed of Intel Xeon
 nodes with 2 sockets of 36 cores, 512Gb of RAM and dual 25Gb Ethernet links. The
 time to solution (TTS) averaged over six different runs is computed for each
-core count on the $x$-axis in Figure \autoref{fig:tts}. The overhead due to
-cohesive element insertion is also highlighted by providing the timings when
+core count on the $x$-axis in \autoref{fig:tts}. The overhead due to
+cohesive element insertion is also highlighted by providing the TTS when
 cohesive element insertions are precluded.
 
-When cohesive element insertion is not active \autoref{fig:tts} a, the time to
-solution scales well up to ~576 cores. The sumulations are running on a newly
+When cohesive element insertion is not active, cf. \autoref{fig:tts} a, the time to
+solution scales well up to ~576 cores. The simulations are running on a newly
 installed machine and the impact of the network on the loss of scalability is
 not fully understood, the min and max measures vary a lot afer 288 cores (4
 nodes). The scalability with insertion of cohesive elements (\autoref{fig:tts}
-b) decreases, and starts to plateau at around 288: this is due to the extra
+b) decreases, and starts to plateau at around 288 cores: this is due to the extra
 communications needed to change the topology of the mesh.
 
 # Publications
