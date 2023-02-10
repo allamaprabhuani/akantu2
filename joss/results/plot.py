@@ -7,6 +7,8 @@ import matplotlib
 matplotlib.use("TKAgg")
 import matplotlib.pyplot as plt
 
+# Same font as JOSS
+plt.rcParams['font.sans-serif'] = 'cmss10'
 
 print("Using:", matplotlib.get_backend())
 plots = {
