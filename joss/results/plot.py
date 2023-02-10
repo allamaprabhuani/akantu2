@@ -8,7 +8,7 @@ matplotlib.use("TKAgg")
 import matplotlib.pyplot as plt
 
 # Same font as JOSS
-plt.rcParams['font.sans-serif'] = 'cmss10'
+plt.rcParams["font.sans-serif"] = "cmss10"
 
 print("Using:", matplotlib.get_backend())
 plots = {
@@ -108,8 +108,8 @@ for name, ax in axes.items():
     ax.set_ylabel(f"""{plotting} [{"s" if plotting == "TTS" else "-"}]""")
     ax.set_xticks(ticks=labels, labels=[str(label) for label in labels])
 
-axes["cohesive"].set_title("With cohesive insertion")
-axes["elastic"].set_title("Without cohesive insertion")
+axes["cohesive"].set_title("b) With cohesive insertion")
+axes["elastic"].set_title("a) Without cohesive insertion")
 
 plt.xlabel("Nb Cores [-]")
 plt.legend(bbox_to_anchor=(1.04, 2), loc="center left", borderaxespad=0)

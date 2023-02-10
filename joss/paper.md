@@ -107,18 +107,28 @@ implement algorithms like the dynamic insertion of extrinsic cohesive elements.
 
 
 # Scaling analysis
-![Time to solution with and without cohesive
-insertion.\label{fig:tts}](results/TTS.svg) High performance and
-scalability is a necessity for the resolution of fracture and contact
-simulations. To illustrate the possibilities offered by Akantu, a 3D simulation is presented
-where a cube composed of 4'392'180 tetrahedra and 734'594 nodes is being compressed and sheared.
-This simulation only serves to demonstrate how Akantu behaves in a situation
-where massive fragmentation takes place: about 460'000 cohesive elements are inserted during the run.
-This simulation was run on 1 up to 720 cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36
-cores, 512Gb of RAM and dual 25Gb Ethernet links. The time to solution (TTS)
-averaged over six different runs is computed for each core count on the $x$-axis in Figure \autoref{fig:tts}.
-The overhead due to cohesive element insertion is also highlighted by providing the timings when cohesive element insertions
-are precluded.
+![Time to solution with and without cohesive insertion.\label{fig:tts}](results/TTS.svg)
+
+High performance and scalability is a necessity for the resolution of fracture
+and contact simulations. To illustrate the possibilities offered by Akantu, a 3D
+simulation is presented where a cube composed of 4'392'180 tetrahedra and
+734'594 nodes is being compressed and sheared. This simulation only serves to
+demonstrate how Akantu behaves in a situation where massive fragmentation takes
+place: about 460'000 cohesive elements are inserted during the run. This
+simulation was run on 1 up to 720 cores, on a cluster composed of Intel Xeon
+nodes with 2 sockets of 36 cores, 512Gb of RAM and dual 25Gb Ethernet links. The
+time to solution (TTS) averaged over six different runs is computed for each
+core count on the $x$-axis in Figure \autoref{fig:tts}. The overhead due to
+cohesive element insertion is also highlighted by providing the timings when
+cohesive element insertions are precluded.
+
+When cohesive element insertion is not active \autoref{fig::tts} a, the time to
+solution scales well up to ~576 cores. This is running a newly installed machine
+and it is not complitely clear what is the impact of the network on the loss of
+scalability, the min and max measures varies a lot afer 288 cores (4 nodes). The
+scalability with insertion of cohesive elements (\autoref{fig::tts} b) decreases,
+and starts to plateau at around 288 this is do to the extra communications
+needed to change the topology of the mesh.
 
 # Publications
 The following publications have been made possible with Akantu:
