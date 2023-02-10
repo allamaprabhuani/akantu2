@@ -122,11 +122,11 @@ core count on the $x$-axis in Figure \autoref{fig:tts}. The overhead due to
 cohesive element insertion is also highlighted by providing the timings when
 cohesive element insertions are precluded.
 
-When cohesive element insertion is not active \autoref{fig::tts} a, the time to
+When cohesive element insertion is not active \autoref{fig:tts} a, the time to
 solution scales well up to ~576 cores. This is running a newly installed machine
 and it is not complitely clear what is the impact of the network on the loss of
 scalability, the min and max measures varies a lot afer 288 cores (4 nodes). The
-scalability with insertion of cohesive elements (\autoref{fig::tts} b) decreases,
+scalability with insertion of cohesive elements (\autoref{fig:tts} b) decreases,
 and starts to plateau at around 288 this is do to the extra communications
 needed to change the topology of the mesh.
 
