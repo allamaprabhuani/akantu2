@@ -2,10 +2,10 @@
 title: 'Akantu: an HPC finite-element library for contact and fracture simulations'
 tags:
   - C++
-  - python
+  - cohesive element
   - contact
   - fracture
-  - cohesive element
+  - python
 
 authors:
   - name: Nicolas Richart
@@ -49,7 +49,7 @@ affiliations:
   - name: The Njord Centre Department of Physics, Department of Geosciences, University of Oslo, Norway
     index: 5
 
-date: 21 Septembre 2021
+date: February 2023
 bibliography: paper.bib
 ---
 
@@ -78,11 +78,11 @@ computations, while retaining the necessary flexibility to handle:
 
 - crack propagation with cohesive elements
 - non-local damage models
-- plastic and viscoplastic constitutive laws
+- plastic and visco-plastic constitutive laws
 - large deformations
 - contact constraints (including friction)
 - structural elements (beams and shells)
-- one-dimensional elements embeded in a three-dimensional mesh (e.g.
+- one-dimensional elements embedded in a three-dimensional mesh (e.g.
   reinforcements in concrete)
 - interaction between contact and cohesive elements (residual crack shear
   strength)
@@ -91,21 +91,34 @@ computations, while retaining the necessary flexibility to handle:
 Understanding the interplay between material constitutive behavior and interface
 processes such as crack propagation, contact and friction is fundamental to the
 study of, among others, earthquakes, concrete structures, ceramics, and
-polycrystalline failure. Thanks to its versatility, the finite-element method
+poly-crystalline failure. Thanks to its versatility, the finite-element method
 (FEM) has become a staple in these areas. However, codes that can handle cutting
 edge simulations with interaction of material behavior and interface processes
-in a high-performance computing (HPC) setting are rare, particularily in the
+in a high-performance computing (HPC) setting are rare, particularity in the
 open-source space. Driving these state-of-the-art research simulations to the
 exascale era is the primary *raison d'être* of Akantu.
 
-At its heart, Akantu leverages a hybrid object-oriented vectorial architecture.
-This makes high-level development possible while retaining performance in the
-critical areas of the code. *Elaborate more, parallelization strategy, solving
-capabilities etc.*
+At its heart, Akantu leverages a SOA (structure of array) architecture in order
+to take advantage from object-oriented high-level abstraction, and maintain
+performance in the critical areas of the code. In addition Akantu, benefits from
+distributed memory parallelization, and on the contrary to many finite-element
+codes, Akantu as a element centric parallelization that make it easier to
+implement algorithm like the dynamic insertion of extrinsic cohesive elements.
+
 
 # Scaling analysis
-Would be nice to have scaling plots of simple and complex simulations (with
-cohesive elements, contact, etc.)
+
+![Time to solution with and without cohesive
+insertion.\label{fig:tts}](results/TTS.svg) The idea of high performance and
+scalability is a necessity for the resolution needed by fracture and contact
+simulation. To illustrate this a 3D simulation with a simple cube, composed of
+4'392'180 tetrahedra and 734'594 nodes, is compressed and sheared. This
+simulation as for only aim to stress the code by forcing a lot of fragmentation
+to take place, ~460'000 cohesive elements inserted. This simulation was ran for
+1 to 720 cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36
+cores, 512Gb of RAM and a dual 25Gb Ethernet links. The median time to solution (TTS)
+between six runs per number of cores is shown in Figure \autoref{fig:tts} with and
+without cohesive element begin inserted.
 
 # Publications
 The following publications have been made possible with Akantu:
@@ -140,3 +153,9 @@ The following publications have been made possible with Akantu:
 
 # Acknowledgement
 
+The development of Akantu would not have been possible without the support of
+the European Research Council ERCstg UFO-240332, the Swiss Federal Office of
+Energy contract No. SI/500852-01, Swiss National Science Foundation grant number
+CRSII5_17108
+
+# References
