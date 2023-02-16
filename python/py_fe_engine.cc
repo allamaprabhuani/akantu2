@@ -220,21 +220,12 @@ void register_fe_engine(py::module & mod) {
           py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
           py::arg("filter_elements") = nullptr)
-      .def(
-          "getShapes",
-          [](FEEngine & fem, const ElementType & type,
-             const GhostType & ghost_type,
-             UInt id) { return fem.getShapes(type, ghost_type, id); },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("id") = 0)
-      .def(
-          "getShapesDerivatives",
-          [](FEEngine & fem, const ElementType & type,
-             const GhostType & ghost_type, UInt id) {
-            return fem.getShapesDerivatives(type, ghost_type, id);
-          },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("id") = 0)
+      .def("getShapes", &FEEngine::getShapes, py::arg("type"),
+           py::arg("ghost_type") = _not_ghost, py::arg("id") = 0,
+           py::return_value_policy::reference)
+      .def("getShapesDerivatives", &FEEngine::getShapesDerivatives,
+           py::arg("type"), py::arg("ghost_type") = _not_ghost,
+           py::arg("id") = 0, py::return_value_policy::reference)
       .def(
           "integrate",
           [](FEEngine & fem, const Array<Real> & f, Array<Real> & intf,

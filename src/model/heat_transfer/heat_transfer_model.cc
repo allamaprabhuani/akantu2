@@ -77,6 +77,7 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
     : Model(mesh, ModelType::_heat_transfer_model, dof_manager, dim, id),
       temperature_gradient("temperature_gradient", id),
       temperature_on_qpoints("temperature_on_qpoints", id),
+      temperature_rate_on_qpoints("temperature_rate_on_qpoints", id),
       conductivity_on_qpoints("conductivity_on_qpoints", id),
       k_gradt_on_qpoints("k_gradt_on_qpoints", id) {
   AKANTU_DEBUG_IN();
@@ -115,6 +116,7 @@ void HeatTransferModel::initModel() {
   fem.initShapeFunctions(_ghost);
 
   temperature_on_qpoints.initialize(fem, _nb_component = 1);
+  temperature_rate_on_qpoints.initialize(fem, _nb_component = 1);
   temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
   conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
                                                           spatial_dimension);
@@ -181,7 +183,7 @@ void HeatTransferModel::assembleResidual() {
   this->getDOFManager().assembleToResidual("temperature",
                                            *this->external_heat_rate, 1);
   this->getDOFManager().assembleToResidual("temperature",
-                                           *this->internal_heat_rate, 1);
+                                           *this->internal_heat_rate, -1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -438,7 +440,7 @@ void HeatTransferModel::assembleInternalHeatRate() {
                     ghost_type);
 
       this->getDOFManager().assembleElementalArrayLocalArray(
-          int_bt_k_gT, *this->internal_heat_rate, type, ghost_type, -1);
+          int_bt_k_gT, *this->internal_heat_rate, type, ghost_type, 1);
     }
   }
   AKANTU_DEBUG_OUT();
@@ -548,7 +550,7 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
-  rho.set(this->capacity);
+  rho.set(this->capacity * this->density);
 
   // Real * rho_1_val = rho.storage();
   // /// compute @f$ rho @f$ for each nodes of each element
@@ -578,7 +580,7 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 
     for (UInt i = 0; i < heat_rate.size(); ++i) {
       if (count_node) {
-        heat += heat_rate[i] * time_step;
+        heat += heat_rate[i] * this->getTimeStep();
       }
     }
     ethermal += heat;

@@ -58,6 +58,10 @@
 #include "py_heat_transfer_model.hh"
 #endif
 
+#if defined(AKANTU_FLUID_DIFFUSION)
+#include "py_fluid_diffusion_model.hh"
+#endif
+
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include "py_fragment_manager.hh"
 #include "py_solid_mechanics_model_cohesive.hh"
@@ -108,6 +112,9 @@ void register_all(pybind11::module & mod) {
   register_model(mod);
 #if defined(AKANTU_HEAT_TRANSFER)
   register_heat_transfer_model(mod);
+#endif
+#if defined(AKANTU_FLUID_DIFFUSION)
+  register_fluid_diffusion_model(mod);
 #endif
 
 #if defined(AKANTU_SOLID_MECHANICS)

@@ -159,6 +159,12 @@ void register_dof_manager(py::module & mod) {
             return self.getResidual();
           },
           py::return_value_policy::reference)
+      .def(
+          "getSolution",
+          [](DOFManager & self) -> decltype(auto) {
+            return self.getSolution();
+          },
+          py::return_value_policy::reference)
       .def("getArrayPerDOFs", &DOFManager::getArrayPerDOFs)
       .def(
           "hasMatrix",
@@ -169,6 +175,10 @@ void register_dof_manager(py::module & mod) {
       .def("assembleToResidual", &DOFManager::assembleToResidual,
            py::arg("dof_id"), py::arg("array_to_assemble"),
            py::arg("scale_factor") = 1.)
+      .def("assembleMatMulVectToGlobalArray",
+           &DOFManager::assembleMatMulVectToGlobalArray, py::arg("dof_id"),
+           py::arg("A_id"), py::arg("x"), py::arg("array"),
+           py::arg("scale_factor") = 1.)
       .def("assembleToLumpedMatrix", &DOFManager::assembleToLumpedMatrix,
            py::arg("dof_id"), py::arg("array_to_assemble"),
            py::arg("lumped_mtx"), py::arg("scale_factor") = 1.)
@@ -176,6 +186,15 @@ void register_dof_manager(py::module & mod) {
            &DOFManager::assemblePreassembledMatrix, py::arg("matrix_id"),
            py::arg("terms"))
       .def("zeroResidual", &DOFManager::zeroResidual)
+      .def("globalToLocalEquationNumber",
+           &DOFManager::globalToLocalEquationNumber)
+      .def("localToGlobalEquationNumber",
+           &DOFManager::localToGlobalEquationNumber)
+      .def("getLocalEquationsNumbers", &DOFManager::getLocalEquationsNumbers)
+      .def("getGlobalBlockedDOFs", &DOFManager::getGlobalBlockedDOFs)
+      .def("updateGlobalBlockedDofs", &DOFManager::updateGlobalBlockedDofs)
+      .def("getTimeStepSolver", &DOFManager::getTimeStepSolver,
+           py::return_value_policy::reference)
       .def(
           "assembleElementalArrayLocalArray",
           [](DOFManager & self, const Array<Real> & elementary_vect,
@@ -187,7 +206,19 @@ void register_dof_manager(py::module & mod) {
           },
           py::arg("elementary_vect"), py::arg("array_assembeled"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("scale_factor") = 1.);
+          py::arg("scale_factor") = 1.)
+      .def(
+          "assembleToGlobalArray",
+          [](DOFManager & self, const ID & dof_id,
+             const Array<Real> & array_to_assemble, SolverVector & global_array,
+             Real scale_factor) {
+            self.assembleToGlobalArray(dof_id, array_to_assemble, global_array,
+                                       scale_factor);
+          },
+          py::arg("dof_id"), py::arg("array_to_assemble"),
+          py::arg("global_array"), py::arg("scale_factor") = 1.)
+      .def("getNewGlobalVector", &DOFManager::getNewGlobalVector,
+           py::return_value_policy::reference);
 
   py::class_<NonLinearSolver>(mod, "NonLinearSolver")
       .def(
@@ -201,9 +232,38 @@ void register_dof_manager(py::module & mod) {
           })
       .def("set",
            [](NonLinearSolver & self, const std::string & id,
-              const SolveConvergenceCriteria & val) { self.set(id, val); });
+              const SolveConvergenceCriteria & val) { self.set(id, val); })
+      .def("getNbIterations",
+           [](NonLinearSolver & self) -> Int {
+             return self.get("nb_iterations");
+           })
+      .def("getConvergenceStatus",
+           [](NonLinearSolver & self) -> bool { return self.get("converged"); })
+      .def("getError",
+           [](NonLinearSolver & self) -> Real { return self.get("error"); });
 
   py::class_<TimeStepSolver>(mod, "TimeStepSolver")
+      .def(
+          "assembleResidual",
+          [](TimeStepSolver & self, const ID & residual_part) {
+            self.assembleResidual(residual_part);
+          },
+          py::arg("residual_part"))
+      .def("assembleResidual",
+           [](TimeStepSolver & self) { self.assembleResidual(); })
+      .def(
+          "assembleResidual",
+          [](TimeStepSolver & self, SolverCallback & solver_callback,
+             const ID & residual_part) {
+            self.assembleResidual(solver_callback, residual_part);
+          },
+          py::arg("solver_callback"), py::arg("residual_part"))
+      .def(
+          "assembleResidual",
+          [](TimeStepSolver & self, SolverCallback & solver_callback) {
+            self.assembleResidual(solver_callback);
+          },
+          py::arg("solver_callback"))
       .def("getIntegrationScheme", &TimeStepSolver::getIntegrationScheme);
 
   py::class_<SolverCallback, PySolverCallback>(mod, "SolverCallback")

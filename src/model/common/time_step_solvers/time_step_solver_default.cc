@@ -277,6 +277,20 @@ void TimeStepSolverDefault::assembleMatrix(const ID & matrix_id) {
 
 //   AKANTU_DEBUG_OUT();
 // }
+/* -------------------------------------------------------------------------- */
+void TimeStepSolverDefault::assembleResidual(SolverCallback & solver_callback) {
+  this->solver_callback = &solver_callback;
+  this->assembleResidual();
+  this->solver_callback = nullptr;
+}
+
+/* -------------------------------------------------------------------------- */
+void TimeStepSolverDefault::assembleResidual(SolverCallback & solver_callback,
+                                             const ID & residual_part) {
+  this->solver_callback = &solver_callback;
+  this->assembleResidual(residual_part);
+  this->solver_callback = nullptr;
+}
 
 /* -------------------------------------------------------------------------- */
 void TimeStepSolverDefault::assembleResidual() {

@@ -67,6 +67,15 @@ Array<Real> & SolverVectorDistributed::getGlobalVector() {
 }
 
 /* -------------------------------------------------------------------------- */
+Real SolverVectorDistributed::dot(const SolverVector & y) const {
+
+  auto sum = this->SolverVectorDefault::dot(y);
+  auto & synchronizer = dof_manager.getSynchronizer();
+  synchronizer.getCommunicator().allReduce(sum, SynchronizerOperation::_sum);
+  return sum;
+}
+
+/* -------------------------------------------------------------------------- */
 void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
   auto & synchronizer = dof_manager.getSynchronizer();
   if (synchronizer.getCommunicator().whoAmI() == 0) {

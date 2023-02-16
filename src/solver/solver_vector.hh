@@ -64,8 +64,15 @@ public:
   virtual Int size() const = 0;
   virtual Int localSize() const = 0;
 
-  virtual SolverVector & operator+(const SolverVector & y) = 0;
+  virtual SolverVector & operator+=(const SolverVector & y) = 0;
+  virtual SolverVector & operator-=(const SolverVector & y) = 0;
   virtual SolverVector & operator=(const SolverVector & y) = 0;
+  virtual void copy(const SolverVector & y) = 0;
+  virtual SolverVector & operator*=(const Real & alpha) = 0;
+  virtual void add(const SolverVector & y, const Real & alpha) = 0;
+  virtual Real dot(const SolverVector & y) const = 0;
+  /// computes l2 norm of a vector
+  virtual Real norm() const = 0;
 
   UInt & release() { return release_; }
   UInt release() const { return release_; }

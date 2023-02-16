@@ -139,6 +139,8 @@ void FluidDiffusionModel::initModel() {
     prev_aperture_on_qpoints.initialize(fem, _nb_component = 1);
   }
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
+
+  this->initBC(*this, *pressure, *external_flux);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -165,7 +167,7 @@ void FluidDiffusionModel::assembleCapacityLumped(const GhostType & ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-MatrixType FluidDiffusionModel::getMatrixType(const ID & matrix_id) {
+MatrixType FluidDiffusionModel::getMatrixType(const ID & matrix_id) const {
   if (matrix_id == "K" or matrix_id == "M") {
     return _symmetric;
   }

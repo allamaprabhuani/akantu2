@@ -64,6 +64,13 @@ public:
   /// solves on step
   virtual void solveStep(SolverCallback & solver_callback) = 0;
 
+  /// computes residual for a specific solver callback
+  virtual void assembleResidual(SolverCallback & solver_callback) = 0;
+
+  /// computess residual for a specific solver callback and residual part
+  virtual void assembleResidual(SolverCallback & solver_callback,
+                                const ID & residual_part) = 0;
+
   /// register an integration scheme for a given dof
   void setIntegrationScheme(const ID & dof_id,
                             const IntegrationSchemeType & type,

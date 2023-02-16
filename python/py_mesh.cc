@@ -146,9 +146,22 @@ void register_mesh(py::module & mod) {
           py::return_value_policy::reference)
       .def("getNbNodes", &Mesh::getNbNodes)
       .def(
+          "getNodesFlags",
+          [](const Mesh & self) -> decltype(auto) {
+            return self.getNodesFlags();
+          },
+          py::return_value_policy::reference)
+      .def(
           "getConnectivity",
           [](Mesh & self, ElementType type) -> decltype(auto) {
             return self.getConnectivity(type);
+          },
+          py::return_value_policy::reference)
+      .def(
+          "getConnectivity",
+          [](Mesh & self, ElementType type,
+             GhostType ghost_type) -> decltype(auto) {
+            return self.getConnectivity(type, ghost_type);
           },
           py::return_value_policy::reference)
       .def(

@@ -1,12 +1,12 @@
 /**
- * @file   py_heat_transfer_model.cc
+ * @file   py_fluid_diffusion_model.cc
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
- * @date creation: Sun Jun 16 2019
- * @date last modification: Sun Jun 16 2019
+ * @date creation: Thu Dec 08 2022
+ * @date last modification: Thu Dec 08 2022
  *
- * @brief  pybind11 interface to HeatTransferModel
+ * @brief  pybind11 interface to FluidDiffusionModel
  *
  *
  * @section LICENSE
@@ -32,7 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
-#include <heat_transfer_model.hh>
+#include <fluid_diffusion_model.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 // #include <pybind11/operators.h>
@@ -51,75 +51,65 @@ namespace akantu {
 #define def_function_nocopy(func_name)                                         \
   def(                                                                         \
       #func_name,                                                              \
-      [](HeatTransferModel & self) -> decltype(auto) {                         \
+      [](FluidDiffusionModel & self) -> decltype(auto) {                       \
         return self.func_name();                                               \
       },                                                                       \
       py::return_value_policy::reference)
 
 #define def_function(func_name)                                                \
-  def(#func_name, [](HeatTransferModel & self) -> decltype(auto) {             \
+  def(#func_name, [](FluidDiffusionModel & self) -> decltype(auto) {           \
     return self.func_name();                                                   \
   })
 /* -------------------------------------------------------------------------- */
 
-void register_heat_transfer_model(py::module & mod) {
-  py::class_<HeatTransferModelOptions>(mod, "HeatTransferModelOptions")
+void register_fluid_diffusion_model(py::module & mod) {
+  py::class_<FluidDiffusionModelOptions>(mod, "FluidDiffusionModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("analysis_method") = _explicit_lumped_mass);
 
-  py::class_<HeatTransferModel, Model>(mod, "HeatTransferModel",
-                                       py::multiple_inheritance())
+  py::class_<FluidDiffusionModel, Model>(mod, "FluidDiffusionModel",
+                                         py::multiple_inheritance())
       .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
            py::arg("spatial_dimension") = _all_dimensions,
-           py::arg("id") = "heat_transfer_model")
+           py::arg("id") = "fluid_diffusion_model")
       .def(
           "initFull",
-          [](HeatTransferModel & self,
-             const HeatTransferModelOptions & options) {
+          [](FluidDiffusionModel & self,
+             const FluidDiffusionModelOptions & options) {
             self.initFull(options);
           },
-          py::arg("_analysis_method") = HeatTransferModelOptions())
+          py::arg("_analysis_method") = FluidDiffusionModelOptions())
       .def(
           "initFull",
-          [](HeatTransferModel & self,
+          [](FluidDiffusionModel & self,
              const AnalysisMethod & _analysis_method) {
-            self.initFull(HeatTransferModelOptions(_analysis_method));
+            self.initFull(FluidDiffusionModelOptions(_analysis_method));
           },
           py::arg("_analysis_method"))
-      .def("setTimeStep", &HeatTransferModel::setTimeStep, py::arg("time_step"),
-           py::arg("solver_id") = "")
-      .def("getTimeStep", &HeatTransferModel::getTimeStep,
-           py::arg("solver_id") = "")
+      .def("setTimeStep", &FluidDiffusionModel::setTimeStep,
+           py::arg("time_step"), py::arg("solver_id") = "")
       .def_function(getStableTimeStep)
-      .def_function(getCapacity)
-      .def_function(getDensity)
-      .def_function(assembleInternalHeatRate)
-      .def_function_nocopy(getTemperature)
-      .def_function_nocopy(getTemperatureRate)
+      .def_function_nocopy(getPressure)
       .def_function_nocopy(getBlockedDOFs)
-      .def_function_nocopy(getExternalHeatRate)
-      .def_function_nocopy(getInternalHeatRate)
+      .def_function_nocopy(getExternalFlux)
       .def_function_nocopy(getMesh)
-      .def_function(needToReassembleCapacity)
-      .def_function(getConductivityMatrixRelease)
-      .def("getConductivityRelease", &HeatTransferModel::getConductivityRelease,
-           py::arg("ghost_type") = _not_ghost)
-      .def("getTemperatureGradient", &HeatTransferModel::getTemperatureGradient,
+      .def("getPressureGradient", &FluidDiffusionModel::getPressureGradient,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
-      .def("getKgradT", &HeatTransferModel::getKgradT, py::arg("el_type"),
-           py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference)
-      .def("getTemperatureRateOnQpoints",
-           &HeatTransferModel::getTemperatureRateOnQpoints, py::arg("el_type"),
+      .def("getKgradP", &FluidDiffusionModel::getKgradP, py::arg("el_type"),
            py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
       .def("applyBC",
-           [](HeatTransferModel & self, BC::Dirichlet::DirichletFunctor & func,
+           [](FluidDiffusionModel & self,
+              BC::Dirichlet::DirichletFunctor & func,
               const std::string & element_group) {
              self.applyBC(func, element_group);
            })
-      .def("synchronizeField", &HeatTransferModel::synchronizeField,
-           py::arg("synchronization_tag"));
+      .def("applyBC",
+           [](FluidDiffusionModel & self, BC::Neumann::NeumannFunctor & func,
+              const std::string & element_group) {
+             self.applyBC(func, element_group);
+           });
 }
+
 } // namespace akantu

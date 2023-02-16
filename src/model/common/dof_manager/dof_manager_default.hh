@@ -101,7 +101,6 @@ public:
   void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & terms) override;
 
-protected:
   void assembleToGlobalArray(const ID & dof_id,
                              const Array<Real> & array_to_assemble,
                              SolverVector & global_array,
@@ -112,6 +111,7 @@ protected:
                              const Array<T> & array_to_assemble,
                              Array<T> & global_array, T scale_factor);
 
+protected:
   void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
                        Array<Real> & local) override;
 
@@ -213,6 +213,9 @@ private:
 
   /// Get the residual array
   Array<Real> & getResidualArray();
+
+  /// create a global vector
+  std::unique_ptr<SolverVector> getNewGlobalVector(const ID & vector_id);
 
 public:
   /// access the internal dof_synchronizer

@@ -215,6 +215,9 @@ public:
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
+  /// syncronize fields directly by the model (for python wrapper)
+  void synchronizeField(SynchronizationTag tag) { this->synchronize(tag); };
+
 protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);

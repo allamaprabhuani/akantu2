@@ -52,9 +52,19 @@ inline SolverVectorArray::SolverVectorArray(const SolverVectorArray & vector,
 /* -------------------------------------------------------------------------- */
 template <class Array_>
 SolverVector &
-SolverVectorArrayTmpl<Array_>::operator+(const SolverVector & y) {
+SolverVectorArrayTmpl<Array_>::operator+=(const SolverVector & y) {
   const auto & y_ = aka::as_type<SolverVectorArray>(y);
   this->vector += y_.getVector();
+
+  ++this->release_;
+  return *this;
+}
+/* -------------------------------------------------------------------------- */
+template <class Array_>
+SolverVector &
+SolverVectorArrayTmpl<Array_>::operator-=(const SolverVector & y) {
+  const auto & y_ = aka::as_type<SolverVectorArray>(y);
+  this->vector -= y_.getVector();
 
   ++this->release_;
   return *this;
@@ -69,6 +79,50 @@ SolverVectorArrayTmpl<Array_>::operator=(const SolverVector & y) {
 
   this->release_ = y.release();
   return *this;
+}
+/* -------------------------------------------------------------------------- */
+template <class Array_>
+void SolverVectorArrayTmpl<Array_>::copy(const SolverVector & y) {
+  this->operator=(y);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Array_>
+SolverVector & SolverVectorArrayTmpl<Array_>::operator*=(const Real & alpha) {
+  this->vector *= alpha;
+
+  ++this->release_;
+  return *this;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Array_>
+void SolverVectorArrayTmpl<Array_>::add(const SolverVector & y,
+                                        const Real & alpha) {
+  const auto & y_ = aka::as_type<SolverVectorArray>(y);
+  for (auto && data : zip(this->vector, y_.getVector())) {
+    auto && x = std::get<0>(data);
+    auto && y = std::get<1>(data);
+    x += y * alpha;
+  }
+  ++this->release_;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Array_>
+Real SolverVectorArrayTmpl<Array_>::dot(const SolverVector & y) const {
+  const auto & y_ = aka::as_type<SolverVectorArray>(y);
+  Real sum = 0.;
+  for (auto [d, a, b] : enumerate(this->vector, y_.getVector())) {
+    sum += this->dof_manager.isLocalOrMasterDOF(d) * a * b;
+  }
+  return sum;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Array_> Real SolverVectorArrayTmpl<Array_>::norm() const {
+  auto a = this->dot(*this);
+  return std::sqrt(a);
 }
 
 /* -------------------------------------------------------------------------- */

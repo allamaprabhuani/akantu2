@@ -53,6 +53,7 @@ void register_solvers(py::module & mod) {
       .def("getMatrixType", &SparseMatrix::getMatrixType)
       .def("size", &SparseMatrix::size)
       .def("zero", &SparseMatrix::zero)
+      .def("mul", &SparseMatrix::mul)
       .def("saveProfile", &SparseMatrix::saveProfile)
       .def("saveMatrix", &SparseMatrix::saveMatrix)
       .def(
@@ -77,14 +78,26 @@ void register_solvers(py::module & mod) {
            [](const SparseMatrix & self) -> UInt { return self.getRelease(); })
       .def("__call__",
            [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
-      .def("getRelease", &SparseMatrix::getRelease);
+      .def("getRelease", &SparseMatrix::getRelease)
+      .def("applyBoundary", &SparseMatrix::applyBoundary,
+           py::arg("block_val") = 1.);
 
   py::class_<SparseMatrixAIJ, SparseMatrix>(mod, "SparseMatrixAIJ")
       .def("getIRN", &SparseMatrixAIJ::getIRN)
       .def("getJCN", &SparseMatrixAIJ::getJCN)
-      .def("getA", &SparseMatrixAIJ::getA);
+      .def("getA", &SparseMatrixAIJ::getA)
+      .def("copyContent", &SparseMatrixAIJ::copyContent)
+      .def("copyProfile", &SparseMatrixAIJ::copyProfile)
+      .def(
+          "matVecMul",
+          [](const SparseMatrixAIJ & self, const Array<Real> & x,
+             Array<Real> & y, Real alpha,
+             Real beta) { self.matVecMul(x, y, alpha, beta); },
+          "Multiply a matrix by a normal vector", py::arg("x"), py::arg("y"),
+          py::arg("alpha") = 1., py::arg("beta") = 0.);
 
   py::class_<SolverVector>(mod, "SolverVector")
+      .def("zero", &SolverVector::zero)
       .def(
           "getValues",
           [](SolverVector & self) -> decltype(auto) {
@@ -93,7 +106,15 @@ void register_solvers(py::module & mod) {
           py::return_value_policy::reference_internal,
           "Transform this into a vector, Is not copied.")
       .def("isDistributed",
-           [](const SolverVector & self) { return self.isDistributed(); });
+           [](const SolverVector & self) { return self.isDistributed(); })
+      .def(py::self += py::self)
+      .def(py::self -= py::self)
+      .def(py::self *= Real())
+      .def("dot", &SolverVector::dot)
+      .def("set", &SolverVector::set)
+      .def("copy", &SolverVector::copy)
+      .def("add", &SolverVector::add)
+      .def("norm", &SolverVector::norm);
 
   py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
       .def(py::init<Int, Int>())

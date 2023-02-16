@@ -121,11 +121,12 @@ public:
   void assemblePreassembledMatrix(const ID & matrix_id,
                                   const TermsToAssemble & /*terms*/) override;
 
-protected:
   void assembleToGlobalArray(const ID & dof_id,
                              const Array<Real> & array_to_assemble,
                              SolverVector & global_array,
                              Real scale_factor) override;
+
+protected:
   void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
                        Array<Real> & local) override;
 
@@ -185,6 +186,9 @@ public:
 
   SolverVectorPETSc & getResidual();
   const SolverVectorPETSc & getResidual() const;
+
+  /// create a new global vector
+  std::unique_ptr<SolverVector> getNewGlobalVector(const ID & vector_id);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

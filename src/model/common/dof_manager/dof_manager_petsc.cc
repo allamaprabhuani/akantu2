@@ -124,6 +124,12 @@ auto DOFManagerPETSc::getNewDOFData(const ID & dof_id)
 }
 
 /* -------------------------------------------------------------------------- */
+std::unique_ptr<SolverVector> getNewGlobalVector(const ID & vector_id) {
+  return std::make_unique<SolverVectorPETSc>(*this, this->id + ":" +
+                                                        std::string(vector_id));
+};
+
+/* -------------------------------------------------------------------------- */
 std::tuple<UInt, UInt, UInt>
 DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
                                       Array<Real> & dofs_array) {

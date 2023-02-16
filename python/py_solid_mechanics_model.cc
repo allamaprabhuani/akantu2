@@ -179,7 +179,9 @@ void register_solid_mechanics_model(py::module & mod) {
       .def("flattenInternal", &SolidMechanicsModel::flattenInternal,
            py::return_value_policy::reference)
       .def("inflateInternal", &SolidMechanicsModel::inflateInternal,
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def("synchronizeField", &SolidMechanicsModel::synchronizeField,
+           py::arg("synchronization_tag"));
 }
 
 } // namespace akantu

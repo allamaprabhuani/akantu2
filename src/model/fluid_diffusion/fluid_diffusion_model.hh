@@ -28,6 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "boundary_condition.hh"
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "fluid_diffusion_model_event_handler.hh"
@@ -54,6 +55,7 @@ namespace akantu {
 
 class FluidDiffusionModel
     : public Model,
+      public BoundaryCondition<FluidDiffusionModel>,
       public DataAccessor<Element>,
       public DataAccessor<UInt>,
       public EventHandlerManager<FluidDiffusionModelEventHandler> {
@@ -93,7 +95,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID &);
+  MatrixType getMatrixType(const ID &) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID &) override;
@@ -279,6 +281,8 @@ public:
   AKANTU_GET_MACRO(PressureRate, *pressure_rate, Array<Real> &);
 
   inline bool isModelVelocityDependent() const { return use_aperture_speed; }
+
+  FEEngine & getFEEngineBoundary(const ID & name = "") override;
   // /// get the energy denominated by thermal
   // Real getEnergy(const std::string & energy_id, const ElementType & type,
   //                UInt index);
@@ -291,9 +295,6 @@ public:
   // Real getThermalEnergy();
 
 protected:
-  /* ------------------------------------------------------------------------ */
-  FEEngine & getFEEngineBoundary(const ID & name = "") override;
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

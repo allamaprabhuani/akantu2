@@ -88,8 +88,15 @@ public:
   operator const Array<Real> &() const override { return getVector(); };
   virtual operator Array<Real> &() { return getVector(); };
 
-  SolverVector & operator+(const SolverVector & y) override;
+  SolverVector & operator+=(const SolverVector & y) override;
+  SolverVector & operator-=(const SolverVector & y) override;
   SolverVector & operator=(const SolverVector & y) override;
+  void copy(const SolverVector & y) override;
+  SolverVector & operator*=(const Real & alpha) override;
+  void add(const SolverVector & y, const Real & alpha) override;
+
+  Real dot(const SolverVector & y) const override;
+  Real norm() const override;
 
   void resize() override {
     static_assert(not std::is_const<std::remove_reference_t<Array_>>::value,
@@ -105,13 +112,7 @@ public:
     ++this->release_;
   }
 
-  virtual
-  bool
-  isDistributed()
-    const
-    override
-      { return false; }
-
+  virtual bool isDistributed() const override { return false; }
 
 public:
   Array<Real> & getVector() override { return vector; }

@@ -95,6 +95,8 @@ void register_enums(py::module & mod) {
                                 AKANTU_INTEGRATION_SCHEME_TYPE, mod);
   PY_AKANTU_REGISTER_CLASS_ENUM(SolveConvergenceCriteria,
                                 AKANTU_SOLVE_CONVERGENCE_CRITERIA, mod);
+  PY_AKANTU_REGISTER_CLASS_ENUM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG,
+                                mod);
 
   py::enum_<CohesiveMethod>(mod, "CohesiveMethod")
       .value("_intrinsic", _intrinsic)
@@ -105,6 +107,20 @@ void register_enums(py::module & mod) {
       .value("_not_ghost", _not_ghost)
       .value("_ghost", _ghost)
       .value("_casper", _casper)
+      .export_values();
+
+  py::enum_<NodeFlag>(mod, "NodeFlag")
+      .value("_normal", akantu::NodeFlag::_normal)
+      .value("_distributed", akantu::NodeFlag::_distributed)
+      .value("_master", akantu::NodeFlag::_master)
+      .value("_slave", akantu::NodeFlag::_slave)
+      .value("_pure_ghost", akantu::NodeFlag::_pure_ghost)
+      .value("_shared_mask", akantu::NodeFlag::_shared_mask)
+      .value("_periodic", akantu::NodeFlag::_periodic)
+      .value("_periodic_master", akantu::NodeFlag::_periodic_master)
+      .value("_periodic_slave", akantu::NodeFlag::_periodic_slave)
+      .value("_periodic_mask", akantu::NodeFlag::_periodic_mask)
+      .value("_local_master_mask", akantu::NodeFlag::_local_master_mask)
       .export_values();
 
   py::enum_<MeshIOType>(mod, "MeshIOType")

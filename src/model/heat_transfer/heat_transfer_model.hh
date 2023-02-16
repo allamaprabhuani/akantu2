@@ -34,10 +34,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "boundary_condition.hh"
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "model.hh"
-#include "boundary_condition.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <array>
@@ -116,15 +116,12 @@ public:
   /// set the stable timestep
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
-  // temporary protection to prevent bad usage: should check for bug
-protected:
-  /// compute the internal heat flux \todo Need code review: currently not
-  /// public method
-  void assembleInternalHeatRate();
-
 public:
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
+
+  /// compute the internal heat flux \todo Need code review
+  void assembleInternalHeatRate();
 
 public:
   /// assemble the conductivity matrix
@@ -135,6 +132,9 @@ public:
 
   /// compute the capacity on quadrature points
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
+
+  /// syncronize T or gradT directly by the model (for python wrapper)
+  void synchronizeField(SynchronizationTag tag) { this->synchronize(tag); };
 
 private:
   /// calculate the lumped capacity vector for heat transfer problem (w
@@ -197,8 +197,6 @@ public:
 public:
   AKANTU_GET_MACRO(Density, density, Real);
   AKANTU_GET_MACRO(Capacity, capacity, Real);
-  /// get the current value of the time step
-  AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// get the assembled heat flux
   AKANTU_GET_MACRO(InternalHeatRate, *internal_heat_rate, Array<Real> &);
   /// get the boundary vector
@@ -220,6 +218,9 @@ public:
   AKANTU_GET_MACRO(Temperature, *temperature, Array<Real> &);
   /// get the temperature derivative
   AKANTU_GET_MACRO(TemperatureRate, *temperature_rate, Array<Real> &);
+  /// get the temperature rate at qpoints
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureRateOnQpoints,
+                                         temperature_rate_on_qpoints, Real);
 
   /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
@@ -232,9 +233,18 @@ public:
   Real getThermalEnergy();
   /// get the FEEngine object to apply Neumann BCs
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
+  /// evaluates need_to_reassemble_capacity boolean
+  bool needToReassembleCapacity() const { return need_to_reassemble_capacity; }
+  /// get the conductivity release
+  UInt getConductivityRelease(GhostType ghost_type = _not_ghost) const {
+    return conductivity_release.at(ghost_type);
+  }
+  /// get the conductivity matrix release
+  AKANTU_GET_MACRO(ConductivityMatrixRelease, conductivity_matrix_release,
+                   UInt);
 
 protected:
-    /* ----------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------- */
   template <class iterator>
   void getThermalEnergy(iterator Eth, Array<Real>::const_iterator<Real> T_it,
                         const Array<Real>::const_iterator<Real> & T_end) const;
@@ -243,9 +253,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// time step
-  Real time_step;
-
   /// temperatures array
   std::unique_ptr<Array<Real>> temperature;
 
@@ -258,11 +265,14 @@ private:
   /// the density
   Real density;
 
-  /// the speed of the changing temperature
+  /// spatial temperature gradient
   ElementTypeMapArray<Real> temperature_gradient;
 
   /// temperature field on quadrature points
   ElementTypeMapArray<Real> temperature_on_qpoints;
+
+  /// temperature rate field on quadrature points
+  ElementTypeMapArray<Real> temperature_rate_on_qpoints;
 
   /// conductivity tensor on quadrature points
   ElementTypeMapArray<Real> conductivity_on_qpoints;

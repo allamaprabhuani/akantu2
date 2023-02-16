@@ -192,6 +192,16 @@ public:
   /// splits the solution storage from a global view to the per dof storages
   void splitSolutionPerDOFs();
 
+  /// create a global vector
+  virtual std::unique_ptr<SolverVector>
+  getNewGlobalVector(const ID & vector_id) = 0;
+
+  /// Assemble an array to a global one
+  void assembleMatMulVectToGlobalArray(const ID & dof_id, const ID & A_id,
+                                       const Array<Real> & x,
+                                       SolverVector & array,
+                                       Real scale_factor = 1.);
+
 private:
   /// dispatch the creation of the dof data and register it
   DOFData & getNewDOFDataInternal(const ID & dof_id);
@@ -212,12 +222,6 @@ protected:
   static inline void extractElementEquationNumber(
       const Array<Int> & equation_numbers, const Vector<UInt> & connectivity,
       UInt nb_degree_of_freedom, Vector<Int> & element_equation_number);
-
-  /// Assemble a array to a global one
-  void assembleMatMulVectToGlobalArray(const ID & dof_id, const ID & A_id,
-                                       const Array<Real> & x,
-                                       SolverVector & array,
-                                       Real scale_factor = 1.);
 
   /// common function that can be called by derived class with proper matrice
   /// types
@@ -423,12 +427,12 @@ protected:
   virtual void makeConsistentForPeriodicity(const ID & dof_id,
                                             SolverVector & array) = 0;
 
+public:
   virtual void assembleToGlobalArray(const ID & dof_id,
                                      const Array<Real> & array_to_assemble,
                                      SolverVector & global_array,
                                      Real scale_factor) = 0;
 
-public:
   /// extract degrees of freedom (identified by ID) from a global solver array
   virtual void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
                                Array<Real> & local) = 0;
@@ -546,9 +550,8 @@ public:
                          const ChangedElementsEvent & event) override;
 
   /// function to implement to react on  akantu::MeshIsDistributedEvent
-  void
-  onMeshIsDistributed(const Mesh& mesh,
-  		      const MeshIsDistributedEvent & event) override;
+  void onMeshIsDistributed(const Mesh & mesh,
+                           const MeshIsDistributedEvent & event) override;
 
 protected:
   inline DOFData & getDOFData(const ID & dof_id);

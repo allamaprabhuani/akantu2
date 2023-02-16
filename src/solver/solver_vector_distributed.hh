@@ -51,6 +51,8 @@ public:
 
   bool isFinite() const override;
 
+  Real dot(const SolverVector & y) const override;
+
   virtual bool isDistributed() const override { return true; }
 
 protected:

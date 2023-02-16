@@ -90,6 +90,10 @@ public:
   void assembleResidual() override;
   void assembleResidual(const ID & residual_part) override;
 
+  void assembleResidual(SolverCallback & solver_callback) override;
+  void assembleResidual(SolverCallback & solver_callback,
+                        const ID & residual_part) override;
+
   void beforeSolveStep() override;
   void afterSolveStep(bool converged = true) override;
 

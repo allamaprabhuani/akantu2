@@ -138,10 +138,13 @@ void DOFManagerDefault::assembleToGlobalArray(
     }
   } else {
     for (auto && data :
-         zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
+         zip(dof_data.local_equation_number, dof_data.associated_nodes,
+             make_view(array_to_assemble))) {
       auto && equ_num = std::get<0>(data);
-      auto && arr = std::get<1>(data);
-      global_array(equ_num) += scale_factor * (arr);
+      auto && node = std::get<1>(data);
+      auto && arr = std::get<2>(data);
+      global_array(equ_num) +=
+          scale_factor * (arr) * (not this->mesh->isPureGhostNode(node));
     }
   }
   AKANTU_DEBUG_OUT();
@@ -205,6 +208,21 @@ SparseMatrixAIJ & DOFManagerDefault::getMatrix(const ID & id) {
   return aka::as_type<SparseMatrixAIJ>(matrix);
 }
 
+/* -------------------------------------------------------------------------- */
+std::unique_ptr<SolverVector>
+DOFManagerDefault::getNewGlobalVector(const ID & vector_id) {
+  std::unique_ptr<SolverVector> global_vector = nullptr;
+  if (this->mesh->isDistributed()) {
+    global_vector = std::make_unique<SolverVectorDistributed>(
+        *this, this->id + ":" + std::string(vector_id));
+  } else {
+    global_vector = std::make_unique<SolverVectorDefault>(
+        *this, this->id + ":" + std::string(vector_id));
+  };
+  global_vector->resize();
+  global_vector->zero();
+  return global_vector;
+};
 /* -------------------------------------------------------------------------- */
 NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
