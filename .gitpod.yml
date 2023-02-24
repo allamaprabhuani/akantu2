@@ -1,7 +1,6 @@
 tasks:
-  - name: install dependencies
-    init: sudo apt install cmake libboost-dev libopenblas-dev
   - name: configure
+    init: sudo apt install cmake libboost-dev libopenblas-dev
     command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -S . -B build
 
 vscode:
