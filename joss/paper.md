@@ -15,6 +15,7 @@ authors:
     orcid: 0000-0002-9624-5621
     affiliation: 1
   - name: Emil Gallyamov
+    orcid: 0000-0002-2970-0890
     affiliation: 1
   - name: Lucas Frérot
     orcid: 0000-0002-4138-1052
