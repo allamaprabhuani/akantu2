@@ -1,0 +1,9 @@
+image: registry.gitlab.com/akantu/akantu/debian:bullseye
+
+tasks:
+  - init: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -S . -B build
+
+vscode:
+  extensions:
+    - llvm-vs-code-extensions.vscode-clangd
+    - cheshirekow.cmake-format
