@@ -10,3 +10,4 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - cheshirekow.cmake-format
     - dracula-theme.theme-dracula
+    - ms-azuretools.vscode-docker
