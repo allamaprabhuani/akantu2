@@ -30,9 +30,14 @@ authors:
     affiliation: 1
   - name: Mauro Corrado
     affiliation: "1, 4"
+  - name: Philip Müller
+    affiliation: 3
   - name: Fabian Barras
     orcid: 0000-0003-1109-0200
     affiliation: "1, 5"
+  - name: Shenghan Zang
+    orcid: 0000-0002-4327-9115
+    affiliation: "1, 6"
   - name: Jean-François Molinari
     orcid: 0000-0002-1728-1844
     affiliation: 1
@@ -48,6 +53,8 @@ affiliations:
     index: 4
   - name: The Njord Centre Department of Physics, Department of Geosciences, University of Oslo, Norway
     index: 5
+  - name: The Hong Kong University of Science and Technology, Department of Civil and Environmental Engineering
+    index: 6
 
 date: February 2023
 bibliography: paper.bib
@@ -122,13 +129,14 @@ core count on the $x$-axis in \autoref{fig:tts}. The overhead due to
 cohesive element insertion is also highlighted by providing the TTS when
 cohesive element insertions are precluded.
 
-When cohesive element insertion is not active, cf. \autoref{fig:tts} a, the time to
-solution scales well up to ~576 cores. The simulations are running on a newly
-installed machine and the impact of the network on the loss of scalability is
-not fully understood, the min and max measures vary a lot afer 288 cores (4
-nodes). The scalability with insertion of cohesive elements (\autoref{fig:tts}
-b) decreases, and starts to plateau at around 288 cores: this is due to the extra
-communications needed to change the topology of the mesh.
+When cohesive element insertion is not active, (cf. \autoref{fig:tts}
+'insertion'), the time to solution scales well up to ~576 cores. The simulations
+are running on a newly installed machine and the impact of the network on the
+loss of scalability is not fully understood, the min and max measures vary a lot
+after 288 cores (4 nodes). The scalability with insertion of cohesive elements
+(\autoref{fig:tts} 'no insertion') decreases, and starts to plateau at around 288
+cores: this is due to the extra communications needed to change the topology of
+the mesh.
 
 # Publications
 The following publications have been made possible with Akantu:

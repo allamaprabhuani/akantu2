@@ -2,67 +2,111 @@
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
+# needed to generate the plots on jed
+import matplotlib
+
+matplotlib.use("TKAgg")
+import matplotlib.pyplot as plt
 
 # Same font as JOSS
 plt.rcParams["font.sans-serif"] = "cmss10"
 
 # Loading data
-elastic = pd.read_csv("timmings_elastic_gcc_jed.csv", sep=",",
-                      skipinitialspace=True)
-cohesive = pd.read_csv("timmings_cohesive_gcc_jed.csv", sep=",",
-                       skipinitialspace=True)
+plots = {
+    "elastic_gcc": {"prefix": "timmings_", "suffix": "_jed"},
+    "cohesive_gcc": {"prefix": "timmings_", "suffix": "_jed"},
+}
 
-# Solve time
-elastic["step"] = elastic["solve_step"]
-cohesive["step"] = cohesive["check_cohesive_stress"] + cohesive["solve_step"]
+# fig, ax = plt.subplots(figsize=(4, 3.5))
+fig, ax = plt.subplots(1, 1)
 
-fig, ax = plt.subplots(figsize=(4, 3.5))
+plotting = "TTS"
+
+handles = []
+for plot_name, data in plots.items():
+    material, compiler = plot_name.split("_")
+    data["df"] = pd.read_csv(
+        f"""{data["prefix"]}{plot_name}{data["suffix"]}.csv""",
+        sep=",",
+        skipinitialspace=True,
+    )
+    data["material"] = material
+    data["compiler"] = compiler
+
+    df = data["df"]
+    step = df["solve_step"] * df["solve_step nb_rep"]
+    if material == "cohesive":
+        step = step + df["check_cohesive_stress"] * df["check_cohesive_stress nb_rep"]
+
+    df["TTS"] = step
+    df["speedup"] = step[0] / step
+    df["mumps"] = df["static_solve"] * df["static_solve nb_rep"]
 
 
-def plot_tts(ax, df, **kwargs):
-    g = df.groupby("psize")  # compute stats grouped by number of procs
-    med = g.median()
-    min = g.min()
-    max = g.max()
-    l, = ax.plot(med.index, med["step"], **kwargs)
-    ax.fill_between(med.index,
-                    min["step"],
-                    max["step"],
-                    color=l.get_color(),
-                    alpha=.2)
-    ax.plot(med.index, med["step"][1] / med.index, ls='--', color=l.get_color())
+def plot_measure(ax, df, plotting, label, **kwargs):
+    """Plot a given measure."""
+    grouped = df.groupby("psize")  # compute stats grouped by number of procs
+    med = grouped.median()
+    min = grouped.min()
+    max = grouped.max()
+    print(grouped)
+
+    (l,) = ax.plot(med.index, med[plotting], label=f"{label} (median)", **kwargs)
+
+    ax.fill_between(
+        med.index, min[plotting], max[plotting], color=l.get_color(), alpha=0.2
+    )
+
+    ax.plot(med.index, med[plotting][1] / med.index, ls="--", color=l.get_color())
+    # ax.boxplot(
+    #     data[plotting]["grouped"], positions=psize, widths=[0.1 * s for s in psize]
+    # )
 
 
-plot_tts(ax, cohesive, marker="s", label="insertion (median)")
-plot_tts(ax, elastic, marker="o", label="no insertion (median)")
+plot_measure(
+    ax,
+    plots["cohesive_gcc"]["df"],
+    plotting,
+    "insertion",
+    marker="o",
+)
 
+plot_measure(
+    ax,
+    plots["elastic_gcc"]["df"],
+    plotting,
+    "no insertion",
+    marker="o",
+)
+
+
+# Selecting appropriate tick values
+psize = np.array(np.unique(plots[list(plots.keys())[0]]["df"]["psize"]))
+labels = np.concatenate(
+    [[psize[0]], psize[1:][psize[1:] >= 2 * psize[:-1]], [psize[-1]]]
+)
+# for name, ax in axes.items():
 ax.set_xscale("log", base=2)
 ax.set_yscale("log")
 
-ax.set_xlabel("Nb Cores [-]")
-ax.set_ylabel("Time to Solution [s]")
+ylabel = plotting if plotting != "TTS" else "Time to solution"
+yunit = "s" if plotting != "speedup" else "-"
 
-# Selecting appropriate tick values
-psize = np.sort(np.unique(elastic["psize"]))
-psize = np.concatenate([[psize[0]],
-                        psize[1:][psize[1:] >= 2 * psize[:-1]],
-                        [psize[-1]]])
-ax.set_xticks(ticks=psize, labels=map(str, psize))
+ax.set_xlabel("Nb Cores [-]")
+ax.set_ylabel(f"""{ylabel} [{yunit}]""")
+
+ax.set_xticks(ticks=labels, labels=map(str, labels))
 
 # Constructing legend with min/max and ideal labels
 handles, labels = ax.get_legend_handles_labels()
 handles += [
-    Line2D([], [], linestyle='--', color='k'),
-    Patch(color='k', alpha=.2),
+    matplotlib.lines.Line2D([], [], linestyle="--", color="k"),
+    matplotlib.patches.Patch(color="k", alpha=0.2),
 ]
 labels += ["ideal", "min/max"]
 ax.legend(handles=handles, labels=labels)
 
 fig.tight_layout()
-fig.savefig("TTS.svg", transparent=True, bbox_inches="tight", pad_inches=0.1)
-
+fig.savefig(f"{plotting}.svg", transparent=True, bbox_inches="tight", pad_inches=0.1)
 plt.show()
