@@ -120,6 +120,23 @@ void register_heat_transfer_model(py::module & mod) {
              self.applyBC(func, element_group);
            })
       .def("synchronizeField", &HeatTransferModel::synchronizeField,
-           py::arg("synchronization_tag"));
+           py::arg("synchronization_tag"))
+      .def(
+          "assignPropertyToPhysicalGroup",
+          [](HeatTransferModel & self, const std::string & property_name,
+             const std::string & group_name, Real value) {
+            self.assignPropertyToPhysicalGroup(property_name, group_name,
+                                               value);
+          },
+          py::arg("property_name"), py::arg("group_name"), py::arg("value"))
+      .def(
+          "assignPropertyToPhysicalGroup",
+          [](HeatTransferModel & self, const std::string & property_name,
+             const std::string & group_name, Matrix<Real> cond_matrix) {
+            self.assignPropertyToPhysicalGroup(property_name, group_name,
+                                               cond_matrix);
+          },
+          py::arg("property_name"), py::arg("group_name"),
+          py::arg("cond_matrix"));
 }
 } // namespace akantu

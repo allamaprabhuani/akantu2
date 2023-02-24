@@ -61,8 +61,12 @@ namespace heat_transfer {
     public:
       ComputeRhoFunctor(const HeatTransferModel & model) : model(model){};
 
-      void operator()(Matrix<Real> & rho, const Element & /*unused*/) {
-        rho.set(model.getCapacity() * model.getDensity());
+      void operator()(Matrix<Real> & rho, const Element & el) {
+        auto capacity_it =
+            model.getCapacityArray(el.type, el.ghost_type).begin();
+        auto density_it = model.getDensityArray(el.type, el.ghost_type).begin();
+
+        rho.set(capacity_it[el.element] * density_it[el.element]);
       }
 
     private:
@@ -79,7 +83,11 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
       temperature_on_qpoints("temperature_on_qpoints", id),
       temperature_rate_on_qpoints("temperature_rate_on_qpoints", id),
       conductivity_on_qpoints("conductivity_on_qpoints", id),
-      k_gradt_on_qpoints("k_gradt_on_qpoints", id) {
+      k_gradt_on_qpoints("k_gradt_on_qpoints", id),
+      density_array("density_array", id), capacity_array("capacity_array", id),
+      T_ref_array("temperature_reference_array", id),
+      initial_conductivity_array("initial_conductivity_array", id),
+      conductivity_variation_array("conductivity_variation_array", id) {
   AKANTU_DEBUG_IN();
 
   conductivity = Matrix<Real>(this->spatial_dimension, this->spatial_dimension);
@@ -121,6 +129,12 @@ void HeatTransferModel::initModel() {
   conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
                                                           spatial_dimension);
   k_gradt_on_qpoints.initialize(fem, _nb_component = spatial_dimension);
+  capacity_array.initialize(fem, _nb_component = 1);
+  density_array.initialize(fem, _nb_component = 1);
+  initial_conductivity_array.initialize(fem, _nb_component = spatial_dimension *
+                                                             spatial_dimension);
+  conductivity_variation_array.initialize(fem, _nb_component = 1);
+  T_ref_array.initialize(fem, _nb_component = 1);
 
   this->initBC(*this, *temperature, *increment, *external_heat_rate);
 }
@@ -363,17 +377,24 @@ void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
         *temperature, temperature_interpolated, 1, type, ghost_type);
 
     auto & cond = conductivity_on_qpoints(type, ghost_type);
+    auto & initial_cond = initial_conductivity_array(type, ghost_type);
+    auto & T_ref = T_ref_array(type, ghost_type);
+    auto & cond_var = conductivity_variation_array(type, ghost_type);
     for (auto && tuple :
          zip(make_view(cond, spatial_dimension, spatial_dimension),
-             temperature_interpolated)) {
+             temperature_interpolated,
+             make_view(initial_cond, spatial_dimension, spatial_dimension),
+             T_ref, cond_var)) {
       auto & C = std::get<0>(tuple);
       auto & T = std::get<1>(tuple);
-      C = conductivity;
+      auto & init_C = std::get<2>(tuple);
+      auto & T_reference = std::get<3>(tuple);
+      auto & C_var = std::get<4>(tuple);
+      C = init_C;
 
       Matrix<Real> variation(spatial_dimension, spatial_dimension,
-                             conductivity_variation * (T - T_ref));
-      // @TODO: Guillaume are you sure ? why due you compute variation then ?
-      C += conductivity_variation;
+                             C_var * (T - T_reference));
+      C += variation;
     }
   }
 
@@ -453,13 +474,30 @@ Real HeatTransferModel::getStableTimeStep() {
   Real el_size;
   Real min_el_size = std::numeric_limits<Real>::max();
   Real conductivitymax = conductivity(0, 0);
+  Real densitymin = density;
+  Real capacitymin = capacity;
+  // get maximum conductivity, and minimum density and capacity
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
+    for (auto && data : zip(make_view(conductivity_on_qpoints(type),
+                                      spatial_dimension, spatial_dimension),
+                            density_array(type), capacity_array(type))) {
+      auto && conductivity_ip = std::get<0>(data);
+      auto && density_ip = std::get<1>(data);
+      auto && capacity_ip = std::get<2>(data);
 
-  // get the biggest parameter from k11 until k33//
-  for (UInt i = 0; i < spatial_dimension; i++) {
-    for (UInt j = 0; j < spatial_dimension; j++) {
-      conductivitymax = std::max(conductivity(i, j), conductivitymax);
+      // get the biggest parameter from k11 until k33//
+      for (UInt i = 0; i < spatial_dimension; i++) {
+        for (UInt j = 0; j < spatial_dimension; j++) {
+          conductivitymax = std::max(conductivity_ip(i, j), conductivitymax);
+        }
+      }
+      // get the smallest density and capacity
+      densitymin = std::min(density_ip, densitymin);
+      capacitymin = std::min(capacity_ip, capacitymin);
     }
   }
+
   for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
@@ -479,10 +517,12 @@ Real HeatTransferModel::getStableTimeStep() {
 
     AKANTU_DEBUG_INFO("The minimum element size : "
                       << min_el_size
-                      << " and the max conductivity is : " << conductivitymax);
+                      << ", the max conductivity is : " << conductivitymax
+                      << ", the min density is : " << densitymin
+                      << ", and the min capacity is : " << capacitymin);
   }
 
-  Real min_dt = 2. * min_el_size * min_el_size / 4. * density * capacity /
+  Real min_dt = 2. * min_el_size * min_el_size / 4. * densitymin * capacitymin /
                 conductivitymax;
 
   mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
@@ -509,6 +549,10 @@ void HeatTransferModel::readMaterials() {
   }
 
   conductivity_on_qpoints.set(conductivity);
+  initial_conductivity_array.set(conductivity);
+  density_array.set(density);
+  capacity_array.set(capacity);
+  conductivity_variation_array.set(conductivity_variation);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -550,7 +594,14 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
-  rho.set(this->capacity * this->density);
+  for (auto && data : zip(rho, capacity_array(type, ghost_type),
+                          density_array(type, ghost_type))) {
+    auto && rho_ip = std::get<0>(data);
+    auto && capacity_ip = std::get<1>(data);
+    auto && density_ip = std::get<2>(data);
+
+    rho_ip = capacity_ip * density_ip;
+  }
 
   // Real * rho_1_val = rho.storage();
   // /// compute @f$ rho @f$ for each nodes of each element
@@ -596,9 +647,11 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 template <class iterator>
 void HeatTransferModel::getThermalEnergy(
     iterator Eth, Array<Real>::const_iterator<Real> T_it,
-    const Array<Real>::const_iterator<Real> & T_end) const {
-  for (; T_it != T_end; ++T_it, ++Eth) {
-    *Eth = capacity * density * *T_it;
+    const Array<Real>::const_iterator<Real> & T_end,
+    Array<Real>::const_iterator<Real> capacity_it,
+    Array<Real>::const_iterator<Real> density_it) const {
+  for (; T_it != T_end; ++T_it, ++Eth, ++capacity_it, ++density_it) {
+    *Eth = *capacity_it * *density_it * *T_it;
   }
 }
 
@@ -611,10 +664,15 @@ Real HeatTransferModel::getThermalEnergy(ElementType type, UInt index) {
 
   auto T_it = this->temperature_on_qpoints(type).begin();
   T_it += index * nb_quadrature_points;
+  auto capacity_it = capacity_array(type, _not_ghost).begin();
+  capacity_it += index * nb_quadrature_points;
+  auto density_it = density_array(type, _not_ghost).begin();
+  density_it += index * nb_quadrature_points;
 
   auto T_end = T_it + nb_quadrature_points;
 
-  getThermalEnergy(Eth_on_quarature_points.storage(), T_it, T_end);
+  getThermalEnergy(Eth_on_quarature_points.storage(), T_it, T_end, capacity_it,
+                   density_it);
 
   return getFEEngine().integrate(Eth_on_quarature_points, type, index);
 }
@@ -639,7 +697,10 @@ Real HeatTransferModel::getThermalEnergy() {
 
     auto T_it = temperature_interpolated.begin();
     auto T_end = temperature_interpolated.end();
-    getThermalEnergy(Eth_per_quad.begin(), T_it, T_end);
+    auto capacity_it = capacity_array(type, _not_ghost).begin();
+    auto density_it = density_array(type, _not_ghost).begin();
+    getThermalEnergy(Eth_per_quad.begin(), T_it, T_end, capacity_it,
+                     density_it);
 
     Eth += fem.integrate(Eth_per_quad, type);
   }
@@ -675,6 +736,74 @@ Real HeatTransferModel::getEnergy(const std::string & id, ElementType type,
 
   AKANTU_DEBUG_OUT();
   return energy;
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::assignPropertyToPhysicalGroup(
+    const std::string & property_name, const std::string & group_name,
+    Real value) {
+  AKANTU_DEBUG_ASSERT(property_name != "conductivity",
+                      "Scalar was provided instead of a conductivity matrix");
+  auto && el_group = mesh.getElementGroup(group_name);
+  auto & fem = this->getFEEngine();
+
+  for (auto ghost_type : ghost_types) {
+    for (auto && type :
+         mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
+      auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
+      auto && elements = el_group.getElements(type, ghost_type);
+
+      Array<Real>::scalar_iterator field_it;
+      if (property_name == "density") {
+        field_it = density_array(type, ghost_type).begin();
+      } else if (property_name == "capacity") {
+        field_it = capacity_array(type, ghost_type).begin();
+      } else {
+        AKANTU_EXCEPTION(property_name +
+                         " is not a valid material property name.");
+      }
+      for (auto && el : elements) {
+        for (auto && qpoint : arange(nb_quadrature_points)) {
+          field_it[el * nb_quadrature_points + qpoint] = value;
+        }
+      }
+      need_to_reassemble_capacity = true;
+      need_to_reassemble_capacity_lumped = true;
+    }
+  }
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::assignPropertyToPhysicalGroup(
+    const std::string & property_name, const std::string & group_name,
+    Matrix<Real> cond_matrix) {
+  AKANTU_DEBUG_ASSERT(property_name == "conductivity",
+                      "When updating material parameters, only conductivity "
+                      "accepts matrix as an input");
+  auto && el_group = mesh.getElementGroup(group_name);
+  auto & fem = this->getFEEngine();
+  auto dim = this->getMesh().getSpatialDimension();
+
+  for (auto ghost_type : ghost_types) {
+    for (auto && type :
+         mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
+      auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
+      auto && elements = el_group.getElements(type, ghost_type);
+
+      auto init_cond_it =
+          make_view(initial_conductivity_array(type, ghost_type), dim, dim)
+              .begin();
+      auto cond_on_quad_it =
+          make_view(conductivity_on_qpoints(type, ghost_type), dim, dim)
+              .begin();
+
+      for (auto && el : elements) {
+        for (auto && qpoint : arange(nb_quadrature_points)) {
+          init_cond_it[el * nb_quadrature_points + qpoint] = cond_matrix;
+          cond_on_quad_it[el * nb_quadrature_points + qpoint] = cond_matrix;
+        }
+      }
+    }
+    conductivity_release[ghost_type] += 1;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -739,6 +868,20 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
         conductivity_on_qpoints, group_name, this->spatial_dimension,
         element_kind, nb_data_per_elem);
+  } else if (field_name == "density") {
+    ElementTypeMap<UInt> nb_data_per_elem =
+        this->mesh.getNbDataPerElem(density_array);
+
+    field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+        density_array, group_name, this->spatial_dimension, element_kind,
+        nb_data_per_elem);
+  } else if (field_name == "capacity") {
+    ElementTypeMap<UInt> nb_data_per_elem =
+        this->mesh.getNbDataPerElem(capacity_array);
+
+    field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+        capacity_array, group_name, this->spatial_dimension, element_kind,
+        nb_data_per_elem);
   }
 
   return field;

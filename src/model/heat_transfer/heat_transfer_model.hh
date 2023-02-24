@@ -136,6 +136,16 @@ public:
   /// syncronize T or gradT directly by the model (for python wrapper)
   void synchronizeField(SynchronizationTag tag) { this->synchronize(tag); };
 
+public:
+  /// asign material properties to physical groups
+  void assignPropertyToPhysicalGroup(const std::string & property_name,
+                                     const std::string & group_name,
+                                     Real value);
+  /// asign material properties to physical groups
+  void assignPropertyToPhysicalGroup(const std::string & property_name,
+                                     const std::string & group_name,
+                                     Matrix<Real> cond_matrix);
+
 private:
   /// calculate the lumped capacity vector for heat transfer problem (w
   /// ghost type)
@@ -212,8 +222,13 @@ public:
   /// get the conductivity on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureOnQpoints,
                                          temperature_on_qpoints, Real);
+  /// get density array on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DensityArray, density_array, Real);
+  /// get capacity array on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(CapacityArray, capacity_array, Real);
   /// internal variables
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(KgradT, k_gradt_on_qpoints, Real);
+
   /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Array<Real> &);
   /// get the temperature derivative
@@ -247,7 +262,9 @@ protected:
   /* ----------------------------------------------------------------------- */
   template <class iterator>
   void getThermalEnergy(iterator Eth, Array<Real>::const_iterator<Real> T_it,
-                        const Array<Real>::const_iterator<Real> & T_end) const;
+                        const Array<Real>::const_iterator<Real> & T_end,
+                        Array<Real>::const_iterator<Real> capacity_it,
+                        Array<Real>::const_iterator<Real> density_it) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -264,6 +281,7 @@ private:
 
   /// the density
   Real density;
+  ElementTypeMapArray<Real> density_array;
 
   /// spatial temperature gradient
   ElementTypeMapArray<Real> temperature_gradient;
@@ -294,16 +312,20 @@ private:
 
   /// capacity
   Real capacity;
+  ElementTypeMapArray<Real> capacity_array;
 
   // conductivity matrix
   Matrix<Real> conductivity;
+  ElementTypeMapArray<Real> initial_conductivity_array;
 
   // linear variation of the conductivity (for temperature dependent
   // conductivity)
   Real conductivity_variation;
+  ElementTypeMapArray<Real> conductivity_variation_array;
 
   // reference temperature for the interpretation of temperature variation
   Real T_ref;
+  ElementTypeMapArray<Real> T_ref_array;
 
   // the biggest parameter of conductivity matrix
   // Real conductivitymax;
