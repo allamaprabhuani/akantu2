@@ -164,6 +164,9 @@ The following publications have been made possible with Akantu:
 - @zhang_numerical_2019
 - @frerot_fourier_2019
 - @gallyamov_multi-scale_2020
+- @gallyamov_predicting_2022
+- @gallyamov_study_2022
+- @gallyamov_long-term_2023
 - @milanese_mechanistic_2020
 - @albertini_three-dimensional_2021
 - @brun_hybrid_2021
