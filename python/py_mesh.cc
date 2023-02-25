@@ -116,7 +116,7 @@ void register_mesh(py::module & mod) {
       .def(
           "__iter__",
           [](Mesh::PeriodicSlaves & _this) {
-            py::make_iterator(_this.begin(), _this.end());
+            return py::make_iterator(_this.begin(), _this.end());
           },
           py::keep_alive<0, 1>());
 
