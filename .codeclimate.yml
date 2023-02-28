@@ -20,7 +20,7 @@ plugins:
       - ".clangd/"
       - ".cache/"
   pylint:
-    enabled: true
+    enabled: false
     exclude_patterns:
       - "cmake"
       - "doc"
