@@ -1,5 +1,5 @@
 ---
-title: 'Akantu: an HPC finite-element library for contact and fracture simulations'
+title: 'Akantu: an HPC finite-element library for contact and dynamic fracture simulations'
 tags:
   - C++
   - cohesive element
@@ -68,9 +68,10 @@ in mechanics of materials. For example, the buildup and release of elastic
 energy at geological fault is what causes earthquakes, and the intricate details
 of the slip zone, the propagation of slip fronts and waves radiated through the
 various geological media are still active areas of research
-[@kammer_propagation_2012;@kammer_existence_2014]. Similarly, understanding
-fracture in heterogeneous materials such as concrete, masonry or ceramics
-necessitates the modeling of interaction of crack fronts with complex materials
+[@kammer_propagation_2012;@kammer_existence_2014;@roch_velocity-driven_2022].
+Similarly, understanding fracture in heterogeneous materials such as concrete,
+masonry or ceramics necessitates the modeling of interaction of crack fronts
+with complex materials
 [@taheri_mousavi_dynamic_2015;@yilmaz_damage_2017;@cuba_ramos_hpc_2018], the
 representation of residual shear stresses in the contact of newly-formed crack
 surfaces [@zhang_micro-mechanical_2017;@pundir_coupling_2021], and the accurate
@@ -80,7 +81,7 @@ evolution [@cuba_ramos_hpc_2018;@gallyamov_multi-scale_2020].
 
 The finite-element method is now ubiquitous in virtually all areas of solid
 mechanics. With meticulous care on code architecture and performance, we show
-with our finite-element library Akantu that it can handle the requirements
+that our finite-element library Akantu  can handle the requirements
 mentioned above for state-of-the-art research in mechanics of materials. Akantu
 is designed from the ground up for high-performance, highly distributed
 computations, while retaining the necessary flexibility to handle:
@@ -89,7 +90,7 @@ computations, while retaining the necessary flexibility to handle:
 - non-local damage models
 - plastic and visco-plastic constitutive laws
 - large deformations
-- contact constraints (including friction)
+- contact constraints (including rate and state friction)
 - structural elements (beams and shells)
 - one-dimensional elements embedded in a three-dimensional mesh (e.g.
   reinforcements in concrete)
@@ -97,15 +98,17 @@ computations, while retaining the necessary flexibility to handle:
   strength)
 
 # Statement of need
+
 Understanding the interplay between material constitutive behavior and interface
-processes such as crack propagation, contact and friction is fundamental to the
-study of, among others, earthquakes, concrete structures, ceramics, and
-poly-crystalline failure. Thanks to its versatility, the finite-element method
-(FEM) has become a staple in these areas. However, codes that can handle cutting
-edge simulations with interaction of material behavior and interface processes
-in a high-performance computing (HPC) setting are rare, particularity in the
-open-source space. Driving these state-of-the-art research simulations to the
-exascale era is the primary *raison d'être* of Akantu.
+processes such as crack propagation, contact and friction is fundamental to a
+number of application domains. Thanks to its versatility, the finite-element
+method (FEM) has become an essential tool in these areas. However, codes that
+can handle cutting edge simulations with interaction of material behavior and
+interface processes in a high-performance computing (HPC) setting are rare,
+particularity in the open-source space. Driving these state-of-the-art research
+simulations to the exascale era is the primary *raison d'être* of Akantu.
+
+![Dynamic fragmentation of a tempered glass pane using cohesive elements.\label{fig:cohesive_insertion}](results/cohesive_insertion.png){width=60%}
 
 At its heart, Akantu leverages a SOA (structure of array) architecture in order
 to take advantage of an object-oriented high-level abstraction, and maintain
@@ -113,7 +116,9 @@ performance in the critical areas of the code. In addition Akantu, benefits from
 distributed memory parallelization, and on the contrary to many finite-element
 codes, Akantu has a element-centric parallelization that makes it easier to
 implement algorithms like the dynamic insertion of extrinsic cohesive elements.
-
+The \autoref{fig:cohesive_insertion} taken from @vocialta_numerical_2018
+illustrates the usage of cohesive elements to simulate the dynamic fragmentation
+of tempered glass panes.
 
 # Scaling analysis
 ![Time to solution with and without cohesive insertion.\label{fig:tts}](results/TTS.svg)
@@ -132,11 +137,11 @@ cohesive element insertion is also highlighted by providing the TTS when
 cohesive element insertions are precluded.
 
 When cohesive element insertion is not active, (cf. \autoref{fig:tts}
-'insertion'), the time to solution scales well up to ~576 cores. The simulations
+'no insertion'), the time to solution scales well up to ~576 cores. The simulations
 are running on a newly installed machine and the impact of the network on the
 loss of scalability is not fully understood, the min and max measures vary a lot
 after 288 cores (4 nodes). The scalability with insertion of cohesive elements
-(\autoref{fig:tts} 'no insertion') decreases, and starts to plateau at around 288
+(\autoref{fig:tts} 'insertion') decreases, and starts to plateau at around 288
 cores: this is due to the extra communications needed to change the topology of
 the mesh.
 
@@ -170,6 +175,7 @@ The following publications have been made possible with Akantu:
 - @brun_hybrid_2021
 - @rezakhani_meso-scale_2021
 - @pundir_coupling_2021
+- @roch_velocity-driven_2022
 - @gallyamov_predicting_2022
 - @gallyamov_study_2022
 - @gallyamov_long-term_2023
@@ -178,7 +184,7 @@ The following publications have been made possible with Akantu:
 
 The development of Akantu would not have been possible without the support of
 the European Research Council ERCstg UFO-240332, the Swiss Federal Office of
-Energy contract No. SI/500852-01, Swiss National Science Foundation grant number
-CRSII5_17108
+Energy contract No. SI/500852-01, Swiss National Science Foundation grants numbers
+CRSII5_17108 and 200021_162569.
 
 # References

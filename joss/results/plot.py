@@ -6,7 +6,7 @@ import numpy as np
 # needed to generate the plots on jed
 import matplotlib
 
-matplotlib.use("TKAgg")
+# matplotlib.use("TKAgg")
 import matplotlib.pyplot as plt
 
 # Same font as JOSS
@@ -18,8 +18,8 @@ plots = {
     "cohesive_gcc": {"prefix": "timmings_", "suffix": "_jed"},
 }
 
-# fig, ax = plt.subplots(figsize=(4, 3.5))
-fig, ax = plt.subplots(1, 1)
+fig, ax = plt.subplots(figsize=(4.5, 4))
+# fig, ax = plt.subplots(1, 1)
 
 plotting = "TTS"
 
@@ -109,4 +109,4 @@ ax.legend(handles=handles, labels=labels)
 
 fig.tight_layout()
 fig.savefig(f"{plotting}.svg", transparent=True, bbox_inches="tight", pad_inches=0.1)
-plt.show()
+# plt.show()
