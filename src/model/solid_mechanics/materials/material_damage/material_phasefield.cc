@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_phasefield.hh"
+#include "aka_common.hh"
 #include "solid_mechanics_model.hh"
 
 namespace akantu {
@@ -39,21 +40,18 @@ namespace akantu {
 template <Int dim>
 MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
                                             const ID & id)
-    : Parent(model, id) {
-
-  AKANTU_DEBUG_IN();
-
+    : Parent(model, id), effective_damage("effective_damage", *this) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
   this->damage.initialize(0);
-
-  AKANTU_DEBUG_OUT();
+  this->effective_damage.initialize(1);
 }
 
-/* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialPhaseField<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
-  for (auto && args : Parent::getArguments(el_type, ghost_type)) {
+  computeEffectiveDamage(el_type, ghost_type);
+
+  for (auto && args : getArguments(el_type, ghost_type)) {
     computeStressOnQuad(args);
   }
 }
@@ -63,14 +61,21 @@ template <Int dim>
 void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
                                                    Array<Real> & tangent_matrix,
                                                    GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
+  computeEffectiveDamage(el_type, ghost_type);
 
   for (auto && args :
-       Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+       getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
     computeTangentModuliOnQuad(args);
   }
+}
 
-  AKANTU_DEBUG_OUT();
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialPhaseField<dim>::computeEffectiveDamage(ElementType el_type,
+                                                     GhostType ghost_type) {
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    computeEffectiveDamageOnQuad(args);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

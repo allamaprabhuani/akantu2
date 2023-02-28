@@ -45,7 +45,7 @@ namespace akantu {
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
 RandomInternalField<T, BaseField, Generator>::RandomInternalField(
-    const ID & id, Material & material)
+    const ID & id, ParentMaterial & material)
     : BaseField<T>(id, material), random_parameter(T()) {}
 
 /* -------------------------------------------------------------------------- */
@@ -90,7 +90,7 @@ void RandomInternalField<T, BaseField, Generator>::printself(
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {
     stream << std::endl;
-    InternalField<T>::printself(stream, indent);
+    BaseField<T>::printself(stream, indent);
   }
 #endif
 }

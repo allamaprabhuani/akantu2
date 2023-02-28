@@ -3,7 +3,7 @@ name = plate
 	 rho = 1.
 	 E = 210.0
 	 nu = 0.3
-         eta = 0.0
+   eta = 1e-8
 	 Plane_Stress = false
 ]
 

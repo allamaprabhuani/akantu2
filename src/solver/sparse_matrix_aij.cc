@@ -182,6 +182,8 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
                                 Real alpha, Real beta) const {
   AKANTU_DEBUG_IN();
 
+  Array<Real> tmp(y);
+  tmp.zero();
   y *= beta;
   auto x_it = make_view(x).begin();
   auto y_it = make_view(y).begin();
@@ -201,8 +203,11 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
   }
 
   if (this->dof_manager.hasSynchronizer()) {
-    this->dof_manager.getSynchronizer().reduceSynchronizeArray<AddOperation>(y);
+    this->dof_manager.getSynchronizer().reduceSynchronizeArray<AddOperation>(
+        tmp);
   }
+
+  y += tmp;
 
   AKANTU_DEBUG_OUT();
 }

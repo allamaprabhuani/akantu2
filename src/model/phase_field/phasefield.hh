@@ -54,6 +54,15 @@ namespace akantu {
 template <typename T>
 using InternalPhaseField = InternalFieldTmpl<PhaseField, T>;
 
+template <>
+inline void
+ParameterTyped<RandomInternalField<Real, InternalPhaseField>>::setAuto(
+    const ParserParameter & in_param) {
+  Parameter::setAuto(in_param);
+  RandomParameter<Real> random_param = in_param;
+  param.setRandomDistribution(random_param);
+}
+
 using PhaseFieldFactory =
     Factory<PhaseField, ID, const ID &, PhaseFieldModel &, const ID &>;
 
@@ -231,7 +240,8 @@ protected:
   Real l0;
 
   /// critical energy release rate
-  Real g_c;
+  // Real g_c;
+  RandomInternalField<Real, InternalPhaseField> g_c;
 
   /// Young's modulus
   Real E;
