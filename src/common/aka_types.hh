@@ -55,16 +55,6 @@
 #define EIGEN_PLAINOBJECTBASE_PLUGIN                                           \
   "aka_types_eigen_plain_object_base_plugin.hh"
 
-#if __cplusplus > 201703L
-#define EIGEN_MAX_CPP_VER 20
-#elif __cplusplus > 201402L
-#define EIGEN_MAX_CPP_VER 17
-#elif __cplusplus > 201103L
-#define EIGEN_MAX_CPP_VER 14
-#else
-#define EIGEN_MAX_CPP_VER 11
-#endif
-
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 /* -------------------------------------------------------------------------- */
