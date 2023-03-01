@@ -33,3 +33,8 @@ set(PYBIND11_LIBRARIES "${PYTHON_LIBRARIES}" CACHE INTERNAL "")
 
 mask_package_options(PYBIND11)
 mark_as_advanced(USE_PYTHON_INCLUDE_DIR)
+
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args(pybind11
+  REQUIRED_VARS PYBIND11_LIBRARIES PYBIND11_INCLUDE_DIR
+  VERSION_VAR PYBIND11_VERSION)

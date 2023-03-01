@@ -58,7 +58,6 @@ package_declare_sources(core
   common/aka_array_tmpl.hh
   common/aka_array_printer.hh
   common/aka_bbox.hh
-  common/aka_blas_lapack.hh
   common/aka_circular_array.hh
   common/aka_circular_array_inline_impl.hh
   common/aka_common.cc

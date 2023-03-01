@@ -30,8 +30,6 @@
 #
 #===============================================================================
 
-set(PYBIND11_PYTHON_VERSION ${AKANTU_PREFERRED_PYTHON_VERSION} CACHE INTERNAL "")
-
 if(NOT SKBUILD)
   package_get_all_include_directories(
     AKANTU_LIBRARY_INCLUDE_DIRS
