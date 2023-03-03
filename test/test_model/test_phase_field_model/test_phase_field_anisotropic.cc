@@ -130,7 +130,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
   auto & positions = model.getMesh().getNodes();
   auto & blocked_dofs = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < model.getMesh().getNbNodes(); ++n) {
+  for (Idx n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -0.5) {
       displacement(n, 0) = 0;
       displacement(n, 1) = 0;

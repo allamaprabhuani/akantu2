@@ -61,7 +61,7 @@ inline void
 MaterialPhaseField<dim>::computeEffectiveDamageOnQuad(Args && args) {
   using Mat = Matrix<Real, dim, dim>;
 
-  auto strain = this->template gradUToEpsilon<dim>(args["grad_u"_n]);
+  auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
   Mat strain_dir;
   Vector<Real, dim> strain_values;
@@ -69,6 +69,9 @@ MaterialPhaseField<dim>::computeEffectiveDamageOnQuad(Args && args) {
 
   Mat strain_diag_plus;
   Mat strain_diag_minus;
+
+  strain_diag_plus.zero();
+  strain_diag_minus.zero();
 
   for (UInt i = 0; i < dim; i++) {
     strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
