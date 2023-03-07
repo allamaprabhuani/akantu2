@@ -54,8 +54,3 @@ package_declare_sources(damage_non_local
   model/solid_mechanics/materials/weight_functions/stress_based_weight_function.cc
   model/solid_mechanics/materials/weight_functions/stress_based_weight_function_inline_impl.hh
   )
-
-package_declare_material_infos(damage_non_local
-  LIST AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
-  INCLUDE material_non_local_includes.hh
-  )

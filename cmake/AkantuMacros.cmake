@@ -91,63 +91,6 @@ function(get_target_list_of_associated_files tgt files)
 endfunction()
 
 #===============================================================================
-# Generate the list of currently loaded materials
-function(generate_material_list)
-  message(STATUS "Determining the list of recognized materials...")
-
-  package_get_all_include_directories(
-    AKANTU_LIBRARY_INCLUDE_DIRS
-    )
-
-  package_get_all_external_informations(
-    PRIVATE_INCLUDE AKANTU_PRIVATE_EXTERNAL_INCLUDE_DIR
-    INTERFACE_INCLUDE AKANTU_INTERFACE_EXTERNAL_INCLUDE_DIR
-    LIBRARIES AKANTU_EXTERNAL_LIBRARIES
-    )
-
-  set(_include_dirs
-    ${AKANTU_INCLUDE_DIRS}
-    ${AKANTU_PRIVATE_EXTERNAL_INCLUDE_DIR}
-    ${AKANTU_INTERFACE_EXTERNAL_INCLUDE_DIR}
-    )
-
-  try_run(_material_list_run _material_list_compile
-    ${CMAKE_BINARY_DIR}
-    ${PROJECT_SOURCE_DIR}/cmake/material_lister.cc
-    CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${_include_dirs}" "-DCMAKE_CXX_STANDARD=14"
-    COMPILE_DEFINITIONS "-DAKANTU_CMAKE_LIST_MATERIALS"
-    COMPILE_OUTPUT_VARIABLE _compile_results
-    RUN_OUTPUT_VARIABLE _result_material_list)
-
-  if(_material_list_compile AND "${_material_list_run}" EQUAL 0)
-    message(STATUS "Materials included in Akantu:")
-    string(REPLACE "\n" ";" _material_list "${_result_material_list}")
-    foreach(_mat ${_material_list})
-      string(REPLACE ":" ";" _mat_key "${_mat}")
-      list(GET _mat_key 0 _key)
-      list(GET _mat_key 1 _class)
-      list(LENGTH _mat_key _l)
-
-      if("${_l}" GREATER 2)
-        list(REMOVE_AT _mat_key 0 1)
-        set(_opt " -- options: [")
-        foreach(_o ${_mat_key})
-          set(_opt "${_opt} ${_o}")
-        endforeach()
-        set(_opt "${_opt} ]")
-      else()
-        set(_opt "")
-      endif()
-
-      message(STATUS "   ${_class} -- key: ${_key}${_opt}")
-    endforeach()
-  else()
-    message(STATUS "Could not determine the list of materials.")
-    message("${_compile_results}")
-  endif()
-endfunction()
-
-#===============================================================================
 # Declare the options for the types and defines the approriate typedefs
 function(declare_akantu_types)
   set(AKANTU_TYPE_FLOAT "double (64bit)" CACHE STRING "Precision force floating point types")

@@ -97,8 +97,3 @@ package_declare_elements(igfem
   contains
   get_shapes_derivatives
   )
-
-package_declare_material_infos(igfem
-  LIST AKANTU_IGFEM_MATERIAL_LIST
-  INCLUDE material_igfem_includes.hh
-  )

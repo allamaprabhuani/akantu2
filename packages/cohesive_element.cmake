@@ -72,7 +72,6 @@ package_declare_sources(cohesive_element
 
   model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive.cc
   model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive.hh
-  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_includes.hh
   model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_inline_impl.hh
 
   model/solid_mechanics/solid_mechanics_model_cohesive/solid_mechanics_model_cohesive.cc
@@ -108,9 +107,4 @@ package_declare_elements(cohesive_element
   interpolate_on_integration_points
   inverse_map
   lagrange_base
-  )
-
-package_declare_material_infos(cohesive_element
-  LIST AKANTU_COHESIVE_MATERIAL_LIST
-  INCLUDE material_cohesive_includes.hh
   )

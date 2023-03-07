@@ -41,13 +41,6 @@ package_declare_sources(embedded
   model/solid_mechanics/solid_mechanics_model_embedded_interface/embedded_interface_model.cc
   model/solid_mechanics/solid_mechanics_model_embedded_interface/embedded_interface_model.hh
 
-  model/solid_mechanics/materials/material_embedded/material_embedded_includes.hh
   model/solid_mechanics/materials/material_embedded/material_reinforcement.hh
   model/solid_mechanics/materials/material_embedded/material_reinforcement_tmpl.hh
   )
-
-package_declare_material_infos(embedded
-  LIST AKANTU_EMBEDDED_MATERIAL_LIST
-  INCLUDE material_embedded_includes.hh
-  )
-

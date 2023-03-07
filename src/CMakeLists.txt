@@ -87,11 +87,6 @@ set(AKANTU_INCLUDE_DIRS
 #===========================================================================
 # configurations
 #===========================================================================
-package_get_all_material_includes(AKANTU_MATERIAL_INCLUDES)
-package_get_all_material_lists(AKANTU_MATERIAL_LISTS)
-configure_file(model/solid_mechanics/material_list.hh.in
-  "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh" @ONLY)
-
 package_get_element_lists()
 configure_file(common/aka_element_classes_info.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh" @ONLY)
@@ -100,7 +95,6 @@ configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
-  "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
@@ -262,9 +256,6 @@ foreach(_pkg ${_pkg_list})
   set_property(SOURCE ${_srcs} ${_public_hdrs} ${_private_hdrs} 
     APPEND PROPERTY COMPILE_DEFINITIONS AKANTU_MODULE=${_l_package_name})
 endforeach()
-
-# print out the list of materials
-generate_material_list()
 
 register_target_to_tidy(akantu)
 register_tidy_all(${AKANTU_LIBRARY_SRCS})

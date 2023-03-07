@@ -97,6 +97,8 @@ SolidMechanicsModel::SolidMechanicsModel(
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
 
+  this->parser_type = ParserType::_material;
+
   AKANTU_DEBUG_OUT();
 }
 
