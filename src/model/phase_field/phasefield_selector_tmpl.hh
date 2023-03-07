@@ -33,8 +33,8 @@
 #include "phasefield_selector.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_SELECTOR_TMPL_HH__
-#define __AKANTU_PHASEFIELD_SELECTOR_TMPL_HH__
+#ifndef AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_
+#define AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_
 
 namespace akantu {
 
@@ -70,4 +70,4 @@ MeshDataPhaseFieldSelector<T>::MeshDataPhaseFieldSelector(
 
 } // namespace akantu
 
-#endif /* __AKANTU_PHASEFIELD_SELECTOR_TMPL_HH__ */
+#endif /* AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_ */

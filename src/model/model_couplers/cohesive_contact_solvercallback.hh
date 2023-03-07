@@ -37,8 +37,8 @@
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
-#define __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
+#ifndef AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH_
+#define AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH_
 
 namespace akantu {
 

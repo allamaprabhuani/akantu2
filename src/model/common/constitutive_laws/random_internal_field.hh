@@ -51,9 +51,8 @@ class RandomInternalField : public BaseField<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using ParentMaterial = typename BaseField<T>::Material;
-
-  RandomInternalField(const ID & id, ParentMaterial & material);
+  RandomInternalField(const ID & id,
+                      ConstitutiveLawInternalHandler & constitutive_law);
 
   ~RandomInternalField() override;
 
@@ -96,9 +95,11 @@ private:
 };
 
 /// standard output stream operator
-template <typename T>
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const RandomInternalField<T> & _this) {
+template <typename T, template <typename> class BaseField = InternalField,
+          template <typename> class Generator = RandomGenerator>
+inline std::ostream &
+operator<<(std::ostream & stream,
+           const RandomInternalField<T, BaseField, Generator> & _this) {
   _this.printself(stream);
   return stream;
 }

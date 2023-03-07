@@ -38,8 +38,8 @@
 #include <array>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASE_FIELD_MODEL_HH__
-#define __AKANTU_PHASE_FIELD_MODEL_HH__
+#ifndef AKANTU_PHASE_FIELD_MODEL_HH_
+#define AKANTU_PHASE_FIELD_MODEL_HH_
 
 namespace akantu {
 class PhaseField;

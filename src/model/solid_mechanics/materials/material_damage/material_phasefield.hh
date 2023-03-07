@@ -35,8 +35,8 @@
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_PHASEFIELD_HH__
-#define __AKANTU_MATERIAL_PHASEFIELD_HH__
+#ifndef AKANTU_MATERIAL_PHASEFIELD_HH_
+#define AKANTU_MATERIAL_PHASEFIELD_HH_
 
 namespace akantu {
 
@@ -87,7 +87,6 @@ protected:
   InternalField<Real> effective_damage;
 };
 
-
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -96,4 +95,4 @@ protected:
 
 #include "material_phasefield_inline_impl.hh"
 
-#endif /* __AKANTU_MATERIAL_PHASEFIELD_HH__ */
+#endif /* AKANTU_MATERIAL_PHASEFIELD_HH_ */

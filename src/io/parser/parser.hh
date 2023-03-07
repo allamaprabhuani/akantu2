@@ -66,8 +66,8 @@ namespace akantu {
   (time_step_solver)                                                    \
   (user)                                                                \
   (weight_function)                                                     \
-  (contact_detector)							\
-  (contact_resolution)							\
+  (contact_detector)                                                    \
+  (contact_resolution)                                                  \
   (not_defined)
 // clang-format on
 

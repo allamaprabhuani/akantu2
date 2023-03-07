@@ -35,8 +35,8 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_GEOMETRY_UTILS_HH__
-#define __AKANTU_GEOMETRY_UTILS_HH__
+#ifndef AKANTU_GEOMETRY_UTILS_HH_
+#define AKANTU_GEOMETRY_UTILS_HH_
 
 namespace akantu {
 
@@ -147,4 +147,4 @@ public:
 
 #include "geometry_utils_inline_impl.cc"
 
-#endif /* __AKANTU_GEOMETRY_UTILS_HH__ */
+#endif /* AKANTU_GEOMETRY_UTILS_HH_ */

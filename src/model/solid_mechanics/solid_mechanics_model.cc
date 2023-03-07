@@ -1088,5 +1088,12 @@ void SolidMechanicsModel::applyEigenGradU(
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
+                                              const ID & mat_type,
+                                              const ID & opt_param) {
+  this->registerNewConstitutiveLaw(mat_name, mat_type, opt_param);
+}
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

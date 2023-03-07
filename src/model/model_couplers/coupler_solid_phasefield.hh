@@ -42,8 +42,8 @@
 #include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COUPLER_SOLID_PHASEFIELD_HH__
-#define __AKANTU_COUPLER_SOLID_PHASEFIELD_HH__
+#ifndef AKANTU_COUPLER_SOLID_PHASEFIELD_HH_
+#define AKANTU_COUPLER_SOLID_PHASEFIELD_HH_
 
 /* ------------------------------------------------------------------------ */
 /* Coupling : Solid Mechanics / PhaseField                                  */
@@ -291,4 +291,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_COUPLER_SOLID_PHASEFIELD_HH__ */
+#endif /* AKANTU_COUPLER_SOLID_PHASEFIELD_HH_ */

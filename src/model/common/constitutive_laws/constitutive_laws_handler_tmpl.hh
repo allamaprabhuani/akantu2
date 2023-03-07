@@ -212,7 +212,9 @@ auto & ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
 
   auto constitutive_law = ConstitutiveLawType::getFactory().allocate(
       cl_type, this->spatial_dimension, opt_param,
-      aka::as_type<typename ConstitutiveLawType::ConstitutiveLawsHandler>(*this), cl_id);
+      aka::as_type<typename ConstitutiveLawType::ConstitutiveLawsHandler>(
+          *this),
+      cl_id);
 
   constitutive_laws.push_back(std::move(constitutive_law));
 
@@ -224,7 +226,7 @@ template <class ConstitutiveLawType, class Model_>
 void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     instantiateConstitutiveLaws(ParserSection & parser_section) {
   auto model_constitutive_laws =
-      parser_section.getSubSections(ParserType::_constitutive_law);
+      parser_section.getSubSections(this->parser_type);
   for (const auto & section : model_constitutive_laws) {
     this->registerNewConstitutiveLaw(section);
   }

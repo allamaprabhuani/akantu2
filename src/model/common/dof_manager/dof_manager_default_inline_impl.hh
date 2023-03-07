@@ -38,4 +38,4 @@
 
 namespace akantu {} // namespace akantu
 
-#endif /* __AKANTU_DOF_MANAGER_DEFAULT_INLINE_IMPL_HH_ */
+#endif /* AKANTU_DOF_MANAGER_DEFAULT_INLINE_IMPL_HH */

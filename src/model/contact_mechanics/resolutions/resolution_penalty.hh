@@ -34,8 +34,8 @@
 #include "resolution.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_PENALTY_HH__
-#define __AKANTU_RESOLUTION_PENALTY_HH__
+#ifndef AKANTU_RESOLUTION_PENALTY_HH_
+#define AKANTU_RESOLUTION_PENALTY_HH_
 
 namespace akantu {
 class ResolutionPenalty : public Resolution {
@@ -130,4 +130,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AKANTU_RESOLUTION_PENALTY_HH__  */
+#endif /* AKANTU_RESOLUTION_PENALTY_HH_  */

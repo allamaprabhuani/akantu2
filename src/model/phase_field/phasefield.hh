@@ -39,8 +39,8 @@
 #include "random_internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_HH__
-#define __AKANTU_PHASEFIELD_HH__
+#ifndef AKANTU_PHASEFIELD_HH_
+#define AKANTU_PHASEFIELD_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {

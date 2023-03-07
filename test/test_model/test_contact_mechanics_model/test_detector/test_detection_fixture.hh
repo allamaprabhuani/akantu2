@@ -38,8 +38,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TEST_DETECTION_FIXTURE_HH__
-#define __AKANTU_TEST_DETECTION_FIXTURE_HH__
+#ifndef AKANTU_TEST_DETECTION_FIXTURE_HH_
+#define AKANTU_TEST_DETECTION_FIXTURE_HH_
 
 using namespace akantu;
 

@@ -37,8 +37,8 @@
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_SELECTOR_HH__
-#define __AKANTU_PHASEFIELD_SELECTOR_HH__
+#ifndef AKANTU_PHASEFIELD_SELECTOR_HH_
+#define AKANTU_PHASEFIELD_SELECTOR_HH_
 
 namespace akantu {
 class PhaseFieldModel;
@@ -166,4 +166,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_PHASEFIELD_SELECTOR_HH__ */
+#endif /* AKANTU_PHASEFIELD_SELECTOR_HH_ */

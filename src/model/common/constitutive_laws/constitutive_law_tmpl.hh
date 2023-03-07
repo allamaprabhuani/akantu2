@@ -43,9 +43,16 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline void ConstitutiveLawInternalHandler::registerInternal(
-    std::shared_ptr<InternalFieldBase> vect) {
-  internal_vectors[vect->getRegisterID()] = vect;
+template <typename T = Real,
+          template <typename T> InternalFieldType = InternalField>
+inline std::shared_ptr<InternalFieldType<T>>
+ConstitutiveLawInternalHandler::registerInternal<T>(const ID & id,
+                                                    UInt nb_component) {
+  auto && internal = std::make_shared<InternalFieldType<T>>(
+      id, *this, dim, this->fe_engine_id, this->element_filter);
+  internal->initialize(nb_component);
+  internal_vectors[internal->getRegisterID()] = internal;
+  return internal;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -131,18 +138,18 @@ ConstitutiveLawInternalHandler::getArray(const ID & vect_id, ElementType type,
     auto && internal = this->template getInternal<T>(vect_id);
     if (internal.exists(type, ghost_type)) {
       return internal(type, ghost_type);
-    } else {
-      AKANTU_SILENT_EXCEPTION(
-          "The internal " << vect_id << " in the constitutive law " << name
-                          << " (" << getID() << ") does not contain the type ["
-                          << type << ":" << ghost_type << "]");
     }
-  } else {
-    AKANTU_SILENT_EXCEPTION("The constitutive law "
-                            << name << " (" << getID()
-                            << ") does not contain an internal field "
-                            << vect_id);
+
+    AKANTU_SILENT_EXCEPTION(
+        "The internal " << vect_id << " in the constitutive law " << name
+                        << " (" << getID() << ") does not contain the type ["
+                        << type << ":" << ghost_type << "]");
   }
+
+  AKANTU_SILENT_EXCEPTION("The constitutive law "
+                          << name << " (" << getID()
+                          << ") does not contain an internal field "
+                          << vect_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -154,18 +161,17 @@ Array<T> & ConstitutiveLawInternalHandler::getArray(const ID & vect_id,
     auto && internal = this->template getInternal<T>(vect_id);
     if (internal.exists(type, ghost_type)) {
       return internal(type, ghost_type);
-    } else {
-      AKANTU_SILENT_EXCEPTION(
-          "The internal " << vect_id << " in the constitutive law " << name
-                          << " (" << getID() << ") does not contain the type ["
-                          << type << ":" << ghost_type << "]");
     }
-  } else {
-    AKANTU_SILENT_EXCEPTION("The constitutive law "
-                            << name << " (" << getID()
-                            << ") does not contain an internal field "
-                            << vect_id);
+    AKANTU_SILENT_EXCEPTION(
+        "The internal " << vect_id << " in the constitutive law " << name
+                        << " (" << getID() << ") does not contain the type ["
+                        << type << ":" << ghost_type << "]");
   }
+
+  AKANTU_SILENT_EXCEPTION("The constitutive law "
+                          << name << " (" << getID()
+                          << ") does not contain an internal field "
+                          << vect_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -182,7 +188,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
     ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
     ElementKind element_kind, const ID & fe_engine_id)
     : ConstitutiveLawInternalHandler(id, spatial_dimension),
-      Parsable(ParserType::_constitutive_law, id), handler(handler),
+      Parsable(handler.getConstitutiveLawParserType(), id), handler(handler),
       element_filter("element_filter", id), default_fe_engine_id(fe_engine_id) {
 
   /// for each connectivity types allocate the element filer array of the
@@ -552,6 +558,50 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
 
     for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
       it_dst[std::get<0>(data)] = std::get<1>(data);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <typename T>
+void ConstitutiveLaw<ConstitutiveLawsHandler_>::inflateInternal(
+    const std::string & field_id, const ElementTypeMapArray<T> & field,
+    GhostType ghost_type, ElementKind element_kind) {
+  if (!this->template isInternal<T>(field_id, element_kind)) {
+    AKANTU_EXCEPTION("Cannot find internal field " << id << " in material "
+                                                   << this->name);
+  }
+
+  InternalField<T> & internal_field = this->template getInternal<T>(field_id);
+  const FEEngine & fe_engine = internal_field.getFEEngine();
+
+  for (auto && type : field.elementTypes(ghost_type)) {
+    if (not internal_field.exists(type, ghost_type)) {
+      continue;
+    }
+    const auto & filter = internal_field.getFilter(type, ghost_type);
+
+    const auto & src_array = field(type, ghost_type);
+    auto & dest_array = internal_field(type, ghost_type);
+
+    auto nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
+    auto nb_component = src_array.getNbComponent();
+
+    AKANTU_DEBUG_ASSERT(
+        field.size() == fe_engine.getMesh().getNbElement(type, ghost_type) *
+                            nb_quad_per_elem,
+        "The ElementTypeMapArray to inflate is not of the proper size");
+    AKANTU_DEBUG_ASSERT(
+        dest_array.getNbComponent() == nb_component,
+        "The ElementTypeMapArray has not the proper number of components");
+
+    auto src =
+        make_view(field(type, ghost_type), nb_component, nb_quad_per_elem)
+            .begin();
+    for (auto && data :
+         zip(filter, make_view(dest_array, nb_component, nb_quad_per_elem))) {
+      std::get<1>(data) = src[std::get<0>(data)];
     }
   }
 }

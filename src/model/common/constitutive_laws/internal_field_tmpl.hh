@@ -40,39 +40,38 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
-    const ID & id, ConstitutiveLaw_ & constitutive_law)
-    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
-      constitutive_law(constitutive_law),
-      fem(&(constitutive_law.getFEEngine())),
-      element_filter(constitutive_law.getElementFilter()),
-      spatial_dimension(constitutive_law.getHandler().getSpatialDimension()) {}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
-    const ID & id, ConstitutiveLaw_ & constitutive_law, const ID & fem_id,
-    const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, UInt dim,
+    const ID & fem_id, const ElementTypeMapArray<UInt> & element_filter)
+    : InternalFieldBase(id), ElementTypeMapArray<T>(id,
+                                                    constitutive_law.getID()),
       constitutive_law(constitutive_law),
       fem(constitutive_law.getFEEngine(fem_id)), element_filter(element_filter),
-      spatial_dimension(constitutive_law.getSpatialDimension()) {}
+      spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
-    const ID & id, ConstitutiveLaw_ & constitutive_law, UInt dim,
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
+    : InternalField(id, constitutive_law,
+                    constitutive_law.getSpatialDimension(), "",
+                    constitutive_law.getElementFilter()) {}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law,
     const ID & fem_id, const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
-      constitutive_law(constitutive_law), fem(&fem),
-      element_filter(element_filter), spatial_dimension(dim) {}
+    : InternalField(id, constitutive_law,
+                    constitutive_law.getSpatialDimension(), fem_id,
+                    element_filter) {}
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
-    const ID & id, const InternalFieldTmpl<ConstitutiveLaw_, T> & other)
-    : ElementTypeMapArray<T>(id, other.constitutive_law.getID()),
+template <typename T>
+InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
+    : InternalFieldBase(id), ElementTypeMapArray<T>(
+                                 id, other.constitutive_law.getID()),
       constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
@@ -84,39 +83,33 @@ InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::~InternalFieldTmpl() {
+template <typename T> InternalField<T>::~InternalField() {
   if (this->is_init) {
     this->constitutive_law.unregisterInternal(this->getRegisterID());
   }
 }
 
-n /* --------------------------------------------------------------------------
-   */
-    template <class ConstitutiveLaw_, typename T>
-    void InternalFieldTmpl<ConstitutiveLaw_, T>::setElementKind(
-        ElementKind element_kind) {
+/* -------------------------------------------------------------------------- */
+template <typename T>
+void InternalField<T>::setElementKind(ElementKind element_kind) {
   this->element_kind = element_kind;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::initialize(UInt nb_component) {
+template <typename T> void InternalField<T>::initialize(UInt nb_component) {
   internalInitialize(nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::initializeHistory() {
+template <typename T> void InternalField<T>::initializeHistory() {
   if (!previous_values) {
-    previous_values = std::make_unique<InternalFieldTmpl<ConstitutiveLaw_, T>>(
-        "previous_" + this->getID(), *this);
+    previous_values =
+        std::make_unique<InternalField<T>>("previous_" + this->getID(), *this);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::resize() {
+template <typename T> void InternalField<T>::resize() {
   if (!this->is_init) {
     return;
   }
@@ -149,15 +142,13 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::resize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::setDefaultValue(const T & value) {
+template <typename T> void InternalField<T>::setDefaultValue(const T & value) {
   this->default_value = value;
   this->reset();
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::reset() {
+template <typename T> void InternalField<T>::reset() {
   for (auto ghost_type : ghost_types) {
     for (const auto & type : this->elementTypes(ghost_type)) {
       Array<T> & vect = (*this)(type, ghost_type);
@@ -169,9 +160,8 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::reset() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::internalInitialize(
-    UInt nb_component) {
+template <typename T>
+void InternalField<T>::internalInitialize(UInt nb_component) {
   if (not this->is_init) {
     this->nb_component = nb_component;
 
@@ -192,17 +182,15 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::internalInitialize(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::setArrayValues(T * begin,
-                                                            T * end) {
+template <typename T>
+void InternalField<T>::setArrayValues(T * begin, T * end) {
   for (; begin < end; ++begin) {
     *begin = this->default_value;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::saveCurrentValues() {
+template <typename T> void InternalField<T>::saveCurrentValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
@@ -219,8 +207,7 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::saveCurrentValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::restorePreviousValues() {
+template <typename T> void InternalField<T>::restorePreviousValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
@@ -238,8 +225,8 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::restorePreviousValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::removeIntegrationPoints(
+template <typename T>
+void InternalField<T>::removeIntegrationPoints(
     const ElementTypeMapArray<UInt> & new_numbering) {
   for (auto ghost_type : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, ghost_type,
@@ -288,10 +275,9 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::removeIntegrationPoints(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::printself(std::ostream & stream,
-                                                       int indent
-                                                       [[gnu::unused]]) const {
+template <typename T>
+void InternalField<T>::printself(std::ostream & stream,
+                                 int indent [[gnu::unused]]) const {
   stream << "InternalField [ " << this->getID();
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {
@@ -318,8 +304,7 @@ ParameterTyped<InternalField<Real>>::setAuto(const ParserParameter & in_param) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-inline InternalFieldTmpl<ConstitutiveLaw_, T>::operator T() const {
+template <typename T> inline InternalField<T>::operator T() const {
   return default_value;
 }
 

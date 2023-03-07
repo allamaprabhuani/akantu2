@@ -33,8 +33,8 @@
 #include "phasefield.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
-#define __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
+#ifndef AKANTU_PHASEFIELD_EXPONENTIAL_HH_
+#define AKANTU_PHASEFIELD_EXPONENTIAL_HH_
 
 namespace akantu {
 class PhaseFieldExponential : public PhaseField {
@@ -60,7 +60,8 @@ protected:
                                         Real & /*driving_force_quad*/);
 
   inline void computeDamageEnergyDensityOnQuad(const Real & /*phi_quad*/,
-                                               Real & /*dam_energy_quad*/, const Real & /*g_c_quad*/);
+                                               Real & /*dam_energy_quad*/,
+                                               const Real & /*g_c_quad*/);
 
 public:
   void updateInternalParameters() override;

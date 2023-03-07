@@ -90,7 +90,6 @@ PhaseField::~PhaseField() = default;
 
 /* -------------------------------------------------------------------------- */
 void PhaseField::initialize() {
-  registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
   registerParam("l0", l0, Real(0.), _pat_parsable | _pat_readable,
                 "length scale parameter");
   registerParam("gc", g_c, _pat_parsable | _pat_readable,

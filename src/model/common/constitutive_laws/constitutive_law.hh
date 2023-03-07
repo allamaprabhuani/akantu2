@@ -38,8 +38,8 @@
 #include "random_internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONSTITUTIVE_LAW_HH__
-#define __AKANTU_CONSTITUTIVE_LAW_HH__
+#ifndef AKANTU_CONSTITUTIVE_LAW_HH_
+#define AKANTU_CONSTITUTIVE_LAW_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -49,7 +49,10 @@ public:
   ConstitutiveLawInternalHandler(const ID & id, UInt dim)
       : id(id), spatial_dimension(dim) {}
 
-  inline void registerInternal(std::shared_ptr<InternalFieldBase> vect);
+  template <typename T = Real,
+            template <typename T> InternalFieldType = InternalField>
+  inline std::shared_ptr<InternalFieldType<T>>
+  registerInternal<T>(const ID & id, UInt nb_component);
 
   inline void unregisterInternal(const ID & id);
 
@@ -102,6 +105,10 @@ protected:
 
   /// constitutive law name
   std::string name;
+
+  /// list of element handled by the constitutive law
+  ElementTypeMapArray<UInt> element_filter;
+  ID default_fe_engine_id;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -208,16 +215,21 @@ public:
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
+  template <typename T>
+  void inflateInternal(const std::string & field_id,
+                       const ElementTypeMapArray<T> & field,
+                       GhostType ghost_type, ElementKind element_kind);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   const FEEngine & getFEEngine(const ID & id = "") const override {
-    return handler.getFEEngine(id == "" ? default_fe_engine_id : id);
+    return handler.getFEEngine(id.empty() ? default_fe_engine_id : id);
   }
 
   FEEngine & getFEEngine(const ID & id = "") override {
-    return handler.getFEEngine(id == "" ? default_fe_engine_id : id);
+    return handler.getFEEngine(id.empty() ? default_fe_engine_id : id);
   }
 
   const ElementTypeMapArray<UInt> & getElementFilter() const override {
@@ -240,9 +252,11 @@ public:
 protected:
   bool isInit() const { return is_init; }
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Class Members */
+  /* ------------------------------------------------------------------------
+   */
 private:
   /// boolean to know if the constitutive law has been initialized
   bool is_init{false};
@@ -250,9 +264,6 @@ private:
 protected:
   // Constitutive law handler for which this is a constitutive law
   ConstitutiveLawsHandler & handler;
-  /// list of element handled by the constitutive law
-  ElementTypeMapArray<UInt> element_filter;
-  ID default_fe_engine_id;
 };
 
 } // namespace akantu

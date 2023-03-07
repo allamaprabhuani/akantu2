@@ -37,19 +37,8 @@ namespace akantu {
 
 template <UInt spatial_dimension>
 MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
-    SolidMechanicsModel & model, const ID & id)
-    : MaterialPlastic<spatial_dimension>(model, id) {
-
-  AKANTU_DEBUG_IN();
-  this->initialize();
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
-    SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-    FEEngine & fe_engine, const ID & id)
-    : MaterialPlastic<spatial_dimension>(model, dim, mesh, fe_engine, id) {
+    SolidMechanicsModel & model, const ID & id, const ID & fe_engine_id)
+    : MaterialPlastic<spatial_dimension>(model, id, fe_engine_id) {
 
   AKANTU_DEBUG_IN();
   this->initialize();

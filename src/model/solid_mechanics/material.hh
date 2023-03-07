@@ -166,8 +166,7 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// compute the residual for this material
-  //  virtual void updateResidual(GhostType ghost_type = _not_ghost);
+  void initConstitutiveLaw() final { this->initMaterial(); }
 
   /// assemble the residual for this material
   virtual void assembleInternalForces(GhostType ghost_type);

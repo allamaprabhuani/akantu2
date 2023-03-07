@@ -370,7 +370,9 @@ public:
   }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const Element & element) const;
+  inline const Material & getMaterial(const Element & element) const {
+    return this->getConstitutiveLaw(element);
+  }
 
   /// get a particular material id from is name
   inline UInt getMaterialIndex(const std::string & name) const {
@@ -379,6 +381,10 @@ public:
 
   /// give the number of materials
   inline UInt getNbMaterials() const { return this->getNbConstitutiveLaws(); }
+
+  void reassignMaterial() { this->reassignConstitutiveLaw(); }
+  void registerNewMaterial(const ID & mat_name, const ID & mat_type,
+                           const ID & opt_param);
 
   /// compute the stable time step
   Real getStableTimeStep();

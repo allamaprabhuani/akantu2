@@ -31,8 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_LIST_HH__
-#define __AKANTU_MATERIAL_LIST_HH__
+#ifndef AKANTU_MATERIAL_LIST_HH_
+#define AKANTU_MATERIAL_LIST_HH_
 
 #include "aka_config.hh"
 
@@ -53,4 +53,4 @@
 
 // leave an empty line after the list
 
-#endif /* __AKANTU_MATERIAL_LIST_HH__ */
+#endif /* AKANTU_MATERIAL_LIST_HH_ */

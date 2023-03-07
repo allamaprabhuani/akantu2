@@ -47,21 +47,8 @@ namespace akantu {
 Material::Material(SolidMechanicsModel & model, const ID & id,
                    const ID & fe_engine_id)
     : Parent(model, id, model.getSpatialDimension(), _ek_regular, fe_engine_id),
-      model(model), stress("stress", *this, fe_engine_id, this->element_filter),
-      eigengradu("eigen_grad_u", *this, fe_engine_id, this->element_filter),
-      gradu("grad_u", *this, fe_engine_id, this->element_filter),
-      green_strain("green_strain", *this, fe_engine_id, this->element_filter),
-      piola_kirchhoff_2("piola_kirchhoff_2", *this, fe_engine_id,
-                        this->element_filter),
-      potential_energy("potential_energy", *this, fe_engine_id,
-                       this->element_filter),
-      interpolation_inverse_coordinates("interpolation inverse coordinates",
-                                        *this, fe_engine_id,
-                                        this->element_filter),
-      interpolation_points_matrices("interpolation points matrices", *this,
-                                    fe_engine_id, this->element_filter),
-      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension(),
-                   0.) {
+      model(model), eigen_grad_u(model.getSpatialDimension(),
+                                 model.getSpatialDimension(), 0.) {
   AKANTU_DEBUG_IN();
 
   this->initialize();
@@ -76,19 +63,23 @@ Material::~Material() = default;
 void Material::initialize() {
   registerParam("rho", rho, Real(0.), _pat_parsable | _pat_modifiable,
                 "Density");
-  registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
   registerParam("finite_deformation", finite_deformation, false,
                 _pat_parsable | _pat_readable, "Is finite deformation");
   registerParam("inelastic_deformation", inelastic_deformation, false,
                 _pat_internal, "Is inelastic deformation");
   registerParam("eigen_grad_u", eigen_grad_u, _pat_parsable, "EigenGradU");
 
-  /// allocate gradu stress for local elements
-  eigengradu.initialize(spatial_dimension * spatial_dimension);
-  gradu.initialize(spatial_dimension * spatial_dimension);
-  stress.initialize(spatial_dimension * spatial_dimension);
-
-  potential_energy.initialize(1);
+  stress =
+      this->registerInternal("stress", spatial_dimension * spatial_dimension);
+  eigengradu = this->registerInternal("eigen_grad_u",
+                                      spatial_dimension * spatial_dimension);
+  gradu =
+      this->registerInternal("grad_u", spatial_dimension * spatial_dimension);
+  potential_energy = this->registerInternal("potential_energy", 1);
+  interpolation_inverse_coordinates =
+      this->registerInternal("interpolation inverse coordinates");
+  interpolation_points_matrices =
+      this->registerInternal("interpolation points matrices");
 
   this->model.registerEventHandler(*this);
 }
@@ -98,21 +89,21 @@ void Material::initMaterial() {
   AKANTU_DEBUG_IN();
 
   if (finite_deformation) {
-    this->piola_kirchhoff_2.initialize(spatial_dimension * spatial_dimension);
+    piola_kirchhoff_2 = this->registerInternal(
+        "piola_kirchhoff_2", spatial_dimension * spatial_dimension);
     if (use_previous_stress) {
-      this->piola_kirchhoff_2.initializeHistory();
+      this->piola_kirchhoff_2->initializeHistory();
     }
-    this->green_strain.initialize(spatial_dimension * spatial_dimension);
+    green_strain = this->registerInternal(
+        "green_strain", spatial_dimension * spatial_dimension);
   }
 
   if (use_previous_stress) {
-    this->stress.initializeHistory();
+    this->stress->initializeHistory();
   }
   if (use_previous_gradu) {
-    this->gradu.initializeHistory();
+    this->gradu->initializeHistory();
   }
-
-  Parent::initConstitutiveLaw();
 
   AKANTU_DEBUG_OUT();
 }

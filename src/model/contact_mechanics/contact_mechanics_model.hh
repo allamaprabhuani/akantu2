@@ -37,8 +37,8 @@
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#ifndef AKANTU_CONTACT_MECHANICS_MODEL_HH_
+#define AKANTU_CONTACT_MECHANICS_MODEL_HH_
 
 namespace akantu {
 class Resolution;
@@ -369,4 +369,4 @@ private:
 #include "resolution.hh"
 /* ------------------------------------------------------------------------ */
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__ */
+#endif /* AKANTU_CONTACT_MECHANICS_MODEL_HH_ */

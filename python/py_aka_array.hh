@@ -37,6 +37,9 @@
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
 
+#ifndef AKANTU_PY_AKA_ARRAY_HH_
+#define AKANTU_PY_AKA_ARRAY_HH_
+
 namespace py = pybind11;
 namespace _aka = akantu;
 
@@ -280,3 +283,5 @@ namespace detail {
   };
 } // namespace detail
 } // namespace pybind11
+
+#endif /* AKANTU_PY_AKA_ARRAY_HH_ */

@@ -34,8 +34,8 @@
 #include "resolution_penalty.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__
-#define __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__
+#ifndef AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH_
+#define AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH_
 
 namespace akantu {
 
@@ -127,4 +127,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__ */
+#endif /* AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH_ */

@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 #include "py_akantu_pybind11_compatibility.hh"
+#include "py_constitutive_law.hh"
 /* -------------------------------------------------------------------------- */
 #include <material_selector.hh>
 #include <solid_mechanics_model.hh>
@@ -91,19 +92,6 @@ namespace {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(Real, _Material, getShearWaveSpeed, element);
     }
-
-    template <typename T>
-    void registerInternal(const std::string & name, UInt nb_component) {
-      auto && internal = std::make_shared<InternalField<T>>(name, *this);
-      AKANTU_DEBUG_INFO("alloc internal " << name << " "
-                                          << &this->internals[name]);
-
-      internal->initialize(nb_component);
-      this->internals[name] = internal;
-    }
-
-  protected:
-    std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -115,19 +103,14 @@ namespace {
   }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-  template <typename _Material> class PyMaterialCohesive : public _Material {
+  template <typename _Material>
+  class PyMaterialCohesive : public PyMaterial<_Material> {
   public:
+    using Parent = PyMaterial<_Material>;
     /* Inherit the constructors */
-    using _Material::_Material;
+    using Parent::Parent;
 
     ~PyMaterialCohesive() override = default;
-    void initMaterial() override {
-      // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, initMaterial, );
-    };
-
-    void computeStress(ElementType el_type,
-                       GhostType ghost_type = _not_ghost) final {}
 
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
@@ -141,9 +124,6 @@ namespace {
                              ghost_type);
     }
 
-    void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
-                              GhostType ghost_type = _not_ghost) final {}
-
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
                                 const Array<Real> & normal,
@@ -152,20 +132,6 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
                         tangent_matrix, normal, ghost_type);
     }
-
-    template <typename T>
-    void registerInternal(const std::string & name, UInt nb_component) {
-      auto && internal =
-          std::make_shared<CohesiveInternalField<T>>(name, *this);
-      AKANTU_DEBUG_INFO("alloc internal " << name << " "
-                                          << &this->internals[name]);
-
-      internal->initialize(nb_component);
-      this->internals[name] = internal;
-    }
-
-  protected:
-    std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
 
   template <typename _Material>
@@ -177,44 +143,15 @@ namespace {
   }
 
 #endif
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T>
-  void registerInternal(const std::string & name, UInt nb_component) {
-    auto && internal = std::make_shared<InternalField<T>>(name, *this);
-    internal->initialize(nb_component);
-  }
-
 } // namespace
 
 /* -------------------------------------------------------------------------- */
 void register_material(py::module & mod) {
-  py::class_<MaterialFactory>(mod, "MaterialFactory")
-      .def_static(
-          "getInstance",
-          []() -> MaterialFactory & { return Material::getFactory(); },
-          py::return_value_policy::reference)
-      .def("registerAllocator",
-           [](MaterialFactory & self, const std::string id, py::function func) {
-             self.registerAllocator(
-                 id,
-                 [func, id](UInt dim, const ID & /*unused*/,
-                            SolidMechanicsModel & model,
-                            const ID & option) -> std::unique_ptr<Material> {
-                   py::object obj = func(dim, id, model, option);
-                   auto & ptr = py::cast<Material &>(obj);
+  register_constitutive_law<SolidMechanicsModel>(
+      mod, "ConstitutiveLawSolidMechanics");
 
-                   obj.release();
-                   return std::unique_ptr<Material>(&ptr);
-                 });
-           })
-      .def("getPossibleAllocators", &MaterialFactory::getPossibleAllocators);
-
-  register_internal_field<Real>(mod, "Real");
-  register_internal_field<UInt>(mod, "UInt");
-
-  py::class_<Material, Parsable, PyMaterial<Material>>(
-      mod, "Material", py::multiple_inheritance())
+  py::class_<Material, ConstitutiveLaw<SolidMechanicsModel>,
+             PyMaterial<Material>>(mod, "Material", py::multiple_inheritance())
       .def(py::init<SolidMechanicsModel &, const ID &>())
       .def(
           "getGradU",
@@ -248,91 +185,29 @@ void register_material(py::module & mod) {
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)
       .def("getModel", &Material::getModel)
-      .def("registerInternalReal",
-           [](Material & self, const std::string & name, UInt nb_component) {
-             return dynamic_cast<PyMaterial<Material> &>(self)
-                 .registerInternal<Real>(name, nb_component);
-           })
-      .def("registerInternalUInt",
-           [](Material & self, const std::string & name, UInt nb_component) {
-             return dynamic_cast<PyMaterial<Material> &>(self)
-                 .registerInternal<UInt>(name, nb_component);
-           })
-      .def(
-          "getInternalReal",
-          [](Material & self, const ID & id) -> decltype(auto) {
-            return self.getInternal<Real>(id);
-          },
-          py::arg("id"), py::return_value_policy::reference)
-      .def(
-          "getInternalUInt",
-          [](Material & self, const ID & id) -> decltype(auto) {
-            return self.getInternal<UInt>(id);
-          },
-          py::arg("id"), py::return_value_policy::reference)
-      .def(
-          "getElementFilter",
-          [](Material & self) -> decltype(auto) {
-            return self.getElementFilter();
-          },
-          py::return_value_policy::reference)
-
-      /*
-       * These functions override the `Parsable` interface.
-       * This ensure that the `updateInternalParameters()` function is called.
-       */
-      .def(
-          "setReal",
-          [](Material & self, const ID & name, const Real value) -> void {
-            self.setParam(name, value);
-            return;
-          },
-          py::arg("name"), py::arg("value"))
-      .def(
-          "setBool",
-          [](Material & self, const ID & name, const bool value) -> void {
-            self.setParam(name, value);
-            return;
-          },
-          py::arg("name"), py::arg("value"))
-      .def(
-          "setString",
-          [](Material & self, const ID & name,
-             const std::string & value) -> void {
-            self.setParam(name, value);
-            return;
-          },
-          py::arg("name"), py::arg("value"))
-      .def(
-          "setInt",
-          [](Material & self, const ID & name, const int value) -> void {
-            self.setParam(name, value);
-            return;
-          },
-          py::arg("name"), py::arg("value"))
-
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
-      .def("getShearWaveSpeed", &Material::getShearWaveSpeed)
-      .def("__repr__", [](Material & self) {
-        std::stringstream sstr;
-        sstr << self;
-        return sstr.str();
-      });
+      .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
 
-  define_material<Material>(mod, "Material");
+  py::class_<MaterialFactory>(mod, "MaterialFactory")
+      .def_static(
+          "getInstance",
+          []() -> MaterialFactory & { return Material::getFactory(); },
+          py::return_value_policy::reference)
+      .def("registerAllocator",
+           [](MaterialFactory & self, const std::string id, py::function func) {
+             self.registerAllocator(
+                 id,
+                 [func, id](UInt dim, const ID & /*unused*/,
+                            SolidMechanicsModel & model,
+                            const ID & option) -> std::unique_ptr<Material> {
+                   py::object obj = func(dim, id, model, option);
+                   auto & ptr = py::cast<Material &>(obj);
 
-  py::class_<ConstitutiveLawSelector, std::shared_ptr<ConstitutiveLawSelector>>(
-      mod, "ConstitutiveLawSelector")
-      .def("setFallback",
-           [](ConstitutiveLawSelector & self, UInt f) { self.setFallback(f); })
-      .def("setFallback",
-           [](ConstitutiveLawSelector & self,
-              const std::shared_ptr<ConstitutiveLawSelector> &
-                  fallback_selector) { self.setFallback(fallback_selector); })
-      .def("setFallback", [](ConstitutiveLawSelector & self,
-                             ConstitutiveLawSelector & fallback_selector) {
-        self.setFallback(fallback_selector);
-      });
+                   obj.release();
+                   return std::unique_ptr<Material>(&ptr);
+                 });
+           })
+      .def("getPossibleAllocators", &MaterialFactory::getPossibleAllocators);
 
   py::class_<MeshDataMaterialSelector<std::string>, ConstitutiveLawSelector,
              std::shared_ptr<MeshDataMaterialSelector<std::string>>>(

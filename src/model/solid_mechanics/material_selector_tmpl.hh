@@ -64,13 +64,6 @@ ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt
-ElementDataMaterialSelector<T>::operator()(const Element & element) {
-  return MaterialSelector::operator()(element);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
 MeshDataMaterialSelector<T>::MeshDataMaterialSelector(
     const std::string & name, const SolidMechanicsModel & model,
     UInt first_index)

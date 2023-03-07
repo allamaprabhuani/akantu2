@@ -103,7 +103,7 @@ public:
     }
   }
 
-    template <class Func> void for_each_constitutive_law(Func && func) const {
+  template <class Func> void for_each_constitutive_law(Func && func) const {
     for (auto && constitutive_law : constitutive_laws) {
       std::forward<Func>(func)(*constitutive_law);
     }
@@ -189,6 +189,9 @@ public:
   /// give the constitutive_law internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
 
+  /// get the type to use for the parser
+  ParserType getConstitutiveLawParserType() const { return this->parser_type; }
+
 protected:
   AKANTU_GET_MACRO(ConstitutiveLawByElement, constitutive_law_index,
                    const ElementTypeMapArray<UInt> &);
@@ -270,6 +273,10 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// Type to use for the parser
+  ParserType parser_type{ParserType::_constitutive_law};
+
 private:
   /// mapping between constitutive_law name and constitutive_law internal id
   std::map<std::string, UInt> constitutive_laws_names_to_id;
