@@ -40,26 +40,26 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* clang-format off */
-template <> const UInt VoigtHelper<1>::mat[][1] = {{0}};
-template <> const UInt VoigtHelper<2>::mat[][2] = {{0, 2},
-                                                   {3, 1}};
-template <> const UInt VoigtHelper<3>::mat[][3] = {{0, 5, 4},
-                                                   {8, 1, 3},
-                                                   {7, 6, 2}};
-template <> const UInt VoigtHelper<1>::vec[][2] = {{0, 0}};
-template <> const UInt VoigtHelper<2>::vec[][2] = {{0, 0},
-                                                   {1, 1},
-                                                   {0, 1},
-                                                   {1, 0}};
-template <> const UInt VoigtHelper<3>::vec[][2] = {{0, 0},
-                                                   {1, 1},
-                                                   {2, 2},
-                                                   {1, 2},
-                                                   {0, 2},
-                                                   {0, 1},
-                                                   {2, 1},
-                                                   {2, 0},
-                                                   {1, 0}};
+template <> const Int VoigtHelper<1>::mat[][1] = {{0}};
+template <> const Int VoigtHelper<2>::mat[][2] = {{0, 2},
+                                                  {3, 1}};
+template <> const Int VoigtHelper<3>::mat[][3] = {{0, 5, 4},
+                                                  {8, 1, 3},
+                                                  {7, 6, 2}};
+template <> const Int VoigtHelper<1>::vec[][2] = {{0, 0}};
+template <> const Int VoigtHelper<2>::vec[][2] = {{0, 0},
+                                                  {1, 1},
+                                                  {0, 1},
+                                                  {1, 0}};
+template <> const Int VoigtHelper<3>::vec[][2] = {{0, 0},
+                                                  {1, 1},
+                                                  {2, 2},
+                                                  {1, 2},
+                                                  {0, 2},
+                                                  {0, 1},
+                                                  {2, 1},
+                                                  {2, 0},
+                                                  {1, 0}};
 template <> const Real VoigtHelper<1>::factors[] = {1.};
 template <> const Real VoigtHelper<2>::factors[] = {1., 1., 2.};
 template <> const Real VoigtHelper<3>::factors[] = {1., 1., 1.,

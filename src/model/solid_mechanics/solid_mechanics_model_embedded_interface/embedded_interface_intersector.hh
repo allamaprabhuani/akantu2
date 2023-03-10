@@ -81,7 +81,7 @@ public:
   void constructData(GhostType ghost_type = _not_ghost) override;
 
   /// Create a segment with an element connectivity
-  K::Segment_3 createSegment(const Vector<UInt> & connectivity);
+  K::Segment_3 createSegment(const Vector<Idx> & connectivity);
 
   /// Getter for interface mesh
   AKANTU_GET_MACRO_NOT_CONST(InterfaceMesh, interface_mesh, Mesh &);

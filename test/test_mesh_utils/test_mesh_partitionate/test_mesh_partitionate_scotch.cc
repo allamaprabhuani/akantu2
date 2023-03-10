@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
   partition.partitionate(8);
 
   DumperParaview dumper("test-scotch-partition");
-  auto field = std::make_shared<dumpers::ElementalField<UInt>>(
+  auto field = std::make_shared<dumpers::ElementalField<Idx>>(
       partition.getPartitions(), dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field);

@@ -39,7 +39,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_non_local.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   /// read the mesh and partion it
   Mesh mesh(spatial_dimension);
@@ -173,8 +173,8 @@ int main(int argc, char * argv[]) {
   Vector<Real> q2(spatial_dimension);
   q1 = coord_it[34];
   q2 = coord_it[38];
-  for (UInt e = 0; e < nb_elements; ++e) {
-    for (UInt q = 0; q < nb_quads; ++q, ++coord_it, ++grad_u_nl_it) {
+  for (Int e = 0; e < nb_elements; ++e) {
+    for (Int q = 0; q < nb_quads; ++q, ++coord_it, ++grad_u_nl_it) {
       diff_matrix = (*grad_u_nl_it) - const_grad_u;
       if ((q1.distance(*coord_it) <= (nl_radius + Math::getTolerance())) ||
           (q2.distance(*coord_it) <= (nl_radius + Math::getTolerance()))) {
@@ -202,8 +202,8 @@ int main(int argc, char * argv[]) {
       material.getInternal<Real>("equivalent_stress")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator eq_stress_it = eq_stress.begin();
   counter = 0;
-  for (UInt e = 0; e < nb_elements; ++e) {
-    for (UInt q = 0; q < nb_quads;
+  for (Int e = 0; e < nb_elements; ++e) {
+    for (Int q = 0; q < nb_quads;
          ++q, ++coord_it, ++grad_u_nl_it, ++eq_stress_it) {
       if (counter == 34 || counter == 38)
         continue;

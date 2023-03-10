@@ -60,7 +60,7 @@ static Real analytical_solution(Real time) {
           (1. - cos(w(5) * time)) / 625.);
 }
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 const Real time_step = 1e-4;
 const Real max_time = 0.62;
 /* -------------------------------------------------------------------------- */
@@ -94,7 +94,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "blocked");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "roller");
 
-  const Array<UInt> & trac_nodes =
+  const Array<Idx> & trac_nodes =
       mesh.getElementGroup("traction").getNodeGroup().getNodes();
 
   bool dump_node = false;
@@ -128,7 +128,7 @@ int main(int argc, char * argv[]) {
 
   /// time loop
   Real time = 0.;
-  for (UInt s = 1; time < max_time; ++s, time += time_step) {
+  for (Int s = 1; time < max_time; ++s, time += time_step) {
     if (prank == 0)
       std::cout << s << "\r" << std::flush;
 

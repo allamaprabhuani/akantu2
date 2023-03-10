@@ -91,14 +91,14 @@ void ShapeLagrange<_ek_igfem>::inverseMap(const Vector<Real> & real_coords,
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;
   const ElementType sub_type_2 = ElementClassProperty<type>::sub_element_type_2;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
                                      elem_val + elem * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
@@ -137,14 +137,14 @@ void ShapeLagrange<_ek_igfem>::inverseMap(const Vector<Real> & real_coords,
   const ElementType parent_type =
       ElementClassProperty<type>::parent_element_type;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
                                      elem_val + elem * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
@@ -162,7 +162,7 @@ template <ElementType type>
 bool ShapeLagrange<_ek_igfem>::contains(const Vector<Real> & real_coords,
                                         UInt elem, GhostType ghost_type) const {
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords, elem, natural_coords, ghost_type);
@@ -195,7 +195,7 @@ void ShapeLagrange<_ek_igfem>::computeShapes(const Vector<Real> & real_coords,
   const ElementType parent_type =
       ElementClassProperty<type>::parent_element_type;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   /// parent contribution
   /// get the size of the parent shapes
@@ -263,7 +263,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapesOnIntegrationPoints(
       ElementClassProperty<type>::parent_element_type;
 
   /// get the spatial dimension for the given element type
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   /// get the integration points for the subelements
   Matrix<Real> & natural_coords_sub_1 =
       integration_points(sub_type_1, ghost_type);
@@ -388,7 +388,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapeDerivativesOnIntegrationPoints(
       ElementClassProperty<type>::parent_element_type;
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   /// get the integration points for the subelements
   Matrix<Real> & natural_coords_sub_1 =
@@ -424,7 +424,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapeDerivativesOnIntegrationPoints(
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
-  Real * shapesd_val = shapes_derivatives_tmp.storage();
+  Real * shapesd_val = shapes_derivatives_tmp.data();
   Array<Real>::matrix_iterator x_it =
       x_el.begin(spatial_dimension, nb_nodes_per_element);
 
@@ -485,7 +485,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementType type>
 void ShapeLagrange<_ek_igfem>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -511,7 +511,7 @@ template <ElementType type>
 void ShapeLagrange<_ek_igfem>::gradientOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_nablauq,
     UInt nb_degree_of_freedom, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -575,13 +575,13 @@ void ShapeLagrange<_ek_igfem>::interpolateOnPhysicalPoint(
   Vector<Real> shapes(ElementClass<type>::getShapeSize());
   computeShapes<type>(real_coords, elem, shapes, ghost_type);
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_val(spatial_dimension, nb_nodes_per_element);
-  mesh.extractNodalValuesFromElement(field, nodes_val.storage(),
+  mesh.extractNodalValuesFromElement(field, nodes_val.data(),
                                      elem_val + elem * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
@@ -604,7 +604,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapesOnEnrichedNodes(
   const ElementType sub_type = ElementClassProperty<type>::sub_element_type_1;
 
   /// get the spatial dimension for the given element type
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
 
   // get the integration points for the parent element
   UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
@@ -684,8 +684,8 @@ void ShapeLagrange<_ek_igfem>::interpolateAtEnrichedNodes(
   UInt nb_parent_nodes =
       ElementClass<parent_type>::getNbNodesPerInterpolationElement();
   UInt nb_enrichments = ElementClass<type>::getNbEnrichments();
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
+  Int spatial_dimension = mesh.getSpatialDimension();
   Matrix<Real> nodes_val(spatial_dimension, nb_nodes_per_element);
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
@@ -695,13 +695,13 @@ void ShapeLagrange<_ek_igfem>::interpolateAtEnrichedNodes(
   Array<Real>::vector_iterator dst_vect = dst.begin(spatial_dimension);
 
   Vector<Real> interpolated(spatial_dimension);
-  for (UInt e = 0; e < nb_element; ++e, ++shapes_it) {
+  for (Int e = 0; e < nb_element; ++e, ++shapes_it) {
     const Matrix<Real> & el_shapes = *shapes_it;
-    mesh.extractNodalValuesFromElement(src, nodes_val.storage(),
+    mesh.extractNodalValuesFromElement(src, nodes_val.data(),
                                        elem_val + e * nb_nodes_per_element,
                                        nb_nodes_per_element, spatial_dimension);
     ;
-    for (UInt i = 0; i < nb_enrichments; ++i) {
+    for (Int i = 0; i < nb_enrichments; ++i) {
       ElementClass<type>::interpolate(nodes_val, el_shapes(i), interpolated);
       UInt enr_node_idx =
           elem_val[e * nb_nodes_per_element + nb_parent_nodes + i];

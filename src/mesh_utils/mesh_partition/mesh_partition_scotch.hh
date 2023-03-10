@@ -46,7 +46,7 @@ class MeshPartitionScotch : public MeshPartition {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshPartitionScotch(Mesh & mesh, UInt spatial_dimension,
+  MeshPartitionScotch(Mesh & mesh, Int spatial_dimension,
                       const ID & id = "mesh_partition_scotch");
 
   /* ------------------------------------------------------------------------ */
@@ -54,7 +54,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   void partitionate(
-      UInt nb_part,
+      Int nb_part,
       const std::function<Int(const Element &, const Element &)> &
           edge_load_func =
               [](auto && /*unused*/, auto && /*unused*/) { return 1; },

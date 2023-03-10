@@ -57,30 +57,29 @@ namespace dumpers {
   /* ------------------------------------------------------------------------ */
 
   // specialization for the case in which input and output types are the same
-  template <class T, template <class> class ret, bool filtered>
-  struct SingleType : public TypeTraits<T, ret<T>, ElementTypeMapArray<T>> {};
+  template <class T, class ret, bool filtered>
+  struct SingleType : public TypeTraits<T, ret, ElementTypeMapArray<T>> {};
 
   /* ------------------------------------------------------------------------ */
 
   // same as before but for filtered data
-  template <class T, template <class> class ret>
+  template <class T, class ret>
   struct SingleType<T, ret, true>
-      : public TypeTraits<T, ret<T>, ElementTypeMapArrayFilter<T>> {};
+      : public TypeTraits<T, ret, ElementTypeMapArrayFilter<T>> {};
   /* ------------------------------------------------------------------------ */
 
   // specialization for the case in which input and output types are different
-  template <class it_type, class data_type, template <class> class ret,
-            bool filtered>
-  struct DualType : public TypeTraits<data_type, ret<data_type>,
-                                      ElementTypeMapArray<it_type>> {};
+  template <class it_type, class data_type, class ret, bool filtered>
+  struct DualType
+      : public TypeTraits<data_type, ret, ElementTypeMapArray<it_type>> {};
 
   /* ------------------------------------------------------------------------ */
 
   // same as before but for filtered data
-  template <class it_type, class data_type, template <class> class ret>
+  template <class it_type, class data_type, class ret>
   struct DualType<it_type, data_type, ret, true>
-      : public TypeTraits<data_type, ret<data_type>,
-                          ElementTypeMapArrayFilter<it_type>> {};
+      : public TypeTraits<data_type, ret, ElementTypeMapArrayFilter<it_type>> {
+  };
   /* ------------------------------------------------------------------------ */
 } // namespace dumpers
 } // namespace akantu

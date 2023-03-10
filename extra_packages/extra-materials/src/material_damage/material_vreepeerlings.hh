@@ -37,7 +37,7 @@ namespace akantu {
  * the damage grows
  *   - Kct    : (default: 1.) Ratio between compressive and tensile strength
  */
-template <UInt spatial_dimension,
+template <Int spatial_dimension,
           template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlings
     : public MaterialDamage<spatial_dimension, MatParent> {

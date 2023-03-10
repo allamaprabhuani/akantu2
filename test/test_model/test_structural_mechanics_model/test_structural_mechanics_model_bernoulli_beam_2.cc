@@ -67,9 +67,9 @@ public:
   void setDirichletBCs() override {
     auto boundary = this->model->getBlockedDOFs().begin(parent::ndof);
     // clang-format off
-    *boundary = {true, true, true}; ++boundary;
-    *boundary = {false, true, false}; ++boundary;
-    *boundary = {false, true, false}; ++boundary;
+    *boundary = Vector<bool>{true, true, true}; ++boundary;
+    *boundary = Vector<bool>{false, true, false}; ++boundary;
+    *boundary = Vector<bool>{false, true, false}; ++boundary;
     // clang-format on
   }
 

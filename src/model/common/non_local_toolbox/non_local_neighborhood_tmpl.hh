@@ -32,8 +32,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
+#include "model.hh"
 #include "non_local_manager.hh"
-#include "non_local_neighborhood.hh"
+//#include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
@@ -100,10 +101,8 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
   AKANTU_DEBUG_IN();
 
   this->weight_function->setRadius(this->neighborhood_radius);
-  Vector<Real> q1_coord(this->spatial_dimension);
-  Vector<Real> q2_coord(this->spatial_dimension);
 
-  UInt nb_weights_per_pair = 2; /// w1: q1->q2, w2: q2->q1
+  Int nb_weights_per_pair = 2; /// w1: q1->q2, w2: q2->q1
 
   /// get the elementtypemap for the neighborhood volume for each quadrature
   /// point
@@ -117,61 +116,45 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
 
   for (auto ghost_type : ghost_types) {
     /// allocate the array to store the weight, if it doesn't exist already
-    if (!(pair_weight[ghost_type])) {
+    if (not pair_weight[ghost_type]) {
       pair_weight[ghost_type] =
           std::make_unique<Array<Real>>(0, nb_weights_per_pair);
     }
 
-    /// resize the array to the correct size
-    pair_weight[ghost_type]->resize(pair_list[ghost_type].size());
-    /// set entries to zero
-    pair_weight[ghost_type]->zero();
+    auto && pair_lists = pair_list[ghost_type];
+    auto && pair_weights = *pair_weight[ghost_type];
+    pair_weights.resize(pair_lists.size());
+    pair_weights.zero();
 
     /// loop over all pairs in the current pair list array and their
     /// corresponding weights
-    auto first_pair = pair_list[ghost_type].begin();
-    auto last_pair = pair_list[ghost_type].end();
-    auto weight_it = pair_weight[ghost_type]->begin(nb_weights_per_pair);
-
     // Compute the weights
-    for (; first_pair != last_pair; ++first_pair, ++weight_it) {
-      Vector<Real> & weight = *weight_it;
-      const IntegrationPoint & q1 = first_pair->first;
-      const IntegrationPoint & q2 = first_pair->second;
+    for (auto && [weight, pairs] :
+         zip(make_view(pair_weights, nb_weights_per_pair), pair_lists)) {
+      const auto & [q1, q2] = pairs;
 
       /// get the coordinates for the given pair of quads
-      auto coords_type_1_it = this->quad_coordinates(q1.type, q1.ghost_type)
-                                  .begin(this->spatial_dimension);
-      q1_coord = coords_type_1_it[q1.global_num];
-      auto coords_type_2_it = this->quad_coordinates(q2.type, q2.ghost_type)
-                                  .begin(this->spatial_dimension);
-      q2_coord = coords_type_2_it[q2.global_num];
+      auto && q1_coord = this->quad_coordinates.get(q1);
+      auto && q2_coord = this->quad_coordinates.get(q2);
 
-      Array<Real> & quad_volumes_1 =
-          quadrature_points_volumes(q1.type, q1.ghost_type);
-      const Array<Real> & jacobians_2 =
-          this->non_local_manager.getJacobians(q2.type, q2.ghost_type);
-      const Real & q2_wJ = jacobians_2(q2.global_num);
+      auto && quad_volumes_1 = quadrature_points_volumes(q1);
+      const auto & q2_wJ = this->non_local_manager.getJacobians()(q2);
 
       /// compute distance between the two quadrature points
-      Real r = q1_coord.distance(q2_coord);
+      auto r = q1_coord.distance(q2_coord);
 
       /// compute the weight for averaging on q1 based on the distance
-      Real w1 = this->weight_function->operator()(r, q1, q2);
-      weight(0) = q2_wJ * w1;
+      weight(0) = q2_wJ * (*this->weight_function)(r, q1, q2);
 
-      quad_volumes_1(q1.global_num) += weight(0);
+      quad_volumes_1 += weight(0);
 
       if (q2.ghost_type != _ghost && q1.global_num != q2.global_num) {
-        const Array<Real> & jacobians_1 =
-            this->non_local_manager.getJacobians(q1.type, q1.ghost_type);
-        Array<Real> & quad_volumes_2 =
-            quadrature_points_volumes(q2.type, q2.ghost_type);
+        const auto & q1_wJ = this->non_local_manager.getJacobians()(q1);
+        auto && quad_volumes_2 = quadrature_points_volumes(q2);
+
         /// compute the weight for averaging on q2
-        const Real & q1_wJ = jacobians_1(q1.global_num);
-        Real w2 = this->weight_function->operator()(r, q2, q1);
-        weight(1) = q1_wJ * w2;
-        quad_volumes_2(q2.global_num) += weight(1);
+        weight(1) = q1_wJ * (*this->weight_function)(r, q2, q1);
+        quad_volumes_2 += weight(1);
       } else {
         weight(1) = 0.;
       }
@@ -185,11 +168,11 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
       auto & quad_volumes_1 = quadrature_points_volumes(q1.type, q1.ghost_type);
       auto & quad_volumes_2 = quadrature_points_volumes(q2.type, q2.ghost_type);
 
-      Real q1_volume = quad_volumes_1(q1.global_num);
+      auto q1_volume = quad_volumes_1(q1.global_num);
       auto ghost_type2 = q2.ghost_type;
       weight(0) *= 1. / q1_volume;
       if (ghost_type2 != _ghost) {
-        Real q2_volume = quad_volumes_2(q2.global_num);
+        auto q2_volume = quad_volumes_2(q2.global_num);
         weight(1) *= 1. / q2_volume;
       }
     });
@@ -208,20 +191,18 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
 
   const Communicator & comm = model.getMesh().getCommunicator();
 
-  Int prank = comm.whoAmI();
+  auto prank = comm.whoAmI();
   sstr << filename << "." << prank;
 
   pout.open(sstr.str().c_str());
 
-  for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
-    auto ghost_type = (GhostType)gt;
-
+  for (auto ghost_type : ghost_types) {
     AKANTU_DEBUG_ASSERT((pair_weight[ghost_type]),
                         "the weights have not been computed yet");
 
-    Array<Real> & weights = *(pair_weight[ghost_type]);
+    auto & weights = *(pair_weight[ghost_type]);
     auto weights_it = weights.begin(2);
-    for (UInt i = 0; i < weights.size(); ++i, ++weights_it) {
+    for (Int i = 0; i < weights.size(); ++i, ++weights_it) {
       pout << "w1: " << (*weights_it)(0) << " w2: " << (*weights_it)(1)
            << std::endl;
     }
@@ -232,7 +213,7 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
 template <class WeightFunction>
 void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
     const ElementTypeMapReal & to_accumulate, ElementTypeMapReal & accumulated,
-    UInt nb_degree_of_freedom, GhostType ghost_type2) const {
+    Int nb_degree_of_freedom, GhostType ghost_type2) const {
 
   auto it = non_local_variables.find(accumulated.getName());
   // do averaging only for variables registered in the neighborhood
@@ -244,16 +225,14 @@ void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
       ghost_type2,
       [ghost_type2, nb_degree_of_freedom, &to_accumulate,
        &accumulated](const auto & q1, const auto & q2, auto & weight) {
-        const Vector<Real> to_acc_1 =
-            to_accumulate(q1.type, q1.ghost_type)
-                .begin(nb_degree_of_freedom)[q1.global_num];
-        const Vector<Real> to_acc_2 =
-            to_accumulate(q2.type, q2.ghost_type)
-                .begin(nb_degree_of_freedom)[q2.global_num];
-        Vector<Real> acc_1 = accumulated(q1.type, q1.ghost_type)
-                                 .begin(nb_degree_of_freedom)[q1.global_num];
-        Vector<Real> acc_2 = accumulated(q2.type, q2.ghost_type)
-                                 .begin(nb_degree_of_freedom)[q2.global_num];
+        auto && to_acc_1 = to_accumulate(q1.type, q1.ghost_type)
+                               .begin(nb_degree_of_freedom)[q1.global_num];
+        auto && to_acc_2 = to_accumulate(q2.type, q2.ghost_type)
+                               .begin(nb_degree_of_freedom)[q2.global_num];
+        auto && acc_1 = accumulated(q1.type, q1.ghost_type)
+                            .begin(nb_degree_of_freedom)[q1.global_num];
+        auto && acc_2 = accumulated(q2.type, q2.ghost_type)
+                            .begin(nb_degree_of_freedom)[q2.global_num];
 
         acc_1 += weight(0) * to_acc_2;
 

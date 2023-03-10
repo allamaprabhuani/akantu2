@@ -39,9 +39,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::addElement(const ElementType & type, UInt element,
-                                   const GhostType & ghost_type) {
-  Array<UInt> & el_filter = this->element_filter(type, ghost_type);
+inline UInt PhaseField::addElement(ElementType type, UInt element,
+                                   GhostType ghost_type) {
+  auto & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
@@ -61,7 +61,7 @@ PhaseField::registerInternal<Real>(InternalPhaseField<Real> & vect) {
 template <>
 inline void
 PhaseField::registerInternal<UInt>(InternalPhaseField<UInt> & vect) {
-  internal_vectors_uint[vect.getID()] = &vect;
+  internal_vectors_int[vect.getID()] = &vect;
 }
 
 template <>
@@ -80,7 +80,7 @@ PhaseField::unregisterInternal<Real>(InternalPhaseField<Real> & vect) {
 template <>
 inline void
 PhaseField::unregisterInternal<UInt>(InternalPhaseField<UInt> & vect) {
-  internal_vectors_uint.erase(vect.getID());
+  internal_vectors_int.erase(vect.getID());
 }
 
 template <>
@@ -93,14 +93,13 @@ PhaseField::unregisterInternal<bool>(InternalPhaseField<bool> & vect) {
 template <typename T>
 inline bool PhaseField::isInternal(__attribute__((unused)) const ID & id,
                                    __attribute__((unused))
-                                   const ElementKind & element_kind) const {
+                                   ElementKind element_kind) const {
   AKANTU_TO_IMPLEMENT();
 }
 
 template <>
-inline bool
-PhaseField::isInternal<Real>(const ID & id,
-                             const ElementKind & element_kind) const {
+inline bool PhaseField::isInternal<Real>(const ID & id,
+                                         ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
   return !(internal_array == internal_vectors_real.end() ||
@@ -108,10 +107,10 @@ PhaseField::isInternal<Real>(const ID & id,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::getNbData(__attribute__((unused))
-                                  const Array<Element> & elements,
-                                  __attribute__((unused))
-                                  const SynchronizationTag & tag) const {
+inline Int PhaseField::getNbData(__attribute__((unused))
+                                 const Array<Element> & elements,
+                                 __attribute__((unused))
+                                 const SynchronizationTag & tag) const {
   return 0;
 }
 

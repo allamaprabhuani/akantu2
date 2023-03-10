@@ -41,7 +41,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt dim = 2;
+  const Int dim = 2;
 
   // Loading the concrete mesh
   Mesh mesh(dim);

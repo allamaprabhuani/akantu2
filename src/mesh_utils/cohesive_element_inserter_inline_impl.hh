@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "cohesive_element_inserter.hh"
+//#include "cohesive_element_inserter.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_COHESIVE_ELEMENT_INSERTER_INLINE_IMPL_HH_
@@ -52,12 +52,12 @@ CohesiveElementInserter::addPhysicalVolume(const ID & surface_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt
+inline Int
 CohesiveElementInserter::getNbData(const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
+  Int size = 0;
 
   if (tag == SynchronizationTag::_ce_groups) {
     size = elements.size() * sizeof(bool);

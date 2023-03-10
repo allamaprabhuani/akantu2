@@ -61,10 +61,10 @@ CohesiveElementInserter::CohesiveElementInserter(Mesh & mesh, const ID & id)
   this->registerParam("bounding_box", insertion_limits, _pat_parsable,
                       "Global limit for insertion");
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   /// init insertion limits
-  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+  for (Int dim = 0; dim < spatial_dimension; ++dim) {
     insertion_limits(dim, 0) = std::numeric_limits<Real>::max() * Real(-1.);
     insertion_limits(dim, 1) = std::numeric_limits<Real>::max();
   }
@@ -103,7 +103,7 @@ void CohesiveElementInserter::setLimit(SpatialDirection axis, Real first_limit,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt CohesiveElementInserter::insertIntrinsicElements() {
+Int CohesiveElementInserter::insertIntrinsicElements() {
   limitCheckFacets(insertion_facets);
   return insertElements();
 }
@@ -113,7 +113,7 @@ void CohesiveElementInserter::limitCheckFacets(
     ElementTypeMapArray<bool> & check_facets) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   check_facets.initialize(mesh_facets,
                           _spatial_dimension = spatial_dimension - 1,
@@ -159,7 +159,7 @@ void CohesiveElementInserter::limitCheckFacets(
         }
 
         mesh_facets.getBarycenter(facet, bary_facet);
-        UInt coord_in_limit = 0;
+        Int coord_in_limit = 0;
 
         while (coord_in_limit < spatial_dimension and
                bary_facet(coord_in_limit) >
@@ -285,7 +285,7 @@ UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
 void CohesiveElementInserter::updateInsertionFacets() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   for (auto && facet_gt : ghost_types) {
     for (auto && facet_type :

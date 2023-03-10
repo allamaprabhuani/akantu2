@@ -60,8 +60,7 @@ void NodeGroup::clear() { node_group.resize(0); }
 /* -------------------------------------------------------------------------- */
 void NodeGroup::optimize() {
   std::sort(node_group.begin(), node_group.end());
-  Array<UInt>::iterator<> end =
-      std::unique(node_group.begin(), node_group.end());
+  auto end = std::unique(node_group.begin(), node_group.end());
   node_group.resize(end - node_group.begin());
 }
 
@@ -69,7 +68,7 @@ void NodeGroup::optimize() {
 void NodeGroup::append(const NodeGroup & other_group) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = node_group.size();
+  auto nb_nodes = node_group.size();
 
   /// append new nodes to current list
   node_group.resize(nb_nodes + other_group.node_group.size());

@@ -74,17 +74,25 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 
     const auto & coords = model.getMesh().getNodes();
     auto & boundary_flags = model.getBlockedDOFs();
-    UInt dim = model.getMesh().getSpatialDimension();
+    Int dim = model.getMesh().getSpatialDimension();
 
     auto primal_iter = primal.begin(primal.getNbComponent());
     auto coords_iter = coords.begin(dim);
     auto flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
 
     for (auto n : group.getNodeGroup()) {
-      Vector<bool> flag(flags_iter[n]);
-      Vector<Real> primal(primal_iter[n]);
-      Vector<Real> coords(coords_iter[n]);
-      func(n, flag, primal, coords);
+      auto && flags = flags_iter[n];
+      auto && primal = primal_iter[n];
+
+      // The copy it to avoid the user to template is functor
+      Vector<bool> flags_ = flags;
+      Vector<Real> primal_ = primal;
+      Vector<Real> coords = coords_iter[n];
+
+      func(n, flags_, primal_, coords);
+
+      flags = flags_;
+      primal = primal_;
     }
   }
 };
@@ -98,19 +106,13 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
   static inline void applyBC(const FunctorType & func,
                              const ElementGroup & group,
                              BoundaryCondition<ModelType> & bc_instance) {
-    UInt dim = bc_instance.getModel().getSpatialDimension();
-    switch (dim) {
-    case 1: {
+    auto dim = bc_instance.getModel().getSpatialDimension();
+
+    if (dim == 1) {
       AKANTU_TO_IMPLEMENT();
-      break;
     }
-    case 2:
-    case 3: {
-      applyBC(func, group, bc_instance, _not_ghost);
-      applyBC(func, group, bc_instance, _ghost);
-      break;
-    }
-    }
+    applyBC(func, group, bc_instance, _not_ghost);
+    applyBC(func, group, bc_instance, _ghost);
   }
 
   static inline void applyBC(const FunctorType & func,
@@ -123,8 +125,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     const auto & nodes_coords = mesh.getNodes();
     const auto & fem_boundary = model.getFEEngineBoundary();
 
-    UInt dim = model.getSpatialDimension();
-    UInt nb_degree_of_freedom = dual.getNbComponent();
+    Int dim = model.getSpatialDimension();
+    Int nb_degree_of_freedom = dual.getNbComponent();
 
     IntegrationPoint quad_point;
     quad_point.ghost_type = ghost_type;
@@ -133,10 +135,10 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     for (auto && type : group.elementTypes(dim - 1, ghost_type)) {
       const auto & element_ids = group.getElements(type, ghost_type);
 
-      UInt nb_quad_points =
+      auto nb_quad_points =
           fem_boundary.getNbIntegrationPoints(type, ghost_type);
-      UInt nb_elements = element_ids.size();
-      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+      auto nb_elements = element_ids.size();
+      auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
       Array<Real> dual_before_integ(nb_elements * nb_quad_points,
                                     nb_degree_of_freedom, 0.);
@@ -158,7 +160,15 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
         normals_iter = normals_begin + el * nb_quad_points;
         for (auto q : arange(nb_quad_points)) {
           quad_point.num_point = q;
-          func(quad_point, *dual_iter, *quad_coords_iter, *normals_iter);
+
+          Vector<Real> dual(*dual_iter);
+          Vector<Real> quad_coords(*quad_coords_iter);
+          Vector<Real> normals(*normals_iter);
+
+          func(quad_point, dual, quad_coords, normals);
+
+          *dual_iter = dual;
+
           ++dual_iter;
           ++quad_coords_iter;
           ++normals_iter;

@@ -76,7 +76,7 @@ void MaterialIGFEM::computeQuadraturePointsCoordinates(
   Mesh::type_iterator last_type =
       this->element_filter.lastType(spatial_dimension, ghost_type, _ek_igfem);
   for (; it != last_type; ++it) {
-    const Array<UInt> & elem_filter = this->element_filter(*it, ghost_type);
+    const Array<Idx> & elem_filter = this->element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
     if (nb_element) {
       UInt nb_tot_quad =
@@ -105,7 +105,7 @@ void MaterialIGFEM::computeQuadraturePointsCoordinates(
 void MaterialIGFEM::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model->getSpatialDimension();
+  Int spatial_dimension = model->getSpatialDimension();
 
   Mesh::type_iterator it =
       this->fem->getMesh().firstType(spatial_dimension, ghost_type, _ek_igfem);
@@ -113,7 +113,7 @@ void MaterialIGFEM::computeAllStresses(GhostType ghost_type) {
       this->fem->getMesh().lastType(spatial_dimension, ghost_type, _ek_igfem);
 
   for (; it != last_type; ++it) {
-    Array<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Array<Idx> & elem_filter = element_filter(*it, ghost_type);
     if (elem_filter.getSize()) {
       Array<Real> & gradu_vect = gradu(*it, ghost_type);
 
@@ -160,7 +160,7 @@ void MaterialIGFEM::extrapolateInternal(const ID & id, const Element & element,
     const Matrix<Real> & values = internal_it[local_element.element];
     UInt index = 0;
     Vector<Real> tmp(nb_component);
-    for (UInt j = 0; j < values.cols(); ++j) {
+    for (Int j = 0; j < values.cols(); ++j) {
       tmp = values(j);
       if (tmp.norm() > Math::getTolerance()) {
         index = j;
@@ -168,7 +168,7 @@ void MaterialIGFEM::extrapolateInternal(const ID & id, const Element & element,
       }
     }
 
-    for (UInt i = 0; i < extrapolated.size(); ++i) {
+    for (Int i = 0; i < extrapolated.size(); ++i) {
       extrapolated(i) = values(index);
     }
   } else {
@@ -204,8 +204,8 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
   UInt nb_nodes_per_el = mesh.getNbNodesPerElement(el.type);
   UInt nb_parent_nodes = IGFEMHelper::getNbParentNodes(el.type);
   Vector<bool> is_inside(nb_parent_nodes);
-  const Array<UInt> & connectivity = mesh.getConnectivity(el.type, ghost_type);
-  Array<UInt>::const_vector_iterator connec_it =
+  const Array<Idx> & connectivity = mesh.getConnectivity(el.type, ghost_type);
+  Array<Idx>::const_vector_iterator connec_it =
       connectivity.begin(nb_nodes_per_el);
 
   /// get the number of quadrature points for the two sub-elements
@@ -213,19 +213,19 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
   UInt quads_2 = IGFEMHelper::getNbQuadraturePoints(el.type, 1);
   UInt nb_total_quads = quads_1 + quads_2;
 
-  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).storage();
+  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).data();
 
   /// loop all elements for the given type
-  const Array<UInt> & filter = this->element_filter(el.type, ghost_type);
+  const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
   UInt nb_elements = filter.getSize();
-  for (UInt e = 0; e < nb_elements; ++e, ++connec_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++connec_it) {
     el.element = filter(e);
     if (std::find(el_begin, el_end, el) == el_end) {
       sub_mat_ptr += nb_total_quads;
       continue;
     }
 
-    for (UInt i = 0; i < nb_parent_nodes; ++i) {
+    for (Int i = 0; i < nb_parent_nodes; ++i) {
       Vector<Real> node = nodes_it[(*connec_it)(i)];
       is_inside(i) = igfem_model->isInside(node, this->name_sub_mat_1);
     }
@@ -257,11 +257,11 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
     }
     }
 
-    for (UInt q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(0);
       *sub_mat_ptr = index;
     }
-    for (UInt q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(1);
       *sub_mat_ptr = index;
     }
@@ -284,8 +284,8 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_4>(
   el.type = _igfem_triangle_4;
   UInt nb_nodes_per_el = mesh.getNbNodesPerElement(el.type);
   Vector<Real> barycenter(spatial_dimension);
-  const Array<UInt> & connectivity = mesh.getConnectivity(el.type, ghost_type);
-  Array<UInt>::const_vector_iterator connec_it =
+  const Array<Idx> & connectivity = mesh.getConnectivity(el.type, ghost_type);
+  Array<Idx>::const_vector_iterator connec_it =
       connectivity.begin(nb_nodes_per_el);
 
   /// get the number of quadrature points for the two sub-elements
@@ -293,31 +293,31 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_4>(
   UInt quads_2 = IGFEMHelper::getNbQuadraturePoints(el.type, 1);
   UInt nb_total_quads = quads_1 + quads_2;
 
-  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).storage();
+  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).data();
 
   /// loop all elements for the given type
-  const Array<UInt> & filter = this->element_filter(el.type, ghost_type);
+  const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
   UInt nb_elements = filter.getSize();
-  for (UInt e = 0; e < nb_elements; ++e, ++connec_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++connec_it) {
     el.element = filter(e);
     if (std::find(el_begin, el_end, el) == el_end) {
       sub_mat_ptr += nb_total_quads;
       continue;
     }
 
-    for (UInt s = 0; s < this->nb_sub_materials; ++s) {
+    for (Int s = 0; s < this->nb_sub_materials; ++s) {
       igfem_model->getSubElementBarycenter(el.element, s, el.type, barycenter,
                                            ghost_type);
       sub_material_index(s) =
           1 - igfem_model->isInside(barycenter, this->name_sub_mat_1);
     }
 
-    for (UInt q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_1; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(0);
       *sub_mat_ptr = index;
     }
 
-    for (UInt q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
+    for (Int q = 0; q < quads_2; ++q, ++sub_mat_ptr) {
       UInt index = sub_material_index(1);
       *sub_mat_ptr = index;
     }
@@ -335,10 +335,10 @@ void MaterialIGFEM::applyEigenGradU(
     if (sub_mat_it->second == id) {
       UInt sub_element_index = sub_mat_it->first;
 
-      ElementTypeMapArray<UInt>::type_iterator it =
+      ElementTypeMapArray<Idx>::type_iterator it =
           this->element_filter.firstType(_all_dimensions, ghost_type,
                                          _ek_not_defined);
-      ElementTypeMapArray<UInt>::type_iterator end =
+      ElementTypeMapArray<Idx>::type_iterator end =
           element_filter.lastType(_all_dimensions, ghost_type, _ek_not_defined);
 
       for (; it != end; ++it) {
@@ -351,7 +351,7 @@ void MaterialIGFEM::applyEigenGradU(
         Array<Real>::matrix_iterator eigen_end =
             this->eigengradu(type, ghost_type)
                 .end(spatial_dimension, spatial_dimension);
-        UInt * sub_mat_ptr = this->sub_material(type, ghost_type).storage();
+        UInt * sub_mat_ptr = this->sub_material(type, ghost_type).data();
 
         for (; eigen_it != eigen_end; ++eigen_it, ++sub_mat_ptr) {
           if (*sub_mat_ptr == sub_element_index) {

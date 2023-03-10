@@ -129,7 +129,7 @@ The following loop  allows, for each time  step, to update the  \code{temperatur
 \code{temperature\_rate}  fields  following the previously described integration scheme.
 
 \begin{cpp}
-  for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
+  for (Int s = 1; (s-1)*applied_time_step < total_time; ++s) {
     model.solveStep();
   }
 \end{cpp}

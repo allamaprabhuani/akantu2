@@ -58,7 +58,7 @@
        x   y    z
 * N0  -1   1    0
 * N1  -1   0    1
-* N2  -1   0    0
+* N2  -1   0   0
 * N3   1   1    0
 * N4   1   0    1
 * N5   1   0    0
@@ -77,9 +77,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_pentahedron_6, _gt_pentahedron_6,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   N(0) = 0.5 * c(1) * (1 - c(0));              // N1(q)
   N(1) = 0.5 * c(2) * (1 - c(0));              // N2(q)
@@ -90,9 +91,9 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
   dnds(0, 0) = -0.5 * c(1);
   dnds(0, 1) = -0.5 * c(2);
   dnds(0, 2) = -0.5 * (1 - c(1) - c(2));
@@ -116,50 +117,23 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
 }
 
 /* -------------------------------------------------------------------------- */
-// I have to duplicate this code since the Real * coords do not know their size
-// in the Math module.
-// If later we use eigen or Vector to implement this function
-// there should be only one function in akantu::Math
-// -> this is temporary for the release deadline which was so extended
-
-inline Real triangle_inradius(const Real * coord1, const Real * coord2,
-                              const Real * coord3) {
-  /**
-   * @f{eqnarray*}{
-   * r &=& A / s \\
-   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
-   * s &=& \frac{a + b + c}{2}
-   * @f}
-   */
-
-  auto a = Math::distance_3d(coord1, coord2);
-  auto b = Math::distance_3d(coord2, coord3);
-  auto c = Math::distance_3d(coord1, coord3);
-
-  auto s = (a + b + c) * 0.5;
-
-  return std::sqrt((s - a) * (s - b) * (s - c) / s);
-}
-/* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_pentahedron_6>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
+template <class D>
+inline Real GeometricalElement<_gt_pentahedron_6>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&u0 = coord.col(0);
+  auto &&u1 = coord.col(1);
+  auto &&u2 = coord.col(2);
+  auto &&u3 = coord.col(3);
+  auto &&u4 = coord.col(4);
+  auto &&u5 = coord.col(5);
 
-  auto inradius_triangle_1 =
-      triangle_inradius(u0.storage(), u1.storage(), u2.storage());
+  auto inradius_triangle_1 = Math::triangle_inradius(u0, u1, u2);
+  auto inradius_triangle_2 = Math::triangle_inradius(u3, u4, u5);
 
-  auto inradius_triangle_2 =
-      triangle_inradius(u3.storage(), u4.storage(), u5.storage());
-
-  auto d1 = u3.distance(u0) * 0.5;
-  auto d2 = u5.distance(u2) * 0.5;
-  auto d3 = u4.distance(u1) * 0.5;
+  auto d1 = (u3 - u0).norm() * 0.5;
+  auto d2 = (u5 - u2).norm() * 0.5;
+  auto d3 = (u4 - u1).norm() * 0.5;
   auto p =
       2. * std::min({inradius_triangle_1, inradius_triangle_2, d1, d2, d3});
 

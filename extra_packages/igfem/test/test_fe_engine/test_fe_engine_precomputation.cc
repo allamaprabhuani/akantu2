@@ -60,7 +60,7 @@ int main(int argc, char * argv[]) {
 /* -------------------------------------------------------------------------- */
 void precompute(const ElementType type) {
 
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
 

@@ -36,31 +36,18 @@ namespace dumpers {
 #ifdef AKANTU_IGFEM
 #include "dumper_igfem_element_partition.hh"
 #endif
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class types>
   class element_partition_field_iterator
       : public element_iterator<types, element_partition_field_iterator> {
-
-    /* ------------------------------------------------------------------------
-     */
-    /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
   public:
     using parent =
         element_iterator<types, dumpers::element_partition_field_iterator>;
     using return_type =
-        typename SingleType<unsigned int, Vector, true>::return_type;
+        typename SingleType<int, Vector<int>, true>::return_type;
     using array_iterator = typename types::array_iterator;
     using field_type = typename types::field_type;
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
-  public:
     element_partition_field_iterator(
         const field_type & field,
         const typename field_type::type_iterator & t_it,
@@ -71,68 +58,40 @@ namespace dumpers {
       prank = Communicator::getStaticCommunicator().whoAmI();
     }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
-  public:
-    return_type operator*() { return return_type(1, prank); }
+    return_type operator*() {
+      return_type ret(1);
+      ret.fill(prank);
+      return ret;
+    }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
   protected:
-    UInt prank;
+    Int prank;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <bool filtered = false>
   class ElementPartitionField
-      : public GenericElementalField<SingleType<UInt, Vector, filtered>,
+      : public GenericElementalField<SingleType<Int, Vector<Int>, filtered>,
                                      element_partition_field_iterator> {
   public:
-    /* ------------------------------------------------------------------------
-     */
-    /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
-
-    using types = SingleType<UInt, Vector, filtered>;
+    using types = SingleType<Int, Vector<Int>, filtered>;
     using iterator = element_partition_field_iterator<types>;
     using parent =
         GenericElementalField<types, element_partition_field_iterator>;
     using field_type = typename types::field_type;
 
-  public:
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
-
     ElementPartitionField(const field_type & field,
-                          UInt spatial_dimension = _all_dimensions,
+                          Int spatial_dimension = _all_dimensions,
                           GhostType ghost_type = _not_ghost,
                           ElementKind element_kind = _ek_not_defined)
         : parent(field, spatial_dimension, ghost_type, element_kind) {
       this->homogeneous = true;
     }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
-
-    UInt getDim() override { return 1; }
+    Int getDim() override { return 1; }
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
 } // namespace dumpers
 } // namespace akantu

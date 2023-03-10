@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
 
   akantu::initialize("material_orthotropic.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const ElementType element_type = _triangle_3;
   const GhostType ghost_type = _not_ghost;
   Mesh mesh(spatial_dimension);
@@ -71,8 +71,8 @@ int main(int argc, char * argv[]) {
   /// homogenize
   Matrix<Real> C(voigt_size, voigt_size);
   model.homogenizeStiffness(C);
-  for (UInt i = 0; i < voigt_size; ++i) {
-    for (UInt j = 0; j < voigt_size; ++j) {
+  for (Int i = 0; i < voigt_size; ++i) {
+    for (Int j = 0; j < voigt_size; ++j) {
       std::cout << "exact: " << voigt_stiffness(i, j)
                 << " approximated: " << C(i, j) << std::endl;
       if (std::abs(voigt_stiffness(i, j) - C(i, j)) > 1.e-10) {

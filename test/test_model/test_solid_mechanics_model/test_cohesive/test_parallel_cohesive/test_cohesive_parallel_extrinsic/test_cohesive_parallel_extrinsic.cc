@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
 
   const UInt max_steps = 500;
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
 
   const auto & comm = Communicator::getStaticCommunicator();
@@ -91,7 +91,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
@@ -102,7 +102,7 @@ int main(int argc, char * argv[]) {
   /// initial conditions
   Real loading_rate = 0.5;
   Real disp_update = loading_rate * time_step;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
   }
 
@@ -127,10 +127,10 @@ int main(int argc, char * argv[]) {
   model.dump("cohesive elements");
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
         displacement(n, 1) += disp_update * position(n, 1);
     }
@@ -145,7 +145,7 @@ int main(int argc, char * argv[]) {
     }
 
     // // update displacement
-    // for (UInt n = 0; n < nb_nodes; ++n) {
+    // for (Int n = 0; n < nb_nodes; ++n) {
     //   if (position(n, 1) + displacement(n, 1) > 0) {
     // 	displacement(n, 0) -= 0.01;
     //   }

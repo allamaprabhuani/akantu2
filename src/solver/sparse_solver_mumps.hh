@@ -103,10 +103,10 @@ private:
   /* ------------------------------------------------------------------------ */
 private:
   /// access the control variable
-  inline Int & icntl(UInt i) { return mumps_data.icntl[i - 1]; }
+  inline Int & icntl(Int i) { return mumps_data.icntl[i - 1]; }
 
   /// access the results info
-  inline Int & info(UInt i) { return mumps_data.info[i - 1]; }
+  inline Int & info(Int i) { return mumps_data.info[i - 1]; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -122,13 +122,13 @@ private:
   DMUMPS_STRUC_C mumps_data;
 
   /// Rank of the current process
-  UInt prank;
+  Int prank;
 
   /// matrix release at last solve
-  UInt last_profile_release{UInt(-1)};
+  Int last_profile_release{-1};
 
   /// matrix release at last solve
-  UInt last_value_release{UInt(-1)};
+  Int last_value_release{-1};
 
   /// check if the solver data are initialized
   bool is_initialized{false};

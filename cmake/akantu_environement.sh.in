@@ -4,3 +4,12 @@ export PYTHONPATH
 
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:@PROJECT_BINARY_DIR@/src
 export LD_LIBRARY_PATH
+
+# For cases run under sanitizers
+ASAN_OPTIONS=suppressions=@PROJECT_SOURCE_DIR@/cmake/asan_akantu.supp
+#ASAN_OPTIONS=${ASAN_OPTIONS}:abort_on_error=1
+export ASAN_OPTIONS
+
+LSAN_OPTIONS=suppressions=@PROJECT_SOURCE_DIR@/cmake/lsan_akantu.supp
+LSAN_OPTIONS=print_suppressions=0:${LSAN_OPTIONS}
+export LSAN_OPTIONS

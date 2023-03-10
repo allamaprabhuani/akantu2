@@ -48,11 +48,11 @@ class MeshPartitionMeshData : public MeshPartition {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshPartitionMeshData(Mesh & mesh, UInt spatial_dimension,
+  MeshPartitionMeshData(Mesh & mesh, Int spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData");
 
-  MeshPartitionMeshData(Mesh & mesh, const ElementTypeMapArray<UInt> & mapping,
-                        UInt spatial_dimension,
+  MeshPartitionMeshData(Mesh & mesh, const ElementTypeMapArray<Idx> & mapping,
+                        Int spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData");
 
   /* ------------------------------------------------------------------------ */
@@ -60,7 +60,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   void partitionate(
-      UInt nb_part,
+      Int nb_part,
       const std::function<Int(const Element &, const Element &)> &
           edge_load_func =
               [](auto && /*unused*/, auto && /*unused*/) { return 1; },
@@ -69,20 +69,15 @@ public:
 
   void reorder() override;
 
-  void setPartitionMapping(const ElementTypeMapArray<UInt> & mapping);
+  void setPartitionMapping(const ElementTypeMapArray<Idx> & mapping);
 
   void setPartitionMappingFromMeshData(const std::string & data_name);
 
-private:
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  const ElementTypeMapArray<UInt> * partition_mapping;
+  const ElementTypeMapArray<Idx> * partition_mapping;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -58,9 +58,9 @@ namespace {
 
     ~PyMaterialSelector() override = default;
 
-    UInt operator()(const Element & element) override {
+    Idx operator()(const Element & element) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_NAME(UInt, MaterialSelector, "__call__", operator(),
+      PYBIND11_OVERRIDE_NAME(Idx, MaterialSelector, "__call__", operator(),
                              element);
     }
   };
@@ -90,7 +90,7 @@ void register_material_selector(py::module & mod) {
 
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
-      .def(py::init<const ElementTypeMapArray<UInt> &>());
+      .def(py::init<const ElementTypeMapArray<Int> &>());
 
   register_material_selectors<MeshDataMaterialSelector<std::string>>(
       mod, "MeshDataMaterialSelectorString")

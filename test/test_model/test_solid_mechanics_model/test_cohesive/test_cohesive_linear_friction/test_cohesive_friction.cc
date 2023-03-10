@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   Math::setTolerance(1.e-15);
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   const ElementType type = _cohesive_2d_4;
 
   Mesh mesh(spatial_dimension);
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
       model.getMaterial("interface").getInternal<Real>("friction_force")(type));
 
   // Boundary conditions
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
     if (pos(i, 1) < -0.49 || pos(i, 1) > 0.49) {
       boun(i, 0) = true;
       boun(i, 1) = true;
@@ -98,9 +98,9 @@ int main(int argc, char * argv[]) {
   /* LOADING PHASE to introduce cohesive elements */
   /* -------------------------------------------- */
 
-  for (UInt nstep = 0; nstep < 100; ++nstep) {
+  for (Int nstep = 0; nstep < 100; ++nstep) {
 
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (pos(n, 1) > 0.49)
         disp(n, 1) += increment;
     }
@@ -119,9 +119,9 @@ int main(int argc, char * argv[]) {
   /* UNLOADING PHASE to bring cohesive elements in compression */
   /* --------------------------------------------------------- */
 
-  for (UInt nstep = 0; nstep < 110; ++nstep) {
+  for (Int nstep = 0; nstep < 110; ++nstep) {
 
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (pos(n, 1) > 0.49)
         disp(n, 1) -= increment;
     }
@@ -142,9 +142,9 @@ int main(int argc, char * argv[]) {
 
   increment *= 2;
 
-  for (UInt nstep = 0; nstep < 30; ++nstep) {
+  for (Int nstep = 0; nstep < 30; ++nstep) {
 
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (pos(n, 1) > 0.49)
         disp(n, 0) += increment;
     }
@@ -166,7 +166,7 @@ int main(int argc, char * argv[]) {
   // Friction + mode II cohesive behavior
   Real reac_X = 0.;
 
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
     if (pos(i, 1) > 0.49)
       reac_X += residual(i, 0);
   }
@@ -183,9 +183,9 @@ int main(int argc, char * argv[]) {
   /* SHEAR PHASE - displacement back to zero            */
   /* -------------------------------------------------- */
 
-  for (UInt nstep = 0; nstep < 30; ++nstep) {
+  for (Int nstep = 0; nstep < 30; ++nstep) {
 
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (pos(n, 1) > 0.49)
         disp(n, 0) -= increment;
     }
@@ -208,7 +208,7 @@ int main(int argc, char * argv[]) {
   // Friction + mode II cohesive behavior
   reac_X = 0.;
 
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
     if (pos(i, 1) > 0.49)
       reac_X += residual(i, 0);
   }

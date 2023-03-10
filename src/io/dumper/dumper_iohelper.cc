@@ -33,14 +33,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <io_helper.hh>
+//#include <io_helper.hh>
 
+#include "dumper_iohelper.hh"
 #include "dumper_elemental_field.hh"
 #include "dumper_filtered_connectivity.hh"
-#include "dumper_iohelper.hh"
 #include "dumper_nodal_field.hh"
 #include "dumper_variable.hh"
 #include "mesh.hh"
+
 #if defined(AKANTU_IGFEM)
 #include "dumper_igfem_connectivity.hh"
 #endif
@@ -55,8 +56,8 @@ DumperIOHelper::~DumperIOHelper() = default;
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setParallelContext(bool is_parallel) {
-  UInt whoami = Communicator::getStaticCommunicator().whoAmI();
-  UInt nb_proc = Communicator::getStaticCommunicator().getNbProc();
+  auto whoami = Communicator::getStaticCommunicator().whoAmI();
+  auto nb_proc = Communicator::getStaticCommunicator().getNbProc();
 
   if (is_parallel) {
     dumper->setParallelContext(whoami, nb_proc);
@@ -98,19 +99,18 @@ void DumperIOHelper::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump(UInt step) {
+void DumperIOHelper::dump(Int step) {
   this->count = step;
   this->dump();
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump(Real current_time, UInt step) {
+void DumperIOHelper::dump(Real current_time, Int step) {
   this->dumper->setCurrentTime(current_time);
   this->dump(step);
 }
-
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
+void DumperIOHelper::registerMesh(const Mesh & mesh, Int spatial_dimension,
                                   GhostType ghost_type,
                                   ElementKind element_kind) {
 
@@ -119,24 +119,25 @@ void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
     registerField("connectivities",
                   new dumpers::IGFEMConnectivityField(
                       mesh.getConnectivities(), spatial_dimension, ghost_type));
-  } else
+  } else {
 #endif
-
     registerField("connectivities",
-                  std::make_shared<dumpers::ElementalField<UInt>>(
+                  std::make_shared<dumpers::ElementalField<Idx>>(
                       mesh.getConnectivities(), spatial_dimension, ghost_type,
                       element_kind));
-
+#if defined(AKANTU_IGFEM)
+  }
+#endif
   registerField("positions",
                 std::make_shared<dumpers::NodalField<Real>>(mesh.getNodes()));
 }
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerFilteredMesh(
-    const Mesh & mesh, const ElementTypeMapArray<UInt> & elements_filter,
-    const Array<UInt> & nodes_filter, UInt spatial_dimension,
+    const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+    const Array<Idx> & nodes_filter, Int spatial_dimension,
     GhostType ghost_type, ElementKind element_kind) {
-  auto * f_connectivities = new ElementTypeMapArrayFilter<UInt>(
+  auto * f_connectivities = new ElementTypeMapArrayFilter<Idx>(
       mesh.getConnectivities(), elements_filter);
 
   this->registerField("connectivities",
@@ -150,11 +151,8 @@ void DumperIOHelper::registerFilteredMesh(
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::registerField(
-    const std::string & field_id,
-    std::shared_ptr<dumpers::Field>
-        field) // NOLINT(performance-unnecessary-value-param)
-{
+void DumperIOHelper::registerField(const std::string & field_id,
+                                   std::shared_ptr<dumpers::Field> field) {
   auto it = fields.find(field_id);
   if (it != fields.end()) {
     AKANTU_DEBUG_WARNING(
@@ -300,23 +298,23 @@ template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
   return iohelper::BEAM3;
 }
 #endif
-
 /* -------------------------------------------------------------------------- */
-UInt getIOHelperType(ElementType type) {
-  UInt ioh_type = iohelper::MAX_ELEM_TYPE;
-#define GET_IOHELPER_TYPE(type) ioh_type = getIOHelperType<type>();
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
-#undef GET_IOHELPER_TYPE
-  return ioh_type;
+Int getIOHelperType(ElementType type) {
+  return tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        return getIOHelperType<type>();
+      },
+      type);
 }
-
-/* -------------------------------------------------------------------------- */
 
 } // namespace akantu
 
 namespace iohelper {
+
 template <> DataType getDataType<akantu::NodeFlag>() {
   return getDataType<std::underlying_type_t<akantu::NodeFlag>>();
 }
+
 } // namespace iohelper

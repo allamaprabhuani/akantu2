@@ -48,7 +48,7 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialMarigoNonLocal
     : public MaterialDamageNonLocal<spatial_dimension,
                                     MaterialMarigo<spatial_dimension>> {
@@ -56,9 +56,8 @@ class MaterialMarigoNonLocal
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using MaterialMarigoNonLocalParent =
-      MaterialDamageNonLocal<spatial_dimension,
-                             MaterialMarigo<spatial_dimension>>;
+  using parent = MaterialDamageNonLocal<spatial_dimension,
+                                        MaterialMarigo<spatial_dimension>>;
   MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
@@ -74,10 +73,21 @@ protected:
   void computeNonLocalStress(ElementType type,
                              GhostType ghost_type = _not_ghost) override;
 
-private:
+public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Y"_n = make_view(this->Y(el_type, ghost_type)));
+  }
+
+  decltype(auto) getArgumentsNonLocal(ElementType el_type,
+                                      GhostType ghost_type) {
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Y"_n = make_view(this->Ynl(el_type, ghost_type)));
+  }
+
 public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Y, Y, Real);
 

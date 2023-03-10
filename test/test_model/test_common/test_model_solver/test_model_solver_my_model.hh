@@ -86,7 +86,7 @@ public:
     forces.set(0.);
     blocked.set(false);
 
-    UInt global_nb_nodes = mesh.getNbGlobalNodes();
+    Int global_nb_nodes = mesh.getNbGlobalNodes();
     for (auto && n : arange(nb_dofs)) {
       auto global_id = mesh.getNodeGlobalId(n);
       if (global_id == (global_nb_nodes - 1))
@@ -101,11 +101,11 @@ public:
     auto L_it = this->initial_lengths.begin();
 
     for (; cit != cend; ++cit, ++L_it) {
-      const Vector<UInt> & conn = *cit;
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
-      Real p1 = this->mesh.getNodes()(n1, _x);
-      Real p2 = this->mesh.getNodes()(n2, _x);
+      auto && conn = *cit;
+      auto n1 = conn(0);
+      auto n2 = conn(1);
+      auto p1 = this->mesh.getNodes()(n1, _x);
+      auto p2 = this->mesh.getNodes()(n2, _x);
 
       *L_it = std::abs(p2 - p1);
     }
@@ -138,8 +138,8 @@ public:
       const auto & conn = std::get<0>(data);
       auto & m_el = std::get<1>(data);
 
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+      Int n1 = conn(0);
+      Int n2 = conn(1);
 
       Real p1 = this->mesh.getNodes()(n1, _x);
       Real p2 = this->mesh.getNodes()(n2, _x);
@@ -180,8 +180,8 @@ public:
              make_view(m_all_el, 2, 2))) {
       const auto & conn = std::get<0>(data);
       auto & m_el = std::get<1>(data);
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+      Int n1 = conn(0);
+      Int n2 = conn(1);
 
       Real p1 = this->mesh.getNodes()(n1, _x);
       Real p2 = this->mesh.getNodes()(n2, _x);
@@ -198,7 +198,12 @@ public:
     is_mass_assembled = true;
   }
 
-  MatrixType getMatrixType(const ID &) const override { return _symmetric; }
+  MatrixType getMatrixType(const ID & id) const override {
+    if (id == "C") {
+      return _mt_not_defined;
+    }
+    return _symmetric;
+  }
 
   void assembleMatrix(const ID & matrix_id) override {
     if (matrix_id == "K") {
@@ -241,13 +246,13 @@ public:
 
     for (; cit != cend; ++cit, ++k_it) {
       const auto & conn = *cit;
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
+      auto n1 = conn(0);
+      auto n2 = conn(1);
 
-      Real p1 = this->mesh.getNodes()(n1, _x);
-      Real p2 = this->mesh.getNodes()(n2, _x);
+      auto p1 = this->mesh.getNodes()(n1, _x);
+      auto p2 = this->mesh.getNodes()(n2, _x);
 
-      Real L = std::abs(p2 - p1);
+      auto L = std::abs(p2 - p1);
 
       auto & k_el = *k_it;
       k_el = k;
@@ -274,28 +279,27 @@ public:
   void assembleResidualInternal(GhostType ghost_type) {
     Array<Real> forces_internal_el(
         this->mesh.getNbElement(_segment_2, ghost_type), 2);
+    const auto & connectivity =
+        this->mesh.getConnectivity(_segment_2, ghost_type);
+    for (auto && data :
+         zip(make_view<2>(connectivity), strains, stresses, initial_lengths,
+             make_view<2>(forces_internal_el))) {
+      const auto & conn = std::get<0>(data);
+      auto n1 = conn(0);
+      auto n2 = conn(1);
 
-    auto cit = this->mesh.getConnectivity(_segment_2, ghost_type).begin(2);
-    auto cend = this->mesh.getConnectivity(_segment_2, ghost_type).end(2);
+      auto u1 = this->displacement(n1, _x);
+      auto u2 = this->displacement(n2, _x);
 
-    auto f_it = forces_internal_el.begin(2);
+      auto & strain = std::get<1>(data);
+      auto & stress = std::get<2>(data);
+      const auto & L = std::get<3>(data);
 
-    auto strain_it = this->strains.begin();
-    auto stress_it = this->stresses.begin();
-    auto L_it = this->initial_lengths.begin();
+      strain = (u2 - u1) / L;
+      stress = E * strain;
 
-    for (; cit != cend; ++cit, ++f_it, ++strain_it, ++stress_it, ++L_it) {
-      const auto & conn = *cit;
-      UInt n1 = conn(0);
-      UInt n2 = conn(1);
-
-      Real u1 = this->displacement(n1, _x);
-      Real u2 = this->displacement(n2, _x);
-
-      *strain_it = (u2 - u1) / *L_it;
-      *stress_it = E * *strain_it;
-      Real f_n = A * *stress_it;
-      Vector<Real> & f = *f_it;
+      auto f_n = A * stress;
+      auto & f = std::get<4>(data);
 
       f(0) = -f_n;
       f(1) = f_n;
@@ -311,13 +315,12 @@ public:
     if (not lumped) {
       res = this->mulVectMatVect(this->displacement, "K", this->displacement);
     } else {
-      auto strain_it = this->strains.begin();
-      auto stress_it = this->stresses.begin();
-      auto strain_end = this->strains.end();
-      auto L_it = this->initial_lengths.begin();
+      for (auto && data : zip(strains, stresses, initial_lengths)) {
+        auto & strain = std::get<0>(data);
+        auto & stress = std::get<1>(data);
+        const auto & L = std::get<2>(data);
 
-      for (; strain_it != strain_end; ++strain_it, ++stress_it, ++L_it) {
-        res += *strain_it * *stress_it * A * *L_it;
+        res += strain * stress * A * L;
       }
 
       mesh.getCommunicator().allReduce(res, SynchronizerOperation::_sum);
@@ -337,7 +340,7 @@ public:
       auto end = velocity.end();
       auto m_it = m.begin();
 
-      for (UInt node = 0; it != end; ++it, ++m_it, ++node) {
+      for (Int node = 0; it != end; ++it, ++m_it, ++node) {
         if (mesh.isLocalOrMasterNode(node))
           res += *m_it * *it * *it;
       }
@@ -357,7 +360,7 @@ public:
     auto ef_it = forces.begin();
     auto b_it = blocked.begin();
 
-    for (UInt node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
+    for (Int node = 0; it != end; ++it, ++if_it, ++ef_it, ++b_it, ++node) {
       if (mesh.isLocalOrMasterNode(node))
         res += (*b_it ? -*if_it : *ef_it) * *it;
     }
@@ -383,8 +386,8 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag &) const override {
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag &) const override {
     return elements.size() * sizeof(Real);
   }
 
@@ -408,7 +411,7 @@ public:
 
         Real f = A * stress;
 
-        Vector<UInt> conn = cit[el.element];
+        auto && conn = cit[el.element];
         this->internal_forces(conn(0), _x) += -f;
         this->internal_forces(conn(1), _x) += f;
       }
@@ -417,13 +420,13 @@ public:
 
   const Mesh & getMesh() const { return mesh; }
 
-  UInt getSpatialDimension() const { return 1; }
+  Int getSpatialDimension() const { return 1; }
 
   auto & getBlockedDOFs() { return blocked; }
 
 private:
-  UInt nb_dofs;
-  UInt nb_elements;
+  Int nb_dofs;
+  Int nb_elements;
 
   bool lumped;
 

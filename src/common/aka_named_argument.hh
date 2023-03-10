@@ -51,7 +51,8 @@ namespace named_argument {
   template <typename tag> struct param_proxy {
     using _tag = tag;
 
-    template <typename T> decltype(auto) operator=(T && value) {
+    // NOLINTNEXTLINE(cppcoreguidelines-c-copy-assignment-signature)
+    template <typename T> constexpr decltype(auto) operator=(T && value) const {
       return param_t<tag, decltype(value)>{std::forward<T>(value)};
     }
   };
@@ -95,8 +96,8 @@ namespace named_argument {
     static_assert(pos >= 0, "Required parameter");
 
     template <typename head, typename... tail>
-    static decltype(auto) get(head && /*unused*/, tail &&... t) {
-      return get_at<pos, curr + 1>::get(std::forward<tail>(t)...);
+    static decltype(auto) get(head && /*unused*/, tail &&... tail_) {
+      return get_at<pos, curr + 1>::get(std::forward<tail>(tail_)...);
     }
   };
 
@@ -104,8 +105,8 @@ namespace named_argument {
     static_assert(pos >= 0, "Required parameter");
 
     template <typename head, typename... tail>
-    static decltype(auto) get(head && h, tail &&... /*unused*/) {
-      return std::forward<decltype(h._value)>(h._value);
+    static decltype(auto) get(head && head_, tail &&... /*unused*/) {
+      return std::forward<decltype(head_._value)>(head_._value);
     }
   };
 
@@ -127,31 +128,34 @@ namespace named_argument {
 } // namespace named_argument
 
 // CONVENIENCE MACROS FOR CLASS DESIGNERS ==========
+// // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TAG_OF_ARGUMENT(_name) p_##_name
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TAG_OF_ARGUMENT_WNS(_name) TAG_OF_ARGUMENT(_name)
-
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define REQUIRED_NAMED_ARG(_name)                                              \
   named_argument::get_at<                                                      \
       named_argument::type_at<TAG_OF_ARGUMENT_WNS(_name), pack...>::_pos,      \
       0>::get(std::forward<pack>(_pack)...)
-
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define REQUIRED_NAMED_ARG(_name)                                              \
   named_argument::get_at<                                                      \
       named_argument::type_at<TAG_OF_ARGUMENT_WNS(_name), pack...>::_pos,      \
       0>::get(std::forward<pack>(_pack)...)
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define OPTIONAL_NAMED_ARG(_name, _defaultVal)                                 \
   named_argument::get_optional<                                                \
       named_argument::type_at<TAG_OF_ARGUMENT_WNS(_name), pack...>::_pos,      \
       0>::get(_defaultVal, std::forward<pack>(_pack)...)
-
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define DECLARE_NAMED_ARGUMENT(name)                                           \
   struct TAG_OF_ARGUMENT(name) {};                                             \
-  named_argument::param_proxy<TAG_OF_ARGUMENT_WNS(name)> _##name               \
+  const named_argument::param_proxy<TAG_OF_ARGUMENT_WNS(name)> _##name         \
       __attribute__((unused))
 
 namespace {
   struct use_named_args_t {};
-  use_named_args_t use_named_args __attribute__((unused));
+  const use_named_args_t use_named_args __attribute__((unused));
 } // namespace
 
 template <typename T> struct is_named_argument : public std::false_type {};

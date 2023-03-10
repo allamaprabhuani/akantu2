@@ -33,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh"
 #include "aka_common.hh"
-#include "synchronizer_impl.hh"
+#include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -46,7 +46,7 @@ class DOFManagerDefault;
 
 namespace akantu {
 
-class DOFSynchronizer : public SynchronizerImpl<UInt> {
+class DOFSynchronizer : public SynchronizerImpl<Idx> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -60,18 +60,18 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void onNodesAdded(const Array<UInt> & nodes);
+  void onNodesAdded(const Array<Idx> & nodes);
 
 protected:
-  Int getRank(const UInt & /*node*/) const final { AKANTU_TO_IMPLEMENT(); }
+  Int getRank(const Idx & /*node*/) const final { AKANTU_TO_IMPLEMENT(); }
 
   /// list the entities to send to root process
-  void fillEntityToSend(Array<UInt> & dofs_to_send) override;
+  void fillEntityToSend(Array<Idx> & dofs_to_send) override;
 
-  inline UInt canScatterSize() override;
-  inline UInt gatheredSize() override;
+  inline Int canScatterSize() override;
+  inline Int gatheredSize() override;
 
-  inline UInt localToGlobalEntity(const UInt & local) override;
+  inline Idx localToGlobalEntity(const Idx & local) override;
 
 private:
   /// information on the dofs

@@ -55,7 +55,7 @@ void Dumpable::registerExternalDumper(std::shared_ptr<DumperIOHelper> dumper,
 }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::addDumpMesh(const Mesh & mesh, UInt spatial_dimension,
+void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
                            GhostType ghost_type, ElementKind element_kind) {
 
   this->addDumpMeshToDumper(this->default_dumper, mesh, spatial_dimension,
@@ -64,7 +64,7 @@ void Dumpable::addDumpMesh(const Mesh & mesh, UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
-                                   const Mesh & mesh, UInt spatial_dimension,
+                                   const Mesh & mesh, Int spatial_dimension,
                                    GhostType ghost_type,
                                    ElementKind element_kind) {
 
@@ -74,8 +74,8 @@ void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
 
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpFilteredMesh(
-    const Mesh & mesh, const ElementTypeMapArray<UInt> & elements_filter,
-    const Array<UInt> & nodes_filter, UInt spatial_dimension,
+    const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+    const Array<Idx> & nodes_filter, Int spatial_dimension,
     GhostType ghost_type, ElementKind element_kind) {
   this->addDumpFilteredMeshToDumper(this->default_dumper, mesh, elements_filter,
                                     nodes_filter, spatial_dimension, ghost_type,
@@ -85,8 +85,8 @@ void Dumpable::addDumpFilteredMesh(
 /* -------------------------------------------------------------------------- */
 void Dumpable::addDumpFilteredMeshToDumper(
     const std::string & dumper_name, const Mesh & mesh,
-    const ElementTypeMapArray<UInt> & elements_filter,
-    const Array<UInt> & nodes_filter, UInt spatial_dimension,
+    const ElementTypeMapArray<Idx> & elements_filter,
+    const Array<Idx> & nodes_filter, Int spatial_dimension,
     GhostType ghost_type, ElementKind element_kind) {
 
   DumperIOHelper & dumper = this->getDumper(dumper_name);
@@ -100,10 +100,8 @@ void Dumpable::addDumpField(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldToDumper(__attribute__((unused))
-                                    const std::string & dumper_name,
-                                    __attribute__((unused))
-                                    const std::string & field_id) {
+void Dumpable::addDumpFieldToDumper(const std::string & /*dumper_name*/,
+                                    const std::string & /*field_id*/) {
   AKANTU_TO_IMPLEMENT();
 }
 
@@ -152,10 +150,8 @@ void Dumpable::addDumpFieldTensor(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldTensorToDumper(__attribute__((unused))
-                                          const std::string & dumper_name,
-                                          __attribute__((unused))
-                                          const std::string & field_id) {
+void Dumpable::addDumpFieldTensorToDumper(const std::string & /*dumper_name*/,
+                                          const std::string & /*field_id*/) {
   AKANTU_TO_IMPLEMENT();
 }
 
@@ -219,22 +215,22 @@ void Dumpable::dump(const std::string & dumper_name) {
 void Dumpable::dump() { this->dump(this->default_dumper); }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::dump(const std::string & dumper_name, UInt step) {
+void Dumpable::dump(const std::string & dumper_name, Int step) {
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::dump(UInt step) { this->dump(this->default_dumper, step); }
+void Dumpable::dump(Int step) { this->dump(this->default_dumper, step); }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::dump(const std::string & dumper_name, Real time, UInt step) {
+void Dumpable::dump(const std::string & dumper_name, Real time, Int step) {
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.dump(time, step);
 }
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::dump(Real time, UInt step) {
+void Dumpable::dump(Real time, Int step) {
   this->dump(this->default_dumper, time, step);
 }
 

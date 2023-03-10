@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=gitlab-ci
+# yaml-language-server: $format.enable=false
+
 .docker_build:
   image: "docker:20.10.21"
   stage: .pre
@@ -23,13 +26,6 @@
     CCACHE_BASEDIR: ${CI_PROJECT_DIR}/
     CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
     CCACHE_MAXSIZE: 1Gi
-  cache:
-    key: ${output}_${BUILD_TYPE}
-    policy: pull-push
-    paths:
-      - .ccache/
-      - third-party/google-test
-      - third-party/pybind11
   before_script:
     - ccache --zero-stats || true
   after_script:
@@ -51,6 +47,13 @@
     CC: /usr/lib/ccache/gcc
     CXX: /usr/lib/ccache/g++
     FC: gfortran
+    GCOV_EXECUTABLE: gcov
+
+.compiler_gcc_ubuntu:
+  variables:
+    CC: /usr/lib/ccache/gcc-8
+    CXX: /usr/lib/ccache/g++-8
+    FC: /usr/bin/gfortran-8
     GCOV_EXECUTABLE: gcov
 
 .compiler_clang:
@@ -96,7 +99,7 @@
   variables:
     output: ubuntu_lts_gcc
   extends:
-    - .compiler_gcc
+    - .compiler_gcc_ubuntu
     - .image_ubuntu_lts
     - .cache_build
 

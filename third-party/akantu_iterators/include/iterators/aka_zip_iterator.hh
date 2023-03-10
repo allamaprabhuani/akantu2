@@ -41,10 +41,12 @@
 #define AKANTU_ITERATORS_NAMESPACE akantu
 #endif
 
+#define FWD(x) std::forward<decltype(x)>(x)
+
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
-namespace iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
   /* ------------------------------------------------------------------------ */
   template <template <class...> class Tuple, class... Iterators>
   class ZipIterator_
@@ -69,9 +71,6 @@ namespace iterators {
         std::common_type_t<
             typename std::iterator_traits<Iterators>::iterator_category...>;
 
-    //    using nb_iterators = sizeof...(Iterators);
-
-  public:
     explicit ZipIterator_(tuple_t iterators)
         : iterators(std::move(iterators)) {}
 
@@ -80,7 +79,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::bidirectional_iterator_tag>::value> * = nullptr>
-    ZipIterator_ & operator--() {
+    auto operator--() -> ZipIterator_ & {
       tuple::foreach ([](auto && it) { --it; }, iterators);
       return *this;
     }
@@ -89,34 +88,34 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::bidirectional_iterator_tag>::value> * = nullptr>
-    ZipIterator_ operator--(int) {
+    auto operator--(int) -> ZipIterator_ {
       auto cpy = *this;
       this->operator--();
       return cpy;
     }
 
     // input iterator ++it
-    ZipIterator_ & operator++() {
+    auto operator++() -> ZipIterator_ & {
       tuple::foreach ([](auto && it) { ++it; }, iterators);
       return *this;
     }
 
     // input iterator it++
-    ZipIterator_ operator++(int) {
+    auto operator++(int) -> ZipIterator_ {
       auto cpy = *this;
       this->operator++();
       return cpy;
     }
 
     // input iterator it != other_it
-    bool operator!=(const ZipIterator_ & other) const {
+    auto operator!=(const ZipIterator_ & other) const -> bool {
       // return tuple::are_not_equal(iterators, other.iterators);
       return std::get<0>(iterators) !=
              std::get<0>(other.iterators); // helps the compiler to optimize
     }
 
     // input iterator dereference *it
-    decltype(auto) operator*() {
+    auto operator*() -> decltype(auto) {
       return tuple::transform([](auto && it) -> decltype(auto) { return *it; },
                               iterators);
     }
@@ -125,7 +124,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    difference_type operator-(const ZipIterator_ & other) {
+    auto operator-(const ZipIterator_ & other) const -> difference_type {
       return std::get<0>(this->iterators) - std::get<0>(other.iterators);
     }
 
@@ -134,7 +133,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator[](std::size_t idx) {
+    auto operator[](std::size_t idx) -> decltype(auto) {
       return tuple::transform(
           [idx](auto && it) -> decltype(auto) { return it[idx]; }, iterators);
     }
@@ -144,7 +143,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator+(std::size_t n) {
+    auto operator+(std::size_t n) const -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it + n; }, iterators)));
     }
@@ -154,7 +153,7 @@ namespace iterators {
               std::enable_if_t<aka::is_iterator_category_at_least<
                   iterator_category_,
                   std::random_access_iterator_tag>::value> * = nullptr>
-    decltype(auto) operator-(std::size_t n) {
+    auto operator-(std::size_t n) const -> decltype(auto) {
       return ZipIterator_(std::forward<tuple_t>(tuple::transform(
           [n](auto && it) -> decltype(auto) { return it - n; }, iterators)));
     }
@@ -163,7 +162,7 @@ namespace iterators {
         class iterator_category_ = iterator_category,
         std::enable_if_t<aka::is_iterator_category_at_least<
             iterator_category_, std::forward_iterator_tag>::value> * = nullptr>
-    bool operator==(const ZipIterator_ & other) const {
+    auto operator==(const ZipIterator_ & other) const -> bool {
       return not tuple::are_not_equal(iterators, other.iterators);
     }
 
@@ -176,59 +175,73 @@ namespace iterators {
 
   template <class... Iterators>
   using NamedZipIterator = ZipIterator_<tuple::named_tuple, Iterators...>;
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
-decltype(auto) zip_iterator(std::tuple<Iterators...> && iterators_tuple) {
-  auto zip = iterators::ZipIterator<Iterators...>(
-      std::forward<decltype(iterators_tuple)>(iterators_tuple));
+auto zip_iterator(std::tuple<Iterators...> && iterators_tuple)
+    -> decltype(auto) {
+  auto zip = iterators::ZipIterator<Iterators...>(FWD(iterators_tuple));
   return zip;
 }
 
 template <class... Iterators>
-decltype(auto)
-zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple) {
-  auto zip = iterators::NamedZipIterator<Iterators...>(
-      std::forward<decltype(iterators_tuple)>(iterators_tuple));
+auto zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple)
+    -> decltype(auto) {
+  auto zip = iterators::NamedZipIterator<Iterators...>(FWD(iterators_tuple));
   return zip;
 }
 
 /* -------------------------------------------------------------------------- */
-namespace containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <template <class...> class Tuple, class... Containers>
   class ZipContainer_ {
-    using containers_t = Tuple<Containers...>;
-
   public:
+    using containers_t = Tuple<Containers...>;
+    using size_type = std::common_type_t<aka::size_type_t<Containers>...>;
+
     explicit ZipContainer_(Containers &&... containers)
         : containers(std::forward<Containers>(containers)...) {}
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return zip_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return zip_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) begin() {
+    auto begin() -> decltype(auto) {
       return zip_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return zip_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)));
     }
+
+    template <class... OtherContainers>
+    static inline auto append(ZipContainer_ && zip_container,
+                              OtherContainers &&... cont);
+
+    template <typename Tag, class OtherContainers>
+    static inline auto replace(ZipContainer_ && zip_container,
+                               OtherContainers && cont);
+
+    template <typename Tag>
+    static inline auto remove(ZipContainer_ && zip_container);
 
   private:
+    template <template <class...> class OtherTuple, class... OtherContainers>
+    friend class ZipContainer_;
+
     containers_t containers;
   };
 
@@ -237,29 +250,132 @@ namespace containers {
 
   template <class... Containers>
   using NamedZipContainer = ZipContainer_<tuple::named_tuple, Containers...>;
-} // namespace containers
+
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
-template <class... Containers> decltype(auto) zip(Containers &&... conts) {
+template <class... Containers,
+          std::enable_if_t<not aka::conjunction<tuple::is_named_tag<
+              std::decay_t<Containers>>...>::value> * = nullptr>
+constexpr auto zip(Containers &&... conts)
+    -> containers::ZipContainer<Containers...> {
   return containers::ZipContainer<Containers...>(
       std::forward<Containers>(conts)...);
 }
 
-template <class... NamedContainers>
-decltype(auto) named_zip(NamedContainers &&... conts) {
-  return containers::NamedZipContainer<NamedContainers...>(
-      std::forward<NamedContainers>(conts)...);
+template <class... Containers,
+          std::enable_if_t<aka::conjunction<tuple::is_named_tag<
+              std::decay_t<Containers>>...>::value> * = nullptr>
+constexpr auto zip(Containers &&... conts)
+    -> containers::NamedZipContainer<Containers...> {
+  return containers::NamedZipContainer<Containers...>(
+      std::forward<Containers>(conts)...);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class... zip_container_t>
-decltype(auto) make_zip_cat(zip_container_t &&... cont) {
+template <class... ZipContainer> inline auto zip_cat(ZipContainer &&... cont) {
   return make_transform_adaptor(
-      zip(std::forward<zip_container_t>(cont)...),
+      zip(std::forward<ZipContainer>(cont)...),
       [](auto && value) { return tuple::flatten(value); });
 }
 
+template <class ZipContainer, class... OtherContainers,
+          std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value> * =
+              nullptr>
+constexpr inline auto zip_append(ZipContainer && zip_container,
+                                 OtherContainers &&... cont) {
+  return std::decay_t<ZipContainer>::append(FWD(zip_container), FWD(cont)...);
+}
+
+template <typename Tag, class ZipContainer, class OtherContainer,
+          std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value> * =
+              nullptr>
+constexpr inline auto zip_replace(ZipContainer && zip_container,
+                                  OtherContainer && cont) {
+  return std::decay_t<ZipContainer>::template replace<Tag>(FWD(zip_container),
+                                                           FWD(cont));
+}
+
+template <class ZipContainer, class OtherContainer,
+          std::enable_if_t<std::is_rvalue_reference_v<ZipContainer &&> and
+                           tuple::is_named_tag_v<OtherContainer>> * = nullptr>
+constexpr inline auto zip_replace(ZipContainer && zip_container,
+                                  OtherContainer && cont) {
+  using Tag = decltype(tuple::make_named_tag<
+                       typename std::decay_t<OtherContainer>::_tag>());
+  return std::decay_t<ZipContainer>::template replace<Tag>(FWD(zip_container),
+                                                           FWD(cont._value));
+}
+
+template <typename Tag, class ZipContainer,
+          std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value> * =
+              nullptr>
+constexpr inline auto zip_remove(ZipContainer && zip_container) {
+  return std::decay_t<ZipContainer>::template remove<Tag>(FWD(zip_container));
+}
+
+/* -------------------------------------------------------------------------- */
+namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
+  template <class Tuple, std::size_t... Is,
+            std::enable_if_t<not tuple::is_named_tuple<
+                std::decay_t<Tuple>>::value> * = nullptr>
+  constexpr inline auto
+  make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
+                           Tuple && tuple) {
+    return zip(FWD(std::get<Is>(FWD(tuple)))...);
+  }
+
+  template <class Tuple, std::size_t... Is,
+            std::enable_if_t<
+                tuple::is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  constexpr inline auto
+  make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
+                           Tuple && tuple) {
+    using namespace tuple;
+    return zip(make_named_tag<tuple_name_tag_t<Is, std::decay_t<Tuple>>>() =
+                   FWD(std::get<Is>(FWD(tuple)))...);
+  }
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+
+template <class Tuple>
+constexpr inline auto make_zip_from_tuple(Tuple && tuple) {
+  return details::make_zip_from_tuple_impl(
+      std::make_index_sequence<
+          std::tuple_size<typename std::decay_t<Tuple>>::value>{},
+      std::forward<Tuple>(tuple));
+}
+
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
+  template <template <class...> class Tuple, class... Containers>
+  template <class... OtherContainers>
+  inline auto
+  ZipContainer_<Tuple, Containers...>::append(ZipContainer_ && zip_container,
+                                              OtherContainers &&... cont) {
+    return make_zip_from_tuple(
+        tuple::append(FWD(zip_container.containers), FWD(cont)...));
+  }
+
+  template <template <class...> class Tuple, class... Containers>
+  template <typename Tag, class OtherContainer>
+  inline auto
+  ZipContainer_<Tuple, Containers...>::replace(ZipContainer_ && zip_container,
+                                               OtherContainer && cont) {
+    return make_zip_from_tuple(
+        tuple::replace<Tag>(FWD(zip_container.containers), FWD(cont)));
+  }
+
+  template <template <class...> class Tuple, class... Containers>
+  template <typename Tag>
+  inline auto
+  ZipContainer_<Tuple, Containers...>::remove(ZipContainer_ && zip_container) {
+    return make_zip_from_tuple(
+        tuple::remove<Tag>(FWD(zip_container.containers)));
+  }
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+
 } // namespace AKANTU_ITERATORS_NAMESPACE
+
+#undef FWD
 
 namespace std {
 template <template <class...> class Tuple, typename... Its>

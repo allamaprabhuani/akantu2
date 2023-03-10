@@ -66,4 +66,8 @@
 #pragma GCC diagnostic ignored "-Wvariadic-macros"
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
+#if defined(AKANTU_EIGEN_WARNING_IGNORE_BOUNDS) && (GCC_VERSION > 120000)
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
 #endif

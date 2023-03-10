@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<
     spatial_dimension>::computeNonLocalStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();

@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
 /* -------------------------------------------------------------------------- */
 void interpolate(const ElementType type) {
 
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
   Mesh my_mesh(dim);
@@ -72,17 +72,17 @@ void interpolate(const ElementType type) {
   UInt nb_standard_nodes = 9;
 
   /// impose constant value at standard nodes
-  for (UInt i = 0; i < nb_standard_nodes; ++i) {
-    const_val.storage()[i * 2 + 0] = 1.;
-    const_val.storage()[i * 2 + 1] = 2.;
+  for (Int i = 0; i < nb_standard_nodes; ++i) {
+    const_val.data()[i * 2 + 0] = 1.;
+    const_val.data()[i * 2 + 1] = 2.;
   }
 
   /// for field to be constant the enriched values need to be zero,
   /// because enrichment is not needed since there is no kink in the
   /// applied field
-  for (UInt i = nb_standard_nodes; i < const_val.getSize(); ++i) {
-    const_val.storage()[i * 2 + 0] = 0.;
-    const_val.storage()[i * 2 + 1] = 0.;
+  for (Int i = nb_standard_nodes; i < const_val.getSize(); ++i) {
+    const_val.data()[i * 2 + 0] = 0.;
+    const_val.data()[i * 2 + 1] = 0.;
   }
 
   fem->interpolateOnIntegrationPoints(const_val, val_on_quad, 2, type);

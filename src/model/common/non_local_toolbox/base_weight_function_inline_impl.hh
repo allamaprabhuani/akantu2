@@ -70,4 +70,5 @@ BaseWeightFunction::operator()(Real r, const IntegrationPoint & /* q1 */,
 }
 
 } // namespace akantu
+
 #endif /* AKANTU_BASE_WEIGHT_FUNCTION_INLINE_IMPL_HH_ */

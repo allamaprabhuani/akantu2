@@ -31,11 +31,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_paraview.hh"
-#include "non_local_manager.hh"
-#include "non_local_neighborhood.hh"
+//#include "dumper_paraview.hh"
+//#include "non_local_manager.hh"
+//#include "non_local_neighborhood.hh"
 #include "solid_mechanics_model.hh"
-#include "test_material.hh"
+//#include "test_material.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 /* -------------------------------------------------------------------------- */
@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_avg.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _quadrangle_4;
   GhostType ghost_type = _not_ghost;
 
@@ -72,8 +72,10 @@ int main(int argc, char * argv[]) {
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
   applied_strain.zero();
-  for (UInt i = 0; i < spatial_dimension; ++i)
+
+  for (Int i = 0; i < spatial_dimension; ++i) {
     applied_strain(i, i) = 2.;
+  }
 
   /// apply constant grad_u field in all elements
   for (auto & mat : model.getMaterials()) {
@@ -92,7 +94,7 @@ int main(int argc, char * argv[]) {
   /// verify the result: non-local averaging over constant field must
   /// yield same constant field
   Real test_result = 0.;
-  Matrix<Real> difference(spatial_dimension, spatial_dimension, 0.);
+  Matrix<Real> difference(spatial_dimension, spatial_dimension);
 
   for (auto & mat : model.getMaterials()) {
     auto & grad_us_nl =
@@ -100,7 +102,7 @@ int main(int argc, char * argv[]) {
     for (auto & grad_u_nl :
          make_view(grad_us_nl, spatial_dimension, spatial_dimension)) {
       difference = grad_u_nl - applied_strain;
-      test_result += difference.norm<L_2>();
+      test_result += difference.norm();
     }
   }
 

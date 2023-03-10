@@ -52,15 +52,15 @@ DumperText::DumperText(const std::string & basename,
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperText::registerMesh(const Mesh & mesh, UInt /*spatial_dimension*/,
+void DumperText::registerMesh(const Mesh & mesh, Int /*spatial_dimension*/,
                               GhostType /*ghost_type*/,
                               ElementKind /*element_kind*/) {
   registerField("position",
                 std::make_shared<dumpers::NodalField<Real>>(mesh.getNodes()));
   // in parallel we need node type
-  UInt nb_proc = mesh.getCommunicator().getNbProc();
+  auto nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
-    auto func = std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+    auto func = std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     std::shared_ptr<dumpers::Field> field =
         std::make_shared<dumpers::NodalField<NodeFlag>>(mesh.getNodesFlags());
     field =
@@ -71,16 +71,16 @@ void DumperText::registerMesh(const Mesh & mesh, UInt /*spatial_dimension*/,
 
 /* -------------------------------------------------------------------------- */
 void DumperText::registerFilteredMesh(
-    const Mesh & mesh, const ElementTypeMapArray<UInt> & /*elements_filter*/,
-    const Array<UInt> & nodes_filter, UInt /*spatial_dimension*/,
+    const Mesh & mesh, const ElementTypeMapArray<Idx> & /*elements_filter*/,
+    const Array<Idx> & nodes_filter, Idx /*spatial_dimension*/,
     GhostType /*ghost_type*/, ElementKind /*element_kind*/) {
   registerField("position", std::make_shared<dumpers::NodalField<Real, true>>(
                                 mesh.getNodes(), 0, 0, &nodes_filter));
 
   // in parallel we need node type
-  UInt nb_proc = mesh.getCommunicator().getNbProc();
+  auto nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
-    auto func = std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+    auto func = std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     std::shared_ptr<dumpers::Field> field =
         std::make_shared<dumpers::NodalField<NodeFlag, true>>(
             mesh.getNodesFlags(), 0, 0, &nodes_filter);
@@ -98,7 +98,7 @@ void DumperText::setBaseName(const std::string & basename) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperText::setPrecision(UInt prec) {
+void DumperText::setPrecision(Int prec) {
   static_cast<iohelper::DumperText *>(this->dumper.get())->setPrecision(prec);
 }
 

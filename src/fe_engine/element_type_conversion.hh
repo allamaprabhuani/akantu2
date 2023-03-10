@@ -38,19 +38,25 @@
 
 namespace akantu {
 
-template <class InType, class OutType> OutType convertType(InType /*unused*/) {
+template <class InType, class OutType>
+constexpr inline auto convertType(InType /*unused*/) {
   return OutType();
 }
 
 template <>
-inline InterpolationType
-convertType<ElementType, InterpolationType>(ElementType type) {
-  InterpolationType itp_type = _itp_not_defined;
-#define GET_ITP(type) itp_type = ElementClassProperty<type>::interpolation_type;
+constexpr inline auto convertType<ElementType, ElementType>(ElementType type) {
+  return type;
+}
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ITP);
-#undef GET_ITP
-  return itp_type;
+template <>
+constexpr inline auto
+convertType<ElementType, InterpolationType>(ElementType type) {
+  return tuple_dispatch_with_default<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        return ElementClassProperty<type>::interpolation_type;
+      },
+      type, [&](auto && /*type*/) { return _itp_not_defined; });
 }
 
 } // namespace akantu

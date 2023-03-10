@@ -124,7 +124,7 @@ auto DOFManagerPETSc::getNewDOFData(const ID & dof_id)
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt, UInt>
+std::tuple<Int, Int, Int>
 DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
                                       Array<Real> & dofs_array) {
   dofs_ids.push_back(dof_id);
@@ -152,7 +152,7 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
 
       PetscInt n;
       PETSc_call(ISGlobalToLocalMappingApply, is_ltog_map, IS_GTOLM_MASK,
-                 gidx.size(), gidx.storage(), &n, lidx.storage());
+                 gidx.size(), gidx.data(), &n, lidx.data());
     }
   }
 
@@ -203,7 +203,7 @@ void DOFManagerPETSc::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
       A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,

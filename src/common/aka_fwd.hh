@@ -44,10 +44,6 @@ namespace akantu {
 // forward declaration
 template <int dim, class model_type> struct ContactData;
 
-template <typename T> class Matrix;
-template <typename T> class Vector;
-template <typename T> class Tensor3;
-
 template <typename T, bool is_scal = aka::is_scalar<T>::value> class Array;
 template <typename T, typename SupportType = ElementType>
 class ElementTypeMapArray;
@@ -57,7 +53,7 @@ template <class T> class SpatialGrid;
 // Model element
 template <class ModelPolicy> class ModelElement;
 
-extern const Array<UInt> empty_filter;
+extern const Array<Int> empty_filter;
 
 class Parser;
 class ParserSection;
@@ -68,6 +64,14 @@ extern cppargparse::ArgumentParser static_argparser; // NOLINT
 
 class Mesh;
 class SparseMatrix;
+
 } // namespace akantu
+
+namespace aka {
+
+template <class T> struct is_array : public std::false_type {};
+template <class T> struct is_array<akantu::Array<T>> : public std::true_type {};
+
+} // namespace aka
 
 #endif /* AKANTU_FWD_HH_ */

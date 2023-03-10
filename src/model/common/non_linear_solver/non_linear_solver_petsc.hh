@@ -94,15 +94,15 @@ protected:
 namespace debug {
   class SNESNotConvergedException : public NLSNotConvergedException {
   public:
-    SNESNotConvergedException(SNESConvergedReason reason, UInt niter,
-                              Real error, Real absolute_tolerance,
-                              Real relative_tolerance, UInt max_iterations)
+    SNESNotConvergedException(SNESConvergedReason reason, Int niter, Real error,
+                              Real absolute_tolerance, Real relative_tolerance,
+                              Int max_iterations)
         : NLSNotConvergedException(relative_tolerance, niter, error),
           reason(reason), absolute_tolerance(absolute_tolerance),
           max_iterations(max_iterations) {}
     SNESConvergedReason reason;
     Real absolute_tolerance;
-    UInt max_iterations;
+    Int max_iterations;
   };
 } // namespace debug
 

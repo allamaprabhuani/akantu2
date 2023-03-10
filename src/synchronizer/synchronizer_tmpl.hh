@@ -49,9 +49,9 @@ void Synchronizer::slaveReductionOnce(DataAccessorT & data_accessor,
     synch_el->slaveReductionOnceImpl(
         dynamic_cast<DataAccessor<Element> &>(data_accessor), tag);
   } else if (const auto * synch_dof =
-                 dynamic_cast<const SynchronizerImpl<UInt> *>(this)) {
+                 dynamic_cast<const SynchronizerImpl<Idx> *>(this)) {
     synch_dof->slaveReductionOnceImpl(
-        dynamic_cast<DataAccessor<UInt> &>(data_accessor), tag);
+        dynamic_cast<DataAccessor<Idx> &>(data_accessor), tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }
@@ -65,9 +65,9 @@ void Synchronizer::synchronizeOnce(DataAccessorT & data_accessor,
     synch_el->synchronizeOnceImpl(
         dynamic_cast<DataAccessor<Element> &>(data_accessor), tag);
   } else if (const auto * synch_dof =
-                 dynamic_cast<const SynchronizerImpl<UInt> *>(this)) {
+                 dynamic_cast<const SynchronizerImpl<Idx> *>(this)) {
     synch_dof->synchronizeOnceImpl(
-        dynamic_cast<DataAccessor<UInt> &>(data_accessor), tag);
+        dynamic_cast<DataAccessor<Idx> &>(data_accessor), tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }
@@ -80,9 +80,9 @@ void Synchronizer::synchronize(DataAccessorT & data_accessor,
   if (auto * synch_el = dynamic_cast<SynchronizerImpl<Element> *>(this)) {
     synch_el->synchronizeImpl(
         dynamic_cast<DataAccessor<Element> &>(data_accessor), tag);
-  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<UInt> *>(this)) {
-    synch_dof->synchronizeImpl(
-        dynamic_cast<DataAccessor<UInt> &>(data_accessor), tag);
+  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<Idx> *>(this)) {
+    synch_dof->synchronizeImpl(dynamic_cast<DataAccessor<Idx> &>(data_accessor),
+                               tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }
@@ -95,9 +95,9 @@ void Synchronizer::asynchronousSynchronize(const DataAccessorT & data_accessor,
   if (auto * synch_el = dynamic_cast<SynchronizerImpl<Element> *>(this)) {
     synch_el->asynchronousSynchronizeImpl(
         dynamic_cast<const DataAccessor<Element> &>(data_accessor), tag);
-  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<UInt> *>(this)) {
+  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<Idx> *>(this)) {
     synch_dof->asynchronousSynchronizeImpl(
-        dynamic_cast<const DataAccessor<UInt> &>(data_accessor), tag);
+        dynamic_cast<const DataAccessor<Idx> &>(data_accessor), tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }
@@ -110,9 +110,9 @@ void Synchronizer::waitEndSynchronize(DataAccessorT & data_accessor,
   if (auto * synch_el = dynamic_cast<SynchronizerImpl<Element> *>(this)) {
     synch_el->waitEndSynchronizeImpl(
         dynamic_cast<DataAccessor<Element> &>(data_accessor), tag);
-  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<UInt> *>(this)) {
+  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<Idx> *>(this)) {
     synch_dof->waitEndSynchronizeImpl(
-        dynamic_cast<DataAccessor<UInt> &>(data_accessor), tag);
+        dynamic_cast<DataAccessor<Idx> &>(data_accessor), tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }
@@ -125,9 +125,9 @@ void Synchronizer::computeBufferSize(const DataAccessorT & data_accessor,
   if (auto * synch_el = dynamic_cast<SynchronizerImpl<Element> *>(this)) {
     synch_el->computeBufferSizeImpl(
         dynamic_cast<const DataAccessor<Element> &>(data_accessor), tag);
-  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<UInt> *>(this)) {
+  } else if (auto * synch_dof = dynamic_cast<SynchronizerImpl<Idx> *>(this)) {
     synch_dof->computeBufferSizeImpl(
-        dynamic_cast<const DataAccessor<UInt> &>(data_accessor), tag);
+        dynamic_cast<const DataAccessor<Idx> &>(data_accessor), tag);
   } else {
     AKANTU_EXCEPTION("You synchronizer is not of a known type");
   }

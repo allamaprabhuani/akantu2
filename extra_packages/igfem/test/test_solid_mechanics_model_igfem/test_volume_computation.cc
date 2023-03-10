@@ -54,7 +54,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -120,7 +120,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & pos = mesh.getNodes();
   Array<bool> & boun = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (std::abs(pos(n, 1) - bottom) < eps) {
       boun(n, 1) = true;
       disp(n, 1) = 0.;
@@ -211,7 +211,7 @@ int main(int argc, char * argv[]) {
   const Array<UInt> & sub_mat =
       igfem_material.getInternal<UInt>("sub_material")(igfem_type, _not_ghost);
   Array<Real> sub_mat_to_real(sub_mat.getSize(), 1, 1.);
-  for (UInt i = 0; i < sub_mat.getSize(); ++i)
+  for (Int i = 0; i < sub_mat.getSize(); ++i)
     sub_mat_to_real(i) = Real(sub_mat(i));
 
   Real volume_outside = model.getFEEngine("IGFEMFEEngine")

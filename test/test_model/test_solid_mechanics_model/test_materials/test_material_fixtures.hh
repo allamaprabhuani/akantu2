@@ -70,20 +70,16 @@ public:
   inline Matrix<Real> getHydrostaticStrain(Real intensity);
   inline Matrix<Real> getComposedStrain(Real intensity);
 
-  inline const Matrix<Real> reverseRotation(Matrix<Real> mat,
-                                            Matrix<Real> rotation_matrix) {
-    Matrix<Real> R = rotation_matrix;
-    Matrix<Real> m2 = mat * R;
-    Matrix<Real> m1 = R.transpose();
-    return m1 * m2;
+  inline Matrix<Real> reverseRotation(const Matrix<Real> & A,
+                                      const Matrix<Real> & R) {
+    Matrix<Real> res = R.transpose() * A * R;
+    return res;
   };
 
-  inline const Matrix<Real> applyRotation(Matrix<Real> mat,
-                                          const Matrix<Real> rotation_matrix) {
-    Matrix<Real> R = rotation_matrix;
-    Matrix<Real> m2 = mat * R.transpose();
-    Matrix<Real> m1 = R;
-    return m1 * m2;
+  inline Matrix<Real> applyRotation(const Matrix<Real> & A,
+                                    const Matrix<Real> & R) {
+    Matrix<Real> res = R * A * R.transpose();
+    return res;
   };
 
   inline Vector<Real> getRandomVector();
@@ -96,7 +92,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 template <typename T>
 Matrix<Real> FriendMaterial<T>::getDeviatoricStrain(Real intensity) {
-  Matrix<Real> dev = {{0., 1., 2.}, {1., 0., 3.}, {2., 3., 0.}};
+  Matrix<Real> dev{{0., 1., 2.}, {1., 0., 3.}, {2., 3., 0.}};
   dev *= intensity;
   return dev;
 }
@@ -104,7 +100,7 @@ Matrix<Real> FriendMaterial<T>::getDeviatoricStrain(Real intensity) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 Matrix<Real> FriendMaterial<T>::getHydrostaticStrain(Real intensity) {
-  Matrix<Real> dev = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+  Matrix<Real> dev{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
   dev *= intensity;
   return dev;
 }
@@ -123,38 +119,38 @@ Matrix<Real> FriendMaterial<T>::getComposedStrain(Real intensity) {
 template <typename T> Vector<Real> FriendMaterial<T>::getRandomVector() {
   auto dim = this->spatial_dimension;
   std::uniform_real_distribution<Real> dis;
-  Vector<Real> vector(dim, 0.);
+  Vector<Real> vector(dim);
+  vector.zero();
   while (vector.norm() < 1e-9) {
-    for (auto s : arange(dim))
+    for (auto s : arange(dim)) {
       vector(s) = dis(gen);
+    }
   }
   return vector;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
-  auto dim = this->spatial_dimension;
+  const auto dim = this->spatial_dimension;
 
   Matrix<Real> rotation(dim, dim);
-  Vector<Real> v1 = rotation(0);
-  v1 = getRandomVector().normalize();
+  auto && v1_ = rotation(0);
+  v1_ = getRandomVector().normalized();
   if (dim == 2) {
-    Vector<Real> v1_ = {v1(0), v1(1), 0};
-    Vector<Real> v2_(3);
-    Vector<Real> v3_ = {0, 0, 1};
-    v2_.crossProduct(v3_, v1_);
+    Vector<Real, 3> v1{v1_(0), v1_(1), 0};
+    Vector<Real, 3> v3{0, 0, 1};
 
-    Vector<Real> v2 = rotation(1);
-    v2(0) = v2_(0);
-    v2(1) = v2_(1);
+    Vector<Real, 3> v2 = v3.cross(v1);
+
+    rotation(1) = v2.block<2, 1>(0, 0);
   }
 
   if (dim == 3) {
-    auto v2 = getRandomVector();
-    v2 = (v2 - v2.dot(v1) * v1).normalize();
+    Vector<Real, 3> v2 = getRandomVector();
+    Vector<Real, 3> v1 = v1_;
+    v2 = (v2 - v2.dot(v1) * v1).normalized();
 
-    Vector<Real> v3(3);
-    v3.crossProduct(v1, v2);
+    Vector<Real, 3> v3 = v1.cross(v2);
 
     rotation(1) = v2;
     rotation(2) = v3;
@@ -163,12 +159,12 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
 //#define debug_
 #if defined(debug_)
   if (dim == 2)
-    rotation = Matrix<Real>{{1., 0.}, {0., 1.}};
+    rotation = Matrix<Rea, 2, 2>{{1., 0.}, {0., 1.}};
   if (dim == 3)
-    rotation = Matrix<Real>{{1., 0., 0.}, {0., 1., 0.}, {0., 0., 1.}};
+    rotation = Matrix<Real, 3, 3>{{1., 0., 0.}, {0., 1., 0.}, {0., 0., 1.}};
 #endif
 
-  rotation = rotation.transpose();
+  rotation.transposeInPlace();
 
   return rotation;
 }
@@ -203,9 +199,9 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template <template <UInt> class T, UInt _Dim> struct Traits {
+template <template <Int> class T, Int _Dim> struct Traits {
   using mat_class = T<_Dim>;
-  static constexpr UInt Dim = _Dim;
+  static constexpr Int Dim = _Dim;
 };
 
 /* -------------------------------------------------------------------------- */

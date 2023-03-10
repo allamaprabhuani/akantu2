@@ -13,7 +13,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialOrthotropicDamageIterative<spatial_dimension>::
     computeDamageAndStressOnQuad(Matrix<Real> & sigma,
                                  Matrix<Real> & one_minus_D,
@@ -22,7 +22,7 @@ inline void MaterialOrthotropicDamageIterative<spatial_dimension>::
                                  Matrix<Real> & first_term,
                                  Matrix<Real> & third_term) {
 
-  // Real dmax = *(std::max_element(damage.storage(), damage.storage() +
+  // Real dmax = *(std::max_element(damage.data(), damage.data() +
   // spatial_dimension*spatial_dimension) );
   Real eta_effective = 0;
 
@@ -45,15 +45,15 @@ inline void MaterialOrthotropicDamageIterative<spatial_dimension>::
   first_term *= sqrt_one_minus_D;
 
   Real second_term = 0;
-  for (UInt i = 0; i < this->spatial_dimension; ++i) {
-    for (UInt j = 0; j < this->spatial_dimension; ++j)
+  for (Int i = 0; i < this->spatial_dimension; ++i) {
+    for (Int j = 0; j < this->spatial_dimension; ++j)
       second_term += sigma(i, j) * one_minus_D(i, j);
   }
 
   second_term /= (this->spatial_dimension - damage.trace());
 
-  // for (UInt i = 0; i < this->spatial_dimension; ++i) {
-  //   for (UInt j = 0; j < this->spatial_dimension; ++j)
+  // for (Int i = 0; i < this->spatial_dimension; ++i) {
+  //   for (Int j = 0; j < this->spatial_dimension; ++j)
   //     one_minus_D(i,j) *= second_term;
   // }
   one_minus_D *= second_term;

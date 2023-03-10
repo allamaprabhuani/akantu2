@@ -48,7 +48,7 @@
 - Simplification of the parallel simulation with the mesh.distribute() function
 - Switch from C++ standard 2003 to 2014 Example of changes implied by this:
 
-   for (UInt g = _not_ghost; g <= _ghost; ++g) {
+   for (Int g = _not_ghost; g <= _ghost; ++g) {
       GhostType gt = (GhostType)g;
       Mesh::type_iterator it = this->mesh.firstType(spatial_dimension, gt);
       Mesh::type_iterator end = this->mesh.lastType(spatial_dimension, gt);

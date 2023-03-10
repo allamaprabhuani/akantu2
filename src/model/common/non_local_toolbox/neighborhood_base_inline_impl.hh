@@ -42,7 +42,7 @@ namespace akantu {
 
 inline void
 NeighborhoodBase::insertIntegrationPoint(const IntegrationPoint & quad,
-                                         const Vector<Real> & coords) {
+                                         const Ref<VectorXr> & coords) {
   this->spatial_grid->insert(quad, coords);
 }
 

@@ -43,7 +43,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material_elastic.dat", argc, argv);
 
-  UInt dim = 3;
+  Int dim = 3;
 
   /// load mesh
   Mesh mesh(dim);
@@ -83,8 +83,8 @@ int main(int argc, char * argv[]) {
   std::cout << "AAAA " << M.size() << std::endl;
   std::cout << "AAAA " << _mass.size() << std::endl;
 
-  for (UInt i = 0; i < M.size(); ++i) {
-    for (UInt j = 0; j < M.size(); ++j) {
+  for (Int i = 0; i < M.size(); ++i) {
+    for (Int j = 0; j < M.size(); ++j) {
       std::cout << i << ", " << j << std::endl;
       _mass[i] += M(i, j);
     }
@@ -92,8 +92,8 @@ int main(int argc, char * argv[]) {
   std::array<Real, 3> mass_center{0., 0., 0.};
   std::cout << "AAAA " << _mass.size() << std::endl;
   Real total_mass = 0.;
-  for (UInt i = 0; i < _mass.size(); ++i) {
-    for (UInt j = 0; j < 3; ++j) {
+  for (Int i = 0; i < _mass.size(); ++i) {
+    for (Int j = 0; j < 3; ++j) {
       mass_center[j] += _mass(i * 3 + j);
       total_mass += _mass(i * 3 + j);
     }

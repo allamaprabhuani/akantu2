@@ -81,8 +81,8 @@ void NTNFricLawLinearSlipWeakening<
   const SynchronizedArray<bool> & stick = this->internalGetIsSticking();
   const SynchronizedArray<Real> & slip = this->internalGetSlip();
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     if (stick(n)) {
       this->mu(n) = this->mu_s(n);
     } else {

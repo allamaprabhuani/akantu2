@@ -54,7 +54,7 @@ public:
     parent::SetUp();
 
     const auto & connectivities = this->mesh->getConnectivity(this->type);
-    const auto & nodes = this->mesh->getNodes().begin(this->dim);
+    auto nodes = this->mesh->getNodes().cbegin(this->dim);
     coordinates = std::make_unique<Array<Real>>(
         connectivities.size(), connectivities.getNbComponent() * this->dim);
 
@@ -62,10 +62,10 @@ public:
          zip(make_view(connectivities, connectivities.getNbComponent()),
              make_view(*coordinates, this->dim,
                        connectivities.getNbComponent()))) {
-      const auto & conn = std::get<0>(tuple);
-      const auto & X = std::get<1>(tuple);
+      auto && conn = std::get<0>(tuple);
+      auto & X = std::get<1>(tuple);
       for (auto s : arange(conn.size())) {
-        Vector<Real>(X(s)) = Vector<Real>(nodes[conn(s)]);
+        X(s) = nodes[conn(s)];
       }
     }
   }
@@ -105,7 +105,8 @@ TYPED_TEST(TestFEMPyFixture, Precompute) {
     SCOPED_TRACE(std::to_string(this->type) + " " + id);
     for (auto && n : zip(make_view(ref_A, ref_A.getNbComponent()),
                          make_view(A, A.getNbComponent()))) {
-      auto diff = (std::get<0>(n) - std::get<1>(n)).template norm<L_inf>();
+      auto diff =
+          (std::get<0>(n) - std::get<1>(n)).template lpNorm<Eigen::Infinity>();
       EXPECT_NEAR(0., diff, 1e-10);
     }
   };

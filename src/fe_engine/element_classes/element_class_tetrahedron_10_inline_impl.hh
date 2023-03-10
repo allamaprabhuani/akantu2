@@ -149,9 +149,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   Real xi = natural_coords(0);
   Real eta = natural_coords(1);
@@ -178,9 +179,9 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
-    const vector_type & natural_coords, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &dnds) {
   /**
    * \f[
    * dnds = \left(
@@ -265,17 +266,19 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
-    const Matrix<Real> & coord) {
+    const Eigen::MatrixBase<D> &coord) {
   // Only take the four corner tetrahedra
-  UInt tetrahedra[4][4] = {
+
+  Matrix<Idx, 4, 4> tetrahedra{
       {0, 4, 6, 7}, {4, 1, 5, 8}, {6, 5, 2, 9}, {7, 8, 9, 3}};
 
-  Real inradius = std::numeric_limits<Real>::max();
-  for (UInt t = 0; t < 4; t++) {
-    Real ir = Math::tetrahedron_inradius(
-        coord(tetrahedra[t][0]).storage(), coord(tetrahedra[t][1]).storage(),
-        coord(tetrahedra[t][2]).storage(), coord(tetrahedra[t][3]).storage());
+  auto inradius = std::numeric_limits<Real>::max();
+  for (Int t = 0; t < 4; t++) {
+    auto ir = Math::tetrahedron_inradius(
+        coord.col(tetrahedra(t, 0)), coord.col(tetrahedra(t, 1)),
+        coord.col(tetrahedra(t, 2)), coord.col(tetrahedra(t, 3)));
     inradius = std::min(ir, inradius);
   }
 

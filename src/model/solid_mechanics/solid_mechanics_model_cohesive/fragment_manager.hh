@@ -100,13 +100,13 @@ public:
   AKANTU_GET_MACRO(NbFragment, global_nb_fragment, UInt);
 
   /// get fragments' mass
-  AKANTU_GET_MACRO(Mass, mass, const Array<Real> &);
+  AKANTU_GET_MACRO(Mass, masses, const Array<Real> &);
 
   /// get fragments' center of mass
-  AKANTU_GET_MACRO(CenterOfMass, mass_center, const Array<Real> &);
+  AKANTU_GET_MACRO(CenterOfMass, mass_centers, const Array<Real> &);
 
   /// get fragments' velocity
-  AKANTU_GET_MACRO(Velocity, velocity, const Array<Real> &);
+  AKANTU_GET_MACRO(Velocity, velocities, const Array<Real> &);
 
   /// get fragments' principal moments of inertia
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
@@ -124,7 +124,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// local_fragment index
-  Array<UInt> fragment_index;
+  Array<UInt> fragment_indexes;
 
   /// global number of fragments (parallel simulations)
   UInt global_nb_fragment;
@@ -136,13 +136,13 @@ private:
   SolidMechanicsModelCohesive & model;
 
   /// fragments' center of mass
-  Array<Real> mass_center;
+  Array<Real> mass_centers;
 
   /// fragments' mass
-  Array<Real> mass;
+  Array<Real> masses;
 
   /// fragments' velocity
-  Array<Real> velocity;
+  Array<Real> velocities;
 
   /// fragments' principal moments of inertia with respect to the
   /// center of mass
@@ -155,7 +155,7 @@ private:
   ElementTypeMapArray<Real> quad_coordinates;
 
   /// mass density per quadrature point
-  ElementTypeMapArray<Real> mass_density;
+  ElementTypeMapArray<Real> mass_densities;
 
   /// fragment filter
   Array<UInt> nb_elements_per_fragment;

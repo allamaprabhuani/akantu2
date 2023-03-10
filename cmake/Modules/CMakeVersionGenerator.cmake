@@ -273,6 +273,6 @@ function(define_project_version)
     set(${_project}_LIBRARY_PROPERTIES ${${_project}_LIBRARY_PROPERTIES}
       VERSION "${_version}"
       SOVERSION "${_major_version}.${_minor_version}"
-      )
+      PARENT_SCOPE)
   endif()
 endfunction()

@@ -166,7 +166,7 @@ void SolverVectorPETSc::getValues(const Array<Int> & idx,
   PetscInt n;
   Array<PetscInt> lidx(idx.size());
   PETSc_call(ISGlobalToLocalMappingApply, is_ltog_map, IS_GTOLM_MASK,
-             idx.size(), idx.storage(), &n, lidx.storage());
+             idx.size(), idx.data(), &n, lidx.data());
 
   getValuesLocal(lidx, values);
 }
@@ -198,8 +198,7 @@ void SolverVectorPETSc::getValuesLocal(const Array<Int> & idx,
   }
 
   PETSc_call(VecSetOption, x_ghosted, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
-  PETSc_call(VecGetValues, x_ghosted, idx.size(), idx.storage(),
-             values.storage());
+  PETSc_call(VecGetValues, x_ghosted, idx.size(), idx.data(), values.data());
   PETSc_call(VecGhostRestoreLocalForm, x, &x_ghosted);
 }
 
@@ -207,16 +206,16 @@ void SolverVectorPETSc::getValuesLocal(const Array<Int> & idx,
 void SolverVectorPETSc::addValues(const Array<Int> & gidx,
                                   const Array<Real> & values,
                                   Real scale_factor) {
-  Real * to_add = values.storage();
+  Real * to_add = values.data();
   Array<Real> scaled_array;
   if (scale_factor != 1.) {
     scaled_array.copy(values, false);
     scaled_array *= scale_factor;
-    to_add = scaled_array.storage();
+    to_add = scaled_array.data();
   }
 
   PETSc_call(VecSetOption, x, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
-  PETSc_call(VecSetValues, x, gidx.size(), gidx.storage(), to_add, ADD_VALUES);
+  PETSc_call(VecSetValues, x, gidx.size(), gidx.data(), to_add, ADD_VALUES);
 
   applyModifications();
 }
@@ -229,16 +228,16 @@ void SolverVectorPETSc::addValuesLocal(const Array<Int> & lidx,
   PETSc_call(VecGhostGetLocalForm, x, &x_ghosted);
 
   if (x_ghosted == nullptr) {
-    Real * to_add = values.storage();
+    Real * to_add = values.data();
     Array<Real> scaled_array;
     if (scale_factor != 1.) {
       scaled_array.copy(values, false);
       scaled_array *= scale_factor;
-      to_add = scaled_array.storage();
+      to_add = scaled_array.data();
     }
 
     PETSc_call(VecSetOption, x, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
-    PETSc_call(VecSetValuesLocal, x, lidx.size(), lidx.storage(), to_add,
+    PETSc_call(VecSetValuesLocal, x, lidx.size(), lidx.data(), to_add,
                ADD_VALUES);
     return;
   }
@@ -249,8 +248,8 @@ void SolverVectorPETSc::addValuesLocal(const Array<Int> & lidx,
   PETSc_call(VecGetLocalToGlobalMapping, x, &is_ltog_map);
 
   Array<Int> gidx(lidx.size());
-  PETSc_call(ISLocalToGlobalMappingApply, is_ltog_map, lidx.size(),
-             lidx.storage(), gidx.storage());
+  PETSc_call(ISLocalToGlobalMappingApply, is_ltog_map, lidx.size(), lidx.data(),
+             gidx.data());
   addValues(gidx, values, scale_factor);
 }
 
@@ -288,6 +287,13 @@ SolverVector & SolverVectorPETSc::operator+(const SolverVector & y) {
   PETSc_call(VecAXPY, x, 1., y_.x);
   release_ = y_.release_;
   return *this;
+}
+
+bool SolverVectorPETSc::isFinite() const {
+  Real max, min;
+  PETSc_call(VecMax, x, PETSC_NULL, &max);
+  PETSc_call(VecMin, x, PETSC_NULL, &min);
+  return std::isfinite(min) and std::isfinite(max);
 }
 
 } // namespace akantu

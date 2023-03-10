@@ -76,8 +76,7 @@ bool testBending(const Array<Real> & shape_functions, UInt shape_line_index,
     auto Nt = N.transpose();
     Vector<Real> N_bending = Nt(shape_line_index);
     auto bending_reference = reference(xq);
-    if (!Math::are_vector_equal(6, N_bending.storage(),
-                                bending_reference.storage()))
+    if (!Math::are_vector_equal(6, N_bending.data(), bending_reference.data()))
       return false;
     xq *= -1;
   }
@@ -91,7 +90,7 @@ int main(int argc, char * argv[]) {
   // debug::setDebugLevel(dblTest);
 
   constexpr ElementType type = _bernoulli_beam_2;
-  UInt dim = ElementClass<type>::getSpatialDimension();
+  Int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
   // creating nodes
@@ -133,7 +132,7 @@ int main(int argc, char * argv[]) {
     auto theta = std::get<1>(tuple);
     auto reference = globalToLocalRotation(theta);
 
-    if (!Math::are_vector_equal(9, reference.storage(), rotation.storage()))
+    if (!Math::are_vector_equal(9, reference.data(), rotation.data()))
       return 1;
   }
 

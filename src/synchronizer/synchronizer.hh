@@ -111,16 +111,16 @@ protected:
   int hash_id;
 
   /// message counter per tag
-  std::map<SynchronizationTag, UInt> tag_counter;
+  std::map<SynchronizationTag, Int> tag_counter;
 
   /// the static memory instance
   const Communicator & communicator;
 
   /// nb processors in the communicator
-  UInt nb_proc;
+  Int nb_proc;
 
   /// rank in the communicator
-  UInt rank;
+  Int rank;
 };
 
 } // namespace akantu

@@ -49,9 +49,8 @@ namespace akantu {
  * parameters in the material files :
  *  - roughness : define the interaction between mode I and mode II (default: 0)
  */
-template <UInt spatial_dimension>
-class MaterialCohesiveLinearUncoupled
-    : public MaterialCohesiveLinear<spatial_dimension> {
+template <Int dim>
+class MaterialCohesiveLinearUncoupled : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -69,12 +68,11 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type) override;
 
   /* ------------------------------------------------------------------------ */

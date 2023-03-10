@@ -92,16 +92,11 @@ package_get_all_material_lists(AKANTU_MATERIAL_LISTS)
 configure_file(model/solid_mechanics/material_list.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh" @ONLY)
 
-package_get_element_lists()
-configure_file(common/aka_element_classes_info.hh.in
-  "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh" @ONLY)
-
 configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
   "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh"
-  "${CMAKE_CURRENT_BINARY_DIR}/aka_element_classes_info.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
 configure_file(common/aka_config.cc.in
@@ -179,11 +174,12 @@ target_include_directories(akantu SYSTEM
 
 target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 
+separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
+target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
+
 set_target_properties(akantu
   PROPERTIES
     ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
-    COMPILE_FLAGS "${_cxx_flags}"
-    #PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS}
 )
 
 if(NOT AKANTU_SHARED)
@@ -199,20 +195,9 @@ if(AKANTU_LIBRARY_PRIVATE_HDRS)
   set_property(TARGET akantu PROPERTY PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS})
 endif()
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-  package_get_all_features_public(_PUBLIC_features)
-  package_get_all_features_private(_PRIVATE_features)
-  foreach(_type PRIVATE PUBLIC)
-    if(_${_type}_features)
-      target_compile_features(akantu ${_type} ${_${_type}_features})
-    endif()
-  endforeach()
-else()
-  set_target_properties(akantu
-    PROPERTIES
-    CXX_STANDARD 14
-    )
-endif()
+target_compile_features(akantu PUBLIC cxx_std_17)
+set_target_properties(akantu
+  PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
 
 package_get_all_extra_dependencies(_extra_target_dependencies)
 if(_extra_target_dependencies)
@@ -273,3 +258,14 @@ register_code_to_format(
   ${AKANTU_LIBRARY_PUBLIC_HDRS}
   ${AKANTU_LIBRARY_PRIVATE_HDRS}
   )
+
+cmake_policy(SET CMP0069 NEW)
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
+if(ipo_supported)
+    message(STATUS "IPO/LTO enabled")
+    set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "IPO/LTO not supported: <${ipo_error}>")
+endif()

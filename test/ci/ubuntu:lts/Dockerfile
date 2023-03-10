@@ -1,14 +1,14 @@
-FROM ubuntu:xenial
-MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
+FROM ubuntu:20.04
 
 ENV TZ=Europe/Zurich
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install akantu dependencies
 RUN apt-get -qq update && apt-get -qq -y install \
-    g++ gfortran  cmake \
+    g++-8 gfortran-8  cmake gfortran g++\
     openmpi-bin libmumps-dev libscotch-dev \
     libboost-dev libopenblas-dev libcgal-dev \
+    libeigen3-dev \
     python3 python3-dev python3-numpy python3-scipy python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
@@ -28,5 +28,5 @@ COPY .openmpi /root/.openmpi
 
 # for debug
 RUN apt-get -qq update && apt-get -qq -y install \
-    gdb valgrind \
+    gdb valgrind emacs-nox \
     && rm -rf /var/lib/apt/lists/*

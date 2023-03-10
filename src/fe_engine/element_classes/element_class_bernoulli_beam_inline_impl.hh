@@ -41,77 +41,57 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_static_if.hh"
-#include "element_class_structural.hh"
-//#include "aka_element_classes_info.hh"
+//#include "element_class_structural.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_BERNOULLI_BEAM_INLINE_IMPL_HH_
 #define AKANTU_ELEMENT_CLASS_BERNOULLI_BEAM_INLINE_IMPL_HH_
 
 namespace akantu {
-/* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_2,
-                                                     _itp_lagrange_segment_2, 3,
-                                                     2, 6);
-
-AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam_3,
-                                                     _itp_lagrange_segment_2, 6,
-                                                     4, 6);
-
-AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
-                                                _gt_segment_2,
-                                                _itp_bernoulli_beam_2,
-                                                _segment_2, _ek_structural, 2,
-                                                _git_segment, 3);
-
-AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
-                                                _gt_segment_2,
-                                                _itp_bernoulli_beam_3,
-                                                _segment_2, _ek_structural, 3,
-                                                _git_segment, 3);
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeShapes(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & N) {
-  Vector<Real> L(2);
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & N) {
+  Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
-  Matrix<Real> H(2, 4);
+  Eigen::Matrix<Real, 2, 4> H;
   InterpolationElement<_itp_hermite_2, _itk_structural>::computeShapes(
       natural_coords, real_coord, H);
 
   // clang-format off
-  //    u1   v1      t1      u2   v2      t2
-  N = {{L(0), 0      , 0      , L(1), 0      , 0      },  // u
-       {0   , H(0, 0), H(0, 1), 0   , H(0, 2), H(0, 3)},  // v
-       {0   , H(1, 0), H(1, 1), 0   , H(1, 2), H(1, 3)}}; // theta
+  //                        u1       v1       t1    u2       v2      t2
+  N=  Matrix<Real, 3, 6>{{L(0), 0      , 0      , L(1), 0      , 0      },  // u
+                         {0   , H(0, 0), H(0, 1), 0   , H(0, 2), H(0, 3)},  // v
+                         {0   , H(1, 0), H(1, 1), 0   , H(1, 2), H(1, 3)}}; // theta
   // clang-format on
 }
 
 template <>
+template <typename D1, typename D2, typename D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeShapes(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & N) {
-  Vector<Real> L(2);
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & N) {
+  Eigen::Matrix<Real, 2, 1> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeShapes(
       natural_coords, L);
-  Matrix<Real> H(2, 4);
+  Eigen::Matrix<Real, 2, 4> H;
   InterpolationElement<_itp_hermite_2, _itk_structural>::computeShapes(
       natural_coords, real_coord, H);
 
   // clang-format off
   //    u1    v1       w1       tx1   ty1       tz1    u2      v2       w2       tx2   ty2       tz2
-  N = {{L(0), 0      , 0      , 0   , 0       , 0      , L(1), 0      , 0      , 0   , 0       , 0      },  // u
-       {0   , H(0, 0), 0      , 0   , 0       , H(0, 1), 0   , H(0, 2), 0      , 0   , 0       , H(0, 3)},  // v
-       {0   , 0      , H(0, 0), 0   , -H(0, 1), 0      , 0   , 0      , H(0, 2), 0   , -H(0, 3), 0      },  // w
-       {0   , 0      , 0      , L(0), 0       , 0      , 0   , 0      , 0      , L(1), 0       , 0      },  // thetax
-       {0   , 0      , H(1, 0), 0   , -H(1, 1), 0      , 0   , 0      , H(1, 2), 0   , -H(1, 3), 0      },  // thetay
-       {0   , H(1, 0), 0      , 0   , 0       , H(1, 1), 0   , H(1, 2), 0      , 0   , 0       , H(1, 3)}}; // thetaz
+  N = Matrix<Real, 6, 12>{{L(0), 0      , 0      , 0   , 0       , 0      , L(1), 0      , 0      , 0   , 0       , 0      },  // u
+                          {0   , H(0, 0), 0      , 0   , 0       , H(0, 1), 0   , H(0, 2), 0      , 0   , 0       , H(0, 3)},  // v
+                          {0   , 0      , H(0, 0), 0   , -H(0, 1), 0      , 0   , 0      , H(0, 2), 0   , -H(0, 3), 0      },  // w
+                          {0   , 0      , 0      , L(0), 0       , 0      , 0   , 0      , 0      , L(1), 0       , 0      },  // thetax
+                          {0   , 0      , H(1, 0), 0   , -H(1, 1), 0      , 0   , 0      , H(1, 2), 0   , -H(1, 3), 0      },  // thetay
+                          {0   , H(1, 0), 0      , 0   , 0       , H(1, 1), 0   , H(1, 2), 0      , 0   , 0       , H(1, 3)}}; // thetaz
   // clang-format on
 }
 
@@ -127,96 +107,103 @@ InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeShapesDispl
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2, class D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeDNDS(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & dnds) {
-  Matrix<Real> L(1, 2);
+    const Eigen::MatrixBase<D1> & Xs, const Eigen::MatrixBase<D2> & xs,
+    Eigen::MatrixBase<D3> & dnds) {
+  Eigen::Matrix<Real, 1, 2> L;
   InterpolationElement<_itp_lagrange_segment_2, _itk_lagrangian>::computeDNDS(
-      natural_coords, L);
-  Matrix<Real> H(1, 4);
-  InterpolationElement<_itp_hermite_2, _itk_structural>::computeDNDS(
-      natural_coords, real_coord, H);
+      Xs, L);
+  Eigen::Matrix<Real, 1, 4> H;
+  InterpolationElement<_itp_hermite_2, _itk_structural>::computeDNDS(Xs, xs, H);
 
   // Storing the derivatives in dnds
-  dnds.block(L, 0, 0);
-  dnds.block(H, 0, 2);
+  dnds.template block<1, 2>(0, 0) = L;
+  dnds.template block<1, 4>(0, 2) = H;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::arrangeInVoigt(
-    const Matrix<Real> & dnds, Matrix<Real> & B) {
-  auto L = dnds.block(0, 0, 1, 2); // Lagrange shape derivatives
-  auto H = dnds.block(0, 2, 1, 4); // Hermite shape derivatives
+    const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
+  auto L = dnds.template block<1, 2>(0, 0); // Lagrange shape derivatives
+  auto H = dnds.template block<1, 4>(0, 2); // Hermite shape derivatives
   // clang-format off
   //    u1       v1       t1        u2        v2        t2
-  B = {{L(0, 0), 0,       0,        L(0, 1),  0,        0      },
-       {0,      -H(0, 0), -H(0, 1), 0,       -H(0, 2), -H(0, 3)}};
+  B = Matrix<Real, 2, 6>{{L(0, 0), 0,       0,        L(0, 1),  0,        0      },
+                         {0,      -H(0, 0), -H(0, 1), 0,       -H(0, 2), -H(0, 3)}};
   // clang-format on
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2, class D3>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::computeDNDS(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & dnds) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    const Eigen::MatrixBase<D2> & real_coord, Eigen::MatrixBase<D3> & dnds) {
   InterpolationElement<_itp_bernoulli_beam_2, _itk_structural>::computeDNDS(
       natural_coords, real_coord, dnds);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void
 InterpolationElement<_itp_bernoulli_beam_3, _itk_structural>::arrangeInVoigt(
-    const Matrix<Real> & dnds, Matrix<Real> & B) {
-  auto L = dnds.block(0, 0, 1, 2); // Lagrange shape derivatives
-  auto H = dnds.block(0, 2, 1, 4); // Hermite shape derivatives
+    const Eigen::MatrixBase<D1> & dnds, Eigen::MatrixBase<D2> & B) {
+  auto L = dnds.template block<1, 2>(0, 0); // Lagrange shape derivatives
+  auto H = dnds.template block<1, 4>(0, 2); // Hermite shape derivatives
 
   // clang-format off
   //    u1       v1        w1        x1       y1        z1        u2       v2        w2         x2       y2       z2
-  B = {{L(0, 0), 0       , 0       , 0      , 0       , 0       , L(0, 1), 0       , 0        , 0      , 0        , 0      },  // eps
-       {0      , -H(0, 0), 0       , 0      , 0       , -H(0, 1), 0      , -H(0, 2), 0        , 0      , 0        ,-H(0, 3)},  // chi strong axis
-       {0      , 0       , -H(0, 0), 0      , H(0, 1) , 0       , 0      , 0       , -H(0, 2) , 0      , H(0, 3)  , 0      },  // chi weak axis
-       {0      , 0       , 0       , L(0, 0), 0       , 0       , 0      , 0       , 0        , L(0, 1), 0        , 0      }}; // chi torsion
+  B = Matrix<Real, 4, 12>{{L(0, 0), 0       , 0       , 0      , 0       , 0       , L(0, 1), 0       , 0        , 0      , 0        , 0      },  // eps
+                          {0      , -H(0, 0), 0       , 0      , 0       , -H(0, 1), 0      , -H(0, 2), 0        , 0      , 0        ,-H(0, 3)},  // chi strong axis
+                          {0      , 0       , -H(0, 0), 0      , H(0, 1) , 0       , 0      , 0       , -H(0, 2) , 0      , H(0, 3)  , 0      },  // chi weak axis
+                          {0      , 0       , 0       , L(0, 0), 0       , 0       , 0      , 0       , 0        , L(0, 1), 0        , 0      }}; // chi torsion
   // clang-format on
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2, class D3>
 inline void ElementClass<_bernoulli_beam_2>::computeRotationMatrix(
-    Matrix<Real> & R, const Matrix<Real> & X, const Vector<Real> & /*n*/) {
-  Vector<Real> x2 = X(1); // X2
-  Vector<Real> x1 = X(0); // X1
+    Eigen::MatrixBase<D1> & R, const Eigen::MatrixBase<D2> & X,
+    const Eigen::MatrixBase<D3> &) {
+  auto && x2 = X(1); // X2
+  auto && x1 = X(0); // X1
 
-  auto cs = (x2 - x1);
-  cs.normalize();
+  auto cs = (x2 - x1) / (x2 - x1).norm();
 
   auto c = cs(0);
   auto s = cs(1);
 
   // clang-format off
   /// Definition of the rotation matrix
-  R = {{ c,  s,  0.},
-       {-s,  c,  0.},
-       { 0., 0., 1.}};
+  R= Matrix<Real, 3, 3>{{ c,  s,  0.},
+                        {-s,  c,  0.},
+                        {0., 0.,  1.}};
   // clang-format on
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2, class D3>
 inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
-    Matrix<Real> & R, const Matrix<Real> & X, const Vector<Real> & n) {
-  Vector<Real> x2 = X(1); // X2
-  Vector<Real> x1 = X(0); // X1
+    Eigen::MatrixBase<D1> & R, const Eigen::MatrixBase<D2> & X,
+    const Eigen::MatrixBase<D3> & n) {
   auto dim = X.rows();
-  auto x = (x2 - x1);
-  x.normalize();
-  auto x_n = x.crossProduct(n);
+  Eigen::Matrix<Real, 1, 3> x = (X(1) - X(0));
+  Eigen::Matrix<Real, 1, 3> nv = n;
 
-  Matrix<Real> Pe = {{1., 0., 0.}, {0., -1., 0.}, {0., 0., 1.}};
+  x.normalize();
+  auto x_n = x.cross(nv);
+
+  Matrix<Real> Pe(dim, dim);
+  Pe << 1., 0., 0., 0., -1., 0., 0., 0., 1.;
 
   Matrix<Real> Pg(dim, dim);
   Pg(0) = x;
@@ -227,12 +214,13 @@ inline void ElementClass<_bernoulli_beam_3>::computeRotationMatrix(
 
   R.zero();
   /// Definition of the rotation matrix
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
       R(i + dim, j + dim) = R(i, j) = Pe(i, j);
     }
   }
 }
 
 } // namespace akantu
+
 #endif /* AKANTU_ELEMENT_CLASS_BERNOULLI_BEAM_INLINE_IMPL_HH_ */

@@ -97,7 +97,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-13);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const ElementType type = _quadrangle_4;
 
   Mesh mesh(spatial_dimension);
@@ -195,7 +195,7 @@ int main(int argc, char * argv[]) {
 
 void imposeOpening(SolidMechanicsModelCohesive & model, Real opening) {
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   Mesh & mesh = model.getFEEngine().getMesh();
   Array<Real> & position = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
@@ -215,10 +215,10 @@ void imposeOpening(SolidMechanicsModelCohesive & model, Real opening) {
     const Array<UInt> & connectivity = mesh.getConnectivity(type);
     Vector<Real> barycenter(spatial_dimension);
 
-    for (UInt el = 0; el < nb_element; ++el) {
+    for (Int el = 0; el < nb_element; ++el) {
       mesh.getBarycenter({type, el, _not_ghost}, barycenter);
       if (barycenter(0) > 1) {
-        for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+        for (Int n = 0; n < nb_nodes_per_element; ++n) {
           UInt node = connectivity(el, n);
           if (!update(node)) {
             displacement(node, 0) = opening + position(node, 0);

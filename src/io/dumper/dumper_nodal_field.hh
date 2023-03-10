@@ -44,19 +44,18 @@ namespace dumpers {
   /* ------------------------------------------------------------------------ */
   // This represents a iohelper compatible field
   template <typename T, bool filtered = false, class Container = Array<T>,
-            class Filter = Array<UInt>>
+            class Filter = Array<Idx>>
   class NodalField : public dumpers::Field {
     /* ---------------------------------------------------------------------- */
     /* Typedefs                                                               */
     /* ---------------------------------------------------------------------- */
   public:
-    using support_type = UInt;
+    using support_type = Idx;
     using types = TypeTraits<T, Vector<T>, Container>;
 
-    class iterator : public iohelper::iterator<T, iterator, Vector<T>> {
+    class iterator : public iohelper::iterator<T, iterator, VectorProxy<T>> {
     public:
-      iterator(T * vect, UInt _offset, UInt _n, UInt _stride,
-               const UInt * filter)
+      iterator(T * vect, Int _offset, Int _n, Int _stride, const Int * filter)
           : internal_it(vect), offset(_offset), n(_n), stride(_stride),
             filter(filter) {}
 
@@ -76,24 +75,24 @@ namespace dumpers {
         return *this;
       }
 
-      Vector<T> operator*() override {
+      VectorProxy<T> operator*() override {
         if (filter != nullptr) {
-          return Vector<T>(internal_it + *(filter)*offset + stride, n);
+          return VectorProxy<T>(internal_it + *(filter)*offset + stride, n);
         }
-        return Vector<T>(internal_it + stride, n);
+        return VectorProxy<T>(internal_it + stride, n);
       }
 
     private:
       T * internal_it;
-      UInt offset, n, stride;
-      const UInt * filter{nullptr};
+      Int offset, n, stride;
+      const Int * filter{nullptr};
     };
 
     /* ---------------------------------------------------------------------- */
     /* Constructors/Destructors                                               */
     /* ---------------------------------------------------------------------- */
   public:
-    NodalField(const Container & _field, UInt _n = 0, UInt _stride = 0,
+    NodalField(const Container & _field, Int _n = 0, Int _stride = 0,
                const Filter * filter = nullptr)
         : field(_field), n(_n), stride(_stride), filter(filter), padding(0) {
       AKANTU_DEBUG_ASSERT(((not filtered) and filter == nullptr) or filtered,
@@ -122,30 +121,30 @@ namespace dumpers {
     }
 
     inline iterator begin() {
-      return iterator(field.storage(), field.getNbComponent(), n, stride,
-                      filter == nullptr ? nullptr : filter->storage());
+      return iterator(field.data(), field.getNbComponent(), n, stride,
+                      filter == nullptr ? nullptr : filter->data());
     }
 
     inline iterator end() {
-      return iterator(field.storage() + field.getNbComponent() * field.size(),
+      return iterator(field.data() + field.getNbComponent() * field.size(),
                       field.getNbComponent(), n, stride,
                       filter == nullptr ? nullptr
-                                        : filter->storage() + filter->size());
+                                        : filter->data() + filter->size());
     }
 
     bool isHomogeneous() override { return true; }
     void checkHomogeneity() override { this->homogeneous = true; }
 
-    virtual UInt getDim() {
+    virtual Int getDim() {
       if (this->padding) {
         return this->padding;
       }
       return n;
     }
 
-    void setPadding(UInt padding) { this->padding = padding; }
+    void setPadding(Int padding) { this->padding = padding; }
 
-    UInt size() {
+    Int size() {
       if (filter != nullptr) {
         return filter->size();
       }
@@ -165,7 +164,7 @@ namespace dumpers {
     template <class T1 = T,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = T,
@@ -179,9 +178,9 @@ namespace dumpers {
     /* ---------------------------------------------------------------------- */
   private:
     const Container & field;
-    UInt n, stride;
+    Int n, stride;
     const Filter * filter{nullptr};
-    UInt padding;
+    Int padding;
   };
 
 } // namespace dumpers

@@ -85,7 +85,7 @@ Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
 template <typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const ElementTypeMapArray<T> & field,
-                                           UInt spatial_dimension,
+                                           Int spatial_dimension,
                                            GhostType ghost_type,
                                            ElementKind element_kind) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field,
@@ -97,7 +97,7 @@ inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
 template <typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(
     const std::string & dumper_name, const std::string & field_id,
-    const ElementTypeMapArray<T> & field, UInt spatial_dimension,
+    const ElementTypeMapArray<T> & field, Int spatial_dimension,
     GhostType ghost_type, ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field_cont;

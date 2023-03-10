@@ -61,12 +61,12 @@ int main() {
       const_cast<Array<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
   connectivity.resize(3);
 
-  for (UInt i = 0; i < 4; ++i) {
+  for (Int i = 0; i < 4; ++i) {
 
     nodes(i, 0) = (i + 1) * 2;
     nodes(i, 1) = 1;
   }
-  for (UInt i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
 
     connectivity(i, 0) = i;
     connectivity(i, 1) = i + 1;
@@ -86,7 +86,7 @@ int main() {
   Array<Real> displ_on_nodes(4, 3);
   Array<Real> displ_on_quad(0, 3);
 
-  for (UInt i = 0; i < 4; ++i) {
+  for (Int i = 0; i < 4; ++i) {
 
     displ_on_nodes(i, 0) = (i + 1) * 2; // Definition of the displacement
     displ_on_nodes(i, 1) = 0;
@@ -108,8 +108,8 @@ int main() {
   fem->getShapeFunctions().interpolateOnControlPoints<_bernoulli_beam_2>(
       displ_on_nodes, displ_on_quad, 3, _not_ghost, NULL, true, 4, 3, 3);
 
-  Real * don = displ_on_nodes.storage();
-  Real * doq = displ_on_quad.storage();
+  Real * don = displ_on_nodes.data();
+  Real * doq = displ_on_quad.data();
 
   std::ofstream my_file("out.txt");
   my_file << don << std::endl;

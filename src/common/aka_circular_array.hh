@@ -52,7 +52,7 @@ public:
   typedef typename Array<T>::const_reference const_reference;
 
   /// Allocation of a new array with a default value
-  CircularArray(UInt size, UInt nb_component = 1,
+  CircularArray(Int size, Int nb_component = 1,
                 const_reference value = value_type(), const ID & id = "")
       : Array<T>(size, nb_component, value, id), start_position(0),
         end_position(size - 1) {
@@ -85,24 +85,24 @@ private:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline reference operator()(UInt i, UInt j = 0);
-  inline const_reference operator()(UInt i, UInt j = 0) const;
+  inline reference operator()(Idx i, Idx j = 0);
+  inline const_reference operator()(Idx i, Idx j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt size() const { return this->size_; };
+  Int size() const { return this->size_; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// indice of first element in this circular array
-  UInt start_position;
+  Idx start_position;
 
   /// indice of last element in this circular array
-  UInt end_position;
+  Idx end_position;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -46,7 +46,7 @@ TYPED_TEST(TestPatchTestHTMLinear, Implicit) {
     this->setLinearDOF(std::get<1>(tuple), std::get<0>(tuple));
   }
 
-  for (UInt s = 0; s < 100; ++s) {
+  for (Int s = 0; s < 100; ++s) {
     this->model->solveStep();
   }
 

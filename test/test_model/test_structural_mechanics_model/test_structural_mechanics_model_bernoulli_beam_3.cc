@@ -64,8 +64,8 @@ public:
     // Boundary conditions (blocking all DOFs of nodes 2 & 3)
     auto boundary = ++this->model->getBlockedDOFs().begin(parent::ndof);
     // clang-format off
-    *boundary = {true, true, true, true, true, true}; ++boundary;
-    *boundary = {true, true, true, true, true, true}; ++boundary;
+    *boundary = Vector<bool>{true, true, true, true, true, true}; ++boundary;
+    *boundary = Vector<bool>{true, true, true, true, true, true}; ++boundary;
     // clang-format on
   }
 

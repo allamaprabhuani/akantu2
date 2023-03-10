@@ -40,7 +40,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
   Mesh mesh(spatial_dimension);
 
   const auto & comm = Communicator::getStaticCommunicator();

@@ -27,6 +27,7 @@ spack:
     - zlib
     - boost ~atomic ~chrono ~clanglibcpp ~container ~context ~coroutine ~date_time ~debug ~exception ~fiber ~filesystem ~graph ~icu~iostreams ~locale ~log ~math ~mpi ~multithreaded ~numpy ~pic ~program_options ~python ~random ~regex ~serialization ~shared ~signals ~singlethreaded ~system ~taggedlayout ~test ~thread ~timer ~wave
     - openblas +pic
+    - eigen
     - mumps ~mpi ~complex ~float
   view: /softs/view
   concretizer:

@@ -64,9 +64,8 @@ private:
   /// ID of parsable object
   ID pid;
   using SubSectionKey = std::pair<ParserType, std::string>;
-  using SubSections = std::map<SubSectionKey, Parsable *>;
   /// Subsections map
-  SubSections sub_sections;
+  std::map<SubSectionKey, std::reference_wrapper<Parsable>> sub_sections;
 };
 
 } // namespace akantu

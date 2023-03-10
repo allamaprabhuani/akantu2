@@ -45,7 +45,7 @@ using clk = std::chrono::high_resolution_clock;
 using second = std::chrono::duration<double>;
 using millisecond = std::chrono::duration<double, std::milli>;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 
@@ -83,12 +83,12 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1500;
+  auto nbSteps = 1500;
   Real increment = 1e-5;
 
   auto start_time = clk::now();
 
-  for (UInt s = 1; s < nbSteps; ++s) {
+  for (Int s = 1; s < nbSteps; ++s) {
 
     if (s >= 500) {
       increment = 1.e-6;

@@ -1,5 +1,4 @@
-
-""" command.py: command to run clang-tidy in codeclimate"""
+"""command.py: command to run clang-tidy in codeclimate."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -18,6 +17,7 @@ import re
 
 class Command:
     """Returns command line arguments by parsing codeclimate config file."""
+
     def __init__(self, config, workspace):
         self.config = config
         self._workspace = workspace
@@ -70,7 +70,7 @@ class Command:
                 cmd = {
                     'directory': os.path.dirname(file_),
                     'file': file_,
-                    'command': f'/usr/bin/clang++ {include_flags} {" ".join(extra_args)} -c {file_} -o dummy.o', # noqa
+                    'command': f'/usr/bin/clang++ {include_flags} {" ".join(extra_args)} -c {file_} -o dummy.o',  # noqa
                 }
                 compile_commands.append(cmd)
 

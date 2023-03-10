@@ -52,7 +52,7 @@ namespace akantu {
   (heat)                                                                \
   (integration_scheme)                                                  \
   (material)                                                            \
-  (phasefield)								\
+  (phasefield)                                                          \
   (mesh)                                                                \
   (model)                                                               \
   (model_solver)                                                        \
@@ -65,8 +65,8 @@ namespace akantu {
   (time_step_solver)                                                    \
   (user)                                                                \
   (weight_function)                                                     \
-  (contact_detector)							\
-  (contact_resolution)							\
+  (contact_detector)                                                    \
+  (contact_resolution)                                                  \
   (not_defined)
 // clang-format on
 
@@ -136,7 +136,7 @@ public:
   const std::string & getValue() const { return value; }
 
   /// Set info for debug output
-  void setDebugInfo(const std::string & filename, UInt line, UInt column) {
+  void setDebugInfo(const std::string & filename, Int line, Int column) {
     dbg_filename = filename;
     dbg_line = line;
     dbg_column = column;
@@ -144,8 +144,10 @@ public:
 
   template <typename T> inline operator T() const;
 
-  // template <typename T> inline operator Vector<T>() const;
-  // template <typename T> inline operator Matrix<T>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n == 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n != 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
 
   /// Print parameter info in stream
   void printself(std::ostream & stream,
@@ -169,7 +171,7 @@ private:
   /// File for debug output
   std::string dbg_filename;
   /// Position of parameter in parsed file
-  UInt dbg_line, dbg_column;
+  Int dbg_line, dbg_column;
 };
 
 /* ------------------------------------------------------------------------ */
@@ -359,7 +361,7 @@ public:
   }
 
   /// Get number of subsections of certain type
-  UInt getNbSubSections(ParserType type = ParserType::_not_defined) const {
+  Int getNbSubSections(ParserType type = ParserType::_not_defined) const {
     if (type != ParserType::_not_defined) {
       return this->sub_sections_by_type.count(type);
     }

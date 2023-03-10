@@ -30,11 +30,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "dumpable.hh"
 #include "dumper_iohelper_paraview.hh"
 #include "dumper_nodal_field.hh"
 #include "dumper_text.hh"
 #include "dumper_variable.hh"
+
+#include "dumpable_inline_impl.hh"
 #include "solid_mechanics_model.hh"
+
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -42,7 +46,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("input_file.dat", argc, argv);
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
   Mesh mesh(spatial_dimension);
   mesh.read("test_dumper.msh");
 
@@ -61,14 +65,14 @@ int main(int argc, char * argv[]) {
   Array<Real> & disp = model.getDisplacement();
   Array<bool> & bound = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     Real dist = 0.;
-    for (UInt d = 0; d < spatial_dimension; ++d) {
+    for (Int d = 0; d < spatial_dimension; ++d) {
       dist += coord(n, d) * coord(n, d);
     }
     dist = sqrt(dist);
 
-    for (UInt d = 0; d < spatial_dimension; ++d) {
+    for (Int d = 0; d < spatial_dimension; ++d) {
       disp(n, d) = (d + 1) * dist;
       bound(n, d) = bool((n % 2) + d);
     }
@@ -80,10 +84,10 @@ int main(int argc, char * argv[]) {
   model.addDumpGroupField("displacement", "Bottom");
   model.addDumpGroupField("blocked_dofs", "Bottom");
 
-  UInt nbp = 3;
+  Int nbp = 3;
   DumperParaview prvdumper("paraview_bottom_parallel", "paraview", false);
   iohelper::Dumper & prvdpr = prvdumper.getDumper();
-  for (UInt p = 0; p < nbp; ++p) {
+  for (Int p = 0; p < nbp; ++p) {
     prvdpr.setParallelContext(p, nbp, 0);
     if (p != 0) {
       prvdumper.unRegisterField("connectivities");
@@ -121,7 +125,8 @@ int main(int argc, char * argv[]) {
           &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
 
   Real pot_energy = 1.2345567891;
-  Vector<Real> gforces(2, 1.);
+  Vector<Real> gforces(2);
+  gforces.fill(1.);
   txtdumper.registerVariable(
       "potential_energy",
       std::make_shared<dumpers::Variable<Real>>(pot_energy));
@@ -134,7 +139,7 @@ int main(int argc, char * argv[]) {
   txtdumper.dump();
 
   Real time = 0.;
-  for (UInt i = 1; i < 5; ++i) {
+  for (Int i = 1; i < 5; ++i) {
     pot_energy += 2.;
     gforces(0) += 0.1;
     gforces(1) += 0.2;
@@ -150,7 +155,7 @@ int main(int argc, char * argv[]) {
       model.dumpGroup("Bottom");
 
       // parallel test
-      for (UInt p = 0; p < nbp; ++p) {
+      for (Int p = 0; p < nbp; ++p) {
         prvdpr.setParallelContext(p, nbp, 0);
         prvdumper.dump(i);
       }

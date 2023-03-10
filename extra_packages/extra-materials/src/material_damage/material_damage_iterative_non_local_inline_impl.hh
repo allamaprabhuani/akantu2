@@ -23,7 +23,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialDamageIterativeNonLocal<spatial_dimension>::
     MaterialDamageIterativeNonLocal(SolidMechanicsModel & model, const ID & id)
     : MaterialDamageIterativeNonLocalParent(model, id),
@@ -39,7 +39,7 @@ MaterialDamageIterativeNonLocal<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamageIterativeNonLocalParent::initMaterial();
@@ -51,7 +51,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::computeStress(
     ElementType /*type*/, GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
@@ -60,7 +60,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -69,7 +69,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::computeNonLocalStress(
   MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
 
   /// multiply the stress by (1-d) to get the effective stress
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   this->computeDamageAndStressOnQuad(sigma, *dam);

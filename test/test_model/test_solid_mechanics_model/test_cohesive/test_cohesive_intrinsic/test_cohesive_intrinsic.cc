@@ -55,7 +55,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const UInt max_steps = 350;
 
   const ElementType type = _triangle_6;
@@ -85,8 +85,8 @@ int main(int argc, char * argv[]) {
   UInt nb_element = mesh.getNbElement(type);
 
   /// boundary conditions
-  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
-    for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int dim = 0; dim < spatial_dimension; ++dim) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       boundary(n, dim) = true;
     }
   }
@@ -111,7 +111,7 @@ int main(int argc, char * argv[]) {
   /// update displacement
   Array<UInt> elements;
   Vector<Real> bary(spatial_dimension);
-  for (UInt el = 0; el < nb_element; ++el) {
+  for (Int el = 0; el < nb_element; ++el) {
     mesh.getBarycenter({type, el, _not_ghost}, bary);
     if (bary(0) > -0.25)
       elements.push_back(el);
@@ -122,7 +122,7 @@ int main(int argc, char * argv[]) {
   updateDisplacement(model, elements, type, increment);
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     model.solveStep();
 
@@ -167,8 +167,8 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
   Array<bool> update(nb_nodes);
   update.zero();
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+  for (Int el = 0; el < nb_element; ++el) {
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
       UInt node = connectivity(elements(el), n);
       if (!update(node)) {
         displacement(node, 0) += increment;

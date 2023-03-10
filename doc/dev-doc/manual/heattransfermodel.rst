@@ -141,7 +141,7 @@ integration scheme.
 
 .. code-block:: c++
 
-   for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
+   for (Int s = 1; (s-1)*applied_time_step < total_time; ++s) {
      model.solveStep();
    }
 

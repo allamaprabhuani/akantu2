@@ -37,7 +37,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_named_argument.hh"
-#include "boundary_condition.hh"
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -77,7 +76,7 @@ public:
   using MyFEEngineType =
       FEEngineTemplate<IntegratorGauss, ShapeStructural, _ek_structural>;
 
-  StructuralMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+  StructuralMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                            const ID & id = "structural_mechanics_model");
 
   ~StructuralMechanicsModel() override;
@@ -218,7 +217,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -371,7 +370,7 @@ private:
   ElementTypeMapArray<UInt> set_ID;
 
   /// number of degre of freedom
-  UInt nb_degree_of_freedom;
+  Int nb_degree_of_freedom;
 
   // Rotation matrix
   ElementTypeMapArray<Real> rotation_matrix;
@@ -384,7 +383,7 @@ private:
 
   bool need_to_reassemble_mass{true};
   bool need_to_reassemble_stiffness{true};
-  bool need_to_reassemble_lumpedMass{true};
+  bool need_to_reassemble_lumped_mass{true};
 
   /* ------------------------------------------------------------------------ */
   std::vector<StructuralMaterial> materials;

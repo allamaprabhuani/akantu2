@@ -46,31 +46,16 @@ NeighborhoodBase::NeighborhoodBase(Model & model,
                                    const ID & id)
     : id(id), model(model), quad_coordinates(quad_coordinates),
       spatial_dimension(this->model.getMesh().getSpatialDimension()) {
-
-  AKANTU_DEBUG_IN();
-
   this->registerDataAccessor(*this);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 NeighborhoodBase::~NeighborhoodBase() = default;
 
 /* -------------------------------------------------------------------------- */
-// void NeighborhoodBase::createSynchronizerRegistry(
-//     DataAccessor<Element> * data_accessor) {
-//   this->synch_registry = new SynchronizerRegistry(*data_accessor);
-// }
-
-/* -------------------------------------------------------------------------- */
 void NeighborhoodBase::initNeighborhood() {
-  AKANTU_DEBUG_IN();
-
   AKANTU_DEBUG_INFO("Creating the grid");
   this->createGrid();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -80,11 +65,11 @@ void NeighborhoodBase::createGrid() {
   const Real safety_factor = 1.2; // for the cell grid spacing
   Mesh & mesh = this->model.getMesh();
 
-  const auto & lower_bounds = mesh.getLocalLowerBounds();
-  const auto & upper_bounds = mesh.getLocalUpperBounds();
-  Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
-  Vector<Real> spacing(spatial_dimension,
-                       this->neighborhood_radius * safety_factor);
+  const auto & lower_bounds = mesh.getLowerBounds();
+  const auto & upper_bounds = mesh.getUpperBounds();
+  Vector<Real> center = (upper_bounds + lower_bounds) / 2.;
+  Vector<Real> spacing(spatial_dimension);
+  spacing.fill(this->neighborhood_radius * safety_factor);
 
   spatial_grid = std::make_unique<SpatialGrid<IntegrationPoint>>(
       spatial_dimension, spacing, center);
@@ -163,11 +148,11 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   Mesh mesh_out(spatial_dimension);
   MeshAccessor mesh_accessor(mesh_out);
   auto & connectivity = mesh_accessor.getConnectivity(_segment_2);
-  auto & tag = mesh_accessor.getData<UInt>("tag_1", _segment_2);
+  auto & tag = mesh_accessor.getData<Int>("tag_1", _segment_2);
   auto & nodes = mesh_accessor.getNodes();
 
-  std::map<IntegrationPoint, UInt> quad_to_nodes;
-  UInt node = 0;
+  std::map<IntegrationPoint, Idx> quad_to_nodes;
+  Idx node = 0;
 
   IntegrationPoint q1;
   IntegrationPoint q2;
@@ -200,13 +185,13 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
     for (const auto & pair : pair_list[ghost_type]) {
       std::tie(q1, q2) = pair;
 
-      UInt node1 = quad_to_nodes[q1];
-      UInt node2 = quad_to_nodes[q2];
+      Idx node1 = quad_to_nodes[q1];
+      Idx node2 = quad_to_nodes[q2];
 
-      connectivity.push_back(Vector<UInt>{node1, node2});
+      connectivity.push_back(Vector<Idx>{node1, node2});
       tag.push_back(node1 + 1);
       if (node1 != node2) {
-        connectivity.push_back(Vector<UInt>{node2, node1});
+        connectivity.push_back(Vector<Idx>{node2, node1});
         tag.push_back(node2 + 1);
       }
     }
@@ -263,16 +248,17 @@ void NeighborhoodBase::saveNeighborCoords(const std::string & filename) const {
 /* -------------------------------------------------------------------------- */
 void NeighborhoodBase::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
+    const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
-  FEEngine & fem = this->model.getFEEngine();
-  UInt nb_quad = 0;
+  auto & fem = this->model.getFEEngine();
+  Int nb_quad = 0;
+
   auto cleanPoint = [&](auto && q) {
     if (new_numbering.exists(q.type, q.ghost_type)) {
-      UInt q_new_el = new_numbering(q.type, q.ghost_type)(q.element);
-      AKANTU_DEBUG_ASSERT(q_new_el != UInt(-1),
+      auto q_new_el = new_numbering(q.type, q.ghost_type)(q.element);
+      AKANTU_DEBUG_ASSERT(q_new_el != Int(-1),
                           "A local quadrature_point "
                               << q
                               << " as been removed instead of "

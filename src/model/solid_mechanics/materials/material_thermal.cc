@@ -32,32 +32,32 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_thermal.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
                                       const ID & id)
     : Material(model, id), delta_T("delta_T", *this),
-      sigma_th("sigma_th", *this), use_previous_stress_thermal(false) {
+      sigma_th("sigma_th", *this) {
   this->initialize();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      UInt spatial_dimension, const Mesh & mesh,
+                                      Int spatial_dimension, const Mesh & mesh,
                                       FEEngine & fe_engine, const ID & id)
     : Material(model, spatial_dimension, mesh, fe_engine, id),
       delta_T("delta_T", *this, dim, fe_engine, this->element_filter),
-      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter),
-      use_previous_stress_thermal(false) {
+      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter) {
   this->initialize();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initialize() {
+template <Int dim> void MaterialThermal<dim>::initialize() {
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
@@ -71,27 +71,26 @@ template <UInt dim> void MaterialThermal<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initMaterial() {
+template <Int dim> void MaterialThermal<dim>::initMaterial() {
   sigma_th.initialize(1);
-
-  if (use_previous_stress_thermal) {
-    sigma_th.initializeHistory();
-  }
+  sigma_th.initializeHistory();
 
   Material::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialThermal<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
-  for (auto && tuple : zip(this->delta_T(el_type, ghost_type),
-                           this->sigma_th(el_type, ghost_type))) {
-    computeStressOnQuad(std::get<1>(tuple), std::get<0>(tuple));
+  auto && arguments = getArguments(el_type, ghost_type);
+  for (auto && args : arguments) {
+    computeStressOnQuad(args);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-INSTANTIATE_MATERIAL_ONLY(MaterialThermal);
+template class MaterialThermal<1>;
+template class MaterialThermal<2>;
+template class MaterialThermal<3>;
 
 } // namespace akantu

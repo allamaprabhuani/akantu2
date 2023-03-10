@@ -72,8 +72,8 @@ void SparseMatrixAIJ::applyBoundary(Real block_val) {
   };
 
   for (auto && ij_a : zip(irn, jcn, a)) {
-    UInt ni = std::get<0>(ij_a) - 1;
-    UInt nj = std::get<1>(ij_a) - 1;
+    auto ni = std::get<0>(ij_a) - 1;
+    auto nj = std::get<1>(ij_a) - 1;
 
     if (is_blocked(ni) or is_blocked(nj)) {
 
@@ -98,7 +98,7 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
   std::ofstream outfile;
   outfile.open(filename.c_str());
 
-  UInt m = this->size_;
+  auto m = this->size_;
 
   auto & comm = dof_manager.getCommunicator();
 
@@ -118,9 +118,9 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
   for (auto p : arange(comm.getNbProc())) {
     // write content
     if (comm.whoAmI() == p) {
-      for (UInt i = 0; i < this->nb_non_zero; ++i) {
-        outfile << this->irn.storage()[i] << " " << this->jcn.storage()[i]
-                << " 1" << std::endl;
+      for (auto && data : zip(this->irn, this->jcn)) {
+        outfile << std::get<0>(data) << " " << std::get<1>(data) << " 1"
+                << std::endl;
       }
     }
     comm.barrier();
@@ -164,9 +164,9 @@ void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
   for (auto p : arange(comm.getNbProc())) {
     // write content
     if (comm.whoAmI() == p) {
-      for (UInt i = 0; i < this->nb_non_zero; ++i) {
-        outfile << this->irn(i) << " " << this->jcn(i) << " " << this->a(i)
-                << std::endl;
+      for (auto && data : zip(this->irn, this->jcn, this->a)) {
+        outfile << std::get<0>(data) << " " << std::get<1>(data) << " "
+                << std::get<2>(data) << std::endl;
       }
     }
     comm.barrier();
@@ -185,18 +185,15 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
   Array<Real> tmp(y);
   tmp.zero();
   y *= beta;
+  auto x_it = make_view(x).begin();
+  auto y_it = make_view(y).begin();
 
-  auto i_it = this->irn.begin();
-  auto j_it = this->jcn.begin();
-  auto a_it = this->a.begin();
-  auto a_end = this->a.end();
-  auto x_it = x.begin_reinterpret(x.size() * x.getNbComponent());
-  auto y_it = tmp.begin_reinterpret(x.size() * x.getNbComponent());
-
-  for (; a_it != a_end; ++i_it, ++j_it, ++a_it) {
-    Int i = this->dof_manager.globalToLocalEquationNumber(*i_it - 1);
-    Int j = this->dof_manager.globalToLocalEquationNumber(*j_it - 1);
-    const Real & A = *a_it;
+  for (auto && data : zip(this->irn, this->jcn, this->a)) {
+    auto i =
+        this->dof_manager.globalToLocalEquationNumber(std::get<0>(data) - 1);
+    auto j =
+        this->dof_manager.globalToLocalEquationNumber(std::get<1>(data) - 1);
+    const auto & A = std::get<2>(data);
 
     y_it[i] += alpha * A * x_it[j];
 
@@ -231,7 +228,7 @@ void SparseMatrixAIJ::copyContent(const SparseMatrix & matrix) {
   const auto & mat = aka::as_type<SparseMatrixAIJ>(matrix);
   AKANTU_DEBUG_ASSERT(nb_non_zero == mat.getNbNonZero(),
                       "The to matrix don't have the same profiles");
-  memcpy(a.storage(), mat.getA().storage(), nb_non_zero * sizeof(Real));
+  memcpy(a.data(), mat.getA().data(), nb_non_zero * sizeof(Real));
 
   this->value_release++;
 
@@ -249,9 +246,9 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
 
   this->irn_jcn_k.clear();
 
-  UInt i;
-  UInt j;
-  UInt k;
+  Idx i;
+  Idx j;
+  Idx k;
   for (auto && data : enumerate(irn, jcn)) {
     std::tie(k, i, j) = data;
 
@@ -271,8 +268,8 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
 /* -------------------------------------------------------------------------- */
 template <class MatrixType>
 void SparseMatrixAIJ::addMeToTemplated(MatrixType & B, Real alpha) const {
-  UInt i;
-  UInt j;
+  Idx i;
+  Idx j;
   Real A_ij;
   for (auto && tuple : zip(irn, jcn, a)) {
     std::tie(i, j, A_ij) = tuple;
@@ -305,6 +302,6 @@ void SparseMatrixAIJ::set(Real val) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); };
+bool SparseMatrixAIJ::isFinite() const { return this->a.isFinite(); }
 
 } // namespace akantu

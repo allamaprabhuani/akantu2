@@ -13,4 +13,6 @@ if (NOT pybind11_FOUND)
   set(PYBIND11_GIT "https://github.com/pybind/pybind11.git")
 
   include(${PROJECT_SOURCE_DIR}/third-party/cmake/pybind11.cmake)
+else()
+  message(STATUS "Found pybind11: ${pybind11_INCLUDE_DIRS} (${pybind11_VERSION})")
 endif()

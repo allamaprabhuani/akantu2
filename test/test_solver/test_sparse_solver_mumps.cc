@@ -46,14 +46,14 @@
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes);
+void genMesh(Mesh & mesh, Int nb_nodes);
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
-  const UInt spatial_dimension = 1;
-  const UInt nb_global_dof = 11;
+  const Int spatial_dimension = 1;
+  const Int nb_global_dof = 11;
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
@@ -62,9 +62,9 @@ int main(int argc, char * argv[]) {
 
   if (prank == 0) {
     genMesh(mesh, nb_global_dof);
-    RandomGenerator<UInt>::seed(1496137735);
+    RandomGenerator<Idx>::seed(1496137735);
   } else {
-    RandomGenerator<UInt>::seed(2992275470);
+    RandomGenerator<Idx>::seed(2992275470);
   }
 
   mesh.distribute();
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
               << std::endl;
     ++node;
   }
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
   Array<Real> b(nb_nodes);
   TermsToAssemble terms("x", "x");
 
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     if (dof_manager.isLocalOrMasterDOF(i)) {
       auto li = local_equation_number(i);
       auto gi = dof_manager.localToGlobalEquationNumber(li);
@@ -104,7 +104,7 @@ int main(int argc, char * argv[]) {
   str << "Matrix_" << prank << ".mtx";
   A.saveMatrix(str.str());
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     b(n) = 1.;
   }
 
@@ -117,7 +117,7 @@ int main(int argc, char * argv[]) {
     std::cout << xs << std::endl;
     debug::setDebugLevel(dblWarning);
 
-    UInt d = 1.;
+    Int d = 1.;
     for (auto x : xs) {
       if (std::abs(x - d) / d > 1e-15)
         AKANTU_EXCEPTION("Error in the solution: " << x << " != " << d << " ["
@@ -148,19 +148,19 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
   Array<Real> & nodes = mesh_accessor.getNodes();
-  Array<UInt> & conn = mesh_accessor.getConnectivity(_segment_2);
+  Array<Idx> & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
   }
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }

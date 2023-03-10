@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-import re
 import os.path
 import pybind11 as py11
 import configparser
@@ -36,7 +35,8 @@ if "cmake_config" in parser:
 akantu_libs = []
 if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    akantu_dir = os.path.join(ci_akantu_install_prefix,
+                              "lib", "cmake", "Akantu")
     akantu_libs.extend(
         [
             # paths comming from the manylinux install via gitlab-ci
@@ -106,7 +106,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",  # noqa
         "Natural Language :: English",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: C++",

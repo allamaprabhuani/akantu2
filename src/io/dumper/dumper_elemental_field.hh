@@ -42,40 +42,34 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
-  template <typename T, template <class> class ret = Vector,
+  template <typename T, class ret = Vector<T>,
             bool filtered = false>
   class ElementalField
       : public GenericElementalField<SingleType<T, ret, filtered>,
                                      elemental_field_iterator> {
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     using types = SingleType<T, ret, filtered>;
     using field_type = typename types::field_type;
     using iterator = elemental_field_iterator<types>;
     using support_type = Element;
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     ElementalField(const field_type & field,
-                   UInt spatial_dimension = _all_dimensions,
+                   Int spatial_dimension = _all_dimensions,
                    GhostType ghost_type = _not_ghost,
                    ElementKind element_kind = _ek_not_defined)
         : GenericElementalField<types, elemental_field_iterator>(
               field, spatial_dimension, ghost_type, element_kind) {}
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
 } // namespace dumpers
 } // namespace akantu

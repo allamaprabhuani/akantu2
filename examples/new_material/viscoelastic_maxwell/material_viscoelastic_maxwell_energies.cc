@@ -52,7 +52,7 @@ int main(int argc, char * argv[]) {
   // sim data
   Real eps = 0.1;
 
-  const UInt dim = 2;
+  const Int dim = 2;
   Real sim_time = 100.;
   Real T = 10.;
   Mesh mesh(dim);
@@ -75,7 +75,6 @@ int main(int argc, char * argv[]) {
 
   Real time_step = 0.1;
 
-  UInt nb_nodes = mesh.getNbNodes();
   const Array<Real> & coordinate = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
   Array<bool> & blocked = model.getBlockedDOFs();
@@ -93,7 +92,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("stress");
   model.addDumpField("strain");
 
-  UInt max_steps = sim_time / time_step + 1;
+  Int max_steps = sim_time / time_step + 1;
   Real time = 0.;
 
   auto & solver = model.getNonLinearSolver();
@@ -104,7 +103,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     std::cout << "Time Step = " << time_step << "s" << std::endl;
     std::cout << "Time = " << time << std::endl;
@@ -117,33 +116,32 @@ int main(int argc, char * argv[]) {
       epsilon = eps;
     }
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      if (Math::are_float_equal(coordinate(n, 0), 0.0)) {
-        displacement(n, 0) = 0;
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 1), 0.0)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = 0;
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 0), 0.001)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
-      } else if (Math::are_float_equal(coordinate(n, 1), 0.001)) {
-        displacement(n, 0) = epsilon * coordinate(n, 0);
-        blocked(n, 0) = true;
-        displacement(n, 1) = epsilon * coordinate(n, 1);
-        blocked(n, 1) = true;
+    for (auto && [coord, disp, block] :
+         zip(make_view(coordinate, dim), make_view(displacement, dim),
+             make_view(blocked, dim))) {
+      if (Math::are_float_equal(coord(_x), 0.0)) {
+        disp(_x) = 0;
+        disp(_y) = epsilon * coord(_y);
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_y), 0.0)) {
+        disp(_x) = epsilon * coord(_x);
+        disp(_y) = 0;
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_x), 0.001)) {
+        disp = epsilon * coord;
+        block.set(true);
+      } else if (Math::are_float_equal(coord(_y), 0.001)) {
+        disp = epsilon * coord;
+        block.set(true);
       }
     }
 
     try {
       model.solveStep();
-    } catch (debug::Exception & e) {
+    } catch (debug::NLSNotConvergedException & e) {
+      std::cout << "Didn't converge after " << e.niter
+                << " iterations. Error is " << e.error << std::endl;
+      return EXIT_FAILURE;
     }
 
     // for debugging
@@ -152,16 +150,7 @@ int main(int argc, char * argv[]) {
     // K.saveMatrix("K.mtx");
 
     Int nb_iter = solver.get("nb_iterations");
-    Real error = solver.get("error");
-    bool converged = solver.get("converged");
-
-    if (converged) {
-      std::cout << "Converged in " << nb_iter << " iterations" << std::endl;
-    } else {
-      std::cout << "Didn't converge after " << nb_iter
-                << " iterations. Error is " << error << std::endl;
-      return EXIT_FAILURE;
-    }
+    std::cout << "Converged in " << nb_iter << " iterations" << std::endl;
 
     model.dump();
 

@@ -113,13 +113,12 @@ void ElementSynchronizer::substituteElements(
 /* -------------------------------------------------------------------------- */
 void ElementSynchronizer::onElementsChanged(
     const Array<Element> & old_elements_list,
-    const Array<Element> & new_elements_list,
-    const ElementTypeMapArray<UInt> & /*unused*/,
-    const ChangedElementsEvent & /*unused*/) {
+    const Array<Element> & new_elements_list, const ElementTypeMapArray<Idx> &,
+    const ChangedElementsEvent &) {
   // create a map to link old elements to new ones
   std::map<Element, Element> old_to_new_elements;
 
-  for (UInt el = 0; el < old_elements_list.size(); ++el) {
+  for (Int el = 0; el < old_elements_list.size(); ++el) {
     AKANTU_DEBUG_ASSERT(old_to_new_elements.find(old_elements_list(el)) ==
                             old_to_new_elements.end(),
                         "The same element cannot appear twice in the list");
@@ -135,8 +134,8 @@ void ElementSynchronizer::onElementsChanged(
 /* -------------------------------------------------------------------------- */
 void ElementSynchronizer::onElementsRemoved(
     const Array<Element> & element_to_remove,
-    const ElementTypeMapArray<UInt> & new_numbering,
-    const RemovedElementsEvent & /*unused*/) {
+    const ElementTypeMapArray<Idx> & new_numbering,
+    const RemovedElementsEvent &) {
   AKANTU_DEBUG_IN();
 
   this->filterScheme([&](auto && element) {
@@ -155,7 +154,7 @@ void ElementSynchronizer::onElementsRemoved(
 void ElementSynchronizer::buildElementToPrank() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   element_to_prank.initialize(mesh, _spatial_dimension = spatial_dimension,
                               _element_kind = _ek_not_defined,
                               _with_nb_element = true, _default_value = rank);
@@ -185,7 +184,7 @@ Int ElementSynchronizer::getRank(const Element & element) const {
 
 /* -------------------------------------------------------------------------- */
 void ElementSynchronizer::renumberElements(
-    const ElementTypeMapArray<UInt> & new_numbering) {
+    const ElementTypeMapArray<Idx> & new_numbering) {
   for (auto && sr : iterate_send_recv) {
     for (auto && scheme_pair : communications.iterateSchemes(sr)) {
       auto & list = scheme_pair.second;
@@ -199,14 +198,14 @@ void ElementSynchronizer::renumberElements(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt ElementSynchronizer::sanityCheckDataSize(const Array<Element> & elements,
-                                              const SynchronizationTag & tag,
-                                              bool from_comm_desc) const {
-  UInt size = SynchronizerImpl<Element>::sanityCheckDataSize(elements, tag,
-                                                             from_comm_desc);
+Int ElementSynchronizer::sanityCheckDataSize(const Array<Element> & elements,
+                                             const SynchronizationTag & tag,
+                                             bool from_comm_desc) const {
+  Int size = SynchronizerImpl<Element>::sanityCheckDataSize(elements, tag,
+                                                            from_comm_desc);
 
   // global connectivities;
-  size += mesh.getNbNodesPerElementList(elements) * sizeof(UInt);
+  size += mesh.getNbNodesPerElementList(elements) * sizeof(Idx);
 
   // barycenters
   size += (elements.size() * mesh.getSpatialDimension() * sizeof(Real));
@@ -233,7 +232,7 @@ void ElementSynchronizer::packSanityCheckData(
 void ElementSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
                                                 const Array<Element> & elements,
                                                 const SynchronizationTag & tag,
-                                                UInt proc, UInt rank) const {
+                                                Int proc, Int rank) const {
   auto spatial_dimension = mesh.getSpatialDimension();
 
   std::set<SynchronizationTag> skip_conn_tags{
@@ -259,8 +258,8 @@ void ElementSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
     }
 
     const auto & conns = mesh.getConnectivity(element.type, element.ghost_type);
-    Vector<UInt> global_conn(conns.getNbComponent());
-    Vector<UInt> local_global_conn(conns.getNbComponent());
+    Vector<Idx> global_conn(conns.getNbComponent());
+    Vector<Idx> local_global_conn(conns.getNbComponent());
 
     auto is_same = true;
     for (auto n : arange(global_conn.size())) {

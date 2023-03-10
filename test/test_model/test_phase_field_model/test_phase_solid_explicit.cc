@@ -38,7 +38,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 void applyDisplacement(SolidMechanicsModel &, Real &);
@@ -78,7 +78,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1000;
+  Int nbSteps = 1000;
   Real increment = 1e-4;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
@@ -99,7 +99,7 @@ int main(int argc, char * argv[]) {
   Real error_stress{0.};
   Real error_damage{0.};
 
-  for (UInt s = 0; s < nbSteps; ++s) {
+  for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
     applyDisplacement(model, axial_strain);
 
@@ -142,7 +142,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
   auto & positions = model.getMesh().getNodes();
   auto & blocked_dofs = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < model.getMesh().getNbNodes(); ++n) {
+  for (Int n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -0.5) {
       displacement(n, 0) = 0;
       displacement(n, 1) = 0;

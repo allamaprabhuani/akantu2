@@ -32,134 +32,153 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "material_linear_isotropic_hardening.hh"
 #include "material_mazars.hh"
-/* -------------------------------------------------------------------------- */
 
 namespace akantu {
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
-    Real & Ehat) {
-  Matrix<Real> epsilon(3, 3);
-  epsilon.zero();
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
-    }
+/* -------------------------------------------------------------------------- */
+template <Int dim, template <Int> class Parent>
+MaterialMazars<dim, Parent>::MaterialMazars(SolidMechanicsModel & model,
+                                            const ID & id)
+    : parent_damage(model, id), K0("K0", *this),
+      damage_in_compute_stress(true) {
+  this->registerParam("K0", this->K0, _pat_parsable, "K0");
+  this->registerParam("At", this->At, Real(0.8), _pat_parsable, "At");
+  this->registerParam("Ac", this->Ac, Real(1.4), _pat_parsable, "Ac");
+  this->registerParam("Bc", this->Bc, Real(1900.), _pat_parsable, "Bc");
+  this->registerParam("Bt", this->Bt, Real(12000.), _pat_parsable, "Bt");
+  this->registerParam("beta", this->beta, Real(1.06), _pat_parsable, "beta");
+
+  this->K0.initialize(1);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, template <Int> class Parent>
+void MaterialMazars<dim, Parent>::computeStress(ElementType el_type,
+                                                GhostType ghost_type) {
+  auto && arguments = getArguments(el_type, ghost_type);
+  for (auto && args : arguments) {
+    computeStressOnQuad(args);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, template <Int> class Parent>
+template <typename Args>
+inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
+  Parent<dim>::computeStressOnQuad(args);
+
+  auto & grad_u = args["grad_u"_n];
+
+  if constexpr (named_tuple_t<Args>::has("inelastic_strain"_n)) {
+    grad_u -= args["inelastic_strain"_n];
   }
 
-  Vector<Real> Fdiag(3);
-  Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+  Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
+
+  epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
+
+  Vector<Real, 3> Fdiag;
+  epsilon.eig(Fdiag);
+
+  auto & Ehat = args["Ehat"_n];
 
   Ehat = 0.;
-  for (UInt i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
     Real epsilon_p = std::max(Real(0.), Fdiag(i));
     Ehat += epsilon_p * epsilon_p;
   }
-  Ehat = sqrt(Ehat);
-
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  Ehat = std::sqrt(Ehat);
 
   if (damage_in_compute_stress) {
-    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
+    computeDamageOnQuad(args, Fdiag);
   }
 
   if (not this->is_non_local) {
-    computeDamageAndStressOnQuad(grad_u, sigma, dam, Ehat);
+    computeDamageAndStressOnQuad(args);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
-    Real & Ehat) {
-  if (!damage_in_compute_stress) {
-    Vector<Real> Fdiag(3);
-    Fdiag.zero();
+template <Int dim, template <Int> class Parent>
+template <typename Args>
+inline void
+MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
+  auto && grad_u = args["grad_u"_n];
+  if (not damage_in_compute_stress) {
+    Vector<Real, 3> Fdiag;
+    Matrix<Real, 3, 3> epsilon = Matrix<Real, 3, 3>::Zero();
 
-    Matrix<Real> epsilon(3, 3);
-    epsilon.zero();
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      for (UInt j = 0; j < spatial_dimension; ++j) {
-        epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
-      }
-    }
+    epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
-    Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
-
-    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
+    epsilon.eig(Fdiag);
+    computeDamageOnQuad(args, Fdiag);
   }
 
+  auto && sigma = args["sigma"_n];
+  auto && dam = args["damage"_n];
   sigma *= 1 - dam;
-}
 
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
-    const Real & epsilon_equ,
-    __attribute__((unused)) const Matrix<Real> & sigma,
-    const Vector<Real> & epsilon_princ, Real & dam) {
-  Real Fs = epsilon_equ - K0;
-  if (Fs > 0.) {
-    Real dam_t;
-    Real dam_c;
-    dam_t =
-        1 - K0 * (1 - At) / epsilon_equ - At * (exp(-Bt * (epsilon_equ - K0)));
-    dam_c =
-        1 - K0 * (1 - Ac) / epsilon_equ - Ac * (exp(-Bc * (epsilon_equ - K0)));
-
-    Real Cdiag;
-    Cdiag = this->E * (1 - this->nu) / ((1 + this->nu) * (1 - 2 * this->nu));
-
-    Vector<Real> sigma_princ(3);
-    sigma_princ(0) = Cdiag * epsilon_princ(0) +
-                     this->lambda * (epsilon_princ(1) + epsilon_princ(2));
-    sigma_princ(1) = Cdiag * epsilon_princ(1) +
-                     this->lambda * (epsilon_princ(0) + epsilon_princ(2));
-    sigma_princ(2) = Cdiag * epsilon_princ(2) +
-                     this->lambda * (epsilon_princ(1) + epsilon_princ(0));
-
-    Vector<Real> sigma_p(3);
-    for (UInt i = 0; i < 3; i++) {
-      sigma_p(i) = std::max(Real(0.), sigma_princ(i));
-    }
-    // sigma_p *= 1. - dam;
-
-    Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
-
-    Real alpha_t = 0;
-    for (UInt i = 0; i < 3; ++i) {
-      Real epsilon_t = (1 + this->nu) / this->E * sigma_p(i) - trace_p;
-      Real epsilon_p = std::max(Real(0.), epsilon_princ(i));
-      alpha_t += epsilon_t * epsilon_p;
-    }
-
-    alpha_t /= epsilon_equ * epsilon_equ;
-    alpha_t = std::min(alpha_t, Real(1.));
-
-    Real alpha_c = 1. - alpha_t;
-
-    alpha_t = std::pow(alpha_t, beta);
-    alpha_c = std::pow(alpha_c, beta);
-
-    Real damtemp;
-    damtemp = alpha_t * dam_t + alpha_c * dam_c;
-
-    dam = std::max(damtemp, dam);
-    dam = std::min(dam, Real(1.));
+  if constexpr (named_tuple_t<Args>::has("inelastic_strain"_n)) {
+    grad_u += args["inelastic_strain"_n];
   }
 }
 
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
-// inline void
-// MaterialMazars<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> &
-// tangent) {
-//   MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(tangent);
+template <Int dim, template <Int> class Parent>
+template <typename Args, typename Derived>
+inline void MaterialMazars<dim, Parent>::computeDamageOnQuad(
+    Args && args, const Eigen::MatrixBase<Derived> & epsilon_princ) {
+  auto && dam = args["damage"_n];
+  auto && Ehat = args["Ehat"_n];
 
-//   tangent *= (1-dam);
-// }
+  auto Fs = Ehat - K0;
+
+  if (Fs <= 0.) {
+    return;
+  }
+
+  auto dam_t = 1 - K0 * (1 - At) / Ehat - At * (exp(-Bt * (Ehat - K0)));
+  auto dam_c = 1 - K0 * (1 - Ac) / Ehat - Ac * (exp(-Bc * (Ehat - K0)));
+
+  auto Cdiag = this->E * (1 - this->nu) / ((1 + this->nu) * (1 - 2 * this->nu));
+
+  Vector<Real, 3> sigma_princ;
+  sigma_princ(0) = Cdiag * epsilon_princ(0) +
+                   this->lambda * (epsilon_princ(1) + epsilon_princ(2));
+  sigma_princ(1) = Cdiag * epsilon_princ(1) +
+                   this->lambda * (epsilon_princ(0) + epsilon_princ(2));
+  sigma_princ(2) = Cdiag * epsilon_princ(2) +
+                   this->lambda * (epsilon_princ(1) + epsilon_princ(0));
+
+  Vector<Real, 3> sigma_p;
+  for (Int i = 0; i < 3; i++) {
+    sigma_p(i) = std::max(Real(0.), sigma_princ(i));
+  }
+  // sigma_p *= 1. - dam;
+
+  auto trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
+
+  Real alpha_t = 0;
+  for (Int i = 0; i < 3; ++i) {
+    auto epsilon_t = (1 + this->nu) / this->E * sigma_p(i) - trace_p;
+    auto epsilon_p = std::max(Real(0.), epsilon_princ(i));
+    alpha_t += epsilon_t * epsilon_p;
+  }
+
+  alpha_t /= Ehat * Ehat;
+  alpha_t = std::min(alpha_t, Real(1.));
+
+  auto alpha_c = 1. - alpha_t;
+
+  alpha_t = std::pow(alpha_t, beta);
+  alpha_c = std::pow(alpha_c, beta);
+
+  auto damtemp = alpha_t * dam_t + alpha_c * dam_c;
+
+  dam = std::max(damtemp, dam);
+  dam = std::min(dam, Real(1.));
+}
+
 } // namespace akantu

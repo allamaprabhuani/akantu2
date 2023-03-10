@@ -45,7 +45,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
 
@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
 
   //   for(akantu::UInt e = 0; e < nb_element; ++e) {
   //     element.element = e;
-  //     sparse_matrix.addToMatrix(local_mat.storage(), element,
+  //     sparse_matrix.addToMatrix(local_mat.data(), element,
   //     nb_nodes_per_element);
   //   }
   // }

@@ -60,7 +60,7 @@ namespace akantu {
  *      cycles (default: delta_c)
  */
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveLinearFatigue
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
@@ -79,7 +79,7 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /* ------------------------------------------------------------------------ */

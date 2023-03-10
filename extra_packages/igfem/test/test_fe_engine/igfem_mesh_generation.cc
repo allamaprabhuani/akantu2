@@ -58,9 +58,9 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
 
       UInt index;
       Real coord[3];
-      UInt spatial_dimension = nodes.getNbComponent();
+      Int spatial_dimension = nodes.getNbComponent();
       /// for each node, read the coordinates
-      for (UInt i = 0; i < nb_nodes; ++i) {
+      for (Int i = 0; i < nb_nodes; ++i) {
         UInt offset = i * spatial_dimension;
 
         std::getline(infile, line);
@@ -72,8 +72,8 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
         last_node_number = std::max(last_node_number, index);
 
         /// read the coordinates
-        for (UInt j = 0; j < spatial_dimension; ++j)
-          nodes.storage()[offset + j] = coord[j];
+        for (Int j = 0; j < spatial_dimension; ++j)
+          nodes.data()[offset + j] = coord[j];
       }
       std::getline(infile, line); /// the end of block line
     }
@@ -90,12 +90,12 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
       sstr >> nb_elements;
       current_line++;
 
-      for (UInt i = 0; i < nb_elements; ++i) {
+      for (Int i = 0; i < nb_elements; ++i) {
         std::getline(infile, line);
         std::stringstream sstr_elem(line);
         current_line++;
         Vector<UInt> local_connect(node_per_element);
-        for (UInt j = 0; j < node_per_element; ++j) {
+        for (Int j = 0; j < node_per_element; ++j) {
           UInt node_index;
           sstr_elem >> node_index;
 

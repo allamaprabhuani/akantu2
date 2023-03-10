@@ -71,7 +71,7 @@ public:
   virtual void
   weightedAverageOnNeighbours(const ElementTypeMapReal & to_accumulate,
                               ElementTypeMapReal & accumulated,
-                              UInt nb_degree_of_freedom,
+                              Int nb_degree_of_freedom,
                               GhostType ghost_type2) const = 0;
 
   /// update the weights for the non-local averaging
@@ -101,8 +101,8 @@ protected:
   /* --------------------------------------------------------------------------
    */
 public:
-  inline UInt getNbData(const Array<Element> & /*elements*/,
-                        const SynchronizationTag & /*tag*/) const override {
+  inline Int getNbData(const Array<Element> &,
+                        const SynchronizationTag &) const override {
     return 0;
   }
 

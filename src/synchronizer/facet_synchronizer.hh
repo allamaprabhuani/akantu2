@@ -70,29 +70,29 @@ protected:
 
   /// build send facet arrays
   void buildSendElementList(
-      const Array<ElementTypeMapArray<UInt> *> & send_connectivity,
-      const Array<ElementTypeMapArray<UInt> *> & recv_connectivity,
-      const Array<ElementTypeMapArray<UInt> *> & temp_send_element);
+      const Array<ElementTypeMapArray<Idx> *> & send_connectivity,
+      const Array<ElementTypeMapArray<Idx> *> & recv_connectivity,
+      const Array<ElementTypeMapArray<Idx> *> & temp_send_element);
 
   /// build recv facet arrays
   void buildRecvElementList(
-      const Array<ElementTypeMapArray<UInt> *> & temp_recv_element);
+      const Array<ElementTypeMapArray<Idx> *> & temp_recv_element);
 
   /// get facets' global connectivity for a list of elements
   template <GhostType ghost_facets>
   inline void getFacetGlobalConnectivity(
       const ElementSynchronizer & distributed_synchronizer,
-      const ElementTypeMapArray<UInt> & rank_to_facet,
+      const ElementTypeMapArray<Idx> & rank_to_facet,
       const Array<Element> * elements,
-      Array<ElementTypeMapArray<UInt> *> & connectivity,
-      Array<ElementTypeMapArray<UInt> *> & facets);
+      Array<ElementTypeMapArray<Idx> *> & connectivity,
+      Array<ElementTypeMapArray<Idx> *> & facets);
 
   /// initialize ElementTypeMap containing correspondance between
   /// facets and processors
-  void initRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet);
+  void initRankToFacet(ElementTypeMapArray<Idx> & rank_to_facet);
 
   /// find which processor a facet is assigned to
-  void buildRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet,
+  void buildRankToFacet(ElementTypeMapArray<Idx> & rank_to_facet,
                         const Array<Element> * elements);
 
   /* ------------------------------------------------------------------------ */
@@ -103,7 +103,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ElementTypeMapArray<UInt> facet_to_rank;
+  ElementTypeMapArray<Int> facet_to_rank;
 };
 
 } // namespace akantu

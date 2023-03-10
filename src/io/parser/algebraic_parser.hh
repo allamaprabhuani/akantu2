@@ -249,7 +249,7 @@ namespace parser {
     operator Vector<Real>() {
       Vector<Real> tmp(_cells.size());
       auto it = _cells.begin();
-      for (UInt i = 0; it != _cells.end(); ++it, ++i) {
+      for (Int i = 0; it != _cells.end(); ++it, ++i) {
         tmp(i) = *it;
       }
       return tmp;
@@ -280,12 +280,13 @@ namespace parser {
         cols = std::max(cols, it_rows->_cells.size());
       }
 
-      Matrix<Real> tmp(_cells.size(), _cells[0]._cells.size(), 0.);
+      Matrix<Real> tmp(_cells.size(), cols);
+      tmp.fill(0.);
 
       it_rows = _cells.begin();
-      for (UInt i = 0; it_rows != _cells.end(); ++it_rows, ++i) {
+      for (Int i = 0; it_rows != _cells.end(); ++it_rows, ++i) {
         auto it_cols = it_rows->_cells.begin();
-        for (UInt j = 0; it_cols != it_rows->_cells.end(); ++it_cols, ++j) {
+        for (Int j = 0; it_cols != it_rows->_cells.end(); ++it_cols, ++j) {
           tmp(i, j) = *it_cols;
         }
       }
@@ -442,7 +443,7 @@ namespace parser {
 
   inline std::ostream & operator<<(std::ostream & stream,
                                    const ParsableRandomGenerator & prg) {
-    stream << "prg[" << prg.base << " " << UInt(prg.type) << " "
+    stream << "prg[" << prg.base << " " << Int(prg.type) << " "
            << prg.parameters << "]";
     return stream;
   }

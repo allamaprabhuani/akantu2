@@ -1,4 +1,3 @@
-
 """ __init__.py: akantu python module"""
 
 __author__ = "Guillaume Anciaux and Nicolas Richart"

@@ -60,7 +60,7 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
     const_.set(0.);
 
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       const_(0) += alpha[0][d] * pos(d);
       const_(1) += alpha[1][d] * pos(d);
     }
@@ -73,7 +73,7 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
   /// check the results
   for (auto && grad : make_view(grad_on_quad, 2, dim)) {
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       EXPECT_NEAR(grad(0, d), alpha[0][d], 5e-13);
       EXPECT_NEAR(grad(1, d), alpha[1][d], 5e-13);
     }
@@ -82,8 +82,8 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
 TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->initShapeFunctions();
-  const auto dim = this->dim;
-  const auto type = this->type;
+  const auto dim = TestFixture::dim;
+  const auto type = TestFixture::type;
 
   UInt nb_quadrature_points =
       this->fem->getNbIntegrationPoints(type) * this->nb_element;
@@ -94,10 +94,10 @@ TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->gradientOnIntegrationPoints(position, grad_coord_on_quad, dim,
                                          type);
 
-  auto I = Matrix<Real>::eye(UInt(dim));
+  auto I = Matrix<Real, dim, dim>::Identity();
 
   for (auto && grad : make_view(grad_coord_on_quad, dim, dim)) {
-    auto diff = (I - grad).template norm<L_inf>();
+    auto diff = (I - grad).template lpNorm<Eigen::Infinity>();
 
     EXPECT_NEAR(0., diff, 2e-14);
   }

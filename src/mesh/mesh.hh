@@ -84,9 +84,9 @@ namespace {
  * In order to loop on all element you have to loop on all types like this :
  * @code{.cpp}
  for(auto & type : mesh.elementTypes()) {
-   UInt nb_element  = mesh.getNbElement(type);
-   const Array<UInt> & conn = mesh.getConnectivity(type);
-   for(UInt e = 0; e < nb_element; ++e) {
+   Int nb_element  = mesh.getNbElement(type);
+   const auto & conn = mesh.getConnectivity(type);
+   for(Int e = 0; e < nb_element; ++e) {
      ...
    }
  }
@@ -108,24 +108,29 @@ class Mesh : public EventHandlerManager<MeshEventHandler>,
 private:
   /// default constructor used for chaining, the last parameter is just to
   /// differentiate constructors
-  Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator);
+  Mesh(Int spatial_dimension, const ID & id, Communicator & communicator);
 
 public:
   /// constructor that create nodes coordinates array
-  Mesh(UInt spatial_dimension, const ID & id = "mesh");
+  Mesh(Int spatial_dimension, const ID & id = "mesh");
 
   /// mesh not distributed and not using the default communicator
-  Mesh(UInt spatial_dimension, Communicator & communicator,
+  Mesh(Int spatial_dimension, Communicator & communicator,
        const ID & id = "mesh");
 
   /**
    * constructor that use an existing nodes coordinates
    * array, by getting the vector of coordinates
    */
-  Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
+  Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
        const ID & id = "mesh");
 
   ~Mesh() override;
+
+  Mesh(const Mesh &) = delete;
+  Mesh(Mesh &&) = delete;
+  Mesh & operator=(const Mesh &) = delete;
+  Mesh & operator=(Mesh &&) = delete;
 
   /// read the mesh from a file
   void read(const std::string & filename,
@@ -182,13 +187,12 @@ public:
 
 protected:
   void makePeriodic(const SpatialDirection & direction,
-                    const Array<UInt> & list_left,
-                    const Array<UInt> & list_right);
+                    const Array<Idx> & list_1, const Array<Idx> & list_2);
 
   /// Removes the face that the mesh is periodic
   void wipePeriodicInfo();
 
-  inline void addPeriodicSlave(UInt slave, UInt master);
+  inline void addPeriodicSlave(Idx slave, Idx master);
 
   template <typename T>
   void synchronizePeriodicSlaveDataWithMaster(Array<T> & data);
@@ -207,10 +211,10 @@ public:
   class PeriodicSlaves;
 
   /// get the master node for a given slave nodes, except if node not a slave
-  inline UInt getPeriodicMaster(UInt slave) const;
+  inline Idx getPeriodicMaster(Idx slave) const;
 
   /// get an iterable list of slaves for a given master node
-  inline decltype(auto) getPeriodicSlaves(UInt master) const;
+  inline decltype(auto) getPeriodicSlaves(Idx master) const;
 
   /* ------------------------------------------------------------------------ */
   /* General Methods                                                          */
@@ -220,16 +224,18 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /// extract coordinates of nodes from an element
-  template <typename T>
-  inline void
-  extractNodalValuesFromElement(const Array<T> & nodal_values, T * local_coord,
-                                const UInt * connectivity, UInt n_nodes,
-                                UInt nb_degree_of_freedom) const;
+  template <typename T, class Derived1, class Derived2,
+            std::enable_if_t<aka::is_vector_v<Derived2>> * = nullptr>
+  inline void extractNodalValuesFromElement(
+      const Array<T> & nodal_values,
+      Eigen::MatrixBase<Derived1> & elemental_values,
+      const Eigen::MatrixBase<Derived2> & connectivity) const;
 
-  // /// extract coordinates of nodes from a reversed element
-  // inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
-  //                                                   UInt * connectivity,
-  //                                                   UInt n_nodes);
+  /// extract coordinates of nodes from an element
+  template <typename T>
+  inline decltype(auto)
+  extractNodalValuesFromElement(const Array<T> & nodal_values,
+                                const Element & element) const;
 
   /// add a Array of connectivity for the given ElementType and GhostType .
   inline void addConnectivityType(ElementType type,
@@ -247,10 +253,7 @@ public:
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void removeNodesFromArray(Array<T> & vect,
-                                   const Array<UInt> & new_numbering);
-
-  /// initialize normals
-  void initNormals();
+                                   const Array<Int> & new_numbering);
 
   /// init facets' mesh
   Mesh & initMeshFacets(const ID & id = "mesh_facets");
@@ -259,23 +262,24 @@ public:
   void defineMeshParent(const Mesh & mesh);
 
   /// get global connectivity array
-  void getGlobalConnectivity(ElementTypeMapArray<UInt> & global_connectivity);
+  void getGlobalConnectivity(ElementTypeMapArray<Int> & global_connectivity);
 
 public:
-  void getAssociatedElements(const Array<UInt> & node_list,
-                             Array<Element> & elements) const;
+  void getAssociatedElements(const Array<Int> & node_list,
+                             Array<Element> & elements);
 
-  void getAssociatedElements(const UInt & node,
-                             Array<Element> & elements) const;
+  void getAssociatedElements(const Idx & node, Array<Element> & elements) const;
+
+  inline decltype(auto) getAssociatedElements(const Idx & node) const;
 
 public:
   /// fills the nodes_to_elements for given dimension elements
-  void fillNodesToElements(UInt dimension = _all_dimensions);
+  void fillNodesToElements(Int dimension = _all_dimensions);
 
 private:
   /// update the global ids, nodes type, ...
-  std::tuple<UInt, UInt> updateGlobalData(NewNodesEvent & nodes_event,
-                                          NewElementsEvent & elements_event);
+  std::tuple<Int, Int> updateGlobalData(NewNodesEvent & nodes_event,
+                                        NewElementsEvent & elements_event);
 
   void registerGlobalDataUpdater(
       std::unique_ptr<MeshGlobalDataUpdater> && global_data_updater);
@@ -288,31 +292,28 @@ public:
 
   /// get the spatial dimension of the mesh = number of component of the
   /// coordinates
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
 
   /// get the nodes Array aka coordinates
   AKANTU_GET_MACRO(Nodes, *nodes, const Array<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Array<Real> &);
 
-  /// get the normals for the elements
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, Real);
-
   /// get the number of nodes
-  AKANTU_GET_MACRO(NbNodes, nodes->size(), UInt);
+  auto getNbNodes() const { return nodes->size(); }
 
   /// get the Array of global ids of the nodes (only used in parallel)
-  AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Array<UInt> &);
+  AKANTU_GET_MACRO_AUTO(GlobalNodesIds, *nodes_global_ids);
   // AKANTU_GET_MACRO_NOT_CONST(GlobalNodesIds, *nodes_global_ids, Array<UInt>
   // &);
 
   /// get the global id of a node
-  inline UInt getNodeGlobalId(UInt local_id) const;
+  inline auto getNodeGlobalId(Idx local_id) const;
 
   /// get the global id of a node
-  inline UInt getNodeLocalId(UInt global_id) const;
+  inline auto getNodeLocalId(Idx global_id) const;
 
   /// get the global number of nodes
-  inline UInt getNbGlobalNodes() const;
+  inline auto getNbGlobalNodes() const;
 
   /// get the nodes type Array
   AKANTU_GET_MACRO(NodesFlags, *nodes_flags, const Array<NodeFlag> &);
@@ -321,21 +322,21 @@ protected:
   AKANTU_GET_MACRO_NOT_CONST(NodesFlags, *nodes_flags, Array<NodeFlag> &);
 
 public:
-  inline NodeFlag getNodeFlag(UInt local_id) const;
-  inline Int getNodePrank(UInt local_id) const;
+  inline NodeFlag getNodeFlag(Idx local_id) const;
+  inline auto getNodePrank(Idx local_id) const;
 
   /// say if a node is a pure ghost node
-  inline bool isPureGhostNode(UInt n) const;
+  inline bool isPureGhostNode(Idx n) const;
 
   /// say if a node is pur local or master node
-  inline bool isLocalOrMasterNode(UInt n) const;
+  inline bool isLocalOrMasterNode(Idx n) const;
 
-  inline bool isLocalNode(UInt n) const;
-  inline bool isMasterNode(UInt n) const;
-  inline bool isSlaveNode(UInt n) const;
+  inline bool isLocalNode(Idx n) const;
+  inline bool isMasterNode(Idx n) const;
+  inline bool isSlaveNode(Idx n) const;
 
-  inline bool isPeriodicSlave(UInt n) const;
-  inline bool isPeriodicMaster(UInt n) const;
+  inline bool isPeriodicSlave(Idx n) const;
+  inline bool isPeriodicMaster(Idx n) const;
 
   const Vector<Real> & getLowerBounds() const { return bbox.getLowerBounds(); }
   const Vector<Real> & getUpperBounds() const { return bbox.getUpperBounds(); }
@@ -350,50 +351,53 @@ public:
   AKANTU_GET_MACRO(LocalBBox, bbox_local, const BBox &);
 
   /// get the connectivity Array for a given type
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, Idx);
   AKANTU_GET_MACRO(Connectivities, connectivities,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
 
   /// get the number of element of a type in the mesh
-  inline UInt getNbElement(ElementType type,
+  inline auto getNbElement(ElementType type,
                            GhostType ghost_type = _not_ghost) const;
 
   /// get the number of element for a given ghost_type and a given dimension
-  inline UInt getNbElement(UInt spatial_dimension = _all_dimensions,
+  inline auto getNbElement(Int spatial_dimension = _all_dimensions,
                            GhostType ghost_type = _not_ghost,
                            ElementKind kind = _ek_not_defined) const;
 
   /// compute the barycenter of a given element
+  template <class D, std::enable_if_t<aka::is_vector_v<D>> * = nullptr>
   inline void getBarycenter(const Element & element,
-                            Vector<Real> & barycenter) const;
+                            const Eigen::MatrixBase<D> & barycenter) const;
+
+  inline Vector<Real> getBarycenter(const Element & element) const;
 
   void getBarycenters(Array<Real> & barycenter, ElementType type,
                       GhostType ghost_type) const;
 
   /// get the element connected to a subelement (element of lower dimension)
-  const auto & getElementToSubelement() const;
+  decltype(auto) getElementToSubelement() const;
 
   /// get the element connected to a subelement
   const auto & getElementToSubelement(ElementType el_type,
                                       GhostType ghost_type = _not_ghost) const;
 
   /// get the elements connected to a subelement
-  const auto & getElementToSubelement(const Element & element) const;
+  decltype(auto) getElementToSubelement(const Element & element) const;
 
   /// get the subelement (element of lower dimension) connected to a element
-  const auto & getSubelementToElement() const;
+  decltype(auto) getSubelementToElement() const;
 
   /// get the subelement connected to an element
   const auto & getSubelementToElement(ElementType el_type,
                                       GhostType ghost_type = _not_ghost) const;
 
   /// get the subelement (element of lower dimension) connected to a element
-  VectorProxy<Element> getSubelementToElement(const Element & element) const;
+  decltype(auto) getSubelementToElement(const Element & element) const;
 
   /// get connectivity of a given element
-  inline VectorProxy<UInt> getConnectivity(const Element & element) const;
-  inline Vector<UInt>
+  inline decltype(auto) getConnectivity(const Element & element) const;
+  inline decltype(auto)
   getConnectivityWithPeriodicity(const Element & element) const;
 
 protected:
@@ -401,8 +405,7 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline VectorProxy<Element>
-  getSubelementToElementNC(const Element & element) const;
+  inline decltype(auto) getSubelementToElementNC(const Element & element) const;
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
@@ -410,29 +413,28 @@ protected:
   auto & getSubelementToElementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
 
-  inline VectorProxy<UInt> getConnectivityNC(const Element & element);
+  inline decltype(auto) getConnectivityNC(const Element & element);
 
 public:
   /// get a name field associated to the mesh
   template <typename T>
-  inline const Array<T> & getData(const ID & data_name, ElementType el_type,
-                                  GhostType ghost_type = _not_ghost) const;
+  inline decltype(auto) getData(const ID & data_name, ElementType el_type,
+                                GhostType ghost_type = _not_ghost) const;
 
   /// get a name field associated to the mesh
   template <typename T>
-  inline Array<T> & getData(const ID & data_name, ElementType el_type,
-                            GhostType ghost_type = _not_ghost);
+  inline decltype(auto) getData(const ID & data_name, ElementType el_type,
+                                GhostType ghost_type = _not_ghost);
 
   /// get a name field associated to the mesh
   template <typename T>
-  inline const ElementTypeMapArray<T> & getData(const ID & data_name) const;
+  inline decltype(auto) getData(const ID & data_name) const;
 
   /// get a name field associated to the mesh
-  template <typename T>
-  inline ElementTypeMapArray<T> & getData(const ID & data_name);
+  template <typename T> inline decltype(auto) getData(const ID & data_name);
 
   template <typename T>
-  ElementTypeMap<UInt> getNbDataPerElem(ElementTypeMapArray<T> & array);
+  auto getNbDataPerElem(ElementTypeMapArray<T> & array) -> ElementTypeMap<Int>;
 
   template <typename T>
   std::shared_ptr<dumpers::Field>
@@ -442,120 +444,126 @@ public:
 
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template <typename T>
-  inline Array<T> &
+  inline decltype(auto)
   getDataPointer(const std::string & data_name, ElementType el_type,
-                 GhostType ghost_type = _not_ghost, UInt nb_component = 1,
+                 GhostType ghost_type = _not_ghost, Int nb_component = 1,
                  bool size_to_nb_element = true,
                  bool resize_with_parent = false);
 
   template <typename T>
-  inline Array<T> & getDataPointer(const ID & data_name, ElementType el_type,
-                                   GhostType ghost_type, UInt nb_component,
-                                   bool size_to_nb_element,
-                                   bool resize_with_parent, const T & defaul_);
+  inline decltype(auto)
+  getDataPointer(const ID & data_name, ElementType el_type,
+                 GhostType ghost_type, Int nb_component,
+                 bool size_to_nb_element, bool resize_with_parent,
+                 const T & defaul_);
 
   /// Facets mesh accessor
-  inline const Mesh & getMeshFacets() const;
-  inline Mesh & getMeshFacets();
+  inline auto getMeshFacets() const -> const Mesh &;
+  inline auto getMeshFacets() -> Mesh &;
 
   inline auto hasMeshFacets() const { return mesh_facets != nullptr; }
 
   /// Parent mesh accessor
-  inline const Mesh & getMeshParent() const;
+  inline auto getMeshParent() const -> const Mesh &;
 
-  inline bool isMeshFacets() const { return this->is_mesh_facets; }
+  inline auto isMeshFacets() const { return this->is_mesh_facets; }
 
   /// return the dumper from a group and and a dumper name
-  DumperIOHelper & getGroupDumper(const std::string & dumper_name,
-                                  const std::string & group_name);
+  auto getGroupDumper(const std::string & dumper_name,
+                      const std::string & group_name) -> DumperIOHelper &;
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
 public:
   /// get the number of nodes per element for a given element type
-  static inline UInt getNbNodesPerElement(ElementType type);
+  static inline constexpr auto getNbNodesPerElement(ElementType type) -> Int;
 
   /// get the number of nodes per element for a given element type considered as
   /// a first order element
-  static inline ElementType getP1ElementType(ElementType type);
+  static inline constexpr auto getP1ElementType(ElementType type)
+      -> ElementType;
 
   /// get the kind of the element type
-  static inline ElementKind getKind(ElementType type);
+  static inline constexpr auto getKind(ElementType type) -> ElementKind;
 
   /// get spatial dimension of a type of element
-  static inline UInt getSpatialDimension(ElementType type);
+  static inline constexpr auto getSpatialDimension(ElementType type) -> Int;
 
   /// get the natural space dimension of a type of element
-  static inline UInt getNaturalSpaceDimension(const ElementType & type);
+  static inline constexpr auto getNaturalSpaceDimension(ElementType type)
+      -> Int;
 
   /// get number of facets of a given element type
-  static inline UInt getNbFacetsPerElement(ElementType type);
+  static inline constexpr auto getNbFacetsPerElement(ElementType type) -> Int;
 
   /// get number of facets of a given element type
-  static inline UInt getNbFacetsPerElement(ElementType type, UInt t);
+  static inline constexpr auto getNbFacetsPerElement(ElementType type, Idx t)
+      -> Int;
 
   /// get local connectivity of a facet for a given facet type
-  static inline auto getFacetLocalConnectivity(ElementType type, UInt t = 0);
+  static inline decltype(auto) getFacetLocalConnectivity(ElementType type,
+                                                         Idx t = 0);
 
   /// get connectivity of facets for a given element
-  inline auto getFacetConnectivity(const Element & element, UInt t = 0) const;
+  inline auto getFacetConnectivity(const Element & element, Idx t = 0) const
+      -> Matrix<Idx>;
 
   /// get the number of type of the surface element associated to a given
   /// element type
-  static inline UInt getNbFacetTypes(ElementType type, UInt t = 0);
+  static inline constexpr auto getNbFacetTypes(ElementType type, Idx t = 0)
+      -> Int;
 
   /// get the type of the surface element associated to a given element
-  static inline constexpr auto getFacetType(ElementType type, UInt t = 0);
+  static inline constexpr auto getFacetType(ElementType type, Idx t = 0)
+      -> ElementType;
 
   /// get all the type of the surface element associated to a given element
-  static inline constexpr auto getAllFacetTypes(ElementType type);
+  static inline decltype(auto) getAllFacetTypes(ElementType type);
 
   /// get the number of nodes in the given element list
-  static inline UInt getNbNodesPerElementList(const Array<Element> & elements);
+  static inline auto getNbNodesPerElementList(const Array<Element> & elements)
+      -> Int;
 
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
 
-  using type_iterator = ElementTypeMapArray<UInt, ElementType>::type_iterator;
+  using type_iterator [[deprecated]] =
+      ElementTypeMapArray<Idx, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
-      ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;
+      ElementTypeMapArray<Idx, ElementType>::ElementTypesIteratorHelper;
 
   template <typename... pack>
-  ElementTypesIteratorHelper elementTypes(pack &&... _pack) const;
+  auto elementTypes(pack &&... _pack) const -> ElementTypesIteratorHelper;
 
   [[deprecated("Use elementTypes instead")]] inline decltype(auto)
-  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+  firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
             ElementKind kind = _ek_regular) const {
     return connectivities.elementTypes(dim, ghost_type, kind).begin();
   }
 
   [[deprecated("Use elementTypes instead")]] inline decltype(auto)
-  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+  lastType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
            ElementKind kind = _ek_regular) const {
     return connectivities.elementTypes(dim, ghost_type, kind).end();
   }
 
-  AKANTU_GET_MACRO(ElementSynchronizer, *element_synchronizer,
-                   const ElementSynchronizer &);
-  AKANTU_GET_MACRO_NOT_CONST(ElementSynchronizer, *element_synchronizer,
-                             ElementSynchronizer &);
-  AKANTU_GET_MACRO(NodeSynchronizer, *node_synchronizer,
-                   const NodeSynchronizer &);
-  AKANTU_GET_MACRO_NOT_CONST(NodeSynchronizer, *node_synchronizer,
-                             NodeSynchronizer &);
-  AKANTU_GET_MACRO(PeriodicNodeSynchronizer, *periodic_node_synchronizer,
-                   const PeriodicNodeSynchronizer &);
-  AKANTU_GET_MACRO_NOT_CONST(PeriodicNodeSynchronizer,
-                             *periodic_node_synchronizer,
-                             PeriodicNodeSynchronizer &);
+  AKANTU_GET_MACRO_DEREF_PTR(ElementSynchronizer, element_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ElementSynchronizer,
+                                       element_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR(NodeSynchronizer, node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(NodeSynchronizer, node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR(PeriodicNodeSynchronizer,
+                             periodic_node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(PeriodicNodeSynchronizer,
+                                       periodic_node_synchronizer);
 
   // AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
   // &);
-  AKANTU_GET_MACRO(Communicator, *communicator, const auto &);
-  AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, auto &);
-  AKANTU_GET_MACRO(PeriodicMasterSlaves, periodic_master_slave, const auto &);
+  AKANTU_GET_MACRO_DEREF_PTR(Communicator, communicator);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Communicator, communicator);
+  AKANTU_GET_MACRO_AUTO(PeriodicMasterSlaves, periodic_master_slave);
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
@@ -564,23 +572,24 @@ private:
   friend class MeshAccessor;
   friend class MeshUtils;
 
-  AKANTU_GET_MACRO(NodesPointer, *nodes, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(NodesPointer, nodes);
 
   /// get a pointer to the nodes_global_ids Array<UInt> and create it if
   /// necessary
-  inline Array<UInt> & getNodesGlobalIdsPointer();
+  inline auto getNodesGlobalIdsPointer() -> Array<Idx> &;
 
   /// get a pointer to the nodes_type Array<Int> and create it if necessary
-  inline Array<NodeFlag> & getNodesFlagsPointer();
+  inline auto getNodesFlagsPointer() -> Array<NodeFlag> &;
 
   /// get a pointer to the connectivity Array for the given type and create it
   /// if necessary
-  inline Array<UInt> &
-  getConnectivityPointer(ElementType type, GhostType ghost_type = _not_ghost);
+  inline auto getConnectivityPointer(ElementType type,
+                                     GhostType ghost_type = _not_ghost)
+      -> Array<Idx> &;
 
   /// get the ghost element counter
-  inline Array<UInt> & getGhostsCounters(ElementType type,
-                                         GhostType ghost_type = _ghost) {
+  inline auto getGhostsCounters(ElementType type, GhostType ghost_type = _ghost)
+      -> Array<Idx> & {
     AKANTU_DEBUG_ASSERT(ghost_type != _not_ghost,
                         "No ghost counter for _not_ghost elements");
     return ghosts_counters(type, ghost_type);
@@ -588,13 +597,13 @@ private:
 
   /// get a pointer to the element_to_subelement Array for the given type and
   /// create it if necessary
-  inline Array<std::vector<Element>> &
+  inline decltype(auto)
   getElementToSubelementPointer(ElementType type,
                                 GhostType ghost_type = _not_ghost);
 
   /// get a pointer to the subelement_to_element Array for the given type and
   /// create it if necessary
-  inline Array<Element> &
+  inline decltype(auto)
   getSubelementToElementPointer(ElementType type,
                                 GhostType ghost_type = _not_ghost);
 
@@ -608,31 +617,29 @@ private:
   std::shared_ptr<Array<Real>> nodes;
 
   /// global node ids
-  std::shared_ptr<Array<UInt>> nodes_global_ids;
+  std::shared_ptr<Array<Idx>> nodes_global_ids;
 
   /// node flags (shared/periodic/...)
   std::shared_ptr<Array<NodeFlag>> nodes_flags;
 
   /// processor handling the node when not local or master
-  std::unordered_map<UInt, Int> nodes_prank;
+  std::unordered_map<Idx, Int> nodes_prank;
 
   /// global number of nodes;
-  UInt nb_global_nodes{0};
+  Int nb_global_nodes{0};
 
   /// all class of elements present in this mesh (for heterogenous meshes)
-  ElementTypeMapArray<UInt> connectivities;
+  ElementTypeMapArray<Idx> connectivities;
 
   /// count the references on ghost elements
-  ElementTypeMapArray<UInt> ghosts_counters;
-
-  /// map to normals for all class of elements present in this mesh
-  ElementTypeMapArray<Real> normals;
+  ElementTypeMapArray<Idx> ghosts_counters;
 
   /// the spatial dimension of this mesh
-  UInt spatial_dimension{0};
+  Idx spatial_dimension{0};
 
   /// size covered by the mesh on each direction
   Vector<Real> size;
+
   /// global bounding box
   BBox bbox;
 
@@ -678,8 +685,8 @@ private:
   NodesToElements nodes_to_elements;
 
   /// periodicity local info
-  std::unordered_map<UInt, UInt> periodic_slave_master;
-  std::unordered_multimap<UInt, UInt> periodic_master_slave;
+  std::unordered_map<Idx, Idx> periodic_slave_master;
+  std::unordered_multimap<Idx, Idx> periodic_master_slave;
 };
 
 /// standard output stream operator
@@ -687,6 +694,42 @@ inline std::ostream & operator<<(std::ostream & stream, const Mesh & _this) {
   _this.printself(stream);
   return stream;
 }
+
+/* -------------------------------------------------------------------------- */
+inline constexpr auto Mesh::getNbNodesPerElement(ElementType type) -> Int {
+  return tuple_dispatch_with_default<AllElementTypes>(
+      [](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        return ElementClass<type>::getNbNodesPerElement();
+      },
+      type, [](auto && /*type*/) { return 0; });
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto Mesh::getNbElement(ElementType type, GhostType ghost_type) const {
+  try {
+    const auto & conn = connectivities(type, ghost_type);
+    return conn.size();
+  } catch (...) {
+    return 0;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto Mesh::getNbElement(const Int spatial_dimension,
+                               GhostType ghost_type, ElementKind kind) const {
+  AKANTU_DEBUG_ASSERT(spatial_dimension <= 3 || spatial_dimension == Int(-1),
+                      "spatial_dimension is " << spatial_dimension
+                                              << " and is greater than 3 !");
+  Int nb_element = 0;
+
+  for (auto type : elementTypes(spatial_dimension, ghost_type, kind)) {
+    nb_element += getNbElement(type, ghost_type);
+  }
+
+  return nb_element;
+}
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu
 

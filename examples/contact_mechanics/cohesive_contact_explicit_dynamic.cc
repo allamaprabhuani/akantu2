@@ -40,7 +40,7 @@ using namespace akantu;
 
 int main(int argc, char * argv[]) {
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   initialize("material-cohesive.dat", argc, argv);
 
   Real time_step{0.};

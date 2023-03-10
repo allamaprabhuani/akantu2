@@ -31,7 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communications.hh"
-#include "synchronizer.hh"
+//#include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SYNCHRONIZER_IMPL_HH_
@@ -154,14 +154,14 @@ protected:
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual UInt canScatterSize() { AKANTU_TO_IMPLEMENT(); }
-  virtual UInt gatheredSize() { AKANTU_TO_IMPLEMENT(); }
+  virtual Int canScatterSize() { AKANTU_TO_IMPLEMENT(); }
+  virtual Int gatheredSize() { AKANTU_TO_IMPLEMENT(); }
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual UInt sanityCheckDataSize(const Array<Entity> & elements,
-                                   const SynchronizationTag & tag,
-                                   bool is_comm_desc = true) const;
+  virtual Int sanityCheckDataSize(const Array<Entity> & elements,
+                                  const SynchronizationTag & tag,
+                                  bool is_comm_desc = true) const;
   virtual void
   packSanityCheckData(CommunicationDescriptor<Entity> & comm_desc) const;
   virtual void
@@ -173,7 +173,7 @@ public:
   virtual void unpackSanityCheckData(CommunicationBuffer & /*buffer*/,
                                      const Array<Entity> & /*elements*/,
                                      const SynchronizationTag & /*tag*/,
-                                     UInt /*proc*/, UInt /*rank*/) const {}
+                                     Int /*proc*/, Int /*rank*/) const {}
 
 public:
   AKANTU_GET_MACRO(Communications, communications,
@@ -203,7 +203,7 @@ protected:
   Array<Entity> entities_from_root;
 
   /// entities received from slaves proc (only on master)
-  std::map<UInt, Array<Entity>> master_receive_entities;
+  std::map<Int, Array<Entity>> master_receive_entities;
 };
 
 } // namespace akantu

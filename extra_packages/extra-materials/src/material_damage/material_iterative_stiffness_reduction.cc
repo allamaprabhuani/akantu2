@@ -33,7 +33,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialIterativeStiffnessReduction<spatial_dimension>::
     MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                         const ID & id)
@@ -56,7 +56,7 @@ MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamageIterative<spatial_dimension>::initMaterial();
@@ -84,7 +84,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -116,8 +116,8 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         (*Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -128,7 +128,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIterativeStiffnessReduction<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
 

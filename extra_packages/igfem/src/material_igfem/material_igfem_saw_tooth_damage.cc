@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialIGFEMSawToothDamage<dim>::MaterialIGFEMSawToothDamage(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), Parent(model, id), Sc("Sc", *this),
@@ -38,7 +38,7 @@ MaterialIGFEMSawToothDamage<dim>::MaterialIGFEMSawToothDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
+template <Int dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   Parent::initMaterial();
@@ -55,7 +55,7 @@ template <UInt dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -73,9 +73,9 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
   /// get pointer to internals
-  Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-  Real * mu_ptr = this->mu(el_type, ghost_type).storage();
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+  Real * mu_ptr = this->mu(el_type, ghost_type).data();
+  Real * dam = this->damage(el_type, ghost_type).data();
   Matrix<Real> sigma(spatial_dimension, spatial_dimension);
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
     MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
@@ -86,8 +86,8 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         *(Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -100,7 +100,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::computeAllStresses(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -118,7 +118,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeAllStresses(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::
     findMaxNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
@@ -131,8 +131,8 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
     Array<Real>::const_iterator<Real> equivalent_stress_end = e_stress.end();
     Array<Real> & dam = this->damage(el_type);
     Array<Real>::iterator<Real> dam_it = dam.begin();
-    Array<UInt> & sub_mat = this->sub_material(el_type);
-    Array<UInt>::iterator<UInt> sub_mat_it = sub_mat.begin();
+    Array<Idx> & sub_mat = this->sub_material(el_type);
+    Array<Idx>::iterator<UInt> sub_mat_it = sub_mat.begin();
 
     for (; equivalent_stress_it != equivalent_stress_end;
          ++equivalent_stress_it, ++dam_it, ++sub_mat_it) {
@@ -149,14 +149,14 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Parent::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -174,7 +174,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
@@ -193,8 +193,8 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
 
     for (; it != last_type; ++it) {
       ElementType el_type = *it;
-      Array<UInt> & sub_mat = this->sub_material(el_type);
-      Array<UInt>::iterator<UInt> sub_mat_it = sub_mat.begin();
+      Array<Idx> & sub_mat = this->sub_material(el_type);
+      Array<Idx>::iterator<UInt> sub_mat_it = sub_mat.begin();
       const Array<Real> & e_stress = equivalent_stress(el_type);
       Array<Real>::const_iterator<Real> equivalent_stress_it = e_stress.begin();
       Array<Real>::const_iterator<Real> equivalent_stress_end = e_stress.end();
@@ -246,7 +246,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
   return nb_damaged_elements;
 }
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
+// template<Int spatial_dimension>
 // void
 // MaterialIGFEMSawToothDamage<spatial_dimension>::updateEnergiesAfterDamage(ElementType
 // el_type, GhostType ghost_type) {
@@ -254,7 +254,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
 // }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
     __attribute__((unused)) const Array<Element> & element_list,
     __attribute__((unused)) const NewElementsEvent & event) {
@@ -278,7 +278,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
        g != ghost_type_t::end(); ++g) {
     GhostType ghost_type = *g;
     /// loop over all types in the material
-    typedef ElementTypeMapArray<UInt>::type_iterator iterator;
+    typedef ElementTypeMapArray<Idx>::type_iterator iterator;
     iterator it = this->element_filter.firstType(spatial_dimension, ghost_type,
                                                  _ek_igfem);
     iterator last_type =
@@ -286,7 +286,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
     for (; it != last_type; ++it) {
       /// store the elements added to this material
       std::vector<Element> new_elements;
-      Array<UInt> & elem_filter = this->element_filter(*it, ghost_type);
+      Array<Idx> & elem_filter = this->element_filter(*it, ghost_type);
       UInt nb_element = elem_filter.getSize();
       UInt nb_quads =
           quadrature_points_coordinates.getFEEngine().getNbIntegrationPoints(
@@ -327,7 +327,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
                                             new_elements, added_quads,
                                             extrapolated_internal_values);
 
-        UInt * sub_mat_ptr = this->sub_material(*it, ghost_type).storage();
+        UInt * sub_mat_ptr = this->sub_material(*it, ghost_type).data();
         Array<Real>::const_vector_iterator extrapolated_it =
             extrapolated_internal_values.begin(nb_component);
         Array<Real>::vector_iterator internal_it = internal.begin(nb_component);
@@ -346,7 +346,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
+// template<Int spatial_dimension>
 // void
 // MaterialIGFEMSawToothDamage<spatial_dimension>::transferInternals(Material &
 // old_mat,
@@ -360,12 +360,12 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 
 // /// get the fe-engine of the old material
 // FEEngine & fem_old_mat = old_mat.getFEEngine();
-// for (UInt e = 0; e < element_pairs.size(); ++e) {
+// for (Int e = 0; e < element_pairs.size(); ++e) {
 //   new_el_global = element_pairs[e].first;
 //   old_el_global = element_pairs[e].second;
 //   /// get the number of the elements in their materials
 //   old_el_local = old_el_global;
-//   Array<UInt> & mat_local_numbering =
+//   Array<Idx> & mat_local_numbering =
 //   this->model->getMaterialLocalNumbering(old_el_global.type,
 //   old_el_global.ghost_type);
 //   old_el_local.element = mat_local_numbering(old_el_global.element);
@@ -392,7 +392,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 //     Array<Real> & new_damage = this->damage(new_el_global.type,
 //     new_el_global.ghost_type);
 
-//     for (UInt q = 0; q < nb_old_quads; ++q) {
+//     for (Int q = 0; q < nb_old_quads; ++q) {
 // 	quad = old_el_local.element * nb_old_quads + q;
 // 	el_old_damage(q) = old_damage(quad);
 // 	el_old_Sc(q) = old_Sc(quad);
@@ -403,7 +403,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
 //     this->interpolateInternal(new_el_global, old_el_global, el_new_Sc,
 //     el_old_Sc, nb_new_quads, nb_old_quads);
 
-//     for (UInt q = 0; q < nb_new_quads; ++q) {
+//     for (Int q = 0; q < nb_new_quads; ++q) {
 // 	quad = new_el_local.element * nb_new_quads + q;
 // 	if (this->sub_material(new_el_global.type,new_el_global.ghost_type)(quad)) {
 // 	  new_damage(quad) = el_new_damage(q);
@@ -438,16 +438,16 @@ INSTANTIATE_MATERIAL(MaterialIGFEMSawToothDamage);
     // std::map<UInt, std::vector<ElementPair> > elements_by_old_mat;
 
     /// store the old elements sorted by their material
-    for (UInt e = 0; e < nb_new_elements; ++e) {
+    for (Int e = 0; e < nb_new_elements; ++e) {
       const Element new_el = element_list(e);
-      const Array<UInt> & mat_idx =
+      const Array<Idx> & mat_idx =
    this->model->getMaterialByElement(new_el.type, new_el.ghost_type);
       if ( mat_idx(new_el.element) != this_mat_idx )
     continue; /// new element is not part of this material: nothing to be done
       /// get the corresponding old element and store new and old one as pair
       const Element old_el = old_elements(e);
       ElementPair el_pair(new_el, old_el);
-      const Array<UInt> & old_mat_idx =
+      const Array<Idx> & old_mat_idx =
    this->model->getMaterialByElement(old_el.type, old_el.ghost_type);
       UInt mat_old_idx = old_mat_idx(old_el.element);
       elements_by_old_mat[mat_old_idx].push_back(el_pair);

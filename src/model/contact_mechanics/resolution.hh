@@ -88,17 +88,13 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// computes the force vector due to normal traction
-  virtual void computeNormalForce(__attribute__((unused))
-                                  const ContactElement & /*unused*/,
-                                  __attribute__((unused))
+  virtual void computeNormalForce(const ContactElement & /*unused*/,
                                   Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the tangential force vector due to frictional traction
-  virtual void computeTangentialForce(__attribute__((unused))
-                                      const ContactElement & /*unused*/,
-                                      __attribute__((unused))
+  virtual void computeTangentialForce(const ContactElement & /*unused*/,
                                       Vector<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -108,17 +104,13 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the normal moduli due to normal traction
-  virtual void computeNormalModuli(__attribute__((unused))
-                                   const ContactElement & /*unused*/,
-                                   __attribute__((unused))
+  virtual void computeNormalModuli(const ContactElement & /*unused*/,
                                    Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli due to tangential traction
-  virtual void computeTangentialModuli(__attribute__((unused))
-                                       const ContactElement & /*unused*/,
-                                       __attribute__((unused))
+  virtual void computeTangentialModuli(const ContactElement & /*unused*/,
                                        Matrix<Real> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -172,7 +164,7 @@ protected:
   Real mu;
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// is master surface deformable
   bool is_master_deformable;
@@ -202,7 +194,7 @@ using ResolutionFactory = Factory<Resolution, ID, UInt, const ID &,
                                   ContactMechanicsModel &, const ID &>;
 
 /// macaulay bracket to convert  positive gap to zero
-template <typename T> T macaulay(T var) { return var < 0 ? 0 : var; }
+template <typename T> T macaulay(T var) { return std::max(var, T()); }
 
 template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
 } // namespace akantu
@@ -210,7 +202,7 @@ template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
 #define INSTANTIATE_RESOLUTION_ONLY(res_name) class res_name
 
 #define RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR(id, res_name)                     \
-  [](UInt dim, const ID &, ContactMechanicsModel & model,                      \
+  [](Int dim, const ID &, ContactMechanicsModel & model,                       \
      const ID & id) -> std::unique_ptr<Resolution> {                           \
     switch (dim) {                                                             \
     case 1:                                                                    \

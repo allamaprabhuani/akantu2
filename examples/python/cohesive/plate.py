@@ -16,6 +16,20 @@ __license__ = "LGPLv3"
 import akantu as aka
 import numpy as np
 
+def set_dumpers(model):
+    model.setBaseName("plate")
+    model.addDumpFieldVector("displacement")
+    model.addDumpFieldVector("external_force")
+    model.addDumpField("strain")
+    model.addDumpField("stress")
+    model.addDumpField("blocked_dofs")
+
+    model.setBaseNameToDumper("cohesive elements", "cohesive")
+    model.addDumpFieldVectorToDumper("cohesive elements", "displacement")
+    model.addDumpFieldToDumper("cohesive elements", "damage")
+    model.addDumpFieldVectorToDumper("cohesive elements", "tractions")
+    model.addDumpFieldVectorToDumper("cohesive elements", "opening")
+
 
 def solve(material_file, mesh_file, traction):
     aka.parseInput(material_file)
@@ -32,18 +46,7 @@ def solve(material_file, mesh_file, traction):
 
     model.initNewSolver(aka._explicit_lumped_mass)
 
-    model.setBaseName("plate")
-    model.addDumpFieldVector("displacement")
-    model.addDumpFieldVector("external_force")
-    model.addDumpField("strain")
-    model.addDumpField("stress")
-    model.addDumpField("blocked_dofs")
-
-    model.setBaseNameToDumper("cohesive elements", "cohesive")
-    model.addDumpFieldVectorToDumper("cohesive elements", "displacement")
-    model.addDumpFieldToDumper("cohesive elements", "damage")
-    model.addDumpFieldVectorToDumper("cohesive elements", "tractions")
-    model.addDumpFieldVectorToDumper("cohesive elements", "opening")
+    set_dumpers(model)
 
     # -------------------------------------------------------------------------
     # Boundary conditions

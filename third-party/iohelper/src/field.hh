@@ -59,7 +59,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   //! return true if the data is a constant size per element
   inline bool isHomogeneous() override;
   //! return the size per element (valid only if isHomogeneous is true)
@@ -77,20 +76,15 @@ public:
   //! end method
   iterator end(){return my_field.end();}
 
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-
-  inline DataType getDataType() override { return my_field.getDataType(); }
-
 public:
-
+  inline DataType getDataType() override { return my_field.getDataType(); }
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   Cont & my_field;
 
   std::string name;
@@ -104,19 +98,11 @@ bool Field<Cont>::isHomogeneous(){
 
 /* -------------------------------------------------------------------------- */
 
-
-template <class Cont>
-UInt Field<Cont>::getDim(){
-  return my_field.getDim();
-}
+template <class Cont> UInt Field<Cont>::getDim() { return my_field.getDim(); }
 
 /* -------------------------------------------------------------------------- */
 
-
-template <class Cont>
-std::string Field<Cont>::getName(){
-  return name;
-}
+template <class Cont> std::string Field<Cont>::getName() { return name; }
 
 /* -------------------------------------------------------------------------- */
 

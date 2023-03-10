@@ -42,7 +42,7 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);

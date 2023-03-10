@@ -23,9 +23,18 @@ set_property(TARGET pybind11 APPEND
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(pybind11 INTERFACE -fsized-deallocation)
+endif()
+  
 set(pybind11_FOUND TRUE CACHE INTERNAL "" FORCE)
 set(PYBIND11_INCLUDE_DIR "${PYBIND11_INCLUDE_DIR};${PYTHON_INCLUDE_DIRS}" CACHE INTERNAL "")
 set(PYBIND11_LIBRARIES "${PYTHON_LIBRARIES}" CACHE INTERNAL "")
 
 mask_package_options(PYBIND11)
 mark_as_advanced(USE_PYTHON_INCLUDE_DIR)
+
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args(pybind11
+  REQUIRED_VARS PYBIND11_LIBRARIES PYBIND11_INCLUDE_DIR
+  VERSION_VAR PYBIND11_VERSION)

@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialIGFEMElastic<dim>::MaterialIGFEMElastic(SolidMechanicsModel & model,
                                                 const ID & id)
     : Material(model, id), Parent(model, id), lambda("lambda", *this),
@@ -29,14 +29,14 @@ MaterialIGFEMElastic<dim>::MaterialIGFEMElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMElastic<dim>::initialize() {
+template <Int dim> void MaterialIGFEMElastic<dim>::initialize() {
   this->lambda.initialize(1);
   this->mu.initialize(1);
   this->kpa.initialize(1);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMElastic<dim>::initMaterial() {
+template <Int dim> void MaterialIGFEMElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   Parent::initMaterial();
@@ -49,7 +49,7 @@ template <UInt dim> void MaterialIGFEMElastic<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
     const Array<Element> & element_list) {
 
@@ -57,7 +57,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
   Vector<Real> lambda_per_sub_mat(this->nb_sub_materials);
   Vector<Real> mu_per_sub_mat(this->nb_sub_materials);
   Vector<Real> kpa_per_sub_mat(this->nb_sub_materials);
-  for (UInt i = 0; i < this->nb_sub_materials; ++i) {
+  for (Int i = 0; i < this->nb_sub_materials; ++i) {
     ID mat_name = this->sub_material_names[i];
     const MaterialElastic<spatial_dimension> & mat =
         dynamic_cast<MaterialElastic<spatial_dimension> &>(
@@ -71,7 +71,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
        g != ghost_type_t::end(); ++g) {
     GhostType ghost_type = *g;
     /// loop over all types in the material
-    typedef ElementTypeMapArray<UInt>::type_iterator iterator;
+    typedef ElementTypeMapArray<Idx>::type_iterator iterator;
     iterator it = this->element_filter.firstType(spatial_dimension, ghost_type,
                                                  _ek_igfem);
     iterator last_type =
@@ -91,11 +91,11 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);
       /// get pointer to internals for given type
-      Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-      Real * mu_ptr = this->mu(el_type, ghost_type).storage();
-      Real * kpa_ptr = this->kpa(el_type, ghost_type).storage();
-      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).storage();
-      for (UInt q = 0; q < nb_element * nb_quads;
+      Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+      Real * mu_ptr = this->mu(el_type, ghost_type).data();
+      Real * kpa_ptr = this->kpa(el_type, ghost_type).data();
+      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).data();
+      for (Int q = 0; q < nb_element * nb_quads;
            ++q, ++lambda_ptr, ++mu_ptr, ++kpa_ptr, ++sub_mat_ptr) {
         UInt index = *sub_mat_ptr;
         *lambda_ptr = lambda_per_sub_mat(index);
@@ -107,7 +107,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -116,8 +116,8 @@ void MaterialIGFEMElastic<spatial_dimension>::computeStress(
 
   if (!this->finite_deformation) {
     /// get pointer to internals
-    Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-    Real * mu_ptr = this->mu(el_type, ghost_type).storage();
+    Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+    Real * mu_ptr = this->mu(el_type, ghost_type).data();
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
     this->computeStressOnQuad(grad_u, sigma, *lambda_ptr, *mu_ptr);
     ++lambda_ptr;
@@ -131,14 +131,14 @@ void MaterialIGFEMElastic<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type, Array<Real> & tangent_matrix,
     __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// get pointer to internals
-  Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-  Real * mu_ptr = this->mu(el_type, ghost_type).storage();
+  Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+  Real * mu_ptr = this->mu(el_type, ghost_type).data();
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
   this->computeTangentModuliOnQuad(tangent, *lambda_ptr, *mu_ptr);
   ++lambda_ptr;
@@ -149,7 +149,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergy(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -185,7 +185,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
     ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
   // Array<Real>::matrix_iterator gradu_it =
@@ -209,7 +209,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
   // gradu_end += (index+1)*nb_quadrature_points;
   // stress_it  += index*nb_quadrature_points;
 
-  // Real * epot_quad = epot_on_quad_points.storage();
+  // Real * epot_quad = epot_on_quad_points.data();
 
   // Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
 
@@ -227,7 +227,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
 

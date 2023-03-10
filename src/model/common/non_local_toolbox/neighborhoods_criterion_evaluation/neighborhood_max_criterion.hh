@@ -67,7 +67,7 @@ public:
 protected:
   /// remove unneccessary ghost elements
   void
-  cleanupExtraGhostElements(const ElementTypeMap<UInt> & nb_ghost_protected);
+  cleanupExtraGhostElements(const ElementTypeMap<Int> & nb_ghost_protected);
 
   /// insert the quadrature points in the grid
   void insertAllQuads(GhostType ghost_type);
@@ -81,7 +81,7 @@ protected:
   /* --------------------------------------------------------------------------
    */
 public:
-  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
+  virtual inline Int getNbDataForElements(const Array<Element> & elements,
                                            SynchronizationTag tag) const;
 
   virtual inline void packElementData(CommunicationBuffer & buffer,

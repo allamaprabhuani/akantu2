@@ -111,7 +111,7 @@ They are successively numbered and then assigned to specific elements.
 
 .. code-block:: c++
 
-   for (UInt i = 0; i < nb_element_mat_1; ++i) {
+   for (Int i = 0; i < nb_element_mat_1; ++i) {
      model.getElementMaterial(_bernoulli_beam_2)(i,0) = 1;
    }
 

@@ -81,8 +81,8 @@ namespace akantu {
  *   - Eta<N>: viscosity of the Nst Maxwell element
  */
 
-template <UInt spatial_dimension>
-class MaterialViscoelasticMaxwell : public MaterialElastic<spatial_dimension> {
+template <Int dim>
+class MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -107,9 +107,11 @@ public:
   void updateIntVariables();
 
   /// update the internal variable sigma_v on quadrature point
-  void updateIntVarOnQuad(const Matrix<Real> & grad_u,
-                          const Matrix<Real> & previous_grad_u,
-                          Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v);
+  template <typename D1, typename D2>
+  void updateIntVarOnQuad(const Eigen::MatrixBase<D1> & grad_u,
+                          const Eigen::MatrixBase<D2> & previous_grad_u,
+                          Tensor3Proxy<Real> & sigma_v,
+                          Tensor3Proxy<Real> & epsilon_v);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
@@ -118,9 +120,6 @@ public:
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
-
-  /// save previous stress and strain values into "previous" arrays
-  void savePreviousState() override;
 
   /// change flag of updateIntVar to true
   void forceUpdateVariable();
@@ -132,29 +131,34 @@ public:
   void computePotentialEnergy(ElementType el_type) override;
 
 protected:
-  void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u, Real & epot,
-                                    Tensor3<Real> & sigma_v,
-                                    Tensor3<Real> & epsilon_v);
+  template <typename D>
+  void computePotentialEnergyOnQuad(const Eigen::MatrixBase<D> & grad_u,
+                                    Real & epot, Tensor3Proxy<Real> & sigma_v,
+                                    Tensor3Proxy<Real> & epsilon_v);
 
   /// update the dissipated energy, is called after the stress have been
   /// computed
   void updateDissipatedEnergy(ElementType el_type);
 
-  void updateDissipatedEnergyOnQuad(const Matrix<Real> & grad_u,
-                                    const Matrix<Real> & previous_grad_u,
-                                    const Matrix<Real> & sigma,
-                                    const Matrix<Real> & previous_sigma,
-                                    Real & dis_energy, Real & mech_work,
-                                    const Real & pot_energy);
+  template <typename D1, typename D2, typename D3, typename D4>
+  void
+  updateDissipatedEnergyOnQuad(const Eigen::MatrixBase<D1> & grad_u,
+                               const Eigen::MatrixBase<D2> & previous_grad_u,
+                               const Eigen::MatrixBase<D3> & sigma,
+                               const Eigen::MatrixBase<D4> & previous_sigma,
+                               Real & dis_energy, Real & mech_work,
+                               const Real & pot_energy);
 
   /// compute stresses on a quadrature point
-  void computeStressOnQuad(const Matrix<Real> & grad_u,
-                           const Matrix<Real> & previous_grad_u,
-                           Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
-                           const Real & sigma_th);
+  template <typename D1, typename D2, typename D3>
+  void computeStressOnQuad(const Eigen::MatrixBase<D1> & grad_u,
+                           const Eigen::MatrixBase<D2> & previous_grad_u,
+                           Eigen::MatrixBase<D3> & sigma,
+                           Tensor3Proxy<Real> & sigma_v, const Real & sigma_th);
 
   /// compute tangent moduli on a quadrature point
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent);
+  template <typename D1>
+  void computeTangentModuliOnQuad(Eigen::MatrixBase<D1> & tangent);
 
   bool hasStiffnessMatrixChanged() override {
     Real dt = this->model.getTimeStep();
@@ -173,25 +177,25 @@ protected:
 public:
   /// give the dissipated energy
   Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(ElementType type, UInt index) const;
+  Real getDissipatedEnergy(const Element & element) const;
 
   /// get the potential energy
   Real getPotentialEnergy() const;
-  Real getPotentialEnergy(ElementType type, UInt index) const;
+  Real getPotentialEnergy(const Element & element) const;
 
   /// get the potential energy
   Real getMechanicalWork() const;
-  Real getMechanicalWork(ElementType type, UInt index) const;
+  Real getMechanicalWork(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
   Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index) override;
+  Real getEnergy(const std::string & energy_id,
+                 const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  using voigt_h = VoigtHelper<spatial_dimension>;
+  using voigt_h = VoigtHelper<dim>;
 
   /// Vectors of viscosity, viscous elastic modulus, one spring element elastic
   /// modulus

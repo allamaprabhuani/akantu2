@@ -55,20 +55,20 @@ public:
 public:
   /// add surface pair and pair nodes according to the surface normal
   void addSurfacePair(const ID & slave, const ID & master,
-                      UInt surface_normal_dir);
+                      Int surface_normal_dir);
 
   /// fills the pairs vector with interface node pairs (*,0)=slaves,
   /// (*,1)=masters
   static void pairInterfaceNodes(const ElementGroup & slave_boundary,
                                  const ElementGroup & master_boundary,
-                                 UInt surface_normal_dir, const Mesh & mesh,
-                                 Array<UInt> & pairs);
+                                 Int surface_normal_dir, const Mesh & mesh,
+                                 Array<Idx> & pairs);
 
   // add node pairs from a list with pairs(*,0)=slaves and pairs(*,1)=masters
-  void addNodePairs(const Array<UInt> & pairs);
+  void addNodePairs(const Array<Idx> & pairs);
 
   /// add node pair
-  void addSplitNode(UInt slave, UInt master) override;
+  void addSplitNode(Idx slave, Idx master) override;
 
   /// update (compute the normals on the master nodes)
   void updateNormals() override;
@@ -125,28 +125,28 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Masters, masters, const SynchronizedArray<UInt> &)
+  AKANTU_GET_MACRO(Masters, masters, const SynchronizedArray<Idx> &)
   AKANTU_GET_MACRO(LumpedBoundaryMasters, lumped_boundary_masters,
                    const SynchronizedArray<Real> &)
 
   /// get interface node pairs (*,0) are slaves, (*,1) are masters
-  void getNodePairs(Array<UInt> & pairs) const;
+  void getNodePairs(Array<Idx> & pairs) const;
 
   /// get index of node in either slaves or masters array
   /// if node is in neither of them, return -1
-  Int getNodeIndex(UInt node) const override;
+  Idx getNodeIndex(Idx node) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// array of master nodes
-  SynchronizedArray<UInt> masters;
+  SynchronizedArray<Idx> masters;
   /// lumped boundary of master nodes
   SynchronizedArray<Real> lumped_boundary_masters;
 
   // element list for dump and lumped_boundary
-  ElementTypeMapArray<UInt> master_elements;
+  ElementTypeMapArray<Idx> master_elements;
 };
 
 /* -------------------------------------------------------------------------- */

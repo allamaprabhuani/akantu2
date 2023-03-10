@@ -66,8 +66,8 @@ public:
    * @brief get  the number of  data to exchange  for a given array of T
    * (elements or dofs) and a given akantu::SynchronizationTag
    */
-  virtual UInt getNbData(const Array<T> & elements,
-                         const SynchronizationTag & tag) const = 0;
+  virtual Int getNbData(const Array<T> & elements,
+                        const SynchronizationTag & tag) const = 0;
 
   /**
    * @brief pack the data for a given array of T (elements or dofs) and a given
@@ -93,14 +93,17 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual UInt getNbData(const Array<Element> & elements,
-                         const SynchronizationTag & tag) const = 0;
-  virtual void packData(CommunicationBuffer & buffer,
-                        const Array<Element> & element,
-                        const SynchronizationTag & tag) const = 0;
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const Array<Element> & element,
-                          const SynchronizationTag & tag) = 0;
+  [[nodiscard]] virtual Int
+  getNbData(const Array<Element> & /*elements*/,
+            const SynchronizationTag & /*tag*/) const {
+    return 0;
+  };
+  virtual void packData(CommunicationBuffer & /*buffer*/,
+                        const Array<Element> & /*element*/,
+                        const SynchronizationTag & /*tag*/) const {};
+  virtual void unpackData(CommunicationBuffer & /*buffer*/,
+                          const Array<Element> & /*element*/,
+                          const SynchronizationTag & /*tag*/){};
 
   /* ------------------------------------------------------------------------ */
 public:
@@ -157,30 +160,33 @@ public:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <> class DataAccessor<UInt> : public virtual DataAccessorBase {
+template <> class DataAccessor<Idx> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual UInt getNbData(const Array<UInt> & elements,
-                         const SynchronizationTag & tag) const = 0;
-  virtual void packData(CommunicationBuffer & buffer,
-                        const Array<UInt> & element,
-                        const SynchronizationTag & tag) const = 0;
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const Array<UInt> & element,
-                          const SynchronizationTag & tag) = 0;
+  [[nodiscard]] virtual Int
+  getNbData(const Array<Idx> & /*elements*/,
+            const SynchronizationTag & /*tag*/) const {
+    return 0;
+  }
+  virtual void packData(CommunicationBuffer & /*buffer*/,
+                        const Array<Idx> & /*element*/,
+                        const SynchronizationTag & /*tag*/) const {}
+  virtual void unpackData(CommunicationBuffer & /*buffer*/,
+                          const Array<Idx> & /*element*/,
+                          const SynchronizationTag & /*tag*/) {}
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>
   static void packUnpackDOFDataHelper(Array<T> & data,
                                       CommunicationBuffer & buffer,
-                                      const Array<UInt> & dofs);
+                                      const Array<Idx> & dofs);
 
   template <typename T>
   static inline void packDOFDataHelper(const Array<T> & data_to_pack,
                                        CommunicationBuffer & buffer,
-                                       const Array<UInt> & dofs) {
+                                       const Array<Idx> & dofs) {
     packUnpackDOFDataHelper<T, true>(const_cast<Array<T> &>(data_to_pack),
                                      buffer, dofs);
   }
@@ -188,7 +194,7 @@ public:
   template <typename T>
   static inline void unpackDOFDataHelper(Array<T> & data_to_unpack,
                                          CommunicationBuffer & buffer,
-                                         const Array<UInt> & dofs) {
+                                         const Array<Idx> & dofs) {
     packUnpackDOFDataHelper<T, false>(data_to_unpack, buffer, dofs);
   }
 };
@@ -196,12 +202,12 @@ public:
 /* -------------------------------------------------------------------------- */
 template <typename T> class AddOperation {
 public:
-  inline T operator()(T & a, T & b) { return a + b; };
+  inline T operator()(const T & a, const T & b) { return a + b; };
 };
 
 template <typename T> class IdentityOperation {
 public:
-  inline T & operator()(T & /*unused*/, T & b) { return b; };
+  inline T operator()(const T & /*unused*/, const T & b) { return b; };
 };
 /* -------------------------------------------------------------------------- */
 
@@ -222,8 +228,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Entity> & entities,
-                 const SynchronizationTag & tag) const override {
+  Int getNbData(const Array<Entity> & entities,
+                const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }
@@ -241,7 +247,7 @@ public:
 
     auto data_it = data.begin(data.getNbComponent());
     for (auto el : entities) {
-      buffer << Vector<T>(data_it[el]);
+      buffer << data_it[el];
     }
   }
 
@@ -255,7 +261,7 @@ public:
     auto data_it = data.begin(data.getNbComponent());
     for (auto el : entities) {
       Vector<T> unpacked(data.getNbComponent());
-      Vector<T> vect(data_it[el]);
+      auto && vect(data_it[el]);
       buffer >> unpacked;
       vect = oper(vect, unpacked);
     }
@@ -274,7 +280,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 template <class T>
-using SimpleUIntDataAccessor = ReduceDataAccessor<UInt, IdentityOperation, T>;
+using SimpleIdxDataAccessor = ReduceDataAccessor<Idx, IdentityOperation, T>;
 
 /* -------------------------------------------------------------------------- */
 template <class T>
@@ -294,8 +300,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override {
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }

@@ -22,7 +22,7 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialIGFEMSawToothDamage
     : public MaterialDamage<spatial_dimension, MaterialIGFEMElastic> {
   /* ------------------------------------------------------------------------ */
@@ -34,7 +34,7 @@ private:
 public:
   typedef std::pair<Element, Element> ElementPair;
   MaterialIGFEMSawToothDamage(SolidMechanicsModel & model, const ID & id = "");
-  MaterialIGFEMSawToothDamage(SolidMechanicsModel & model, UInt dim,
+  MaterialIGFEMSawToothDamage(SolidMechanicsModel & model, Int dim,
                               const Mesh & mesh, FEEngine & fe_engine,
                               const ID & id = "");
 

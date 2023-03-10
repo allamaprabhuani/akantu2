@@ -37,7 +37,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char * argv[]) {
@@ -63,8 +63,8 @@ int main(int argc, char * argv[]) {
   Array<Real> & temperature = model.getTemperature();
   double length = 1.;
 
-  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  auto nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
     Real dx = nodes(i, 0) - length / 4.;

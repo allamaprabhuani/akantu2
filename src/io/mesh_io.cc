@@ -104,7 +104,7 @@ void MeshIO::constructPhysicalNames(const std::string & tag_name, Mesh & mesh) {
       auto & name_vec =
           mesh.getDataPointer<std::string>("physical_names", type);
 
-      const auto & tags_vec = mesh.getData<UInt>(tag_name, type);
+      const auto & tags_vec = mesh.getData<Int>(tag_name, type);
 
       for (auto && pair : zip(tags_vec, name_vec)) {
         auto tag = std::get<0>(pair);

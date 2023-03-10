@@ -51,7 +51,7 @@ namespace {
     using daughter::daughter;
 
     /* Trampoline (need one for each virtual function) */
-    void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal,
+    void operator()(Int node, Vector<bool> & flags, Vector<Real> & primal,
                     const Vector<Real> & coord) const override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE_NAME(void, daughter, "__call__", operator(), node,

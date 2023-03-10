@@ -45,22 +45,22 @@
 
 using namespace akantu;
 
-class DataAccessorTest : public DataAccessor<UInt> {
+class DataAccessorTest : public DataAccessor<Idx> {
 public:
   explicit DataAccessorTest(Array<int> & data) : data(data) {}
 
-  UInt getNbData(const Array<UInt> & nodes, const SynchronizationTag &) const {
+  Int getNbData(const Array<Idx> & nodes, const SynchronizationTag &) const {
     return nodes.size() * sizeof(int);
   }
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                 const SynchronizationTag &) const {
     for (auto node : nodes) {
       buffer << data(node);
     }
   }
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                   const SynchronizationTag &) {
     for (auto node : nodes) {
       buffer >> data(node);

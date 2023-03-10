@@ -35,18 +35,15 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-inline UInt NTNBaseContact::getNbData(const Array<Element> & elements,
-                                      const SynchronizationTag & tag) const {
+inline Int NTNBaseContact::getNbData(const Array<Element> & elements,
+                                     const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt spatial_dimension = this->model.getSpatialDimension();
+  Int size = 0;
+  Int spatial_dimension = this->model.getSpatialDimension();
 
-  UInt nb_nodes = 0;
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
+  Int nb_nodes = 0;
+  for (const auto & el : elements) {
     nb_nodes += Mesh::getNbNodesPerElement(el.type);
   }
 

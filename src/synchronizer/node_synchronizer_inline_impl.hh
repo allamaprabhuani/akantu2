@@ -40,13 +40,17 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeSynchronizer::canScatterSize() { return mesh.getNbNodes(); }
+inline Int NodeSynchronizer::canScatterSize() {
+  return mesh.getNbNodes();
+}
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeSynchronizer::gatheredSize() { return mesh.getNbGlobalNodes(); }
+inline Int NodeSynchronizer::gatheredSize() {
+  return mesh.getNbGlobalNodes();
+}
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeSynchronizer::localToGlobalEntity(const UInt & local) {
+inline Idx NodeSynchronizer::localToGlobalEntity(const Idx & local) {
   return mesh.getNodeGlobalId(local);
 }
 

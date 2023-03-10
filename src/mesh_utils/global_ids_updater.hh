@@ -47,18 +47,18 @@ namespace akantu {
 
 class GlobalIdsUpdater : public DataAccessor<Element> {
 public:
-  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer & synchronizer)
+  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer * synchronizer)
       : mesh(mesh), synchronizer(synchronizer) {}
 
   /// function to update and synchronize the global connectivity of
   /// new inserted nodes. It must be called after updating the node
   /// types. (It calls in sequence the functions
   /// updateGlobalIDsLocally and synchronizeGlobalIDs)
-  UInt updateGlobalIDs(UInt local_nb_new_nodes);
+  Int updateGlobalIDs(Int local_nb_new_nodes);
 
   /// function to update the global connectivity (only locally) of new
   /// inserted nodes. It must be called after updating the node types.
-  UInt updateGlobalIDsLocally(UInt local_nb_new_nodes);
+  Int updateGlobalIDsLocally(Int local_nb_new_nodes);
 
   /// function to synchronize the global connectivity of new inserted
   /// nodes among the processors. It must be called after updating the
@@ -69,8 +69,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -93,12 +93,12 @@ private:
   Mesh & mesh;
 
   /// distributed synchronizer to communicate the connectivity
-  ElementSynchronizer & synchronizer;
+  ElementSynchronizer * synchronizer;
 
   /// Tells if a reduction is taking place or not
   bool reduce{false};
 
-  std::unordered_map<UInt, std::vector<std::pair<UInt, NodeFlag>>> nodes_flags;
+  std::unordered_map<Idx, std::vector<std::pair<Idx, NodeFlag>>> nodes_flags;
 };
 
 } // namespace akantu

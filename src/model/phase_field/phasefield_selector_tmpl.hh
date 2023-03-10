@@ -40,7 +40,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt ElementDataPhaseFieldSelector<std::string>::operator()(
+inline Idx ElementDataPhaseFieldSelector<std::string>::operator()(
     const Element & element) {
   try {
     std::string material_name = this->elementData(element);
@@ -52,8 +52,8 @@ inline UInt ElementDataPhaseFieldSelector<std::string>::operator()(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
-ElementDataPhaseFieldSelector<UInt>::operator()(const Element & element) {
+inline Idx
+ElementDataPhaseFieldSelector<Idx>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -64,7 +64,7 @@ ElementDataPhaseFieldSelector<UInt>::operator()(const Element & element) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 MeshDataPhaseFieldSelector<T>::MeshDataPhaseFieldSelector(
-    const std::string & name, const PhaseFieldModel & model, UInt first_index)
+    const std::string & name, const PhaseFieldModel & model, Idx first_index)
     : ElementDataPhaseFieldSelector<T>(model.getMesh().getData<T>(name), model,
                                        first_index) {}
 

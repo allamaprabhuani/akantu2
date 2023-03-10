@@ -41,7 +41,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <>
 ShapeStructural<_ek_structural>::ShapeStructural(Mesh & mesh,
-                                                 UInt spatial_dimension,
+                                                 Int spatial_dimension,
                                                  const ID & id)
     : ShapeFunctions(mesh, spatial_dimension, id),
       rotation_matrices("rotation_matrices", id) {}

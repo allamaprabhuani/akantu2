@@ -52,7 +52,7 @@ namespace akantu {
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveBilinear
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
@@ -74,14 +74,15 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /**
    * Scale traction sigma_c according to the volume of the
    * two elements surrounding an element
    */
-  void scaleTraction(const Element & el, Vector<Real> & sigma_c_vec);
+  template <typename D1>
+  void scaleTraction(const Element & el, Eigen::MatrixBase<D1> & sigma_c_vec);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

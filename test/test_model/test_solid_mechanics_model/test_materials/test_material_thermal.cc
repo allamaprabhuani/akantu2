@@ -55,7 +55,8 @@ template <> void FriendMaterial<MaterialThermal<3>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E / (1 - 2 * nu) * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);
@@ -71,7 +72,8 @@ template <> void FriendMaterial<MaterialThermal<2>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E / (1 - 2 * nu) * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);
@@ -87,7 +89,8 @@ template <> void FriendMaterial<MaterialThermal<1>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);

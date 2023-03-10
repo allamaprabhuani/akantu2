@@ -37,5 +37,4 @@ package_declare(heat_transfer
 package_declare_sources(heat_transfer
   model/heat_transfer/heat_transfer_model.cc
   model/heat_transfer/heat_transfer_model.hh
-  model/heat_transfer/heat_transfer_model_inline_impl.hh
   )

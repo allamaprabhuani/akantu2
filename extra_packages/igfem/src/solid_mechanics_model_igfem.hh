@@ -49,8 +49,7 @@ public:
   typedef std::map<Element, Element> ElementMap;
   typedef std::map<ElementKind, FEEngine *> FEEnginesPerKindMap;
 
-  SolidMechanicsModelIGFEM(Mesh & mesh,
-                           UInt spatial_dimension = _all_dimensions,
+  SolidMechanicsModelIGFEM(Mesh & mesh, Int spatial_dimension = _all_dimensions,
                            const ID & id = "solid_mechanics_model_igfem");
 
   virtual ~SolidMechanicsModelIGFEM();

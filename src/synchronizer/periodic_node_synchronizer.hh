@@ -56,15 +56,11 @@ public:
   void reduceSynchronizeWithPBCSlaves(Array<T> & array) const;
 
   /// synchronize ghosts without state
-  void synchronizeOnceImpl(DataAccessor<UInt> & data_accessor,
+  void synchronizeOnceImpl(DataAccessor<Idx> & data_accessor,
                            const SynchronizationTag & tag) const override;
 
-  // /// asynchronous synchronization of ghosts
-  // void asynchronousSynchronizeImpl(const DataAccessor<UInt> & data_accessor,
-  //                                  const SynchronizationTag & tag) override;
-
   /// wait end of asynchronous synchronization of ghosts
-  void waitEndSynchronizeImpl(DataAccessor<UInt> & data_accessor,
+  void waitEndSynchronizeImpl(DataAccessor<Idx> & data_accessor,
                               const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
@@ -72,16 +68,16 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   // NodeSynchronizer master_to_slaves_synchronizer;
-  Array<UInt> masters_list;
-  Array<UInt> slaves_list;
+  Array<Idx> masters_list;
+  Array<Idx> slaves_list;
 };
 
 /* -------------------------------------------------------------------------- */
 template <template <class> class Op, typename T>
 void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
     Array<T> & array) const {
-  ReduceDataAccessor<UInt, Op, T> data_accessor(array,
-                                                SynchronizationTag::_whatever);
+  ReduceDataAccessor<Idx, Op, T> data_accessor(array,
+                                               SynchronizationTag::_whatever);
   auto size =
       data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
   CommunicationBuffer buffer(size);

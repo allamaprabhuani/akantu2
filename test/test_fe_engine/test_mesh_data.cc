@@ -74,7 +74,7 @@ int main() {
   vec.push_back(value[0]);
   vec.push_back(value[1]);
 
-  for (UInt i(0); i < 2; i++) {
+  for (Int i(0); i < 2; i++) {
     AKANTU_DEBUG_ASSERT(vec(i) == value[i], "The Array accessed through the "
                                             "getElementDataArray method does "
                                             "not contain the right value.");

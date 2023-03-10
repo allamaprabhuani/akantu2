@@ -97,7 +97,7 @@ inline void Model::unRegisterFEEngineObject(const std::string & name) {
 /* -------------------------------------------------------------------------- */
 template <typename FEEngineClass>
 inline void Model::registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                          UInt spatial_dimension) {
+                                          Int spatial_dimension) {
   if (fems.empty()) {
     default_fem = name;
   }
@@ -149,20 +149,20 @@ inline bool Model::hasFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void Model::allocNodalField(std::unique_ptr<Array<T>> & array,
-                            UInt nb_component, const ID & name) const {
+                            Int nb_component, const ID & name) const {
   if (array) {
     return;
   }
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
   array =
       std::make_unique<Array<T>>(nb_nodes, nb_component, T(), id + ":" + name);
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Model::getNbIntegrationPoints(const Array<Element> & elements,
+inline Int Model::getNbIntegrationPoints(const Array<Element> & elements,
                                           const ID & fem_id) const {
-  UInt nb_quad = 0;
+  Int nb_quad = 0;
   for (auto && el : elements) {
     nb_quad +=
         getFEEngine(fem_id).getNbIntegrationPoints(el.type, el.ghost_type);

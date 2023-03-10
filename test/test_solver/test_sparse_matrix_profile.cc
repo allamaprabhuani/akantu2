@@ -43,11 +43,11 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
   Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
@@ -55,14 +55,14 @@ int main(int argc, char * argv[]) {
 
   auto & A = dof_manager.getNewMatrix("A", _symmetric);
 
-  for (UInt i = 0; i < 10; ++i) {
+  for (Int i = 0; i < 10; ++i) {
     A.add(i, i);
   }
 
   A.add(0, 9);
   A.saveProfile("profile_hand.mtx");
 
-  for (UInt i = 0; i < 10; ++i) {
+  for (Int i = 0; i < 10; ++i) {
     A.add(i, i, i * 10);
   }
   A.add(0, 9, 100);

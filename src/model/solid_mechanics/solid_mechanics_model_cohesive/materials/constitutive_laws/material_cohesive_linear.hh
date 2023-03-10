@@ -52,8 +52,7 @@ namespace akantu {
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
-template <UInt spatial_dimension>
-class MaterialCohesiveLinear : public MaterialCohesive {
+template <Int dim> class MaterialCohesiveLinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -73,19 +72,19 @@ public:
   void checkInsertion(bool check_only = false) override;
 
   /// compute effective stress norm for insertion check
-  Real computeEffectiveNorm(const Matrix<Real> & stress,
-                            const Vector<Real> & normal,
-                            const Vector<Real> & tangent,
-                            Vector<Real> & normal_traction) const;
+  template <class D1, class D2, class D3, class D4>
+  Real computeEffectiveNorm(const Eigen::MatrixBase<D1> & stress,
+                            const Eigen::MatrixBase<D2> & normal,
+                            const Eigen::MatrixBase<D3> & tangent,
+                            const Eigen::MatrixBase<D4> & normal_stress) const;
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type) override;
 
   /**
@@ -99,22 +98,23 @@ protected:
    */
   void scaleInsertionTraction();
 
-  /// compute the traction for a given quadrature point
-  inline void computeTractionOnQuad(
-      Vector<Real> & traction, Vector<Real> & opening,
-      const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-      const Vector<Real> & insertion_stress, const Real & sigma_c,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_traction,
-      Vector<Real> & contact_opening);
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
+    using namespace tuple;
+    return zip_append(
+        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
+        "sigma_c"_n = this->sigma_c_eff(element_type, ghost_type),
+        "delta_c"_n = this->delta_c_eff(element_type, ghost_type),
+        "insertion_stress"_n =
+            make_view<dim>(this->insertion_stress(element_type, ghost_type)));
+  }
 
-  inline void computeTangentTractionOnQuad(
-      Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
-      const Real & sigma_c, Vector<Real> & opening, const Vector<Real> & normal,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_opening);
+  /// compute the traction for a given quadrature point
+  template <typename Args> inline void computeTractionOnQuad(Args && args);
+
+  template <class Derived, class Args>
+  inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent,
+                                           Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -175,6 +175,12 @@ protected:
   /// insertion of cohesive element when stress is high enough just on
   /// one quadrature point
   bool max_quad_stress_insertion;
+
+  Vector<Real, dim> normal_opening;
+  Vector<Real, dim> tangential_opening;
+  Real normal_opening_norm{0.};
+  Real tangential_opening_norm{0.};
+  bool penetration{false};
 };
 
 /* -------------------------------------------------------------------------- */

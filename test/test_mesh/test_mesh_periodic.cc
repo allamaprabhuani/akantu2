@@ -46,7 +46,7 @@ using namespace akantu;
 int main(int argc, char ** argv) {
   initialize(argc, argv);
 
-  constexpr UInt dim = 3;
+  constexpr Int dim = 3;
 
   auto prank = Communicator::getStaticCommunicator().whoAmI();
   // auto psize = Communicator::getStaticCommunicator().getNbProc();
@@ -67,7 +67,7 @@ int main(int argc, char ** argv) {
 
   UInt offset = 0;
   for (auto && type : mesh.elementTypes()) {
-    auto & g_ids = mesh.getDataPointer<UInt>("global_ids", type);
+    auto & g_ids = mesh.getDataPointer<Int>("global_ids", type);
     for (auto && data : enumerate(g_ids)) {
       std::get<1>(data) = offset + std::get<0>(data);
     }

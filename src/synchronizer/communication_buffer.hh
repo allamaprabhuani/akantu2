@@ -48,9 +48,10 @@ template <bool is_static = true> class CommunicationBufferTemplated {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit CommunicationBufferTemplated(UInt size) : buffer(size, 1, char()) {
-    ptr_pack = buffer.storage();
-    ptr_unpack = buffer.storage();
+  explicit CommunicationBufferTemplated(std::size_t size)
+      : buffer(size, 1, char()) {
+    ptr_pack = buffer.data();
+    ptr_unpack = buffer.data();
   };
 
   CommunicationBufferTemplated() : CommunicationBufferTemplated(0) {}
@@ -73,58 +74,66 @@ public:
   inline void reset();
 
   /// resize the internal buffer do not allocate on dynamic buffers
-  inline void resize(UInt size);
+  inline void resize(std::size_t size);
 
   /// resize the internal buffer allocate always
-  inline void reserve(UInt size);
+  inline void reserve(std::size_t size);
 
   /// clear buffer context
   inline void zero();
 
 private:
-  inline void packResize(UInt size);
+  inline void packResize(std::size_t size);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline char * storage() { return buffer.storage(); };
-  inline const char * storage() const { return buffer.storage(); };
+  [[deprecated("use data instead to be stl compatible")]] inline char *
+  storage() {
+    return buffer.data();
+  };
+  [[deprecated("use data instead to be stl compatible")]] inline const char *
+  storage() const {
+    return buffer.data();
+  };
+
+  inline char * data() { return buffer.data(); };
+  inline const char * data() const { return buffer.data(); };
+
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// printing tool
-  template <typename T> inline std::string extractStream(UInt block_size);
+  template <typename T>
+  inline std::string extractStream(std::size_t block_size);
 
   /// packing data
-  template <typename T>
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator<<(const T & to_pack);
 
-  template <typename T>
-  inline CommunicationBufferTemplated & operator<<(const Vector<T> & to_pack);
-
-  template <typename T>
-  inline CommunicationBufferTemplated & operator<<(const Matrix<T> & to_pack);
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
+  inline CommunicationBufferTemplated & operator<<(const T & to_pack);
 
   template <typename T>
   inline CommunicationBufferTemplated &
   operator<<(const std::vector<T> & to_pack);
 
+  inline CommunicationBufferTemplated & operator<<(const std::string & to_pack);
+
   /// unpacking data
-  template <typename T>
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
   inline CommunicationBufferTemplated & operator>>(T & to_unpack);
 
-  template <typename T>
-  inline CommunicationBufferTemplated & operator>>(Vector<T> & to_unpack);
-
-  template <typename T>
-  inline CommunicationBufferTemplated & operator>>(Matrix<T> & to_unpack);
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
+  inline CommunicationBufferTemplated & operator>>(T & to_pack);
 
   template <typename T>
   inline CommunicationBufferTemplated & operator>>(std::vector<T> & to_unpack);
 
-  inline CommunicationBufferTemplated & operator<<(const std::string & to_pack);
   inline CommunicationBufferTemplated & operator>>(std::string & to_unpack);
 
 private:
@@ -135,21 +144,26 @@ private:
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> static inline UInt sizeInBuffer(const T & data);
-  template <typename T> static inline UInt sizeInBuffer(const Vector<T> & data);
-  template <typename T> static inline UInt sizeInBuffer(const Matrix<T> & data);
+  template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
+                                         not aka::is_tensor_v<T>> * = nullptr>
+  static inline std::size_t sizeInBuffer(const T & data);
+
+  template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
+  static inline std::size_t sizeInBuffer(const T & data);
+
   template <typename T>
-  static inline UInt sizeInBuffer(const std::vector<T> & data);
-  static inline UInt sizeInBuffer(const std::string & data);
+  static inline std::size_t sizeInBuffer(const std::vector<T> & data);
+
+  static inline std::size_t sizeInBuffer(const std::string & data);
 
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize() const { return ptr_pack - buffer.storage(); };
+  inline std::size_t getPackedSize() const { return ptr_pack - buffer.data(); };
   /// return the size in bytes of data left to be unpacked
-  inline UInt getLeftToUnpack() const {
-    return buffer.size() - (ptr_unpack - buffer.storage());
+  inline std::size_t getLeftToUnpack() const {
+    return buffer.size() - (ptr_unpack - buffer.data());
   };
   /// return the global size allocated
-  inline UInt size() const { return buffer.size(); };
+  inline std::size_t size() const { return buffer.size(); };
 
   /// is the buffer empty
   inline bool empty() const {

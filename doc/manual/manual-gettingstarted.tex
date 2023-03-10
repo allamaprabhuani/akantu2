@@ -70,7 +70,7 @@ created with a given spatial dimension, it can be filled by reading a mesh input
 The method \code{read} of the class \code{Mesh} infers the mesh type from the file extension. If a non-standard file extension is used, the mesh type has to be specified.
 
 \begin{cpp}
-UInt spatial_dimension = 2;
+Int spatial_dimension = 2;
 Mesh mesh(spatial_dimension);
 
 // Reading Gmsh files
@@ -88,9 +88,9 @@ mesh.read("my_diana_mesh", _miot_diana);
 \end{cpp}
 
 The Gmsh reader adds the geometrical and physical tags as mesh data. The physical
-values are stored as a \code{UInt} data called \code{tag\_0}, if a string
+values are stored as a \code{Int} data called \code{tag\_0}, if a string
 name is provided it is stored as a \code{std::string} data named
-\code{physical\_names}. The geometrical tag is stored as a \code{UInt} data named
+\code{physical\_names}. The geometrical tag is stored as a \code{Int} data named
 \code{tag\_1}.
 
 
@@ -105,7 +105,7 @@ in NodeGroups. The material assignment can be retrieved from the
 % by \akantu. In order to import a mesh, it is necessary to create
 % a \code{Mesh} object through the following function calls:
 % \begin{cpp}
-%   UInt spatial_dimension = 2;
+%   Int spatial_dimension = 2;
 %   Mesh mesh(spatial_dimension);
 % \end{cpp}
 % The only parameter that has to be specified by the user is the spatial
@@ -158,8 +158,8 @@ that case, the number of components per tuple must be specified at the
 \code{Array} to store the coordinates (sequences of three values) of
 ten nodes, the appropriate code is the following:
 \begin{cpp}
-  UInt nb_nodes = 10;
-  UInt spatial_dimension = 3;
+  Int nb_nodes = 10;
+  Int spatial_dimension = 3;
 
   Array<Real> position(nb_nodes, spatial_dimension);
 \end{cpp}
@@ -255,11 +255,11 @@ element type.  The following code can retrieve the
 \code{ElementTypeMapArray} which stores the connectivity arrays for a
 mesh:
 \begin{cpp}
-  const ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
+  const ElementTypeMapArray<Idx> & connectivities = mesh.getConnectivities();
 \end{cpp}
 Then, the specific array associated to a given element type can be obtained by
 \begin{cpp}
-  const Array<UInt> & connectivity_triangle = connectivities(_triangle_3);
+  const Array<Idx> & connectivity_triangle = connectivities(_triangle_3);
 \end{cpp}
 where the first order 3-node triangular element was used in the presented piece
 of code.
@@ -403,7 +403,7 @@ an element group to a mesh:
 \subsection{The \texttt{NodeGroup} object}
 A group of nodes is stored in \code{NodeGroup} objects.
 They are quite simple objects which store the indexes
-of the selected nodes in a \code{Array<UInt>}.
+of the selected nodes in a \code{Array<Idx>}.
 Nodes are selected by adding them when calling
 \code{NodeGroup::add}. For instance you can select nodes
 having a positive $X$ coordinate with the following code:
@@ -422,7 +422,7 @@ having a positive $X$ coordinate with the following code:
 A group of elements is stored in \code{ElementGroup} objects.
 Since a group can contain elements of various types
 the \code{ElementGroup} object stores indexes in
-a \code{ElementTypeMapArray<UInt>} object.
+a \code{ElementTypeMapArray<Idx>} object.
 Then elements can be added to the group by calling \code{addElement}.
 
 For instance, selecting the elements for which the barycenter of the nodes
@@ -433,9 +433,9 @@ has a positive $X$ coordinate can be made with:
   Vector<Real> barycenter(spatial_dimension);
 
   for(auto type : mesh.elementTypes()){
-    UInt nb_element  = mesh.getNbElement(type);
+    Int nb_element  = mesh.getNbElement(type);
 
-    for(UInt e = 0; e < nb_element; ++e) {
+    for(Int e = 0; e < nb_element; ++e) {
       Element element{type, e, _not_ghost};
 
       mesh.getBarycenter(element, barycenter);

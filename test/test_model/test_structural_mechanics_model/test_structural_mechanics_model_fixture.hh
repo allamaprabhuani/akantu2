@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_class_structural.hh"
+#include "element_class.hh"
 #include "structural_mechanics_model.hh"
 #include "test_gtest_utils.hh"
 /* -------------------------------------------------------------------------- */
@@ -47,9 +47,9 @@ using namespace akantu;
 template <typename type_> class TestStructuralFixture : public ::testing::Test {
 public:
   static constexpr const ElementType type = type_::value;
-  static constexpr const size_t spatial_dimension =
+  static constexpr const Int spatial_dimension =
       ElementClass<type>::getSpatialDimension();
-  static const UInt ndof = ElementClass<type>::getNbDegreeOfFreedom();
+  static const Int ndof = ElementClass<type>::getNbDegreeOfFreedom();
 
   void SetUp() override {
     const auto spatial_dimension = this->spatial_dimension;
@@ -109,9 +109,9 @@ protected:
 template <typename type_>
 constexpr ElementType TestStructuralFixture<type_>::type;
 template <typename type_>
-constexpr size_t TestStructuralFixture<type_>::spatial_dimension;
-template <typename type_> const UInt TestStructuralFixture<type_>::ndof;
+constexpr Int TestStructuralFixture<type_>::spatial_dimension;
+template <typename type_> const Int TestStructuralFixture<type_>::ndof;
 
-using structural_types = gtest_list_t<StructuralTestElementTypes>;
+using structural_types = gtest_list_t<ElementTypes_t<_ek_structural>>;
 
 #endif /* AKANTU_TEST_STRUCTURAL_MECHANICS_MODEL_FIXTURE_HH_ */

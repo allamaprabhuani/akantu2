@@ -119,12 +119,8 @@ public:
 
   void printself(std::ostream & stream, int indent = 0) const override;
 
-  virtual
-  bool
-  isDistributed()
-    const
-    override
-      { return true; }
+  bool isDistributed() const override { return true; }
+  bool isFinite() const override;
 
 protected:
   void applyModifications();
@@ -144,7 +140,7 @@ namespace internal {
   public:
     PETScWrapedVector(Array && array) : array(array) {
       PETSc_call(VecCreateSeqWithArray, PETSC_COMM_SELF, 1, array.size(),
-                 array.storage(), &x);
+                 array.data(), &x);
     }
 
     ~PETScWrapedVector() override { PETSc_call(VecDestroy, &x); }

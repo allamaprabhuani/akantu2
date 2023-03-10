@@ -75,7 +75,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
       std::string("Akantu's overall debug level") +
           std::string(" (0: error, 1: exceptions, 4: warnings, 5: info, ..., "
                       "100: dump") +
-          std::string(" more info on levels can be foind in aka_error.hh)"),
+          std::string(" more info on levels can be found in aka_error.hh)"),
       1, cppargparse::_integer, (long int)(dblWarning));
 
   static_argparser.addArgument(
@@ -110,10 +110,15 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   }
 
   seed *= (comm.whoAmI() + 1);
-  RandomGenerator<UInt>::seed(seed);
+  RandomGenerator<Idx>::seed(seed);
 
   long int dbl_level = static_argparser["aka_debug_level"];
   debug::setDebugLevel(DebugLevel(dbl_level));
+
+  char * env_debug_level = std::getenv("AKA_DEBUG_LEVEL");
+  if (env_debug_level != nullptr) {
+    debug::setDebugLevel(DebugLevel(std::atoi(env_debug_level)));
+  }
 
   AKANTU_DEBUG_INFO("Random seed set to " << seed);
 

@@ -74,6 +74,7 @@ void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
   // alpha is the conversion factor from from force/mass to acceleration needed
   // in model coupled with atomistic \todo find a way to define alpha per dof
   // type
+  x.zero();
   NonLinearSolverLumped::solveLumped(A, x, b, alpha, blocked_dofs);
 
   this->dof_manager.splitSolutionPerDOFs();
@@ -83,15 +84,13 @@ void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLinearSolverLumped::solveLumped(const Array<Real> & A, Array<Real> & x,
-                                        const Array<Real> & b, Real alpha,
+void NonLinearSolverLumped::solveLumped(const Array<Real> & As,
+                                        Array<Real> & xs,
+                                        const Array<Real> & bs, Real alpha,
                                         const Array<bool> & blocked_dofs) {
-  for (auto && data :
-       zip(make_view(A), make_view(x), make_view(b), make_view(blocked_dofs))) {
-    const auto & A = std::get<0>(data);
-    auto & x = std::get<1>(data);
-    const auto & b = std::get<2>(data);
-    const auto & blocked = std::get<3>(data);
+  for (auto && [A, x, b, blocked] :
+       zip(make_view(As), make_view(xs), make_view(bs),
+           make_view(blocked_dofs))) {
     if (not blocked) {
       x = alpha * (b / A);
     }

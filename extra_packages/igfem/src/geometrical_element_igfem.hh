@@ -20,7 +20,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <> class GeometricalElement<_gt_igfem_segment_3> {
-  static constexpr UInt spatial_dimension{1};
+  static constexpr Int spatial_dimension{1};
   static constexpr UInt nb_nodes_per_element{3};
   static constexpr UInt nb_facet_types{1};
   static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
@@ -30,7 +30,7 @@ template <> class GeometricalElement<_gt_igfem_segment_3> {
 
 /* -------------------------------------------------------------------------- */
 template <> class GeometricalElement<_gt_igfem_triangle_4> {
-  static constexpr UInt spatial_dimension{2};
+  static constexpr Int spatial_dimension{2};
   static constexpr UInt nb_nodes_per_element{4};
   static constexpr UInt nb_facet_types{2};
   static constexpr std::array<UInt, nb_facet_types> nb_facets{{2, 1}};
@@ -47,7 +47,7 @@ template <> class GeometricalElement<_gt_igfem_triangle_4> {
 
 /* -------------------------------------------------------------------------- */
 template <> class GeometricalElement<_gt_igfem_triangle_5> {
-  static constexpr UInt spatial_dimension{2};
+  static constexpr Int spatial_dimension{2};
   static constexpr UInt nb_nodes_per_element{5};
   static constexpr UInt nb_facet_types{2};
   static constexpr std::array<UInt, nb_facet_types> nb_facets{{1, 2}};

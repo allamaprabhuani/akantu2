@@ -56,8 +56,8 @@ public:
 
   virtual ID getID() const { return "call should be virtual"; };
 
-  virtual UInt syncDeletedElements(std::vector<UInt> & delete_el) = 0;
-  virtual UInt syncAddedElements(UInt nb_added_el) = 0;
+  virtual Int syncDeletedElements(std::vector<Idx> & delete_el) = 0;
+  virtual Int syncAddedElements(Int nb_added_el) = 0;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -72,7 +72,7 @@ public:
   using pointer_type = typename Array<T>::pointer_type;
   using const_reference = typename Array<T>::const_reference;
 
-  SynchronizedArray(UInt size, UInt nb_component, const_reference value,
+  SynchronizedArray(Int size, Int nb_component, const_reference value,
                     const ID & id, const_reference default_value,
                     const std::string & restart_name);
   ~SynchronizedArray() override = default;
@@ -85,7 +85,7 @@ public:
   template <typename P> inline void push_back(P && value);
 
   /// erase
-  inline void erase(UInt i);
+  inline void erase(Idx i);
   // template<typename R>
   // inline void erase(const iterator<R> & it);
 
@@ -105,20 +105,13 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /// find position of element
-  Int find(const T & elem) const { return Array<T>::find(elem); };
+  using Array<T>::find;
 
   /// set values to zero
-  inline void zero() { Array<T>::zero(); };
-  //  inline void clear() { memset(values, 0, size*nb_component*sizeof(T)); };
+  using Array<T>::zero;
 
   /// set all entries of the array to the value t
-  /// @param t value to fill the array with
-  inline void set(T t) { Array<T>::set(t); }
-
-  /// set
-  template <template <typename> class C> inline void set(const C<T> & vm) {
-    Array<T>::set(vm);
-  }
+  using Array<T>::set;
 
   /// set all entries of the array to value t and set default value
   inline void setAndChangeDefault(T t) {
@@ -127,29 +120,24 @@ public:
   }
 
   /// copy the content of an other array
-  void copy(const SynchronizedArray<T> & vect) { Array<T>::copy(vect); };
+  using Array<T>::copy;
 
   /// give the address of the memory allocated for this array
-  T * storage() const { return Array<T>::storage(); };
-  //  T * storage() const { return this->values; };
+  using Array<T>::data;
+  using Array<T>::storage;
 
   // get nb component
-  UInt getNbComponent() const { return Array<T>::getNbComponent(); };
+  using Array<T>::getNbComponent;
 
 protected:
-  UInt syncDeletedElements(std::vector<UInt> & del_elements) override;
-  UInt syncAddedElements(UInt nb_add_elements) override;
+  Int syncDeletedElements(std::vector<Idx> & del_elements) override;
+  Int syncAddedElements(Int nb_add_elements) override;
 
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline reference operator()(UInt i, UInt j = 0) {
-    return Array<T>::operator()(i, j);
-  }
-  inline const_reference operator()(UInt i, UInt j = 0) const {
-    return Array<T>::operator()(i, j);
-  }
+  using Array<T>::operator();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -157,9 +145,9 @@ public:
 public:
   AKANTU_SET_MACRO(DefaultValue, default_value, T);
 
-  UInt size() const { return this->size_; };
+  Int size() const { return this->size_; };
 
-  ID getID() const override { return Array<T>::getID(); };
+  using Array<T>::getID;
 
   const Array<T> & getArray() const {
     const Array<T> & a = *(dynamic_cast<const Array<T> *>(this));
@@ -177,7 +165,7 @@ private:
   const std::string restart_name;
 
   /// elements that have been deleted
-  std::vector<UInt> deleted_elements;
+  std::vector<Idx> deleted_elements;
 
   /// number of elements to add
   UInt nb_added_elements;

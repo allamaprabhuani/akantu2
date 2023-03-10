@@ -44,10 +44,10 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 SlaveElementInfoPerProc::SlaveElementInfoPerProc(
-    ElementSynchronizer & synchronizer, UInt message_cnt, UInt root)
+    ElementSynchronizer & synchronizer, Int message_cnt, Int root)
     : ElementInfoPerProc(synchronizer, message_cnt, root, _not_defined) {
 
-  Vector<UInt> size(5);
+  Vector<Int> size(5);
   comm.receive(size, this->root,
                Tag::genTag(this->root, this->message_count, Tag::_sizes));
 
@@ -70,7 +70,7 @@ bool SlaveElementInfoPerProc::needSynchronize() {
 
 /* -------------------------------------------------------------------------- */
 void SlaveElementInfoPerProc::synchronizeConnectivities() {
-  Array<UInt> local_connectivity(
+  Array<Idx> local_connectivity(
       (this->nb_local_element + this->nb_ghost_element) *
       this->nb_nodes_per_element);
 
@@ -84,12 +84,16 @@ void SlaveElementInfoPerProc::synchronizeConnectivities() {
   MeshUtils::renumberMeshNodes(this->mesh, local_connectivity,
                                this->nb_local_element, this->nb_ghost_element,
                                this->type, old_nodes);
+
+  MeshAccessor mesh_accessor(mesh);
+  auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
+  ghost_counter.resize(nb_ghost_element, 1);
 }
 
 /* -------------------------------------------------------------------------- */
 void SlaveElementInfoPerProc::synchronizePartitions() {
-  Array<UInt> local_partitions(this->nb_element_to_receive +
-                               this->nb_ghost_element * 2);
+  Array<Idx> local_partitions(this->nb_element_to_receive +
+                              this->nb_ghost_element * 2);
   AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
   this->comm.receive(local_partitions, this->root,
                      Tag::genTag(root, this->message_count, Tag::_partitions));
@@ -121,25 +125,25 @@ void SlaveElementInfoPerProc::synchronizeTags() {
   }
 
   AKANTU_DEBUG_INFO("Receiving the information about the mesh data tags, addr "
-                    << (void *)mesh_data_sizes_buffer.storage());
+                    << (void *)mesh_data_sizes_buffer.data());
 
   std::vector<std::string> tag_names;
   std::vector<MeshDataTypeCode> tag_type_codes;
-  std::vector<UInt> tag_nb_component;
+  std::vector<Int> tag_nb_component;
   tag_names.resize(nb_tags);
   tag_type_codes.resize(nb_tags);
   tag_nb_component.resize(nb_tags);
   CommunicationBuffer mesh_data_buffer;
-  UInt type_code_int;
-  for (UInt i(0); i < nb_tags; ++i) {
+  Int type_code_int;
+  for (Int i(0); i < nb_tags; ++i) {
     mesh_data_sizes_buffer >> tag_names[i];
     mesh_data_sizes_buffer >> type_code_int;
     tag_type_codes[i] = static_cast<MeshDataTypeCode>(type_code_int);
     mesh_data_sizes_buffer >> tag_nb_component[i];
   }
 
-  std::vector<std::string>::const_iterator names_it = tag_names.begin();
-  std::vector<std::string>::const_iterator names_end = tag_names.end();
+  auto names_it = tag_names.begin();
+  auto names_end = tag_names.end();
 
   CommunicationStatus mesh_data_comm_status;
   AKANTU_DEBUG_INFO("Checking size of data to receive for mesh data TAG("
@@ -148,7 +152,7 @@ void SlaveElementInfoPerProc::synchronizeTags() {
   comm.probe<char>(root,
                    Tag::genTag(root, this->message_count, Tag::_mesh_data),
                    mesh_data_comm_status);
-  UInt mesh_data_buffer_size(mesh_data_comm_status.size());
+  Int mesh_data_buffer_size(mesh_data_comm_status.size());
   AKANTU_DEBUG_INFO("Receiving "
                     << mesh_data_buffer_size << " bytes of mesh data TAG("
                     << Tag::genTag(root, this->message_count, Tag::_mesh_data)
@@ -158,7 +162,7 @@ void SlaveElementInfoPerProc::synchronizeTags() {
                Tag::genTag(root, this->message_count, Tag::_mesh_data));
 
   // Loop over each tag for the current type
-  UInt k(0);
+  Int k(0);
   for (; names_it != names_end; ++names_it, ++k) {
     this->fillMeshData(mesh_data_buffer, *names_it, tag_type_codes[k],
                        tag_nb_component[k]);
@@ -172,7 +176,7 @@ void SlaveElementInfoPerProc::synchronizeGroups() {
   AKANTU_DEBUG_IN();
 
   const Communicator & comm = mesh.getCommunicator();
-  UInt my_rank = comm.whoAmI();
+  auto my_rank = comm.whoAmI();
 
   AKANTU_DEBUG_INFO("Receiving element groups from proc "
                     << root << " TAG("

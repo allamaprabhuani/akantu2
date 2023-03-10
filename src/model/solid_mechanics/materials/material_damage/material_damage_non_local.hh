@@ -39,7 +39,7 @@
 
 namespace akantu {
 
-template <UInt dim, class MaterialDamageLocal>
+template <Int dim, class MaterialDamageLocal>
 class MaterialDamageNonLocal
     : public MaterialNonLocal<dim, MaterialDamageLocal> {
 public:
@@ -47,6 +47,11 @@ public:
 
   MaterialDamageNonLocal(SolidMechanicsModel & model, const ID & id)
       : MaterialParent(model, id){};
+
+public:
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return MaterialDamageLocal::getArguments(el_type, ghost_type);
+  }
 
 protected:
   /* ------------------------------------------------------------------------ */

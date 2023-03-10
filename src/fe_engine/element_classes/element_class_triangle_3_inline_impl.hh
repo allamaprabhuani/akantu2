@@ -68,26 +68,20 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
-
-  /// Natural coordinates
-  Real c0 =
-      1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
-  Real c1 = natural_coords(0);                   /// @f$ c1 = \xi @f$
-  Real c2 = natural_coords(1);                   /// @f$ c2 = \eta @f$
-
-  N(0) = c0; /// N1(q_0)
-  N(1) = c1; /// N2(q_0)
-  N(2) = c2; /// N3(q_0)
+    const Eigen::MatrixBase<D1> &X, Eigen::MatrixBase<D2> &N) {
+  N(0) = 1 - X(0) - X(1); /// @f$ c0 = 1 - \xi - \eta @f$
+  N(1) = X(0);            /// @f$ c1 = \xi @f$
+  N(2) = X(1);            /// @f$ c2 = \eta @f$
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
-    __attribute__((unused)) const vector_type & natural_coords,
-    matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> &dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -112,37 +106,21 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
-    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+    const vector_type & /*natural_coords*/, matrix_type &d2nds2) {
   d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
+template <class D>
+inline Real GeometricalElement<_gt_triangle_3>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&coord1 = coord.col(0);
+  auto &&coord2 = coord.col(1);
+  auto &&coord3 = coord.col(2);
+
+  return 2. * Math::triangle_inradius(coord1, coord2, coord3);
 }
 
-/* -------------------------------------------------------------------------- */
-template <>
-inline Real
-GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2));
-}
-
-/* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_3>::contains(const Vector<Real>
-// & natural_coords) {
-//   if (natural_coords[0] < 0.) return false;
-//   if (natural_coords[0] > 1.) return false;
-//   if (natural_coords[1] < 0.) return false;
-//   if (natural_coords[1] > 1.) return false;
-//   if (natural_coords[0]+natural_coords[1] > 1.) return false;
-//   return true;
-// }
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

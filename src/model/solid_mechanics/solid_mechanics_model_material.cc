@@ -77,7 +77,7 @@ Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
                           << mat_name << "' has already been registered. "
                           << "Please use unique names for materials");
 
-  UInt mat_count = materials.size();
+  auto mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
   ID mat_id = this->id + ":" + std::to_string(mat_count) + ":" + mat_type;
@@ -129,14 +129,14 @@ void SolidMechanicsModel::instantiateMaterials() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assignMaterialToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       mesh,
       [&](auto && element) {
-        UInt mat_index = (*material_selector)(element);
+        auto mat_index = (*material_selector)(element);
         AKANTU_DEBUG_ASSERT(
-            mat_index < materials.size(),
+            mat_index < Int(materials.size()),
             "The material selector returned an index that does not exists");
         material_index(element) = mat_index;
       },

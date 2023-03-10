@@ -1,6 +1,4 @@
-
-""" workspace.py: workspace for clang-tidy in codeclimate (inspired from cpp-
-check)"""
+"""Workspace for clang-tidy in codeclimate (inspired from cpp-check)."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -10,7 +8,6 @@ __copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" 
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
-
 
 import os
 
@@ -46,8 +43,10 @@ class Workspace:
         for path in self._include_paths:
             if os.path.isdir(path):
                 for root, dirs, files in os.walk(path):
-                    paths.extend([os.path.join(root, dir_) for dir_ in dirs])
-                    paths.extend([os.path.join(root, file_) for file_ in files])
+                    paths.extend(
+                        [os.path.join(root, dir_) for dir_ in dirs])
+                    paths.extend(
+                        [os.path.join(root, file_) for file_ in files])
             else:
                 paths.append(path)
 

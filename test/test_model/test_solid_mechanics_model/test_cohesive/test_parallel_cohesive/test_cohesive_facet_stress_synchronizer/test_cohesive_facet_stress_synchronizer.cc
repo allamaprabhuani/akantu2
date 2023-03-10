@@ -47,7 +47,7 @@ Real function(Real constant, Real x, Real y, Real z) {
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   ElementType type = _tetrahedron_10;
   ElementType type_facet = Mesh::getFacetType(type);
@@ -114,11 +114,11 @@ int main(int argc, char * argv[]) {
   Array<Real>::iterator<Matrix<Real>> stress_it =
       stress.begin(spatial_dimension, spatial_dimension);
 
-  for (UInt q = 0; q < nb_tot_quad_el; ++q, ++stress_it) {
+  for (Int q = 0; q < nb_tot_quad_el; ++q, ++stress_it) {
 
     /// compute values
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      for (UInt j = i; j < spatial_dimension; ++j) {
+    for (Int i = 0; i < spatial_dimension; ++i) {
+      for (Int j = i; j < spatial_dimension; ++j) {
         UInt index = i * spatial_dimension + j;
         (*stress_it)(i, j) = function(index, quad_elements(q, 0),
                                       quad_elements(q, 1), quad_elements(q, 2));
@@ -126,14 +126,14 @@ int main(int argc, char * argv[]) {
     }
 
     /// fill symmetrical part
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      for (UInt j = 0; j < i; ++j) {
+    for (Int i = 0; i < spatial_dimension; ++i) {
+      for (Int j = 0; j < i; ++j) {
         (*stress_it)(i, j) = (*stress_it)(j, i);
       }
     }
 
     // stress_it->clear();
-    // for (UInt i = 0; i < spatial_dimension; ++i)
+    // for (Int i = 0; i < spatial_dimension; ++i)
     //   (*stress_it)(i, i) = sigma_c * 5;
   }
 
@@ -157,7 +157,7 @@ int main(int argc, char * argv[]) {
 
   Matrix<Real> current_stress(spatial_dimension, spatial_dimension);
 
-  for (UInt f = 0; f < nb_facet; ++f) {
+  for (Int f = 0; f < nb_facet; ++f) {
 
     if (!facet_check(f) || (elements_to_facet(f)[0].ghost_type == _not_ghost &&
                             elements_to_facet(f)[1].ghost_type == _not_ghost)) {
@@ -166,11 +166,11 @@ int main(int argc, char * argv[]) {
       continue;
     }
 
-    for (UInt q = 0; q < nb_quad_per_facet;
+    for (Int q = 0; q < nb_quad_per_facet;
          ++q, ++quad_facet_it, ++facet_stress_it) {
       /// compute current_stress
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-        for (UInt j = i; j < spatial_dimension; ++j) {
+      for (Int i = 0; i < spatial_dimension; ++i) {
+        for (Int j = i; j < spatial_dimension; ++j) {
           UInt index = i * spatial_dimension + j;
           current_stress(i, j) =
               function(index, (*quad_facet_it)(0), (*quad_facet_it)(1),
@@ -179,21 +179,21 @@ int main(int argc, char * argv[]) {
       }
 
       /// fill symmetrical part
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-        for (UInt j = 0; j < i; ++j) {
+      for (Int i = 0; i < spatial_dimension; ++i) {
+        for (Int j = 0; j < i; ++j) {
           current_stress(i, j) = current_stress(j, i);
         }
       }
 
       /// compare it to interpolated one
-      for (UInt s = 0; s < 2; ++s) {
+      for (Int s = 0; s < 2; ++s) {
         Matrix<Real> stress_to_check(facet_stress_it->storage() +
                                          s * spatial_dimension *
                                              spatial_dimension,
                                      spatial_dimension, spatial_dimension);
 
-        for (UInt i = 0; i < spatial_dimension; ++i) {
-          for (UInt j = 0; j < spatial_dimension; ++j) {
+        for (Int i = 0; i < spatial_dimension; ++i) {
+          for (Int j = 0; j < spatial_dimension; ++j) {
             if (!Math::are_float_equal(stress_to_check(i, j),
                                        current_stress(i, j))) {
               std::cout << "Stress doesn't match" << std::endl;

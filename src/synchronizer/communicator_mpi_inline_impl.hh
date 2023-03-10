@@ -63,7 +63,7 @@ namespace akantu {
 
 class CommunicationRequestMPI : public InternalCommunicationRequest {
 public:
-  CommunicationRequestMPI(UInt source, UInt dest)
+  CommunicationRequestMPI(Idx source, Idx dest)
       : InternalCommunicationRequest(source, dest),
         request(std::make_unique<MPI_Request>()) {}
   MPI_Request & getMPIRequest() { return *request; };
@@ -308,7 +308,7 @@ void Communicator::waitAll(std::vector<CommunicationRequest> & requests) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
+Int Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
   auto && mpi_requests = convertRequests(requests);
 
   int pos;
@@ -318,7 +318,7 @@ UInt Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
   if (pos != MPI_UNDEFINED) {
     return pos;
   }
-  return UInt(-1);
+  return -1;
 }
 
 /* -------------------------------------------------------------------------- */

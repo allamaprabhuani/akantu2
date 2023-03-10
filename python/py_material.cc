@@ -93,7 +93,7 @@ namespace {
     }
 
     template <typename T>
-    void registerInternal(const std::string & name, UInt nb_component) {
+    void registerInternal(const std::string & name, Int nb_component) {
       auto && internal = std::make_shared<InternalField<T>>(name, *this);
       AKANTU_DEBUG_INFO("alloc internal " << name << " "
                                           << &this->internals[name]);
@@ -126,35 +126,35 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, initMaterial, );
     };
 
-    void computeStress(ElementType el_type,
-                       GhostType ghost_type = _not_ghost) final {}
+    void computeStress(ElementType /*el_type*/,
+                       GhostType /*ghost_type*/ = _not_ghost) final {}
 
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, checkInsertion, check_only);
     }
 
-    void computeTraction(const Array<Real> & normal, ElementType el_type,
+    void computeTraction(ElementType el_type,
                          GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE(void, _Material, computeTraction, normal, el_type,
+      PYBIND11_OVERRIDE_PURE(void, _Material, computeTraction, el_type,
                              ghost_type);
     }
 
-    void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
-                              GhostType ghost_type = _not_ghost) final {}
+    void computeTangentModuli(ElementType /*el_type*/,
+                              Array<Real> & /*tangent_matrix*/,
+                              GhostType /*ghost_type*/ = _not_ghost) final {}
 
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
-                                const Array<Real> & normal,
                                 GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
-                        tangent_matrix, normal, ghost_type);
+                        tangent_matrix, ghost_type);
     }
 
     template <typename T>
-    void registerInternal(const std::string & name, UInt nb_component) {
+    void registerInternal(const std::string & name, Int nb_component) {
       auto && internal =
           std::make_shared<CohesiveInternalField<T>>(name, *this);
       AKANTU_DEBUG_INFO("alloc internal " << name << " "
@@ -199,7 +199,7 @@ void register_material(py::module & mod) {
            [](MaterialFactory & self, const std::string id, py::function func) {
              self.registerAllocator(
                  id,
-                 [func, id](UInt dim, const ID & /*unused*/,
+                 [func, id](Int dim, const ID & /*unused*/,
                             SolidMechanicsModel & model,
                             const ID & option) -> std::unique_ptr<Material> {
                    py::object obj = func(dim, id, model, option);
@@ -213,6 +213,7 @@ void register_material(py::module & mod) {
 
   register_internal_field<Real>(mod, "Real");
   register_internal_field<UInt>(mod, "UInt");
+  register_internal_field<Int>(mod, "Int");
 
   py::class_<Material, Parsable, PyMaterial<Material>>(
       mod, "Material", py::multiple_inheritance())
@@ -241,21 +242,21 @@ void register_material(py::module & mod) {
           py::arg("el_type"), py::return_value_policy::reference)
       .def(
           "getPotentialEnergy",
-          [](Material & self, ElementType el_type, UInt index) -> Real {
-            return self.getPotentialEnergy(el_type, index);
+          [](Material & self, Element element) -> Real {
+            return self.getPotentialEnergy(element);
           },
-          py::arg("el_type"), py::arg("index"))
+          py::arg("element"))
       .def("getPotentialEnergy",
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)
       .def("getModel", &Material::getModel)
       .def("registerInternalReal",
-           [](Material & self, const std::string & name, UInt nb_component) {
+           [](Material & self, const std::string & name, Int nb_component) {
              return dynamic_cast<PyMaterial<Material> &>(self)
                  .registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
-           [](Material & self, const std::string & name, UInt nb_component) {
+           [](Material & self, const std::string & name, Int nb_component) {
              return dynamic_cast<PyMaterial<Material> &>(self)
                  .registerInternal<UInt>(name, nb_component);
            })

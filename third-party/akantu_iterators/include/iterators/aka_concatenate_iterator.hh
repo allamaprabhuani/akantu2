@@ -37,13 +37,9 @@
 #ifndef AKA_CONCATENATE_ITERATOR_H
 #define AKA_CONCATENATE_ITERATOR_H
 
-#ifndef AKANTU_ITERATORS_NAMESPACE
-#define AKANTU_ITERATORS_NAMESPACE akantu
-#endif
-
 namespace AKANTU_ITERATORS_NAMESPACE {
 
-namespace iterators {
+namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
 
   /* ------------------------------------------------------------------------ */
   template <class... Iterators>
@@ -118,7 +114,7 @@ namespace iterators {
     tuple_t end_iterators;
   };
 
-} // namespace iterators
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
@@ -132,15 +128,17 @@ concat_iterator(std::tuple<Iterators...> && iterators_tuple,
 }
 
 /* -------------------------------------------------------------------------- */
-namespace containers {
+namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class... Containers> class ConcatContainer {
     using containers_t = std::tuple<Containers...>;
 
   public:
+    using size_type = std::common_type_t<aka::size_type_t<Containers>...>;
+
     explicit ConcatContainer(Containers &&... containers)
         : containers(std::forward<Containers>(containers)...) {}
 
-    decltype(auto) begin() const {
+    auto begin() const -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)),
@@ -148,7 +146,7 @@ namespace containers {
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() const {
+    auto end() const -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)),
@@ -156,15 +154,15 @@ namespace containers {
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) begin() {
-       return concat_iterator(
+    auto begin() -> decltype(auto) {
+      return concat_iterator(
           tuple::transform([](auto && c) { return c.begin(); },
                            std::forward<containers_t>(containers)),
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)));
     }
 
-    decltype(auto) end() {
+    auto end() -> decltype(auto) {
       return concat_iterator(
           tuple::transform([](auto && c) { return c.end(); },
                            std::forward<containers_t>(containers)),
@@ -177,12 +175,13 @@ namespace containers {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class... Containers> decltype(auto) concat(Containers &&... conts) {
+  template <class... Containers>
+  auto concat(Containers &&... conts) -> decltype(auto) {
     return containers::ConcatContainer<Containers...>(
         std::forward<Containers>(conts)...);
   }
 
-} // namespace containers
+} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
 namespace std {

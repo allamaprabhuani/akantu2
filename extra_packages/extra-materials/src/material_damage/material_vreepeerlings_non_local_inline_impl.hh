@@ -17,7 +17,7 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 MaterialVreePeerlingsNonLocal<spatial_dimension, MatParent>::
     MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialVreePeerlingsNonLocalParent(model, id),
@@ -34,7 +34,7 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, MatParent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlingsNonLocal<spatial_dimension,
                                    MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
@@ -51,22 +51,22 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 
-// template<UInt spatial_dimension, class WeigthFunction, template <UInt> class
+// template<Int spatial_dimension, class WeigthFunction, template <UInt> class
 // MatParent>
 // void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction,
 // MatParent>::computeStress(ElementType el_type,
 //										     GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
 //
-//  Real * dam = this->damage(el_type, ghost_type).storage();
-//  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-//  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
-//  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
-//  Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
+//  Real * dam = this->damage(el_type, ghost_type).data();
+//  Real * equi_straint = equi_strain(el_type, ghost_type).data();
+//  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).data();
+//  Real * Kapaq = this->Kapa(el_type, ghost_type).data();
+//  Real * crit_strain = this->critical_strain(el_type, ghost_type).data();
 //  Real * crit_strain_rate = this->critical_strain_rate(el_type,
-//  ghost_type).storage();
-//  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).storage();
-//  Real  * nb_damage = this->number_damage(el_type, ghost_type).storage();
+//  ghost_type).data();
+//  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).data();
+//  Real  * nb_damage = this->number_damage(el_type, ghost_type).data();
 //  Real dt = this->model.getTimeStep();
 //
 //  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
@@ -118,27 +118,27 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension,
 //
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlingsNonLocal<
     spatial_dimension, MatParent>::computeNonLocalStress(ElementType el_type,
                                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * Kapaq = this->Kapa(el_type, ghost_type).data();
   Real * equi_strain_nl =
-      this->equi_strain_non_local(el_type, ghost_type).storage();
+      this->equi_strain_non_local(el_type, ghost_type).data();
   Real * equi_strain_rate_nl =
-      this->equi_strain_rate_non_local(el_type, ghost_type).storage();
+      this->equi_strain_rate_non_local(el_type, ghost_type).data();
   // Real * equi_strain_rate_nl = this->equi_strain_rate(el_type,
-  // ghost_type).storage();
+  // ghost_type).data();
 
   Real dt = this->model.getTimeStep();
   Real * FullDam_Valstrain =
-      this->Full_dam_value_strain(el_type, ghost_type).storage();
+      this->Full_dam_value_strain(el_type, ghost_type).data();
   Real * FullDam_Valstrain_rate =
-      this->Full_dam_value_strain_rate(el_type, ghost_type).storage();
-  Real * Nb_damage = this->Number_damage(el_type, ghost_type).storage();
+      this->Full_dam_value_strain_rate(el_type, ghost_type).data();
+  Real * Nb_damage = this->Number_damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 

@@ -44,7 +44,7 @@ class PlaneStressToolbox<2, ParentMaterial> : public ParentMaterial {
   /* ------------------------------------------------------------------------ */
 public:
   PlaneStressToolbox(SolidMechanicsModel & model, const ID & id = "");
-  PlaneStressToolbox(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+  PlaneStressToolbox(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
                      FEEngine & fe_engine, const ID & id = "");
 
   ~PlaneStressToolbox() override = default;
@@ -93,7 +93,7 @@ public:
                           "The Cauchy stress can only be computed if you are "
                           "working in finite deformation.");
 
-      for (auto & type : this->fem.getMesh().elementTypes(2, ghost_type)) {
+      for (auto && type : this->fem.getMesh().elementTypes(2, ghost_type)) {
         this->computeCauchyStressPlaneStress(type, ghost_type);
       }
     } else {
@@ -140,7 +140,7 @@ inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
 
 template <class ParentMaterial>
 inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
-    SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+    SolidMechanicsModel & model, Int dim, const Mesh & mesh,
     FEEngine & fe_engine, const ID & id)
     : ParentMaterial(model, dim, mesh, fe_engine, id),
       third_axis_deformation("third_axis_deformation", *this, dim, fe_engine,

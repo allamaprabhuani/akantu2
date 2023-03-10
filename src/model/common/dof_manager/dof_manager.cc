@@ -76,18 +76,18 @@ std::vector<ID> DOFManager::getDOFIDs() const {
 void DOFManager::assembleElementalArrayLocalArray(
     const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
     ElementType type, GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom =
+  Int nb_element;
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
 
-  UInt * filter_it = nullptr;
+  Idx * filter_it = nullptr;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
-    filter_it = filter_elements.storage();
+    filter_it = filter_elements.data();
   } else {
     nb_element = this->mesh->getNbElement(type, ghost_type);
   }
@@ -97,27 +97,27 @@ void DOFManager::assembleElementalArrayLocalArray(
                           << elementary_vect.getID()
                           << ") has not the good size.");
 
-  const Array<UInt> & connectivity =
-      this->mesh->getConnectivity(type, ghost_type);
+  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
 
-  Array<Real>::const_matrix_iterator elem_it =
-      elementary_vect.begin(nb_degree_of_freedom, nb_nodes_per_element);
+  auto elem_it =
+      make_view(elementary_vect, nb_degree_of_freedom, nb_nodes_per_element)
+          .begin();
+  auto assemble_it = make_view(array_assembeled, nb_degree_of_freedom).begin();
 
-  for (UInt el = 0; el < nb_element; ++el, ++elem_it) {
-    UInt element = el;
+  for (Int el = 0; el < nb_element; ++el, ++elem_it) {
+    auto element = el;
     if (filter_it != nullptr) {
-      // conn_it = conn_begin + *filter_it;
+
       element = *filter_it;
     }
 
     // const Vector<UInt> & conn = *conn_it;
-    const Matrix<Real> & elemental_val = *elem_it;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_node = connectivity(element, n) * nb_degree_of_freedom;
-      Vector<Real> assemble(array_assembeled.storage() + offset_node,
-                            nb_degree_of_freedom);
-      Vector<Real> elem_val = elemental_val(n);
-      assemble.aXplusY(elem_val, scale_factor);
+    const auto & elemental_val = *elem_it;
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
+      auto node = connectivity(element, n);
+
+      auto && assemble = assemble_it[node];
+      assemble += scale_factor * elemental_val(n);
     }
 
     if (filter_it != nullptr) {
@@ -134,11 +134,11 @@ void DOFManager::assembleElementalArrayLocalArray(
 void DOFManager::assembleElementalArrayToResidual(
     const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
     GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom =
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
   Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
                                       nb_degree_of_freedom);
@@ -158,11 +158,11 @@ void DOFManager::assembleElementalArrayToResidual(
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
     const ID & lumped_mtx, ElementType type, GhostType ghost_type,
-    Real scale_factor, const Array<UInt> & filter_elements) {
+    Real scale_factor, const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom =
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
   Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
                                       nb_degree_of_freedom);
@@ -256,7 +256,7 @@ DOFManager::DOFData::~DOFData() = default;
 
 /* -------------------------------------------------------------------------- */
 template <typename Func>
-auto DOFManager::countDOFsForNodes(const DOFData & dof_data, UInt nb_nodes,
+auto DOFManager::countDOFsForNodes(const DOFData & dof_data, Int nb_nodes,
                                    Func && getNode) {
   auto nb_local_dofs = nb_nodes;
   decltype(nb_local_dofs) nb_pure_local = 0;
@@ -291,7 +291,7 @@ auto DOFManager::getNewDOFDataInternal(const ID & dof_id) -> DOFData & {
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                              const DOFSupportType & support_type) {
+                              DOFSupportType support_type) {
   auto & dofs_storage = this->getNewDOFDataInternal(dof_id);
   dofs_storage.support_type = support_type;
 
@@ -313,13 +313,13 @@ void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt, UInt>
+std::tuple<Int, Int, Int>
 DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
   DOFData & dof_data = this->getDOFData(dof_id);
   dof_data.dof = &dofs_array;
 
-  UInt nb_local_dofs = 0;
-  UInt nb_pure_local = 0;
+  Int nb_local_dofs = 0;
+  Int nb_pure_local = 0;
 
   const auto & support_type = dof_data.support_type;
 
@@ -327,7 +327,7 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
   case _dst_nodal: {
     const auto & group = dof_data.group_support;
 
-    std::function<UInt(UInt)> getNode;
+    std::function<Idx(Idx)> getNode;
     if (group == "__mesh__") {
       AKANTU_DEBUG_ASSERT(
           dofs_array.size() == this->mesh->getNbNodes(),
@@ -381,11 +381,11 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
           this->mesh->getElementGroup(group).getNodeGroup().getNodes();
       this->updateDOFsData(
           dof_data, nb_local_dofs, nb_pure_local, support_nodes.size(),
-          [&support_nodes](UInt node) -> UInt { return support_nodes[node]; });
+          [&support_nodes](Idx node) -> Idx { return support_nodes[node]; });
     } else {
       this->updateDOFsData(dof_data, nb_local_dofs, nb_pure_local,
                            mesh->getNbNodes(),
-                           [](UInt node) -> UInt { return node; });
+                           [](Idx node) -> Idx { return node; });
     }
     break;
   }
@@ -423,12 +423,12 @@ void DOFManager::registerDOFsIncrement(const ID & dof_id, Array<Real> & array) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::registerDOFsDerivative(const ID & dof_id, UInt order,
+void DOFManager::registerDOFsDerivative(const ID & dof_id, Int order,
                                         Array<Real> & dofs_derivative) {
-  DOFData & dof = this->getDOFData(dof_id);
-  std::vector<Array<Real> *> & derivatives = dof.dof_derivatives;
+  auto & dof = this->getDOFData(dof_id);
+  auto & derivatives = dof.dof_derivatives;
 
-  if (derivatives.size() < order) {
+  if (Int(derivatives.size()) < order) {
     derivatives.resize(order, nullptr);
   } else {
     if (derivatives[order - 1] != nullptr) {
@@ -444,7 +444,7 @@ void DOFManager::registerDOFsDerivative(const ID & dof_id, UInt order,
 /* -------------------------------------------------------------------------- */
 void DOFManager::registerBlockedDOFs(const ID & dof_id,
                                      Array<bool> & blocked_dofs) {
-  DOFData & dof = this->getDOFData(dof_id);
+  auto & dof = this->getDOFData(dof_id);
 
   if (dof.blocked_dofs != nullptr) {
     AKANTU_EXCEPTION("The blocked dofs array for "
@@ -632,11 +632,10 @@ void DOFManager::zeroLumpedMatrix(const ID & mtx) {
 /* -------------------------------------------------------------------------- */
 /* Mesh Events                                                                */
 /* -------------------------------------------------------------------------- */
-std::pair<UInt, UInt>
-DOFManager::updateNodalDOFs(const ID & dof_id, const Array<UInt> & nodes_list) {
+std::pair<Int, Int> DOFManager::updateNodalDOFs(const ID & dof_id,
+                                                const Array<Idx> & nodes_list) {
   auto & dof_data = this->getDOFData(dof_id);
-  UInt nb_new_local_dofs;
-  UInt nb_new_pure_local;
+  Int nb_new_local_dofs, nb_new_pure_local;
 
   std::tie(nb_new_local_dofs, nb_new_pure_local) =
       countDOFsForNodes(dof_data, nodes_list.size(),
@@ -645,7 +644,7 @@ DOFManager::updateNodalDOFs(const ID & dof_id, const Array<UInt> & nodes_list) {
   this->pure_local_system_size += nb_new_pure_local;
   this->local_system_size += nb_new_local_dofs;
 
-  UInt nb_new_global = nb_new_pure_local;
+  auto nb_new_global = nb_new_pure_local;
   communicator.allReduce(nb_new_global, SynchronizerOperation::_sum);
 
   this->system_size += nb_new_global;
@@ -654,7 +653,7 @@ DOFManager::updateNodalDOFs(const ID & dof_id, const Array<UInt> & nodes_list) {
 
   updateDOFsData(dof_data, nb_new_local_dofs, nb_new_pure_local,
                  nodes_list.size(),
-                 [&nodes_list](UInt pos) -> UInt { return nodes_list[pos]; });
+                 [&nodes_list](auto pos) -> UInt { return nodes_list[pos]; });
 
   return std::make_pair(nb_new_local_dofs, nb_new_pure_local);
 }
@@ -676,8 +675,8 @@ void DOFManager::resizeGlobalArrays() {
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
-                              const NewNodesEvent & /*unused*/) {
+void DOFManager::onNodesAdded(const Array<Idx> & nodes_list,
+                              const NewNodesEvent &) {
   for (auto & pair : this->dofs) {
     const auto & dof_id = pair.first;
     auto & dof_data = this->getDOFData(dof_id);
@@ -692,9 +691,9 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
     } else {
       const auto & node_group =
           this->mesh->getElementGroup(group).getNodeGroup();
-      Array<UInt> new_nodes_list;
+      Array<Idx> new_nodes_list;
       for (const auto & node : nodes_list) {
-        if (node_group.find(node) != UInt(-1)) {
+        if (node_group.find(node) != Int(-1)) {
           new_nodes_list.push_back(node);
         }
       }
@@ -707,8 +706,7 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
-                                     const MeshIsDistributedEvent & event) {
+void DOFManager::onMeshIsDistributed(const MeshIsDistributedEvent & /*event*/) {
   AKANTU_DEBUG_ASSERT(this->mesh != nullptr, "The `Mesh` pointer is not set.");
 
   // check if the distributed state of the residual and the mesh are the same.
@@ -731,35 +729,32 @@ void DOFManager::onMeshIsDistributed(const Mesh & mesh_,
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-class GlobalDOFInfoDataAccessor : public DataAccessor<UInt> {
+class GlobalDOFInfoDataAccessor : public DataAccessor<Idx> {
 public:
-  using size_type =
-      typename std::unordered_map<UInt, std::vector<UInt>>::size_type;
-
   GlobalDOFInfoDataAccessor(DOFManager::DOFData & dof_data,
                             DOFManager & dof_manager)
       : dof_data(dof_data), dof_manager(dof_manager) {
     for (auto && pair :
          zip(dof_data.local_equation_number, dof_data.associated_nodes)) {
-      UInt node;
-      Int dof;
+      Idx node;
+      Idx dof;
       std::tie(dof, node) = pair;
 
       dofs_per_node[node].push_back(dof);
     }
   }
 
-  UInt getNbData(const Array<UInt> & nodes,
-                 const SynchronizationTag & tag) const override {
+  Int getNbData(const Array<Idx> & nodes,
+                const SynchronizationTag & tag) const override {
     if (tag == SynchronizationTag::_ask_nodes or
         tag == SynchronizationTag::_giu_global_conn) {
-      return nodes.size() * dof_data.dof->getNbComponent() * sizeof(Int);
+      return nodes.size() * dof_data.dof->getNbComponent() * sizeof(Idx);
     }
 
     return 0;
   }
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                 const SynchronizationTag & tag) const override {
     if (tag == SynchronizationTag::_ask_nodes or
         tag == SynchronizationTag::_giu_global_conn) {
@@ -772,14 +767,14 @@ public:
     }
   }
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                   const SynchronizationTag & tag) override {
     if (tag == SynchronizationTag::_ask_nodes or
         tag == SynchronizationTag::_giu_global_conn) {
       for (const auto & node : nodes) {
         const auto & dofs = dofs_per_node[node];
         for (const auto & dof : dofs) {
-          Int global_dof;
+          Idx global_dof;
           buffer >> global_dof;
           AKANTU_DEBUG_ASSERT(
               (dof_manager.global_equation_number(dof) == -1 or
@@ -796,16 +791,16 @@ public:
   }
 
 protected:
-  std::unordered_map<UInt, std::vector<Int>> dofs_per_node;
+  std::unordered_map<Idx, std::vector<Idx>> dofs_per_node;
   DOFManager::DOFData & dof_data;
   DOFManager & dof_manager;
 };
 
 /* -------------------------------------------------------------------------- */
-auto DOFManager::computeFirstDOFIDs(UInt nb_new_local_dofs,
-                                    UInt nb_new_pure_local) {
+auto DOFManager::computeFirstDOFIDs(Int nb_new_local_dofs,
+                                    Int nb_new_pure_local) {
   // determine the first local/global dof id to use
-  UInt offset = 0;
+  Int offset = 0;
 
   this->communicator.exclusiveScan(nb_new_pure_local, offset);
 
@@ -820,9 +815,9 @@ auto DOFManager::computeFirstDOFIDs(UInt nb_new_local_dofs,
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                                UInt nb_new_pure_local, UInt nb_node,
-                                const std::function<UInt(UInt)> & getNode) {
+void DOFManager::updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                                Int nb_new_pure_local, Int nb_node,
+                                const std::function<Idx(Idx)> & getNode) {
   auto nb_local_dofs_added = nb_node * dof_data.dof->getNbComponent();
 
   auto first_dof_pos = dof_data.local_equation_number.size();
@@ -834,11 +829,10 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
   this->dofs_flag.resize(this->local_system_size, NodeFlag::_normal);
   this->global_equation_number.resize(this->local_system_size, -1);
 
-  std::unordered_map<std::pair<UInt, UInt>, UInt> masters_dofs;
+  std::unordered_map<std::pair<Idx, Idx>, Idx> masters_dofs;
 
   // update per dof info
-  UInt local_eq_num;
-  UInt first_global_dof_id;
+  Int local_eq_num, first_global_dof_id;
   std::tie(local_eq_num, first_global_dof_id) =
       computeFirstDOFIDs(nb_new_local_dofs, nb_new_pure_local);
   for (auto d : arange(nb_local_dofs_added)) {
@@ -909,13 +903,12 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                                UInt nb_new_pure_local) {
+void DOFManager::updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                                Int nb_new_pure_local) {
   dof_data.local_equation_number.reserve(dof_data.local_equation_number.size() +
                                          nb_new_local_dofs);
 
-  UInt first_local_dof_id;
-  UInt first_global_dof_id;
+  Int first_local_dof_id, first_global_dof_id;
   std::tie(first_local_dof_id, first_global_dof_id) =
       computeFirstDOFIDs(nb_new_local_dofs, nb_new_pure_local);
 
@@ -938,24 +931,23 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::onNodesRemoved(const Array<UInt> & /*unused*/,
-                                const Array<UInt> & /*unused*/,
-                                const RemovedNodesEvent & /*unused*/) {}
+void DOFManager::onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
+                                const RemovedNodesEvent &) {}
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::onElementsAdded(const Array<Element> & /*unused*/,
                                  const NewElementsEvent & /*unused*/) {}
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::onElementsRemoved(const Array<Element> & /*unused*/,
-                                   const ElementTypeMapArray<UInt> & /*unused*/,
-                                   const RemovedElementsEvent & /*unused*/) {}
+void DOFManager::onElementsRemoved(const Array<Element> &,
+                                   const ElementTypeMapArray<Idx> &,
+                                   const RemovedElementsEvent &) {}
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::onElementsChanged(const Array<Element> & /*unused*/,
-                                   const Array<Element> & /*unused*/,
-                                   const ElementTypeMapArray<UInt> & /*unused*/,
-                                   const ChangedElementsEvent & /*unused*/) {}
+void DOFManager::onElementsChanged(const Array<Element> &,
+                                   const Array<Element> &,
+                                   const ElementTypeMapArray<Idx> &,
+                                   const ChangedElementsEvent &) {}
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::updateGlobalBlockedDofs() {

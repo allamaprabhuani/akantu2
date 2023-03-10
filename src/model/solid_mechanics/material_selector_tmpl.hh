@@ -41,7 +41,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
+inline Int
 ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
   try {
     std::string material_name = this->elementData(element);
@@ -53,8 +53,8 @@ ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
-ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
+inline Int
+ElementDataMaterialSelector<Int>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -64,8 +64,7 @@ ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt
-ElementDataMaterialSelector<T>::operator()(const Element & element) {
+inline Int ElementDataMaterialSelector<T>::operator()(const Element & element) {
   return MaterialSelector::operator()(element);
 }
 
@@ -73,7 +72,7 @@ ElementDataMaterialSelector<T>::operator()(const Element & element) {
 template <typename T>
 MeshDataMaterialSelector<T>::MeshDataMaterialSelector(
     const std::string & name, const SolidMechanicsModel & model,
-    UInt first_index)
+    Int first_index)
     : ElementDataMaterialSelector<T>(model.getMesh().getData<T>(name), model,
                                      first_index) {}
 

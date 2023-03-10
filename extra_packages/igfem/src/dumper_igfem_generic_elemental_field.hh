@@ -51,7 +51,7 @@ namespace dumpers {
 
   public:
     IGFEMGenericElementalField(const field_type & field,
-                               UInt spatial_dimension = _all_dimensions,
+                               Int spatial_dimension = _all_dimensions,
                                GhostType ghost_type = _not_ghost,
                                ElementKind kind = _ek_igfem)
         :

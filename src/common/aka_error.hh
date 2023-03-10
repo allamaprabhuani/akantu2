@@ -361,10 +361,11 @@ namespace debug {
 
 #define AKANTU_DEBUG_ASSERT(test, info)                                        \
   do {                                                                         \
-    if (not(test))                                                             \
+    if AKANTU_UNLIKELY (not(test)) {                                           \
       AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::AssertException(),         \
                                    "assert [" << #test << "] "                 \
                                               << info); /* NOLINT */           \
+    }                                                                          \
   } while (false)
 
 #define AKANTU_ERROR(info)                                                     \

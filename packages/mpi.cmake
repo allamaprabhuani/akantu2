@@ -31,7 +31,7 @@
 #===============================================================================
 
 
-set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "" FORCE)
+set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "NO CXX support for mpi" FORCE)
 package_declare(MPI EXTERNAL
   DESCRIPTION "Add MPI support in akantu"
   EXTRA_PACKAGE_OPTIONS PREFIX MPI_C MPI ARGS "COMPONENTS;C"

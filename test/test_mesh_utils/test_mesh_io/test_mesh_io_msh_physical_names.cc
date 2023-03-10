@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
   for (auto type : mesh.elementTypes()) {
     const Array<std::string> & name_vec =
         mesh.getData<std::string>("physical_names", type);
-    for (UInt i(0); i < name_vec.size(); i++) {
+    for (Int i(0); i < name_vec.size(); i++) {
       std::cout << "Element " << i << " (of type " << type
                 << ") has physical name " << name_vec(i) << "." << std::endl;
     }

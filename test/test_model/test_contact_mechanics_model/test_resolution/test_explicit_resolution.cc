@@ -34,7 +34,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 int main(int argc, char * argv[]) {
   initialize("options.dat", argc, argv);

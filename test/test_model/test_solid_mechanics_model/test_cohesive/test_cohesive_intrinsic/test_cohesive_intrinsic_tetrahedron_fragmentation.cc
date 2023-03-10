@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
   //  debug::setDebugLevel(dblDump);
   ElementType type = _tetrahedron_10;
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   const UInt max_steps = 100;
 
   Mesh mesh(spatial_dimension);
@@ -100,7 +100,7 @@ int main(int argc, char * argv[]) {
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
         UInt node = connectivity(el, n);
         if (!update(node)) {
-          for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+          for (Int dim = 0; dim < spatial_dimension; ++dim) {
             displacement(node, dim) = increment * bary(dim);
             update(node) = true;
           }

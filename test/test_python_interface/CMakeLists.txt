@@ -32,6 +32,10 @@
 
 akantu_pybind11_add_module(py11_akantu_test_common MODULE test_common.cc)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(py11_akantu_test_common PUBLIC -fsized-deallocation)
+endif()
+
 add_mesh(mesh_dcb_2d mesh_dcb_2d.geo 2 2)
 
 register_test(test_python_interface

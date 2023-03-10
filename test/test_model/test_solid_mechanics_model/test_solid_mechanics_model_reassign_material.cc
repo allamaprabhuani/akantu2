@@ -48,8 +48,8 @@ public:
                                     const std::string & mat_2_material)
       : model(model), horizontal(horizontal), pos_interface(pos_interface),
         mat_1_material(mat_1_material), mat_2_material(mat_2_material) {
-    Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = mesh.getSpatialDimension();
+    auto & mesh = model.getMesh();
+    auto spatial_dimension = mesh.getSpatialDimension();
 
     /// store barycenters of all elements
     barycenters.initialize(mesh, _spatial_dimension = spatial_dimension,
@@ -67,11 +67,11 @@ public:
     mat_ids[1] = model.getMaterialIndex(mat_2_material);
   }
 
-  UInt operator()(const Element & elem) override {
+  Int operator()(const Element & elem) override {
     if (not materials_set) {
       setMaterials();
     }
-    const Vector<Real> bary = barycenters.get(elem);
+    const auto bary = barycenters.get(elem);
     /// check for a given element on which side of the material interface plane
     /// the bary center lies and assign corresponding material
     if (bary(horizontal) < pos_interface) {
@@ -85,14 +85,14 @@ public:
     auto & mesh = model.getMesh();
     auto spatial_dimension = mesh.getSpatialDimension();
     for (const auto & type : mesh.elementTypes(spatial_dimension)) {
-      auto & mat_indexes = model.getMaterialByElement(type);
+      const auto & mat_indexes = model.getMaterialByElement(type);
       for (auto && data :
            enumerate(make_view(barycenters(type), spatial_dimension))) {
         auto elem = std::get<0>(data);
         auto & bary = std::get<1>(data);
         /// compare element_index_by material to material index that should be
         /// assigned due to the geometry of the interface
-        UInt mat_index;
+        Int mat_index;
         if (bary(horizontal) < pos_interface) {
           mat_index = mat_ids[0];
         } else {
@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
   /// specify position and orientation of material interface plane
   Real pos_interface = 0.;
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();

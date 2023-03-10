@@ -65,7 +65,6 @@
 
 namespace akantu {
 namespace debug {
-
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char * symbol) {
     int status;
@@ -251,7 +250,7 @@ namespace debug {
       }
 
       if (debugger.printBacktrace()) {
-        std::cerr << "Random generator seed: " << RandomGenerator<UInt>::seed()
+        std::cerr << "Random generator seed: " << RandomGenerator<Int>::seed()
                   << std::endl;
         printBacktrace();
       }
@@ -313,7 +312,7 @@ namespace debug {
                               const DebugLevel & level,
                               const std::string & info,
                               const std::string & module) const {
-    if (testLevel(level, module)) {
+    if AKANTU_UNLIKELY (testLevel(level, module)) {
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())
@@ -349,7 +348,7 @@ namespace debug {
   /* ------------------------------------------------------------------------ */
   void Debugger::setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    UInt pad = std::ceil(std::log10(size));
+    Int pad = std::ceil(std::log10(size));
     sstr << "<" << getpid() << ">[R" << std::setfill(' ') << std::right
          << std::setw(pad) << rank << "|S" << size << "] ";
     parallel_context = sstr.str();

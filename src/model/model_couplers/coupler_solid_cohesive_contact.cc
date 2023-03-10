@@ -39,7 +39,7 @@ namespace akantu {
 
 template <>
 CouplerSolidContactTemplate<SolidMechanicsModelCohesive>::
-    CouplerSolidContactTemplate(Mesh & mesh, UInt dim, const ID & id,
+    CouplerSolidContactTemplate(Mesh & mesh, Int dim, const ID & id,
                                 std::shared_ptr<DOFManager> dof_manager)
     : Model(mesh, ModelType::_coupler_solid_cohesive_contact, dim, id) {
   this->initDOFManager(dof_manager);

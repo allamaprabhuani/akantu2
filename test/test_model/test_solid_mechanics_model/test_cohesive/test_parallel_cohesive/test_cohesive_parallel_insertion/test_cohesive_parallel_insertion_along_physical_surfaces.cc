@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-15);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   Mesh mesh(spatial_dimension);
 
@@ -98,11 +98,11 @@ int main(int argc, char * argv[]) {
       Array<UInt> & material_id = mesh.getMeshFacets().getData<UInt>(
           "physical_names")(mesh.getFacetType(*it), *gt);
 
-      for (UInt i = 0; i < nb_surf; ++i) {
+      for (Int i = 0; i < nb_surf; ++i) {
 
         UInt expected_insertion = 0;
 
-        for (UInt m = 0; m < material_id.getSize(); ++m) {
+        for (Int m = 0; m < material_id.getSize(); ++m) {
           if (material_id(m) ==
               model.SolidMechanicsModel::getMaterialIndex(surfaces_name[i]))
             ++expected_insertion;

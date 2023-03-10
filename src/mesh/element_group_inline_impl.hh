@@ -34,11 +34,12 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
 #include "element_group.hh"
+#include "element_type_map.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
-#define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+//#ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+//#define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -49,66 +50,61 @@ inline void ElementGroup::add(const Element & el, bool add_nodes,
 }
 
 /* -------------------------------------------------------------------------- */
-
-inline void ElementGroup::add(ElementType type, UInt element,
+inline void ElementGroup::add(ElementType type, Idx element,
                               GhostType ghost_type, bool add_nodes,
                               bool check_for_duplicate) {
-
   addElement(type, element, ghost_type);
 
   if (add_nodes) {
-    Array<UInt>::const_vector_iterator it =
-        mesh.getConnectivity(type, ghost_type)
-            .begin(mesh.getNbNodesPerElement(type)) +
-        element;
-    const Vector<UInt> & conn = *it;
-    for (UInt i = 0; i < conn.size(); ++i) {
+    auto it = mesh.getConnectivity(type, ghost_type)
+                  .begin(mesh.getNbNodesPerElement(type)) +
+              element;
+    auto && conn = *it;
+    for (Idx i = 0; i < conn.size(); ++i) {
       addNode(conn[i], check_for_duplicate);
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::addNode(UInt node_id, bool check_for_duplicate) {
+inline void ElementGroup::addNode(Idx node_id, bool check_for_duplicate) {
   node_group.add(node_id, check_for_duplicate);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::removeNode(UInt node_id) {
+inline void ElementGroup::removeNode(Idx node_id) {
   node_group.remove(node_id);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::addElement(ElementType elem_type, UInt elem_id,
+inline void ElementGroup::addElement(ElementType elem_type, Idx elem_id,
                                      GhostType ghost_type) {
   if (!(elements.exists(elem_type, ghost_type))) {
     elements.alloc(0, 1, elem_type, ghost_type);
   }
 
   elements(elem_type, ghost_type).push_back(elem_id);
-  this->dimension = UInt(
+  this->dimension = Int(
       std::max(Int(this->dimension), Int(mesh.getSpatialDimension(elem_type))));
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt ElementGroup::getNbNodes() const { return node_group.size(); }
+inline Int ElementGroup::getNbNodes() const { return node_group.size(); }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::type_iterator
-ElementGroup::firstType(UInt dim, GhostType ghost_type,
-                        ElementKind kind) const {
+inline auto ElementGroup::firstType(Int dim, GhostType ghost_type,
+                                    ElementKind kind) const {
   return elements.elementTypes(dim, ghost_type, kind).begin();
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::type_iterator
-ElementGroup::lastType(UInt dim, GhostType ghost_type, ElementKind kind) const {
+inline auto ElementGroup::lastType(Int dim, GhostType ghost_type,
+                                   ElementKind kind) const {
   return elements.elementTypes(dim, ghost_type, kind).end();
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::const_element_iterator
-ElementGroup::begin(ElementType type, GhostType ghost_type) const {
+inline auto ElementGroup::begin(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type).begin();
   }
@@ -116,8 +112,7 @@ ElementGroup::begin(ElementType type, GhostType ghost_type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementGroup::const_element_iterator
-ElementGroup::end(ElementType type, GhostType ghost_type) const {
+inline auto ElementGroup::end(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type).end();
   }
@@ -125,7 +120,7 @@ ElementGroup::end(ElementType type, GhostType ghost_type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<UInt> &
+inline const Array<Idx> &
 ElementGroup::getElements(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type);
@@ -145,4 +140,4 @@ ElementGroup::getElementsIterable(ElementType type,
 
 } // namespace akantu
 
-#endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */
+//#endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */

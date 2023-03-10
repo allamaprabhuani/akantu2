@@ -38,6 +38,7 @@
 #include "aka_types.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
@@ -46,12 +47,30 @@
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
-class Dumper;
-}
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_vector<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {
+};
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_matrix<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<
+          not Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_vector<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<Derived::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_matrix<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<not Derived::IsVectorAtCompileTime> {};
+
+} // namespace iohelper
 
 namespace akantu {
 
-UInt getIOHelperType(ElementType type);
+Int getIOHelperType(ElementType type);
 
 namespace dumpers {
   class Field;
@@ -74,18 +93,16 @@ public:
 public:
   /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh,
-                            UInt spatial_dimension = _all_dimensions,
+                            Int spatial_dimension = _all_dimensions,
                             GhostType ghost_type = _not_ghost,
                             ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
-  virtual void
-  registerFilteredMesh(const Mesh & mesh,
-                       const ElementTypeMapArray<UInt> & elements_filter,
-                       const Array<UInt> & nodes_filter,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined);
+  virtual void registerFilteredMesh(
+      const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+      const Array<Idx> & nodes_filter, Int spatial_dimension = _all_dimensions,
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id,
@@ -102,10 +119,10 @@ public:
   virtual void dump();
   /// request dump: this first set the current step and then calls IOHelper dump
   /// routine
-  virtual void dump(UInt step);
+  virtual void dump(Int step);
   /// request dump: this first set the current step and current time and then
   /// calls IOHelper dump routine
-  virtual void dump(Real current_time, UInt step);
+  virtual void dump(Real current_time, Int step);
   /// set the parallel context for IOHeper
   virtual void setParallelContext(bool is_parallel);
   /// set the directory where to generate the dumped files
@@ -145,7 +162,7 @@ protected:
   Variables variables;
 
   /// dump counter
-  UInt count{0};
+  Int count{0};
 
   /// directory name
   std::string directory;

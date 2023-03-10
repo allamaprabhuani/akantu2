@@ -39,8 +39,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline bool
-ContactDetector::checkValidityOfProjection(Vector<Real> & projection) const {
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
+inline bool ContactDetector::checkValidityOfProjection(
+    Eigen::MatrixBase<Derived> & projection) const {
   Real tolerance = 1e-3;
   return std::all_of(projection.begin(), projection.end(),
                      [&tolerance](auto && xi) {
@@ -49,38 +50,26 @@ ContactDetector::checkValidityOfProjection(Vector<Real> & projection) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ContactDetector::coordinatesOfElement(const Element & el,
-                                                  Matrix<Real> & coords) const {
-
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-  const Vector<UInt> connect = mesh.getConnectivity(el.type, _not_ghost)
-                                   .begin(nb_nodes_per_element)[el.element];
-
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt node = connect[n];
-    for (UInt s : arange(spatial_dimension)) {
-      coords(s, n) = this->positions(node, s);
-    }
-  }
+template <class Derived>
+inline void ContactDetector::coordinatesOfElement(
+    const Element & el, Eigen::MatrixBase<Derived> & coords) const {
+  coords = mesh.extractNodalValuesFromElement(positions, el);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ContactDetector::computeCellSpacing(Vector<Real> & spacing) const {
-  for (UInt s : arange(spatial_dimension)) {
-    spacing(s) = std::sqrt(2.0) * max_dd;
-  }
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
+inline void ContactDetector::computeCellSpacing(
+    Eigen::MatrixBase<Derived> & spacing) const {
+  spacing.fill(std::sqrt(2.0) * max_dd);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void
-ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
-                               const Array<UInt> & nodes_list) const {
-  auto to_grid = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
-
+ContactDetector::constructGrid(SpatialGrid<Idx> & grid, BBox & bbox,
+                               const Array<Idx> & nodes_list) const {
+  auto position_it = make_view(this->positions, spatial_dimension).begin();
+  auto to_grid = [&](auto node) {
+    auto && pos = position_it[node];
     if (bbox.contains(pos)) {
       grid.insert(node, pos);
     }
@@ -92,22 +81,19 @@ ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
 /* -------------------------------------------------------------------------- */
 inline void
 ContactDetector::constructBoundingBox(BBox & bbox,
-                                      const Array<UInt> & nodes_list) const {
-  auto to_bbox = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
+                                      const Array<Idx> & nodes_list) const {
+  auto to_bbox = [&](auto node) {
+    auto && pos = make_view(this->positions, spatial_dimension).begin()[node];
     bbox += pos;
   };
 
   std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox);
 
-  auto & lower_bound = bbox.getLowerBounds();
-  auto & upper_bound = bbox.getUpperBounds();
+  Vector<Real> lower_bound = bbox.getLowerBounds().array() - max_bb;
+  Vector<Real> upper_bound = bbox.getUpperBounds().array() + max_bb;
 
-  lower_bound -= this->max_bb;
-  upper_bound += this->max_bb;
+  bbox.setLowerBounds(lower_bound);
+  bbox.setUpperBounds(upper_bound);
 
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }
@@ -125,7 +111,7 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
     this->mesh.getAssociatedElements(master, elements);
 
     for (auto element : elements) {
-      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element.type);
+      Int nb_nodes_per_element = mesh.getNbNodesPerElement(element.type);
       Matrix<Real> elem_coords(spatial_dimension, nb_nodes_per_element);
       this->coordinatesOfElement(element, elem_coords);
 
@@ -143,34 +129,32 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt>
-ContactDetector::constructConnectivity(UInt & slave,
+inline Vector<Idx>
+ContactDetector::constructConnectivity(Idx & slave,
                                        const Element & master) const {
-  const Vector<UInt> master_conn = this->mesh.getConnectivity(master);
+  auto && master_conn = this->mesh.getConnectivity(master);
 
-  Vector<UInt> elem_conn(master_conn.size() + 1);
+  Vector<Idx> elem_conn(master_conn.size() + 1);
   elem_conn[0] = slave;
-  for (UInt i = 1; i < elem_conn.size(); ++i) {
-    elem_conn[i] = master_conn[i - 1];
-  }
+  elem_conn.block(1, 0, master_conn.size(), 1) = master_conn;
 
   return elem_conn;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void
-ContactDetector::computeNormalOnElement(const Element & element,
-                                        Vector<Real> & normal) const {
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
+inline void ContactDetector::computeNormalOnElement(
+    const Element & element, Eigen::MatrixBase<Derived> & normal) const {
   Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
   this->vectorsAlongElement(element, vectors);
 
   switch (this->spatial_dimension) {
   case 2: {
-    Math::normal2(vectors.storage(), normal.storage());
+    normal = Math::normal(vectors);
     break;
   }
   case 3: {
-    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
+    normal = Math::normal(vectors.col(0), vectors.col(1));
     break;
   }
   default: {
@@ -182,19 +166,17 @@ ContactDetector::computeNormalOnElement(const Element & element,
   const auto & element_to_subelement =
       mesh.getElementToSubelement(element.type)(element.element);
 
-  Vector<Real> outside(spatial_dimension);
-  mesh.getBarycenter(element, outside);
+  Vector<Real> outside = mesh.getBarycenter(element);
 
   // check if mesh facets exists for cohesive elements contact
-  Vector<Real> inside(spatial_dimension);
+  Vector<Real> inside;
   if (mesh.isMeshFacets()) {
-    mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
+    inside = mesh.getMeshParent().getBarycenter(element_to_subelement[0]);
   } else {
-    mesh.getBarycenter(element_to_subelement[0], inside);
+    inside = mesh.getBarycenter(element_to_subelement[0]);
   }
 
-  Vector<Real> inside_to_outside = outside - inside;
-  auto projection = inside_to_outside.dot(normal);
+  auto projection = (outside - inside).dot(normal);
 
   if (projection < 0) {
     normal *= -1.0;
@@ -202,21 +184,25 @@ ContactDetector::computeNormalOnElement(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ContactDetector::vectorsAlongElement(const Element & el,
-                                                 Matrix<Real> & vectors) const {
+template <class Derived>
+inline void ContactDetector::vectorsAlongElement(
+    const Element & el, Eigen::MatrixBase<Derived> & vectors) const {
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(el, coords);
 
   for (auto i : arange(spatial_dimension - 1)) {
-    vectors(i) = Vector<Real>(coords(i + 1)) - Vector<Real>(coords(0));
+    vectors(i) = coords(i + 1) - coords(0);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real ContactDetector::computeGap(const Vector<Real> & slave,
-                                        const Vector<Real> & master) const {
+template <class Derived1, class Derived2,
+          std::enable_if_t<aka::are_vectors<Derived1, Derived2>::value> *>
+inline Real
+ContactDetector::computeGap(const Eigen::MatrixBase<Derived1> & slave,
+                            const Eigen::MatrixBase<Derived2> & master) const {
   auto gap = (master - slave).norm();
   return gap;
 }
@@ -256,35 +242,33 @@ inline void ContactDetector::filterBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool
-ContactDetector::isValidSelfContact(const UInt & slave_node, const Real & gap,
-                                    const Vector<Real> & normal) const {
-  UInt master_node;
+template <class Derived, std::enable_if_t<aka::is_vector_v<Derived>> *>
+inline bool ContactDetector::isValidSelfContact(
+    const Idx & slave_node, const Real & gap,
+    const Eigen::MatrixBase<Derived> & normal) const {
+  Idx master_node{-1};
 
   // finding the master node corresponding to slave node
-  for (auto && pair : contact_pairs) {
-    if (pair.first == slave_node) {
-      master_node = pair.second;
-      break;
-    }
-  }
+  auto it = std::find_if(
+      contact_pairs.begin(), contact_pairs.end(),
+      [slave_node](auto && pair) { return pair.first == slave_node; });
+  master_node = it->second;
 
-  Array<Element> slave_elements;
-  this->mesh.getAssociatedElements(slave_node, slave_elements);
+  auto && slave_elements = this->mesh.getAssociatedElements(slave_node);
 
   // Check 1 : master node is not connected to elements connected to
   // slave node
   Vector<Real> slave_normal(spatial_dimension);
-  for (auto & element : slave_elements) {
-    if (element.kind() != _ek_regular) {
-      continue;
-    }
+  for (auto & element : filter_if(slave_elements, [](auto && element) {
+         return element.kind() == _ek_regular;
+       })) {
 
-    const Vector<UInt> connectivity = this->mesh.getConnectivity(element);
+    auto && connectivity = this->mesh.getConnectivity(element);
+
+    auto coords = mesh.extractNodalValuesFromElement(positions, element);
 
     // finding the normal at slave node by averaging of normals
-    Vector<Real> normal(spatial_dimension);
-    GeometryUtils::normal(mesh, positions, element, normal);
+    auto normal = GeometryUtils::normal(mesh, coords, element);
     slave_normal = slave_normal + normal;
 
     auto node_iter =

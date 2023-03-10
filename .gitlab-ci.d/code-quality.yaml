@@ -1,6 +1,13 @@
 .code_quality_common:
   stage: code_quality
   allow_failure: true
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      policy: pull
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
   rules:
     - if: "$CODE_QUALITY_DISABLED"
       when: never
@@ -16,7 +23,7 @@
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.87.0"
+    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.89.0"
   needs: []
   script:
     - export SOURCE_CODE=$PWD

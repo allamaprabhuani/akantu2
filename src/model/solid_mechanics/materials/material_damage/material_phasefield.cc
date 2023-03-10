@@ -37,81 +37,53 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialPhaseField<spatial_dimension>::MaterialPhaseField(
-    SolidMechanicsModel & model, const ID & id)
+template <Int dim>
+MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
+                                            const ID & id)
     : Parent(model, id), effective_damage("effective_damage", *this) {
-
-  AKANTU_DEBUG_IN();
-
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
   this->damage.initialize(0);
   this->effective_damage.initialize(1);
-
-  AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeStress(
-    ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
+template <Int dim>
+void MaterialPhaseField<dim>::computeStress(ElementType el_type,
+                                            GhostType ghost_type) {
   computeEffectiveDamage(el_type, ghost_type);
-  auto dam = this->effective_damage(el_type, ghost_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
-  sigma *= (1. - *dam) * (1. - *dam) + eta;
-
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Parent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
-
-  computeEffectiveDamage(el_type, ghost_type);
-  auto dam = this->effective_damage(el_type, ghost_type).begin();
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-
-  tangent *= (1. - *dam) * (1. - *dam) + eta;
-  ++dam;
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialPhaseField<spatial_dimension>::computeEffectiveDamage(
-    ElementType el_type, GhostType ghost_type) {
-
-  auto && grad_u_view =
-      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,
-                this->spatial_dimension);
-
-  for (auto && data : zip(grad_u_view, this->damage(el_type, ghost_type),
-                          this->effective_damage(el_type, ghost_type))) {
-    auto & grad_u = std::get<0>(data);
-    auto & dam = std::get<1>(data);
-    auto & eff_dam = std::get<2>(data);
-
-    computeEffectiveDamageOnQuad(grad_u, dam, eff_dam);
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    computeStressOnQuad(args);
   }
 }
 
-INSTANTIATE_MATERIAL(phasefield, MaterialPhaseField);
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
+                                                   Array<Real> & tangent_matrix,
+                                                   GhostType ghost_type) {
+  computeEffectiveDamage(el_type, ghost_type);
+
+  for (auto && args :
+       getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+    computeTangentModuliOnQuad(args);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialPhaseField<dim>::computeEffectiveDamage(ElementType el_type,
+                                                     GhostType ghost_type) {
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    computeEffectiveDamageOnQuad(args);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template class MaterialPhaseField<1>;
+template class MaterialPhaseField<2>;
+template class MaterialPhaseField<3>;
+
+static bool material_is_allocated_phasefield =
+    instantiateMaterial<MaterialPhaseField>("phasefield");
 
 } // namespace akantu
