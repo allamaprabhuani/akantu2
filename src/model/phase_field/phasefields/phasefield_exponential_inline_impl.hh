@@ -6,8 +6,9 @@ inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
     const Real & dam, const Vector<Real> & grad_d, Real & edis,
     Real & g_c_quad) {
 
+  edis = 0.;
   for (auto i : arange(spatial_dimension)) {
-    edis = 0.5 * g_c_quad * this->l0 * grad_d[i] * grad_d[i];
+    edis += 0.5 * g_c_quad * this->l0 * grad_d[i] * grad_d[i];
   }
 
   edis += g_c_quad * dam * dam / (2 * this->l0);
