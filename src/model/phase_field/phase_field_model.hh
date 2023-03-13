@@ -64,7 +64,7 @@ public:
 
   PhaseFieldModel(Mesh & mesh, UInt dim = _all_dimensions,
                   const ID & id = "phase_field_model",
-		  std::shared_ptr<DOFManager> dof_manager = nullptr,
+                  std::shared_ptr<DOFManager> dof_manager = nullptr,
                   ModelType model_type = ModelType::_phase_field_model);
 
   ~PhaseFieldModel() override;
@@ -103,15 +103,14 @@ protected:
 
   /// callback to assemble a lumped Matrix
   void assembleLumpedMatrix(const ID & /*unused*/) override;
- 
+
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
-
 
 protected:
   /* ------------------------------------------------------------------------ */
   TimeStepSolverType getDefaultSolverType() const override;
-  
+
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
@@ -193,6 +192,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// Compute dissipated energy for an element type and phasefield index
+  Real getEnergy(ElementType type, UInt index);
+
 public:
   /// return the damage array
   AKANTU_GET_MACRO_DEREF_PTR(Damage, damage);
@@ -246,15 +249,11 @@ public:
   /// give the phasefield internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
 
-  
   /**
    * @brief Returns the total dissipated energy
    *
    */
   Real getEnergy();
-
-  /// Compute dissipated energy for an element type and phasefield index
-  Real getEnergy(ElementType type, UInt index);
 
   /// Compute dissipated energy for an individual element
   Real getEnergy(const Element & element) {
@@ -264,7 +263,6 @@ public:
   /// Compute dissipated energy for an element group
   Real getEnergy(const ID & group_id);
 
-  
   AKANTU_GET_MACRO(PhaseFieldByElement, phasefield_index,
                    const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO(PhaseFieldLocalNumbering, phasefield_local_numbering,
@@ -317,7 +315,6 @@ public:
                        const ElementTypeMapArray<Real> & field,
                        ElementKind kind, GhostType ghost_type = _not_ghost);
 
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -362,7 +359,6 @@ private:
 
   /// tells if the phasefields are instantiated
   flatten_internal_map registered_internals;
-
 
   /// tells if the phasefield are instantiated
   bool are_phasefields_instantiated{false};

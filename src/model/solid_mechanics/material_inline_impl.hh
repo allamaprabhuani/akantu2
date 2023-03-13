@@ -252,9 +252,8 @@ inline UInt Material::getNbData(const Array<Element> & elements,
            this->getModel().getNbIntegrationPoints(elements);
   }
   if (tag == SynchronizationTag::_smm_gradu) {
-    return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *
-           spatial_dimension * sizeof(Real) *
-           this->getModel().getNbIntegrationPoints(elements);
+    return spatial_dimension * spatial_dimension * sizeof(Real) *
+                 this->getModel().getNbIntegrationPoints(elements);
   }
   return 0;
 }

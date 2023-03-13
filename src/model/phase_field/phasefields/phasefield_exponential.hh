@@ -54,10 +54,14 @@ public:
   void computeDissipatedEnergy(ElementType el_type) override;
 
   void
-  computeDissipatedEnergyByElement(ElementType type, UInt index,
-                                   Vector<Real> & epot_on_quad_points) override;
+  computeDissipatedEnergyByElement(const Element & element,
+                                   Vector<Real> & edis_on_quad_points) override;
 
 protected:
+  void
+  computeDissipatedEnergyByElement(ElementType type, UInt index,
+                                   Vector<Real> & edis_on_quad_points) override;
+
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 

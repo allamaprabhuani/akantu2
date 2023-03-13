@@ -94,15 +94,17 @@ int main(int argc, char * argv[]) {
   }
   phase.dump();
 
-  UInt nbSteps = 1500;
-  Real increment = 1e-5;
+  UInt nbSteps = 1000;
+  Real increment = 6e-6;
+  UInt nb_staggered_steps = 5;
 
   auto start_time = clk::now();
 
   for (UInt s = 1; s < nbSteps; ++s) {
 
     if (s >= 500) {
-      increment = 1.e-6;
+      increment = 2e-6;
+      nb_staggered_steps = 10;
     }
 
     if (s % 10 == 0 && prank == 0) {
@@ -119,7 +121,9 @@ int main(int argc, char * argv[]) {
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
 
-    coupler.solve();
+    for (UInt i = 0; i < nb_staggered_steps; ++i) {
+      coupler.solve();
+    }
 
     if (s % 100 == 0) {
       model.dump();

@@ -344,26 +344,6 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 void CouplerSolidPhaseField::computeDamageOnQuadPoints(
     const GhostType & ghost_type) {
 
-  /*auto & solid_dam_internal = solid->flattenInternal("damage", _ek_regular,
-  ghost_type); auto & phase_dam_internal = phase->flattenInternal("damage",
-  _ek_regular, ghost_type);
-
-  auto & mesh = solid->getMesh();
-
-  for (const auto & type :
-     mesh.elementTypes(spatial_dimension, ghost_type)) {
-    auto & solid_dam_vect = solid_dam_internal(type, ghost_type);
-    const auto & phase_dam_vect =  phase_dam_internal(type, ghost_type);
-    for (auto && values :
-       zip(make_view(phase_dam_vect),
-           make_view(solid_dam_vect))) {
-      const auto & phase_dam = std::get<0>(values);
-      auto & solid_dam = std::get<1>(values);
-      solid_dam = phase_dam;
-      std::cout << solid_dam << " " << phase_dam << std::endl;
-    }
-    }*/
-
   AKANTU_DEBUG_IN();
 
   auto & fem = phase->getFEEngine();
@@ -462,47 +442,6 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(
   }
 
   phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
-
-  /*auto & mesh = solid->getMesh();
-
-  auto nb_materials = solid->getNbMaterials();
-  auto nb_phasefields = phase->getNbPhaseFields();
-
-  AKANTU_DEBUG_ASSERT(
-      nb_phasefields == nb_materials,
-      "The number of phasefields and materials should be equal");
-
-  for (auto index : arange(nb_materials)) {
-    auto & material = solid->getMaterial(index);
-
-    for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase->getPhaseField(index2);
-
-      if (phasefield.getName() == material.getName()) {
-
-        auto & strain_on_qpoints = phasefield.getStrain();
-        const auto & gradu_on_qpoints = material.getGradU();
-
-        for (const auto & type :
-             mesh.elementTypes(spatial_dimension, ghost_type)) {
-          auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
-          const auto & gradu_on_qpoints_vect =
-              gradu_on_qpoints(type, ghost_type);
-          for (auto && values :
-               zip(make_view(strain_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension),
-                   make_view(gradu_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension))) {
-            auto & strain = std::get<0>(values);
-            const auto & grad_u = std::get<1>(values);
-            gradUToEpsilon(grad_u, strain);
-          }
-        }
-
-        break;
-      }
-    }
-    }*/
 
   AKANTU_DEBUG_OUT();
 }

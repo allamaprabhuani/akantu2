@@ -154,6 +154,14 @@ protected:
 
   /// compute the potential energy for an element
   virtual void
+  computeDissipatedEnergyByElement(const Element & /*element*/,
+                                   Vector<Real> & /*edis_on_quad_points*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+protected:
+  /// compute the potential energy for an element
+  virtual void
   computeDissipatedEnergyByElement(ElementType /*type*/, UInt /*index*/,
                                    Vector<Real> & /*edis_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
@@ -189,12 +197,17 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// return the damage energyfor the provided element
+  virtual Real getEnergy(ElementType type, UInt index);
+
 public:
   /// return the damage energyfor the subset of elements contained
   /// by the phasefield
   virtual Real getEnergy();
-  /// return the damage energyfor the provided element
-  virtual Real getEnergy(ElementType type, UInt index);
+
+  /// Compute dissipated energy for an individual element
+  Real getEnergy(const Element & element);
 
   AKANTU_GET_MACRO(Name, name, const std::string &);
 

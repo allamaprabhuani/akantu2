@@ -51,4 +51,6 @@ package_declare_sources(phase_field
 
   model/model_couplers/coupler_solid_phasefield.hh
   model/model_couplers/coupler_solid_phasefield.cc
+
+  model/phase_field/phase_field_element_filter.hh
   )

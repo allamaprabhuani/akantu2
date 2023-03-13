@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phase_field_model.hh"
+#include "aka_common.hh"
 #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine_template.hh"
@@ -374,7 +375,8 @@ Real PhaseFieldModel::getEnergy(ElementType type, UInt index) {
   UInt phase_index = this->phasefield_index(type, _not_ghost)(index);
   UInt phase_loc_num =
       this->phasefield_local_numbering(type, _not_ghost)(index);
-  Real energy = this->phasefields[phase_index]->getEnergy(type, phase_loc_num);
+  Real energy = this->phasefields[phase_index]->getEnergy(
+      Element{type, phase_loc_num, _not_ghost});
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -413,7 +415,6 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     auto & dam = std::get<0>(values);
     auto & prev_dam = std::get<1>(values);
 
-    // dam -= prev_dam;
     prev_dam = dam;
   }
 }

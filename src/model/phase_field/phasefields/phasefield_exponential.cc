@@ -137,6 +137,12 @@ void PhaseFieldExponential::computeDissipatedEnergyByElement(
   }
 }
 
+void PhaseFieldExponential::computeDissipatedEnergyByElement(
+    const Element & element, Vector<Real> & edis_on_quad_points) {
+  computeDissipatedEnergyByElement(element.type, element.element,
+                                   edis_on_quad_points);
+}
+
 INSTANTIATE_PHASEFIELD(exponential, PhaseFieldExponential);
 
 } // namespace akantu

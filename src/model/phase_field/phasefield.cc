@@ -383,6 +383,11 @@ Real PhaseField::getEnergy(ElementType type, UInt index) {
 }
 
 /* -------------------------------------------------------------------------- */
+Real PhaseField::getEnergy(const Element & element) {
+  return getEnergy(element.type, element.element);
+}
+
+/* -------------------------------------------------------------------------- */
 void PhaseField::beforeSolveStep() {
   this->savePreviousState();
   this->computeAllDrivingForces(_not_ghost);
