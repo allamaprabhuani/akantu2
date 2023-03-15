@@ -23,8 +23,7 @@
 package_declare(Eigen3 EXTERNAL
   DESCRIPTION "Add Eigen3 dependency to akantu"
   SYSTEM AUTO third-party/cmake/eigen3.cmake
-  EXTRA_PACKAGE_OPTIONS ARGS 3.4 NO_MODULE
-  TARGET Eigen3::Eigen
+  EXTRA_PACKAGE_OPTIONS ARGS 3.4 ARGS NO_MODULE TARGET Eigen3::Eigen
   )
 
 mark_as_advanced(Eigen3_DIR)

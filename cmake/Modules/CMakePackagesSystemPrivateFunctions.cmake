@@ -796,7 +796,7 @@ function(_package_load_external_package pkg_name activate)
 
   _package_get_find_package_extra_options(${pkg_name} _options)
   if(_options)
-    cmake_parse_arguments(_opt_pkg "" "LANGUAGE:TARGET" "LINK_LIBRARIES;PREFIX;FOUND;ARGS" ${_options})
+    cmake_parse_arguments(_opt_pkg "" "LANGUAGE;TARGET" "LINK_LIBRARIES;PREFIX;FOUND;ARGS" ${_options})
     if(_opt_pkg_UNPARSED_ARGUMENTS)
       message("You passed too many options for the find_package related to ${${pkg_name}} \"${_opt_pkg_UNPARSED_ARGUMENTS}\"")
     endif()
