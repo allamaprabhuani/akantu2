@@ -419,6 +419,7 @@ pages:
   extends:
     - .debian_bullseye_gcc
   script:
+    - mkdir build
     - cd build
     - cmake -DAKANTU_DOCUMENTATION=ON ..
     - cmake --build . -t sphinx-doc
