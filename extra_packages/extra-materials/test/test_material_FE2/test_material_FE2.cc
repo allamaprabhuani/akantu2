@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   /// input parameters for the simulation
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const ParserSection & parser = getUserParser();
   std::string mesh_file = parser.getParameter("mesh_file");
   Matrix<Real> prestrain_increment = parser.getParameter("prestrain_increment");
@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
       dynamic_cast<MaterialFE2<spatial_dimension> &>(
           model.getMaterial("FE2_mat"));
   Matrix<Real> current_prestrain(spatial_dimension, spatial_dimension, 0.);
-  for (UInt i = 0; i < total_steps; ++i) {
+  for (Int i = 0; i < total_steps; ++i) {
     model.dump();
     current_prestrain += prestrain_increment;
     mat.advanceASR(current_prestrain);

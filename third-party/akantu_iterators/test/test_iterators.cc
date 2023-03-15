@@ -46,7 +46,7 @@ public:
   A(const A & other)
       : a(other.a), copy_counter(other.copy_counter + 1),
         move_counter(other.move_counter) {}
-  A & operator=(const A & other) {
+  auto operator=(const A & other) -> A & {
     if (this != &other) {
       a = other.a;
       copy_counter = other.copy_counter + 1;
@@ -55,10 +55,11 @@ public:
   }
 
   A(A && other)
+  noexcept
       : a(std::move(other.a)), copy_counter(std::move(other.copy_counter)),
         move_counter(std::move(other.move_counter) + 1) {}
 
-  A & operator=(A && other) {
+  auto operator=(A && other) noexcept -> A & {
     if (this != &other) {
       a = std::move(other.a);
       copy_counter = std::move(other.copy_counter);
@@ -67,7 +68,7 @@ public:
     return *this;
   }
 
-  A & operator*=(const T & b) {
+  auto operator*=(const T & b) -> A & {
     a *= b;
     return *this;
   }
@@ -78,6 +79,7 @@ public:
 };
 
 template <typename T> struct C {
+  using size_type = std::size_t;
   struct iterator {
     using reference = A<T>;
     using difference_type = void;
@@ -87,10 +89,14 @@ template <typename T> struct C {
 
     iterator(T pos) : pos(std::move(pos)) {}
 
-    A<T> operator*() { return A<int>(pos); }
-    bool operator!=(const iterator & other) const { return pos != other.pos; }
-    bool operator==(const iterator & other) const { return pos == other.pos; }
-    iterator & operator++() {
+    auto operator*() -> A<T> { return A<int>(pos); }
+    auto operator!=(const iterator & other) const -> bool {
+      return pos != other.pos;
+    }
+    auto operator==(const iterator & other) const -> bool {
+      return pos == other.pos;
+    }
+    auto operator++() -> iterator & {
       ++pos;
       return *this;
     }
@@ -99,8 +105,8 @@ template <typename T> struct C {
 
   C(T begin_, T end_) : begin_(std::move(begin_)), end_(std::move(end_)) {}
 
-  iterator begin() { return iterator(begin_); }
-  iterator end() { return iterator(end_); }
+  auto begin() -> iterator { return iterator(begin_); }
+  auto end() -> iterator { return iterator(end_); }
 
   T begin_, end_;
 };
@@ -128,8 +134,8 @@ protected:
     EXPECT_EQ(nb_move, b.move_counter);
   }
 
-protected:
-  size_t size{20};
+public:
+  std::size_t size{20};
   std::vector<A<int>> a{};
   std::vector<A<float>> b{};
 };
@@ -220,9 +226,186 @@ TEST_F(TestZipFixutre, RandomAccess) {
 
 TEST_F(TestZipFixutre, Cat) {
   size_t i = 0;
-  for (auto && data : make_zip_cat(zip(a, b), zip(a, b))) {
+  for (auto && data : zip_cat(zip(a, b), zip(a, b))) {
     this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
     this->check(std::get<2>(data), std::get<3>(data), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, AppendSimple) {
+  size_t i = 0;
+
+  auto zip_ = zip_append(zip(a, arange(size)), b);
+
+  for (auto && data : zip_) {
+    this->check(std::get<0>(data), std::get<2>(data), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, AppendTemporaries) {
+  size_t i = 0;
+
+  auto zip_ = zip_append(zip_append(zip(a, arange(size)), b), arange(size));
+
+  for (auto && data : zip_) {
+    this->check(std::get<0>(data), std::get<2>(data), i, 0, 0);
+    EXPECT_EQ(std::get<3>(data), i);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, Replace) {
+  size_t i = 0;
+  for (auto && data :
+       zip_replace<1>(zip_replace<1>(zip(a, a), arange(size)), b)) {
+    this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, Remove) {
+  size_t i = 0;
+  for (auto && data :
+       zip_remove<1>(zip_remove<1>(zip(a, a, arange(size), b)))) {
+    this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
+    ++i;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+TEST_F(TestZipFixutre, SimpleNamedTest) {
+  size_t i = 0;
+  for (auto && pair : zip("a"_n = this->a, "b"_n = this->b)) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, NamedConstTest) {
+  size_t i = 0;
+  const auto & ca = this->a;
+  const auto & cb = this->b;
+  for (auto && pair : zip("a"_n = ca, "b"_n = cb)) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"a"_h>(pair))>>::value);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"b"_h>(pair))>>::value);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, NamedMixteTest) {
+  size_t i = 0;
+  const auto & cb = this->b;
+  for (auto && pair : zip("a"_n = a, "b"_n = cb)) {
+    this->check(std::get<0>(pair), std::get<1>(pair), i, 0, 0);
+    EXPECT_EQ(
+        false,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"a"_h>(pair))>>::value);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"b"_h>(pair))>>::value);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, MoveNamedTest) {
+  size_t i = 0;
+  for (auto && pair : zip("a"_n = C<int>(0, this->size),
+                      "b"_n = C<int>(this->size, 2 * this->size))) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 1);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, BidirectionalNamed) {
+  auto _zip = zip("a"_n = a, "b"_n = b);
+  auto begin = _zip.begin();
+
+  auto it = begin;
+  ++it;
+  EXPECT_EQ(begin, --it);
+
+  it = begin;
+  EXPECT_EQ(begin, it++);
+  EXPECT_EQ(begin, --it);
+
+  auto it2 = it = begin;
+  ++it;
+  ++it2;
+  EXPECT_EQ(it2, it--);
+  EXPECT_EQ(begin, it);
+}
+
+TEST_F(TestZipFixutre, RandomAccessNamed) {
+  auto _zip = zip("a"_n = a, "b"_n = b);
+  auto begin = _zip.begin();
+  auto end = _zip.end();
+
+  auto && val5 = begin[5];
+  this->check(tuple::get<"a"_h>(val5), tuple::get<"b"_h>(val5), 5, 0, 0);
+
+  auto && val13 = begin[13];
+  this->check(tuple::get<"a"_h>(val13), tuple::get<"b"_h>(val13), 13, 0, 0);
+
+  EXPECT_EQ(end - begin, a.size());
+  auto it = ++begin;
+  EXPECT_EQ(begin + 1, ++it);
+  EXPECT_EQ(begin, it - 1);
+}
+
+// TEST_F(TestZipFixutre, NamedCat) {
+//   size_t i = 0;
+//   for (auto && data :
+//        zip_cat(zip("a"_n = a, "b"_n = b),
+//                zip("c"_n = a, "d"_n = b))) {
+//     this->check(std::get<0>(data), std::get<1>(data), i, 0, 0);
+//     this->check(std::get<2>(data), std::get<3>(data), i, 0, 0);
+//     ++i;
+//   }
+// }
+
+TEST_F(TestZipFixutre, NamedAppend) {
+  size_t i = 0;
+
+  auto func = [&]() { return zip("a"_n = a, "temporary"_n = arange(size)); };
+
+  auto && _zip = zip_append(zip_append(func(), "b"_n = b), "c"_n = arange(size),
+                            "d"_n = b);
+  for (auto && data : _zip) {
+    this->check(tuple::get<"a"_h>(data), tuple::get<"b"_h>(data), i, 0, 0);
+    EXPECT_EQ(tuple::get<"c"_h>(data), i);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, NamedReplace) {
+  size_t i = 0;
+  for (auto && data : zip_replace<"b"_h>(
+           zip_replace<"b"_h>(zip("a"_n = a, "b"_n = a, "c"_n = b),
+                              arange(size)),
+           b)) {
+    this->check(tuple::get<"a"_h>(data), tuple::get<"b"_h>(data), i, 0, 0);
+    this->check(tuple::get<"a"_h>(data), tuple::get<"c"_h>(data), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, NamedRemove) {
+  size_t i = 0;
+  for (auto && data :
+       zip_remove<"a2"_h>(zip("a"_n = a, "a2"_n = arange(size), "b"_n = b))) {
+    EXPECT_EQ(data.has<"a2"_h>(), false);
+    this->check(data["a"_n], data["b"_n], i, 0, 0);
     ++i;
   }
 }
@@ -232,16 +415,16 @@ TEST(TestNamedZipFixutre, Simple) {
   std::vector<int> b{0, 1, 2, 3, 4};
 
   using namespace tuple;
-  for (auto && data : named_zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
-    auto & a = tuple::get<"a"_h>(data);
-    auto & b = tuple::get<"b"_h>(data);
+  for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
+    auto & a = data["a"_n];
+    auto & b = data["b"_n];
     b *= 10;
     EXPECT_EQ(b, a);
   }
 
-  for (auto && data : named_zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
-    auto & a = tuple::get<"a"_h>(data);
-    auto & b = tuple::get<"b"_h>(data);
+  for (auto && data : zip(get<"a"_h>() = a, get<"b"_h>() = b)) {
+    auto & a = data["a"_n];
+    auto & b = data["b"_n];
     EXPECT_EQ(b, a);
   }
 }
@@ -394,9 +577,54 @@ TEST(TestFilteredIterator, Temporary) {
 }
 
 /* -------------------------------------------------------------------------- */
+TEST(TestFilteredIfIterator, Simple) {
+  std::vector<int> values{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  for (auto && data : filter_if(values, [](auto && a) { return a % 2 == 0; })) {
+    std::cout << data << std::endl;
+    EXPECT_EQ(data % 2, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+TEST(TestFilteredIfIterator, Temporary) {
+  for (auto && data :
+       filter_if(arange(10), [](auto && a) { return a % 2 == 0; })) {
+    EXPECT_EQ(data % 2, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 TEST(TestConcatenateIterator, SimpleTest) {
   for (auto && data : zip(arange(0, 13), concat(arange(0, 5), arange(5, 10),
                                                 arange(10, 13)))) {
     EXPECT_EQ(std::get<0>(data), std::get<1>(data));
   }
+}
+
+/* -------------------------------------------------------------------------- */
+TEST(TestRepeatNIterator, SimpleTest) {
+  std::vector<int> ref{0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4};
+  for (auto && data : zip(repeat_n(arange(0, 5), 3), ref)) {
+    EXPECT_EQ(std::get<0>(data), std::get<1>(data));
+  }
+}
+
+TEST(TestRepeatNIterator, IncTest) {
+  std::vector<int> ref{0, 1, 2, 3, 4};
+  auto r = repeat_n(ref, 3);
+
+  auto it = r.begin();
+  EXPECT_EQ(*it, 0);
+  EXPECT_EQ(it[3], 1);
+  EXPECT_EQ(it[4], 1);
+  EXPECT_EQ(it[5], 1);
+
+  auto it1 = it + 1;
+  EXPECT_EQ(it1[3], 1);
+  EXPECT_EQ(it1[4], 1);
+  EXPECT_EQ(it1[5], 2);
+
+  auto end = r.end();
+  EXPECT_EQ(*(it + 5), 1);
+  EXPECT_EQ(*(end - 1), 4);
 }

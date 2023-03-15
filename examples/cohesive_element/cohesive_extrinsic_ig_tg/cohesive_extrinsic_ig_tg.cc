@@ -65,8 +65,8 @@ private:
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
-  const UInt max_steps = 1000;
+  const Int spatial_dimension = 2;
+  const Int max_steps = 1000;
 
   Mesh mesh(spatial_dimension);
   mesh.read("square.msh");
@@ -132,7 +132,7 @@ int main(int argc, char * argv[]) {
   Velocity velx(model, VI, _x);
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     model.applyBC(vely, "top");
     model.applyBC(vely, "bottom");

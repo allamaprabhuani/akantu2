@@ -52,7 +52,7 @@ TYPED_TEST(TestFEMFixture, InverseMap) {
 
   Vector<Real> natural_coords(this->dim);
 
-  auto length = (this->upper - this->lower).template norm<L_inf>();
+  auto length = (this->upper - this->lower).template lpNorm<Eigen::Infinity>();
 
   for (auto && enum_ :
        enumerate(make_view(coord_on_quad, this->dim, quad.cols()))) {

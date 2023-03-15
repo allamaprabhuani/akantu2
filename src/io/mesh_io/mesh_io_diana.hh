@@ -67,23 +67,23 @@ public:
 
 private:
   std::string readCoordinates(std::ifstream & infile, Mesh & mesh,
-                              UInt & first_node_number);
+                              Idx & first_node_number);
 
   std::string readElements(std::ifstream & infile, Mesh & mesh,
-                           UInt first_node_number);
+                           Idx first_node_number);
 
   std::string readGroups(std::ifstream & infile, Mesh & mesh,
-                         UInt first_node_number);
+                         Idx first_node_number);
 
   std::string readConnectivity(std::ifstream & infile, Mesh & mesh,
-                               UInt first_node_number);
+                               Idx first_node_number);
 
   std::string readMaterialElement(std::ifstream & infile, Mesh & mesh);
 
   std::string readMaterial(std::ifstream & infile,
                            const std::string & filename);
 
-  UInt readInterval(std::stringstream & line, std::set<UInt> & interval);
+  Idx readInterval(std::stringstream & line, std::set<Idx> & interval);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -98,10 +98,10 @@ private:
 
   /// order in witch element as to be read, akantu_node_order =
   /// _read_order[diana_node_order]
-  std::map<ElementType, UInt *> _read_order;
+  std::map<ElementType, Int *> _read_order;
 
   std::map<UInt, Element> diana_element_number_to_elements;
-  std::map<Element, UInt> akantu_number_to_diana_number;
+  std::map<Element, Int> akantu_number_to_diana_number;
 };
 
 } // namespace akantu

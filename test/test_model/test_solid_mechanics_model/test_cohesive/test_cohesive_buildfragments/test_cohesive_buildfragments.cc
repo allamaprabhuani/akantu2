@@ -30,10 +30,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+//#include "boost_graph_converter.hh"
 #include "fragment_manager.hh"
 #include "material_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -41,13 +43,15 @@
 
 using namespace akantu;
 
+static const bool debug_ = true;
+
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   Math::setTolerance(1e-14);
 
-  const UInt spatial_dimension = 2;
-  const UInt max_steps = 200;
+  const Int spatial_dimension = 2;
+  const Int max_steps = 200;
   Real strain_rate = 1.e5;
   ElementType type = _quadrangle_4;
 
@@ -73,39 +77,77 @@ int main(int argc, char * argv[]) {
   Real disp_increment = strain_rate * L / 2. * time_step;
   model.assembleMassLumped();
 
-  Array<Real> & velocity = model.getVelocity();
-  const Array<Real> & position = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto & velocity = model.getVelocity();
+  const auto & position = mesh.getNodes();
+  auto nb_nodes = mesh.getNbNodes();
+  // auto nb_elements = mesh.getNbElement(type);
+  // auto & mesh_facets = mesh.getMeshFacets();
 
   /// initial conditions
-  for (UInt n = 0; n < nb_nodes; ++n)
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 0) = strain_rate * position(n, 0);
+  }
 
   /// boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Left_side");
   model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Right_side");
 
-  UInt cohesive_index = 1;
+  auto cohesive_index = 1;
 
-  UInt nb_quad_per_facet =
+  auto nb_quad_per_facet =
       model.getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
-  MaterialCohesive & mat_cohesive =
+  auto & mat_cohesive =
       dynamic_cast<MaterialCohesive &>(model.getMaterial(cohesive_index));
   const Array<Real> & damage = mat_cohesive.getDamage(type_cohesive);
 
   FragmentManager fragment_manager(model, false);
-  const Array<Real> & fragment_mass = fragment_manager.getMass();
+
+  if (debug_) {
+    model.setBaseName("buildfragments");
+    model.addDumpFieldVector("displacement");
+    model.addDumpField("velocity");
+    model.addDumpField("acceleration");
+    model.addDumpField("internal_force");
+    model.addDumpField("stress");
+    model.addDumpField("grad_u");
+    model.addDumpFieldToDumper("cohesive elements", "damage");
+    model.dump();
+  }
+
+  Vector<Int> counts(4);
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.checkCohesiveStress();
     model.solveStep();
 
+    //    BoostGraphConverter converter(mesh);
+    //    converter.toGraphviz("blip_" + std::to_string(s) + ".dot");
+
+    if (debug_) {
+      model.dump();
+      model.dump("cohesive elements");
+    }
     /// apply boundary conditions
     model.applyBC(BC::Dirichlet::IncrementValue(-disp_increment, _x),
                   "Left_side");
     model.applyBC(BC::Dirichlet::IncrementValue(disp_increment, _x),
                   "Right_side");
+
+    // const auto & elements_to_facets = mesh_facets.getSubelementToElement();
+
+    // for (auto && el : element_range(nb_elements, type)) {
+    //   auto && element_to_facets = elements_to_facets.get(el);
+    //   counts.zero();
+    //   for (auto && facet_data : enumerate(element_to_facets)) {
+    //     const auto & connected_elements =
+    //         mesh_facets.getElementToSubelement(std::get<1>(facet_data));
+    //     counts[std::get<0>(facet_data)] = std::count_if(
+    //         connected_elements.begin(), connected_elements.end(),
+    //         [](auto && element) { return element == ElementNull; });
+    //   }
+    //   std::cout << el << " - " << counts << std::endl;
+    // }
 
     if (s % 1 == 0) {
       //      model.dump();
@@ -114,13 +156,13 @@ int main(int argc, char * argv[]) {
       fragment_manager.computeAllData();
 
       /// check number of fragments
-      UInt nb_fragment_num = fragment_manager.getNbFragment();
+      Int nb_fragment_num = fragment_manager.getNbFragment();
 
-      UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
+      auto nb_cohesive_elements = mesh.getNbElement(type_cohesive);
 
-      UInt nb_fragment = 1;
-      for (UInt el = 0; el < nb_cohesive_elements; ++el) {
-        UInt q = 0;
+      Int nb_fragment = 1;
+      for (Int el = 0; el < nb_cohesive_elements; ++el) {
+        Int q = 0;
         while (q < nb_quad_per_facet &&
                Math::are_float_equal(damage(el * nb_quad_per_facet + q), 1))
           ++q;
@@ -131,19 +173,21 @@ int main(int argc, char * argv[]) {
       }
 
       if (nb_fragment != nb_fragment_num) {
-        std::cout << "The number of fragments is wrong!" << std::endl;
-        return EXIT_FAILURE;
+        AKANTU_EXCEPTION("The number of fragments is wrong! Got: "
+                         << nb_fragment_num << " - expected: " << nb_fragment);
       }
 
       /// check mass computation
-      Real total_mass = 0.;
-      for (UInt frag = 0; frag < nb_fragment_num; ++frag) {
-        total_mass += fragment_mass(frag);
-      }
+      const auto & fragment_mass = fragment_manager.getMass();
+      Vector<Real> zeros = Vector<Real>::Zero(spatial_dimension);
+      auto total_mass =
+          std::accumulate(fragment_mass.begin(spatial_dimension),
+                          fragment_mass.end(spatial_dimension), zeros);
 
-      if (!Math::are_float_equal(theoretical_mass, total_mass)) {
-        std::cout << "The fragments' mass is wrong!" << std::endl;
-        return EXIT_FAILURE;
+      if (!Math::are_float_equal(theoretical_mass, total_mass(0))) {
+        AKANTU_EXCEPTION("The fragments' mass is wrong! Got: "
+                         << total_mass(0)
+                         << " - expected: " << theoretical_mass);
       }
     }
   }
@@ -151,19 +195,18 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   /// check velocities
-  UInt nb_fragment = fragment_manager.getNbFragment();
-  const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
-  const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
+  Int nb_fragment = fragment_manager.getNbFragment();
+  const auto & fragment_velocity = fragment_manager.getVelocity();
+  const auto & fragment_center = fragment_manager.getCenterOfMass();
 
   Real fragment_length = L / nb_fragment;
   Real initial_position = -L / 2. + fragment_length / 2.;
 
-  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+  for (Int frag = 0; frag < nb_fragment; ++frag) {
     Real theoretical_center = initial_position + fragment_length * frag;
 
     if (!Math::are_float_equal(fragment_center(frag, 0), theoretical_center)) {
-      std::cout << "The fragments' center is wrong!" << std::endl;
-      return EXIT_FAILURE;
+      AKANTU_EXCEPTION("The fragments' center is wrong!");
     }
 
     Real initial_vel = fragment_center(frag, 0) * strain_rate;
@@ -171,12 +214,9 @@ int main(int argc, char * argv[]) {
     Math::setTolerance(100);
 
     if (!Math::are_float_equal(fragment_velocity(frag), initial_vel)) {
-      std::cout << "The fragments' velocity is wrong!" << std::endl;
-      return EXIT_FAILURE;
+      AKANTU_EXCEPTION("The fragments' velocity is wrong!");
     }
   }
-
-  finalize();
 
   std::cout << "OK: test_cohesive_buildfragments was passed!" << std::endl;
   return EXIT_SUCCESS;

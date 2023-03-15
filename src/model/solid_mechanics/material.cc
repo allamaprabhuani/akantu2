@@ -55,9 +55,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
       interpolation_inverse_coordinates("interpolation inverse coordinates",
                                         *this),
       interpolation_points_matrices("interpolation points matrices", *this),
-      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension(),
-                   0.) {
-  AKANTU_DEBUG_IN();
+      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension()) {
+  eigen_grad_u.fill(0.);
 
   this->registerParam("eigen_grad_u", eigen_grad_u, _pat_parsable,
                       "EigenGradU");
@@ -68,12 +67,10 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
                             _spatial_dimension = spatial_dimension,
                             _element_kind = _ek_regular);
   this->initialize();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+Material::Material(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
                    FEEngine & fe_engine, const ID & id)
     : Parsable(ParserType::_material, id), id(id), fem(fe_engine), model(model),
       spatial_dimension(dim), element_filter("element_filter", id),
@@ -90,15 +87,13 @@ Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                                         this->element_filter),
       interpolation_points_matrices("interpolation points matrices", *this, dim,
                                     fe_engine, this->element_filter),
-      eigen_grad_u(dim, dim, 0.) {
-
-  AKANTU_DEBUG_IN();
+      eigen_grad_u(dim, dim) {
+  eigen_grad_u.fill(0.);
 
   element_filter.initialize(mesh, _spatial_dimension = spatial_dimension,
                             _element_kind = _ek_regular);
 
   this->initialize();
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -130,18 +125,12 @@ void Material::initMaterial() {
 
   if (finite_deformation) {
     this->piola_kirchhoff_2.initialize(spatial_dimension * spatial_dimension);
-    if (use_previous_stress) {
-      this->piola_kirchhoff_2.initializeHistory();
-    }
+    this->piola_kirchhoff_2.initializeHistory();
     this->green_strain.initialize(spatial_dimension * spatial_dimension);
   }
 
-  if (use_previous_stress) {
-    this->stress.initializeHistory();
-  }
-  if (use_previous_gradu) {
-    this->gradu.initializeHistory();
-  }
+  this->stress.initializeHistory();
+  this->gradu.initializeHistory();
 
   this->resizeInternals();
 
@@ -197,70 +186,23 @@ void Material::restorePreviousState() {
 void Material::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
 
-  if (!finite_deformation) {
+  tuple_dispatch<AllSpatialDimensions>(
+      [&](auto && _) {
+        constexpr auto dim = aka::decay_v<decltype(_)>;
 
-    auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
-
-    // Mesh & mesh = fem.getMesh();
-    for (auto && type :
-         element_filter.elementTypes(spatial_dimension, ghost_type)) {
-      Array<UInt> & elem_filter = element_filter(type, ghost_type);
-      UInt nb_element = elem_filter.size();
-
-      if (nb_element == 0) {
-        continue;
-      }
-
-      const Array<Real> & shapes_derivatives =
-          fem.getShapesDerivatives(type, ghost_type);
-
-      UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
-      UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-      /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by
-      /// @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
-      auto * sigma_dphi_dx =
-          new Array<Real>(nb_element * nb_quadrature_points,
-                          size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
-
-      fem.computeBtD(stress(type, ghost_type), *sigma_dphi_dx, type, ghost_type,
-                     elem_filter);
-
-      /**
-       * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by
-       * @f$ \sum_q \mathbf{B}^t
-       * \mathbf{\sigma}_q \overline w_q J_q@f$
-       */
-      auto * int_sigma_dphi_dx =
-          new Array<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
-                          "int_sigma_x_dphi_/_dX");
-
-      fem.integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-                    size_of_shapes_derivatives, type, ghost_type, elem_filter);
-      delete sigma_dphi_dx;
-
-      /// assemble
-      model.getDOFManager().assembleElementalArrayLocalArray(
-          *int_sigma_dphi_dx, internal_force, type, ghost_type, -1,
-          elem_filter);
-      delete int_sigma_dphi_dx;
-    }
-  } else {
-    switch (spatial_dimension) {
-    case 1:
-      this->assembleInternalForces<1>(ghost_type);
-      break;
-    case 2:
-      this->assembleInternalForces<2>(ghost_type);
-      break;
-    case 3:
-      this->assembleInternalForces<3>(ghost_type);
-      break;
-    }
-  }
+        for (auto && type :
+             element_filter.elementTypes(spatial_dimension, ghost_type)) {
+          if (not finite_deformation) {
+            this->assembleInternalForces<dim>(type, ghost_type);
+          } else {
+            this->assembleInternalForcesFiniteDeformation<dim>(type,
+                                                               ghost_type);
+          }
+        }
+      },
+      spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }
@@ -274,16 +216,16 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 void Material::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  auto spatial_dimension = model.getSpatialDimension();
 
   for (const auto & type :
        element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    Array<UInt> & elem_filter = element_filter(type, ghost_type);
+    auto & elem_filter = element_filter(type, ghost_type);
 
     if (elem_filter.empty()) {
       continue;
     }
-    Array<Real> & gradu_vect = gradu(type, ghost_type);
+    auto & gradu_vect = gradu(type, ghost_type);
 
     /// compute @f$\nabla u@f$
     fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect,
@@ -308,40 +250,32 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
                                           "finite deformation.");
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    switch (spatial_dimension) {
-    case 1:
-      this->StoCauchy<1>(type, ghost_type);
-      break;
-    case 2:
-      this->StoCauchy<2>(type, ghost_type);
-      break;
-    case 3:
-      this->StoCauchy<3>(type, ghost_type);
-      break;
-    }
+    tuple_dispatch<AllSpatialDimensions>(
+        [&](auto && _) {
+          constexpr auto dim = aka::decay_v<decltype(_)>;
+          this->StoCauchy<dim>(type, ghost_type);
+        },
+        spatial_dimension);
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto gradu_it = this->gradu(el_type, ghost_type).begin(dim, dim);
-  auto gradu_end = this->gradu(el_type, ghost_type).end(dim, dim);
+  for (auto && data :
+       zip(make_view<dim, dim>(this->gradu(el_type, ghost_type)),
+           make_view<dim, dim>(this->piola_kirchhoff_2(el_type, ghost_type)),
+           make_view<dim, dim>(this->stress(el_type, ghost_type)))) {
+    auto && grad_u = std::get<0>(data);
+    auto && piola = std::get<1>(data);
+    auto && sigma = std::get<2>(data);
 
-  auto piola_it = this->piola_kirchhoff_2(el_type, ghost_type).begin(dim, dim);
-  auto stress_it = this->stress(el_type, ghost_type).begin(dim, dim);
-
-  for (; gradu_it != gradu_end; ++gradu_it, ++piola_it, ++stress_it) {
-    Matrix<Real> & grad_u = *gradu_it;
-    Matrix<Real> & piola = *piola_it;
-    Matrix<Real> & sigma = *stress_it;
-
-    auto F_tensor = gradUToF<dim>(grad_u);
-    this->StoCauchy<dim>(F_tensor, piola, sigma);
+    Matrix<Real, dim, dim> F = gradUToF<dim>(grad_u);
+    this->StoCauchy<dim>(F, piola, sigma);
   }
 
   AKANTU_DEBUG_OUT();
@@ -351,15 +285,15 @@ void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
 void Material::setToSteadyState(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Array<Real> & displacement = model.getDisplacement();
+  const auto & displacement = model.getDisplacement();
 
   // resizeInternalArray(gradu);
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  auto spatial_dimension = model.getSpatialDimension();
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    Array<UInt> & elem_filter = element_filter(type, ghost_type);
-    Array<Real> & gradu_vect = gradu(type, ghost_type);
+    auto & elem_filter = element_filter(type, ghost_type);
+    auto & gradu_vect = gradu(type, ghost_type);
 
     /// compute @f$\nabla u@f$
     fem.gradientOnIntegrationPoints(displacement, gradu_vect, spatial_dimension,
@@ -381,126 +315,118 @@ void Material::setToSteadyState(GhostType ghost_type) {
 void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  auto spatial_dimension = model.getSpatialDimension();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    if (finite_deformation) {
-      switch (spatial_dimension) {
-      case 1: {
-        assembleStiffnessMatrixNL<1>(type, ghost_type);
-        assembleStiffnessMatrixL2<1>(type, ghost_type);
-        break;
-      }
-      case 2: {
-        assembleStiffnessMatrixNL<2>(type, ghost_type);
-        assembleStiffnessMatrixL2<2>(type, ghost_type);
-        break;
-      }
-      case 3: {
-        assembleStiffnessMatrixNL<3>(type, ghost_type);
-        assembleStiffnessMatrixL2<3>(type, ghost_type);
-        break;
-      }
-      }
-    } else {
-      switch (spatial_dimension) {
-      case 1: {
-        assembleStiffnessMatrix<1>(type, ghost_type);
-        break;
-      }
-      case 2: {
-        assembleStiffnessMatrix<2>(type, ghost_type);
-        break;
-      }
-      case 3: {
-        assembleStiffnessMatrix<3>(type, ghost_type);
-        break;
-      }
-      }
-    }
-  }
+  tuple_dispatch<AllSpatialDimensions>(
+      [&](auto && _) {
+        constexpr auto dim = aka::decay_v<decltype(_)>;
+
+        for (auto type :
+             element_filter.elementTypes(spatial_dimension, ghost_type)) {
+          if (finite_deformation) {
+            this->assembleStiffnessMatrixFiniteDeformation<dim>(type,
+                                                                ghost_type);
+          } else {
+            this->assembleStiffnessMatrix<dim>(type, ghost_type);
+          }
+        }
+      },
+      spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleStiffnessMatrix<dim, type>(ghost_type);
+      },
+      type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, ElementType type>
+void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<UInt> & elem_filter = element_filter(type, ghost_type);
+  const auto & elem_filter = element_filter(type, ghost_type);
   if (elem_filter.empty()) {
     AKANTU_DEBUG_OUT();
     return;
   }
 
-  // const Array<Real> & shapes_derivatives =
-  //     fem.getShapesDerivatives(type, ghost_type);
+  auto & gradu_vect = gradu(type, ghost_type);
 
-  Array<Real> & gradu_vect = gradu(type, ghost_type);
-
-  UInt nb_element = elem_filter.size();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  auto nb_element = elem_filter.size();
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  constexpr auto tangent_size = getTangentStiffnessVoigtSize(dim);
 
   gradu_vect.resize(nb_quadrature_points * nb_element);
 
   fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect, dim,
                                   type, ghost_type, elem_filter);
 
-  UInt tangent_size = getTangentStiffnessVoigtSize(dim);
-
-  auto * tangent_stiffness_matrix =
-      new Array<Real>(nb_element * nb_quadrature_points,
-                      tangent_size * tangent_size, "tangent_stiffness_matrix");
+  auto tangent_stiffness_matrix = std::make_unique<Array<Real>>(
+      nb_element * nb_quadrature_points, tangent_size * tangent_size,
+      "tangent_stiffness_matrix");
 
   tangent_stiffness_matrix->zero();
 
   computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  UInt bt_d_b_size = dim * nb_nodes_per_element;
+  auto bt_d_b_size = dim * nb_nodes_per_element;
 
-  auto * bt_d_b = new Array<Real>(nb_element * nb_quadrature_points,
-                                  bt_d_b_size * bt_d_b_size, "B^t*D*B");
+  auto bt_d_b = std::make_unique<Array<Real>>(
+      nb_element * nb_quadrature_points, bt_d_b_size * bt_d_b_size, "B^t*D*B");
 
   fem.computeBtDB(*tangent_stiffness_matrix, *bt_d_b, 4, type, ghost_type,
                   elem_filter);
 
-  delete tangent_stiffness_matrix;
-
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  auto * K_e = new Array<Real>(nb_element, bt_d_b_size * bt_d_b_size, "K_e");
+  auto K_e = std::make_unique<Array<Real>>(nb_element,
+                                           bt_d_b_size * bt_d_b_size, "K_e");
 
   fem.integrate(*bt_d_b, *K_e, bt_d_b_size * bt_d_b_size, type, ghost_type,
                 elem_filter);
 
-  delete bt_d_b;
-
   model.getDOFManager().assembleElementalMatricesToMatrix(
       "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
-  delete K_e;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleStiffnessMatrixNL(ElementType type,
-                                         GhostType ghost_type) {
+template <Int dim>
+void Material::assembleStiffnessMatrixFiniteDeformation(ElementType type,
+                                                        GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleStiffnessMatrixNL<dim, type>(ghost_type);
+        this->assembleStiffnessMatrixL2<dim, type>(ghost_type);
+      },
+      type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, ElementType type>
+void Material::assembleStiffnessMatrixNL(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Array<Real> & shapes_derivatives =
-      fem.getShapesDerivatives(type, ghost_type);
+  const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
+  const auto & elem_filter = element_filter(type, ghost_type);
 
-  Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  // Array<Real> & gradu_vect = delta_gradu(type, ghost_type);
+  const auto nb_element = elem_filter.size();
+  constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  const auto nb_quadrature_points =
+      fem.getNbIntegrationPoints(type, ghost_type);
 
-  UInt nb_element = elem_filter.size();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
-
-  auto * shapes_derivatives_filtered = new Array<Real>(
+  auto shapes_derivatives_filtered = std::make_unique<Array<Real>>(
       nb_element * nb_quadrature_points, dim * nb_nodes_per_element,
       "shapes derivatives filtered");
 
@@ -509,86 +435,73 @@ void Material::assembleStiffnessMatrixNL(ElementType type,
                                 elem_filter);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  UInt bt_s_b_size = dim * nb_nodes_per_element;
+  constexpr auto bt_s_b_size = dim * nb_nodes_per_element;
+  constexpr auto piola_matrix_size = getCauchyStressMatrixSize(dim);
 
-  auto * bt_s_b = new Array<Real>(nb_element * nb_quadrature_points,
-                                  bt_s_b_size * bt_s_b_size, "B^t*D*B");
+  auto bt_s_b = std::make_unique<Array<Real>>(
+      nb_element * nb_quadrature_points, bt_s_b_size * bt_s_b_size, "B^t*D*B");
 
-  UInt piola_matrix_size = getCauchyStressMatrixSize(dim);
+  Matrix<Real, piola_matrix_size, bt_s_b_size> B;
+  Matrix<Real, piola_matrix_size, piola_matrix_size> S;
 
-  Matrix<Real> B(piola_matrix_size, bt_s_b_size);
-  Matrix<Real> Bt_S(bt_s_b_size, piola_matrix_size);
-  Matrix<Real> S(piola_matrix_size, piola_matrix_size);
-
-  auto shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(
-      spatial_dimension, nb_nodes_per_element);
-
-  auto Bt_S_B_it = bt_s_b->begin(bt_s_b_size, bt_s_b_size);
-  auto Bt_S_B_end = bt_s_b->end(bt_s_b_size, bt_s_b_size);
-  auto piola_it = piola_kirchhoff_2(type, ghost_type).begin(dim, dim);
-
-  for (; Bt_S_B_it != Bt_S_B_end;
-       ++Bt_S_B_it, ++shapes_derivatives_filtered_it, ++piola_it) {
-    auto & Bt_S_B = *Bt_S_B_it;
-    const auto & Piola_kirchhoff_matrix = *piola_it;
+  for (auto && data :
+       zip(make_view<bt_s_b_size, bt_s_b_size>(*bt_s_b),
+           make_view<dim, dim>(piola_kirchhoff_2(type, ghost_type)),
+           make_view<dim, nb_nodes_per_element>(
+               *shapes_derivatives_filtered))) {
+    auto && Bt_S_B = std::get<0>(data);
+    auto && Piola_kirchhoff_matrix = std::get<1>(data);
+    auto && shapes_derivatives = std::get<2>(data);
 
     setCauchyStressMatrix<dim>(Piola_kirchhoff_matrix, S);
-    VoigtHelper<dim>::transferBMatrixToBNL(*shapes_derivatives_filtered_it, B,
+    VoigtHelper<dim>::transferBMatrixToBNL(shapes_derivatives, B,
                                            nb_nodes_per_element);
-    Bt_S.template mul<true, false>(B, S);
-    Bt_S_B.template mul<false, false>(Bt_S, B);
+    Bt_S_B = B.transpose() * S * B;
   }
 
-  delete shapes_derivatives_filtered;
-
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  auto * K_e = new Array<Real>(nb_element, bt_s_b_size * bt_s_b_size, "K_e");
+  auto K_e = std::make_unique<Array<Real>>(nb_element,
+                                           bt_s_b_size * bt_s_b_size, "K_e");
 
   fem.integrate(*bt_s_b, *K_e, bt_s_b_size * bt_s_b_size, type, ghost_type,
                 elem_filter);
 
-  delete bt_s_b;
-
   model.getDOFManager().assembleElementalMatricesToMatrix(
       "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
-
-  delete K_e;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleStiffnessMatrixL2(ElementType type,
-                                         GhostType ghost_type) {
+template <Int dim, ElementType type>
+void Material::assembleStiffnessMatrixL2(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Array<Real> & shapes_derivatives =
-      fem.getShapesDerivatives(type, ghost_type);
+  const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
-  Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  Array<Real> & gradu_vect = gradu(type, ghost_type);
+  auto & elem_filter = element_filter(type, ghost_type);
+  auto & gradu_vect = gradu(type, ghost_type);
 
-  UInt nb_element = elem_filter.size();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  auto nb_element = elem_filter.size();
+  constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
   gradu_vect.resize(nb_quadrature_points * nb_element);
 
   fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect, dim,
                                   type, ghost_type, elem_filter);
 
-  UInt tangent_size = getTangentStiffnessVoigtSize(dim);
+  constexpr auto tangent_size = getTangentStiffnessVoigtSize(dim);
 
-  auto * tangent_stiffness_matrix =
-      new Array<Real>(nb_element * nb_quadrature_points,
-                      tangent_size * tangent_size, "tangent_stiffness_matrix");
+  auto tangent_stiffness_matrix = std::make_unique<Array<Real>>(
+      nb_element * nb_quadrature_points, tangent_size * tangent_size,
+      "tangent_stiffness_matrix");
 
   tangent_stiffness_matrix->zero();
 
   computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
 
-  auto * shapes_derivatives_filtered = new Array<Real>(
+  auto shapes_derivatives_filtered = std::make_unique<Array<Real>>(
       nb_element * nb_quadrature_points, dim * nb_nodes_per_element,
       "shapes derivatives filtered");
   FEEngine::filterElementalData(fem.getMesh(), shapes_derivatives,
@@ -596,144 +509,180 @@ void Material::assembleStiffnessMatrixL2(ElementType type,
                                 elem_filter);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  UInt bt_d_b_size = dim * nb_nodes_per_element;
+  constexpr auto bt_d_b_size = dim * nb_nodes_per_element;
+  auto bt_d_b = std::make_unique<Array<Real>>(
+      nb_element * nb_quadrature_points, bt_d_b_size * bt_d_b_size, "B^t*D*B");
 
-  auto * bt_d_b = new Array<Real>(nb_element * nb_quadrature_points,
-                                  bt_d_b_size * bt_d_b_size, "B^t*D*B");
+  Matrix<Real, tangent_size, bt_d_b_size> B;
+  Matrix<Real, tangent_size, bt_d_b_size> B2;
 
-  Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
-  Matrix<Real> B2(tangent_size, dim * nb_nodes_per_element);
-  Matrix<Real> Bt_D(dim * nb_nodes_per_element, tangent_size);
-
-  auto shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(
-      spatial_dimension, nb_nodes_per_element);
-
-  auto Bt_D_B_it = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
-  auto grad_u_it = gradu_vect.begin(dim, dim);
-  auto D_it = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
-  auto D_end = tangent_stiffness_matrix->end(tangent_size, tangent_size);
-
-  for (; D_it != D_end;
-       ++D_it, ++Bt_D_B_it, ++shapes_derivatives_filtered_it, ++grad_u_it) {
-    const auto & grad_u = *grad_u_it;
-    const auto & D = *D_it;
-    auto & Bt_D_B = *Bt_D_B_it;
+  for (auto && data :
+       zip(make_view<bt_d_b_size, bt_d_b_size>(*bt_d_b),
+           make_view<dim, dim>(gradu_vect),
+           make_view<tangent_size, tangent_size>(*tangent_stiffness_matrix),
+           make_view<dim, nb_nodes_per_element>(
+               *shapes_derivatives_filtered))) {
+    auto && Bt_D_B = std::get<0>(data);
+    auto && grad_u = std::get<1>(data);
+    auto && D = std::get<2>(data);
+    auto && shapes_derivative = std::get<3>(data);
 
     // transferBMatrixToBL1<dim > (*shapes_derivatives_filtered_it, B,
     // nb_nodes_per_element);
-    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
-        *shapes_derivatives_filtered_it, B, nb_nodes_per_element);
-    VoigtHelper<dim>::transferBMatrixToBL2(*shapes_derivatives_filtered_it,
-                                           grad_u, B2, nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(shapes_derivative, B,
+                                                       nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToBL2(shapes_derivative, grad_u, B2,
+                                           nb_nodes_per_element);
     B += B2;
-    Bt_D.template mul<true, false>(B, D);
-    Bt_D_B.template mul<false, false>(Bt_D, B);
+    Bt_D_B = B.transpose() * D * B;
   }
 
-  delete tangent_stiffness_matrix;
-  delete shapes_derivatives_filtered;
-
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  auto * K_e = new Array<Real>(nb_element, bt_d_b_size * bt_d_b_size, "K_e");
+  auto K_e = std::make_unique<Array<Real>>(nb_element,
+                                           bt_d_b_size * bt_d_b_size, "K_e");
 
   fem.integrate(*bt_d_b, *K_e, bt_d_b_size * bt_d_b_size, type, ghost_type,
                 elem_filter);
 
-  delete bt_d_b;
-
   model.getDOFManager().assembleElementalMatricesToMatrix(
       "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
-  delete K_e;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleInternalForces(GhostType ghost_type) {
+template <Int dim>
+void Material::assembleInternalForces(ElementType type, GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleInternalForces<dim, type>(ghost_type);
+      },
+      type);
+}
 
+/* -------------------------------------------------------------------------- */
+template <Int dim, ElementType type>
+void Material::assembleInternalForces(GhostType ghost_type) {
+  auto & internal_force = model.getInternalForce();
+
+  // Mesh & mesh = fem.getMesh();
+  auto && elem_filter = element_filter(type, ghost_type);
+  auto nb_element = elem_filter.size();
+
+  if (nb_element == 0) {
+    return;
+  }
+
+  const Array<Real> & shapes_derivatives =
+      fem.getShapesDerivatives(type, ghost_type);
+
+  UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
+  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+  /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by
+  /// @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
+  auto * sigma_dphi_dx =
+      new Array<Real>(nb_element * nb_quadrature_points,
+                      size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+
+  fem.computeBtD(stress(type, ghost_type), *sigma_dphi_dx, type, ghost_type,
+                 elem_filter);
+
+  /**
+   * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by
+   * @f$ \sum_q \mathbf{B}^t
+   * \mathbf{\sigma}_q \overline w_q J_q@f$
+   */
+  auto * int_sigma_dphi_dx =
+      new Array<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
+                      "int_sigma_x_dphi_/_dX");
+
+  fem.integrate(*sigma_dphi_dx, *int_sigma_dphi_dx, size_of_shapes_derivatives,
+                type, ghost_type, elem_filter);
+  delete sigma_dphi_dx;
+
+  /// assemble
+  model.getDOFManager().assembleElementalArrayLocalArray(
+      *int_sigma_dphi_dx, internal_force, type, ghost_type, -1, elem_filter);
+  delete int_sigma_dphi_dx;
+}
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void Material::assembleInternalForcesFiniteDeformation(ElementType type,
+                                                       GhostType ghost_type) {
+  tuple_dispatch<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr auto type = aka::decay_v<decltype(enum_type)>;
+        this->assembleInternalForcesFiniteDeformation<dim, type>(ghost_type);
+      },
+      type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, ElementType type>
+void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<Real> & internal_force = model.getInternalForce();
+  auto & internal_force = model.getInternalForce();
+  auto & mesh = fem.getMesh();
+  const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
-  Mesh & mesh = fem.getMesh();
-  for (auto type : element_filter.elementTypes(_ghost_type = ghost_type)) {
-    const Array<Real> & shapes_derivatives =
-        fem.getShapesDerivatives(type, ghost_type);
+  auto & elem_filter = element_filter(type, ghost_type);
+  if (elem_filter.size() == 0)
+    return;
 
-    Array<UInt> & elem_filter = element_filter(type, ghost_type);
-    if (elem_filter.empty()) {
-      continue;
-    }
-    UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
-    UInt nb_element = elem_filter.size();
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  auto size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
+  auto nb_element = elem_filter.size();
 
-    auto * shapesd_filtered = new Array<Real>(
-        nb_element, size_of_shapes_derivatives, "filtered shapesd");
+  constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  constexpr auto stress_size = getTangentStiffnessVoigtSize(dim);
+  constexpr auto bt_s_size = dim * nb_nodes_per_element;
 
-    FEEngine::filterElementalData(mesh, shapes_derivatives, *shapesd_filtered,
-                                  type, ghost_type, elem_filter);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
-    Array<Real>::matrix_iterator shapes_derivatives_filtered_it =
-        shapesd_filtered->begin(dim, nb_nodes_per_element);
+  auto shapesd_filtered = std::make_unique<Array<Real>>(
+      nb_element, size_of_shapes_derivatives, "filtered shapesd");
 
-    // Set stress vectors
-    UInt stress_size = getTangentStiffnessVoigtSize(dim);
+  FEEngine::filterElementalData(mesh, shapes_derivatives, *shapesd_filtered,
+                                type, ghost_type, elem_filter);
 
-    // Set matrices B and BNL*
-    UInt bt_s_size = dim * nb_nodes_per_element;
+  // Set stress vectors
+  auto bt_s = std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
+                                            bt_s_size, "B^t*S");
 
-    auto * bt_s =
-        new Array<Real>(nb_element * nb_quadrature_points, bt_s_size, "B^t*S");
+  Matrix<Real, stress_size, bt_s_size> B_tensor;
+  Matrix<Real, stress_size, bt_s_size> B2_tensor;
 
-    auto grad_u_it = this->gradu(type, ghost_type).begin(dim, dim);
-    auto grad_u_end = this->gradu(type, ghost_type).end(dim, dim);
-    auto stress_it = this->piola_kirchhoff_2(type, ghost_type).begin(dim, dim);
-    shapes_derivatives_filtered_it =
-        shapesd_filtered->begin(dim, nb_nodes_per_element);
+  for (auto && data :
+       zip(make_view<dim, dim>(this->gradu(type, ghost_type)),
+           make_view<dim, dim>(this->piola_kirchhoff_2(type, ghost_type)),
+           make_view<bt_s_size>(*bt_s),
+           make_view<dim, nb_nodes_per_element>(*shapesd_filtered))) {
+    auto && grad_u = std::get<0>(data);
+    auto && S = std::get<1>(data);
+    auto && r = std::get<2>(data);
+    auto && shapes_derivative = std::get<3>(data);
 
-    Array<Real>::matrix_iterator bt_s_it = bt_s->begin(bt_s_size, 1);
+    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
+        shapes_derivative, B_tensor, nb_nodes_per_element);
 
-    Matrix<Real> B_tensor(stress_size, bt_s_size);
-    Matrix<Real> B2_tensor(stress_size, bt_s_size);
+    VoigtHelper<dim>::transferBMatrixToBL2(shapes_derivative, grad_u, B2_tensor,
+                                           nb_nodes_per_element);
 
-    for (; grad_u_it != grad_u_end; ++grad_u_it, ++stress_it,
-                                    ++shapes_derivatives_filtered_it,
-                                    ++bt_s_it) {
-      auto & grad_u = *grad_u_it;
-      auto & r = *bt_s_it;
-      auto & S = *stress_it;
-
-      VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
-          *shapes_derivatives_filtered_it, B_tensor, nb_nodes_per_element);
-
-      VoigtHelper<dim>::transferBMatrixToBL2(*shapes_derivatives_filtered_it,
-                                             grad_u, B2_tensor,
-                                             nb_nodes_per_element);
-
-      B_tensor += B2_tensor;
-
-      auto S_vect = Material::stressToVoigt<dim>(S);
-      Matrix<Real> S_voigt(S_vect.storage(), stress_size, 1);
-
-      r.template mul<true, false>(B_tensor, S_voigt);
-    }
-
-    delete shapesd_filtered;
-
-    /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-    auto * r_e = new Array<Real>(nb_element, bt_s_size, "r_e");
-
-    fem.integrate(*bt_s, *r_e, bt_s_size, type, ghost_type, elem_filter);
-
-    delete bt_s;
-
-    model.getDOFManager().assembleElementalArrayLocalArray(
-        *r_e, internal_force, type, ghost_type, -1., elem_filter);
-    delete r_e;
+    B_tensor += B2_tensor;
+    auto && S_voight = Material::stressToVoigt<dim>(S);
+    r = B_tensor.transpose() * S_voight;
   }
+
+  /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+  auto r_e = std::make_unique<Array<Real>>(nb_element, bt_s_size, "r_e");
+  fem.integrate(*bt_s, *r_e, bt_s_size, type, ghost_type, elem_filter);
+
+  model.getDOFManager().assembleElementalArrayLocalArray(
+      *r_e, internal_force, type, ghost_type, -1., elem_filter);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -749,11 +698,7 @@ void Material::computePotentialEnergyByElements() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::computePotentialEnergy(ElementType /*unused*/) {
-  AKANTU_DEBUG_IN();
-  AKANTU_TO_IMPLEMENT();
-  AKANTU_DEBUG_OUT();
-}
+void Material::computePotentialEnergy(ElementType) { AKANTU_TO_IMPLEMENT(); }
 
 /* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy() {
@@ -773,15 +718,21 @@ Real Material::getPotentialEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getPotentialEnergy(ElementType & type, UInt index) {
+Real Material::getPotentialEnergy(ElementType type, Int index) {
+  return getPotentialEnergy({type, index, _not_ghost});
+}
+
+/* -------------------------------------------------------------------------- */
+Real Material::getPotentialEnergy(const Element & element) {
   AKANTU_DEBUG_IN();
-  Real epot = 0.;
 
-  Vector<Real> epot_on_quad_points(fem.getNbIntegrationPoints(type));
+  Vector<Real> epot_on_quad_points(fem.getNbIntegrationPoints(element.type));
+  computePotentialEnergyByElement(element, epot_on_quad_points);
 
-  computePotentialEnergyByElement(type, index, epot_on_quad_points);
-
-  epot = fem.integrate(epot_on_quad_points, type, element_filter(type)(index));
+  auto epot = fem.integrate(epot_on_quad_points,
+                            {element.type,
+                             element_filter(element.type)(element.element),
+                             _not_ghost});
 
   AKANTU_DEBUG_OUT();
   return epot;
@@ -798,11 +749,11 @@ Real Material::getEnergy(const std::string & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getEnergy(const std::string & energy_id, ElementType type,
-                         UInt index) {
+Real Material::getEnergy(const std::string & energy_id,
+                         const Element & element) {
   AKANTU_DEBUG_IN();
   if (energy_id == "potential") {
-    return getPotentialEnergy(type, index);
+    return getPotentialEnergy(element);
   }
   AKANTU_DEBUG_OUT();
   return 0.;
@@ -823,7 +774,6 @@ void Material::initElementalFieldInterpolation(
 /* -------------------------------------------------------------------------- */
 void Material::interpolateStress(ElementTypeMapArray<Real> & result,
                                  const GhostType ghost_type) {
-
   this->fem.interpolateElementalFieldFromIntegrationPoints(
       this->stress, this->interpolation_points_matrices,
       this->interpolation_inverse_coordinates, result, ghost_type,
@@ -834,64 +784,47 @@ void Material::interpolateStress(ElementTypeMapArray<Real> & result,
 void Material::interpolateStressOnFacets(
     ElementTypeMapArray<Real> & result,
     ElementTypeMapArray<Real> & by_elem_result, const GhostType ghost_type) {
-
   interpolateStress(by_elem_result, ghost_type);
 
-  UInt stress_size = this->stress.getNbComponent();
+  auto stress_size = this->stress.getNbComponent();
 
-  const Mesh & mesh = this->model.getMesh();
-  const Mesh & mesh_facets = mesh.getMeshFacets();
+  const auto & mesh = this->model.getMesh();
+  const auto & mesh_facets = mesh.getMeshFacets();
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    Array<UInt> & elem_fil = element_filter(type, ghost_type);
-    Array<Real> & by_elem_res = by_elem_result(type, ghost_type);
-    UInt nb_element = elem_fil.size();
-    UInt nb_element_full = this->model.getMesh().getNbElement(type, ghost_type);
-    UInt nb_interpolation_points_per_elem =
-        by_elem_res.size() / nb_element_full;
+    auto nb_element_full = mesh.getNbElement(type, ghost_type);
 
-    const Array<Element> & facet_to_element =
+    auto nb_interpolation_points_per_elem =
+        by_elem_result(type, ghost_type).size() / nb_element_full;
+
+    const auto & facet_to_element =
         mesh_facets.getSubelementToElement(type, ghost_type);
-    ElementType type_facet = Mesh::getFacetType(type);
-    UInt nb_facet_per_elem = facet_to_element.getNbComponent();
-    UInt nb_quad_per_facet =
+
+    auto nb_facet_per_elem = facet_to_element.getNbComponent();
+    auto nb_quad_per_facet =
         nb_interpolation_points_per_elem / nb_facet_per_elem;
-    Element element_for_comparison{type, 0, ghost_type};
-    const Array<std::vector<Element>> * element_to_facet = nullptr;
-    GhostType current_ghost_type = _casper;
-    Array<Real> * result_vec = nullptr;
+    Element element{type, 0, ghost_type};
 
-    Array<Real>::const_matrix_iterator result_it =
-        by_elem_res.begin_reinterpret(
-            stress_size, nb_interpolation_points_per_elem, nb_element_full);
+    auto && by_elem_res =
+        make_view(by_elem_result(type, ghost_type), stress_size,
+                  nb_quad_per_facet, nb_facet_per_elem)
+            .begin();
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      UInt global_el = elem_fil(el);
-      element_for_comparison.element = global_el;
-      for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+    for (auto global_el : element_filter(type, ghost_type)) {
+      element.element = global_el;
 
-        Element facet_elem = facet_to_element(global_el, f);
-        UInt global_facet = facet_elem.element;
-        if (facet_elem.ghost_type != current_ghost_type) {
-          current_ghost_type = facet_elem.ghost_type;
-          element_to_facet = &mesh_facets.getElementToSubelement(
-              type_facet, current_ghost_type);
-          result_vec = &result(type_facet, current_ghost_type);
-        }
+      auto && result_per_elem = by_elem_res[global_el];
 
-        bool is_second_element =
-            (*element_to_facet)(global_facet)[0] != element_for_comparison;
+      for (Int f = 0; f < nb_facet_per_elem; ++f) {
+        auto facet_elem = facet_to_element(global_el, f);
+        Int is_second_element =
+            mesh_facets.getElementToSubelement(facet_elem)[0] != element;
 
-        for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-          Vector<Real> result_local(result_vec->storage() +
-                                        (global_facet * nb_quad_per_facet + q) *
-                                            result_vec->getNbComponent() +
-                                        static_cast<UInt>(is_second_element) *
-                                            stress_size,
-                                    stress_size);
+        auto && result_local =
+            result.get(facet_elem, stress_size, 2, nb_quad_per_facet);
 
-          const Matrix<Real> & result_tmp(result_it[global_el]);
-          result_local = result_tmp(f * nb_quad_per_facet + q);
+        for (auto && data : zip(result_local, result_per_elem(f))) {
+          std::get<0>(data)(is_second_element) = std::get<1>(data);
         }
       }
     }
@@ -900,6 +833,11 @@ void Material::interpolateStressOnFacets(
 
 /* -------------------------------------------------------------------------- */
 void Material::addElements(const Array<Element> & elements_to_add) {
+
+  if (elements_to_add.empty()) {
+    return; // noops if no changes
+  }
+
   AKANTU_DEBUG_IN();
 
   UInt mat_id = model.getMaterialIndex(name);
@@ -916,30 +854,30 @@ void Material::addElements(const Array<Element> & elements_to_add) {
 
 /* -------------------------------------------------------------------------- */
 void Material::removeElements(const Array<Element> & elements_to_remove) {
+
+  if (elements_to_remove.empty()) {
+    return; // noops if no changes
+  }
+
   AKANTU_DEBUG_IN();
 
+  auto & mesh = this->model.getMesh();
   auto el_begin = elements_to_remove.begin();
   auto el_end = elements_to_remove.end();
 
-  if (elements_to_remove.empty()) {
-    return;
-  }
-
-  auto & mesh = this->model.getMesh();
-
-  ElementTypeMapArray<UInt> material_local_new_numbering(
+  ElementTypeMapArray<Idx> material_local_new_numbering(
       "remove mat filter elem", id);
 
   material_local_new_numbering.initialize(
       mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
       _with_nb_element = true);
 
-  ElementTypeMapArray<UInt> element_filter_tmp("element_filter_tmp", id);
+  ElementTypeMapArray<Idx> element_filter_tmp("element_filter_tmp", id);
 
   element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
                                 _element_kind = _ek_not_defined);
 
-  ElementTypeMap<UInt> new_ids, element_ids;
+  ElementTypeMap<Idx> new_ids, element_ids;
 
   for_each_element(
       mesh,
@@ -983,8 +921,8 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
@@ -1004,8 +942,8 @@ void Material::resizeInternals() {
     it->second->resize();
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->resize();
   }
 
@@ -1025,11 +963,11 @@ void Material::onElementsAdded(const Array<Element> & /*unused*/,
 /* -------------------------------------------------------------------------- */
 void Material::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
+    const ElementTypeMapArray<Idx> & new_numbering,
     [[gnu::unused]] const RemovedElementsEvent & event) {
-  UInt my_num = model.getInternalIndexFromID(getID());
+  auto my_num = model.getInternalIndexFromID(getID());
 
-  ElementTypeMapArray<UInt> material_local_new_numbering(
+  ElementTypeMapArray<Idx> material_local_new_numbering(
       "remove mat filter elem", getID());
 
   auto el_begin = element_list.begin();
@@ -1059,24 +997,24 @@ void Material::onElementsRemoved(
 
       auto & mat_renumbering = material_local_new_numbering(type, gt);
       const auto & renumbering = new_numbering(type, gt);
-      Array<UInt> elem_filter_tmp;
+      Array<Idx> elem_filter_tmp;
       UInt ni = 0;
       Element el{type, 0, gt};
 
-      for (UInt i = 0; i < elem_filter.size(); ++i) {
-        el.element = elem_filter(i);
+      for (auto && data : enumerate(elem_filter)) {
+        el.element = std::get<1>(data);
         if (std::find(el_begin, el_end, el) == el_end) {
-          UInt new_el = renumbering(el.element);
-          AKANTU_DEBUG_ASSERT(new_el != UInt(-1),
+          auto new_el = renumbering(el.element);
+          AKANTU_DEBUG_ASSERT(new_el != -1,
                               "A not removed element as been badly renumbered");
           elem_filter_tmp.push_back(new_el);
-          mat_renumbering(i) = ni;
+          mat_renumbering(std::get<0>(data)) = ni;
 
           mat_indexes(new_el) = my_num;
           mat_loc_num(new_el) = ni;
           ++ni;
         } else {
-          mat_renumbering(i) = UInt(-1);
+          mat_renumbering(std::get<0>(data)) = -1;
         }
       }
 
@@ -1090,8 +1028,8 @@ void Material::onElementsRemoved(
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->removeIntegrationPoints(material_local_new_numbering);
   }
 
@@ -1147,21 +1085,18 @@ void Material::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 /// extrapolate internal values
 void Material::extrapolateInternal(const ID & id, const Element & element,
-                                   [[gnu::unused]] const Matrix<Real> & point,
+                                   const Matrix<Real> & /*point*/,
                                    Matrix<Real> & extrapolated) {
   if (this->isInternal<Real>(id, element.kind())) {
-    UInt nb_element =
-        this->element_filter(element.type, element.ghost_type).size();
-    const ID name = this->getID() + ":" + id;
-    UInt nb_quads =
+    auto name = this->getID() + ":" + id;
+    auto nb_quads =
         this->internal_vectors_real[name]->getFEEngine().getNbIntegrationPoints(
             element.type, element.ghost_type);
-    const Array<Real> & internal =
+    const auto & internal =
         this->getArray<Real>(id, element.type, element.ghost_type);
-    UInt nb_component = internal.getNbComponent();
-    Array<Real>::const_matrix_iterator internal_it =
-        internal.begin_reinterpret(nb_component, nb_quads, nb_element);
-    Element local_element = this->convertToLocalElement(element);
+    auto nb_component = internal.getNbComponent();
+    auto internal_it = make_view(internal, nb_component, nb_quads).begin();
+    auto local_element = this->convertToLocalElement(element);
 
     /// instead of really extrapolating, here the value of the first GP
     /// is copied into the result vector. This works only for linear
@@ -1169,10 +1104,10 @@ void Material::extrapolateInternal(const ID & id, const Element & element,
     /// @todo extrapolate!!!!
     AKANTU_DEBUG_WARNING("This is a fix, values are not truly extrapolated");
 
-    const Matrix<Real> & values = internal_it[local_element.element];
-    UInt index = 0;
+    auto && values = internal_it[local_element.element];
+    Int index = 0;
     Vector<Real> tmp(nb_component);
-    for (UInt j = 0; j < values.cols(); ++j) {
+    for (Int j = 0; j < values.cols(); ++j) {
       tmp = values(j);
       if (tmp.norm() > 0) {
         index = j;
@@ -1180,19 +1115,17 @@ void Material::extrapolateInternal(const ID & id, const Element & element,
       }
     }
 
-    for (UInt i = 0; i < extrapolated.size(); ++i) {
+    for (Int i = 0; i < extrapolated.size(); ++i) {
       extrapolated(i) = values(index);
     }
   } else {
-    Matrix<Real> default_values(extrapolated.rows(), extrapolated.cols(), 0.);
-    extrapolated = default_values;
+    extrapolated.fill(0.);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const GhostType ghost_type) {
-
   for (auto && type : element_filter.elementTypes(_all_dimensions, _not_ghost,
                                                   _ek_not_defined)) {
     if (element_filter(type, ghost_type).empty()) {

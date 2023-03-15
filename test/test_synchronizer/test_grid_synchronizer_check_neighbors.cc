@@ -38,7 +38,7 @@
 
 using namespace akantu;
 
-const UInt spatial_dimension = 3;
+const Int spatial_dimension = 3;
 
 #include "test_grid_tools.hh"
 
@@ -55,7 +55,7 @@ void readNeighbors(
     Point<spatial_dimension> pt;
     pt.read(line);
     std::getline(nin, line);
-    for (UInt i = 0; i < nb_neig; ++i) {
+    for (Int i = 0; i < nb_neig; ++i) {
       std::getline(nin, line);
       Point<spatial_dimension> ne;
       ne.read(line);

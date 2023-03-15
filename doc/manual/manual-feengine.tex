@@ -24,7 +24,7 @@ Array<Real> nablauq; //gradient array to be computed
 // compute the gradient
 fem->gradientOnIntegrationPoints(const Array<Real> &u,
 				 Array<Real> &nablauq,
-				 const UInt nb_degree_of_freedom,
+				 const Int nb_degree_of_freedom,
 				 ElementType type);
 
 // interpolate
@@ -32,7 +32,7 @@ Array<Real> uq; //interpolated array to be computed
 // compute the interpolation
 fem->interpolateOnIntegrationPoints(const Array<Real> &u,
                                     Array<Real> &uq,
-                                    UInt nb_degree_of_freedom,
+                                    Int nb_degree_of_freedom,
                                     ElementType type);
 
 // interpolated function can be integrated over the elements
@@ -40,7 +40,7 @@ Array<Real> int_val_on_elem;
 // integrate
 fem->integrate(const Array<Real> &uq, 
                Array<Real> &int_uq, 
-               UInt nb_degree_of_freedom,
+               Int nb_degree_of_freedom,
                ElementType type);
 \end{cpp}
 
@@ -48,8 +48,8 @@ Another example below shows how to integrate stress and strain fields
 over elements assigned to a particular material.
 
 \begin{cpp}
-UInt sp_dim = 3; //spatial dimension
-UInt m = 1; //material index of interest
+Int sp_dim = 3; //spatial dimension
+Int m = 1; //material index of interest
 const ElementType type = _tetrahedron_4; //element type
 
 // get the stress and strain arrays associated to the material index m
@@ -57,7 +57,7 @@ const Array<Real> & strain_vec = model.getMaterial(m).getGradU(type);
 const Array<Real> & stress_vec = model.getMaterial(m).getStress(type);
 
 // get the element filter for the material index
-const Array<UInt> & elem_filter = model.getMaterial(m).getElementFilter(type);
+const Array<Idx> & elem_filter = model.getMaterial(m).getElementFilter(type);
 
 // initialize the integrated stress and strain arrays
 Array<Real> int_strain_vec(elem_filter.getSize(), 

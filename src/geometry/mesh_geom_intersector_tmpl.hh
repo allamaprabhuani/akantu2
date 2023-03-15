@@ -41,14 +41,12 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type, class Primitive, class Query,
-          class Kernel>
+template <Int dim, ElementType type, class Primitive, class Query, class Kernel>
 MeshGeomIntersector<dim, type, Primitive, Query, Kernel>::MeshGeomIntersector(
     Mesh & mesh)
     : MeshAbstractIntersector<Query>(mesh), factory(mesh) {}
 
-template <UInt dim, ElementType type, class Primitive, class Query,
-          class Kernel>
+template <Int dim, ElementType type, class Primitive, class Query, class Kernel>
 void MeshGeomIntersector<dim, type, Primitive, Query, Kernel>::constructData(
     GhostType ghost_type) {
   this->intersection_points->resize(0);

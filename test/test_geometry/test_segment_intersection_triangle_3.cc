@@ -82,7 +82,7 @@ int main(int argc, char * argv[]) {
   interface_mesh.getBarycenter(test, bary);
   Real first_bary[] = {0.125, 0.25};
 
-  if (!Math::are_vector_equal(2, bary.storage(), first_bary))
+  if (!Math::are_vector_equal(2, bary.data(), first_bary))
     return EXIT_FAILURE;
 
   // Testing a segment completely inside an element
@@ -95,7 +95,7 @@ int main(int argc, char * argv[]) {
 
   Real second_bary[] = {0.1, 0.5};
 
-  if (!Math::are_vector_equal(2, bary.storage(), second_bary))
+  if (!Math::are_vector_equal(2, bary.data(), second_bary))
     return EXIT_FAILURE;
 
 #if 0
@@ -114,7 +114,7 @@ int main(int argc, char * argv[]) {
   intersector_sphere.computeIntersectionQueryList(sphere_list);
   std::cout << "final mesh size = " << mesh.getNodes().size() << std::endl;
 
-  const Array<UInt> new_node_triangle_3 = intersector_sphere.getNewNodePerElem();
+  const Array<Idx> new_node_triangle_3 = intersector_sphere.getNewNodePerElem();
   const Array<Real> & nodes = mesh.getNodes();
   std::cout << "New nodes :" << std::endl;
   std::cout << "node 5, x=" << nodes(4,0) << ", y=" << nodes(4,1) << std::endl;
@@ -122,7 +122,7 @@ int main(int argc, char * argv[]) {
   std::cout << "node 7, x=" << nodes(6,0) << ", y=" << nodes(6,1) << std::endl;
 
   if ( (new_node_triangle_3(0,0) != 1) || (new_node_triangle_3(1,0) != 2)){
-    for(UInt k=0; k != new_node_triangle_3.size(); ++k){
+    for(Int k=0; k != new_node_triangle_3.size(); ++k){
       std::cout << new_node_triangle_3(k,0) << " new nodes in element " << k << ", node(s): "
 		<< new_node_triangle_3(k,1) << ", " << new_node_triangle_3(k,3)
 		<< ", on segment(s):" << new_node_triangle_3(k,2) << ", "

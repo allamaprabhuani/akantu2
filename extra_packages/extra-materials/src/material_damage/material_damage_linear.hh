@@ -30,7 +30,7 @@ namespace akantu {
  *   - Sigc : (default: 1e5)
  *   - Gc  : (default: 2)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialDamageLinear : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

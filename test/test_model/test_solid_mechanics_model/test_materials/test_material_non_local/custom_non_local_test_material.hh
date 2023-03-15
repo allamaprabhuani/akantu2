@@ -40,7 +40,7 @@
 
 namespace akantu {
 
-template <UInt dim>
+template <Int dim>
 class CustomNonLocalTestMaterial
     : public MaterialNonLocal<dim, MaterialElastic<dim>> {
 public:
@@ -61,7 +61,8 @@ protected:
   void computeNonLocalStresses(GhostType ghost_type) override {
     AKANTU_DEBUG_IN();
 
-    for (auto & type : this->element_filter.elementTypes(dim, ghost_type)) {
+    for (const auto & type :
+         this->element_filter.elementTypes(dim, ghost_type)) {
       computeNonLocalStress(type, ghost_type);
     }
 

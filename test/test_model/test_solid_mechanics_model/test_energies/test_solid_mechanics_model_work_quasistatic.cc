@@ -67,7 +67,7 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
   auto & lower = this->mesh->getLowerBounds();
   auto & upper = this->mesh->getUpperBounds();
 
-  UInt i = 0;
+  Int i = 0;
   for (auto && data : zip(make_view(pos, spatial_dimension),
                           make_view(flags, spatial_dimension))) {
     const auto & posv = std::get<0>(data);
@@ -97,10 +97,11 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
     this->model->applyBC(BC::Dirichlet::FixedValue(u, _x), "el_fixed");
 
     Vector<Real> surface_traction(spatial_dimension);
+    surface_traction.zero();
     Real work = 0.0;
     Real Epot;
-    static const UInt N = 100;
-    for (UInt i = 0; i <= N; ++i) {
+    static const Int N = 100;
+    for (Int i = 0; i <= N; ++i) {
       this->model->getExternalForce().zero(); // reset external forces to zero
 
       surface_traction(_x) = (1.0 * i) / N;

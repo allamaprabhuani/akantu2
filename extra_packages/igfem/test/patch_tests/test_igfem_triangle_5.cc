@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
 
   /// create a mesh and read the regular elements from the mesh file
   /// mesh creation
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("plate.msh");
 
@@ -198,7 +198,7 @@ Real computeL2Error(SolidMechanicsModelIGFEM & model) {
   Real E_1 = 10.;
   Real E_2 = 1.;
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   mesh.addDumpFieldExternal("error_per_element", error_per_element,
                             spatial_dimension, _not_ghost, _ek_regular);
   mesh.addDumpFieldExternalToDumper("igfem elements", "error_per_element",
@@ -240,10 +240,10 @@ Real computeL2Error(SolidMechanicsModelIGFEM & model) {
       Array<Real>::const_vector_iterator coord_it =
           quad_coords.begin(spatial_dimension);
       Vector<Real> error_vec(spatial_dimension);
-      for (UInt e = 0; e < nb_elements; ++e) {
+      for (Int e = 0; e < nb_elements; ++e) {
         Vector<Real> error_per_quad(nb_quads);
         Vector<Real> normalization_per_quad(nb_quads);
-        for (UInt q = 0; q < nb_quads; ++q, ++displ_it, ++coord_it) {
+        for (Int q = 0; q < nb_quads; ++q, ++displ_it, ++coord_it) {
           Real exact = 0.;
           Real x = (*coord_it)(0);
           if (x < 0.25)

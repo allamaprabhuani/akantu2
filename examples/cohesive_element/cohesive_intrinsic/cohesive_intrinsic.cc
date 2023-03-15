@@ -47,8 +47,8 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
-  const UInt max_steps = 350;
+  const Int spatial_dimension = 2;
+  const Int max_steps = 350;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
@@ -66,11 +66,11 @@ int main(int argc, char * argv[]) {
 
   Array<bool> & boundary = model.getBlockedDOFs();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
-    for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int dim = 0; dim < spatial_dimension; ++dim) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       boundary(n, dim) = true;
     }
   }
@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
   updateDisplacement(model, elements, increment);
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.solveStep();
 
     updateDisplacement(model, elements, increment);

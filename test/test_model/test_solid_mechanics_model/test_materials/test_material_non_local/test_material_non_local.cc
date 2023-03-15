@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
 
@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
 
   RandomGenerator<UInt> gen;
 
-  for (UInt i = 0; i < 1; ++i) {
+  for (Int i = 0; i < 1; ++i) {
     UInt g = (gen() / Real(RandomGenerator<UInt>::max() -
                            RandomGenerator<UInt>::min())) *
              damage.size();

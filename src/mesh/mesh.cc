@@ -32,7 +32,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 /* -------------------------------------------------------------------------- */
@@ -63,20 +62,20 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator)
+Mesh::Mesh(Int spatial_dimension, const ID & id, Communicator & communicator)
     : GroupManager(*this, id + ":group_manager"), MeshData("mesh_data", id),
       id(id), connectivities("connectivities", id),
-      ghosts_counters("ghosts_counters", id), normals("normals", id),
-      spatial_dimension(spatial_dimension), size(spatial_dimension, 0.),
-      bbox(spatial_dimension), bbox_local(spatial_dimension),
-      communicator(&communicator) {
+      ghosts_counters("ghosts_counters", id),
+      spatial_dimension(spatial_dimension),
+      size(Vector<double>::Zero(spatial_dimension)), bbox(spatial_dimension),
+      bbox_local(spatial_dimension), communicator(&communicator) {
   AKANTU_DEBUG_IN();
-
+  size.fill(0.);
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, Communicator & communicator, const ID & id)
+Mesh::Mesh(Int spatial_dimension, Communicator & communicator, const ID & id)
     : Mesh(spatial_dimension, id, communicator) {
   AKANTU_DEBUG_IN();
 
@@ -89,17 +88,18 @@ Mesh::Mesh(UInt spatial_dimension, Communicator & communicator, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const ID & id)
+Mesh::Mesh(Int spatial_dimension, const ID & id)
     : Mesh(spatial_dimension, Communicator::getStaticCommunicator(), id) {}
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
+Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
            const ID & id)
     : Mesh(spatial_dimension, id, Communicator::getStaticCommunicator()) {
+  // NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   this->nodes = nodes;
-
   this->nb_global_nodes = this->nodes->size();
-
+  // NOLINTEND(cppcoreguidelines-prefer-member-initializer)
+  //
   this->nodes_to_elements.resize(nodes->size());
   for (auto & node_set : nodes_to_elements) {
     node_set = std::make_unique<std::set<Element>>();
@@ -109,11 +109,14 @@ Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
 }
 
 /* -------------------------------------------------------------------------- */
+Mesh::~Mesh() = default;
+
+/* -------------------------------------------------------------------------- */
 void Mesh::getBarycenters(Array<Real> & barycenter, ElementType type,
                           GhostType ghost_type) const {
   barycenter.resize(getNbElement(type, ghost_type));
   for (auto && data : enumerate(make_view(barycenter, spatial_dimension))) {
-    getBarycenter(Element{type, UInt(std::get<0>(data)), ghost_type},
+    getBarycenter(Element{type, Idx(std::get<0>(data)), ghost_type},
                   std::get<1>(data));
   }
 }
@@ -129,12 +132,12 @@ public:
     mesh.getGlobalConnectivity(global_connectivity);
   }
 
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override {
-    UInt size = 0;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override {
+    Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
-      UInt nb_nodes = Mesh::getNbNodesPerElementList(elements);
-      size += nb_nodes * sizeof(UInt);
+      Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
+      size += nb_nodes * sizeof(Idx);
     }
     return size;
   }
@@ -166,9 +169,26 @@ public:
 
   AKANTU_GET_MACRO(GlobalConnectivity, (global_connectivity), decltype(auto));
 
-protected:
-  ElementTypeMapArray<UInt> global_connectivity;
+private:
+  ElementTypeMapArray<Idx> global_connectivity;
 };
+
+/* -------------------------------------------------------------------------- */
+// const Array<Real> & Mesh::getNormals(ElementType element_type,
+//                                      GhostType ghost_type) {
+//   if (this->hasData<Real>("normals", element_type, ghost_type)) {
+//     return this->getData<Real>("normals", element_type, ghost_type);
+//   }
+
+//   auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
+//                                         spatial_dimension, true);
+//   for (auto && data [[gnu::unused]] :
+//        enumerate(make_view(normals, spatial_dimension))) {
+//     AKANTU_TO_IMPLEMENT();
+//   }
+
+//   AKANTU_TO_IMPLEMENT();
+// }
 
 /* -------------------------------------------------------------------------- */
 Mesh & Mesh::initMeshFacets(const ID & id) {
@@ -181,7 +201,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 
   mesh_facets = std::make_unique<Mesh>(spatial_dimension, this->nodes,
                                        getID() + ":" + id);
-
   mesh_facets->mesh_parent = this;
   mesh_facets->is_mesh_facets = true;
   mesh_facets->nodes_flags = this->nodes_flags;
@@ -272,8 +291,8 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         }
 
         // set physical name
-        auto && facet_element = Element{element.type, UInt(std::get<0>(*facet)),
-                                        element.ghost_type};
+        auto && facet_element =
+            Element{element.type, std::get<0>(*facet), element.ghost_type};
         phys_data(facet_element) = mesh_phys_data(element);
 
         mesh_to_mesh_facet(element) = facet_element;
@@ -295,9 +314,6 @@ void Mesh::defineMeshParent(const Mesh & mesh) {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-Mesh::~Mesh() = default;
 
 /* -------------------------------------------------------------------------- */
 void Mesh::read(const std::string & filename, const MeshIOType & mesh_io_type) {
@@ -379,15 +395,8 @@ void Mesh::computeBoundingBox() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::initNormals() {
-  normals.initialize(*this, _nb_component = spatial_dimension,
-                     _spatial_dimension = spatial_dimension,
-                     _element_kind = _ek_not_defined);
-}
-
-/* -------------------------------------------------------------------------- */
 void Mesh::getGlobalConnectivity(
-    ElementTypeMapArray<UInt> & global_connectivity) {
+    ElementTypeMapArray<Idx> & global_connectivity) {
   AKANTU_DEBUG_IN();
 
   for (auto && ghost_type : ghost_types) {
@@ -398,15 +407,12 @@ void Mesh::getGlobalConnectivity(
         continue;
       }
 
-      auto & local_conn = connectivities(type, ghost_type);
-      auto & g_connectivity = global_connectivity(type, ghost_type);
+      auto local_conn_view = make_view(connectivities(type, ghost_type));
+      auto global_conn_view = make_view(global_connectivity(type, ghost_type));
 
-      UInt nb_nodes = local_conn.size() * local_conn.getNbComponent();
-
-      std::transform(local_conn.begin_reinterpret(nb_nodes),
-                     local_conn.end_reinterpret(nb_nodes),
-                     g_connectivity.begin_reinterpret(nb_nodes),
-                     [&](UInt l) -> UInt { return this->getNodeGlobalId(l); });
+      std::transform(local_conn_view.begin(), local_conn_view.end(),
+                     global_conn_view.begin(),
+                     [&](Idx l) -> Idx { return this->getNodeGlobalId(l); });
     }
   }
 
@@ -424,11 +430,11 @@ DumperIOHelper & Mesh::getGroupDumper(const std::string & dumper_name,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<T> & arrays) {
-  ElementTypeMap<UInt> nb_data_per_elem;
+ElementTypeMap<Int> Mesh::getNbDataPerElem(ElementTypeMapArray<T> & arrays) {
+  ElementTypeMap<Int> nb_data_per_elem;
 
   for (auto type : arrays.elementTypes(_element_kind = _ek_not_defined)) {
-    UInt nb_elements = this->getNbElement(type);
+    auto nb_elements = this->getNbElement(type);
     auto & array = arrays(type);
 
     nb_data_per_elem(type) = array.getNbComponent() * array.size();
@@ -439,11 +445,11 @@ ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<T> & arrays) {
 }
 
 /* -------------------------------------------------------------------------- */
-template ElementTypeMap<UInt>
+template ElementTypeMap<Int>
 Mesh::getNbDataPerElem(ElementTypeMapArray<Real> & array);
 
-template ElementTypeMap<UInt>
-Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
+template ElementTypeMap<Int>
+Mesh::getNbDataPerElem(ElementTypeMapArray<Int> & array);
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
@@ -460,7 +466,7 @@ Mesh::createFieldFromAttachedData(const std::string & field_id,
     return nullptr;
   }
 
-  ElementTypeMap<UInt> nb_data_per_elem = this->getNbDataPerElem(*internal);
+  auto && nb_data_per_elem = this->getNbDataPerElem(*internal);
 
   field = this->createElementalField<T, dumpers::InternalMaterialField>(
       *internal, group_name, this->spatial_dimension, element_kind,
@@ -475,9 +481,9 @@ Mesh::createFieldFromAttachedData<Real>(const std::string & field_id,
                                         ElementKind element_kind);
 
 template std::shared_ptr<dumpers::Field>
-Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
-                                        const std::string & group_name,
-                                        ElementKind element_kind);
+Mesh::createFieldFromAttachedData<Int>(const std::string & field_id,
+                                       const std::string & group_name,
+                                       ElementKind element_kind);
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distributeImpl(
@@ -496,11 +502,11 @@ void Mesh::distributeImpl(
   this->node_synchronizer = std::make_unique<NodeSynchronizer>(
       *this, this->getID() + ":node_synchronizer", true);
 
-  Int psize = this->communicator->getNbProc();
+  auto psize = this->communicator->getNbProc();
 
   if (psize > 1) {
 #ifdef AKANTU_USE_SCOTCH
-    Int prank = this->communicator->whoAmI();
+    auto prank = this->communicator->whoAmI();
     if (prank == 0) {
       MeshPartitionScotch partition(*this, spatial_dimension);
       partition.partitionate(psize, edge_weight_function,
@@ -521,13 +527,13 @@ void Mesh::distributeImpl(
 
   this->computeBoundingBox();
 
-  MeshIsDistributedEvent event(*this, AKANTU_CURRENT_FUNCTION);
+  MeshIsDistributedEvent event(AKANTU_CURRENT_FUNCTION);
   this->sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getAssociatedElements(const Array<UInt> & node_list,
-                                 Array<Element> & elements) const {
+void Mesh::getAssociatedElements(const Array<Idx> & node_list,
+                                 Array<Element> & elements) {
   for (const auto & node : node_list) {
     for (const auto & element : *nodes_to_elements[node]) {
       elements.push_back(element);
@@ -536,7 +542,7 @@ void Mesh::getAssociatedElements(const Array<UInt> & node_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getAssociatedElements(const UInt & node,
+void Mesh::getAssociatedElements(const Idx & node,
                                  Array<Element> & elements) const {
   for (const auto & element : *nodes_to_elements[node]) {
     elements.push_back(element);
@@ -544,13 +550,13 @@ void Mesh::getAssociatedElements(const UInt & node,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::fillNodesToElements(UInt dimension) {
-  Element e;
+void Mesh::fillNodesToElements(Int dimension) {
+  Element element{ElementNull};
 
-  UInt nb_nodes = nodes->size();
+  auto nb_nodes = nodes->size();
   this->nodes_to_elements.resize(nb_nodes);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n]) {
       this->nodes_to_elements[n]->clear();
     } else {
@@ -559,20 +565,20 @@ void Mesh::fillNodesToElements(UInt dimension) {
   }
 
   for (auto ghost_type : ghost_types) {
-    e.ghost_type = ghost_type;
+    element.ghost_type = ghost_type;
     for (const auto & type :
          elementTypes(dimension, ghost_type, _ek_not_defined)) {
-      e.type = type;
+      element.type = type;
 
-      UInt nb_element = this->getNbElement(type, ghost_type);
+      auto nb_element = this->getNbElement(type, ghost_type);
       auto connectivity = connectivities(type, ghost_type);
       auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
-      for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
-        e.element = el;
-        const Vector<UInt> & conn = *conn_it;
+      for (Int el = 0; el < nb_element; ++el, ++conn_it) {
+        element.element = el;
+        const auto & conn = *conn_it;
         for (auto node : conn) {
-          nodes_to_elements[node]->insert(e);
+          nodes_to_elements[node]->insert(element);
         }
       }
     }
@@ -580,9 +586,8 @@ void Mesh::fillNodesToElements(UInt dimension) {
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt>
-Mesh::updateGlobalData(NewNodesEvent & nodes_event,
-                       NewElementsEvent & elements_event) {
+std::tuple<Idx, Idx> Mesh::updateGlobalData(NewNodesEvent & nodes_event,
+                                            NewElementsEvent & elements_event) {
   if (global_data_updater) {
     return this->global_data_updater->updateData(nodes_event, elements_event);
   }
@@ -598,7 +603,7 @@ void Mesh::registerGlobalDataUpdater(
 
 /* -------------------------------------------------------------------------- */
 void Mesh::eraseElements(const Array<Element> & elements) {
-  ElementTypeMap<UInt> last_element;
+  ElementTypeMap<Idx> last_element;
 
   RemovedElementsEvent event(*this, "new_numbering", AKANTU_CURRENT_FUNCTION);
   auto & remove_list = event.getList();
@@ -608,28 +613,30 @@ void Mesh::eraseElements(const Array<Element> & elements) {
     if (el.ghost_type != _not_ghost) {
       auto & count = ghosts_counters(el);
       --count;
+      AKANTU_DEBUG_ASSERT(count >= 0,
+                          "Something went wrong in the ghost element counter");
+
       if (count > 0) {
         continue;
       }
     }
-
     remove_list.push_back(el);
     if (not new_numbering.exists(el.type, el.ghost_type)) {
       auto nb_element = mesh.getNbElement(el.type, el.ghost_type);
       auto & numbering =
           new_numbering.alloc(nb_element, 1, el.type, el.ghost_type);
-      for (auto && pair : enumerate(numbering)) {
-        std::get<1>(pair) = std::get<0>(pair);
+      for (auto && [i, numb] : enumerate(numbering)) {
+        numb = i;
       }
     }
 
-    new_numbering(el) = UInt(-1);
+    new_numbering(el) = -1;
   }
 
   auto find_last_not_deleted = [](auto && array, Int start) -> Int {
     do {
       --start;
-    } while (start >= 0 and array[start] == UInt(-1));
+    } while (start >= 0 and array[start] == -1);
 
     return start;
   };
@@ -637,7 +644,7 @@ void Mesh::eraseElements(const Array<Element> & elements) {
   auto find_first_deleted = [](auto && array, Int start) -> Int {
     auto begin = array.begin();
     auto it = std::find_if(begin + start, array.end(),
-                           [](auto & el) { return el == UInt(-1); });
+                           [](auto & el) { return el == -1; });
     return Int(it - begin);
   };
 
@@ -659,6 +666,8 @@ void Mesh::eraseElements(const Array<Element> & elements) {
       }
     }
   }
+
+  this->ghosts_counters.onElementsRemoved(new_numbering);
   this->sendEvent(event);
 }
 

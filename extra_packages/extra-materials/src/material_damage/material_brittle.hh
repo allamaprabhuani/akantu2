@@ -34,7 +34,7 @@ namespace akantu {
  * rates
  *                (default: 1.622e-11, -1.3274e-6, 3.6544e-2, -181.38)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialBrittle : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

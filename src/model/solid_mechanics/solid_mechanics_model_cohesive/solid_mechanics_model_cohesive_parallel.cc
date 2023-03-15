@@ -149,35 +149,37 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::updateFacetStressSynchronizer() {
-  if (facet_stress_synchronizer != nullptr) {
-    const auto & rank_to_element =
-        mesh.getElementSynchronizer().getElementToRank();
-    const auto & facet_checks = inserter->getCheckFacets();
-    const auto & mesh_facets = inserter->getMeshFacets();
-    const auto & element_to_facet = mesh_facets.getElementToSubelement();
-    UInt rank = mesh.getCommunicator().whoAmI();
-
-    facet_stress_synchronizer->updateSchemes(
-        [&](auto & scheme, auto & proc, auto & /*direction*/) {
-          UInt el = 0;
-          for (auto && element : scheme) {
-            if (not facet_checks(element)) {
-              continue;
-            }
-
-            const auto & next_el = element_to_facet(element);
-            UInt rank_left = rank_to_element(next_el[0]);
-            UInt rank_right = rank_to_element(next_el[1]);
-
-            if ((rank_left == rank and rank_right == proc) or
-                (rank_left == proc and rank_right == rank)) {
-              scheme[el] = element;
-              ++el;
-            }
-          }
-          scheme.resize(el);
-        });
+  if (facet_stress_synchronizer == nullptr) {
+    return;
   }
+
+  const auto & rank_to_element =
+      mesh.getElementSynchronizer().getElementToRank();
+  const auto & facet_checks = inserter->getCheckFacets();
+  const auto & mesh_facets = inserter->getMeshFacets();
+  const auto & element_to_facet = mesh_facets.getElementToSubelement();
+  auto rank = mesh.getCommunicator().whoAmI();
+
+  facet_stress_synchronizer->updateSchemes(
+      [&](auto & scheme, auto & proc, auto & /*direction*/) {
+        Idx el = 0;
+        for (auto && element : scheme) {
+          if (not facet_checks(element)) {
+            continue;
+          }
+
+          const auto & next_el = element_to_facet(element);
+          auto rank_left = rank_to_element(next_el[0]);
+          auto rank_right = rank_to_element(next_el[1]);
+
+          if ((rank_left == rank and rank_right == proc) or
+              (rank_left == proc and rank_right == rank)) {
+            scheme[el] = element;
+            ++el;
+          }
+        }
+        scheme.resize(el);
+      });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -202,16 +204,8 @@ template <typename T, bool pack_helper>
 void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & elements) const {
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  UInt nb_quad_per_elem = 0;
-  UInt sp2 = spatial_dimension * spatial_dimension;
-  UInt nb_component = sp2 * 2;
   bool element_rank = false;
-  Mesh & mesh_facets = inserter->getMeshFacets();
-
-  Array<T> * vect = nullptr;
-  const Array<std::vector<Element>> * element_to_facet = nullptr;
+  auto & mesh_facets = inserter->getMeshFacets();
 
   auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (auto && el : elements) {
@@ -220,32 +214,20 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
           "packUnpackFacetStressDataHelper called with wrong inputs");
     }
 
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-      vect = &data_to_pack(el.type, el.ghost_type);
-
-      element_to_facet =
-          &(mesh_facets.getElementToSubelement(el.type, el.ghost_type));
-
-      nb_quad_per_elem =
-          fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
-    }
-
+    auto ghost_type = mesh_facets.getElementToSubelement()(el)[0].ghost_type;
     if (pack_helper) {
-      element_rank =
-          (*element_to_facet)(el.element)[0].ghost_type != _not_ghost;
+      element_rank = ghost_type != _not_ghost;
     } else {
-      element_rank =
-          (*element_to_facet)(el.element)[0].ghost_type == _not_ghost;
+      element_rank = ghost_type == _not_ghost;
     }
 
-    for (UInt q = 0; q < nb_quad_per_elem; ++q) {
-      Vector<T> data(vect->storage() +
-                         (el.element * nb_quad_per_elem + q) * nb_component +
-                         element_rank * sp2,
-                     sp2);
+    auto nb_quad_per_elem =
+        fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
+
+    auto && data_per_element = data_to_pack.get(
+        el, spatial_dimension * spatial_dimension, 2, nb_quad_per_elem);
+    for (auto && data_per_quad : data_per_element) {
+      auto && data = data_per_quad(element_rank);
 
       if (pack_helper) {
         buffer << data;
@@ -257,23 +239,13 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(
+Int SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(
     const Array<Element> & elements) const {
-  UInt nb_quads = 0;
-  UInt nb_quad_per_facet = 0;
-
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  auto & fe_engine = this->getFEEngine("FacetsFEEngine");
+  Int nb_quads = 0;
+  const auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (const auto & el : elements) {
-    if (el.type != current_element_type ||
-        el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type = el.ghost_type;
-
-      nb_quad_per_facet =
-          fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
-    }
+    auto nb_quad_per_facet =
+        fe_engine.getNbIntegrationPoints(el.type, el.ghost_type);
 
     nb_quads += nb_quad_per_facet;
   }
@@ -282,11 +254,11 @@ UInt SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt SolidMechanicsModelCohesive::getNbData(
+Int SolidMechanicsModelCohesive::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
+  Int size = 0;
   if (elements.empty()) {
     return 0;
   }
@@ -299,7 +271,7 @@ UInt SolidMechanicsModelCohesive::getNbData(
     //   break;
     // }
     case SynchronizationTag::_smmc_facets_stress: {
-      UInt nb_quads = getNbQuadsForFacetCheck(elements);
+      auto nb_quads = getNbQuadsForFacetCheck(elements);
       size += nb_quads * spatial_dimension * spatial_dimension * sizeof(Real);
       break;
     }
@@ -307,7 +279,7 @@ UInt SolidMechanicsModelCohesive::getNbData(
       for (auto && element : elements) {
         if (Mesh::getSpatialDimension(element.type) ==
             (spatial_dimension - 1)) {
-          size += sizeof(UInt);
+          size += sizeof(Idx);
         }
       }
 
@@ -439,12 +411,6 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
 
   if (elements(0).kind() == _ek_regular) {
     switch (tag) {
-    // case SynchronizationTag::_smmc_facets: {
-    //   unpackElementalDataHelper(inserter->getInsertionFacetsByElement(),
-    //   buffer,
-    //                             elements, false, getFEEngine());
-    //   break;
-    // }
     case SynchronizationTag::_smmc_facets_stress: {
       unpackFacetStressDataHelper(facet_stress, buffer, elements);
       break;
@@ -456,10 +422,10 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
           continue;
         }
 
-        UInt recv_mat_index;
+        Int recv_mat_index;
         buffer >> recv_mat_index;
-        UInt & mat_index = material_index(element);
-        if (mat_index != UInt(-1)) {
+        auto & mat_index = material_index(element);
+        if (mat_index != Int(-1)) {
           continue;
         }
 
@@ -487,16 +453,16 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
     switch (tag) {
     case SynchronizationTag::_material_id: {
       for (auto && element : elements) {
-        UInt recv_mat_index;
+        Int recv_mat_index;
         buffer >> recv_mat_index;
-        UInt & mat_index = material_index(element);
-        if (mat_index != UInt(-1)) {
+        auto & mat_index = material_index(element);
+        if (mat_index != Int(-1)) {
           continue;
         }
 
         // add ghosts element to the correct material
         mat_index = recv_mat_index;
-        UInt index = materials[mat_index]->addElement(element);
+        auto index = materials[mat_index]->addElement(element);
         material_local_numbering(element) = index;
       }
       break;

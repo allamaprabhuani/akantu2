@@ -41,7 +41,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
                                       const ID & id)
     : Parent(model, id), was_stiffness_assembled(false) {
@@ -51,9 +51,9 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
-                                      UInt /*a_dim*/, const Mesh & mesh,
+                                      Int /*a_dim*/, const Mesh & mesh,
                                       FEEngine & fe_engine, const ID & id)
     : Parent(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
@@ -62,7 +62,7 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::initialize() {
+template <Int dim> void MaterialElastic<dim>::initialize() {
   this->registerParam("lambda", lambda, _pat_readable,
                       "First Lamé coefficient");
   this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
@@ -70,7 +70,7 @@ template <UInt dim> void MaterialElastic<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::initMaterial() {
+template <Int dim> void MaterialElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
 
@@ -83,7 +83,7 @@ template <UInt dim> void MaterialElastic<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::updateInternalParameters() {
+template <Int dim> void MaterialElastic<dim>::updateInternalParameters() {
   MaterialThermal<dim>::updateInternalParameters();
 
   this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
@@ -111,53 +111,42 @@ template <> void MaterialElastic<2>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Parent::computeStress(el_type, ghost_type);
 
-  Array<Real>::const_scalar_iterator sigma_th_it =
-      this->sigma_th(el_type, ghost_type).begin();
+  auto && arguments = Parent::getArguments(el_type, ghost_type);
 
-  if (!this->finite_deformation) {
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-    const Real & sigma_th = *sigma_th_it;
-    this->computeStressOnQuad(grad_u, sigma, sigma_th);
-    ++sigma_th_it;
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  if (not this->finite_deformation) {
+    for (auto && args : arguments) {
+      this->computeStressOnQuad(args);
+    }
   } else {
-    /// finite gradus
-    Matrix<Real> E(dim, dim);
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-    /// compute E
-    this->template gradUToE<dim>(grad_u, E);
-
-    const Real & sigma_th = *sigma_th_it;
-
-    /// compute second Piola-Kirchhoff stress tensor
-    this->computeStressOnQuad(E, sigma, sigma_th);
-
-    ++sigma_th_it;
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    for (auto && args : arguments) {
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computeStressOnQuad(tuple::replace(args, "grad_u"_n = E));
+    }
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
                                                 Array<Real> & tangent_matrix,
                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  this->computeTangentModuliOnQuad(tangent);
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+  auto && arguments =
+      Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+
+  for (auto && args : arguments) {
+    this->computeTangentModuliOnQuad(args);
+  }
 
   this->was_stiffness_assembled = true;
 
@@ -165,79 +154,82 @@ void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-Real MaterialElastic<dim>::getPushWaveSpeed(const Element & /*unused*/) const {
+template <Int dim>
+Real MaterialElastic<dim>::getPushWaveSpeed(const Element &) const {
   return sqrt((lambda + 2 * mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-Real MaterialElastic<dim>::getShearWaveSpeed(const Element & /*unused*/) const {
+template <Int dim>
+Real MaterialElastic<dim>::getShearWaveSpeed(const Element &) const {
   return sqrt(mu / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  // MaterialThermal<dim>::computePotentialEnergy(ElementType)
   // needs to be implemented
   // MaterialThermal<dim>::computePotentialEnergy(el_type);
 
   auto epot = this->potential_energy(el_type, _not_ghost).begin();
 
-  if (!this->finite_deformation) {
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
+  auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
-    this->computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-    ++epot;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  if (not this->finite_deformation) {
+    for (auto && [args, epot] :
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+      this->computePotentialEnergyOnQuad(args, epot);
+    }
   } else {
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-    auto E = this->template gradUToE<dim>(grad_u);
-
-    this->computePotentialEnergyOnQuad(E, sigma, *epot);
-    ++epot;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    for (auto && [args, epot] :
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computePotentialEnergyOnQuad(tuple::replace(args, "grad_u"_n = E),
+                                         epot);
+    }
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
-    ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
-  auto gradu_it = this->gradu(type).begin(dim, dim);
-  auto gradu_end = this->gradu(type).begin(dim, dim);
-  auto stress_it = this->stress(type).begin(dim, dim);
+    const Element & element, Vector<Real> & epot_on_quad_points) {
+  auto type = element.type;
+  auto gradu_view = make_view<dim, dim>(this->gradu(type));
+  auto stress_view = make_view<dim, dim>(this->stress(type));
 
   if (this->finite_deformation) {
-    stress_it = this->piola_kirchhoff_2(type).begin(dim, dim);
+    stress_view = make_view<dim, dim>(this->piola_kirchhoff_2(type));
   }
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
 
-  gradu_it += index * nb_quadrature_points;
-  gradu_end += (index + 1) * nb_quadrature_points;
-  stress_it += index * nb_quadrature_points;
+  auto gradu_it = gradu_view.begin() + element.element * nb_quadrature_points;
+  auto gradu_end = gradu_it + nb_quadrature_points;
+  auto stress_it = stress_view.begin() + element.element * nb_quadrature_points;
+  auto stress_end = stress_it + nb_quadrature_points;
 
-  Real * epot_quad = epot_on_quad_points.storage();
+  auto epot_quad = epot_on_quad_points.begin();
 
   Matrix<Real> grad_u(dim, dim);
 
   if (this->finite_deformation) {
-    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-      auto E = this->template gradUToE<dim>(*gradu_it);
-      this->computePotentialEnergyOnQuad(E, *stress_it, *epot_quad);
+    for (auto && data : zip("grad_u"_n = range(gradu_it, gradu_end),
+                        "sigma"_n = range(stress_it, stress_end),
+                        "Epot"_n = epot_on_quad_points)) {
+      auto E = this->template gradUToE<dim>(data["grad_u"_n]);
+      this->computePotentialEnergyOnQuad(tuple::replace(data, "grad_u"_n = E),
+                                         data["Epot"_n]);
     }
   } else {
-    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-      this->computePotentialEnergyOnQuad(*gradu_it, *stress_it, *epot_quad);
+    for (auto && data : zip("grad_u"_n = range(gradu_it, gradu_end),
+                        "sigma"_n = range(stress_it, stress_end),
+                        "Epot"_n = epot_on_quad_points)) {
+      this->computePotentialEnergyOnQuad(data, data["Epot"_n]);
     }
   }
 }
@@ -252,8 +244,13 @@ template <>
 Real MaterialElastic<1>::getShearWaveSpeed(const Element & /*element*/) const {
   AKANTU_EXCEPTION("There is no shear wave speed in 1D");
 }
-/* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(elastic, MaterialElastic);
+/* -------------------------------------------------------------------------- */
+template class MaterialElastic<1>;
+template class MaterialElastic<2>;
+template class MaterialElastic<3>;
+
+static bool material_is_allocated_elastic =
+    instantiateMaterial<MaterialElastic>("elastic");
 
 } // namespace akantu

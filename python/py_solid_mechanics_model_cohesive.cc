@@ -102,7 +102,7 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
 
   py::class_<SolidMechanicsModelCohesive, SolidMechanicsModel>(
       mod, "SolidMechanicsModelCohesive")
-      .def(py::init<Mesh &, UInt, const ID &>(), py::arg("mesh"),
+      .def(py::init<Mesh &, Int, const ID &>(), py::arg("mesh"),
            py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model")
       .def(

@@ -32,16 +32,17 @@
 #define IOHELPER_DUMPER_LAMMPS_H_
 /* -------------------------------------------------------------------------- */
 #include "dumper.hh"
-#include <fstream>
 /* -------------------------------------------------------------------------- */
-
+#include <fstream>
+#include <type_traits>
+/* -------------------------------------------------------------------------- */
 
 namespace iohelper {
 
-enum LammpsAtomStyle {atomic, bond}; //please extend ad libidum
+enum LammpsAtomStyle { atomic, bond }; // please extend ad libidum
 
-template<LammpsAtomStyle style>
-class DumperLammps: public Dumper, public Visitor {
+template <LammpsAtomStyle style>
+class DumperLammps : public Dumper, public Visitor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -65,21 +66,26 @@ public:
   //! set mode for file creation : TEXT, BASE64, COMPRESSED
   void setMode(int mode) override { Dumper::setMode(mode); }
   void dumpAdd(int grain_id = 1);
-  void setEmbeddedValue(const std::string & /*name*/, int /*value*/
-){}
+  void setEmbeddedValue(const std::string & /*name*/, int /*value*/) {}
+
+protected:
+  template <typename Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
+  void writeData(const Cont & cont, UInt dim);
+
+  template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> * = nullptr>
+  void writeData(const Cont & cont, UInt dim);
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                 */
+  /* Accessors */
   /* ------------------------------------------------------------------------ */
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  //position of where the number of atoms is printed;
+  // position of where the number of atoms is printed;
   std::streampos nb_atom_position;
-  //current number of atoms printed to the file
+  // current number of atoms printed to the file
   unsigned long int curr_nb_atom;
   std::fstream lammps_dump_file;
   Real * bounds;
@@ -91,53 +97,59 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-template<>
+template <LammpsAtomStyle style>
+template <typename Cont, std::enable_if_t<is_vector<Cont>::value> *>
+void DumperLammps<style>::writeData(const Cont & cont, UInt dim) {
+  for (UInt i = 0; i < dim; ++i) {
+    this->lammps_dump_file << cont[i] << " ";
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <LammpsAtomStyle style>
+template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> *>
+void DumperLammps<style>::writeData(const Cont & cont, UInt /*dim*/) {
+  for (decltype(cont.rows()) i = 0; i < cont.rows(); ++i) {
+    for (decltype(cont.cols()) j = 0; j < cont.cols(); ++j) {
+      this->lammps_dump_file << cont(i, j) << " ";
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
 template <typename T>
 void DumperLammps<bond>::visitField(T & visited) {
+  auto dim = visited.getDim();
 
-  typename T::iterator it = visited.begin();
-  typename T::iterator end = visited.end();
-
-  UInt dim = visited.getDim();
-
-  for (; it != end ; ++it) {
+  for (auto && cont : visited) {
     this->lammps_dump_file << this->curr_nb_atom + 1 << " "
                            << this->grain_id + 2 << " 1 ";
-    for (UInt i = 0 ;  i <  dim ; ++i) {
-      this->lammps_dump_file << (*it)[i] << " ";
-    }
-    this->lammps_dump_file << std::endl;
+    writeData(cont, dim);
+    this->lammps_dump_file << "\n";
     ++this->curr_nb_atom;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
+template <>
 template <typename T>
 void DumperLammps<atomic>::visitField(T & visited) {
-
-  typename T::iterator it = visited.begin();
-  typename T::iterator end = visited.end();
-
   UInt dim = visited.getDim();
 
-  for (; it != end ; ++it) {
+  for (auto && cont : visited) {
     this->lammps_dump_file << this->curr_nb_atom + 1 << " 1 ";
-    for (UInt i = 0 ;  i <  dim ; ++i) {
-      this->lammps_dump_file << (*it)[i] << " ";
-    }
-    this->lammps_dump_file << std::endl;
+    this->writeData(cont, dim);
+    this->lammps_dump_file << "\n";
     ++this->curr_nb_atom;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace iohelper
 
 /* -------------------------------------------------------------------------- */
 #include "field_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
-
-
 
 #endif /* IOHELPER_DUMPER_LAMMPS_H_ */

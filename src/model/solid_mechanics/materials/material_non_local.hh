@@ -81,7 +81,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class LocalParent>
+template <Int dim, class LocalParent>
 class MaterialNonLocal : public MaterialNonLocalInterface, public LocalParent {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

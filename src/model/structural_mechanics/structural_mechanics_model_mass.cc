@@ -98,8 +98,9 @@ void StructuralMechanicsModel::assembleMassMatrix(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleLumpedMassMatrix() {
 
-  if (not this->need_to_reassemble_lumpedMass)
+  if (not this->need_to_reassemble_lumped_mass) {
     return;
+  }
 
   allocNodalField(this->mass, nb_degree_of_freedom, "lumped_mass");
 
@@ -124,9 +125,9 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_structural)) {
     const auto & element_material_id = this->element_material(type);
     const auto & connectivity = mesh.getConnectivity(type);
-    const UInt nb_element = connectivity.size();
+    // const auto nb_element = connectivity.size();
 
-    if (type != _bernoulli_beam_3 or type != _bernoulli_beam_2) {
+    if (type != _bernoulli_beam_3 and type != _bernoulli_beam_2) {
       AKANTU_EXCEPTION(
           "The lumped mass was not implemented for non Bernoulli Beams");
     }
@@ -138,18 +139,18 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
       auto node2 = conn(0);
 
       const auto & material = this->materials.at(std::get<1>(data));
-      const Real rho = material.rho;
-      const Real cross_section = material.A;
+      const auto rho = material.rho;
+      const auto cross_section = material.A;
 
-      const Vector<Real> coord_node_1 = node_it[node1];
-      const Vector<Real> coord_node_2 = node_it[node2];
+      auto && coord_node_1 = node_it[node1];
+      auto && coord_node_2 = node_it[node2];
 
-      const Real length = coord_node_1.distance(coord_node_2);
-      const Real volume = length * cross_section;
-      const Real mass = volume * rho;
+      const auto length = coord_node_1.distance(coord_node_2);
+      const auto volume = length * cross_section;
+      const auto mass = volume * rho;
 
       // Now distribute the mass at the right places
-      for (UInt d = 0; d != spatial_dimension; ++d) {
+      for (auto d : arange(spatial_dimension)) {
         lumped_mass(node1, d) += mass / 2.;
         lumped_mass(node2, d) += mass / 2.;
       }; // end for(d):
@@ -159,7 +160,7 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
     }
   }
 
-  const Real pi = std::atan(1.) * 4;
+  const auto pi = std::atan(1.) * 4;
 
   // We now compute the inertia.
   if (spatial_dimension == 2) {
@@ -202,8 +203,8 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
       const Real r2 = std::pow((volume * 3.) / (4 * pi), 2. / 3.);
       const Real inertia = (2. / 5.) * masses(0) * r2;
 
-      for (UInt d = spatial_dimension; d < masses.size(); ++d) {
-        masses(d) = inertia;
+      for (auto && m : masses) {
+        m = inertia;
       }
     }
   } else {
@@ -212,8 +213,8 @@ void StructuralMechanicsModel::assembleLumpedMassMatrix() {
 
   this->getDOFManager().assembleToLumpedMatrix("displacement", lumped_mass,
                                                "M");
-  this->need_to_reassemble_lumpedMass = false;
-  return;
+
+  this->need_to_reassemble_lumped_mass = false;
 }
 
 } // namespace akantu

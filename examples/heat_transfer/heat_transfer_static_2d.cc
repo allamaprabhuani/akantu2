@@ -41,7 +41,7 @@
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
-UInt spatial_dimension = 2;
+Int spatial_dimension = 2;
 std::string base_name;
 
 int main(int argc, char * argv[]) {
@@ -60,15 +60,15 @@ int main(int argc, char * argv[]) {
   Array<bool> & blocked_dofs = model.getBlockedDOFs();
   Array<Real> & temperature = model.getTemperature();
   double length = 1.;
-  UInt nb_nodes = nodes.size();
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  Int nb_nodes = nodes.size();
+  for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
     Real dx = nodes(i, 0);
     Real dy = nodes(i, 1);
 
     Vector<Real> dX = {dx, dy};
-    dX -= length / 4.;
+    dX.array() -= length / 4.;
     Real d = dX.norm();
     if (d < 0.1) {
       blocked_dofs(i) = true;

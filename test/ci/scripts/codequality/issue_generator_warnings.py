@@ -13,17 +13,15 @@ __copyright__ = (
 )
 __license__ = "LGPLv3"
 
-from . import print_debug, print_info
+from . import print_info
 from .issue_generator import IssueGenerator
 import re
-import sys
 import warning_parser as warn
 
 
 class WarningsIssueGenerator(IssueGenerator):
-    """
-    Main class to run and convert the results of clang-tidy to the code-quality
-    format
+    """Main class to run and convert the results of clang-tidy to the
+    code-quality format.
     """
 
     CLASSIFICATIONS = {
@@ -41,7 +39,7 @@ class WarningsIssueGenerator(IssueGenerator):
         files = kwargs.pop("files")
 
         self._input_files = {}
-        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
+        compiler_re = re.compile(r".*build.*(gcc|clang)-err\.log")
 
         for _file in files:
             match = compiler_re.search(_file)

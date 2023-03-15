@@ -49,7 +49,7 @@ namespace akantu {
 
 class NodeInfoPerProc : protected MeshAccessor {
 public:
-  NodeInfoPerProc(NodeSynchronizer & synchronizer, UInt message_cnt, UInt root);
+  NodeInfoPerProc(NodeSynchronizer & synchronizer, Int message_cnt, Int root);
 
   void synchronize();
 
@@ -65,32 +65,31 @@ protected:
   void fillNodeGroupsFromBuffer(CommunicationBuffer & buffer);
   void fillNodesType();
 
-  void fillCommunicationScheme(const Array<UInt> & /*master_info*/);
+  void fillCommunicationScheme(const Array<Idx> &);
   void fillNodalData(DynamicCommunicationBuffer & buffer,
                      const std::string & tag_name);
 
-  void fillPeriodicPairs(const Array<UInt> & /*global_pairs*/,
-                         std::vector<UInt> & /*missing_nodes*/);
-  void receiveMissingPeriodic(DynamicCommunicationBuffer & /*buffer*/);
+  void fillPeriodicPairs(const Array<Idx> &, std::vector<Idx> &);
+  void receiveMissingPeriodic(DynamicCommunicationBuffer &);
 
 protected:
   NodeSynchronizer & synchronizer;
   const Communicator & comm;
-  UInt rank;
-  UInt nb_proc;
-  UInt root;
+  Int rank;
+  Int nb_proc;
+  Int root;
 
   Mesh & mesh;
 
-  UInt spatial_dimension;
-  UInt message_count;
+  Int spatial_dimension;
+  Int message_count;
 };
 
 /* -------------------------------------------------------------------------- */
 class MasterNodeInfoPerProc : public NodeInfoPerProc {
 public:
-  MasterNodeInfoPerProc(NodeSynchronizer & synchronizer, UInt message_cnt,
-                        UInt root);
+  MasterNodeInfoPerProc(NodeSynchronizer & synchronizer, Int message_cnt,
+                        Int root);
 
   void synchronizeNodes() override;
   void synchronizeTypes() override;
@@ -103,8 +102,8 @@ private:
                       const std::string & tag_name);
 
   /// get the list of nodes to send and send them
-  std::vector<Array<UInt>> nodes_per_proc;
-  Array<UInt> nb_nodes_per_proc;
+  std::vector<Array<Idx>> nodes_per_proc;
+  Array<Int> nb_nodes_per_proc;
   Array<Real> all_nodes;
   Array<NodeFlag> all_periodic_flags;
   Array<Int> nodes_pranks;
@@ -113,8 +112,8 @@ private:
 /* -------------------------------------------------------------------------- */
 class SlaveNodeInfoPerProc : public NodeInfoPerProc {
 public:
-  SlaveNodeInfoPerProc(NodeSynchronizer & synchronizer, UInt message_cnt,
-                       UInt root);
+  SlaveNodeInfoPerProc(NodeSynchronizer & synchronizer, Int message_cnt,
+                       Int root);
 
   void synchronizeNodes() override;
   void synchronizeTypes() override;

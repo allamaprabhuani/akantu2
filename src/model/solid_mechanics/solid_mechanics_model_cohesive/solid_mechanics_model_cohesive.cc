@@ -60,7 +60,8 @@ class CohesiveMeshGlobalDataUpdater : public MeshGlobalDataUpdater {
 public:
   CohesiveMeshGlobalDataUpdater(SolidMechanicsModelCohesive & model)
       : model(model), mesh(model.getMesh()),
-        global_ids_updater(model.getMesh(), *model.cohesive_synchronizer) {}
+        global_ids_updater(model.getMesh(), model.cohesive_synchronizer.get()) {
+  }
 
   /* ------------------------------------------------------------------------ */
   std::tuple<UInt, UInt>
@@ -120,7 +121,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager)
     : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
@@ -308,6 +309,9 @@ void SolidMechanicsModelCohesive::initModel() {
       type = tmp_type;
       auto type_facet = Mesh::getFacetType(type);
       auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+      AKANTU_DEBUG_ASSERT(Mesh::getKind(type_cohesive) == _ek_cohesive,
+                          "The element type " << type_cohesive
+                                              << " is not a cohesive type");
       mesh.addConnectivityType(type_cohesive, type_ghost);
     }
   }
@@ -416,7 +420,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
           continue;
         }
 
-        Matrix<Real> quad_f =
+        auto && quad_f =
             make_view(quad_facets(global_facet.type, global_facet.ghost_type),
                       spatial_dimension, nb_quad_per_facet)
                 .begin()[global_facet.element];
@@ -474,8 +478,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
 
   tangents.initialize(mesh_facets, _nb_component = tangent_components,
                       _spatial_dimension = Model::spatial_dimension - 1);
-  // mesh_facets.initElementTypeMapArray(tangents, tangent_components,
-  //                                     Model::spatial_dimension - 1);
 
   for (auto facet_type :
        mesh_facets.elementTypes(Model::spatial_dimension - 1)) {
@@ -524,15 +526,8 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
     }
   }
 
-  /// communicate data among processors
-  // this->synchronize(SynchronizationTag::_smmc_facets);
-
   /// insert cohesive elements
   UInt nb_new_elements = inserter->insertElements();
-
-  // if (nb_new_elements > 0) {
-  //   this->reinitializeSolver();
-  // }
 
   AKANTU_DEBUG_OUT();
 
@@ -554,7 +549,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
+void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
                                                const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
 
@@ -569,19 +564,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
   const auto & old_nodes = cohesive_event->getOldNodesList();
 
   auto copy = [this, &new_nodes, &old_nodes](auto & arr) {
-    UInt new_node;
-    UInt old_node;
-
-    auto view = make_view(arr, spatial_dimension);
-    auto begin = view.begin();
-
-    for (auto && pair : zip(new_nodes, old_nodes)) {
-      std::tie(new_node, old_node) = pair;
-
-      auto old_ = begin + old_node;
-      auto new_ = begin + new_node;
-
-      *new_ = *old_;
+    auto it = make_view(arr, spatial_dimension).begin();
+    for (auto [new_node, old_node] : zip(new_nodes, old_nodes)) {
+      it[new_node] = it[old_node];
     }
   };
 
@@ -609,7 +594,6 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
   }
 
   copy(getDOFManager().getSolution("displacement"));
-  // this->assembleMassLumped();
 
   AKANTU_DEBUG_OUT();
 }
@@ -665,7 +649,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
     bool padding_flag) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = Model::spatial_dimension;
+  Int spatial_dimension = Model::spatial_dimension;
   ElementKind _element_kind = element_kind;
   if (dumper_name == "cohesive elements") {
     _element_kind = _ek_cohesive;
@@ -681,7 +665,6 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
 }
 
 /* -------------------------------------------------------------------------- */
-
 void SolidMechanicsModelCohesive::onDump() {
   this->flattenAllRegisteredInternals(_ek_cohesive);
   SolidMechanicsModel::onDump();

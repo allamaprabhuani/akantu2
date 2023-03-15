@@ -42,13 +42,15 @@
 namespace akantu {
 
 struct CohesiveReduceFunctionMean {
-  inline Real operator()(Real u_plus, Real u_minus) {
+  template <typename T1, typename T2>
+  inline decltype(auto) operator()(T1 u_plus, T2 u_minus) {
     return .5 * (u_plus + u_minus);
   }
 };
 
 struct CohesiveReduceFunctionOpening {
-  inline Real operator()(Real u_plus, Real u_minus) {
+  template <typename T1, typename T2>
+  inline decltype(auto) operator()(T1 u_plus, T2 u_minus) {
     return (u_plus - u_minus);
   }
 };
@@ -58,7 +60,7 @@ template <> class ShapeLagrange<_ek_cohesive> : public ShapeLagrangeBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ShapeLagrange(const Mesh & mesh, UInt spatial_dimension,
+  ShapeLagrange(const Mesh & mesh, Int spatial_dimension,
                 const ID & id = "shape_cohesive");
 
   ~ShapeLagrange() override = default;
@@ -76,19 +78,19 @@ public:
   void extractNodalToElementField(
       const Array<Real> & nodal_f, Array<Real> & elemental_f,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shape_derivatives, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
-      const Array<UInt> & filter_elements) const override;
+      const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
   /// coordinates
@@ -105,15 +107,15 @@ public:
   /// interpolate nodal values on the integration points
   template <ElementType type, class ReduceFunction>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
-      GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Real> & u, Array<Real> & uq, Int nb_degree_of_freedom,
+      const GhostType ghost_type = _not_ghost,
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
-      GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Real> & u, Array<Real> & uq, Int nb_degree_of_freedom,
+      const GhostType ghost_type = _not_ghost,
+      const Array<Idx> & filter_elements = empty_filter) const {
     interpolateOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
         u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
@@ -122,9 +124,9 @@ public:
   /// coordinates
   template <ElementType type>
   void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      const Array<Real> & u, Array<Real> & nablauq, Int nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Idx> & filter_elements = empty_filter) const {
     variationOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
         u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
@@ -133,30 +135,29 @@ public:
   template <ElementType type>
   void computeBtD(const Array<Real> & /*Ds*/, Array<Real> & /*BtDs*/,
                   GhostType /*ghost_type*/,
-                  const Array<UInt> & /*filter_elements*/) const {
+                  const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   template <ElementType type>
   void computeBtDB(const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/,
-                   UInt /*order_d*/, GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
+                   Int /*order_d*/, GhostType /*ghost_type*/,
+                   const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void
-  computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-             GhostType /*ghost_type*/,
-             const Array<UInt> & /*filter_elements*/ = empty_filter) const {
+  void computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
+                  GhostType /*ghost_type*/,
+                  const Array<Idx> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   template <ElementType type>
   void computeNtbN(const Array<Real> & /*bs*/, Array<Real> & /*NtbNs*/,
                    GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
+                   const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -164,16 +165,16 @@ public:
   /// compute the gradient of u on the integration points
   template <ElementType type, class ReduceFunction>
   void variationOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      const Array<Real> & u, Array<Real> & nablauq, Int nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// compute the normals to the field u on integration points
   template <ElementType type, class ReduceFunction>
   void computeNormalsOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & normals_u,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 };
 
 /// standard output stream operator

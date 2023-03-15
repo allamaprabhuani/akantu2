@@ -52,23 +52,21 @@ void NTNFriction<FrictionLaw, Regularisation>::applyFrictionTraction() {
   AKANTU_DEBUG_IN();
 
   auto & ntn_contact = dynamic_cast<NTNContact &>(this->contact);
-  SolidMechanicsModel & model = ntn_contact.getModel();
-  Array<Real> & residual = model.getInternalForce();
-  UInt dim = model.getSpatialDimension();
+  auto & model = ntn_contact.getModel();
+  auto & residual = model.getInternalForce();
+  auto dim = model.getSpatialDimension();
 
-  const SynchronizedArray<UInt> & masters = ntn_contact.getMasters();
-  const SynchronizedArray<UInt> & slaves = ntn_contact.getSlaves();
-  const SynchronizedArray<Real> & l_boundary_slaves =
-      ntn_contact.getLumpedBoundarySlaves();
-  const SynchronizedArray<Real> & l_boundary_masters =
-      ntn_contact.getLumpedBoundaryMasters();
+  const auto & masters = ntn_contact.getMasters();
+  const auto & slaves = ntn_contact.getSlaves();
+  const auto & l_boundary_slaves = ntn_contact.getLumpedBoundarySlaves();
+  const auto & l_boundary_masters = ntn_contact.getLumpedBoundaryMasters();
 
-  UInt nb_contact_nodes = ntn_contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt master = masters(n);
-    UInt slave = slaves(n);
+  Int nb_contact_nodes = ntn_contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto master = masters(n);
+    auto slave = slaves(n);
 
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       residual(master, d) +=
           l_boundary_masters(n) * this->friction_traction(n, d);
       residual(slave, d) -=
@@ -84,10 +82,7 @@ template <template <class> class FrictionLaw, class Regularisation>
 void NTNFriction<FrictionLaw, Regularisation>::printself(std::ostream & stream,
                                                          int indent) const {
   AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "NTNFriction [" << std::endl;
   FrictionLaw<Regularisation>::printself(stream, ++indent);

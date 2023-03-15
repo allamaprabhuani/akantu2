@@ -61,15 +61,14 @@ namespace akantu {
   })
 /* -------------------------------------------------------------------------- */
 
-[[gnu::visibility("default")]] void
-register_phase_field_model(py::module & mod) {
+void register_phase_field_model(py::module & mod) {
 
   py::class_<PhaseFieldModelOptions>(mod, "PhaseFieldModelOptions")
       .def(py::init<AnalysisMethod>(), py::arg("analysis_method") = _static);
 
   py::class_<PhaseFieldModel, Model>(mod, "PhaseFieldModel",
                                      py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+      .def(py::init<Mesh &, Int, const ID &, std::shared_ptr<DOFManager>,
                     const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "phase_field_model",
@@ -115,7 +114,7 @@ register_phase_field_model(py::module & mod) {
       .def_function_nocopy(getMesh)
       .def(
           "getPhaseField",
-          [](PhaseFieldModel & self, UInt phase_field_id) -> decltype(auto) {
+          [](PhaseFieldModel & self, Idx phase_field_id) -> decltype(auto) {
             return self.getPhaseField(phase_field_id);
           },
           py::arg("phase_field_id"), py::return_value_policy::reference)
@@ -130,11 +129,9 @@ register_phase_field_model(py::module & mod) {
       .def("setPhaseFieldSelector", &PhaseFieldModel::setPhaseFieldSelector);
 }
 
-[[gnu::visibility("default")]] void
-register_phase_field_coupler(py::module & mod) {
-
+void register_phase_field_coupler(py::module & mod) {
   py::class_<CouplerSolidPhaseField, Model>(mod, "CouplerSolidPhaseField")
-      .def(py::init<Mesh &, UInt, const ID &, const ModelType>(),
+      .def(py::init<Mesh &, Int, const ID &, const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "coupler_solid_phasefield",
            py::arg("model_type") = ModelType::_coupler_solid_phasefield)

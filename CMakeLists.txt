@@ -43,7 +43,7 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.9)
 
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -77,6 +77,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL
   "Enable/Disable output of compile commands during generation" FORCE)
 
 mark_as_advanced(BUILD_SHARED_LIBS)
+
+set(AKANTU_CXX_STANDARD 17 CACHE INTERNAL "")
 
 if(NOT AKANTU_TARGETS_EXPORT)
   set(AKANTU_TARGETS_EXPORT AkantuTargets)

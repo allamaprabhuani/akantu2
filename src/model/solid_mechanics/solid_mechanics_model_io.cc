@@ -67,7 +67,7 @@ bool SolidMechanicsModel::isInternal(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
-ElementTypeMap<UInt>
+ElementTypeMap<Int>
 SolidMechanicsModel::getInternalDataPerElem(const std::string & field_name,
                                             ElementKind element_kind) {
   if (!(this->isInternal(field_name, element_kind))) {
@@ -80,7 +80,7 @@ SolidMechanicsModel::getInternalDataPerElem(const std::string & field_name,
     }
   }
 
-  return ElementTypeMap<UInt>();
+  return ElementTypeMap<Int>();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -153,16 +153,17 @@ void SolidMechanicsModel::onDump() {
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
+    bool padding_flag, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
   if (field_name == "partitions") {
-    field = mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, spatial_dimension, kind);
   } else if (field_name == "material_index") {
-    field = mesh.createElementalField<UInt, Vector, dumpers::ElementalField>(
-        material_index, group_name, spatial_dimension, kind);
+    field =
+        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+            material_index, group_name, spatial_dimension, kind);
   } else {
     // this copy of field_name is used to compute derivated data such as
     // strain and von mises stress that are based on grad_u and stress
@@ -285,7 +286,7 @@ void SolidMechanicsModel::dump(const std::string & dumper_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
+void SolidMechanicsModel::dump(const std::string & dumper_name, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(dumper_name, step);
@@ -293,7 +294,7 @@ void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Real time,
-                               UInt step) {
+                               Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(dumper_name, time, step);
@@ -307,14 +308,14 @@ void SolidMechanicsModel::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(UInt step) {
+void SolidMechanicsModel::dump(Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(Real time, UInt step) {
+void SolidMechanicsModel::dump(Real time, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(time, step);

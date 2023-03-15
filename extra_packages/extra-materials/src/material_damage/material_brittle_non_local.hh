@@ -30,7 +30,7 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialBrittleNonLocal
     : public MaterialDamageNonLocal<spatial_dimension,
                                     MaterialBrittle<spatial_dimension>> {

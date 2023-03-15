@@ -44,12 +44,8 @@ NonLocalNeighborhoodBase::NonLocalNeighborhoodBase(
     Model & model, const ElementTypeMapReal & quad_coordinates, const ID & id)
     : NeighborhoodBase(model, quad_coordinates, id),
       Parsable(ParserType::_non_local, id) {
-  AKANTU_DEBUG_IN();
-
   this->registerParam("radius", neighborhood_radius, 100.,
                       _pat_parsable | _pat_readable, "Non local radius");
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -81,7 +77,6 @@ void NonLocalNeighborhoodBase::synchronize(
 /* -------------------------------------------------------------------------- */
 void NonLocalNeighborhoodBase::getRelevantGhostElements(
     std::set<Element> & relevant_ghost_elements) {
-
   for (auto && ghost_type : ghost_type_t{}) {
     auto & pair_list = this->pair_list.at(ghost_type);
     for (auto && pair : pair_list) {
@@ -106,7 +101,7 @@ void NonLocalNeighborhoodBase::cleanupExtraGhostElements(
   for (const auto & type : mesh.elementTypes(
            _spatial_dimension = spatial_dimension, _ghost_type = _ghost)) {
     auto nb_ghost_elem = mesh.getNbElement(type, _ghost);
-    for (UInt g = 0; g < nb_ghost_elem; ++g) {
+    for (auto g : arange(nb_ghost_elem)) {
       Element element{type, g, _ghost};
       if (relevant_ghost_elements.find(element) == end) {
         ghosts_to_erase.push_back(element);

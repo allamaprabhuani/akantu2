@@ -51,7 +51,7 @@ template <typename type_, template <ElementKind> class shape_t,
 class TestFEMBaseFixture : public ::testing::Test {
 public:
   static constexpr const ElementType type = type_::value;
-  static constexpr const size_t dim = ElementClass<type>::getSpatialDimension();
+  static constexpr const Int dim = ElementClass<type>::getSpatialDimension();
   using FEM = FEEngineTemplate<IntegratorGauss, shape_t, kind>;
 
   /// Setup reads mesh corresponding to element type and initializes an FEEngine
@@ -86,8 +86,8 @@ public:
 protected:
   std::unique_ptr<FEM> fem;
   std::unique_ptr<Mesh> mesh;
-  UInt nb_element;
-  UInt nb_quadrature_points_total;
+  Int nb_element;
+  Int nb_quadrature_points_total;
   Vector<Real> lower;
   Vector<Real> upper;
 };
@@ -98,7 +98,7 @@ constexpr const ElementType TestFEMBaseFixture<type_, shape_t, kind>::type;
 
 template <typename type_, template <ElementKind> class shape_t,
           ElementKind kind>
-constexpr const size_t TestFEMBaseFixture<type_, shape_t, kind>::dim;
+constexpr const Int TestFEMBaseFixture<type_, shape_t, kind>::dim;
 
 /* -------------------------------------------------------------------------- */
 /// Base class for test with Lagrange FEEngine and regular elements
@@ -106,7 +106,6 @@ template <typename type_>
 using TestFEMFixture = TestFEMBaseFixture<type_, ShapeLagrange, _ek_regular>;
 
 /* -------------------------------------------------------------------------- */
-
 using fe_engine_types = gtest_list_t<TestElementTypes>;
 
 TYPED_TEST_SUITE(TestFEMFixture, fe_engine_types, );

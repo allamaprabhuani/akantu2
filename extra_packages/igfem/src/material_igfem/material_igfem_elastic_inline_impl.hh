@@ -13,7 +13,7 @@
  */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, const Real lambda,
     const Real mu) const {
@@ -21,8 +21,8 @@ inline void MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   // u_{ij} + \nabla u_{ji})
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) =
           (i == j) * lambda * trace + mu * (grad_u(i, j) + grad_u(j, i));
     }
@@ -38,7 +38,7 @@ inline void MaterialIGFEMElastic<1>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, const Real lambda, const Real mu) const {
   UInt n = tangent.cols();
@@ -76,7 +76,7 @@ inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialIGFEMElastic<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
   AKANTU_DEBUG_TO_IMPLEMENT();

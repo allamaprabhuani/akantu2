@@ -51,16 +51,16 @@ void PhaseFieldExponential::updateInternalParameters() {
     for (auto && tuple : zip(make_view(this->damage_energy(type, _not_ghost),
                                        spatial_dimension, spatial_dimension),
                              this->g_c(type, _not_ghost))) {
-      Matrix<Real> d(spatial_dimension, spatial_dimension);
-      // eye g_c * l0
-      d.eye(std::get<1>(tuple) * this->l0);
+      Matrix<Real> d =
+          Matrix<Real>::Identity(spatial_dimension, spatial_dimension) *
+          std::get<1>(tuple) * this->l0;
       std::get<0>(tuple) = d;
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::computeDrivingForce(const ElementType & el_type,
+void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
                                                 GhostType ghost_type) {
   for (auto && tuple :
        zip(this->phi(el_type, ghost_type),

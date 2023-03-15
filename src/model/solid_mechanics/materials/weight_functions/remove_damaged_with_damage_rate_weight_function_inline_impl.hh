@@ -31,12 +31,12 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "remove_damaged_with_damage_rate_weight_function.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+
 /* -------------------------------------------------------------------------- */
 inline void RemoveDamagedWithDamageRateWeightFunction::init() {
   this->damage_with_damage_rate =
@@ -45,11 +45,10 @@ inline void RemoveDamagedWithDamageRateWeightFunction::init() {
 
 /* -------------------------------------------------------------------------- */
 inline Real RemoveDamagedWithDamageRateWeightFunction::operator()(
-    Real r, const __attribute__((unused)) IntegrationPoint & q1,
+    Real r, const IntegrationPoint & q1, const IntegrationPoint & q2) {
 
-    const IntegrationPoint & q2) {
   /// compute the weight
-  UInt quad = q2.global_num;
+  auto quad = q2.global_num;
 
   if (q1.global_num == quad) {
     return 1.;
@@ -68,4 +67,5 @@ inline Real RemoveDamagedWithDamageRateWeightFunction::operator()(
 
   return w;
 }
+
 } // namespace akantu

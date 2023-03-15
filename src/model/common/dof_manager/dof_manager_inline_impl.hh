@@ -37,8 +37,8 @@
 #include "terms_to_assemble.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_DOF_MANAGER_INLINE_IMPL_HH_
-#define AKANTU_DOF_MANAGER_INLINE_IMPL_HH_
+// #ifndef __AKANTU_DOF_MANAGER_INLINE_IMPL_CC__
+// #define __AKANTU_DOF_MANAGER_INLINE_IMPL_CC__
 
 namespace akantu {
 
@@ -70,11 +70,11 @@ const DOFManager::DOFData & DOFManager::getDOFData(const ID & dof_id) const {
 
 /* -------------------------------------------------------------------------- */
 inline void DOFManager::extractElementEquationNumber(
-    const Array<Int> & equation_numbers, const Vector<UInt> & connectivity,
-    UInt nb_degree_of_freedom, Vector<Int> & element_equation_number) {
-  for (UInt i = 0, ld = 0; i < connectivity.size(); ++i) {
-    UInt n = connectivity(i);
-    for (UInt d = 0; d < nb_degree_of_freedom; ++d, ++ld) {
+    const Array<Idx> & equation_numbers, const Vector<Idx> & connectivity,
+    Int nb_degree_of_freedom, Vector<Idx> & element_equation_number) {
+  for (Int i = 0, ld = 0; i < connectivity.size(); ++i) {
+    auto n = connectivity(i);
+    for (Int d = 0; d < nb_degree_of_freedom; ++d, ++ld) {
       element_equation_number(ld) =
           equation_numbers(n * nb_degree_of_freedom + d);
     }
@@ -125,15 +125,15 @@ inline bool DOFManager::hasDOFsIncrement(const ID & dofs_id) const {
 
 /* -------------------------------------------------------------------------- */
 inline Array<Real> & DOFManager::getDOFsDerivatives(const ID & dofs_id,
-                                                    UInt order) {
+                                                    Int order) {
 
   if (order == 0) {
     return getDOFs(dofs_id);
   }
 
-  std::vector<Array<Real> *> & derivatives =
-      this->getDOFData(dofs_id).dof_derivatives;
-  if ((order > derivatives.size()) || (derivatives[order - 1] == nullptr)) {
+  auto & derivatives = this->getDOFData(dofs_id).dof_derivatives;
+  if ((order > Int(derivatives.size())) ||
+      (derivatives[order - 1] == nullptr)) {
     AKANTU_EXCEPTION("No derivatives of order " << order << " present in "
                                                 << this->id << " for dof "
                                                 << dofs_id);
@@ -144,10 +144,10 @@ inline Array<Real> & DOFManager::getDOFsDerivatives(const ID & dofs_id,
 
 /* -------------------------------------------------------------------------- */
 inline bool DOFManager::hasDOFsDerivatives(const ID & dofs_id,
-                                           UInt order) const {
-  const std::vector<Array<Real> *> & derivatives =
-      this->getDOFData(dofs_id).dof_derivatives;
-  return ((order < derivatives.size()) && (derivatives[order - 1] != nullptr));
+                                           Int order) const {
+  const auto & derivatives = this->getDOFData(dofs_id).dof_derivatives;
+  return ((order < Int(derivatives.size())) &&
+          (derivatives[order - 1] != nullptr));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -172,36 +172,36 @@ inline bool DOFManager::hasBlockedDOFs(const ID & dofs_id) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool DOFManager::isLocalOrMasterDOF(UInt dof_num) {
+inline bool DOFManager::isLocalOrMasterDOF(Idx dof_num) {
   auto dof_flag = this->dofs_flag(dof_num);
   return (dof_flag & NodeFlag::_local_master_mask) == NodeFlag::_normal;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool DOFManager::isSlaveDOF(UInt dof_num) {
+inline bool DOFManager::isSlaveDOF(Idx dof_num) {
   auto dof_flag = this->dofs_flag(dof_num);
   return (dof_flag & NodeFlag::_shared_mask) == NodeFlag::_slave;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool DOFManager::isPureGhostDOF(UInt dof_num) {
+inline bool DOFManager::isPureGhostDOF(Idx dof_num) {
   auto dof_flag = this->dofs_flag(dof_num);
   return (dof_flag & NodeFlag::_shared_mask) == NodeFlag::_pure_ghost;
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int DOFManager::localToGlobalEquationNumber(Int local) const {
+inline Idx DOFManager::localToGlobalEquationNumber(Idx local) const {
   return this->global_equation_number(local);
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool DOFManager::hasGlobalEquationNumber(Int global) const {
+inline bool DOFManager::hasGlobalEquationNumber(Idx global) const {
   auto it = this->global_to_local_mapping.find(global);
   return (it != this->global_to_local_mapping.end());
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int DOFManager::globalToLocalEquationNumber(Int global) const {
+inline Idx DOFManager::globalToLocalEquationNumber(Idx global) const {
   auto it = this->global_to_local_mapping.find(global);
   AKANTU_DEBUG_ASSERT(it != this->global_to_local_mapping.end(),
                       "This global equation number "
@@ -211,20 +211,19 @@ inline Int DOFManager::globalToLocalEquationNumber(Int global) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline NodeFlag DOFManager::getDOFFlag(Int local_id) const {
+inline NodeFlag DOFManager::getDOFFlag(Idx local_id) const {
   return this->dofs_flag(local_id);
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<UInt> &
+inline decltype(auto)
 DOFManager::getDOFsAssociatedNodes(const ID & dof_id) const {
   const auto & dof_data = this->getDOFData(dof_id);
   return dof_data.associated_nodes;
 }
 
 /* -------------------------------------------------------------------------- */
-const Array<Int> &
-DOFManager::getLocalEquationsNumbers(const ID & dof_id) const {
+decltype(auto) DOFManager::getLocalEquationsNumbers(const ID & dof_id) const {
   return getDOFData(dof_id).local_equation_number;
 }
 
@@ -246,7 +245,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
     Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Idx> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   auto & dof_data = this->getDOFData(dof_id);
@@ -256,18 +255,18 @@ void DOFManager::assembleElementalMatricesToMatrix_(
 
   const auto & equation_number = this->getLocalEquationsNumbers(dof_id);
 
-  UInt nb_element;
-  UInt * filter_it = nullptr;
+  Int nb_element;
+  Idx * filter_it = nullptr;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
-    filter_it = filter_elements.storage();
+    filter_it = filter_elements.data();
   } else {
     if (dof_data.group_support != "__mesh__") {
       const auto & group_elements =
           this->mesh->getElementGroup(dof_data.group_support)
               .getElements(type, ghost_type);
       nb_element = group_elements.size();
-      filter_it = group_elements.storage();
+      filter_it = group_elements.data();
     } else {
       nb_element = this->mesh->getNbElement(type, ghost_type);
     }
@@ -278,20 +277,19 @@ void DOFManager::assembleElementalMatricesToMatrix_(
                           << elementary_mat.getID()
                           << ") has not the good size.");
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  UInt nb_degree_of_freedom = dof_data.dof->getNbComponent();
+  auto nb_degree_of_freedom = dof_data.dof->getNbComponent();
 
-  const Array<UInt> & connectivity =
-      this->mesh->getConnectivity(type, ghost_type);
+  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
   auto conn_begin = connectivity.begin(nb_nodes_per_element);
   auto conn_it = conn_begin;
   auto size_mat = nb_nodes_per_element * nb_degree_of_freedom;
 
-  Vector<Int> element_eq_nb(nb_degree_of_freedom * nb_nodes_per_element);
+  Vector<Idx> element_eq_nb(nb_degree_of_freedom * nb_nodes_per_element);
   auto el_mat_it = elementary_mat.begin(size_mat, size_mat);
 
-  for (UInt e = 0; e < nb_element; ++e, ++el_mat_it) {
+  for (Int e = 0; e < nb_element; ++e, ++el_mat_it) {
     if (filter_it) {
       conn_it = conn_begin + *filter_it;
     }
@@ -336,4 +334,4 @@ void DOFManager::assemblePreassembledMatrix_(Mat & A,
 
 } // namespace akantu
 
-#endif /* AKANTU_DOF_MANAGER_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_DOF_MANAGER_INLINE_IMPL_CC__ */

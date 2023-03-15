@@ -62,8 +62,8 @@ namespace akantu {
 /* Constants                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace {
-  [[gnu::unused]] constexpr UInt _all_dimensions{
-      std::numeric_limits<UInt>::max()};
+  [[gnu::unused]] constexpr Int _all_dimensions{
+      std::numeric_limits<Int>::max()};
 #ifdef AKANTU_NDEBUG
   [[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
 #else
@@ -72,9 +72,15 @@ namespace {
 #endif
 } // namespace
 
-/* -------------------------------------------------------------------------- */
-/* Common types                                                               */
-/* -------------------------------------------------------------------------- */
+using dim_1_t = std::integral_constant<Int, 1>;
+using dim_2_t = std::integral_constant<Int, 2>;
+using dim_3_t = std::integral_constant<Int, 3>;
+using AllSpatialDimensions = std::tuple<dim_1_t, dim_2_t, dim_3_t>;
+/* --------------------------------------------------------------------------
+ */
+/* Common types */
+/* --------------------------------------------------------------------------
+ */
 using ID = std::string;
 } // namespace akantu
 
@@ -524,10 +530,16 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  inline type get##name() const { return variable; }
+  inline auto get##name() const->type { return variable; }
+
+#define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
+  inline decltype(auto) get##name() const { return (variable); }
+
+#define AKANTU_GET_MACRO_AUTO_NOT_CONST(name, variable)                        \
+  inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  inline type get##name() { return variable; }
+  inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   inline const auto & get##name() const {                                      \
@@ -538,7 +550,7 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
-  inline auto & get##name() {                                                  \
+  inline decltype(auto) get##name() {                                          \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -546,9 +558,9 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline con Array<type> & get##name(const support & el_type,                  \
-                                     GhostType ghost_type = _not_ghost)        \
-      con { /* NOLINT */                                                       \
+  inline auto get##name(const support & el_type,                               \
+                        GhostType ghost_type = _not_ghost)                     \
+      con->con Array<type> & {                                                 \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT
 
@@ -578,19 +590,16 @@ void readInputFile(const std::string & input_file);
 /* -------------------------------------------------------------------------- */
 /* string manipulation */
 /* -------------------------------------------------------------------------- */
-inline std::string to_lower(const std::string & str);
+inline auto to_lower(const std::string & str) -> std::string;
 /* -------------------------------------------------------------------------- */
-inline std::string trim(const std::string & to_trim);
-inline std::string trim(const std::string & to_trim, char c);
+inline auto trim(const std::string & to_trim) -> std::string;
+inline auto trim(const std::string & to_trim, char c) -> std::string;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /// give a string representation of the a human readable size in bit
-template <typename T> std::string printMemorySize(UInt size);
+template <typename T> auto printMemorySize(UInt size) -> std::string;
 /* -------------------------------------------------------------------------- */
-
-struct TensorTrait {};
-struct TensorProxyTrait {};
 
 } // namespace akantu
 
@@ -600,32 +609,33 @@ struct TensorProxyTrait {};
 namespace aka {
 
 /* ------------------------------------------------------------------------ */
-template <typename T> using is_tensor = std::is_base_of<akantu::TensorTrait, T>;
-template <typename T>
-using is_tensor_proxy = std::is_base_of<akantu::TensorProxyTrait, T>;
-/* ------------------------------------------------------------------------ */
 template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
-          std::enable_if_t<std::is_reference<T>::value> * = nullptr>
-bool is_of_type(T && t) {
-  return (
-      dynamic_cast<std::add_pointer_t<
-          std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
-                             std::add_const_t<R>, R>>>(&t) != nullptr);
+          std::enable_if_t<std::is_reference_v<T>> * = nullptr>
+auto is_of_type(T && t) -> bool {
+  return (dynamic_cast<std::add_pointer_t<
+              std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
+                                 std::add_const_t<R>, R>>>(&t) != nullptr);
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename R, typename T> bool is_of_type(std::unique_ptr<T> & t) {
-  return (
-      dynamic_cast<std::add_pointer_t<
-          std::conditional_t<std::is_const<T>::value, std::add_const_t<R>, R>>>(
-          t.get()) != nullptr);
+template <typename R, typename T>
+auto is_of_type(std::unique_ptr<T> & t) -> bool {
+  return (dynamic_cast<std::add_pointer_t<
+              std::conditional_t<std::is_const_v<T>, std::add_const_t<R>, R>>>(
+              t.get()) != nullptr);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename R, typename T>
+decltype(auto) as_type(const std::shared_ptr<T> & t) {
+  return std::dynamic_pointer_cast<R>(t);
 }
 
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
-          std::enable_if_t<std::is_reference<T>::value> * = nullptr>
+          std::enable_if_t<std::is_reference_v<T>> * = nullptr>
 decltype(auto) as_type(T && t) {
   static_assert(
       disjunction<
@@ -645,11 +655,7 @@ decltype(auto) as_type(T && t) {
   return &as_type<R>(*t);
 }
 
-/* -------------------------------------------------------------------------- */
-template <typename R, typename T>
-decltype(auto) as_type(const std::shared_ptr<T> & t) {
-  return std::dynamic_pointer_cast<R>(t);
-}
+template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;
 
 } // namespace aka
 
@@ -689,8 +695,9 @@ namespace std {
  */
 template <typename a, typename b> struct hash<std::pair<a, b>> {
   hash() = default;
-  size_t operator()(const std::pair<a, b> & p) const {
+  auto operator()(const std::pair<a, b> & p) const -> std::size_t {
     size_t seed = ah(p.first);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
     return bh(p.second) + AKANTU_HASH_COMBINE_MAGIC_NUMBER + (seed << 6) +
            (seed >> 2);
   }

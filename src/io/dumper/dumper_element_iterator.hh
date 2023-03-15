@@ -37,16 +37,13 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   template <class types, template <class> class final_iterator>
   class element_iterator {
-    /* ------------------------------------------------------------------------
-     */
-    /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Typedefs                                                               */
+    /* ---------------------------------------------------------------------- */
   public:
     using it_type = typename types::it_type;
     using field_type = typename types::field_type;
@@ -55,11 +52,9 @@ namespace dumpers {
     using iterator = final_iterator<types>;
 
   public:
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
 
     element_iterator(const field_type & field,
                      const typename field_type::type_iterator & t_it,
@@ -70,11 +65,9 @@ namespace dumpers {
         : field(field), tit(t_it), tit_end(t_it_end), array_it(array_it),
           array_it_end(array_it_end), ghost_type(ghost_type) {}
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Methods                                                                */
+    /* ---------------------------------------------------------------------- */
 
   public:
     bool operator!=(const iterator & it) const {
@@ -89,12 +82,13 @@ namespace dumpers {
         if (tit != tit_end) {
 
           const array_type & vect = field(*tit, ghost_type);
-          UInt _nb_data_per_elem = getNbDataPerElem(*tit);
-          UInt nb_component = vect.getNbComponent();
-          UInt size = (vect.size() * nb_component) / _nb_data_per_elem;
+          auto _nb_data_per_elem = getNbDataPerElem(*tit);
+          // auto nb_component = vect.getNbComponent();
+          // auto size = (vect.size() * nb_component) / _nb_data_per_elem;
 
-          array_it = vect.begin_reinterpret(_nb_data_per_elem, size);
-          array_it_end = vect.end_reinterpret(_nb_data_per_elem, size);
+          auto view = make_view(vect, _nb_data_per_elem);
+          array_it = view.begin();
+          array_it_end = view.end();
         }
       }
       return *(static_cast<iterator *>(this));
@@ -102,13 +96,13 @@ namespace dumpers {
 
     ElementType getType() { return *tit; }
 
-    UInt element_type() { return getIOHelperType(*tit); }
+    Int element_type() { return getIOHelperType(*tit); }
 
     Element getCurrentElement() {
       return Element{*tit, array_it.getCurrentIndex(), _not_ghost};
     }
 
-    UInt getNbDataPerElem(ElementType type) const {
+    Int getNbDataPerElem(ElementType type) const {
       if (!nb_data_per_elem.exists(type, ghost_type)) {
         return field(type, ghost_type).getNbComponent();
       }
@@ -116,15 +110,13 @@ namespace dumpers {
       return nb_data_per_elem(type, ghost_type);
     }
 
-    void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data) {
+    void setNbDataPerElem(const ElementTypeMap<Int> & nb_data) {
       this->nb_data_per_elem = nb_data;
     }
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
 
   protected:
     /// the field to iterate on
@@ -140,20 +132,17 @@ namespace dumpers {
     /// ghost type identification
     const GhostType ghost_type;
     /// number of data per element
-    ElementTypeMap<UInt> nb_data_per_elem;
+    ElementTypeMap<Int> nb_data_per_elem;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <typename types>
   class elemental_field_iterator
       : public element_iterator<types, elemental_field_iterator> {
   public:
-    /* ------------------------------------------------------------------------
-     */
-    /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Typedefs                                                               */
+    /* ---------------------------------------------------------------------- */
 
     using parent =
         element_iterator<types, ::akantu::dumpers::elemental_field_iterator>;
@@ -163,11 +152,9 @@ namespace dumpers {
     using array_iterator = typename types::array_iterator;
 
   public:
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
 
     elemental_field_iterator(
         const field_type & field,
@@ -177,19 +164,16 @@ namespace dumpers {
         const GhostType ghost_type = _not_ghost)
         : parent(field, t_it, t_it_end, array_it, array_it_end, ghost_type) {}
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Methods                                                                */
+    /* ---------------------------------------------------------------------- */
 
     return_type operator*() { return *this->array_it; }
 
   private:
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 } // namespace dumpers
 } // namespace akantu
 /* -------------------------------------------------------------------------- */

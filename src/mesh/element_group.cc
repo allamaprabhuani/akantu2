@@ -54,7 +54,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
-                           NodeGroup & node_group, UInt dimension,
+                           NodeGroup & node_group, Int dimension,
                            const std::string & id)
     : mesh(mesh), name(group_name), elements("elements", id),
       node_group(node_group), dimension(dimension) {
@@ -94,25 +94,16 @@ void ElementGroup::append(const ElementGroup & other_group) {
   for (auto ghost_type : ghost_types) {
     for (auto type : other_group.elementTypes(_ghost_type = ghost_type,
                      _element_kind = _ek_not_defined)) {
-      const Array<UInt> & other_elem_list =
-          other_group.elements(type, ghost_type);
-      UInt nb_other_elem = other_elem_list.size();
+      const auto & other_elem_list = other_group.elements(type, ghost_type);
+      auto nb_other_elem = other_elem_list.size();
 
-      Array<UInt> * elem_list;
-      UInt nb_elem = 0;
+      auto & elem_list = elements.alloc(0, 1, type, ghost_type);
 
-      /// create current type if doesn't exists, otherwise get information
-      if (elements.exists(type, ghost_type)) {
-        elem_list = &elements(type, ghost_type);
-        nb_elem = elem_list->size();
-      } else {
-        elem_list = &(elements.alloc(0, 1, type, ghost_type));
-      }
-
+      auto nb_elem = elem_list.size();
       /// append new elements to current list
-      elem_list->resize(nb_elem + nb_other_elem);
+      elem_list.resize(nb_elem + nb_other_elem);
       std::copy(other_elem_list.begin(), other_elem_list.end(),
-                elem_list->begin() + nb_elem);
+                elem_list.begin() + nb_elem);
     }
   }
 
@@ -159,10 +150,8 @@ void ElementGroup::fillFromNodeGroup() {
 
   std::set<Element> seen;
 
-  for (auto node : node_group) {
-    auto ite = node_to_elem.begin(node);
-    auto ende = node_to_elem.end(node);
-    for (auto && element : node_to_elem.getRow(node)) {
+  for (const auto & node : this->node_group) {
+    for (const auto & element : node_to_elem.getRow(node)) {
       if (this->dimension != _all_dimensions &&
           this->dimension != Mesh::getSpatialDimension(element.type)) {
         continue;
@@ -175,9 +164,9 @@ void ElementGroup::fillFromNodeGroup() {
       auto nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
       auto conn = mesh.getConnectivity(element);
 
-      UInt count = 0;
-      for (auto && n : conn) {
-        count += (this->node_group.getNodes().find(n) != UInt(-1) ? 1 : 0);
+      Int count = 0;
+      for (auto n : conn) {
+        count += (this->node_group.getNodes().find(n) != Idx(-1) ? 1 : 0);
       }
 
       if (count == nb_nodes_per_element) {
@@ -192,13 +181,13 @@ void ElementGroup::fillFromNodeGroup() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::addDimension(UInt dimension) {
+void ElementGroup::addDimension(Int dimension) {
   this->dimension = std::max(dimension, this->dimension);
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::onNodesAdded(const Array<UInt> & new_nodes,
-                                const NewNodesEvent & event) {
+void ElementGroup::onNodesAdded(const Array<Idx> & /*new_nodes*/,
+                                const NewNodesEvent & event [[gnu::unused]]) {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     // nodes might have changed in the connectivity

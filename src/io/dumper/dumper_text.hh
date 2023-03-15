@@ -54,17 +54,17 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-                    GhostType ghost_type = _not_ghost,
-                    ElementKind element_kind = _ek_not_defined) override;
-
   void
-  registerFilteredMesh(const Mesh & mesh,
-                       const ElementTypeMapArray<UInt> & elements_filter,
-                       const Array<UInt> & nodes_filter,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined) override;
+  registerMesh(const Mesh & mesh, Int spatial_dimension = _all_dimensions,
+               GhostType ghost_type = _not_ghost,
+               ElementKind element_kind = _ek_not_defined) override;
+
+  void registerFilteredMesh(
+      const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+      const Array<Idx> & nodes_filter,
+      Int spatial_dimension = _all_dimensions,
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined) override;
 
   void setBaseName(const std::string & basename) override;
 
@@ -72,7 +72,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  void setPrecision(UInt prec);
+  void setPrecision(Int prec);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

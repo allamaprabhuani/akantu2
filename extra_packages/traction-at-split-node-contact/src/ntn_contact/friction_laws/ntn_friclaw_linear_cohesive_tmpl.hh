@@ -70,8 +70,8 @@ void NTNFricLawLinearCohesive<Regularisation>::computeFrictionalStrength() {
   // array to fill
   SynchronizedArray<Real> & strength = this->internalGetFrictionalStrength();
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
     if (!is_in_contact(n)) {
       strength(n) = 0.;

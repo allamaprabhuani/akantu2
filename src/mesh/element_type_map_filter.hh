@@ -31,7 +31,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "aka_array_filter.hh"
+//#include "aka_array_filter.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_BY_ELEMENT_TYPE_FILTER_HH_
@@ -42,20 +42,17 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /* ElementTypeMapFilter */
 /* -------------------------------------------------------------------------- */
-
 template <class T, typename SupportType = ElementType>
 class ElementTypeMapArrayFilter {
-
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
-
 public:
   using array_type = ArrayFilter<T>;
   using value_type = typename array_type::value_type;
 
   using type_iterator =
-      typename ElementTypeMapArray<UInt, SupportType>::type_iterator;
+      typename ElementTypeMapArray<Idx, SupportType>::type_iterator;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -63,13 +60,13 @@ public:
 public:
   ElementTypeMapArrayFilter(
       const ElementTypeMapArray<T, SupportType> & array,
-      const ElementTypeMapArray<UInt, SupportType> & filter,
-      const ElementTypeMap<UInt, SupportType> & nb_data_per_elem)
+      const ElementTypeMapArray<Idx, SupportType> & filter,
+      const ElementTypeMap<Int, SupportType> & nb_data_per_elem)
       : array(array), filter(filter), nb_data_per_elem(nb_data_per_elem) {}
 
   ElementTypeMapArrayFilter(
       const ElementTypeMapArray<T, SupportType> & array,
-      const ElementTypeMapArray<UInt, SupportType> & filter)
+      const ElementTypeMapArray<Idx, SupportType> & filter)
       : array(array), filter(filter) {}
 
   ~ElementTypeMapArrayFilter() = default;
@@ -77,17 +74,16 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-
-  inline ArrayFilter<T> operator()(const SupportType & type,
-                                   GhostType ghost_type = _not_ghost) const {
+public:
+  inline const ArrayFilter<T>
+  operator()(SupportType type, GhostType ghost_type = _not_ghost) const {
     if (filter.exists(type, ghost_type)) {
+      Int nb_comp = 1;
+      auto && array_v = array(type, ghost_type);
       if (nb_data_per_elem.exists(type, ghost_type)) {
-        return ArrayFilter<T>(array(type, ghost_type), filter(type, ghost_type),
-                              nb_data_per_elem(type, ghost_type) /
-                                  array(type, ghost_type).getNbComponent());
+        nb_comp = nb_data_per_elem(type, ghost_type) / array_v.getNbComponent();
       }
-      return ArrayFilter<T>(array(type, ghost_type), filter(type, ghost_type),
-                            1);
+      return ArrayFilter<T>(array_v, filter(type, ghost_type), nb_comp);
     }
     return ArrayFilter<T>(empty_array, empty_filter, 1);
   };
@@ -97,7 +93,7 @@ public:
     return filter.elementTypes(std::forward<decltype(args)>(args)...);
   }
 
-  decltype(auto) getNbComponents(UInt dim = _all_dimensions,
+  decltype(auto) getNbComponents(Int dim = _all_dimensions,
                                  GhostType ghost_type = _not_ghost,
                                  ElementKind kind = _ek_not_defined) const {
     return this->array.getNbComponents(dim, ghost_type, kind);
@@ -117,12 +113,12 @@ public:
 
 protected:
   const ElementTypeMapArray<T, SupportType> & array;
-  const ElementTypeMapArray<UInt, SupportType> & filter;
-  ElementTypeMap<UInt> nb_data_per_elem;
+  const ElementTypeMapArray<Idx, SupportType> & filter;
+  ElementTypeMap<Int> nb_data_per_elem;
 
   /// Empty array to be able to return consistent filtered arrays
   Array<T> empty_array;
-  Array<UInt> empty_filter;
+  Array<Idx> empty_filter;
 };
 
 } // namespace akantu

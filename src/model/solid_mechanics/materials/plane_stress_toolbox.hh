@@ -48,7 +48,7 @@ namespace akantu {
  * Empty class in dimensions different from 2
  * This class is only specialized for 2D in the tmpl file
  */
-template <UInt dim, class ParentMaterial = Material>
+template <Int dim, class ParentMaterial = Material>
 class PlaneStressToolbox : public ParentMaterial {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -56,7 +56,7 @@ class PlaneStressToolbox : public ParentMaterial {
 public:
   PlaneStressToolbox(SolidMechanicsModel & model, const ID & id = "")
       : ParentMaterial(model, id) {}
-  PlaneStressToolbox(SolidMechanicsModel & model, UInt spatial_dimension,
+  PlaneStressToolbox(SolidMechanicsModel & model, Int spatial_dimension,
                      const Mesh & mesh, FEEngine & fe_engine,
                      const ID & id = "")
       : ParentMaterial(model, spatial_dimension, mesh, fe_engine, id) {}

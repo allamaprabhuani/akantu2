@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_compatibilty_with_cpp_standard.hh"
-#include "aka_str_hash.hh"
+#include "aka_named_tuple.hh"
 /* -------------------------------------------------------------------------- */
 #include <tuple>
 /* -------------------------------------------------------------------------- */
@@ -41,149 +41,18 @@
 #define AKANTU_ITERATORS_NAMESPACE akantu
 #endif
 
+#define AKA_ITERATOR_EXPORT_NAMESPACE __attribute__((visibility("hidden")))
+#define FWD(x) std::forward<decltype(x)>(x)
+
 namespace AKANTU_ITERATORS_NAMESPACE {
 
 namespace tuple {
-  /* ---------------------------------------------------------------------- */
-  template <typename tag, typename type> struct named_tag {
-    using _tag = tag;   ///< key
-    using _type = type; ///< value type
-
-    template <
-        typename T,
-        std::enable_if_t<not std::is_same<named_tag, T>::value> * = nullptr>
-    explicit named_tag(T && value) // NOLINT
-        : _value(std::forward<T>(value)) {}
-
-    type _value;
-  };
-
-  namespace details {
-/* ---------------------------------------------------------------------- */
-#if (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-    template <typename tag> struct named_tag_proxy {
-      using _tag = tag;
-
-      template <typename T> decltype(auto) operator=(T && value) {
-        return named_tag<_tag, T>{std::forward<T>(value)};
-      }
-    };
-#if (defined(__GNUC__) || defined(__GNUG__))
-#pragma GCC diagnostic pop
-#endif
-  } // namespace details
-
-  /* ---------------------------------------------------------------------- */
-  template <typename T> struct is_named_tag : public std::false_type {};
-  template <typename tag>
-  struct is_named_tag<details::named_tag_proxy<tag>> : public std::true_type {};
-  template <typename tag, typename type>
-  struct is_named_tag<named_tag<tag, type>> : public std::true_type {};
-  /* ---------------------------------------------------------------------- */
-
-  template <class... Params>
-  struct named_tuple : public std::tuple<typename Params::_type...> {
-    using Names_t = std::tuple<typename Params::_tag...>;
-    using parent = std::tuple<typename Params::_type...>;
-
-    named_tuple(Params &&... params)
-        : parent(std::forward<typename Params::_type>(params._value)...) {}
-
-    named_tuple(typename Params::_type &&... args)
-        : parent(std::forward<typename Params::_type>(args)...) {}
-
-  private:
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
-    static constexpr std::size_t get_element_index() noexcept {
-      return -1;
-    }
-
-    template <typename tag, std::size_t Idx,
-              std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
-    static constexpr std::size_t get_element_index() noexcept {
-      using _tag = std::tuple_element_t<Idx, Names_t>;
-      return (std::is_same<_tag, tag>::value)
-                 ? Idx
-                 : get_element_index<tag, Idx + 1>();
-    }
-
-  public:
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr decltype(auto) get(NT && /*unused*/) noexcept {
-      const auto index = get_element_index<typename NT::_tag, 0>();
-      static_assert((index != -1), "wrong named_tag");
-      return (std::get<index>(*this));
-    }
-
-    template <typename NT,
-              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
-    constexpr decltype(auto) get(NT && /*unused*/) const noexcept {
-      const auto index = get_element_index<typename NT::_tag, 0>();
-      static_assert((index != -1), "wrong named_tag");
-      return std::get<index>(*this);
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  template <typename T> struct is_named_tuple : public std::false_type {};
+  template <typename T> struct is_tuple : public std::false_type {};
   template <typename... Params>
-  struct is_named_tuple<named_tuple<Params...>> : public std::true_type {};
-  /* ---------------------------------------------------------------------- */
+  struct is_tuple<std::tuple<Params...>> : public std::true_type {};
 
-  template <typename... Params>
-  constexpr decltype(auto) make_named_tuple(Params &&... params) noexcept {
-    return named_tuple<Params...>(std::forward<Params>(params)...);
-  }
-
-  template <typename tag> constexpr decltype(auto) make_named_tag() noexcept {
-    return details::named_tag_proxy<tag>{};
-  }
-
-  template <size_t HashCode> constexpr decltype(auto) get() {
-    return make_named_tag<std::integral_constant<size_t, HashCode>>();
-  }
-
-  template <size_t HashCode, class Tuple>
-  constexpr decltype(auto) get(Tuple && tuple) {
-    return tuple.get(get<HashCode>());
-  }
-
-  template <typename Param, typename Tuple,
-            std::enable_if_t<is_named_tag<Param>::value> * = nullptr>
-  constexpr decltype(auto) get(Tuple && tuple) noexcept {
-    return tuple.template get<typename Param::hash>();
-  }
-
-#if !defined(__INTEL_COMPILER)
-#  if defined(__clang__)
-// clang warnings here
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
-#  elif (defined(__GNUC__) || defined(__GNUG__))
-// gcc warnings here
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#  endif
-  /// this is a GNU exstension
-  /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
-  template <class CharT, CharT... chars>
-  constexpr decltype(auto) operator"" _n() {
-    return make_named_tag<std::integral_constant<
-        std::size_t, string_literal<CharT, chars...>::hash>>();
-  }
-#  if defined(__clang__)
-#    pragma clang diagnostic pop
-#  elif (defined(__GNUC__) || defined(__GNUG__))
-#    pragma GCC diagnostic pop
-#  endif
-#endif
   /* ------------------------------------------------------------------------ */
-  namespace details {
+  namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
     template <std::size_t N> struct Foreach {
       template <class Tuple>
 
@@ -230,13 +99,13 @@ namespace tuple {
     };
 
     template <typename... Ts>
-    decltype(auto) make_tuple_no_decay(Ts &&... args) {
+    auto make_tuple_no_decay(Ts &&... args) -> decltype(auto) {
       return std::tuple<Ts...>(std::forward<Ts>(args)...);
     }
 
     template <typename... Names, typename... Ts>
-    constexpr decltype(auto)
-    make_named_tuple_no_decay(std::tuple<Names...> /*unused*/, Ts &&... args) {
+    auto make_named_tuple_no_decay(std::tuple<Names...> /*unused*/,
+                                   Ts &&... args) -> decltype(auto) {
       return named_tuple<named_tag<Names, Ts>...>(std::forward<Ts>(args)...);
     }
 
@@ -249,38 +118,111 @@ namespace tuple {
     }
 
     template <class F, class Tuple, std::size_t... Is>
-    constexpr decltype(auto)
-    transform_impl(F && func, Tuple && tuple,
-                   std::index_sequence<Is...> && /*unused*/) {
+    constexpr auto transform_impl(F && func, Tuple && tuple,
+                                  std::index_sequence<Is...> && /*unused*/)
+        -> decltype(auto) {
       return make_tuple_no_decay(
           std::forward<F>(func)(std::get<Is>(std::forward<Tuple>(tuple)))...);
     }
 
     template <class F, class Tuple, std::size_t... Is>
-    constexpr decltype(auto)
-    transform_impl(F && func, Tuple && tuple1, Tuple && tuple2,
-                   std::index_sequence<Is...> && /*unused*/) {
+    constexpr auto transform_impl(F && func, Tuple && tuple1, Tuple && tuple2,
+                                  std::index_sequence<Is...> && /*unused*/)
+        -> decltype(auto) {
       return make_tuple_no_decay(
           std::forward<F>(func)(std::get<Is>(std::forward<Tuple>(tuple1)),
                                 std::get<Is>(std::forward<Tuple>(tuple2)))...);
     }
 
     template <class F, class Tuple, std::size_t... Is>
-    constexpr decltype(auto)
+    constexpr auto
     transform_named_impl(F && func, Tuple && tuple,
-                         std::index_sequence<Is...> && /*unused*/) {
+                         std::index_sequence<Is...> && /*unused*/)
+        -> decltype(auto) {
       return make_named_tuple_no_decay(
           typename std::decay_t<Tuple>::Names_t{},
           std::forward<F>(func)(std::get<Is>(std::forward<Tuple>(tuple)))...);
     }
 
-  } // namespace details
+    template <class Tuple, std::size_t... Is>
+    auto flatten(Tuple && tuples, std::index_sequence<Is...> /*unused*/)
+        -> decltype(auto) {
+      return std::tuple_cat(std::get<Is>(tuples)...);
+    }
+
+    template <class Tuple, class... Vals, std::size_t... Is>
+    auto append_impl(std::index_sequence<Is...> && /*unused*/, Tuple && tuple,
+                     Vals &&... other_vals) -> decltype(auto) {
+      return make_tuple_no_decay(
+          FWD(std::get<Is>(std::forward<Tuple>(tuple)))...,
+          std::forward<Vals>(other_vals)...);
+    }
+
+    template <class Tuple, class... Vals, std::size_t... Is>
+    auto append_named_impl(std::index_sequence<Is...> && /*unused*/,
+                           Tuple && tuple, Vals &&... other_vals)
+        -> decltype(auto) {
+      return make_named_tuple_no_decay(
+          std::tuple<tuple_name_tag_t<Is, Tuple>...,
+                     typename std::decay_t<Vals>::_tag...>(),
+          FWD(std::get<Is>(std::forward<Tuple>(tuple)))...,
+          FWD(other_vals._value)...);
+    }
+
+    template <std::size_t nth, class Tuple, std::size_t... Is_before,
+              std::size_t... Is_after>
+    auto remove_impl(std::index_sequence<Is_before...> && /*unused*/,
+                     std::index_sequence<Is_after...> && /*unused*/,
+                     Tuple && tuple) -> decltype(auto) {
+      return make_tuple_no_decay(
+          FWD(std::get<Is_before>(std::forward<Tuple>(tuple)))...,
+          FWD(std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple)))...);
+    }
+
+    template <std::size_t nth, class Tuple, std::size_t... Is_before,
+              std::size_t... Is_after>
+    auto remove_named_impl(std::index_sequence<Is_before...> && /*unused*/,
+                           std::index_sequence<Is_after...> && /*unused*/,
+                           Tuple && tuple) -> decltype(auto) {
+      return make_named_tuple_no_decay(
+          std::tuple<tuple::tuple_name_tag_t<Is_before, std::decay_t<Tuple>>...,
+                     tuple::tuple_name_tag_t<Is_after + nth + 1,
+                                             std::decay_t<Tuple>>...>{},
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <std::size_t nth, class Tuple, class Value,
+              std::size_t... Is_before, std::size_t... Is_after>
+    auto replace_impl(std::index_sequence<Is_before...> && /*unused*/,
+                      std::index_sequence<Is_after...> && /*unused*/,
+                      Tuple && tuple, Value && value) -> decltype(auto) {
+      return make_tuple_no_decay(
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::forward<Value>(value),
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <std::size_t nth, typename Tag, class Tuple, class Value,
+              std::size_t... Is_before, std::size_t... Is_after>
+    auto replace_named_impl(std::index_sequence<Is_before...> && /*unused*/,
+                            std::index_sequence<Is_after...> && /*unused*/,
+                            Tuple && tuple, Value && value) -> decltype(auto) {
+      using tuple_type = std::decay_t<Tuple>;
+      return make_named_tuple_no_decay(
+          std::tuple<
+              tuple::tuple_name_tag_t<Is_before, tuple_type>..., Tag,
+              tuple::tuple_name_tag_t<Is_after + nth + 1, tuple_type>...>{},
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::forward<Value>(value),
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+  } // namespace AKA_ITERATOR_EXPORT_NAMESPACE
 
   /* ------------------------------------------------------------------------
    */
   template <class Tuple,
-            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
-                nullptr>
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
   constexpr auto are_not_equal(Tuple && a, Tuple && b) -> bool {
     return details::Foreach<std::tuple_size<std::decay_t<Tuple>>::value>::
         not_equal(std::forward<Tuple>(a), std::forward<Tuple>(b));
@@ -302,8 +244,7 @@ namespace tuple {
   }
 
   template <class F, class Tuple,
-            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
-                nullptr>
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
   constexpr void foreach (F && func, Tuple && tuple) {
     return details::foreach_impl(
         std::forward<F>(func), std::forward<Tuple>(tuple),
@@ -321,10 +262,10 @@ namespace tuple {
             std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{});
   }
 
+  /* ------------------------------------------------------------------------ */
   template <class F, class Tuple,
-            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
-                nullptr>
-  constexpr decltype(auto) transform(F && func, Tuple && tuple) {
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  constexpr auto transform(F && func, Tuple && tuple) -> decltype(auto) {
     return details::transform_impl(
         std::forward<F>(func), std::forward<Tuple>(tuple),
         std::make_index_sequence<
@@ -332,10 +273,9 @@ namespace tuple {
   }
 
   template <class F, class Tuple,
-            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
-                nullptr>
-  constexpr decltype(auto) transform(F && func, Tuple && tuple1,
-                                     Tuple && tuple2) {
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  constexpr auto transform(F && func, Tuple && tuple1, Tuple && tuple2)
+      -> decltype(auto) {
     return details::transform_impl(
         std::forward<F>(func), std::forward<Tuple>(tuple1),
         std::forward<Tuple>(tuple2),
@@ -346,22 +286,15 @@ namespace tuple {
   template <
       class F, class Tuple,
       std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
-  constexpr decltype(auto) transform(F && func, Tuple && tuple) {
+  constexpr auto transform(F && func, Tuple && tuple) -> decltype(auto) {
     return details::transform_named_impl(
         std::forward<F>(func), std::forward<Tuple>(tuple),
         std::make_index_sequence<
             std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{});
   }
 
-  namespace details {
-    template <class Tuple, std::size_t... Is>
-    constexpr decltype(auto) flatten(Tuple && tuples,
-                                     std::index_sequence<Is...> /*unused*/) {
-      return std::tuple_cat(std::get<Is>(tuples)...);
-    }
-  } // namespace details
-
-  template <class Tuple> constexpr decltype(auto) flatten(Tuple && tuples) {
+  /* ------------------------------------------------------------------------ */
+  template <class Tuple> auto flatten(Tuple && tuples) -> decltype(auto) {
     return details::flatten(std::forward<Tuple>(tuples),
                             std::make_index_sequence<
                                 std::tuple_size<std::decay_t<Tuple>>::value>());
@@ -369,39 +302,137 @@ namespace tuple {
 
   namespace details {
     template <size_t n, class Tuple>
-    decltype(auto) dynamic_get_impl(size_t i, Tuple && tuple) {
+    auto dynamic_get_impl(size_t i, Tuple && tuple) -> decltype(auto) {
       constexpr auto size = std::tuple_size<std::decay_t<Tuple>>::value;
       if (i == n) {
         return std::get<n>(tuple);
-      } else if (n == size - 1) {
-        throw std::out_of_range("Tuple element out of range.");
-      } else {
-        return dynamic_get_impl<(n < size - 1 ? n + 1 : 0)>(i, tuple);
       }
+
+      if (n == size - 1) {
+        throw std::out_of_range("Tuple element out of range.");
+      }
+
+      return dynamic_get_impl<(n < size - 1 ? n + 1 : 0)>(i, tuple);
     }
   } // namespace details
 
+  /* ------------------------------------------------------------------------ */
+  template <typename... Ts> struct cat {
+    using type = decltype(std::tuple_cat(std::declval<Ts>()...));
+  };
+
+  template <typename... T> using cat_t = typename cat<T...>::type;
+
+  /* ------------------------------------------------------------------------ */
+  template <template <typename> class Pred, typename... Ts> struct filter {};
+
+  template <template <typename> class Pred, typename T>
+  struct filter<Pred, std::tuple<T>> {
+    using type =
+        std::conditional_t<Pred<T>::value, std::tuple<T>, std::tuple<>>;
+  };
+
+  template <template <typename> class Pred, typename T, typename... Ts>
+  struct filter<Pred, std::tuple<T, Ts...>> {
+    using type = cat_t<typename filter<Pred, std::tuple<T>>::type,
+                       typename filter<Pred, std::tuple<Ts...>>::type>;
+  };
+
+  template <template <typename> class Pred, typename... Ts>
+  using filter_t = typename filter<Pred, Ts...>::type;
+
+  /* ------------------------------------------------------------------------ */
   template <class Tuple>
-  constexpr decltype(auto) dynamic_get(std::size_t i, Tuple && tuple) {
+  constexpr auto dynamic_get(std::size_t i, Tuple && tuple) -> decltype(auto) {
     return details::dynamic_get_impl<0>(i, std::forward<Tuple>(tuple));
   }
+
+  /* ------------------------------------------------------------------------ */
+  template <class Tuple, class... Vals,
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  auto append(Tuple && tuple, Vals &&... vals) -> decltype(auto) {
+    return details::append_impl(
+        std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{},
+        FWD(tuple), std::forward<Vals>(vals)...);
+  }
+
+  template <
+      class Tuple, class... Vals,
+      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  auto append(Tuple && tuple, Vals &&... vals) -> decltype(auto) {
+    return details::append_named_impl(
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{},
+        FWD(tuple), std::forward<Vals>(vals)...);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <std::size_t nth, class Tuple,
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  auto remove(Tuple && tuple) -> decltype(auto) {
+    static_assert(nth < std::tuple_size<Tuple>(),
+                  "You are trying to remove a non existing entry");
+    return details::remove_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<std::tuple_size<Tuple>::value - nth - 1>{},
+        std::forward<Tuple>(tuple));
+  }
+
+  template <
+      typename Tag, class Tuple,
+      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  auto remove(Tuple && tuple) -> decltype(auto) {
+    static_assert(tuple.has(Tag{}),
+                  "You are trying to remove a non existing entry");
+    constexpr auto nth = tuple.get_element_index(Tag{});
+    return details::remove_named_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value - nth -
+            1>{},
+        std::forward<Tuple>(tuple));
+  }
+
+  template <std::size_t nth, class Tuple, class Value,
+            std::enable_if_t<is_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
+    static_assert(nth < std::tuple_size<Tuple>(),
+                  "You are trying to replace a non existing entry");
+    return details::replace_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<std::tuple_size<Tuple>::value - nth - 1>{},
+        std::forward<Tuple>(tuple), std::forward<Value>(value));
+  }
+
+  template <typename Tag, class Tuple, class Value,
+            std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value and
+                             not is_named_tag_v<Value>> * = nullptr>
+  auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
+    static_assert(tuple::has<Tag, Tuple>(),
+                  "You are trying to replace a non existing entry");
+    constexpr std::size_t nth =
+        std::decay_t<Tuple>::template get_element_index<Tag>();
+    return details::replace_named_impl<nth, typename Tag::_tag>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value - nth -
+            1>{},
+        std::forward<Tuple>(tuple), std::forward<Value>(value));
+  }
+
+  template <class Tuple, class Value,
+            std::enable_if_t<is_named_tuple_v<std::decay_t<Tuple>> and
+                             is_named_tag_v<Value>> * = nullptr>
+  auto replace(Tuple && tuple, Value && value) -> decltype(auto) {
+    using Tag = decltype(make_named_tag<typename std::decay_t<Value>::_tag>());
+    return replace<Tag>(std::forward<Tuple>(tuple),
+                        std::forward<decltype(value._value)>(value._value));
+  }
+
 } // namespace tuple
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
-/* -------------------------------------------------------------------------- */
-#include <iterator>
-/* -------------------------------------------------------------------------- */
+#undef FWD
 
-namespace std {
-template <typename tag, typename type>
-struct iterator_traits<
-    ::AKANTU_ITERATORS_NAMESPACE::tuple::named_tag<tag, type>> {
-  using iterator_category = typename type::iterator_category;
-  using value_type = typename type::value_type;
-  using difference_type = typename type::difference_type;
-  using pointer = typename type::pointer;
-  using reference = typename type::reference;
-};
-} // namespace std
 #endif /* AKANTU_AKA_TUPLE_TOOLS_HH */

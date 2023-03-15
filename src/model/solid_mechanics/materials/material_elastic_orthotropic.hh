@@ -65,7 +65,7 @@ namespace akantu {
  *   - G23  : Shear modulus along 23 (default: 0)
  */
 
-template <UInt Dim>
+template <Int Dim>
 class MaterialElasticOrthotropic
     : public MaterialElasticLinearAnisotropic<Dim> {
   /* ------------------------------------------------------------------------ */
@@ -81,10 +81,6 @@ public:
   void initMaterial() override;
 
   void updateInternalParameters() override;
-
-  void
-  computePotentialEnergyByElement(ElementType type, UInt index,
-                                  Vector<Real> & epot_on_quad_points) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

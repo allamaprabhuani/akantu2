@@ -24,7 +24,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialOrthotropicDamageIterativeNonLocal<spatial_dimension>::
     MaterialOrthotropicDamageIterativeNonLocal(SolidMechanicsModel & model,
                                                const ID & id)
@@ -38,7 +38,7 @@ MaterialOrthotropicDamageIterativeNonLocal<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterativeNonLocal<
     spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
@@ -50,7 +50,7 @@ void MaterialOrthotropicDamageIterativeNonLocal<
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterativeNonLocal<
     spatial_dimension>::computeStress(ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -59,7 +59,7 @@ void MaterialOrthotropicDamageIterativeNonLocal<
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterativeNonLocal<
     spatial_dimension>::computeNonLocalStress(ElementType el_type,
                                               GhostType ghost_type) {
@@ -132,7 +132,7 @@ void MaterialOrthotropicDamageIterativeNonLocal<
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterativeNonLocal<
     spatial_dimension>::nonLocalVariableToNeighborhood() {
   this->model.getNonLocalManager().nonLocalVariableToNeighborhood(

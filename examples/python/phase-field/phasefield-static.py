@@ -6,9 +6,11 @@ __author__ = "Mohit Pundir"
 __credits__ = [
     "Mohit Pundir <mohit.pundir@epfl.ch>",
 ]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
+__copyright__ = (
+    "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale"
+    " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation"
+    " en Mécanique des Solides)"
+)
 __license__ = "LGPLv3"
 
 
@@ -28,27 +30,33 @@ solid = model.getSolidMechanicsModel()
 phase = model.getPhaseFieldModel()
 
 solid.initFull(_analysis_method=aka._static)
-solver = solid.getNonLinearSolver('static')
-solver.set('max_iterations', 100)
-solver.set('threshold', 1e-9)
+solver = solid.getNonLinearSolver("static")
+solver.set("max_iterations", 100)
+solver.set("threshold", 1e-8)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
 
-solid.getNewSolver("linear_static", aka.TimeStepSolverType.static,
-                   aka.NonLinearSolverType.linear)
-solid.setIntegrationScheme("linear_static", "displacement",
-                           aka.IntegrationSchemeType.pseudo_time)
+solid.getNewSolver(
+    "linear_static", aka.TimeStepSolverType.static, aka.NonLinearSolverType.linear
+)
+solid.setIntegrationScheme(
+    "linear_static", "displacement", aka.IntegrationSchemeType.pseudo_time
+)
 
 
 phase.initFull(_analysis_method=aka._static)
-phase.getNewSolver("nonlinear_static", aka.TimeStepSolverType.static,
-                   aka.NonLinearSolverType.newton_raphson)
-phase.setIntegrationScheme("nonlinear_static", "damage",
-                           aka.IntegrationSchemeType.pseudo_time)
+phase.getNewSolver(
+    "nonlinear_static",
+    aka.TimeStepSolverType.static,
+    aka.NonLinearSolverType.newton_raphson,
+)
+phase.setIntegrationScheme(
+    "nonlinear_static", "damage", aka.IntegrationSchemeType.pseudo_time
+)
 
-solver = phase.getNonLinearSolver('nonlinear_static')
-solver.set('max_iterations', 100)
-solver.set('threshold', 1e-4)
+solver = phase.getNonLinearSolver("nonlinear_static")
+solver.set("max_iterations", 100)
+solver.set("threshold", 1e-4)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
 
@@ -56,13 +64,13 @@ solid.applyBC(aka.FixedValue(0, aka._y), "bottom")
 solid.applyBC(aka.FixedValue(0, aka._x), "left")
 
 # Initialization for bulk vizualisation
-solid.setBaseName('phasefield-static')
-solid.addDumpFieldVector('displacement')
-solid.addDumpFieldVector('external_force')
-solid.addDumpField('strain')
-solid.addDumpField('stress')
-solid.addDumpField('damage')
-solid.addDumpField('blocked_dofs')
+solid.setBaseName("phasefield-static")
+solid.addDumpFieldVector("displacement")
+solid.addDumpFieldVector("external_force")
+solid.addDumpField("strain")
+solid.addDumpField("stress")
+solid.addDumpField("damage")
+solid.addDumpField("blocked_dofs")
 
 nb_dofs = solid.getMesh().getNbNodes() * dim
 
@@ -83,7 +91,7 @@ increment = 5e-6
 for n in range(steps):
     print("Computing iteration " + str(n + 1) + "/" + str(steps))
 
-    solid.applyBC(aka.IncrementValue(increment, aka._y), 'top')
+    solid.applyBC(aka.IncrementValue(increment, aka._y), "top")
 
     mask = blocked_dofs == False  # NOQA: E712
 
@@ -97,7 +105,7 @@ for n in range(steps):
     damage_prev = damage_prev
 
     # solve using staggered scheme
-    while (error_disp > tolerance or error_dam > tolerance):
+    while error_disp > tolerance or error_dam > tolerance:
         model.solve("linear_static", "")
 
         displacement_new = displacement[mask]
@@ -116,7 +124,7 @@ for n in range(steps):
 
         print(error_dam, error_disp)
         if iiter > 500:
-            raise Exception('Convergence not reached')
+            raise Exception("Convergence not reached")
 
     if n % 50 == 0:
         solid.dump()

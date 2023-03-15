@@ -44,9 +44,9 @@ using namespace akantu;
 
 int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
-  UInt max_steps = 1100;
+  Int max_steps = 1100;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("mesh_section_gap.msh");
 
@@ -78,12 +78,12 @@ int main(int argc, char * argv[]) {
   /// Dirichlet boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed");
   // model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed");
-  Matrix<Real> stress(2, 2);
-  stress.eye(5e7);
+  Matrix<Real> stress = Matrix<Real, 2, 2>::Identity() * 5e7;
   model.applyBC(BC::Neumann::FromHigherDim(stress), "Traction");
 
-  for (UInt s = 0; s < max_steps; ++s)
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
+  }
 
   model.dump();
 
@@ -91,7 +91,7 @@ int main(int argc, char * argv[]) {
   auto & mat =
       dynamic_cast<LocalMaterialDamage &>(model.getMaterial("concrete"));
   const auto & filter = mat.getElementFilter();
-  for (auto & type : filter.elementTypes(spatial_dimension)) {
+  for (const auto & type : filter.elementTypes(spatial_dimension)) {
     std::cout << mat.getDamage(type) << std::endl;
   }
 

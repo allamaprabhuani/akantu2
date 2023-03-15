@@ -45,7 +45,7 @@ namespace dumpers {
     auto end = types.end();
 
     this->nb_total_element = 0;
-    UInt nb_comp = 0;
+    Int nb_comp = 0;
 
     bool homogen = true;
     if (tit != end) {

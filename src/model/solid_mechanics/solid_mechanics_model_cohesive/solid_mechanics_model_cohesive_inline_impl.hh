@@ -244,7 +244,7 @@ namespace akantu {
 // //   if (!converged) {
 // //     insertion_new_element = false;
 
-// //     for (UInt m = 0; m < materials.size(); ++m) {
+// //     for (Int m = 0; m < materials.size(); ++m) {
 // //       try {
 // //         MaterialCohesive & mat =
 // //             aka::as_type<MaterialCohesive>(*materials[m]);
@@ -263,7 +263,7 @@ namespace akantu {
 // //  */
 // // if ((is_extrinsic && converged)) {
 
-// //   for (UInt m = 0; m < materials.size(); ++m) {
+// //   for (Int m = 0; m < materials.size(); ++m) {
 // //     try {
 // //       MaterialCohesive & mat =
 // //           aka::as_type<MaterialCohesive>(*materials[m]);
@@ -280,7 +280,7 @@ namespace akantu {
 // //    * variable that permit to decrease locally the penalty parameter
 // //    * for compression.
 // //    */
-// //   for (UInt m = 0; m < materials.size(); ++m) {
+// //   for (Int m = 0; m < materials.size(); ++m) {
 // //     try {
 // //       MaterialCohesive & mat =
 // //           aka::as_type<MaterialCohesive>(*materials[m]);

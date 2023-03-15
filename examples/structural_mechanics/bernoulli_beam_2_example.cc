@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
   nodes.resize(nb_nodes);
 
   beams.addConnectivityType(_bernoulli_beam_2);
-  Array<UInt> & connectivity = mesh_accessor.getConnectivity(_bernoulli_beam_2);
+  auto & connectivity = mesh_accessor.getConnectivity(_bernoulli_beam_2);
   connectivity.resize(nb_element);
 
   nodes.zero();

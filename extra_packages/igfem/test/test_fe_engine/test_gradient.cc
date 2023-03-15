@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
 bool gradient(const ElementType type) {
 
   bool correct_result = true;
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
   Mesh my_mesh(dim);
@@ -85,16 +85,16 @@ bool gradient(const ElementType type) {
   UInt nb_quadrature_points = fem->getNbIntegrationPoints(type) * nb_element;
 
   Array<Real> grad_on_quad(nb_quadrature_points, 2 * dim, "grad_on_quad");
-  for (UInt i = 0; i < nb_standard_nodes; ++i) {
+  for (Int i = 0; i < nb_standard_nodes; ++i) {
     const_val(i, 0) = 0;
     const_val(i, 1) = 0;
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       const_val(i, 0) += alpha[0][d] * position(i, d);
       const_val(i, 1) += alpha[1][d] * position(i, d);
     }
   }
   /// impose zero at enriched nodes
-  for (UInt i = nb_standard_nodes; i < const_val.getSize(); ++i) {
+  for (Int i = nb_standard_nodes; i < const_val.getSize(); ++i) {
     const_val(i, 0) = 0;
     const_val(i, 1) = 0;
   }
@@ -109,7 +109,7 @@ bool gradient(const ElementType type) {
   Array<Real>::matrix_iterator it = grad_on_quad.begin(2, dim);
   Array<Real>::matrix_iterator it_end = grad_on_quad.end(2, dim);
   for (; it != it_end; ++it) {
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       Matrix<Real> & grad = *it;
       if (!(std::abs(grad(0, d) - alpha[0][d]) < eps) ||
           !(std::abs(grad(1, d) - alpha[1][d]) < eps)) {
@@ -149,8 +149,8 @@ bool gradient(const ElementType type) {
   Array<Real>::matrix_iterator itp_end = grad_coord_on_quad.end(dim, dim);
 
   for (; itp != itp_end; ++itp) {
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j) {
         if (!(std::abs((*itp)(i, j) - (i == j)) < eps)) {
           std::cout << *itp << std::endl;
           correct_result = false;

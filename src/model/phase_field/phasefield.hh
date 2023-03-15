@@ -80,7 +80,7 @@ public:
   PhaseField(PhaseFieldModel & model, const ID & id = "");
 
   /// Initialize phasefield with custom mesh & fe_engine
-  PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
+  PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
              FEEngine & fe_engine, const ID & id = "");
 
   /// Destructor
@@ -125,8 +125,7 @@ public:
   virtual void savePreviousState();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(const ElementType & type, UInt element,
-                         const GhostType & ghost_type);
+  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
   inline UInt addElement(const Element & element);
 
   /// function to print the contain of the class
@@ -144,7 +143,7 @@ protected:
   virtual void updateInternalParameters();
 
   // constitutive law for driving force
-  virtual void computeDrivingForce(const ElementType & /* el_type */,
+  virtual void computeDrivingForce(ElementType /* el_type */,
                                    GhostType /* ghost_type */ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -171,8 +170,8 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -228,10 +227,10 @@ public:
   AKANTU_GET_MACRO(Damage, damage_on_qpoints,
                    const ElementTypeMapArray<Real> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
 
   AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
 
   template <typename T>
   const Array<T> & getArray(const ID & id, ElementType type,
@@ -245,7 +244,7 @@ public:
   template <typename T> InternalPhaseField<T> & getInternal(const ID & id);
 
   template <typename T>
-  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  inline bool isInternal(const ID & id, ElementKind element_kind) const;
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
@@ -270,7 +269,7 @@ protected:
   bool is_init;
 
   std::map<ID, InternalPhaseField<Real> *> internal_vectors_real;
-  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_uint;
+  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_int;
   std::map<ID, InternalPhaseField<bool> *> internal_vectors_bool;
 
 protected:
@@ -305,10 +304,10 @@ protected:
   Real mu;
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// list of element handled by the phasefield
-  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<Idx> element_filter;
 
   /// damage arrays ordered by element types
   InternalPhaseField<Real> damage_on_qpoints;
@@ -360,7 +359,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   }
 
 #define INSTANTIATE_PHASEFIELD(id, phase_name)                                 \
-  static bool phasefield_is_alocated_##id [[gnu::unused]] =                    \
+  static bool phasefield_is_allocated_##id [[gnu::unused]] =                   \
       PhaseFieldFactory::getInstance().registerAllocator(                      \
           #id, PHASEFIELD_DEFAULT_ALLOCATOR(id, phase_name))
 

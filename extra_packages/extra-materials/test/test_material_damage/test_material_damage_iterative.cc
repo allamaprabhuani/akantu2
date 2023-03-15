@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -104,7 +104,7 @@ int main(int argc, char * argv[]) {
       material.getInternal<Real>("equivalent_stress")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator eq_stress_it = eq_stress.begin();
   UInt nb_elements = mesh.getNbElement(element_type, _not_ghost);
-  for (UInt e = 0; e < nb_elements; ++e, ++eq_stress_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++eq_stress_it) {
     if (!Math::are_float_equal(*eq_stress_it, 0.1)) {
       std::cout << "Error in the equivalent normalized stress" << std::endl;
       finalize();
@@ -157,7 +157,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & damage =
       material.getInternal<Real>("damage")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator damage_it = damage.begin();
-  for (UInt e = 0; e < nb_elements; ++e, ++damage_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++damage_it) {
     if (e == 1 || e == 5)
       dam_diff += std::abs(0.1 - *damage_it);
     else

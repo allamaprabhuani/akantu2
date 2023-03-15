@@ -41,6 +41,10 @@
 
 namespace akantu {
 
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2,
+                                     _itp_lagrange_point_1, _ek_cohesive, 1,
+                                     _git_point, 1);
+
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_4, _gt_cohesive_2d_4,
                                      _itp_lagrange_segment_2, _ek_cohesive, 2,
                                      _git_segment, 2);
@@ -48,10 +52,6 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_4, _gt_cohesive_2d_4,
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_6, _gt_cohesive_2d_6,
                                      _itp_lagrange_segment_3, _ek_cohesive, 2,
                                      _git_segment, 3);
-
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2,
-                                     _itp_lagrange_point_1, _ek_cohesive, 1,
-                                     _git_point, 1);
 
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_3d_6, _gt_cohesive_3d_6,
                                      _itp_lagrange_triangle_3, _ek_cohesive, 3,

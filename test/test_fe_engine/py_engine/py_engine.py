@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" py_engine.py: feengine tester"""
+"""py_engine.py: fe_engine tester."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -21,7 +21,8 @@ import numpy.polynomial.polynomial as poly
 
 
 class Shapes:
-    """Python version of the shape functions for test purposes"""
+    """Python version of the shape functions for test purposes."""
+
     # pylint: disable=bad-whitespace, line-too-long
 
     NATURAL_COORDS = {

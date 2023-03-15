@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
-  akantu::UInt n = 0;
+  akantu::Int n = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
@@ -94,8 +94,8 @@ int main(int argc, char * argv[]) {
   akantu::Solver * solver = new akantu::SolverMumps(sparse_matrix);
 
   if (prank == 0) {
-    for (akantu::UInt i = 0; i < n; ++i) {
-      solver->getRHS().storage()[i] = 1.;
+    for (akantu::Int i = 0; i < n; ++i) {
+      solver->getRHS().data()[i] = 1.;
     }
   }
 

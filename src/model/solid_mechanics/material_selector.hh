@@ -53,7 +53,7 @@ class MaterialSelector {
 public:
   MaterialSelector() = default;
   virtual ~MaterialSelector() = default;
-  virtual inline UInt operator()(const Element & element) {
+  virtual inline Int operator()(const Element & element) {
     if (fallback_selector) {
       return (*fallback_selector)(element);
     }
@@ -61,7 +61,7 @@ public:
     return fallback_value;
   }
 
-  inline void setFallback(UInt f) { fallback_value = f; }
+  inline void setFallback(Int f) { fallback_value = f; }
   inline void
   setFallback(const std::shared_ptr<MaterialSelector> & fallback_selector) {
     this->fallback_selector = fallback_selector;
@@ -71,10 +71,10 @@ public:
     return this->fallback_selector;
   }
 
-  inline UInt getFallbackValue() const { return this->fallback_value; }
+  inline Int getFallbackValue() const { return this->fallback_value; }
 
 protected:
-  UInt fallback_value{0};
+  Int fallback_value{0};
   std::shared_ptr<MaterialSelector> fallback_selector;
 };
 
@@ -85,10 +85,10 @@ protected:
 class DefaultMaterialSelector : public MaterialSelector {
 public:
   explicit DefaultMaterialSelector(
-      const ElementTypeMapArray<UInt> & material_index)
+      const ElementTypeMapArray<Idx> & material_index)
       : material_index(material_index) {}
 
-  UInt operator()(const Element & element) override {
+  Int operator()(const Element & element) override {
     if (not material_index.exists(element.type, element.ghost_type)) {
       return MaterialSelector::operator()(element);
     }
@@ -96,7 +96,7 @@ public:
     const auto & mat_indexes = material_index(element.type, element.ghost_type);
     if (element.element < mat_indexes.size()) {
       auto && tmp_mat = mat_indexes(element.element);
-      if (tmp_mat != UInt(-1)) {
+      if (tmp_mat != Int(-1)) {
         return tmp_mat;
       }
     }
@@ -105,7 +105,7 @@ public:
   }
 
 private:
-  const ElementTypeMapArray<UInt> & material_index;
+  const ElementTypeMapArray<Idx> & material_index;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -117,7 +117,7 @@ class ElementDataMaterialSelector : public MaterialSelector {
 public:
   ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
                               const SolidMechanicsModel & model,
-                              UInt first_index = 1)
+                              Int first_index = 1)
       : element_data(element_data), model(model), first_index(first_index) {}
 
   inline T elementData(const Element & element) {
@@ -128,7 +128,7 @@ public:
     return data;
   }
 
-  inline UInt operator()(const Element & element) override;
+  inline Int operator()(const Element & element) override;
 
 protected:
   /// list of element with the specified data (i.e. tag value)
@@ -138,7 +138,7 @@ protected:
   const SolidMechanicsModel & model;
 
   /// first material index: equal to 1 if none specified
-  UInt first_index;
+  Int first_index;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -151,7 +151,7 @@ class MeshDataMaterialSelector : public ElementDataMaterialSelector<T> {
 public:
   MeshDataMaterialSelector(const std::string & name,
                            const SolidMechanicsModel & model,
-                           UInt first_index = 1);
+                           Int first_index = 1);
 };
 
 } // namespace akantu

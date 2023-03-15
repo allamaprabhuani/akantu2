@@ -68,12 +68,13 @@ namespace akantu {
  *   - Ev  : stiffness of the viscous element
  */
 
-template <UInt spatial_dimension>
-class MaterialStandardLinearSolidDeviatoric
-    : public MaterialElastic<spatial_dimension> {
+template <Int dim>
+class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialElastic<dim>;
+
 public:
   MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                         const ID & id = "");
@@ -97,6 +98,15 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
+  inline decltype(auto) getArguments(ElementType el_type,
+                                     GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        Parent::getArguments(el_type, ghost_type),
+        "sigma_dev"_n = make_view<dim, dim>(stress_dev(el_type, ghost_type)),
+        "history"_n =
+            make_view<dim, dim>(history_integral(el_type, ghost_type)));
+  }
+
 protected:
   /// update the dissipated energy, is called after the stress have been
   /// computed
@@ -108,12 +118,12 @@ protected:
 public:
   /// give the dissipated energy for the time step
   Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(ElementType type, UInt index) const;
+  Real getDissipatedEnergy(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
   Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index) override;
+  Real getEnergy(const std::string & energy_id,
+                 const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

@@ -61,12 +61,12 @@ namespace dumpers {
      */
 
   public:
-    void setPadding(UInt m, UInt n = 0) {
+    void setPadding(Int m, Int n = 0) {
       padding_m = m;
       padding_n = n;
     }
 
-    virtual UInt getPaddedDim(UInt nb_data) { return nb_data; }
+    virtual Int getPaddedDim(Int nb_data) { return nb_data; }
 
     /* ------------------------------------------------------------------------
      */
@@ -76,7 +76,7 @@ namespace dumpers {
 
   public:
     /// padding informations
-    UInt padding_n, padding_m;
+    Int padding_n, padding_m;
   };
 
   /* --------------------------------------------------------------------------
@@ -102,8 +102,7 @@ namespace dumpers {
      */
 
   public:
-    inline output_type pad(const input_type & in,
-                           __attribute__((unused)) UInt nb_data) {
+    inline output_type pad(const input_type & in, Int /*nb_data*/) {
       return in; // trick due to the fact that IOHelper padds the vectors (avoid
                  // a copy of data)
     }
@@ -122,19 +121,19 @@ namespace dumpers {
      */
 
   public:
-    inline Matrix<T> pad(const Vector<T> & _in, UInt nrows, UInt ncols,
-                         UInt nb_data) {
-      Matrix<T> in(_in.storage(), nrows, ncols);
+    inline Matrix<T> pad(const Vector<T> & _in, Int nrows, Int ncols,
+                         Int nb_data) {
+      MatrixProxy<const T> in(_in.data(), nrows, ncols);
 
       if (padding_m <= nrows && padding_n * nb_data <= ncols) {
         return in;
       }
 
       Matrix<T> ret(padding_m, padding_n * nb_data);
-      UInt nb_cols_per_data = in.cols() / nb_data;
-      for (UInt d = 0; d < nb_data; ++d) {
-        for (UInt i = 0; i < in.rows(); ++i) {
-          for (UInt j = 0; j < nb_cols_per_data; ++j) {
+      auto nb_cols_per_data = in.cols() / nb_data;
+      for (Int d = 0; d < nb_data; ++d) {
+        for (Int i = 0; i < in.rows(); ++i) {
+          for (Int j = 0; j < nb_cols_per_data; ++j) {
             ret(i, j + d * padding_n) = in(i, j + d * nb_cols_per_data);
           }
         }

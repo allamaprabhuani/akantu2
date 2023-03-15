@@ -35,59 +35,66 @@
 #define AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
 /* -------------------------------------------------------------------------- */
 namespace akantu {
+template <Int dim>
+template <class Args>
+inline void MaterialPhaseField<dim>::computeStressOnQuad(Args && args) {
+  MaterialElastic<dim>::computeStressOnQuad(args);
 
-template <UInt spatial_dimension>
-inline void MaterialPhaseField<spatial_dimension>::computeEffectiveDamageOnQuad(
-    Matrix<Real> & grad_u, Real & dam, Real & eff_dam) {
+  auto && dam = args["effective_damage"_n];
+  args["sigma"_n] *= (1 - dam) * (1 - dam) + eta;
+}
 
-  Matrix<Real> strain(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_minus(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_dir(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_diag_plus(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_diag_minus(spatial_dimension, spatial_dimension);
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+template <class Args>
+void MaterialPhaseField<dim>::computeTangentModuliOnQuad(Args && args) {
+  MaterialElastic<dim>::computeTangentModuliOnQuad(args);
 
-  Vector<Real> strain_values(spatial_dimension);
+  auto dam = args["effective_damage"_n];
+  args["tangent_moduli"_n] *= (1 - dam) * (1 - dam) + eta;
+}
 
-  Real trace_plus, trace_minus;
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+template <class Args>
+inline void
+MaterialPhaseField<dim>::computeEffectiveDamageOnQuad(Args && args) {
+  using Mat = Matrix<Real, dim, dim>;
 
-  this->template gradUToEpsilon<spatial_dimension>(grad_u, strain);
+  auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
+  Mat strain_dir;
+  Vector<Real, dim> strain_values;
   strain.eig(strain_values, strain_dir);
 
-  for (UInt i = 0; i < spatial_dimension; i++) {
+  Mat strain_diag_plus;
+  Mat strain_diag_minus;
+
+  strain_diag_plus.zero();
+  strain_diag_minus.zero();
+
+  for (UInt i = 0; i < dim; i++) {
     strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
     strain_diag_minus(i, i) = std::min(Real(0.), strain_values(i));
   }
 
-  Matrix<Real> mat_tmp(spatial_dimension, spatial_dimension);
-  Matrix<Real> sigma_plus(spatial_dimension, spatial_dimension);
-  Matrix<Real> sigma_minus(spatial_dimension, spatial_dimension);
+  Mat strain_plus = strain_dir * strain_diag_plus * strain_dir.transpose();
+  Mat strain_minus = strain_dir * strain_diag_minus * strain_dir.transpose();
 
-  mat_tmp.mul<false, true>(strain_diag_plus, strain_dir);
-  strain_plus.mul<false, false>(strain_dir, mat_tmp);
-  mat_tmp.mul<false, true>(strain_diag_minus, strain_dir);
-  strain_minus.mul<false, true>(strain_dir, mat_tmp);
+  auto trace_plus = std::max(Real(0.), strain.trace());
+  auto trace_minus = std::min(Real(0.), strain.trace());
 
-  trace_plus = std::max(Real(0.), strain.trace());
-  trace_minus = std::min(Real(0.), strain.trace());
+  Mat sigma_plus =
+      Mat::Identity() * trace_plus * this->lambda + 2. * this->mu * strain_plus;
+  Mat sigma_minus = Mat::Identity() * trace_minus * this->lambda +
+                    2. * this->mu * strain_minus;
 
-  Real lambda = MaterialElastic<spatial_dimension>::getLambda();
-  Real mu = MaterialElastic<spatial_dimension>::getMu();
+  auto strain_energy_plus = sigma_plus.doubleDot(strain_plus) / 2.;
+  auto strain_energy_minus = sigma_minus.doubleDot(strain_minus) / 2.;
 
-  for (UInt i = 0; i < spatial_dimension; i++) {
-    for (UInt j = 0; j < spatial_dimension; j++) {
-      sigma_plus(i, j) = static_cast<double>(i == j) * lambda * trace_plus +
-                         2 * mu * strain_plus(i, j);
-      sigma_minus(i, j) = static_cast<double>(i == j) * lambda * trace_minus +
-                          2 * mu * strain_minus(i, j);
-    }
-  }
-  auto strain_energy_plus = 0.5 * sigma_plus.doubleDot(strain_plus);
-  auto strain_energy_minus = 0.5 * sigma_minus.doubleDot(strain_minus);
-
-  eff_dam = dam * static_cast<Real>(strain_energy_minus < strain_energy_plus);
+  args["effective_damage"_n] =
+      args["damage"_n] * (strain_energy_minus < strain_energy_plus);
 }
-} // namespace akantu
 
+} // namespace akantu
 #endif

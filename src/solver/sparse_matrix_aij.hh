@@ -70,20 +70,20 @@ public:
   inline void clearProfile() override;
 
   /// add a non-zero element
-  inline UInt add(UInt i, UInt j) override;
+  inline Idx add(Idx i, Idx j) override;
 
   /// set the matrix to 0
   void set(Real val) override;
 
   /// assemble a local matrix in the sparse one
-  inline void add(UInt i, UInt j, Real value) override;
+  inline void add(Idx i, Idx j, Real value) override;
 
   /// add a block of values
   inline void addValues(const Vector<Int> & is, const Vector<Int> & js,
                         const Matrix<Real> & values, MatrixType values_type);
 
   /// set the size of the matrix
-  void resize(UInt size) { this->size_ = size; }
+  void resize(Int size) { this->size_ = size; }
 
   /// modify the matrix to "remove" the blocked dof
   void applyBoundary(Real block_val = 1.) override;
@@ -115,11 +115,11 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /// accessor to A_{ij} - if (i, j) not present it returns 0
-  inline Real operator()(UInt i, UInt j) const override;
+  inline Real operator()(Idx i, Idx j) const override;
 
   /// accessor to A_{ij} - if (i, j) not present it fails, (i, j) should be
   /// first added to the profile
-  inline Real & operator()(UInt i, UInt j) override;
+  inline Real & operator()(Idx i, Idx j) override;
 
   /// accessor to get the minimum value of A_{ij}
   inline Real min() override;
@@ -127,14 +127,14 @@ public:
 protected:
   void addMeTo(SparseMatrix & B, Real alpha) const override;
 
-  inline void addSymmetricValuesToSymmetric(const Vector<Int> & is,
-                                            const Vector<Int> & js,
+  inline void addSymmetricValuesToSymmetric(const Vector<Idx> & is,
+                                            const Vector<Idx> & js,
                                             const Matrix<Real> & values);
-  inline void addUnsymmetricValuesToSymmetric(const Vector<Int> & is,
-                                              const Vector<Int> & js,
+  inline void addUnsymmetricValuesToSymmetric(const Vector<Idx> & is,
+                                              const Vector<Idx> & js,
                                               const Matrix<Real> & values);
-  inline void addValuesToUnsymmetric(const Vector<Int> & is,
-                                     const Vector<Int> & js,
+  inline void addValuesToUnsymmetric(const Vector<Idx> & is,
+                                     const Vector<Idx> & js,
                                      const Matrix<Real> & values);
 
 private:
@@ -146,25 +146,23 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(IRN, irn, const Array<Int> &);
-
-  AKANTU_GET_MACRO(JCN, jcn, const Array<Int> &);
-
-  AKANTU_GET_MACRO(A, a, const Array<Real> &);
+  AKANTU_GET_MACRO_AUTO(IRN, irn);
+  AKANTU_GET_MACRO_AUTO(JCN, jcn);
+  AKANTU_GET_MACRO_AUTO(A, a);
 
   /// The release changes at each call of a function that changes the profile,
   /// it in increasing but could overflow so it should be checked as
   /// (my_release != release) and not as (my_release < release)
-  AKANTU_GET_MACRO(ProfileRelease, profile_release, UInt);
-  AKANTU_GET_MACRO(ValueRelease, value_release, UInt);
-  UInt getRelease() const override { return value_release; }
+  AKANTU_GET_MACRO_AUTO(ProfileRelease, profile_release);
+  AKANTU_GET_MACRO_AUTO(ValueRelease, value_release);
+  Int getRelease() const override { return value_release; }
 
 protected:
-  using KeyCOO = std::pair<UInt, UInt>;
-  using coordinate_list_map = std::unordered_map<KeyCOO, UInt>;
+  using KeyCOO = std::pair<Idx, Idx>;
+  using coordinate_list_map = std::unordered_map<KeyCOO, Idx>;
 
   /// get the pair corresponding to (i, j)
-  inline KeyCOO key(UInt i, UInt j) const {
+  inline KeyCOO key(Idx i, Idx j) const {
     if (this->matrix_type == _symmetric && (i > j)) {
       return std::make_pair(j, i);
     }
@@ -187,10 +185,10 @@ private:
   Array<Real> a;
 
   /// Profile release
-  UInt profile_release{1};
+  Int profile_release{1};
 
   /// Value release
-  UInt value_release{1};
+  Int value_release{1};
 
   /// map for (i, j) ->  k correspondence
   coordinate_list_map irn_jcn_k;

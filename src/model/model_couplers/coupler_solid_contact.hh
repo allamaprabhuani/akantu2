@@ -51,7 +51,7 @@ namespace akantu {
 template <class SolidMechanicsModelType>
 class CouplerSolidContactTemplate : public Model,
                                     public DataAccessor<Element>,
-                                    public DataAccessor<UInt> {
+                                    public DataAccessor<Idx> {
   static_assert(
       std::is_base_of<SolidMechanicsModel, SolidMechanicsModelType>::value,
       "SolidMechanicsModelType should be derived from SolidMechanicsModel");
@@ -60,7 +60,7 @@ class CouplerSolidContactTemplate : public Model,
   /* ------------------------------------------------------------------------ */
 public:
   CouplerSolidContactTemplate(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "coupler_solid_contact",
       std::shared_ptr<DOFManager> dof_manager = nullptr);
 
@@ -176,8 +176,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
-  UInt getNbData(const Array<Element> & /*elements*/,
-                 const SynchronizationTag & /*tag*/) const override {
+  Int getNbData(const Array<Element> & /*elements*/,
+                const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
   void packData(CommunicationBuffer & /*buffer*/,
@@ -188,14 +188,14 @@ public:
                   const SynchronizationTag & /*tag*/) override {}
 
   // DataAccessor<UInt> nodes
-  UInt getNbData(const Array<UInt> & /*nodes*/,
-                 const SynchronizationTag & /*tag*/) const override {
+  Int getNbData(const Array<Idx> & /*nodes*/,
+                const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer & /*buffer*/, const Array<UInt> & /*nodes*/,
+  void packData(CommunicationBuffer & /*buffer*/, const Array<Idx> & /*nodes*/,
                 const SynchronizationTag & /*tag*/) const override {}
   void unpackData(CommunicationBuffer & /*buffer*/,
-                  const Array<UInt> & /*nodes*/,
+                  const Array<Idx> & /*nodes*/,
                   const SynchronizationTag & /*tag*/) override {}
 
   /* ------------------------------------------------------------------------ */
@@ -231,9 +231,9 @@ public:
                        bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
-  createNodalFieldUInt(const std::string & field_name,
-                       const std::string & group_name,
-                       bool padding_flag) override;
+  createNodalFieldInt(const std::string & field_name,
+                      const std::string & group_name,
+                      bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
@@ -243,16 +243,16 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   void dump(const std::string & dumper_name) override;
-  void dump(const std::string & dumper_name, UInt step) override;
-  void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Int step) override;
+  void dump(const std::string & dumper_name, Real time, Int step) override;
 
   void dump() override;
 
-  void dump(UInt step) override;
-  void dump(Real time, UInt step) override;
+  void dump(Int step) override;
+  void dump(Real time, Int step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */

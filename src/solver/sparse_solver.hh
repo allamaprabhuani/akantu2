@@ -86,17 +86,6 @@ public:
 public:
   void onCommunicatorFinalize() override;
 
-  // inline virtual UInt getNbDataForDOFs(const Array<UInt> & dofs,
-  //                                      SynchronizationTag tag) const;
-
-  // inline virtual void packDOFData(CommunicationBuffer & buffer,
-  //                                 const Array<UInt> & dofs,
-  //                                 SynchronizationTag tag) const;
-
-  // inline virtual void unpackDOFData(CommunicationBuffer & buffer,
-  //                                   const Array<UInt> & dofs,
-  //                                   SynchronizationTag tag);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

@@ -57,23 +57,23 @@ protected:
 
 class NewIGFEMNodesEvent : public NewNodesEvent {
 public:
-  void setNewNodePerElem(const Array<UInt> & new_node_per_elem) {
+  void setNewNodePerElem(const Array<Idx> & new_node_per_elem) {
     this->new_node_per_elem = &new_node_per_elem;
   }
   void setType(ElementType new_type) { type = new_type; }
   void setGhostType(GhostType new_type) { ghost_type = new_type; }
-  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<UInt> &);
+  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<Idx> &);
   AKANTU_GET_MACRO(ElementType, type, ElementType);
   AKANTU_GET_MACRO(GhostType, ghost_type, GhostType);
 
 protected:
   ElementType type;
   GhostType ghost_type;
-  const Array<UInt> * new_node_per_elem;
+  const Array<Idx> * new_node_per_elem;
 };
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> class MeshIgfemSphericalGrowingGel {
+template <Int dim> class MeshIgfemSphericalGrowingGel {
 // definition of the element list
 #define ELEMENT_LIST (_triangle_3)(_igfem_triangle_4)(_igfem_triangle_5)
 
@@ -165,8 +165,8 @@ public:
   }
 
   /// update node type
-  void updateNodeType(const Array<UInt> & nodes_list,
-                      const Array<UInt> & new_node_per_elem, ElementType type,
+  void updateNodeType(const Array<Idx> & nodes_list,
+                      const Array<Idx> & new_node_per_elem, ElementType type,
                       GhostType ghost_type);
 
 protected:

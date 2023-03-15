@@ -46,9 +46,9 @@ int main(int argc, char * argv[]) {
   initialize("test_material_elasto_plastic_linear_isotropic_hardening.dat",
              argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const Real u_increment = 0.1;
-  const UInt steps = 20;
+  const Int steps = 20;
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_material_elasto_plastic_linear_isotropic_hardening.msh");
@@ -64,7 +64,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
 
   std::cout.precision(4);
-  for (UInt i = 0; i < steps; ++i) {
+  for (Int i = 0; i < steps; ++i) {
 
     model.applyBC(BC::Dirichlet::FixedValue(i * u_increment, _x), "right");
 
@@ -76,12 +76,12 @@ int main(int argc, char * argv[]) {
     }
     Real strainxx = i * u_increment / 10.;
 
-    const Array<UInt> & edge_nodes =
+    const auto & edge_nodes =
         mesh.getElementGroup("right").getNodeGroup().getNodes();
-    Array<Real> & residual = model.getInternalForce();
+    auto & residual = model.getInternalForce();
     Real reaction = 0;
 
-    for (UInt n = 0; n < edge_nodes.size(); n++) {
+    for (Int n = 0; n < edge_nodes.size(); n++) {
       reaction -= residual(edge_nodes(n), 0);
     }
 

@@ -64,10 +64,10 @@ using TestDKT18 =
 /* -------------------------------------------------------------------------- */
 
 /// Solution for 2D rotation matrices
-Matrix<Real> globalToLocalRotation(Real theta) {
+auto globalToLocalRotation(Real theta) {
   auto c = std::cos(theta);
   auto s = std::sin(theta);
-  return {{c, s, 0}, {-s, c, 0}, {0, 0, 1}};
+  return Matrix<Real, 3, 3>{{c, s, 0}, {-s, c, 0}, {0, 0, 1}};
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,15 +77,15 @@ TEST_F(TestBernoulliB2, PrecomputeRotations) {
   auto & shape = dynamic_cast<const ShapeStruct &>(fem->getShapeFunctions());
   auto & rot = shape.getRotations(type);
 
-  Real a = std::atan(4. / 3);
-  std::vector<Real> angles = {a, -a, 0};
+  Real a = std::atan(4. / 3.);
+  std::vector<Real> angles = {a, -a, 0.};
 
   Math::setTolerance(1e-15);
 
   for (auto && tuple : zip(make_view(rot, ndof, ndof), angles)) {
     auto rotation = std::get<0>(tuple);
     auto angle = std::get<1>(tuple);
-    auto rotation_error = (rotation - globalToLocalRotation(angle)).norm<L_2>();
+    auto rotation_error = (rotation - globalToLocalRotation(angle)).norm();
     EXPECT_NEAR(rotation_error, 0., Math::getTolerance());
   }
 }
@@ -97,18 +97,19 @@ TEST_F(TestBernoulliB3, PrecomputeRotations) {
   auto & shape = dynamic_cast<const ShapeStruct &>(fem->getShapeFunctions());
   auto & rot = shape.getRotations(type);
 
-  Matrix<Real> ref = {{3. / 13, 4. / 13, 12. / 13},
-                      {-4. / 5, 3. / 5, 0},
-                      {-36. / 65, -48. / 65, 5. / 13}};
+  Matrix<Real, 3, 3> ref{{3. / 13, 4. / 13, 12. / 13},
+                         {-4. / 5, 3. / 5, 0},
+                         {-36. / 65, -48. / 65, 5. / 13}};
   Matrix<Real> solution{ndof, ndof};
-  solution.block(ref, 0, 0);
-  solution.block(ref, dim, dim);
+  solution.zero();
+  solution.block<3, 3>(0, 0) = ref;
+  solution.block<3, 3>(3, 3) = ref;
 
   // The default tolerance is too much, really
   Math::setTolerance(1e-15);
 
   for (auto & rotation : make_view(rot, ndof, ndof)) {
-    auto rotation_error = (rotation - solution).norm<L_2>();
+    auto rotation_error = (rotation - solution).norm();
     EXPECT_NEAR(rotation_error, 0., Math::getTolerance());
   }
 }

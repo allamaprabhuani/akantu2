@@ -57,7 +57,7 @@ public:
       : model(model), A(amplitude), k(2 * M_PI / pulse_width),
         t(t), v{std::sqrt(model.E / model.rho)} {}
 
-  void operator()(UInt n, Vector<bool> & /*flags*/, Vector<Real> & disp,
+  void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> & disp,
                   const Vector<Real> & coord) const {
     auto x = coord(_x);
     model.velocity(n, _x) = k * v * A * sin(k * (x - v * t));
@@ -72,15 +72,15 @@ private:
   Real v{1.};
 };
 
-static void genMesh(Mesh & mesh, UInt nb_nodes);
+static void genMesh(Mesh & mesh, Int nb_nodes);
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt prank = Communicator::getStaticCommunicator().whoAmI();
-  UInt global_nb_nodes = 201;
-  UInt max_steps = 400;
+  Int prank = Communicator::getStaticCommunicator().whoAmI();
+  Int global_nb_nodes = 201;
+  Int max_steps = 400;
   Real time_step = 0.001;
   Mesh mesh(1);
   Real F = -9.81;
@@ -179,7 +179,7 @@ int main(int argc, char * argv[]) {
 
   mesh.dump();
 
-  for (UInt i = 1; i < max_steps + 1; ++i) {
+  for (Int i = 1; i < max_steps + 1; ++i) {
     model.applyBC(Sinusoidal(model, A, pulse_width, time_step * (i - 1)),
                   "border");
 
@@ -211,16 +211,16 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
-  Array<Real> & nodes = mesh_accessor.getNodes();
-  Array<UInt> & conn = mesh_accessor.getConnectivity(_segment_2);
+  auto & nodes = mesh_accessor.getNodes();
+  auto & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
 
   auto & all = mesh.createNodeGroup("all_nodes");
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
     all.add(n);
   }
@@ -228,12 +228,12 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
   mesh.createElementGroupFromNodeGroup("all", "all_nodes");
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }
 
-  Array<UInt> & conn_points = mesh_accessor.getConnectivity(_point_1);
+  auto & conn_points = mesh_accessor.getConnectivity(_point_1);
   conn_points.resize(2);
 
   conn_points(0, 0) = 0;

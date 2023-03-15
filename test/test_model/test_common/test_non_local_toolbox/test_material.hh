@@ -38,7 +38,7 @@
 
 using namespace akantu;
 
-template <UInt dim>
+template <Int dim>
 class TestMaterial
     : public MaterialDamageNonLocal<dim, MaterialDamage<dim, MaterialElastic>> {
   /* ------------------------------------------------------------------------ */

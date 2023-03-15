@@ -20,7 +20,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
                                                 const ID & id)
     : MaterialPlastic<dim>(model, id) {
@@ -37,12 +37,12 @@ MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
                                               GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).storage();
+  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).data();
 
   auto previous_grad_u_it =
       this->gradu.previous(el_type, ghost_type).begin(dim, dim);
@@ -72,7 +72,7 @@ void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type, Array<Real> & tangent_matrix,
     __attribute__((unused)) GhostType ghost_type) {
@@ -84,7 +84,7 @@ void MaterialViscoPlastic<dim>::computeTangentModuli(
   auto previous_strain_it =
       this->gradu.previous(el_type, ghost_type).begin(dim, dim);
 
-  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).storage();
+  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).data();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 

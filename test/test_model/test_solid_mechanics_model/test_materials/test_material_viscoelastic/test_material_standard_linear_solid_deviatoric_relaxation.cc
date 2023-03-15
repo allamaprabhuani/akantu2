@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
   Real T = 10.;
   Real eps = 0.001;
 
-  const UInt dim = 2;
+  const Int dim = 2;
   Real sim_time = 25.;
   Real time_factor = 0.1;
 
@@ -80,7 +80,7 @@ int main(int argc, char * argv[]) {
 
   Material & mat = model.getMaterial(0);
 
-  const Array<Real> & stress = mat.getStress(element_type);
+  const Array<Real> & stresses = mat.getStress(element_type);
 
   Real Eta = mat.get("Eta");
   Real EV = mat.get("Ev");
@@ -93,7 +93,7 @@ int main(int argc, char * argv[]) {
   Real tau = Eta / EV;
   Real gammainf = Ginf / G0;
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   const Array<Real> & coordinate = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
 
@@ -102,15 +102,15 @@ int main(int argc, char * argv[]) {
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model.setTimeStep(time_step);
 
-  UInt max_steps = sim_time / time_step;
-  UInt out_interval = 1;
+  Int max_steps = sim_time / time_step;
+  Int out_interval = 1;
 
   Real time = 0.;
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     if (s % 1000 == 0)
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
@@ -123,7 +123,7 @@ int main(int argc, char * argv[]) {
     } else {
       epsilon = eps;
     }
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       displacement(n, 0) = epsilon * coordinate(n, 1);
       displacement(n, 1) = epsilon * coordinate(n, 0);
     }
@@ -146,14 +146,12 @@ int main(int argc, char * argv[]) {
       output_data << s * time_step << " " << solution;
 
       // data output
-      Array<Real>::const_matrix_iterator stress_it = stress.begin(dim, dim);
-      Array<Real>::const_matrix_iterator stress_end = stress.end(dim, dim);
-      for (; stress_it != stress_end; ++stress_it) {
-        output_data << " " << (*stress_it)(0, 1) << " " << (*stress_it)(1, 0);
+      for (auto && stress : make_view(stresses, dim, dim)) {
+        output_data << " " << stress(0, 1) << " " << stress(1, 0);
 
         // test error
-        Real rel_error_1 = std::abs(((*stress_it)(0, 1) - solution) / solution);
-        Real rel_error_2 = std::abs(((*stress_it)(1, 0) - solution) / solution);
+        Real rel_error_1 = std::abs((stress(0, 1) - solution) / solution);
+        Real rel_error_2 = std::abs((stress(1, 0) - solution) / solution);
         if (rel_error_1 > tolerance || rel_error_2 > tolerance) {
           std::cerr << "Relative error: " << rel_error_1 << " " << rel_error_2
                     << std::endl;

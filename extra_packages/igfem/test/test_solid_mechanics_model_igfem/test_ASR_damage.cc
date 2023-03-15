@@ -34,7 +34,7 @@ public:
       return 2;
 
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     if (model.isInside(barycenter))
@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
   initialize("material_ASR.dat", argc, argv);
 
   /// problem dimension
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -117,7 +117,7 @@ int main(int argc, char * argv[]) {
 
   ///  apply eigenstrain the eigenstrain in the inclusions
   Matrix<Real> prestrain(spatial_dimension, spatial_dimension, 0.);
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     prestrain(i, i) = 0.05;
 
   model.applyEigenGradU(prestrain, "gel", _not_ghost);
@@ -159,7 +159,7 @@ int main(int argc, char * argv[]) {
     else
       nb_damaged_elements = mat_igfem.updateDamage();
     std::cout << "damaged elements: " << nb_damaged_elements << std::endl;
-    for (UInt i = 0; i < 5; ++i) {
+    for (Int i = 0; i < 5; ++i) {
       std::cout << *stress_it << std::endl;
       ++stress_it;
     }
@@ -195,7 +195,7 @@ void applyBoundaryConditions(SolidMechanicsModelIGFEM & model) {
   disp.zero();
   boun.zero();
   /// free expansion
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
 
     if (std::abs(pos(i, 1) - bottom) < eps) {
       boun(i, 1) = true;

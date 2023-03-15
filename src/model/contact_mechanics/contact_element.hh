@@ -42,7 +42,7 @@
 
 namespace akantu {
 
-using SlaveType = UInt;
+using SlaveType = Idx;
 using MasterType = Element;
 
 class ContactElement {

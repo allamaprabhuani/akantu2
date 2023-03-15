@@ -120,15 +120,15 @@ public:
   Array<T> & getElementalDataArrayAlloc(const ID & data_name,
                                         ElementType elem_type,
                                         GhostType ghost_type = _not_ghost,
-                                        UInt nb_component = 1);
+                                        Int nb_component = 1);
 
   template <typename T>
-  inline UInt getNbComponentTemplated(const ID & name, ElementType el_type,
-                                      GhostType ghost_type) const;
-  inline UInt getNbComponent(const ID & name, ElementType el_type,
-                             GhostType ghost_type = _not_ghost) const;
+  inline Int getNbComponentTemplated(const ID & name, ElementType el_type,
+                                     GhostType ghost_type) const;
+  inline Int getNbComponent(const ID & name, ElementType el_type,
+                            GhostType ghost_type = _not_ghost) const;
 
-  inline UInt getNbComponent(const ID & name) const;
+  inline Int getNbComponent(const ID & name) const;
 
   /// Get an existing elemental data
   template <typename T>
@@ -137,7 +137,7 @@ public:
   ElementTypeMapArray<T> & getElementalData(const ID & name);
 
   template <typename T>
-  Array<T> & getNodalData(const ID & name, UInt nb_components = 1);
+  Array<T> & getNodalData(const ID & name, Int nb_components = 1);
   template <typename T> const Array<T> & getNodalData(const ID & name) const;
 
 private:
@@ -150,8 +150,8 @@ private:
   ///  Register new nodal data (and alloc data) with check if the name is
   ///  new
   template <typename T>
-  Array<T> & registerNodalData(const ID & name, UInt nb_components = 1);
-  inline void registerNodalData(const ID & name, UInt nb_components,
+  Array<T> & registerNodalData(const ID & name, Int nb_components = 1);
+  inline void registerNodalData(const ID & name, Int nb_components,
                                 TypeCode type);
 
   ///  Register new elemental data (add alloc data)
@@ -160,7 +160,7 @@ private:
 
   ///  Register new nodal data (add alloc data)
   template <typename T>
-  Array<T> & allocNodalData(const ID & name, UInt nb_components);
+  Array<T> & allocNodalData(const ID & name, Int nb_components);
 
   friend class SlaveNodeInfoPerProc;
 

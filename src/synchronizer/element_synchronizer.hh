@@ -42,7 +42,7 @@
 #include "aka_array.hh"
 #include "aka_common.hh"
 #include "mesh_partition.hh"
-#include "synchronizer_impl.hh"
+#include "synchronizer.hh"
 
 namespace akantu {
 class Mesh;
@@ -78,12 +78,12 @@ public:
   /// mesh event handler onElementsChanged
   void onElementsChanged(const Array<Element> & old_elements_list,
                          const Array<Element> & new_elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const ChangedElementsEvent & event) override;
 
   /// mesh event handler onRemovedElement
-  void onElementsRemoved(const Array<Element> & element_to_remove,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+  void onElementsRemoved(const Array<Element> & element_list,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
 
 protected:
@@ -91,7 +91,7 @@ protected:
   void removeElements(const Array<Element> & element_to_remove);
 
   /// renumber the elements in the synchronizer
-  void renumberElements(const ElementTypeMapArray<UInt> & new_numbering);
+  void renumberElements(const ElementTypeMapArray<Idx> & new_numbering);
 
   /// build processor to element correspondence
   void buildElementToPrank();
@@ -101,52 +101,51 @@ protected:
   void fillNodesType(const MeshData & mesh_data,
                      DynamicCommunicationBuffer * buffers,
                      const std::string & tag_name, ElementType el_type,
-                     const Array<UInt> & partition_num);
+                     const Array<Idx> & partition_num);
 
   template <typename T>
   void fillTagBufferTemplated(const MeshData & mesh_data,
                               DynamicCommunicationBuffer * buffers,
                               const std::string & tag_name, ElementType el_type,
-                              const Array<UInt> & partition_num,
-                              const CSR<UInt> & ghost_partition);
+                              const Array<Idx> & partition_num,
+                              const CSR<Idx> & ghost_partition);
 
   void fillTagBuffer(const MeshData & mesh_data,
                      DynamicCommunicationBuffer * buffers,
                      const std::string & tag_name, ElementType el_type,
-                     const Array<UInt> & partition_num,
-                     const CSR<UInt> & ghost_partition);
+                     const Array<Idx> & partition_num,
+                     const CSR<Idx> & ghost_partition);
 
   /// function that handels the MeshData to be split (root side)
-  static void synchronizeTagsSend(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags, ElementType type,
-                                  const Array<UInt> & partition_num,
-                                  const CSR<UInt> & ghost_partition,
-                                  UInt nb_local_element, UInt nb_ghost_element);
+  static void synchronizeTagsSend(ElementSynchronizer & communicator, Idx root,
+                                  Mesh & mesh, Int nb_tags, ElementType type,
+                                  const Array<Idx> & partition_num,
+                                  const CSR<Idx> & ghost_partition,
+                                  Int nb_local_element, Int nb_ghost_element);
 
   /// function that handles the MeshData to be split (other nodes)
-  static void synchronizeTagsRecv(ElementSynchronizer & communicator, UInt root,
-                                  Mesh & mesh, UInt nb_tags, ElementType type,
-                                  UInt nb_local_element, UInt nb_ghost_element);
+  static void synchronizeTagsRecv(ElementSynchronizer & communicator, Idx root,
+                                  Mesh & mesh, Int nb_tags, ElementType type,
+                                  Int nb_local_element, Int nb_ghost_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh, ElementType type,
-                                       const Array<UInt> & partition_num,
-                                       const CSR<UInt> & ghost_partition,
-                                       UInt nb_element);
+                                       Idx root, Mesh & mesh, ElementType type,
+                                       const Array<Idx> & partition_num,
+                                       const CSR<Idx> & ghost_partition,
+                                       Int nb_element);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeElementGroups(ElementSynchronizer & communicator,
-                                       UInt root, Mesh & mesh,
-                                       ElementType type);
+                                       Idx root, Mesh & mesh, ElementType type);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeNodeGroupsMaster(ElementSynchronizer & communicator,
-                                          UInt root, Mesh & mesh);
+                                          Idx root, Mesh & mesh);
 
   /// function that handles the preexisting groups in the mesh
   static void synchronizeNodeGroupsSlaves(ElementSynchronizer & communicator,
-                                          UInt root, Mesh & mesh);
+                                          Idx root, Mesh & mesh);
 
   template <class CommunicationBuffer>
   static void fillNodeGroupsFromBuffer(ElementSynchronizer & communicator,
@@ -160,24 +159,23 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Sanity checks                                                            */
   /* ------------------------------------------------------------------------ */
-  UInt sanityCheckDataSize(const Array<Element> & elements,
-                           const SynchronizationTag & tag,
-                           bool from_comm_desc = true) const override;
+  Int sanityCheckDataSize(const Array<Element> & elements,
+                          const SynchronizationTag & tag,
+                          bool from_comm_desc = true) const override;
   void packSanityCheckData(CommunicationBuffer & /*buffer*/,
                            const Array<Element> & /*elements*/,
                            const SynchronizationTag & /*tag*/) const override;
   void unpackSanityCheckData(CommunicationBuffer & /*buffer*/,
                              const Array<Element> & /*elements*/,
-                             const SynchronizationTag & /*tag*/, UInt /*proc*/,
-                             UInt /*rank*/) const override;
+                             const SynchronizationTag & /*tag*/, Idx /*proc*/,
+                             Idx /*rank*/) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Mesh, mesh, Mesh &);
-  AKANTU_GET_MACRO(ElementToRank, element_to_prank,
-                   const ElementTypeMapArray<Int> &);
+  AKANTU_GET_MACRO_AUTO(Mesh, mesh);
+  AKANTU_GET_MACRO_AUTO(ElementToRank, element_to_prank);
 
   Int getRank(const Element & element) const final;
   /* ------------------------------------------------------------------------ */

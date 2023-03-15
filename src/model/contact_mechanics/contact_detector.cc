@@ -74,7 +74,7 @@ void ContactDetector::parseSection(const ParserSection & section) {
 
   this->projection_tolerance =
       section.getParameterValue<Real>("projection_tolerance");
-  this->max_iterations = section.getParameterValue<Real>("max_iterations");
+  this->max_iterations = section.getParameterValue<Int>("max_iterations");
   this->extension_tolerance =
       section.getParameterValue<Real>("extension_tolerance");
 }
@@ -91,19 +91,16 @@ void ContactDetector::search(Array<ContactElement> & elements,
 
   contact_pairs.clear();
 
-  SpatialGrid<UInt> master_grid(spatial_dimension);
-  SpatialGrid<UInt> slave_grid(spatial_dimension);
+  auto && [bbox, master_grid] = this->globalSearch();
 
-  this->globalSearch(slave_grid, master_grid);
-
-  this->localSearch(slave_grid, master_grid);
+  this->localSearch(bbox, *master_grid);
 
   this->createContactElements(elements, gaps, normals, tangents, projections);
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
-                                   SpatialGrid<UInt> & master_grid) {
+std::pair<BBox, std::unique_ptr<SpatialGrid<Idx>>>
+ContactDetector::globalSearch() const {
   auto & master_list = surface_selector->getMasterList();
   auto & slave_list = surface_selector->getSlaveList();
 
@@ -118,22 +115,24 @@ void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
   AKANTU_DEBUG_INFO("Intersection BBox " << bbox_intersection);
 
   Vector<Real> center(spatial_dimension);
-  bbox_intersection.getCenter(center);
-
   Vector<Real> spacing(spatial_dimension);
+
+  bbox_intersection.getCenter(center);
   this->computeCellSpacing(spacing);
 
-  master_grid.setCenter(center);
-  master_grid.setSpacing(spacing);
-  this->constructGrid(master_grid, bbox_intersection, master_list);
+  auto && master_grid =
+      std::make_unique<SpatialGrid<Idx>>(spatial_dimension, spacing, center);
 
-  slave_grid.setCenter(center);
-  slave_grid.setSpacing(spacing);
-  this->constructGrid(slave_grid, bbox_intersection, slave_list);
+  this->constructGrid(*master_grid, bbox_intersection, master_list);
 
-  // search slave grid nodes in contactelement array and if they exits
+  // slave_grid.setCenter(center);
+  // slave_grid.setSpacing(spacing);
+  // this->constructGrid(slave_grid, bbox_intersection, slave_list);
+
+  return std::make_pair(bbox_intersection, std::move(master_grid));
+  // search slave grid nodes in contact element array and if they exits
   // and still have orthogonal projection on its associated master
-  // facetremove it from the spatial grid or do not consider it for
+  // facet remove it from the spatial grid or do not consider it for
   // local search, maybe better option will be to have spatial grid of
   // type node info and one of the variable of node info should be
   // facet already exits
@@ -149,8 +148,8 @@ void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
-                                  SpatialGrid<UInt> & master_grid) {
+void ContactDetector::localSearch(const BBox & intersection,
+                                  const SpatialGrid<Idx> & master_grid) {
   // local search
   // out of these array check each cell for closet node in that cell
   // and neighbouring cells find the actual orthogonally closet
@@ -160,71 +159,69 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   // master node
   // these master surfaces will be needed later to update contact
   // elements
+  auto pos_it = make_view(positions, spatial_dimension).begin();
 
-  /// find the closet master node for each slave node
-  for (auto && cell_id : slave_grid) {
-    /// loop over all the slave nodes of the current cell
-    for (auto && slave_node : slave_grid.getCell(cell_id)) {
+  for (auto && slave_node : surface_selector->getSlaveList()) {
+    bool pair_exists = false;
 
-      bool pair_exists = false;
+    auto && pos_slave = pos_it[slave_node];
 
-      Vector<Real> pos(spatial_dimension);
-      for (UInt s : arange(spatial_dimension)) {
-        pos(s) = this->positions(slave_node, s);
-      }
+    if (not intersection.contains(pos_slave)) {
+      continue;
+    }
 
-      Real closet_distance = std::numeric_limits<Real>::max();
-      UInt closet_master_node;
+    Real closet_distance = std::numeric_limits<Real>::max();
+    Int closet_master_node{-1};
 
-      /// loop over all the neighboring cells of the current cell
-      for (auto && neighbor_cell : cell_id.neighbors()) {
-        /// loop over the data of neighboring cells from master grid
-        for (auto && master_node : master_grid.getCell(neighbor_cell)) {
+    auto && master_cell_id = master_grid.getCellID(pos_slave);
 
-          /// check for self contact
-          if (slave_node == master_node) {
+    /// loop over all the neighboring cells of the current cell
+    for (auto && neighbor_cell : master_cell_id.neighbors()) {
+      /// loop over the data of neighboring cells from master grid
+      for (auto && master_node : master_grid.getCell(neighbor_cell)) {
+        /// check for self contact
+        if (slave_node == master_node) {
+          continue;
+        }
+
+        bool is_valid = true;
+
+        auto && elements = this->mesh.getAssociatedElements(slave_node);
+
+        for (const auto & elem : elements) {
+          if (elem.kind() != _ek_regular) {
             continue;
           }
 
-          bool is_valid = true;
-          Array<Element> elements;
-          this->mesh.getAssociatedElements(slave_node, elements);
+          const auto & connectivity = this->mesh.getConnectivity(elem);
 
-          for (auto & elem : elements) {
-            if (elem.kind() != _ek_regular) {
-              continue;
-            }
-
-            Vector<UInt> connectivity =
-                const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
-
-            auto node_iter = std::find(connectivity.begin(), connectivity.end(),
-                                       master_node);
-            if (node_iter != connectivity.end()) {
-              is_valid = false;
-              break;
-            }
-          }
-
-          Vector<Real> pos2(spatial_dimension);
-          for (UInt s : arange(spatial_dimension)) {
-            pos2(s) = this->positions(master_node, s);
-          }
-
-          Real distance = pos.distance(pos2);
-
-          if (distance <= closet_distance and is_valid) {
-            closet_master_node = master_node;
-            closet_distance = distance;
-            pair_exists = true;
+          auto node_iter =
+              std::find(connectivity.begin(), connectivity.end(), master_node);
+          if (node_iter != connectivity.end()) {
+            is_valid = false;
+            break;
           }
         }
-      }
 
-      if (pair_exists) {
-        contact_pairs.emplace_back(
-            std::make_pair(slave_node, closet_master_node));
+        if (not is_valid) {
+          continue;
+        }
+
+        auto && pos_master = pos_it[master_node];
+
+        Real distance = pos_slave.distance(pos_master);
+
+        if (distance <= closet_distance) {
+          closet_master_node = master_node;
+          closet_distance = distance;
+          pair_exists = true;
+        }
       }
+    }
+
+    if (pair_exists) {
+      contact_pairs.emplace_back(
+          std::make_pair(slave_node, closet_master_node));
     }
   }
 }
@@ -235,41 +232,27 @@ void ContactDetector::createContactElements(
     Array<Real> & normals, Array<Real> & tangents, Array<Real> & projections) {
   auto surface_dimension = spatial_dimension - 1;
 
-  Real alpha;
-  switch (detection_type) {
-  case _explicit: {
-    alpha = 1.0;
-    break;
-  }
-  case _implicit: {
+  Real alpha{1.0};
+  if (detection_type == _implicit) {
     alpha = -1.0;
-    break;
-  }
-  default:
-    AKANTU_EXCEPTION(detection_type
-                     << " is not a valid contact detection type");
-    break;
   }
 
-  for (auto & pairs : contact_pairs) {
+  auto gaps_it = gaps.begin();
+  auto normals_it = normals.begin(spatial_dimension);
+  auto tangents_it = tangents.begin(spatial_dimension, surface_dimension);
+  auto projections_it = projections.begin(surface_dimension);
+  auto pos_it = make_view(positions, spatial_dimension).begin();
 
-    const auto & slave_node = pairs.first;
+  for (auto && [slave_node, master_node] : contact_pairs) {
+    const auto & slave = pos_it[slave_node];
+    auto && elements = this->mesh.getAssociatedElements(master_node);
 
-    Vector<Real> slave(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
-      slave(s) = this->positions(slave_node, s);
-    }
+    auto && gap = gaps_it[slave_node];
+    auto && normal = normals_it[slave_node];
+    auto && tangent = tangents_it[slave_node];
+    auto && projection = projections_it[slave_node];
 
-    const auto & master_node = pairs.second;
-    Array<Element> elements;
-    this->mesh.getAssociatedElements(master_node, elements);
-
-    auto & gap = gaps.begin()[slave_node];
-    Vector<Real> normal(normals.begin(spatial_dimension)[slave_node]);
-    Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
-    Matrix<Real> tangent(
-        tangents.begin(surface_dimension, spatial_dimension)[slave_node]);
-    auto index = GeometryUtils::orthogonalProjection(
+    auto found_element = GeometryUtils::orthogonalProjection(
         mesh, positions, slave, elements, gap, projection, normal, tangent,
         alpha, this->max_iterations, this->projection_tolerance,
         this->extension_tolerance);
@@ -277,16 +260,17 @@ void ContactDetector::createContactElements(
     // if a valid projection is not found on the patch of elements
     // index is -1 or if not a valid self contact, the contact element
     // is not created
-    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) {
-      gap *= 0;
-      normal *= 0;
-      projection *= 0;
-      tangent *= 0;
+    if (found_element == ElementNull or
+        !isValidSelfContact(slave_node, gap, normal)) {
+      gap = 0.;
+      normal.zero();
+      projection.zero();
+      tangent.zero();
       continue;
     }
 
     // create contact element
-    contact_elements.push_back(ContactElement(slave_node, elements[index]));
+    contact_elements.push_back(ContactElement(slave_node, found_element));
   }
 
   contact_pairs.clear();

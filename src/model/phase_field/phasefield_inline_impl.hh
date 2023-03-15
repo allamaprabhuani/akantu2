@@ -39,15 +39,15 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::addElement(const ElementType & type, UInt element,
+inline Int PhaseField::addElement(const ElementType & type, Int element,
                                    const GhostType & ghost_type) {
-  Array<UInt> & el_filter = this->element_filter(type, ghost_type);
+  Array<Int> & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::addElement(const Element & element) {
+inline Int PhaseField::addElement(const Element & element) {
   return this->addElement(element.type, element.element, element.ghost_type);
 }
 
@@ -60,7 +60,7 @@ PhaseField::registerInternal<Real>(InternalPhaseField<Real> & vect) {
 
 template <>
 inline void
-PhaseField::registerInternal<UInt>(InternalPhaseField<UInt> & vect) {
+PhaseField::registerInternal<Int>(InternalPhaseField<Int> & vect) {
   internal_vectors_uint[vect.getID()] = &vect;
 }
 
@@ -79,7 +79,7 @@ PhaseField::unregisterInternal<Real>(InternalPhaseField<Real> & vect) {
 
 template <>
 inline void
-PhaseField::unregisterInternal<UInt>(InternalPhaseField<UInt> & vect) {
+PhaseField::unregisterInternal<Int>(InternalPhaseField<Int> & vect) {
   internal_vectors_uint.erase(vect.getID());
 }
 
@@ -130,13 +130,13 @@ void PhaseField::flattenInternal(const std::string & field_id,
     const auto & filter = internal_field.getFilter(type, ghost_type);
 
     // total number of elements in the corresponding mesh
-    UInt nb_element_dst = mesh.getNbElement(type, ghost_type);
+    Int nb_element_dst = mesh.getNbElement(type, ghost_type);
     // number of element in the internal field
-    UInt nb_element_src = filter.size();
+    Int nb_element_src = filter.size();
     // number of quadrature points per elem
-    UInt nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
+    Int nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
     // number of data per quadrature point
-    UInt nb_data_per_quad = internal_field.getNbComponent();
+    Int nb_data_per_quad = internal_field.getNbComponent();
 
     if (!internal_flat.exists(type, ghost_type)) {
       internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
@@ -144,7 +144,7 @@ void PhaseField::flattenInternal(const std::string & field_id,
     }
 
     // number of data per element
-    UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
+    Int nb_data = nb_quad_per_elem * nb_data_per_quad;
 
     Array<Real> & dst_vect = internal_flat(type, ghost_type);
     dst_vect.resize(nb_element_dst * nb_quad_per_elem);
@@ -203,7 +203,7 @@ void PhaseField::inflateInternal(const std::string & field_id,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt PhaseField::getNbData(const Array<Element> & elements,
+inline Int PhaseField::getNbData(const Array<Element> & elements,
                                   const SynchronizationTag & tag) const {
 
   return 0;
@@ -292,7 +292,7 @@ inline InternalPhaseField<Real> & PhaseField::getInternal(const ID & int_id) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline const InternalPhaseField<UInt> &
+inline const InternalPhaseField<Int> &
 PhaseField::getInternal(const ID & int_id) const {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
@@ -306,7 +306,7 @@ PhaseField::getInternal(const ID & int_id) const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline InternalPhaseField<UInt> & PhaseField::getInternal(const ID & int_id) {
+inline InternalPhaseField<Int> & PhaseField::getInternal(const ID & int_id) {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
     AKANTU_SILENT_EXCEPTION("The phasefield "

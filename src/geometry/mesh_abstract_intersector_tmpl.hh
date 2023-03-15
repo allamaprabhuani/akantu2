@@ -48,31 +48,17 @@ MeshAbstractIntersector<Query>::MeshAbstractIntersector(Mesh & mesh)
 template <class Query>
 void MeshAbstractIntersector<Query>::computeIntersectionQueryList(
     const std::list<Query> & query_list) {
-  AKANTU_DEBUG_IN();
-
-  auto query_it = query_list.begin();
-  auto query_end = query_list.end();
-
-  for (; query_it != query_end; ++query_it) {
-    computeIntersectionQuery(*query_it);
+  for (auto && query : query_list) {
+    computeIntersectionQuery(query);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 template <class Query>
 void MeshAbstractIntersector<Query>::computeMeshQueryListIntersectionPoint(
-    const std::list<Query> & query_list, UInt nb_old_nodes) {
-  AKANTU_DEBUG_IN();
-
-  auto query_it = query_list.begin();
-  auto query_end = query_list.end();
-
-  for (; query_it != query_end; ++query_it) {
-    computeMeshQueryIntersectionPoint(*query_it, nb_old_nodes);
+    const std::list<Query> & query_list, Int nb_old_nodes) {
+  for (auto && query : query_list) {
+    computeMeshQueryIntersectionPoint(query, nb_old_nodes);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

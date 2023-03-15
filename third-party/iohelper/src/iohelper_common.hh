@@ -144,6 +144,8 @@ static UInt nb_quad_points[MAX_ELEM_TYPE] __attribute__((unused)) = {
 /* -------------------------------------------------------------------------- */
 template <typename T> class IOHelperVector {
 public:
+  using value_type = T;
+
   virtual ~IOHelperVector() = default;
 
   inline IOHelperVector(T * ptr, UInt size) {
@@ -154,6 +156,7 @@ public:
   inline UInt size() const { return _size; };
 
   inline const T & operator[](UInt i) const { return ptr[i]; };
+  inline const T & operator()(UInt i) const { return ptr[i]; };
 
   inline const T * getPtr() const { return ptr; };
 
@@ -177,6 +180,13 @@ public:
   //! This function is only for the element iterators
   virtual ElemType element_type() { return MAX_ELEM_TYPE; }
 };
+
+template <typename T> struct is_vector : public std::false_type {};
+
+template <typename T>
+struct is_vector<IOHelperVector<T>> : public std::true_type {};
+
+template <typename T> struct is_matrix : public std::false_type {};
 
 /* -------------------------------------------------------------------------- */
 

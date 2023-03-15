@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 MaterialReinforcement<Mat, dim>::MaterialReinforcement(
     EmbeddedInterfaceModel & model, const ID & id)
     : Mat(model, 1, model.getInterfaceMesh(),
@@ -60,7 +60,7 @@ MaterialReinforcement<Mat, dim>::MaterialReinforcement(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initialize() {
   AKANTU_DEBUG_IN();
 
@@ -77,7 +77,7 @@ void MaterialReinforcement<Mat, dim>::initialize() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 MaterialReinforcement<Mat, dim>::~MaterialReinforcement() {
   AKANTU_DEBUG_IN();
 
@@ -86,7 +86,7 @@ MaterialReinforcement<Mat, dim>::~MaterialReinforcement() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initMaterial() {
   Mat::initMaterial();
 
@@ -102,7 +102,7 @@ void MaterialReinforcement<Mat, dim>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 /// Initialize the filter for background elements
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initFilters() {
   for (auto gt : ghost_types) {
     for (auto && type : emodel.getInterfaceMesh().elementTypes(1, gt)) {
@@ -111,11 +111,11 @@ void MaterialReinforcement<Mat, dim>::initFilters() {
         shaped_id += ":ghost";
       }
       auto & background =
-          background_filter(std::make_unique<ElementTypeMapArray<UInt>>(
+          background_filter(std::make_unique<ElementTypeMapArray<Idx>>(
                                 "bg_" + shaped_id, this->name),
                             type, gt);
       auto & foreground = foreground_filter(
-          std::make_unique<ElementTypeMapArray<UInt>>(shaped_id, this->name),
+          std::make_unique<ElementTypeMapArray<Idx>>(shaped_id, this->name),
           type, gt);
       foreground->initialize(emodel.getMesh(), _nb_component = 1,
                              _ghost_type = gt);
@@ -133,9 +133,9 @@ void MaterialReinforcement<Mat, dim>::initFilters() {
 
 /* -------------------------------------------------------------------------- */
 /// Construct a filter for a (interface_type, background_type) pair
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::filterInterfaceBackgroundElements(
-    Array<UInt> & foreground, Array<UInt> & background, ElementType type,
+    Array<Idx> & foreground, Array<Idx> & background, ElementType type,
     ElementType interface_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -144,7 +144,7 @@ void MaterialReinforcement<Mat, dim>::filterInterfaceBackgroundElements(
 
   Array<Element> & elements =
       emodel.getInterfaceAssociatedElements(interface_type, ghost_type);
-  Array<UInt> & elem_filter = this->element_filter(interface_type, ghost_type);
+  auto & elem_filter = this->element_filter(interface_type, ghost_type);
 
   for (auto & elem_id : elem_filter) {
     Element & elem = elements(elem_id);
@@ -162,9 +162,9 @@ void MaterialReinforcement<Mat, dim>::filterInterfaceBackgroundElements(
 namespace detail {
   class BackgroundShapeDInitializer : public ElementTypeMapArrayInitializer {
   public:
-    BackgroundShapeDInitializer(UInt spatial_dimension, FEEngine & engine,
+    BackgroundShapeDInitializer(Int spatial_dimension, FEEngine & engine,
                                 ElementType foreground_type,
-                                const ElementTypeMapArray<UInt> & filter,
+                                const ElementTypeMapArray<Idx> & filter,
                                 GhostType ghost_type)
         : ElementTypeMapArrayInitializer(
               [](ElementType bgtype, GhostType /*unused*/) {
@@ -200,7 +200,7 @@ namespace detail {
  * in an ElementTypeMap<ElementTypeMapArray<Real> *>. The outer ElementTypeMap
  * refers to the embedded types, and the inner refers to the background types.
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::allocBackgroundShapeDerivatives() {
   AKANTU_DEBUG_IN();
 
@@ -228,7 +228,7 @@ void MaterialReinforcement<Mat, dim>::allocBackgroundShapeDerivatives() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initBackgroundShapeDerivatives() {
   AKANTU_DEBUG_IN();
 
@@ -244,10 +244,10 @@ void MaterialReinforcement<Mat, dim>::initBackgroundShapeDerivatives() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeBackgroundShapeDerivatives(
     ElementType interface_type, ElementType bg_type, GhostType ghost_type,
-    const Array<UInt> & filter) {
+    const Array<Idx> & filter) {
   auto & interface_engine = emodel.getFEEngine("EmbeddedInterfaceFEEngine");
   auto & engine = emodel.getFEEngine();
   auto & interface_mesh = emodel.getInterfaceMesh();
@@ -275,18 +275,16 @@ void MaterialReinforcement<Mat, dim>::computeBackgroundShapeDerivatives(
   for (auto && tuple : zip(background_elements, foreground_elements)) {
     auto bg = std::get<0>(tuple);
     auto fg = std::get<1>(tuple);
-    for (UInt i = 0; i < nb_quads_per_elem; ++i) {
-      Matrix<Real> shapesd = Tensor3<Real>(shapesd_begin[fg])(i);
-      Vector<Real> quads = Matrix<Real>(quad_begin[fg])(i);
-
-      engine.computeShapeDerivatives(quads, bg, bg_type, shapesd, ghost_type);
+    for (Int i = 0; i < nb_quads_per_elem; ++i) {
+      engine.computeShapeDerivatives(quad_begin[fg](i), bg, bg_type,
+                                     shapesd_begin[fg](i), ghost_type);
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initDirectingCosines() {
   AKANTU_DEBUG_IN();
 
@@ -305,7 +303,7 @@ void MaterialReinforcement<Mat, dim>::initDirectingCosines() {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -321,7 +319,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForces(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -336,7 +334,7 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForces(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -351,7 +349,7 @@ void MaterialReinforcement<Mat, dim>::computeAllStresses(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::addPrestress(ElementType type,
                                                    GhostType ghost_type) {
   auto & stress = this->stress(type, ghost_type);
@@ -363,7 +361,7 @@ void MaterialReinforcement<Mat, dim>::addPrestress(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForces(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -386,51 +384,41 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForces(
  * \vec{r} = A_s \int_S{\mathbf{B}^T\mathbf{C}^T \vec{\sigma_s}\,\mathrm{d}s}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
     ElementType interface_type, ElementType background_type,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt voigt_size = VoigtHelper<dim>::size;
+  constexpr auto voigt_size = VoigtHelper<dim>::size;
 
   FEEngine & interface_engine = emodel.getFEEngine("EmbeddedInterfaceFEEngine");
 
-  Array<UInt> & elem_filter = this->element_filter(interface_type, ghost_type);
+  const auto & elem_filter = this->element_filter(interface_type, ghost_type);
 
-  UInt nodes_per_background_e = Mesh::getNbNodesPerElement(background_type);
-  UInt nb_quadrature_points =
+  auto nodes_per_background_e = Mesh::getNbNodesPerElement(background_type);
+  auto nb_quadrature_points =
       interface_engine.getNbIntegrationPoints(interface_type, ghost_type);
-  UInt nb_element = elem_filter.size();
+  auto nb_element = elem_filter.size();
 
-  UInt back_dof = dim * nodes_per_background_e;
+  auto back_dof = dim * nodes_per_background_e;
 
-  Array<Real> & shapesd = (*shape_derivatives(interface_type, ghost_type))(
+  const auto & shapesd = (*shape_derivatives(interface_type, ghost_type))(
       background_type, ghost_type);
 
   Array<Real> integrant(nb_quadrature_points * nb_element, back_dof,
                         "integrant");
 
-  auto integrant_it = integrant.begin(back_dof);
-  auto integrant_end = integrant.end(back_dof);
-
-  Array<Real>::matrix_iterator B_it =
-      shapesd.begin(dim, nodes_per_background_e);
-  auto C_it = directing_cosines(interface_type, ghost_type).begin(voigt_size);
-
-  auto sigma_it = this->stress(interface_type, ghost_type).begin();
-
   Matrix<Real> Bvoigt(voigt_size, back_dof);
 
-  for (; integrant_it != integrant_end;
-       ++integrant_it, ++B_it, ++C_it, ++sigma_it) {
-    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(*B_it, Bvoigt,
+  for (auto && [BtCt_sigma, C, sigma, B] :
+       zip(make_view(integrant, back_dof),
+           make_view(directing_cosines(interface_type, ghost_type), voigt_size),
+           this->stress(interface_type, ghost_type),
+           make_view(shapesd, dim, nodes_per_background_e))) {
+    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(B, Bvoigt,
                                                        nodes_per_background_e);
-    Vector<Real> & C = *C_it;
-    Vector<Real> & BtCt_sigma = *integrant_it;
-
-    BtCt_sigma.mul<true>(Bvoigt, C);
-    BtCt_sigma *= *sigma_it * area;
+    BtCt_sigma = Bvoigt.transpose() * C * sigma * area;
   }
 
   Array<Real> residual_interface(nb_element, back_dof, "residual_interface");
@@ -438,7 +426,7 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
                              interface_type, ghost_type, elem_filter);
   integrant.resize(0);
 
-  Array<UInt> background_filter(nb_element, 1, "background_filter");
+  Array<Idx> background_filter(nb_element, 1, "background_filter");
 
   auto & filter =
       getBackgroundFilter(interface_type, background_type, ghost_type);
@@ -452,17 +440,17 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeDirectingCosines(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Mesh & interface_mesh = emodel.getInterfaceMesh();
 
-  const UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  const UInt steel_dof = dim * nb_nodes_per_element;
-  const UInt voigt_size = VoigtHelper<dim>::size;
-  const UInt nb_quad_points = emodel.getFEEngine("EmbeddedInterfaceFEEngine")
+  const auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  const auto steel_dof = dim * nb_nodes_per_element;
+  constexpr auto voigt_size = VoigtHelper<dim>::size;
+  const auto nb_quad_points = emodel.getFEEngine("EmbeddedInterfaceFEEngine")
                                   .getNbIntegrationPoints(type, ghost_type);
 
   Array<Real> node_coordinates(this->element_filter(type, ghost_type).size(),
@@ -472,21 +460,11 @@ void MaterialReinforcement<Mat, dim>::computeDirectingCosines(
       interface_mesh, interface_mesh.getNodes(), node_coordinates, type,
       ghost_type, this->element_filter(type, ghost_type));
 
-  Array<Real>::matrix_iterator directing_cosines_it =
-      directing_cosines(type, ghost_type).begin(1, voigt_size);
-
-  Array<Real>::matrix_iterator node_coordinates_it =
-      node_coordinates.begin(dim, nb_nodes_per_element);
-  Array<Real>::matrix_iterator node_coordinates_end =
-      node_coordinates.end(dim, nb_nodes_per_element);
-
-  for (; node_coordinates_it != node_coordinates_end; ++node_coordinates_it) {
-    for (UInt i = 0; i < nb_quad_points; i++, ++directing_cosines_it) {
-      Matrix<Real> & nodes = *node_coordinates_it;
-      Matrix<Real> & cosines = *directing_cosines_it;
-
-      computeDirectingCosinesOnQuad(nodes, cosines);
-    }
+  for (auto && data :
+       zip(repeat_n(make_view(node_coordinates, dim, nb_nodes_per_element),
+                    nb_quad_points),
+           make_view<1, voigt_size>(directing_cosines(type, ghost_type)))) {
+    computeDirectingCosinesOnQuad(std::get<0>(data), std::get<1>(data));
   }
 
   // Mauro: the directing_cosines internal is defined on the quadrature points
@@ -497,7 +475,7 @@ void MaterialReinforcement<Mat, dim>::computeDirectingCosines(
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -519,27 +497,27 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrix(
  * \mathbf{C}_i^T \mathbf{D}_{s, i} \mathbf{C}_i \mathbf{B}\,\mathrm{d}s}}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
     ElementType interface_type, ElementType background_type,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt voigt_size = VoigtHelper<dim>::size;
+  constexpr Int voigt_size = VoigtHelper<dim>::size;
 
   FEEngine & interface_engine = emodel.getFEEngine("EmbeddedInterfaceFEEngine");
 
-  Array<UInt> & elem_filter = this->element_filter(interface_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(interface_type, ghost_type);
   Array<Real> & grad_u = gradu_embedded(interface_type, ghost_type);
 
-  UInt nb_element = elem_filter.size();
-  UInt nodes_per_background_e = Mesh::getNbNodesPerElement(background_type);
-  UInt nb_quadrature_points =
+  Int nb_element = elem_filter.size();
+  Int nodes_per_background_e = Mesh::getNbNodesPerElement(background_type);
+  Int nb_quadrature_points =
       interface_engine.getNbIntegrationPoints(interface_type, ghost_type);
 
-  UInt back_dof = dim * nodes_per_background_e;
+  Int back_dof = dim * nodes_per_background_e;
 
-  UInt integrant_size = back_dof;
+  Int integrant_size = back_dof;
 
   grad_u.resize(nb_quadrature_points * nb_element);
 
@@ -555,32 +533,17 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
 
   /// Temporary matrices for integrant product
   Matrix<Real> Bvoigt(voigt_size, back_dof);
-  Matrix<Real> DCB(1, back_dof);
-  Matrix<Real> CtDCB(voigt_size, back_dof);
 
-  Array<Real>::scalar_iterator D_it = tangent_moduli.begin();
-  Array<Real>::scalar_iterator D_end = tangent_moduli.end();
-
-  Array<Real>::matrix_iterator C_it =
-      directing_cosines(interface_type, ghost_type).begin(1, voigt_size);
-  Array<Real>::matrix_iterator B_it =
-      shapesd.begin(dim, nodes_per_background_e);
-  Array<Real>::matrix_iterator integrant_it =
-      integrant.begin(integrant_size, integrant_size);
-
-  for (; D_it != D_end; ++D_it, ++C_it, ++B_it, ++integrant_it) {
-    Real & D = *D_it;
-    Matrix<Real> & C = *C_it;
-    Matrix<Real> & B = *B_it;
-    Matrix<Real> & BtCtDCB = *integrant_it;
-
+  for (auto && [D, C, B, BtCtDCB] :
+       zip(tangent_moduli,
+           make_view(directing_cosines(interface_type, ghost_type), 1,
+                     voigt_size),
+           make_view(shapesd, dim, nodes_per_background_e),
+           make_view(integrant, integrant_size, integrant_size))) {
     VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(B, Bvoigt,
                                                        nodes_per_background_e);
 
-    DCB.mul<false, false>(C, Bvoigt);
-    DCB *= D * area;
-    CtDCB.mul<true, false>(C, DCB);
-    BtCtDCB.mul<true, false>(Bvoigt, CtDCB);
+    BtCtDCB = Bvoigt.transpose() * C.transpose() * D * C * Bvoigt * area;
   }
 
   tangent_moduli.resize(0);
@@ -609,7 +572,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 Real MaterialReinforcement<Mat, dim>::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
   if (id == "potential") {
@@ -636,15 +599,15 @@ Real MaterialReinforcement<Mat, dim>::getEnergy(const std::string & id) {
 
 /* -------------------------------------------------------------------------- */
 
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::computeGradU(ElementType interface_type,
                                                    GhostType ghost_type) {
   // Looping over background types
   for (auto && bg_type :
        background_filter(interface_type, ghost_type)->elementTypes(dim)) {
 
-    const UInt nodes_per_background_e = Mesh::getNbNodesPerElement(bg_type);
-    const UInt voigt_size = VoigtHelper<dim>::size;
+    const Int nodes_per_background_e = Mesh::getNbNodesPerElement(bg_type);
+    constexpr Int voigt_size = VoigtHelper<dim>::size;
 
     auto & bg_shapesd =
         (*shape_derivatives(interface_type, ghost_type))(bg_type, ghost_type);
@@ -657,24 +620,20 @@ void MaterialReinforcement<Mat, dim>::computeGradU(ElementType interface_type,
         emodel.getMesh(), emodel.getDisplacement(), disp_per_element, bg_type,
         ghost_type, filter);
 
-    Matrix<Real> concrete_du(dim, dim);
-    Matrix<Real> epsilon(dim, dim);
-    Vector<Real> evoigt(voigt_size);
+    Matrix<Real, dim, dim> concrete_du(dim, dim);
+    Matrix<Real, dim, dim> epsilon(dim, dim);
+    Vector<Real, voigt_size> evoigt(voigt_size);
 
-    for (auto && tuple :
+    for (auto && [u, B, du, C] :
          zip(make_view(disp_per_element, dim, nodes_per_background_e),
              make_view(bg_shapesd, dim, nodes_per_background_e),
              this->gradu(interface_type, ghost_type),
              make_view(this->directing_cosines(interface_type, ghost_type),
                        voigt_size))) {
-      auto & u = std::get<0>(tuple);
-      auto & B = std::get<1>(tuple);
-      auto & du = std::get<2>(tuple);
-      auto & C = std::get<3>(tuple);
 
-      concrete_du.mul<false, true>(u, B);
+      concrete_du = u * B.transpose();
       auto epsilon = 0.5 * (concrete_du + concrete_du.transpose());
-      strainTensorToVoigtVector(epsilon, evoigt);
+      VoigtHelper<dim>::matrixToVoigtWithFactors(epsilon, evoigt);
       du = C.dot(evoigt);
     }
   }
@@ -695,21 +654,17 @@ void MaterialReinforcement<Mat, dim>::computeGradU(ElementType interface_type,
  * \frac{\mathrm{d}\vec{r}(s)}{\mathrm{d}s}
  * \f]
  */
-template <class Mat, UInt dim>
+template <class Mat, Int dim>
+template <class Derived1, class Derived2>
 inline void MaterialReinforcement<Mat, dim>::computeDirectingCosinesOnQuad(
-    const Matrix<Real> & nodes, Matrix<Real> & cosines) {
+    const Eigen::MatrixBase<Derived1> & nodes,
+    Eigen::MatrixBase<Derived2> & cosines) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(nodes.cols() == 2,
                       "Higher order reinforcement elements not implemented");
+  Vector<Real> delta = nodes(1) - nodes(0);
 
-  const Vector<Real> a = nodes(0);
-  const Vector<Real> b = nodes(1);
-  Vector<Real> delta = b - a;
-
-  Real sq_length = 0.;
-  for (UInt i = 0; i < dim; i++) {
-    sq_length += delta(i) * delta(i);
-  }
+  Real sq_length = delta.dot(delta);
 
   if (dim == 2) {
     cosines(0, 0) = delta(0) * delta(0); // l^2
@@ -731,47 +686,5 @@ inline void MaterialReinforcement<Mat, dim>::computeDirectingCosinesOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-
-template <class Mat, UInt dim>
-inline void MaterialReinforcement<Mat, dim>::stressTensorToVoigtVector(
-    const Matrix<Real> & tensor, Vector<Real> & vector) {
-  AKANTU_DEBUG_IN();
-
-  for (UInt i = 0; i < dim; i++) {
-    vector(i) = tensor(i, i);
-  }
-
-  if (dim == 2) {
-    vector(2) = tensor(0, 1);
-  } else if (dim == 3) {
-    vector(3) = tensor(1, 2);
-    vector(4) = tensor(0, 2);
-    vector(5) = tensor(0, 1);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-template <class Mat, UInt dim>
-inline void MaterialReinforcement<Mat, dim>::strainTensorToVoigtVector(
-    const Matrix<Real> & tensor, Vector<Real> & vector) {
-  AKANTU_DEBUG_IN();
-
-  for (UInt i = 0; i < dim; i++) {
-    vector(i) = tensor(i, i);
-  }
-
-  if (dim == 2) {
-    vector(2) = 2 * tensor(0, 1);
-  } else if (dim == 3) {
-    vector(3) = 2 * tensor(1, 2);
-    vector(4) = 2 * tensor(0, 2);
-    vector(5) = 2 * tensor(0, 1);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
 
 } // namespace akantu

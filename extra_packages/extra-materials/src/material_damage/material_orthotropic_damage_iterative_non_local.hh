@@ -29,7 +29,7 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialOrthotropicDamageIterativeNonLocal
     : public MaterialDamageNonLocal<
           spatial_dimension,

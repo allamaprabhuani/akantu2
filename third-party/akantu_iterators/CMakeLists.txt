@@ -38,7 +38,7 @@ set_property(TARGET akantu_iterators APPEND PROPERTY
 
 set_target_properties(akantu_iterators
   PROPERTIES
-  INTERFACE_CXX_STANDARD 14
+  INTERFACE_CXX_STANDARD 17
   )
 
 # ------------------------------------------------------------------------------

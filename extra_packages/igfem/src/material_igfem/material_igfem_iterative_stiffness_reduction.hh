@@ -43,7 +43,7 @@ namespace akantu {
  */
 /// Proposed by Rots and Invernizzi, 2004: Regularized sequentially linear
 // saw-tooth softening model (section 4.2)
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialIGFEMIterativeStiffnessReduction
     : public MaterialIGFEMSawToothDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

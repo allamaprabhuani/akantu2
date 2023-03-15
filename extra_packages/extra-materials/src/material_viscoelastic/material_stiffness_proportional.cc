@@ -20,7 +20,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(
     SolidMechanicsModel & model, const ID & id)
     : MaterialElastic<spatial_dimension>(model, id),
@@ -38,7 +38,7 @@ MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
@@ -46,11 +46,11 @@ void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);
   Array<Real> & stress_visc = stress_viscosity(el_type, ghost_type);
   Array<Real> & stress_el = stress_elastic(el_type, ghost_type);
 
@@ -93,7 +93,7 @@ void MaterialStiffnessProportional<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -102,7 +102,7 @@ void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(
   Array<Real>::matrix_iterator stress_el_it =
       stress_el.begin(spatial_dimension, spatial_dimension);
 
-  Real * epot = this->potential_energy(el_type).storage();
+  Real * epot = this->potential_energy(el_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   Matrix<Real> & sigma_el = *stress_el_it;

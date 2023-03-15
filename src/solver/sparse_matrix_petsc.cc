@@ -210,7 +210,7 @@ void SparseMatrixPETSc::applyBoundary(Real block_val) {
   saveMatrix("before_blocked_" + std::to_string(c) + ".mtx");
 
   PETSc_call(MatZeroRowsColumnsLocal, mat, blocked_dofs.size(),
-             blocked_dofs.storage(), block_val, nullptr, nullptr);
+             blocked_dofs.data(), block_val, nullptr, nullptr);
 
   saveMatrix("after_blocked_" + std::to_string(c) + ".mtx");
   ++c;
@@ -243,23 +243,23 @@ void SparseMatrixPETSc::clearProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt SparseMatrixPETSc::add(UInt i, UInt j) {
+Idx SparseMatrixPETSc::add(Idx i, Idx j) {
   PETSc_call(MatSetValue, mat, i, j, 0, ADD_VALUES);
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::add(UInt i, UInt j, Real val) {
+void SparseMatrixPETSc::add(Idx i, Idx j, Real val) {
   PETSc_call(MatSetValue, mat, i, j, val, ADD_VALUES);
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addLocal(UInt i, UInt j) {
+void SparseMatrixPETSc::addLocal(Idx i, Idx j) {
   PETSc_call(MatSetValueLocal, mat, i, j, 0, ADD_VALUES);
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addLocal(UInt i, UInt j, Real val) {
+void SparseMatrixPETSc::addLocal(Idx i, Idx j, Real val) {
   PETSc_call(MatSetValueLocal, mat, i, j, val, ADD_VALUES);
 }
 
@@ -267,8 +267,8 @@ void SparseMatrixPETSc::addLocal(UInt i, UInt j, Real val) {
 void SparseMatrixPETSc::addLocal(const Vector<Int> & rows,
                                  const Vector<Int> & cols,
                                  const Matrix<Real> & values) {
-  PETSc_call(MatSetValuesLocal, mat, rows.size(), rows.storage(), cols.size(),
-             cols.storage(), values.storage(), ADD_VALUES);
+  PETSc_call(MatSetValuesLocal, mat, rows.size(), rows.data(), cols.size(),
+             cols.data(), values.data(), ADD_VALUES);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -281,8 +281,8 @@ void SparseMatrixPETSc::addValues(const Vector<Int> & rows,
     PETSc_call(MatSetOption, mat, MAT_STRUCTURALLY_SYMMETRIC, PETSC_FALSE);
   }
 
-  PETSc_call(MatSetValues, mat, rows.size(), rows.storage(), cols.size(),
-             cols.storage(), values.storage(), ADD_VALUES);
+  PETSc_call(MatSetValues, mat, rows.size(), rows.data(), cols.size(),
+             cols.data(), values.data(), ADD_VALUES);
 }
 
 /* -------------------------------------------------------------------------- */

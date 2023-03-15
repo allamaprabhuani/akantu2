@@ -48,8 +48,7 @@ namespace akantu {
  * @brief Class used to perform intersections on a mesh and construct output
  * data
  */
-template <UInt dim, ElementType type, class Primitive, class Query,
-          class Kernel>
+template <Int dim, ElementType type, class Primitive, class Query, class Kernel>
 class MeshGeomIntersector : public MeshAbstractIntersector<Query> {
 
 public:

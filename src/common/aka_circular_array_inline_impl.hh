@@ -38,7 +38,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class T>
 inline typename CircularArray<T>::reference
-CircularArray<T>::operator()(UInt i, UInt j) {
+CircularArray<T>::operator()(Idx i, Idx j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -57,7 +57,7 @@ CircularArray<T>::operator()(UInt i, UInt j) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline typename CircularArray<T>::const_reference
-CircularArray<T>::operator()(UInt i, UInt j) const {
+CircularArray<T>::operator()(Idx i, Idx j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -86,9 +86,7 @@ template <class T> inline void CircularArray<T>::makeStep() {
 /* -------------------------------------------------------------------------- */
 template <class T>
 void CircularArray<T>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "CircularArray<" << debug::demangle(typeid(T).name())
          << "> [" << std::endl;

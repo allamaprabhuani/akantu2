@@ -31,7 +31,7 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension,
+template <Int spatial_dimension,
           template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlingsNonLocal
     : public MaterialDamageNonLocal<

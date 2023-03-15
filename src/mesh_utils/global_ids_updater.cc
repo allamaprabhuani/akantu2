@@ -41,12 +41,12 @@
 
 namespace akantu {
 
-UInt GlobalIdsUpdater::updateGlobalIDs(UInt local_nb_new_nodes) {
+Int GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
   if (mesh.getCommunicator().getNbProc() == 1) {
     return local_nb_new_nodes;
   }
 
-  UInt total_nb_new_nodes = this->updateGlobalIDsLocally(local_nb_new_nodes);
+  auto total_nb_new_nodes = this->updateGlobalIDsLocally(local_nb_new_nodes);
 
   if (mesh.isDistributed()) {
     this->synchronizeGlobalIDs();
@@ -54,9 +54,9 @@ UInt GlobalIdsUpdater::updateGlobalIDs(UInt local_nb_new_nodes) {
   return total_nb_new_nodes;
 }
 
-UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
+Int GlobalIdsUpdater::updateGlobalIDsLocally(Int local_nb_new_nodes) {
   const auto & comm = mesh.getCommunicator();
-  Int nb_proc = comm.getNbProc();
+  auto nb_proc = comm.getNbProc();
   if (nb_proc == 1) {
     return local_nb_new_nodes;
   }
@@ -64,7 +64,7 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
   /// resize global ids array
   MeshAccessor mesh_accessor(mesh);
   auto && nodes_global_ids = mesh_accessor.getNodesGlobalIds();
-  UInt old_nb_nodes = mesh.getNbNodes() - local_nb_new_nodes;
+  auto old_nb_nodes = mesh.getNbNodes() - local_nb_new_nodes;
 
   nodes_global_ids.resize(mesh.getNbNodes(), -1);
 
@@ -72,7 +72,7 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
     return this->mesh.isLocalOrMasterNode(n);
   };
 
-  Vector<UInt> local_master_nodes(2, 0);
+  Vector<Int, 2> local_master_nodes(Vector<Int, 2>::Zero());
   /// compute the number of global nodes based on the number of old nodes
   auto range_old = arange(old_nb_nodes);
   local_master_nodes(0) =
@@ -87,8 +87,8 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
 
   comm.allReduce(local_master_nodes);
 
-  UInt old_global_nodes = local_master_nodes(0);
-  UInt total_nb_new_nodes = local_master_nodes(1);
+  auto old_global_nodes = local_master_nodes(0);
+  auto total_nb_new_nodes = local_master_nodes(1);
 
   if (total_nb_new_nodes == 0) {
     return 0;
@@ -111,8 +111,8 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
 
 void GlobalIdsUpdater::synchronizeGlobalIDs() {
   this->reduce = true;
-  this->synchronizer.slaveReductionOnce(*this,
-                                        SynchronizationTag::_giu_global_conn);
+  this->synchronizer->slaveReductionOnce(*this,
+                                         SynchronizationTag::_giu_global_conn);
 
 #ifndef AKANTU_NDEBUG
   for (auto node : nodes_flags) {
@@ -136,8 +136,8 @@ void GlobalIdsUpdater::synchronizeGlobalIDs() {
 #endif
 
   this->reduce = false;
-  this->synchronizer.synchronizeOnce(*this,
-                                     SynchronizationTag::_giu_global_conn);
+  this->synchronizer->synchronizeOnce(*this,
+                                      SynchronizationTag::_giu_global_conn);
 }
 
 } // namespace akantu

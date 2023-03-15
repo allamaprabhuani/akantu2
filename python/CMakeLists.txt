@@ -30,8 +30,6 @@
 #
 #===============================================================================
 
-set(PYBIND11_PYTHON_VERSION ${AKANTU_PREFERRED_PYTHON_VERSION} CACHE INTERNAL "")
-
 if(NOT SKBUILD)
   package_get_all_include_directories(
     AKANTU_LIBRARY_INCLUDE_DIRS
@@ -120,6 +118,11 @@ target_link_libraries(py11_akantu PUBLIC akantu)
 set_target_properties(py11_akantu PROPERTIES
   DEBUG_POSTFIX ""
   LIBRARY_OUTPUT_DIRECTORY akantu)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(py11_akantu PUBLIC -fsized-deallocation)
+endif()
+
 
 file(COPY akantu DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

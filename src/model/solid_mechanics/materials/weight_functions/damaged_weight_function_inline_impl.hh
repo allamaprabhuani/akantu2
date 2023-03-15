@@ -81,4 +81,5 @@ inline Real DamagedWeightFunction::operator()(Real r,
 inline void DamagedWeightFunction::init() {
   this->damage = &(this->manager.registerWeightFunctionInternal("damage"));
 }
+
 } // namespace akantu

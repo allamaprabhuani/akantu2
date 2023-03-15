@@ -59,58 +59,64 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// local computaion of stiffness matrix due to stick state
-  void computeStickModuli(const ContactElement & /*element*/,
-                          Matrix<Real> & /*stiffness*/);
+  void computeStickModuli(const ContactElement & element,
+                          Matrix<Real> & stiffness);
 
   /// local computation of stiffness matrix due to slip state
-  void computeSlipModuli(const ContactElement & /*element*/,
-                         Matrix<Real> & /*stiffness*/);
+  void computeSlipModuli(const ContactElement & element,
+                         Matrix<Real> & stiffness);
 
 public:
   /// local computation of tangent moduli due to normal traction
-  void computeNormalModuli(const ContactElement & /*element*/,
-                           Matrix<Real> & /*stiffness*/) override;
+  void computeNormalModuli(const ContactElement & element,
+                           Matrix<Real> & stiffness) override;
 
   /// local computation of tangent moduli due to tangential traction
-  void computeTangentialModuli(const ContactElement & /*element*/,
-                               Matrix<Real> & /*stiffness*/) override;
+  void computeTangentialModuli(const ContactElement & element,
+                               Matrix<Real> & stiffness) override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods for force computation                                            */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of normal force due to normal contact
-  void computeNormalForce(const ContactElement & /*element*/,
-                          Vector<Real> & /*force*/) override;
+  void computeNormalForce(const ContactElement & element,
+                          Vector<Real> & force) override;
 
   /// local computation of tangential force due to frictional traction
-  void computeTangentialForce(const ContactElement & /*element*/,
-                              Vector<Real> & /*force*/) override;
+  void computeTangentialForce(const ContactElement & element,
+                              Vector<Real> & force) override;
 
 protected:
   /// local computation of normal traction due to penetration
-  Real computeNormalTraction(Real & /*gap*/) const;
+  virtual Real computeNormalTraction(const Real & gap) const;
 
   /// local computation of trial tangential traction due to friction
-  void computeTrialTangentialTraction(const ContactElement & /*element*/,
-                                      const Matrix<Real> & /*covariant_basis*/,
-                                      Vector<Real> & /*traction*/);
+  template <typename D>
+  void computeTrialTangentialTraction(const ContactElement & element,
+                                      const Matrix<Real> & covariant_basis,
+                                      Eigen::MatrixBase<D> & traction);
 
   /// local computation of tangential traction due to stick
-  void computeStickTangentialTraction(const ContactElement & /*unused*/,
-                                      Vector<Real> & /*traction_trial*/,
-                                      Vector<Real> & /*traction_tangential*/);
+  template <typename D1, typename D2>
+  void
+  computeStickTangentialTraction(const ContactElement & unused,
+                                 Eigen::MatrixBase<D1> & traction_trial,
+                                 Eigen::MatrixBase<D2> & traction_tangential);
 
   /// local computation of tangential traction due to slip
-  void computeSlipTangentialTraction(const ContactElement & /*element*/,
-                                     const Matrix<Real> & /*covariant_basis*/,
-                                     Vector<Real> & /*traction_trial*/,
-                                     Vector<Real> & /*traction_tangential*/);
+  template <typename D1, typename D2>
+  void
+  computeSlipTangentialTraction(const ContactElement & element,
+                                const Matrix<Real> & covariant_basis,
+                                Eigen::MatrixBase<D1> & traction_trial,
+                                Eigen::MatrixBase<D2> & traction_tangential);
 
   /// local computation of tangential traction due to friction
-  void computeTangentialTraction(const ContactElement & /*element*/,
-                                 const Matrix<Real> & /*covariant_basis*/,
-                                 Vector<Real> & /*traction_tangential*/);
+  template <typename D>
+  void computeTangentialTraction(const ContactElement & element,
+                                 const Matrix<Real> & covariant_basis,
+                                 Eigen::MatrixBase<D> & traction_tangential);
 
 public:
   void beforeSolveStep() override;

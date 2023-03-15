@@ -61,7 +61,7 @@ namespace akantu {
 class CouplerSolidPhaseField
     : public Model,
       public DataAccessor<Element>,
-      public DataAccessor<UInt>,
+      public DataAccessor<Idx>,
       public BoundaryCondition<CouplerSolidPhaseField> {
 
   /* ------------------------------------------------------------------------ */
@@ -72,7 +72,7 @@ class CouplerSolidPhaseField
 
 public:
   CouplerSolidPhaseField(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "coupler_solid_phasefield",
       ModelType model_type = ModelType::_coupler_solid_phasefield);
 
@@ -105,19 +105,16 @@ public:
 public:
   /// computes damage on quad points for solid mechanics model from
   /// damage array from phasefield model
-  void computeDamageOnQuadPoints(const GhostType & /*ghost_type*/);
+  void computeDamageOnQuadPoints(GhostType ghost_type);
 
   /// computes strain on quadrature points for phasefield model from
   /// displacement gradient from solid mechanics model
-  void computeStrainOnQuadPoints(const GhostType & ghost_type);
+  void computeStrainOnQuadPoints(GhostType ghost_type);
 
   /// solve the coupled model
   void solve(const ID & solid_solver_id = "", const ID & phase_solver_id = "");
 
 private:
-  /// computes small strain from displacement gradient
-  void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
-
   /// test the convergence criteria
   bool checkConvergence(Array<Real> & /*u_new*/, Array<Real> & /*u_old*/,
                         Array<Real> & /*d_new*/, Array<Real> & /*d_old*/);
@@ -141,7 +138,8 @@ protected:
 
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType /*time_step_solver_type*/,
-                  NonLinearSolverType /*non_linear_solver_type*/) override;
+                  NonLinearSolverType /*non_linear_solver_type*/)
+  override;
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
@@ -194,37 +192,6 @@ public:
   bool isDefaultSolverExplicit() { return method == _explicit_lumped_mass; }
 
   /* ------------------------------------------------------------------------ */
-public:
-  // DataAccessor<Element>
-
-  UInt getNbData(const Array<Element> & /*elements*/,
-                 const SynchronizationTag & /*tag*/) const override {
-    return 0;
-  }
-  void packData(CommunicationBuffer & /*buffer*/,
-                const Array<Element> & /*element*/,
-                const SynchronizationTag & /*tag*/) const override {}
-  void unpackData(CommunicationBuffer & /*buffer*/,
-                  const Array<Element> & /*element*/,
-                  const SynchronizationTag & /*tag*/) override {}
-
-  UInt getNbData(__attribute__((unused)) const Array<UInt> & indexes,
-                 __attribute__((unused))
-                 const SynchronizationTag & tag) const override {
-    return 0;
-  }
-
-  void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-                __attribute__((unused)) const Array<UInt> & dofs,
-                __attribute__((unused))
-                const SynchronizationTag & tag) const override {}
-
-  void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-                  __attribute__((unused)) const Array<UInt> & dofs,
-                  __attribute__((unused))
-                  const SynchronizationTag & tag) override {}
-
-  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
@@ -257,19 +224,15 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   void dump(const std::string & dumper_name) override;
-
-  void dump(const std::string & dumper_name, UInt step) override;
-
-  void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Int step) override;
+  void dump(const std::string & dumper_name, Real time, Int step) override;
 
   void dump() override;
-
-  void dump(UInt step) override;
-
-  void dump(Real time, UInt step) override;
+  void dump(Int step) override;
+  void dump(Real time, Int step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */

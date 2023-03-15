@@ -24,7 +24,6 @@ inline void PhaseFieldExponential::computeDamageEnergyDensityOnQuad(
 inline void
 PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
                                         Real & phi_quad, Real & phi_hist_quad) {
-
   Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
   Matrix<Real> strain_dir(spatial_dimension, spatial_dimension);
   Matrix<Real> strain_diag_plus(spatial_dimension, spatial_dimension);
@@ -40,7 +39,7 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 
   strain_quad.eig(strain_values, strain_dir);
 
-  for (UInt i = 0; i < spatial_dimension; i++) {
+  for (Int i = 0; i < spatial_dimension; i++) {
     strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
   }
 
@@ -52,14 +51,14 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 
   trace_plus = std::max(Real(0.), strain_quad.trace());
 
-  for (UInt i = 0; i < spatial_dimension; i++) {
-    for (UInt j = 0; j < spatial_dimension; j++) {
-      sigma_plus(i, j) = static_cast<double>(i == j) * lambda * trace_plus +
+  for (Int i = 0; i < spatial_dimension; i++) {
+    for (Int j = 0; j < spatial_dimension; j++) {
+      sigma_plus(i, j) = static_cast<Real>(i == j) * lambda * trace_plus +
                          2 * mu * strain_plus(i, j);
     }
   }
 
-  phi_quad = 0.5 * sigma_plus.doubleDot(strain_plus);
+  phi_quad = sigma_plus.doubleDot(strain_plus) / 2.;
   if (phi_quad < phi_hist_quad) {
     phi_quad = phi_hist_quad;
   }

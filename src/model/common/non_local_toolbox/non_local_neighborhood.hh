@@ -32,17 +32,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
-#define AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
-/* -------------------------------------------------------------------------- */
-#include "base_weight_function.hh"
 #include "non_local_neighborhood_base.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
+#ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
+#define AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_
+
 namespace akantu {
-class NonLocalManager;
 class BaseWeightFunction;
+class NonLocalManager;
 } // namespace akantu
 
 namespace akantu {
@@ -72,7 +71,7 @@ public:
   // compute the non-local counter part for a given element type map
   void weightedAverageOnNeighbours(const ElementTypeMapReal & to_accumulate,
                                    ElementTypeMapReal & accumulated,
-                                   UInt nb_degree_of_freedom,
+                                   Int nb_degree_of_freedom,
                                    GhostType ghost_type2) const override;
 
   /// update the weights based on the weight function
@@ -87,8 +86,8 @@ protected:
   template <class Func>
   inline void foreach_weight(GhostType ghost_type, Func && func) const;
 
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -102,9 +101,8 @@ protected:
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(NonLocalManager, non_local_manager, const NonLocalManager &);
-  AKANTU_GET_MACRO_NOT_CONST(NonLocalManager, non_local_manager,
-                             NonLocalManager &);
+  AKANTU_GET_MACRO_AUTO(NonLocalManager, non_local_manager);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(NonLocalManager, non_local_manager);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -117,18 +115,12 @@ private:
   std::array<std::unique_ptr<Array<Real>>, 2> pair_weight;
 
   /// weight function
-  std::unique_ptr<WeightFunction> weight_function;
+  std::shared_ptr<WeightFunction> weight_function;
 };
 
 } // namespace akantu
 
-/* -------------------------------------------------------------------------- */
-/* Implementation of template functions                                       */
-/* -------------------------------------------------------------------------- */
-#include "non_local_neighborhood_tmpl.hh"
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
 #include "non_local_neighborhood_inline_impl.hh"
+#include "non_local_neighborhood_tmpl.hh"
 
 #endif /* AKANTU_NON_LOCAL_NEIGHBORHOOD_HH_ */

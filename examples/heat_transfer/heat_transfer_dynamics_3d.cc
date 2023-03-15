@@ -43,7 +43,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-UInt spatial_dimension = 3;
+Int spatial_dimension = 3;
 ElementType type = _tetrahedron_4;
 
 /* -------------------------------------------------------------------------- */
@@ -68,12 +68,12 @@ int main(int argc, char * argv[]) {
   const Array<Real> & nodes = mesh.getNodes();
   Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & temperature = model.getTemperature();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   double length;
   length = 1.;
 
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
     // to insert a heat source

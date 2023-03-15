@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "parsable.hh"
 #include "aka_random_generator.hh"
+#include <memory>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -50,7 +51,7 @@ void Parsable::registerSubSection(const ParserType & type,
                                   const std::string & name,
                                   Parsable & sub_section) {
   SubSectionKey key(type, name);
-  sub_sections[key] = &sub_section;
+  sub_sections.insert_or_assign(key, std::ref(sub_section));
 
   this->registerSubRegistry(name, sub_section);
 }
@@ -99,7 +100,7 @@ void Parsable::parseSubSection(const ParserSection & section) {
   SubSectionKey key(section.getType(), section.getName());
   auto it = sub_sections.find(key);
   if (it != sub_sections.end()) {
-    it->second->parseSection(section);
+    it->second.get().parseSection(section);
   } else if (!Parser::isPermissive()) {
     AKANTU_EXCEPTION("No parsable defined for sub sections of type <"
                      << key.first << "," << key.second << "> in " << pid);

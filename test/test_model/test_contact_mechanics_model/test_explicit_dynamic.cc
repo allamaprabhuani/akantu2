@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
   std::string mesh_file = "flat_on_flat.msh";
   std::string material_file = "material.dat";
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   initialize(material_file, argc, argv);
 
@@ -113,7 +113,7 @@ int main(int argc, char * argv[]) {
                                    (10 - 15 * p + 6 * pow(p, 2));
                  });
 
-  for (UInt s : arange(max_steps)) {
+  for (Int s : arange(max_steps)) {
 
     solid.applyBC(BC::Dirichlet::FixedValue(-displacements[s], _y), "loading");
     solid.applyBC(BC::Dirichlet::FixedValue(displacements[s], _y), "fixed");

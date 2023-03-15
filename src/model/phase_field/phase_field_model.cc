@@ -51,7 +51,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
+PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
                                  std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
     : Model(mesh, model_type, dim, id),
@@ -106,7 +106,7 @@ void PhaseFieldModel::initModel() {
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
   phasefield_index.initialize(mesh, _element_kind = _ek_not_defined,
-                              _default_value = UInt(-1),
+                              _default_value = Idx(-1),
                               _with_nb_element = true);
   phasefield_local_numbering.initialize(mesh, _element_kind = _ek_not_defined,
                                         _with_nb_element = true);
@@ -158,7 +158,7 @@ PhaseField & PhaseFieldModel::registerNewPhaseField(const ID & phase_name,
                           << phase_name << "' has already been registered. "
                           << "Please use unique names for phasefields");
 
-  UInt phase_count = phasefields.size();
+  Int phase_count = phasefields.size();
   phasefields_names_to_id[phase_name] = phase_count;
 
   std::stringstream sstr_phase;
@@ -218,14 +218,14 @@ void PhaseFieldModel::initPhaseFields() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       mesh,
       [&](auto && element) {
-        UInt phase_index = (*phasefield_selector)(element);
+        Int phase_index = (*phasefield_selector)(element);
         AKANTU_DEBUG_ASSERT(
-            phase_index < phasefields.size(),
+            phase_index < Int(phasefields.size()),
             "The phasefield selector returned an index that does not exists");
         phasefield_index(element) = phase_index;
       },
@@ -369,11 +369,11 @@ Real PhaseFieldModel::getEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseFieldModel::getEnergy(ElementType type, UInt index) {
+Real PhaseFieldModel::getEnergy(ElementType type, Idx index) {
   AKANTU_DEBUG_IN();
 
-  UInt phase_index = this->phasefield_index(type, _not_ghost)(index);
-  UInt phase_loc_num =
+  Idx phase_index = this->phasefield_index(type, _not_ghost)(index);
+  Idx phase_loc_num =
       this->phasefield_local_numbering(type, _not_ghost)(index);
   Real energy = this->phasefields[phase_index]->getEnergy(
       Element{type, phase_loc_num, _not_ghost});
@@ -478,10 +478,10 @@ void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
-                                const SynchronizationTag & tag) const {
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+Int PhaseFieldModel::getNbData(const Array<Element> & elements,
+                               const SynchronizationTag & tag) const {
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -489,7 +489,7 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
 
   switch (tag) {
   case SynchronizationTag::_phasefield_id: {
-    size += elements.size() * sizeof(UInt);
+    size += elements.size() * sizeof(Int);
     break;
   }
   case SynchronizationTag::_for_dump: {
@@ -542,16 +542,16 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
   switch (tag) {
   case SynchronizationTag::_phasefield_id: {
     for (auto && element : elements) {
-      UInt recv_phase_index;
+      Idx recv_phase_index;
       buffer >> recv_phase_index;
-      UInt & phase_index = phasefield_index(element);
-      if (phase_index != UInt(-1)) {
+      Idx & phase_index = phasefield_index(element);
+      if (phase_index != Idx(-1)) {
         continue;
       }
 
       // add ghosts element to the correct phasefield
       phase_index = recv_phase_index;
-      UInt index = phasefields[phase_index]->addElement(element);
+      Idx index = phasefields[phase_index]->addElement(element);
       phasefield_local_numbering(element) = index;
     }
     break;
@@ -573,9 +573,9 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<UInt> & dofs,
+Int PhaseFieldModel::getNbData(const Array<Idx> & dofs,
                                 const SynchronizationTag & tag) const {
-  UInt size = 0;
+  Int size = 0;
 
   switch (tag) {
   case SynchronizationTag::_for_dump: {
@@ -595,15 +595,15 @@ UInt PhaseFieldModel::getNbData(const Array<UInt> & dofs,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
-                               const Array<UInt> & dofs,
+                               const Array<Idx> & indexes,
                                const SynchronizationTag & tag) const {
   switch (tag) {
   case SynchronizationTag::_for_dump: {
-    packDOFDataHelper(*damage, buffer, dofs);
+    packDOFDataHelper(*damage, buffer, indexes);
     break;
   }
   case SynchronizationTag::_pfm_damage: {
-    packDOFDataHelper(*damage, buffer, dofs);
+    packDOFDataHelper(*damage, buffer, indexes);
     break;
   }
   default: {
@@ -614,15 +614,15 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
-                                 const Array<UInt> & dofs,
+                                 const Array<Idx> & indexes,
                                  const SynchronizationTag & tag) {
   switch (tag) {
   case SynchronizationTag::_for_dump: {
-    unpackDOFDataHelper(*damage, buffer, dofs);
+    unpackDOFDataHelper(*damage, buffer, indexes);
     break;
   }
   case SynchronizationTag::_pfm_damage: {
-    unpackDOFDataHelper(*damage, buffer, dofs);
+    unpackDOFDataHelper(*damage, buffer, indexes);
     break;
   }
   default: {
@@ -636,7 +636,6 @@ std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
                                       const std::string & group_name,
                                       bool /*unused*/) {
-
   std::map<std::string, Array<bool> *> uint_nodal_fields;
   uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
 
@@ -651,7 +650,6 @@ std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
                                       const std::string & group_name,
                                       bool /*unused*/) {
-
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["damage"] = damage.get();
   real_nodal_fields["external_force"] = external_force.get();
@@ -666,10 +664,10 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, UInt /*unused*/, ElementKind element_kind) {
+    bool /*unused*/, Int /*unused*/, ElementKind element_kind) {
 
   if (field_name == "partitions") {
-    return mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    return mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
   }

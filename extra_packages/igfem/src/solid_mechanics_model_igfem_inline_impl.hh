@@ -33,7 +33,7 @@ namespace akantu {
 inline void SolidMechanicsModelIGFEM::getSubElementBarycenter(
     UInt element, UInt sub_element, ElementType type, Vector<Real> & barycenter,
     GhostType ghost_type) const {
-  UInt * conn_val = this->mesh.getConnectivity(type, ghost_type).storage();
+  UInt * conn_val = this->mesh.getConnectivity(type, ghost_type).data();
   UInt nb_sub_element_nodes =
       IGFEMHelper::getNbNodesPerSubElement(type, sub_element);
   UInt * sub_el_conn =
@@ -44,14 +44,14 @@ inline void SolidMechanicsModelIGFEM::getSubElementBarycenter(
   Real local_coord[spatial_dimension * nb_sub_element_nodes];
 
   UInt offset = element * nb_nodes_per_element;
-  for (UInt n = 0; n < nb_sub_element_nodes; ++n) {
+  for (Int n = 0; n < nb_sub_element_nodes; ++n) {
     UInt index = conn_val[offset + sub_el_conn[n]];
     memcpy(local_coord + n * spatial_dimension,
-           node_coords.storage() + index * spatial_dimension,
+           node_coords.data() + index * spatial_dimension,
            spatial_dimension * sizeof(Real));
   }
   Math::barycenter(local_coord, nb_sub_element_nodes, spatial_dimension,
-                   barycenter.storage());
+                   barycenter.data());
 }
 
 } // namespace akantu

@@ -89,9 +89,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_20, _gt_hexahedron_20,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_serendip_hexahedron_20>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
 
   // Shape function , Natural coordinates
   N(0) =
@@ -123,14 +124,13 @@ inline void InterpolationElement<_itp_serendip_hexahedron_20>::computeShapes(
   N(18) = 0.25 * (1 - c(0) * c(0)) * (1 + c(1)) * (1 + c(2));
   N(19) = 0.25 * (1 - c(1) * c(1)) * (1 - c(0)) * (1 + c(2));
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_serendip_hexahedron_20>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
-  // derivatives
-  // ddx
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
+  // derivatives ddx
   dnds(0, 0) =
       0.25 * (c(0) + 0.5 * (c(1) + c(2) + 1)) * (c(1) - 1) * (c(2) - 1);
   dnds(0, 1) =
@@ -224,8 +224,9 @@ inline void InterpolationElement<_itp_serendip_hexahedron_20>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 
 template <>
-inline Real
-GeometricalElement<_gt_hexahedron_20>::getInradius(const Matrix<Real> & coord) {
+template <class D>
+inline Real GeometricalElement<_gt_hexahedron_20>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
   return GeometricalElement<_gt_hexahedron_8>::getInradius(coord) * 0.5;
 }
 } // namespace akantu

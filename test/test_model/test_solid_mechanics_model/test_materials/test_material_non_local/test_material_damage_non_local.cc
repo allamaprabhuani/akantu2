@@ -44,9 +44,9 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
 
   akantu::initialize("material_damage_non_local.dat", argc, argv);
-  UInt max_steps = 1100;
+  Int max_steps = 1100;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("mesh_section_gap.msh");
 
@@ -63,8 +63,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0), "Fixed");
 
   // Boundary condition (Neumann)
-  Matrix<Real> stress(2, 2);
-  stress.eye(5e8);
+  Matrix<Real, 2, 2> stress = Matrix<Real, 2, 2>::Identity() * 5e8;
   model.applyBC(BC::Neumann::FromHigherDim(stress), "Traction");
 
   model.setBaseName("damage_non_local");
@@ -78,7 +77,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("strain");
   model.dump();
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     // if(s % 100 == 0) std::cout << "Step " << s+1 << "/" << max_steps
@@ -96,12 +95,12 @@ int main(int argc, char * argv[]) {
   const auto & filter = mat.getElementFilter();
   Vector<Real> barycenter(spatial_dimension);
 
-  for (auto & type : filter.elementTypes(spatial_dimension)) {
-    UInt nb_elem = mesh.getNbElement(type);
-    const UInt nb_gp = model.getFEEngine().getNbIntegrationPoints(type);
+  for (const auto & type : filter.elementTypes(spatial_dimension)) {
+    auto nb_elem = mesh.getNbElement(type);
+    const auto nb_gp = model.getFEEngine().getNbIntegrationPoints(type);
     auto & material_damage_array = mat.getArray<Real>("damage", type);
-    UInt cpt = 0;
-    for (UInt nel = 0; nel < nb_elem; ++nel) {
+    Int cpt = 0;
+    for (Int nel = 0; nel < nb_elem; ++nel) {
       mesh.getBarycenter({type, nel, _not_ghost}, barycenter);
       if ((std::abs(barycenter(0) - (L / 2) + 0.025) < 0.025) &&
           (std::abs(barycenter(1) - (H / 2) + 0.025) < 0.025)) {

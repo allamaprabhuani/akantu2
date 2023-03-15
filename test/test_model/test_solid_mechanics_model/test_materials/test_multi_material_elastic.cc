@@ -37,8 +37,8 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("test_multi_material_elastic.dat", argc, argv);
 
-  UInt spatial_dimension = 2;
-  Mesh mesh(spatial_dimension);
+  const Int dim = 2;
+  Mesh mesh(dim);
 
   mesh.read("test_multi_material_elastic.msh");
 
@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FlagOnly(_y), "ground");
   model.applyBC(BC::Dirichlet::FlagOnly(_x), "corner");
 
-  Vector<Real> trac(spatial_dimension, 0.);
+  Vector<Real> trac = Vector<Real>::Zero(dim);
   trac(_y) = 1.;
   model.applyBC(BC::Neumann::FromTraction(trac), "air");
 
@@ -74,51 +74,43 @@ int main(int argc, char * argv[]) {
   // model.dump();
 
   std::map<std::string, Matrix<Real>> ref_strain;
-  ref_strain["strong"] = Matrix<Real>(spatial_dimension, spatial_dimension, 0.);
+  ref_strain["strong"] = Matrix<Real, dim, dim>::Zero();
   ref_strain["strong"](_y, _y) = .5;
 
-  ref_strain["weak"] = Matrix<Real>(spatial_dimension, spatial_dimension, 0.);
+  ref_strain["weak"] = Matrix<Real, dim, dim>::Zero();
   ref_strain["weak"](_y, _y) = 1;
 
-  Matrix<Real> ref_stress(spatial_dimension, spatial_dimension, 0.);
+  Matrix<Real, dim, dim> ref_stress = Matrix<Real, dim, dim>::Zero();
   ref_stress(_y, _y) = 1.;
 
   std::vector<std::string> mats = {"strong", "weak"};
 
-  typedef Array<Real>::const_matrix_iterator mat_it;
-  auto check = [](mat_it it, mat_it end, const Matrix<Real> & ref) -> bool {
-    for (; it != end; ++it) {
-      Real dist = (*it - ref).norm<L_2>();
-
-      // std::cout << *it << " " << dist << " " << (dist < 1e-10 ? "OK" : "Not
-      // OK") << std::endl;
-
-      if (dist > 1e-10)
+  auto check = [](auto && view, const Matrix<Real> & ref) -> bool {
+    for (auto && mat : view) {
+      Real dist = (mat - ref).norm();
+      if (dist > 1e-10) {
         return false;
+      }
     }
-
     return true;
   };
 
-  for (auto & type : mesh.elementTypes(spatial_dimension)) {
+  for (const auto & type : mesh.elementTypes(dim)) {
     for (auto mat_id : mats) {
       auto & stress = model.getMaterial(mat_id).getStress(type);
       auto & grad_u = model.getMaterial(mat_id).getGradU(type);
 
-      auto sit = stress.begin(spatial_dimension, spatial_dimension);
-      auto send = stress.end(spatial_dimension, spatial_dimension);
+      auto sview = make_view<dim, dim>(stress);
+      auto gview = make_view<dim, dim>(grad_u);
 
-      auto git = grad_u.begin(spatial_dimension, spatial_dimension);
-      auto gend = grad_u.end(spatial_dimension, spatial_dimension);
-
-      if (!check(sit, send, ref_stress))
+      if (not check(sview, ref_stress)) {
         AKANTU_ERROR("The stresses are not correct");
-      if (!check(git, gend, ref_strain[mat_id]))
+      }
+      if (not check(gview, ref_strain[mat_id])) {
         AKANTU_ERROR("The grad_u are not correct");
+      }
     }
   }
-
-  finalize();
 
   return 0;
 }

@@ -578,13 +578,13 @@ function(register_test test_name)
 
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
     list(APPEND _arguments -r "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
-  endif()
+    endif()
 
   if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
     list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
-  string(REPLACE ";" " " _command "${_arguments}")
+  #string(REPLACE ";" " " _command "${_arguments}")
 
   # register them test
   if(_procs)
@@ -597,7 +597,6 @@ function(register_test test_name)
     set_property(TEST ${test_name} PROPERTY PROCESSORS 1)
   endif()
 endfunction()
-
 
 function(register_test_files_to_package)
   cmake_parse_arguments(_register_test

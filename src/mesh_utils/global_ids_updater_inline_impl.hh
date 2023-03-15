@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
-#include "global_ids_updater.hh"
+//#include "global_ids_updater.hh"
 #include "mesh.hh"
 #include "mesh_accessor.hh"
 /* -------------------------------------------------------------------------- */
@@ -43,8 +43,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
-                                        const SynchronizationTag & tag) const {
+inline Int GlobalIdsUpdater::getNbData(const Array<Element> &elements,
+                                       const SynchronizationTag &tag) const {
   UInt size = 0;
   if (tag == SynchronizationTag::_giu_global_conn) {
     size += Mesh::getNbNodesPerElementList(elements) *
@@ -58,26 +58,26 @@ inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
-                                       const Array<Element> & elements,
-                                       const SynchronizationTag & tag) const {
+inline void GlobalIdsUpdater::packData(CommunicationBuffer &buffer,
+                                       const Array<Element> &elements,
+                                       const SynchronizationTag &tag) const {
   if (tag != SynchronizationTag::_giu_global_conn) {
     return;
   }
 
   int prank = mesh.getCommunicator().whoAmI();
 
-  const auto & global_nodes_ids = mesh.getGlobalNodesIds();
+  const auto &global_nodes_ids = mesh.getGlobalNodesIds();
   buffer << prank;
 
-  for (const auto & element : elements) {
+  for (const auto &element : elements) {
     /// get element connectivity
-    const Vector<UInt> current_conn =
+    auto &&current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
     /// loop on all connectivity nodes
     for (auto node : current_conn) {
-      UInt index = -1;
+      Int index = -1;
       if ((this->reduce and mesh.isLocalOrMasterNode(node)) or
           (not this->reduce and not mesh.isPureGhostNode(node))) {
         index = global_nodes_ids(node);
@@ -94,27 +94,27 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
-                                         const Array<Element> & elements,
-                                         const SynchronizationTag & tag) {
+inline void GlobalIdsUpdater::unpackData(CommunicationBuffer &buffer,
+                                         const Array<Element> &elements,
+                                         const SynchronizationTag &tag) {
   if (tag != SynchronizationTag::_giu_global_conn) {
     return;
   }
 
   MeshAccessor mesh_accessor(mesh);
-  auto & global_nodes_ids = mesh_accessor.getNodesGlobalIds();
+  auto &global_nodes_ids = mesh_accessor.getNodesGlobalIds();
 
   int proc;
   buffer >> proc;
 
-  for (const auto & element : elements) {
+  for (const auto &element : elements) {
     /// get element connectivity
-    Vector<UInt> current_conn =
+    auto &&current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
     /// loop on all connectivity nodes
     for (auto node : current_conn) {
-      UInt index;
+      Int index;
       Int node_prank;
       buffer >> index;
       buffer >> node_prank;
@@ -126,13 +126,13 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
       }
 #endif
 
-      if (index == UInt(-1)) {
+      if (index == Int(-1)) {
         continue;
       }
 
       if (mesh.isSlaveNode(node)) {
-        auto & gid = global_nodes_ids(node);
-        AKANTU_DEBUG_ASSERT(gid == UInt(-1) or gid == index,
+        auto &gid = global_nodes_ids(node);
+        AKANTU_DEBUG_ASSERT(gid == -1 or gid == index,
                             "The node already has a global id, from proc "
                                 << proc << ", different from the one received "
                                 << gid << " " << index);

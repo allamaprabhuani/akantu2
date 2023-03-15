@@ -1,4 +1,4 @@
-"""runner.py: runner for clang-tidy in codeclimate (inspired from cpp-check)"""
+"""Runner for clang-tidy in codeclimate (inspired from cpp-check)."""
 
 __author__ = "Nicolas Richart"
 __credits__ = [
@@ -19,6 +19,7 @@ try:
     from termcolor import colored
 except ImportError:
     def colored(text, color):
+        """Remplace termcolor if not installed."""
         return text
 
 from command import Command
@@ -27,14 +28,16 @@ from workspace import Workspace
 
 
 class Runner:
+    """Runs clang-tidy, collects and reports results."""
+
     CONFIG_FILE_PATH = '/config.json'
 
-    """Runs clang-tidy, collects and reports results."""
     def __init__(self):
+        """Initialize the runner."""
         self._config_file_path = self.CONFIG_FILE_PATH
         self._config = {}
         self._decode_config()
-        self._ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        self._ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])') # noqa
         self._issue_parse = re.compile(r'(?P<file>.*\.(cc|hh)):(?P<line>[0-9]+):(?P<column>[0-9]+): (warning|error): (?P<detail>.*) \[(?P<type>.*)\]')  # noqa
 
         self._issues_fpr = []
@@ -44,6 +47,7 @@ class Runner:
         self._include_paths = self._workspace.include_paths
 
     def run(self):
+        """Run the checks."""
         if not len(self._files) > 0:
             return
 

@@ -51,7 +51,7 @@ public:
 
   class TermToAssemble {
   public:
-    TermToAssemble(UInt i, UInt j) : _i(i), _j(j) {}
+    TermToAssemble(Idx i, Idx j) : _i(i), _j(j) {}
     inline TermToAssemble & operator=(Real val) {
       this->val = val;
       return *this;
@@ -61,11 +61,11 @@ public:
       return *this;
     }
     inline operator Real() const { return val; }
-    inline UInt i() const { return _i; }
-    inline UInt j() const { return _j; }
+    inline Idx i() const { return _i; }
+    inline Idx j() const { return _j; }
 
   private:
-    UInt _i, _j;
+    Idx _i, _j;
     Real val{0.};
   };
 
@@ -73,7 +73,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline TermToAssemble & operator()(UInt i, UInt j) {
+  inline TermToAssemble & operator()(Idx i, Idx j) {
     terms.emplace_back(i, j);
     return terms.back();
   }

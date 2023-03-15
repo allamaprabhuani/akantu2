@@ -39,24 +39,24 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_
-#define AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_
+// #ifndef __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__
+// #define __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt DOFSynchronizer::canScatterSize() {
+inline Int DOFSynchronizer::canScatterSize() {
   return dof_manager.getLocalSystemSize();
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt DOFSynchronizer::gatheredSize() {
+inline Int DOFSynchronizer::gatheredSize() {
   return dof_manager.getSystemSize();
 }
 
-inline UInt DOFSynchronizer::localToGlobalEntity(const UInt & local) {
+inline Idx DOFSynchronizer::localToGlobalEntity(const Idx & local) {
   return dof_manager.localToGlobalEquationNumber(local);
 }
 } // namespace akantu
 
-#endif /* AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__ */

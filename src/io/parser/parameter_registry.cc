@@ -109,29 +109,20 @@ void Parameter::printself(std::ostream & stream) const {
 ParameterRegistry::ParameterRegistry() = default;
 
 /* -------------------------------------------------------------------------- */
-ParameterRegistry::~ParameterRegistry() {
-  for (auto && data : params) {
-    delete data.second;
-    data.second = NULL;
-  }
-  this->params.clear();
-}
+ParameterRegistry::~ParameterRegistry() = default;
 
 /* -------------------------------------------------------------------------- */
 void ParameterRegistry::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
-  Parameters::const_iterator it;
-  for (it = params.begin(); it != params.end(); ++it) {
+  for (auto && [_, param] : params) {
     stream << space;
-    it->second->printself(stream);
+    param->printself(stream);
   }
 
-  SubRegisteries::const_iterator sub_it;
-  for (sub_it = sub_registries.begin(); sub_it != sub_registries.end();
-       ++sub_it) {
+  for (auto && [_, registry] : sub_registries) {
     stream << space << "Registry [" << std::endl;
-    sub_it->second->printself(stream, indent + 1);
+    registry.get().printself(stream, indent + 1);
     stream << space << "]";
   }
 }
@@ -139,7 +130,7 @@ void ParameterRegistry::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 void ParameterRegistry::registerSubRegistry(const ID & id,
                                             ParameterRegistry & registry) {
-  sub_registries[id] = &registry;
+  sub_registries.insert_or_assign(id, std::ref(registry));
 }
 
 /* -------------------------------------------------------------------------- */

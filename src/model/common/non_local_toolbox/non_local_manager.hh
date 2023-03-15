@@ -119,20 +119,14 @@ protected:
   /// set the values of the jacobians
   void setJacobians(const FEEngine & fe_engine, ElementKind kind);
 
-  /// allocation of eelment type maps
-  // void initElementTypeMap(UInt nb_component,
-  //                         ElementTypeMapReal & element_map,
-  //                         const FEEngine & fe_engine,
-  //                         const ElementKind el_kind = _ek_regular);
-
   /// resizing of element type maps
-  void resizeElementTypeMap(UInt nb_component, ElementTypeMapReal & element_map,
+  void resizeElementTypeMap(Int nb_component, ElementTypeMapReal & element_map,
                             const FEEngine & fee,
                             ElementKind el_kind = _ek_regular);
 
   /// remove integration points from element type maps
-  static void removeIntegrationPointsFromMap(
-      const ElementTypeMapArray<UInt> & new_numbering, UInt nb_component,
+  void removeIntegrationPointsFromMap(
+      const ElementTypeMapArray<Idx> & new_numbering, Int nb_component,
       ElementTypeMapReal & element_map, const FEEngine & fee,
       ElementKind el_kind = _ek_regular);
 
@@ -141,14 +135,14 @@ protected:
 
   /// cleanup unneccessary ghosts
   void
-  cleanupExtraGhostElements(); // ElementTypeMap<UInt> & nb_ghost_protected);
+  cleanupExtraGhostElements(); // ElementTypeMap<Int> & nb_ghost_protected);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor kind of interface                                           */
   /* ------------------------------------------------------------------------ */
 public:
   /// get Nb data for synchronization in parallel
-  UInt getNbData(const Array<Element> & elements, const ID & id) const;
+  Int getNbData(const Array<Element> & elements, const ID & id) const;
 
   /// pack data for synchronization in parallel
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
@@ -163,7 +157,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
@@ -172,26 +166,28 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-  AKANTU_GET_MACRO(Model, model, const Model &);
-  AKANTU_GET_MACRO_NOT_CONST(Model, model, Model &);
-  AKANTU_GET_MACRO_NOT_CONST(Volumes, volumes, ElementTypeMapReal &)
-  AKANTU_GET_MACRO(NbStressCalls, compute_stress_calls, UInt);
+  AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
+  AKANTU_GET_MACRO_AUTO(Model, model);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Model, model);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Volumes, volumes)
+  AKANTU_GET_MACRO_AUTO(NbStressCalls, compute_stress_calls);
 
   /// return the fem object associated with a provided name
   inline NonLocalNeighborhoodBase & getNeighborhood(const ID & name) const;
 
   inline const Array<Real> & getJacobians(ElementType type,
                                           GhostType ghost_type) {
-    return *jacobians(type, ghost_type);
+    return (*jacobians)(type, ghost_type);
   }
+
+  inline const ElementTypeMapArray<Real> & getJacobians() { return *jacobians; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// the spatial dimension
-  const UInt spatial_dimension;
+  const Int spatial_dimension;
 
   ID id;
 
@@ -204,12 +200,12 @@ protected:
 
   struct NonLocalVariable {
     NonLocalVariable(const ID & variable_name, const ID & nl_variable_name,
-                     const ID & id, UInt nb_component)
+                     const ID & id, Int nb_component)
         : local(variable_name, id), non_local(nl_variable_name, id),
           nb_component(nb_component) {}
     ElementTypeMapReal local;
     ElementTypeMapReal non_local;
-    UInt nb_component;
+    Int nb_component;
   };
 
   /// the non-local variables associated to a certain neighborhood
@@ -219,7 +215,7 @@ protected:
   Model & model;
 
   /// jacobians for all the elements in the mesh
-  ElementTypeMap<const Array<Real> *> jacobians;
+  const ElementTypeMapArray<Real> * jacobians{nullptr};
 
   /// store the position of the quadrature points
   ElementTypeMapReal integration_points_positions;
@@ -229,7 +225,7 @@ protected:
   ElementTypeMapReal volumes;
 
   /// counter for computeStress calls
-  UInt compute_stress_calls;
+  Int compute_stress_calls;
 
   /// map to store weight function types from input file
   std::map<ID, ParserSection> weight_function_types;
@@ -256,8 +252,8 @@ protected:
 
   class DummyDataAccessor : public DataAccessor<Element> {
   public:
-    inline UInt getNbData(const Array<Element> & /*elements*/,
-                          const SynchronizationTag & /*tag*/) const override {
+    inline Int getNbData(const Array<Element> &,
+                         const SynchronizationTag &) const override {
       return 0;
     };
 

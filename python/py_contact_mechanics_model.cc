@@ -167,7 +167,8 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function_nocopy(getGaps)
       .def_function_nocopy(getNormals)
       .def_function_nocopy(getNodalArea)
-      .def_function_nocopy(getContactDetector)
+      .def("getContactDetector", &ContactMechanicsModel::getContactDetector,
+           py::return_value_policy::reference)
       .def("getContactElements", [](ContactMechanicsModel & self) {
         return ContactElementsView(self.getContactElements());
       });
@@ -184,27 +185,51 @@ void register_contact_mechanics_model(py::module & mod) {
   py::class_<GeometryUtils>(mod, "GeometryUtils")
       .def_static(
           "normal",
-          py::overload_cast<const Mesh &, const Array<Real> &, const Element &,
-                            Vector<Real> &, bool>(&GeometryUtils::normal),
+          [](const Mesh & mesh, const Array<Real> & positions,
+             const Element & element, bool outward) {
+            auto && coords =
+                mesh.extractNodalValuesFromElement(positions, element);
+            return GeometryUtils::normal(mesh, coords, element, outward);
+          },
           py::arg("mesh"), py::arg("positions"), py::arg("element"),
-          py::arg("normal"), py::arg("outward") = true)
+          py::arg("outward") = true)
       .def_static(
           "covariantBasis",
-          py::overload_cast<const Mesh &, const Array<Real> &, const Element &,
-                            const Vector<Real> &, Vector<Real> &,
-                            Matrix<Real> &>(&GeometryUtils::covariantBasis),
+          [](const Mesh & mesh, const Array<Real> & positions,
+             const Element & element, const Vector<Real> & normal,
+             Vector<Real> & natural_coord) {
+            auto && coords =
+                mesh.extractNodalValuesFromElement(positions, element);
+            return GeometryUtils::covariantBasis(coords, element, normal,
+                                                 natural_coord);
+          },
           py::arg("mesh"), py::arg("positions"), py::arg("element"),
-          py::arg("normal"), py::arg("natural_projection"), py::arg("basis"))
-      .def_static("curvature", &GeometryUtils::curvature)
-      .def_static("contravariantBasis", &GeometryUtils::contravariantBasis,
-                  py::arg("covariant_basis"), py::arg("basis"))
-      .def_static("realProjection",
-                  py::overload_cast<const Mesh &, const Array<Real> &,
-                                    const Vector<Real> &, const Element &,
-                                    const Vector<Real> &, Vector<Real> &>(
-                      &GeometryUtils::realProjection),
-                  py::arg("mesh"), py::arg("positions"), py::arg("slave"),
-                  py::arg("element"), py::arg("normal"), py::arg("projection"))
+          py::arg("normal"), py::arg("natural_projection"))
+      .def_static(
+          "curvature",
+          [](const Mesh & mesh, const Array<Real> & positions,
+             const Element & element, const Vector<Real> & natural_coord) {
+            auto && coords =
+                mesh.extractNodalValuesFromElement(positions, element);
+            return GeometryUtils::curvature(coords, element, natural_coord);
+          })
+      .def_static(
+          "contravariantBasis",
+          [](const Vector<Real> & covariant) {
+            return GeometryUtils::contravariantBasis(covariant);
+          },
+          py::arg("covariant_basis"))
+      .def_static(
+          "realProjection",
+          [](const Mesh & mesh, const Array<Real> & positions,
+             const Vector<Real> & slave, const Element & element,
+             const Vector<Real> & normal) {
+            auto && coords =
+                mesh.extractNodalValuesFromElement(positions, element);
+            return GeometryUtils::realProjection(coords, slave, normal);
+          },
+          py::arg("mesh"), py::arg("positions"), py::arg("slave"),
+          py::arg("element"), py::arg("normal"))
       .def_static("isBoundaryElement", &GeometryUtils::isBoundaryElement);
 }
 

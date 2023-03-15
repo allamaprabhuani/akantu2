@@ -1,0 +1,17 @@
+leak:libmpi
+leak:libpmix
+leak:libopen-pal
+leak:mca_mpool_hugepage
+leak:mca_coll_libnbc
+leak:mca_op_avx
+leak:mca_coll_han
+leak:hwloc
+leak:_multiarray_umath
+leak:PyObject_Malloc
+leak:PyThread_allocate_lock
+leak:_PyObject_GC_Resize
+leak:resize_compact
+leak:vasprintf_internal
+leak:interceptor_strdup
+leak:interceptor_malloc
+leak:_imp_create_dynamic

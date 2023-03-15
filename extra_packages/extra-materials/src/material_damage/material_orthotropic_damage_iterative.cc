@@ -24,7 +24,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialOrthotropicDamageIterative<spatial_dimension>::
     MaterialOrthotropicDamageIterative(SolidMechanicsModel & model,
                                        const ID & id)
@@ -53,7 +53,7 @@ MaterialOrthotropicDamageIterative<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterative<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -147,7 +147,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterative<spatial_dimension>::computeAllStresses(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -164,7 +164,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::computeAllStresses(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterative<spatial_dimension>::
     findMaxNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
@@ -218,7 +218,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
           Vector<Real> dam_eigenvalues(spatial_dimension);
           dam_in_stress_frame.eig(dam_eigenvalues);
           bool limit_reached = false;
-          for (UInt i = 0; i < spatial_dimension; ++i) {
+          for (Int i = 0; i < spatial_dimension; ++i) {
             if (dam_eigenvalues(i) + Math::getTolerance() > this->max_damage)
               limit_reached = true;
           }
@@ -234,7 +234,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterative<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -304,7 +304,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialOrthotropicDamageIterative<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
@@ -347,7 +347,7 @@ UInt MaterialOrthotropicDamageIterative<spatial_dimension>::updateDamage() {
     /// find new principal directions of damage
     Vector<Real> dam_eigenvalues(spatial_dimension);
     dam_in_stress_frame.eig(dam_eigenvalues, q_dam_dir);
-    for (UInt i = 0; i < spatial_dimension; ++i) {
+    for (Int i = 0; i < spatial_dimension; ++i) {
       q_dam(i, i) = dam_eigenvalues(i);
       if (q_dam(i, i) + Math::getTolerance() >= dam_threshold)
         q_dam(i, i) = this->max_damage;
@@ -362,7 +362,7 @@ UInt MaterialOrthotropicDamageIterative<spatial_dimension>::updateDamage() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialOrthotropicDamageIterative<
     spatial_dimension>::updateEnergiesAfterDamage(ElementType el_type) {
   MaterialOrthotropicDamage<spatial_dimension>::updateEnergies(el_type);

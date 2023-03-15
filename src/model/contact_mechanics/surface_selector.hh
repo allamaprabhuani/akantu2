@@ -60,8 +60,8 @@ public:
   ~SurfaceSelector() override = default;
 
 public:
-  virtual Array<UInt> & getMasterList() { AKANTU_TO_IMPLEMENT(); }
-  virtual Array<UInt> & getSlaveList() { AKANTU_TO_IMPLEMENT(); }
+  virtual Array<Idx> & getMasterList() { AKANTU_TO_IMPLEMENT(); }
+  virtual Array<Idx> & getSlaveList() { AKANTU_TO_IMPLEMENT(); }
 
 protected:
   Mesh & mesh;
@@ -76,8 +76,8 @@ public:
   PhysicalSurfaceSelector(Mesh & mesh);
 
 public:
-  Array<UInt> & getMasterList() override;
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getMasterList() override;
+  Array<Idx> & getSlaveList() override;
 
 protected:
   std::string master;
@@ -97,19 +97,19 @@ protected:
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
 
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
 
 public:
-  Array<UInt> & getMasterList() override;
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getMasterList() override;
+  Array<Idx> & getSlaveList() override;
 
-  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
-  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<Idx> &);
+  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<Idx> &);
 
 protected:
   Mesh & mesh_facets;
-  Array<UInt> new_nodes_list;
+  Array<Idx> new_nodes_list;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -125,22 +125,22 @@ protected:
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
 
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Int> & nodes_list,
                     const NewNodesEvent & event) override;
 
 public:
-  Array<UInt> & getMasterList() override;
+  Array<Idx> & getMasterList() override;
 
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getSlaveList() override;
 
-  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
-  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<Idx> &);
+  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<Idx> &);
 
 protected:
   std::string master;
   std::string slave;
   Mesh & mesh_facets;
-  Array<UInt> new_nodes_list;
+  Array<Idx> new_nodes_list;
 };
 
 #endif

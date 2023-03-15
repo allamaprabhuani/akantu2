@@ -79,9 +79,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_4, _gt_quadrangle_4,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
   N(0) = 1. / 4. * (1. - c(0)) * (1. - c(1)); /// N1(q_0)
   N(1) = 1. / 4. * (1. + c(0)) * (1. - c(1)); /// N2(q_0)
   N(2) = 1. / 4. * (1. + c(0)) * (1. + c(1)); /// N3(q_0)
@@ -89,9 +90,9 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -124,7 +125,7 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(
 template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
-    const vector_type & /*c*/, matrix_type & d2nds2) {
+    const vector_type & /*c*/, matrix_type &d2nds2) {
   d2nds2.zero();
 
   d2nds2(1, 0) = 1. / 4.;
@@ -140,27 +141,17 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Real
-GeometricalElement<_gt_quadrangle_4>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Real a = u0.distance(u1);
-  Real b = u1.distance(u2);
-  Real c = u2.distance(u3);
-  Real d = u3.distance(u0);
+template <class D>
+inline Real GeometricalElement<_gt_quadrangle_4>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&u0 = coord.col(0);
+  auto &&u1 = coord.col(1);
+  auto &&u2 = coord.col(2);
+  auto &&u3 = coord.col(3);
+  Real a = (u0 - u1).norm();
+  Real b = (u1 - u2).norm();
+  Real c = (u2 - u3).norm();
+  Real d = (u3 - u0).norm();
 
   // Real septimetre = (a + b + c + d) / 2.;
 

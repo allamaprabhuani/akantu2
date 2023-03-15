@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
 
   py::scoped_interpreter guard{};
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("fine_mesh.msh");

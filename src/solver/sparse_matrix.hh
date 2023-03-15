@@ -71,10 +71,10 @@ public:
   virtual void zero() { this->set(0); }
 
   /// add a non-zero element to the profile
-  virtual UInt add(UInt i, UInt j) = 0;
+  virtual Idx add(Idx i, Idx j) = 0;
 
   /// assemble a local matrix in the sparse one
-  virtual void add(UInt i, UInt j, Real value) = 0;
+  virtual void add(Idx i, Idx j, Real value) = 0;
 
   /// save the profil in a file using the MatrixMarket file format
   virtual void saveProfile(const std::string & /* filename */) const {
@@ -120,22 +120,21 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the values at potition i, j
-  virtual inline Real operator()(UInt /*i*/, UInt /*j*/) const {
+  virtual inline Real operator()(Idx /*i*/, Idx /*j*/) const {
     AKANTU_TO_IMPLEMENT();
   }
   /// return the values at potition i, j
-  virtual inline Real & operator()(UInt /*i*/, UInt /*j*/) {
+  virtual inline Real & operator()(Idx /*i*/, Idx /*j*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  /// return the minimum value
-  virtual inline Real min() { AKANTU_TO_IMPLEMENT(); }
+  AKANTU_GET_MACRO_AUTO(NbNonZero, nb_non_zero);
+  Int size() const { return size_; }
+  AKANTU_GET_MACRO_AUTO(MatrixType, matrix_type);
 
-  AKANTU_GET_MACRO(NbNonZero, nb_non_zero, UInt);
-  UInt size() const { return size_; }
-  AKANTU_GET_MACRO(MatrixType, matrix_type, const MatrixType &);
+  virtual Int getRelease() const = 0;
 
-  virtual UInt getRelease() const = 0;
+  virtual Real min() = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -150,13 +149,13 @@ protected:
   MatrixType matrix_type;
 
   /// Size of the matrix
-  UInt size_;
+  Int size_;
 
   /// number of processors
-  UInt nb_proc;
+  Int nb_proc;
 
   /// number of non zero element
-  UInt nb_non_zero;
+  Int nb_non_zero;
 };
 
 // Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);

@@ -28,41 +28,36 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
+#include "node_group.hh"
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::begin() const {
-  return node_group.begin();
-}
+inline auto NodeGroup::begin() const { return node_group.begin(); }
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::end() const {
-  return node_group.end();
-}
+inline auto NodeGroup::end() const { return node_group.end(); }
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
-                                                     bool check_for_duplicate) {
+inline auto NodeGroup::add(Idx node, bool check_for_duplicate) {
+  const_node_iterator it;
   if (check_for_duplicate) {
-    const_node_iterator it = std::find(begin(), end(), node);
-    if (it == node_group.end()) {
-      node_group.push_back(node);
-      return (node_group.end() - 1);
+    it = std::find(begin(), end(), node);
+    if (it != node_group.end()) {
+      return it;
     }
-    return it;
   }
 
   node_group.push_back(node);
-  return (node_group.end() - 1);
+  it = (node_group.end() - 1);
+  return it;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void NodeGroup::remove(UInt node) {
-  Array<UInt>::iterator<> it = this->node_group.begin();
-  Array<UInt>::iterator<> end = this->node_group.end();
+inline void NodeGroup::remove(Idx node) {
+  auto it = this->node_group.begin();
+  auto end = this->node_group.end();
   AKANTU_DEBUG_ASSERT(it != end, "The node group is empty!!");
   for (; it != node_group.end(); ++it) {
     if (*it == node) {
@@ -76,7 +71,7 @@ inline void NodeGroup::remove(UInt node) {
 inline bool NodeGroup::empty() const { return node_group.empty(); }
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeGroup::size() const { return node_group.size(); }
+inline Int NodeGroup::size() const { return node_group.size(); }
 
 /* -------------------------------------------------------------------------- */
 struct FilterFunctor;
@@ -87,7 +82,7 @@ template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
   AKANTU_DEBUG_ASSERT(T::type == FilterFunctor::_node_filter_functor,
                       "NodeFilter can only apply node filter functor");
 
-  Array<UInt>::iterator<> it = this->node_group.begin();
+  auto it = this->node_group.begin();
 
   for (; it != node_group.end(); ++it) {
     /// filter == true -> keep node

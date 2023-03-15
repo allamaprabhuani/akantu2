@@ -45,7 +45,7 @@ public:
       : model(model){};
 
   void operator()(Matrix<Real> & rho, const Element & element) {
-    const Array<UInt> & mat_indexes =
+    const auto & mat_indexes =
         model.getMaterialByElement(element.type, element.ghost_type);
     Real mat_rho =
         model.getMaterial(mat_indexes(element.element)).getParam("rho");
@@ -81,18 +81,16 @@ void SolidMechanicsModel::assembleMassLumped() {
 
 /// for not connected nodes put mass to one in order to avoid
 #if !defined(AKANTU_NDEBUG)
-  bool has_unconnected_nodes = false;
-  auto mass_it = mass->begin_reinterpret(mass->size() * mass->getNbComponent());
-  auto mass_end = mass->end_reinterpret(mass->size() * mass->getNbComponent());
-  for (; mass_it != mass_end; ++mass_it) {
-    if (std::abs(*mass_it) < std::numeric_limits<Real>::epsilon() ||
-        Math::isnan(*mass_it)) {
-      has_unconnected_nodes = true;
-      break;
+  std::set<Idx> unconnected_nodes;
+  for (auto && data : enumerate(make_view(*mass))) {
+    auto & m = std::get<1>(data);
+    if (std::abs(m) < std::numeric_limits<Real>::epsilon() || Math::isnan(m)) {
+      m = 0.;
+      unconnected_nodes.insert(std::get<0>(data));
     }
   }
 
-  if (has_unconnected_nodes) {
+  if (unconnected_nodes.begin() != unconnected_nodes.end()) {
     AKANTU_DEBUG_WARNING("There are nodes that seem to not be connected to any "
                          "elements, beware that they have lumped mass of 0.");
   }

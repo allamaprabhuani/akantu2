@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-from . import print_debug, print_info
 from .issue_generator_clang_tool import ClangToolIssueGenerator
-import os
-import re
 import copy
 import difflib
-import subprocess
 
 
 class ClangFormatIssueGenerator(ClangToolIssueGenerator):
@@ -38,17 +34,26 @@ class ClangFormatIssueGenerator(ClangToolIssueGenerator):
 
             s = difflib.SequenceMatcher(None, unformated_file, formated_file)
             for tag, i1, i2, j1, j2 in s.get_opcodes():
-                if tag != 'equal':
-                    diff = list(
-                        difflib.unified_diff(
-                            unformated_file[i1:i2],
-                            formated_file[j1:j2]))
-                    issue = {
-                        'name': f'''clang-format:{tag}''',
-                        'description': ''.join(diff[3:]),
-                        'file': filename,
-                        'line': i1,
-                        'column': 1,
-                        'end_line': i2,
-                    }
-                    self.add_issue(issue)
+                if tag == 'equal':
+                    continue
+                    # diff = list(
+                    #     difflib.unified_diff(
+                    #         unformated_file[i1:i2],
+                    #         formated_file[j1:j2]))
+                description = ''
+                if tag == 'delete':
+                    description = f'```suggestion:-0+{i2-i1}\n```'
+                if tag == 'insert':
+                    description = f'''```suggestion:-0+0\n{''.join(unformated_file[i1:i2])}{''.join(formated_file[j1:j2])}```'''  # noqa
+                if tag == 'replace':
+                    description = f'''```suggestion:-0+{i2-i1}\n{''.join(formated_file[j1:j2])}```'''  # noqa
+
+                issue = {
+                    'name': f'''clang-format:{tag}''',
+                    'description': ''.join(description),
+                    'file': filename,
+                    'line': i1 + 1,  # lines start at 1 not 0
+                    'column': 1,
+                    'end_line': i2 + 1,
+                }
+                self.add_issue(issue)

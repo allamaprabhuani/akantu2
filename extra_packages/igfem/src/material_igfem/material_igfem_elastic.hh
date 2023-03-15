@@ -32,7 +32,7 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialIGFEMElastic
     : public PlaneStressToolbox<spatial_dimension, MaterialIGFEM> {
   /* ------------------------------------------------------------------------ */
@@ -43,7 +43,7 @@ private:
 
 public:
   MaterialIGFEMElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialIGFEMElastic(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+  MaterialIGFEMElastic(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
                        FEEngine & fe_engine, const ID & id = "");
 
   virtual ~MaterialIGFEMElastic() {}

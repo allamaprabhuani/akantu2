@@ -59,7 +59,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_2>(
     auto E = materials[mat].E;
     auto A = materials[mat].A;
     auto I = materials[mat].I;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_it) {
+    for (Int q = 0; q < nb_quadrature_points; ++q, ++D_it) {
       auto & D = *D_it;
       D(0, 0) = E * A;
       D(1, 1) = E * I;

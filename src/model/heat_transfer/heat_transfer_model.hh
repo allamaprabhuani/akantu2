@@ -54,14 +54,14 @@ namespace akantu {
 
 class HeatTransferModel : public Model,
                           public DataAccessor<Element>,
-                          public DataAccessor<UInt> {
+                          public DataAccessor<Idx> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
-  HeatTransferModel(Mesh & mesh, UInt dim = _all_dimensions,
+  HeatTransferModel(Mesh & mesh, Int spatial_dimension = _all_dimensions,
                     const ID & id = "heat_transfer_model",
                     std::shared_ptr<DOFManager> dof_manager = nullptr);
 
@@ -151,8 +151,8 @@ private:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
                        const SynchronizationTag & tag) const override;
@@ -160,13 +160,12 @@ public:
                          const Array<Element> & elements,
                          const SynchronizationTag & tag) override;
 
-  inline UInt getNbData(const Array<UInt> & indexes,
-                        const SynchronizationTag & tag) const override;
-  inline void packData(CommunicationBuffer & buffer,
-                       const Array<UInt> & indexes,
+  inline Int getNbData(const Array<Idx> & indexes,
+                       const SynchronizationTag & tag) const override;
+  inline void packData(CommunicationBuffer & buffer, const Array<Idx> & indexes,
                        const SynchronizationTag & tag) const override;
   inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<UInt> & indexes,
+                         const Array<Idx> & indexes,
                          const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
@@ -186,22 +185,24 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Density, density, Real);
-  AKANTU_GET_MACRO(Capacity, capacity, Real);
+  AKANTU_GET_MACRO_AUTO(Density, density);
+  AKANTU_GET_MACRO_AUTO(Capacity, capacity);
+  /// get the dimension of the system space
+  AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
   /// get the current value of the time step
-  AKANTU_GET_MACRO(TimeStep, time_step, Real);
+  AKANTU_GET_MACRO_AUTO(TimeStep, time_step);
   /// get the assembled heat flux
-  AKANTU_GET_MACRO(InternalHeatRate, *internal_heat_rate, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR(InternalHeatRate, internal_heat_rate);
   /// get the boundary vector
-  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
   /// get the external heat rate vector
-  AKANTU_GET_MACRO(ExternalHeatRate, *external_heat_rate, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ExternalHeatRate, external_heat_rate);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient,
                                          temperature_gradient, Real);
@@ -214,17 +215,17 @@ public:
   /// internal variables
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(KgradT, k_gradt_on_qpoints, Real);
   /// get the temperature
-  AKANTU_GET_MACRO(Temperature, *temperature, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Temperature, temperature);
   /// get the temperature derivative
-  AKANTU_GET_MACRO(TemperatureRate, *temperature_rate, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR(TemperatureRate, temperature_rate);
 
   /// get the energy denominated by thermal
-  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+  Real getEnergy(const std::string & energy_id, ElementType type, Idx index);
   /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id);
 
   /// get the thermal energy for a given element
-  Real getThermalEnergy(ElementType type, UInt index);
+  Real getThermalEnergy(ElementType type, Idx index);
   /// get the thermal energy for a given element
   Real getThermalEnergy();
 
@@ -233,9 +234,9 @@ protected:
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
   /* ----------------------------------------------------------------------- */
-  template <class iterator>
-  void getThermalEnergy(iterator Eth, Array<Real>::const_iterator<Real> T_it,
-                        const Array<Real>::const_iterator<Real> & T_end) const;
+  template <class iterator, class const_iterator>
+  void getThermalEnergy(iterator Eth, const_iterator T_it,
+                        const_iterator T_end) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -298,19 +299,14 @@ private:
 
   bool need_to_reassemble_capacity{true};
   bool need_to_reassemble_capacity_lumped{true};
-  UInt temperature_release{0};
-  UInt conductivity_matrix_release{UInt(-1)};
+  Int temperature_release{0};
+  Int conductivity_matrix_release{-1};
   std::unordered_map<GhostType, bool> initial_conductivity{{_not_ghost, true},
                                                            {_ghost, true}};
-  std::unordered_map<GhostType, UInt> conductivity_release{{_not_ghost, 0},
-                                                           {_ghost, 0}};
+  std::unordered_map<GhostType, Int> conductivity_release{{_not_ghost, 0},
+                                                          {_ghost, 0}};
 };
 
 } // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-#include "heat_transfer_model_inline_impl.hh"
 
 #endif /* AKANTU_HEAT_TRANSFER_MODEL_HH_ */

@@ -65,7 +65,7 @@ protected:
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
-  void computeDrivingForce(const ElementType & /*el_type*/,
+  void computeDrivingForce(ElementType /*el_type*/,
                            GhostType /*ghost_type*/) override;
 
   inline void computeDrivingForceOnQuad(const Real & /*phi_quad*/,
@@ -78,7 +78,6 @@ protected:
   inline void
   computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
                                 const Vector<Real> & /*grad_d_quad */,
-                                Real & /*energy*/, Real & /*g_c_quad*/);
 
 public:
   void updateInternalParameters() override;

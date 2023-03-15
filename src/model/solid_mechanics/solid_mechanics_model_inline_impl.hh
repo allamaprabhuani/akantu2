@@ -36,7 +36,7 @@
 #include "aka_named_argument.hh"
 #include "material_selector.hh"
 #include "material_selector_tmpl.hh"
-#include "solid_mechanics_model.hh"
+//#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SOLID_MECHANICS_MODEL_INLINE_IMPL_HH_
@@ -72,8 +72,7 @@ inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
 
 /* -------------------------------------------------------------------------- */
 inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
-  std::map<std::string, UInt>::const_iterator it =
-      materials_names_to_id.find(name);
+  auto it = materials_names_to_id.find(name);
   if (it == materials_names_to_id.end()) {
     AKANTU_SILENT_EXCEPTION("The model " << id << " has no material named "
                                          << name);
@@ -90,7 +89,7 @@ SolidMechanicsModel::getMaterial(const Element & element) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt
+inline Int
 SolidMechanicsModel::getMaterialIndex(const std::string & name) const {
   auto it = materials_names_to_id.find(name);
   if (it == materials_names_to_id.end()) {

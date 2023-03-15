@@ -68,7 +68,7 @@ public:
   void setLimit(SpatialDirection axis, Real first_limit, Real second_limit);
 
   /// insert intrinsic cohesive elements in a predefined range
-  auto insertIntrinsicElements() -> UInt;
+  Int insertIntrinsicElements();
 
   /// insert extrinsic cohesive elements (returns the number of new
   /// cohesive elements)
@@ -94,7 +94,7 @@ protected:
   void updateInsertionFacets();
 
   /// functions for parallel communications
-  inline UInt getNbData(const Array<Element> & elements,
+  inline Int getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
@@ -167,11 +167,11 @@ public:
   CohesiveNewNodesEvent(const std::string & origin) : NewNodesEvent(origin) {}
   ~CohesiveNewNodesEvent() override = default;
 
-  AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<UInt> &);
-  AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<Idx> &);
+  AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<Idx> &);
 
 private:
-  Array<UInt> old_nodes;
+  Array<Idx> old_nodes;
 };
 
 } // namespace akantu

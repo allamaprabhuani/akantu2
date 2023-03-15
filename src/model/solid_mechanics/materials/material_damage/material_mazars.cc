@@ -33,50 +33,16 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_mazars.hh"
-#include "solid_mechanics_model.hh"
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
-                                                  const ID & id)
-    : MaterialDamage<spatial_dimension>(model, id), K0("K0", *this),
-      damage_in_compute_stress(true) {
-  AKANTU_DEBUG_IN();
+template class MaterialMazars<1>;
+template class MaterialMazars<2>;
+template class MaterialMazars<3>;
 
-  this->registerParam("K0", K0, _pat_parsable, "K0");
-  this->registerParam("At", At, Real(0.8), _pat_parsable, "At");
-  this->registerParam("Ac", Ac, Real(1.4), _pat_parsable, "Ac");
-  this->registerParam("Bc", Bc, Real(1900.), _pat_parsable, "Bc");
-  this->registerParam("Bt", Bt, Real(12000.), _pat_parsable, "Bt");
-  this->registerParam("beta", beta, Real(1.06), _pat_parsable, "beta");
+template <Int dim> using MaterialMazars_ = MaterialMazars<dim>;
 
-  this->K0.initialize(1);
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
-                                                      GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Real * dam = this->damage(el_type, ghost_type).storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  Real Ehat = 0;
-  computeStressOnQuad(grad_u, sigma, *dam, Ehat);
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(mazars, MaterialMazars);
+static bool material_is_alocated_mazars =
+    instantiateMaterial<MaterialMazars_>("mazars");
 
 } // namespace akantu

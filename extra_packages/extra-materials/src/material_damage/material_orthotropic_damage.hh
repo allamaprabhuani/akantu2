@@ -33,8 +33,7 @@
 #define AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH_
 
 namespace akantu {
-template <UInt spatial_dimension,
-          template <UInt> class Parent = MaterialElastic>
+template <Int spatial_dimension, template <UInt> class Parent = MaterialElastic>
 class MaterialOrthotropicDamage : public Parent<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

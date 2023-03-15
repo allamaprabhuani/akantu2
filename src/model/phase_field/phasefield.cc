@@ -61,7 +61,7 @@ PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-PhaseField::PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
+PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
                        FEEngine & fe_engine, const ID & id)
     : Parsable(ParserType::_phasefield, id), id(id), fem(fe_engine),
       model(model), spatial_dimension(this->model.getSpatialDimension()),
@@ -92,6 +92,11 @@ PhaseField::PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
+    : PhaseField(model, model.getSpatialDimension(), model.getMesh(),
+                 model.getFEEngine(), id) {}
 
 /* -------------------------------------------------------------------------- */
 PhaseField::~PhaseField() = default;
@@ -144,8 +149,8 @@ void PhaseField::resizeInternals() {
     it->second->resize();
   }
 
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
+  for (auto it = internal_vectors_int.begin(); it != internal_vectors_int.end();
+       ++it) {
     it->second->resize();
   }
 
@@ -168,7 +173,7 @@ void PhaseField::computeAllDrivingForces(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   auto & damage = model.getDamage();
 
   for (const auto & type :
@@ -322,7 +327,7 @@ void PhaseField::computeDissipatedEnergyByElements() {
 
   for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
 
-    Array<UInt> & elem_filter = element_filter(type, _not_ghost);
+    Array<Idx> & elem_filter = element_filter(type, _not_ghost);
     if (elem_filter.empty()) {
       continue;
     }
@@ -370,7 +375,7 @@ Real PhaseField::getEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseField::getEnergy(ElementType type, UInt index) {
+Real PhaseField::getEnergy(ElementType type, Idx index) {
   Real edis = 0.;
 
   Vector<Real> edis_on_quad_points(fem.getNbIntegrationPoints(type));

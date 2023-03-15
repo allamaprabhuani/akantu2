@@ -39,52 +39,41 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(
     __attribute__((unused)) const Matrix<Real> & grad_u,
     __attribute__((unused)) const Matrix<Real> & grad_delta_u,
     __attribute__((unused)) Matrix<Real> & delta_S) {}
 
 //! computes the second piola kirchhoff stress, called S
-template <UInt dim>
-inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                         Matrix<Real> & S,
-                                                         const Real & C33) {
+template <Int dim>
+template <class Args>
+inline void MaterialNeohookean<dim>::computeStressOnQuad(Args && args) {
   // Neo hookean book
-  Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim);      // Right green
-  Matrix<Real> Cminus(dim, dim); // Right green
+  auto && F = Material::gradUToF<dim>(args["grad_u"_n]);
+  auto && C = Material::rightCauchy<dim>(F);
+  // the term  sqrt(C33) corresponds to the off plane strain (2D plane stress)
+  auto J = F.determinant() * std::sqrt(args["C33"_n]);
 
-  this->template gradUToF<dim>(grad_u, F);
-  this->rightCauchy(F, C);
-  Real J = F.det() * sqrt(C33); // the term  sqrt(C33) corresponds to the off
-                                // plane strain (2D plane stress)
-  //  std::cout<<"det(F) -> "<<J<<std::endl;
-  Cminus.inverse(C);
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      S(i, j) =
-          Math::kronecker(i, j) * mu + (lambda * log(J) - mu) * Cminus(i, j);
-    }
-  }
+  args["sigma"_n] = Matrix<Real, dim, dim>::Identity() * mu +
+                    (lambda * log(J) - mu) * C.inverse();
 }
 
 /* -------------------------------------------------------------------------- */
-class C33_NR : public Math::NewtonRaphsonFunctor {
+class C33_NR : public Math::NewtonRaphsonFunctor<Real> {
 public:
   C33_NR(std::string name, const Real & lambda, const Real & mu,
          const Matrix<Real> & C)
       : NewtonRaphsonFunctor(std::move(name)), lambda(lambda), mu(mu), C(C) {}
 
-  inline Real f(Real x) const override {
+  inline Real f(const Real & x) const override {
     return (this->lambda / 2. *
                 (std::log(x) + std::log(this->C(0, 0) * this->C(1, 1) -
                                         Math::pow<2>(this->C(0, 1)))) +
             this->mu * (x - 1.));
   }
 
-  inline Real f_prime(Real x) const override {
+  inline Real f_prime(const Real & x) const override {
     AKANTU_DEBUG_ASSERT(std::abs(x) > Math::getTolerance(),
                         "x is zero (x should be the off plane right Cauchy"
                             << " measure in this function so you made a mistake"
@@ -99,93 +88,74 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(
-    Matrix<Real> & grad_u, Real & c33_value) {
+template <Int dim>
+template <class Args>
+inline void
+MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(Args && args) {
   // Neo hookean book
-  Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim); // Right green
+  auto F = Material::gradUToF<dim>(args["grad_u"_n]);
+  auto C = Material::rightCauchy<dim>(F);
 
-  this->template gradUToF<dim>(grad_u, F);
-  this->rightCauchy(F, C);
+  Math::NewtonRaphson<Real> nr(1e-5, 100);
+  auto & C33 = args["C33"_n];
 
-  Math::NewtonRaphson nr(1e-5, 100);
-  c33_value = nr.solve(
-      C33_NR("Neohookean_plan_stress", this->lambda, this->mu, C), c33_value);
+  C33 = nr.solve(C33_NR("Neohookean_plan_stress", this->lambda, this->mu, C),
+                 C33);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void
 MaterialNeohookean<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
                                                      Matrix<Real> & S) {
-
-  Real trace = E.trace(); /// \f$ trace = (\nabla u)_{kk} \f$
-
   /// \f$ \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   /// u_{ij} + \nabla u_{ji}) \f$
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      S(i, j) = Math::kronecker(i, j) * lambda * trace + 2.0 * mu * E(i, j);
-    }
-  }
+  S = Matrix<Real, dim, dim>::Identity() * lambda * E.trace() + 2.0 * mu * E;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeFirstPiolaKirchhoffOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & S, Matrix<Real> & P) {
-
-  Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim); // Right green
-
-  this->template gradUToF<dim>(grad_u, F);
+  auto F = Material::gradUToF<dim>(grad_u);
 
   // first Piola-Kirchhoff is computed as the product of the deformation
   // gracient
   // tensor and the second Piola-Kirchhoff stress tensor
-
   P = F * S;
 }
 
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, Real & epot) {
-  Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim); // Right green
-
-  this->template gradUToF<dim>(grad_u, F);
-  this->rightCauchy(F, C);
-  Real J = F.det();
-  //  std::cout<<"det(F) -> "<<J<<std::endl;
+  auto F = Material::gradUToF<dim>(grad_u);
+  auto C = Material::rightCauchy<dim>(F);
+  auto J = F.determinant();
 
   epot =
       0.5 * lambda * pow(log(J), 2.) + mu * (-log(J) + 0.5 * (C.trace() - dim));
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, Matrix<Real> & grad_u, const Real & C33) {
-
+template <Int dim>
+template <class Args>
+inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Args && args) {
+  auto & tangent = args["tangent_moduli"_n];
   // Neo hookean book
-  UInt cols = tangent.cols();
-  UInt rows = tangent.rows();
-  Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim);
-  Matrix<Real> Cminus(dim, dim);
-  this->template gradUToF<dim>(grad_u, F);
-  this->rightCauchy(F, C);
-  Real J = F.det() * sqrt(C33);
-  //  std::cout<<"det(F) -> "<<J<<std::endl;
-  Cminus.inverse(C);
+  auto cols = tangent.cols();
+  auto rows = tangent.rows();
+  auto F = Material::gradUToF<dim>(args["grad_u"_n]);
+  auto C = Material::rightCauchy<dim>(F);
+  auto J = F.determinant() * sqrt(C33);
 
-  for (UInt m = 0; m < rows; m++) {
+  auto && Cminus = C.inverse();
+
+  for (Int m = 0; m < rows; m++) {
     UInt i = VoigtHelper<dim>::vec[m][0];
     UInt j = VoigtHelper<dim>::vec[m][1];
-    for (UInt n = 0; n < cols; n++) {
+    for (Int n = 0; n < cols; n++) {
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
 

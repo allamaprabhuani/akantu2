@@ -73,9 +73,9 @@ TEST(TestFiniteDeformation, NotUnit) {
 
       blocked.set(true);
 
-      dis += Vector<Real>(alpha(0));
+      dis += alpha(0);
       for (auto p : arange(dim)) {
-        dis += Vector<Real>(alpha(1 + p)) * pos(p);
+        dis += alpha(1 + p) * pos(p);
       }
     }
   };
@@ -114,11 +114,11 @@ TEST(TestFiniteDeformation, NotUnit) {
                        make_view(model.getInternalForce(), dim),
                        make_view(internal_force0, dim))) {
     auto pos = std::get<0>(data);
-    Vector<Real> refdis(dim, 0.);
+    Vector<Real> refdis(dim);
 
-    refdis += Vector<Real>(alpha(0));
+    refdis = alpha(0);
     for (auto p : arange(dim)) {
-      refdis += Vector<Real>(alpha(1 + p)) * pos(p);
+      refdis += alpha(1 + p) * pos(p);
     }
 
     auto dis = std::get<1>(data);

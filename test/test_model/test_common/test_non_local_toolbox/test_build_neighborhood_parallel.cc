@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   // mesh creation and read
   Mesh mesh(spatial_dimension);
@@ -90,13 +90,13 @@ int main(int argc, char * argv[]) {
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
   applied_strain.zero();
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     applied_strain(i, i) = 2.;
 
   ElementType element_type = _triangle_3;
   GhostType ghost_type = _not_ghost;
   /// apply constant grad_u field in all elements
-  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+  for (Int m = 0; m < model.getNbMaterials(); ++m) {
     auto & mat = model.getMaterial(m);
     auto & grad_u = const_cast<Array<Real> &>(
         mat.getInternal<Real>("grad_u")(element_type, ghost_type));
@@ -114,18 +114,19 @@ int main(int argc, char * argv[]) {
                          _with_nb_element = true);
   model.getFEEngine().computeIntegrationPointsCoordinates(quad_coords);
 
-  Vector<Real> center(spatial_dimension, 0.);
+  Vector<Real> center(spatial_dimension);
+  center.zero();
   Real min_distance = 2;
   IntegrationPoint q_min;
   for (auto type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
-    UInt nb_elements = mesh.getNbElement(type, _not_ghost);
-    UInt nb_quads = model.getFEEngine().getNbIntegrationPoints(type);
-    Array<Real> & coords = quad_coords(type, _not_ghost);
+    auto nb_elements = mesh.getNbElement(type, _not_ghost);
+    auto nb_quads = model.getFEEngine().getNbIntegrationPoints(type);
+    auto & coords = quad_coords(type, _not_ghost);
     auto coord_it = coords.begin(spatial_dimension);
-    for (UInt e = 0; e < nb_elements; ++e) {
-      for (UInt q = 0; q < nb_quads; ++q, ++coord_it) {
-        Real dist = center.distance(*coord_it);
+    for (Int e = 0; e < nb_elements; ++e) {
+      for (Int q = 0; q < nb_quads; ++q, ++coord_it) {
+        auto dist = center.distance(*coord_it);
         if (dist < min_distance) {
           min_distance = dist;
           q_min.element = e;
@@ -137,24 +138,23 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  Real global_min = min_distance;
+  auto global_min = min_distance;
   comm.allReduce(global_min, SynchronizerOperation::_min);
 
   if (Math::are_float_equal(global_min, min_distance)) {
-    UInt mat_index = model.getMaterialByElement(q_min.type, _not_ghost)
+    auto mat_index = model.getMaterialByElement(q_min.type, _not_ghost)
                          .begin()[q_min.element];
-    Material & mat = model.getMaterial(mat_index);
-    UInt nb_quads = model.getFEEngine().getNbIntegrationPoints(q_min.type);
-    UInt local_el_index =
+    auto & mat = model.getMaterial(mat_index);
+    auto nb_quads = model.getFEEngine().getNbIntegrationPoints(q_min.type);
+    auto local_el_index =
         model.getMaterialLocalNumbering(q_min.type, _not_ghost)
             .begin()[q_min.element];
-    UInt local_num = (local_el_index * nb_quads) + q_min.num_point;
-    Array<Real> & grad_u = const_cast<Array<Real> &>(
+    auto local_num = (local_el_index * nb_quads) + q_min.num_point;
+    auto & grad_u = const_cast<Array<Real> &>(
         mat.getInternal<Real>("grad_u")(q_min.type, _not_ghost));
-    Array<Real>::iterator<Matrix<Real>> grad_u_it =
-        grad_u.begin(spatial_dimension, spatial_dimension);
+    auto grad_u_it = grad_u.begin(spatial_dimension, spatial_dimension);
     grad_u_it += local_num;
-    Matrix<Real> & g_u = *grad_u_it;
+    auto & g_u = *grad_u_it;
     g_u += applied_strain;
   }
 
@@ -175,7 +175,7 @@ int main(int argc, char * argv[]) {
     UInt local_num = (local_el_index * nb_quads) + q_min.num_point;
     Array<Real> & damage = const_cast<Array<Real> &>(
         mat.getInternal<Real>("damage")(q_min.type, _not_ghost));
-    Real * dam_ptr = damage.storage();
+    Real * dam_ptr = damage.data();
     dam_ptr += local_num;
     *dam_ptr = 0.9;
   }

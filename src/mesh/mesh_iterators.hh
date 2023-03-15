@@ -31,7 +31,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_named_argument.hh"
-#include "aka_static_if.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -41,7 +40,7 @@
 namespace akantu {
 
 class MeshElementsByTypes {
-  using elements_iterator = Array<Element>::scalar_iterator;
+  using elements_iterator = Array<Element>::const_scalar_iterator;
 
 public:
   explicit MeshElementsByTypes(const Array<Element> & elements) {
@@ -54,15 +53,14 @@ public:
   public:
     MeshElementsRange() = default;
 
-    MeshElementsRange(const elements_iterator & begin,
-                      const elements_iterator & end)
-        : type((*begin).type), ghost_type((*begin).ghost_type), begin(begin),
+    MeshElementsRange(elements_iterator & begin, elements_iterator & end)
+        : type(begin->type), ghost_type(begin->ghost_type), begin(begin),
           end(end) {}
 
     AKANTU_GET_MACRO(Type, type, ElementType);
     AKANTU_GET_MACRO(GhostType, ghost_type, GhostType);
 
-    const Array<UInt> & getElements() {
+    const Array<Int> & getElements() {
       elements.resize(end - begin);
       auto el_it = elements.begin();
       for (auto it = begin; it != end; ++it, ++el_it) {
@@ -77,7 +75,7 @@ public:
     GhostType ghost_type{_casper};
     elements_iterator begin;
     elements_iterator end;
-    Array<UInt> elements;
+    Array<Int> elements;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -91,11 +89,11 @@ public:
 
   public:
     iterator(const iterator &) = default;
-    iterator(const elements_iterator & first, const elements_iterator & last)
+    iterator(elements_iterator first, elements_iterator last)
         : range(std::equal_range(first, last, *first, element_comparator())),
-          first(first), last(last) {}
+          first(std::move(first)), last(std::move(last)) {}
 
-    decltype(auto) operator*() const {
+    decltype(auto) operator*() {
       return MeshElementsRange(range.first, range.second);
     }
 
@@ -164,8 +162,32 @@ namespace mesh_iterators {
 } // namespace mesh_iterators
 
 /* -------------------------------------------------------------------------- */
+template <class T,
+          typename = std::enable_if_t<std::is_integral<std::decay_t<T>>::value>>
+inline constexpr decltype(auto)
+element_range(const T & stop, ElementType type,
+              GhostType ghost_type = _not_ghost) {
+  return make_transform_adaptor(arange(stop),
+                                [type, ghost_type](auto && value) {
+                                  return Element{type, value, ghost_type};
+                                });
+}
+
+template <class T1, class T2,
+          typename = std::enable_if_t<
+              std::is_integral<std::common_type_t<T1, T2>>::value>>
+inline constexpr decltype(auto)
+element_range(const T1 & start, const T2 & stop, ElementType type,
+              GhostType ghost_type = _not_ghost) {
+  return make_transform_adaptor(arange(start, stop),
+                                [type, ghost_type](auto && value) {
+                                  return Element{type, value, ghost_type};
+                                });
+}
+
+/* -------------------------------------------------------------------------- */
 template <class Func>
-void for_each_element(UInt nb_elements, const Array<UInt> & filter_elements,
+void for_each_element(Int nb_elements, const Array<Idx> & filter_elements,
                       Func && function) {
   if (filter_elements != empty_filter) {
     std::for_each(filter_elements.begin(), filter_elements.end(),
@@ -180,7 +202,7 @@ void for_each_element(UInt nb_elements, const Array<UInt> & filter_elements,
 template <class Func, typename... pack>
 void for_each_element(const Mesh & mesh, Func && function, pack &&... _pack) {
   auto requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _casper);
-  const ElementTypeMapArray<UInt> * filter =
+  const ElementTypeMapArray<Idx> * filter =
       OPTIONAL_NAMED_ARG(element_filter, nullptr);
 
   bool all_ghost_types = requested_ghost_type == _casper;
@@ -203,7 +225,7 @@ void for_each_element(const Mesh & mesh, Func && function, pack &&... _pack) {
     }
 
     for (auto type : element_types) {
-      const Array<UInt> * filter_array;
+      const Array<Idx> * filter_array;
 
       if (filter) {
         filter_array = &((*filter)(type, ghost_type));

@@ -31,9 +31,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_factory.hh"
 #include "data_accessor.hh"
 #include "model.hh"
 #include "non_local_manager.hh"
+#include "non_local_neighborhood.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -55,7 +57,7 @@ public:
       : Parsable(ParserType::_weight_function, "weight_function:" + type),
         manager(manager), type(type),
         spatial_dimension(manager.getModel().getMesh().getSpatialDimension()) {
-    this->registerParam("update_rate", update_rate, UInt(1), _pat_parsmod,
+    this->registerParam("update_rate", update_rate, Int(1), _pat_parsmod,
                         "Update frequency");
   }
 
@@ -100,15 +102,15 @@ public:
   /// get the radius
   Real getRadius() const { return R; }
   /// get the update rate
-  UInt getUpdateRate() const { return update_rate; }
+  Int getUpdateRate() const { return update_rate; }
 
 public:
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 
-  UInt getNbData(const Array<Element> & /*elements*/,
-                 const SynchronizationTag & /*tag*/) const override {
+  Int getNbData(const Array<Element> &,
+                const SynchronizationTag &) const override {
     return 0;
   }
 
@@ -140,13 +142,13 @@ protected:
   Real R2;
 
   /// the update rate
-  UInt update_rate;
+  Int update_rate;
 
   /// name of the type of weight function
   const std::string type;
 
   /// the spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 inline std::ostream & operator<<(std::ostream & stream,
@@ -154,6 +156,20 @@ inline std::ostream & operator<<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
+
+using NonLocalNeighborhoodFactory =
+    Factory<NonLocalNeighborhoodBase, ID, ID, NonLocalManager &,
+            const ElementTypeMapReal &, const ID &>;
+
+#define INSTANTIATE_NL_NEIGHBORHOOD(id, weight_fun_name)                       \
+  static bool weigth_is_alocated_##id [[gnu::unused]] =                        \
+      NonLocalNeighborhoodFactory::getInstance().registerAllocator(            \
+          #id,                                                                 \
+          [](const ID & /*name*/, NonLocalManager & non_local_manager,         \
+             const ElementTypeMapReal & quad_point_positions, const ID & id) { \
+            return std::make_unique<NonLocalNeighborhood<weight_fun_name>>(    \
+                non_local_manager, quad_point_positions, id);                  \
+          })
 
 } // namespace akantu
 

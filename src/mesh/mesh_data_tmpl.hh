@@ -132,7 +132,7 @@ ElementTypeMapArray<T> & MeshData::allocElementalData(const ID & name) {
 //  Register new nodal data templated (and alloc data) with check if the
 //  name is new
 template <typename T>
-Array<T> & MeshData::registerNodalData(const ID & name, UInt nb_components) {
+Array<T> & MeshData::registerNodalData(const ID & name, Int nb_components) {
   auto it = nodal_data.find(name);
   if (it == nodal_data.end()) {
     return allocNodalData<T>(name, nb_components);
@@ -150,7 +150,7 @@ Array<T> & MeshData::registerNodalData(const ID & name, UInt nb_components) {
     break;                                                                     \
   }
 
-inline void MeshData::registerNodalData(const ID & name, UInt nb_components,
+inline void MeshData::registerNodalData(const ID & name, Int nb_components,
                                         MeshDataTypeCode type) {
   switch (type) {
     BOOST_PP_SEQ_FOR_EACH(AKANTU_MESH_NODAL_DATA_CASE_MACRO, name,
@@ -164,7 +164,7 @@ inline void MeshData::registerNodalData(const ID & name, UInt nb_components,
 /* -------------------------------------------------------------------------- */
 /// Register new elemental data (and alloc data)
 template <typename T>
-Array<T> & MeshData::allocNodalData(const ID & name, UInt nb_components) {
+Array<T> & MeshData::allocNodalData(const ID & name, Int nb_components) {
   auto dataset =
       std::make_unique<Array<T>>(0, nb_components, T(), _id + ":" + name);
   auto * dataset_typed = dataset.get();
@@ -186,7 +186,7 @@ const Array<T> & MeshData::getNodalData(const ID & name) const {
 /* -------------------------------------------------------------------------- */
 // Get an existing elemental data
 template <typename T>
-Array<T> & MeshData::getNodalData(const ID & name, UInt nb_components) {
+Array<T> & MeshData::getNodalData(const ID & name, Int nb_components) {
   auto it = nodal_data.find(name);
   if (it == nodal_data.end()) {
     return allocNodalData<T>(name, nb_components);
@@ -292,7 +292,7 @@ Array<T> & MeshData::getElementalDataArray(const ID & name,
 template <typename T>
 Array<T> &
 MeshData::getElementalDataArrayAlloc(const ID & name, ElementType elem_type,
-                                     GhostType ghost_type, UInt nb_component) {
+                                     GhostType ghost_type, Int nb_component) {
   auto it = elemental_data.find(name);
   ElementTypeMapArray<T> * dataset;
   if (it == elemental_data.end()) {
@@ -318,10 +318,10 @@ MeshData::getElementalDataArrayAlloc(const ID & name, ElementType elem_type,
     break;                                                                     \
   }
 
-inline UInt MeshData::getNbComponent(const ID & name, ElementType el_type,
-                                     GhostType ghost_type) const {
+inline Int MeshData::getNbComponent(const ID & name, ElementType el_type,
+                                    GhostType ghost_type) const {
   auto it = typecode_map.at(MeshDataType::_elemental).find(name);
-  UInt nb_comp(0);
+  Int nb_comp(0);
   if (it == typecode_map.at(MeshDataType::_elemental).end()) {
     AKANTU_EXCEPTION("Could not determine the type held in dataset "
                      << name << " for type: " << el_type
@@ -342,14 +342,14 @@ inline UInt MeshData::getNbComponent(const ID & name, ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline UInt MeshData::getNbComponentTemplated(const ID & name,
-                                              ElementType el_type,
-                                              GhostType ghost_type) const {
+inline Int MeshData::getNbComponentTemplated(const ID & name,
+                                             ElementType el_type,
+                                             GhostType ghost_type) const {
   return getElementalDataArray<T>(name, el_type, ghost_type).getNbComponent();
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt MeshData::getNbComponent(const ID & name) const {
+inline Int MeshData::getNbComponent(const ID & name) const {
   auto it = nodal_data.find(name);
   if (it == nodal_data.end()) {
     AKANTU_EXCEPTION("No nodal dataset registered with the name" << name

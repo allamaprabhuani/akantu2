@@ -28,7 +28,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
@@ -38,13 +37,13 @@
 #define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
-template <UInt dim> class MaterialThermal : public Material {
+template <Int dim> class MaterialThermal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   MaterialThermal(SolidMechanicsModel & model, const ID & id = "");
-  MaterialThermal(SolidMechanicsModel & model, UInt spatial_dimension,
+  MaterialThermal(SolidMechanicsModel & model, Int spatial_dimension,
                   const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
 
   ~MaterialThermal() override = default;
@@ -62,9 +61,24 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
   /// local computation of thermal stress
-  inline void computeStressOnQuad(Real & sigma, const Real & deltaT);
+  template <class Args> inline void computeStressOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_append(
+        Material::getArguments<dim>(el_type, ghost_type),
+        "delta_T"_n = make_view(this->delta_T(el_type, ghost_type)),
+        "sigma_th"_n = make_view(this->sigma_th(el_type, ghost_type)),
+        "previous_sigma_th"_n =
+            make_view(this->sigma_th.previous(el_type, ghost_type)));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrices,
+                                     ElementType el_type,
+                                     GhostType ghost_type) {
+    return Material::getArgumentsTangent<dim>(tangent_matrices, el_type,
+                                              ghost_type);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -85,23 +99,24 @@ protected:
 
   /// Current thermal stress
   InternalField<Real> sigma_th;
-
-  /// Tell if we need to use the previous thermal stress
-  bool use_previous_stress_thermal;
 };
 
 /* ------------------------------------------------------------------------ */
 /* Inline impl                                                              */
 /* ------------------------------------------------------------------------ */
-template <UInt dim>
-inline void MaterialThermal<dim>::computeStressOnQuad(Real & sigma,
-                                                      const Real & deltaT) {
+template <Int dim>
+template <class Args>
+inline void MaterialThermal<dim>::computeStressOnQuad(Args && args) {
+  auto && sigma = args["sigma_th"_n];
+  auto && deltaT = args["delta_T"_n];
   sigma = -this->E / (1. - 2. * this->nu) * this->alpha * deltaT;
 }
 
 template <>
-inline void MaterialThermal<1>::computeStressOnQuad(Real & sigma,
-                                                    const Real & deltaT) {
+template <class Args>
+inline void MaterialThermal<1>::computeStressOnQuad(Args && args) {
+  auto && sigma = args["sigma_th"_n];
+  auto && deltaT = args["delta_T"_n];
   sigma = -this->E * this->alpha * deltaT;
 }
 

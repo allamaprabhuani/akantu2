@@ -75,7 +75,7 @@ public:
                             IntegrationScheme::SolutionType solution_type =
                                 IntegrationScheme::_not_defined);
 
-  virtual IntegrationScheme & getIntegrationScheme(const ID & dof_id) {
+  virtual IntegrationScheme & getIntegrationScheme(const ID & /*dof_id*/) {
     AKANTU_TO_IMPLEMENT();
   }
 

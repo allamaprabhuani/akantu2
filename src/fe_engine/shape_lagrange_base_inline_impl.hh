@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "shape_lagrange_base.hh"
+//#include "shape_lagrange_base.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SHAPE_LAGRANGE_BASE_INLINE_IMPL_HH_
@@ -41,37 +41,38 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
-    const Array<Real> & /*unused*/, const Matrix<Real> & integration_points,
+    const Array<Real> &, const Ref<const MatrixXr> integration_points,
     Array<Real> & shapes, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_points = integration_points.cols();
-  UInt nb_element = mesh.getConnectivity(type, ghost_type).size();
+  auto nb_points = integration_points.cols();
+  auto nb_element = mesh.getConnectivity(type, ghost_type).size();
 
   shapes.resize(nb_element * nb_points);
 
 #if !defined(AKANTU_NDEBUG)
-  UInt size_of_shapes = ElementClass<type>::getShapeSize();
+  auto size_of_shapes = ElementClass<type>::getShapeSize();
   AKANTU_DEBUG_ASSERT(shapes.getNbComponent() == size_of_shapes,
                       "The shapes array does not have the correct "
                           << "number of component");
 #endif
 
-  auto shapes_it = shapes.begin_reinterpret(
-      ElementClass<type>::getNbNodesPerInterpolationElement(), nb_points,
-      nb_element);
+  auto shapes_it =
+      make_view(shapes, ElementClass<type>::getNbNodesPerInterpolationElement(),
+                nb_points)
+          .begin();
   auto shapes_begin = shapes_it;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
   }
 
-  for (UInt elem = 0; elem < nb_element; ++elem) {
+  for (Int elem = 0; elem < nb_element; ++elem) {
     if (filter_elements != empty_filter) {
       shapes_it = shapes_begin + filter_elements(elem);
     }
 
-    Matrix<Real> & N = *shapes_it;
+    auto && N = *shapes_it;
     ElementClass<type>::computeShapes(integration_points, N);
 
     if (filter_elements == empty_filter) {

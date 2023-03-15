@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-""" plot_neighborhoods.py: plot the neighborhoods in non local manager"""
+"""plot_neighborhoods.py: plot the neighborhoods in non local manager."""
 
 __author__ = "Aurelia Isabel Cuba Ramos"
 __credits__ = [
@@ -19,7 +18,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 # ------------------------------------------------------------------------------
-def readFile(filename):
+def read_file(filename):
+    """Read a reference file."""
     quad_x_coords = list()
     quad_y_coords = list()
     with open(filename) as fh:
@@ -33,7 +33,8 @@ def readFile(filename):
 
 
 # ------------------------------------------------------------------------------
-def readNeighborhoods(filename):
+def read_neighborhoods(filename):
+    """Read a neighborhood file or verification."""
     neighborhoods = dict()
     with open(filename) as fh:
         first_line = fh.readline()
@@ -53,7 +54,8 @@ def readNeighborhoods(filename):
 
 
 # ------------------------------------------------------------------------------
-def plotNeighborhood(quad_x_coords, quad_y_coords, neighborhood, r):
+def plot_neighborhood(quad_x_coords, quad_y_coords, neighborhood, r):
+    """Plot a neighborhood."""
     ax = plt.subplot(111)
     plt.axis([-1, 1, -1, 1])
     # plot all quads
@@ -85,22 +87,23 @@ def plotNeighborhood(quad_x_coords, quad_y_coords, neighborhood, r):
 
 # ------------------------------------------------------------------------------
 def main():
+    """Run the main function."""
     non_local_radius = 0.5
     rc('text', usetex=True)
     rc('font', family='serif', size=8, serif='Times')
 
     neighborhood_file = sys.argv[1]
 
-    quad_x_coords, quad_y_coords = readFile(neighborhood_file)
+    quad_x_coords, quad_y_coords = read_file(neighborhood_file)
     nb_quads = len(quad_x_coords)
 
-    neighborhoods = readNeighborhoods(neighborhood_file)
+    neighborhoods = read_neighborhoods(neighborhood_file)
 
     with PdfPages('resulting_neighborhoods.pdf') as pdf:
         for i in range(nb_quads):
             plt.figure(1, figsize=(7/2.54, 7/2.54))
-            plotNeighborhood(quad_x_coords, quad_y_coords,
-                             neighborhoods[i], non_local_radius)
+            plot_neighborhood(quad_x_coords, quad_y_coords,
+                              neighborhoods[i], non_local_radius)
             pdf.savefig()
             plt.close()
 

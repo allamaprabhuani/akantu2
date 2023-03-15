@@ -14,13 +14,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageLinear<spatial_dimension>::computeStressOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, Real & K) {
   Real Fdiag[3];
   Real Fdiagp[3];
 
-  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
+  Math::matrix33_eigenvalues(grad_u.data(), Fdiag);
 
   Fdiagp[0] = std::max(0., Fdiag[0]);
   Fdiagp[1] = std::max(0., Fdiag[1]);

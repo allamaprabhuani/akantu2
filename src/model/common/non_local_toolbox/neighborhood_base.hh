@@ -74,7 +74,7 @@ public:
 
   /// initialize the material computed parameter
   inline void insertIntegrationPoint(const IntegrationPoint & quad,
-                                     const Vector<Real> & coords);
+                                     const Ref<Vector<Real>> & coords);
 
   /// create the pairs of quadrature points
   void updatePairList();
@@ -91,10 +91,9 @@ public:
                            const SynchronizationTag & tag) = 0;
 
   /// inherited function from MeshEventHandler
-  virtual void
-  onElementsRemoved(const Array<Element> & element_list,
-                    const ElementTypeMapArray<UInt> & new_numbering,
-                    const RemovedElementsEvent & event);
+  virtual void onElementsRemoved(const Array<Element> & element_list,
+                                 const ElementTypeMapArray<Idx> & new_numbering,
+                                 const RemovedElementsEvent & event);
 
 protected:
   /// create the grid
@@ -104,7 +103,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
   AKANTU_GET_MACRO(Model, model, const Model &);
   /// return the object handling synchronizers
   const PairList & getPairLists(GhostType type) {
@@ -143,7 +142,7 @@ protected:
   const ElementTypeMapArray<Real> & quad_coordinates;
 
   /// the spatial dimension of the problem
-  const UInt spatial_dimension;
+  const Int spatial_dimension;
 };
 
 } // namespace akantu

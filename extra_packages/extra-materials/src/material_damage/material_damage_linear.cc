@@ -19,7 +19,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(
     SolidMechanicsModel & model, const ID & id)
     : MaterialDamage<spatial_dimension>(model, id), K("K", *this) {
@@ -34,7 +34,7 @@ MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageLinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
@@ -48,13 +48,13 @@ void MaterialDamageLinear<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageLinear<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * K = this->K(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * K = this->K(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 

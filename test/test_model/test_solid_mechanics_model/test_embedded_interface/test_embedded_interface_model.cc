@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
   initialize("material.dat", argc, argv);
 
-  UInt dim = 2;
+  Int dim = 2;
   Math::setTolerance(1e-7);
 
   // Mesh here is a 1x1 patch
@@ -49,14 +49,14 @@ int main(int argc, char * argv[]) {
   mesh.read("embedded_mesh.msh");
 
   Array<Real> nodes_vec(2, dim, "reinforcement_nodes");
-  nodes_vec.storage()[0] = 0;
-  nodes_vec.storage()[1] = 0.5;
-  nodes_vec.storage()[2] = 1;
-  nodes_vec.storage()[3] = 0.5;
+  nodes_vec.data()[0] = 0;
+  nodes_vec.data()[1] = 0.5;
+  nodes_vec.data()[2] = 1;
+  nodes_vec.data()[3] = 0.5;
 
-  Array<UInt> conn_vec(1, 2, "reinforcement_connectivity");
-  conn_vec.storage()[0] = 0;
-  conn_vec.storage()[1] = 1;
+  Array<Idx> conn_vec(1, 2, "reinforcement_connectivity");
+  conn_vec.data()[0] = 0;
+  conn_vec.data()[1] = 1;
 
   Array<std::string> names_vec(1, 1, "reinforcement", "reinforcement_names");
 
@@ -80,7 +80,7 @@ int main(int argc, char * argv[]) {
   forces(5, 0) = -500;
   forces(8, 0) = -250;
 
-  for (UInt i = 0; i < mesh.getNbNodes(); i++) {
+  for (Int i = 0; i < mesh.getNbNodes(); i++) {
     if (Math::are_float_equal(nodes(i, 0), 0.))
       bound(i, 0) = true;
     if (Math::are_float_equal(nodes(i, 1), 0.))

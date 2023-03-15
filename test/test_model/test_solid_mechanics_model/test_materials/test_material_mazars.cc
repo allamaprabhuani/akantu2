@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(akantu::dblWarning);
 
   akantu::initialize("material_mazars.dat", argc, argv);
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   //  ElementType type = _quadrangle_4;
   ElementType type = _hexahedron_8;
@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & velo = model.getVelocity();
   Array<bool> & boun = model.getBlockedDOFs();
 
-  for (UInt i = 0; i < nb_dof; ++i) {
+  for (Int i = 0; i < nb_dof; ++i) {
     boun(i, 0) = true;
   }
 
@@ -182,7 +182,7 @@ int main(int argc, char * argv[]) {
   UInt nb_steps = 7e5 / 150;
 
   Real adisp = 0;
-  for (UInt s = 0; s < nb_steps; ++s) {
+  for (Int s = 0; s < nb_steps; ++s) {
     if (s == 0) {
       max_disp = 0.003;
       adisp = -(max_disp * 8. / nb_steps) / 2.;
@@ -233,7 +233,7 @@ int main(int argc, char * argv[]) {
       std::cout << "Step " << s << " discharge" << std::endl;
     }
 
-    for (UInt i = 0; i < nb_dof; ++i) {
+    for (Int i = 0; i < nb_dof; ++i) {
       if (std::abs(nodes(i, 0) - width) <
           std::numeric_limits<Real>::epsilon()) {
         disp(i, 0) += adisp;

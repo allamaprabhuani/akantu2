@@ -43,8 +43,8 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
-  const UInt max_steps = 1000;
+  const Int spatial_dimension = 2;
+  const Int max_steps = 1000;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
@@ -68,15 +68,17 @@ int main(int argc, char * argv[]) {
   Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & displacement = model.getDisplacement();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+  for (Int n = 0; n < nb_nodes; ++n) {
+    if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
       boundary(n, 1) = true;
+    }
 
-    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
+    if (position(n, 0) > 0.99 || position(n, 0) < -0.99) {
       boundary(n, 0) = true;
+    }
   }
 
   model.setBaseName("extrinsic");
@@ -91,17 +93,18 @@ int main(int argc, char * argv[]) {
   /// initial conditions
   Real loading_rate = 0.5;
   Real disp_update = loading_rate * time_step;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
   }
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+    for (Int n = 0; n < nb_nodes; ++n) {
+      if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
         displacement(n, 1) += disp_update * position(n, 1);
+      }
     }
 
     model.checkCohesiveStress();

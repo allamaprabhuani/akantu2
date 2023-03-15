@@ -169,7 +169,7 @@ auto DOFManagerDefault::getNewDOFData(const ID & dof_id)
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt, UInt>
+std::tuple<Int, Int, Int>
 DOFManagerDefault::registerDOFsInternal(const ID & dof_id,
                                         Array<Real> & dofs_array) {
   auto ret = DOFManager::registerDOFsInternal(dof_id, dofs_array);
@@ -249,16 +249,13 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
                                         Array<T> & local_array) const {
   AKANTU_DEBUG_IN();
 
-  const Array<Int> & equation_number = this->getLocalEquationsNumbers(dof_id);
+  const auto & equation_number = this->getLocalEquationsNumbers(dof_id);
 
-  UInt nb_degree_of_freedoms = equation_number.size();
+  auto nb_degree_of_freedoms = equation_number.size();
   local_array.resize(nb_degree_of_freedoms / local_array.getNbComponent());
 
-  auto loc_it = local_array.begin_reinterpret(nb_degree_of_freedoms);
-  auto equ_it = equation_number.begin();
-
-  for (UInt d = 0; d < nb_degree_of_freedoms; ++d, ++loc_it, ++equ_it) {
-    (*loc_it) = global_array(*equ_it);
+  for (auto data : zip(equation_number, make_view(local_array))) {
+    std::get<1>(data) = global_array(std::get<0>(data));
   }
 
   AKANTU_DEBUG_OUT();
@@ -277,7 +274,8 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
 void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
     const ID & dof_id, const ID & A_id, const Array<Real> & x,
     Real scale_factor) {
-  const Array<Real> & A = this->getLumpedMatrix(A_id);
+  const auto & A =
+      aka::as_type<SolverVectorArray>(this->getLumpedMatrix(A_id)).getVector();
   auto & cache = aka::as_type<SolverVectorArray>(*this->data_cache);
 
   cache.zero();
@@ -297,7 +295,7 @@ void DOFManagerDefault::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   this->addToProfile(matrix_id, dof_id, type, ghost_type);
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
@@ -363,19 +361,19 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   auto cit = cbegin;
 
   auto nb_elements = connectivity.size();
-  UInt * ge_it = nullptr;
+  Int * ge_it = nullptr;
   if (dof_data.group_support != "__mesh__") {
     const auto & group_elements =
         this->mesh->getElementGroup(dof_data.group_support)
             .getElements(type, ghost_type);
-    ge_it = group_elements.storage();
+    ge_it = group_elements.data();
     nb_elements = group_elements.size();
   }
 
-  UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom_per_node;
+  auto size_mat = nb_nodes_per_element * nb_degree_of_freedom_per_node;
   Vector<Int> element_eq_nb(size_mat);
 
-  for (UInt e = 0; e < nb_elements; ++e) {
+  for (Int e = 0; e < nb_elements; ++e) {
     if (ge_it != nullptr) {
       cit = cbegin + *ge_it;
     }
@@ -383,8 +381,7 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
     this->extractElementEquationNumber(
         equation_number, *cit, nb_degree_of_freedom_per_node, element_eq_nb);
     std::transform(
-        element_eq_nb.storage(), element_eq_nb.storage() + element_eq_nb.size(),
-        element_eq_nb.storage(),
+        element_eq_nb.begin(), element_eq_nb.end(), element_eq_nb.begin(),
         [&](auto & local) { return this->localToGlobalEquationNumber(local); });
 
     if (ge_it != nullptr) {
@@ -393,11 +390,11 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
       ++cit;
     }
 
-    for (UInt i = 0; i < size_mat; ++i) {
-      UInt c_irn = element_eq_nb(i);
+    for (Int i = 0; i < size_mat; ++i) {
+      auto c_irn = element_eq_nb(i);
       if (c_irn < size) {
-        for (UInt j = 0; j < size_mat; ++j) {
-          UInt c_jcn = element_eq_nb(j);
+        for (Int j = 0; j < size_mat; ++j) {
+          auto c_jcn = element_eq_nb(j);
           if (c_jcn < size) {
             A.add(c_irn, c_jcn);
           }
@@ -427,7 +424,7 @@ Array<Real> & DOFManagerDefault::getResidualArray() {
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManagerDefault::onNodesAdded(const Array<UInt> & nodes_list,
+void DOFManagerDefault::onNodesAdded(const Array<Idx> & nodes_list,
                                      const NewNodesEvent & event) {
   DOFManager::onNodesAdded(nodes_list, event);
 

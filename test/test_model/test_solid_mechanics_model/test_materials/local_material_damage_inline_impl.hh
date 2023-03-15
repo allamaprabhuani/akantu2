@@ -34,8 +34,8 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                     Matrix<Real> & sigma,
+inline void LocalMaterialDamage::computeStressOnQuad(MatrixProxy<Real> & grad_u,
+                                                     MatrixProxy<Real> & sigma,
                                                      Real & dam) {
 
   Real trace = grad_u.trace();
@@ -44,20 +44,16 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
   /// u_{ij} + \nabla u_{ji})
   auto && epsilon = (grad_u + grad_u.transpose()) / 2.;
 
-  sigma = Matrix<Real>::eye(spatial_dimension) * trace * lambda + mu * epsilon;
+  sigma = Matrix<Real>::Identity(spatial_dimension, spatial_dimension) * trace *
+              lambda +
+          mu * epsilon;
 
-  Real Y = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      Y += sigma(i, j) * epsilon(i, j);
-    }
-  }
-  Y *= 0.5;
-
+  Real Y = sigma.doubleDot(epsilon) / 2.;
   Real Fd = Y - Yd - Sd * dam;
 
-  if (Fd > 0)
+  if (Fd > 0) {
     dam = (Y - Yd) / Sd;
+  }
   dam = std::min(dam, 1.);
 
   sigma *= 1 - dam;
@@ -65,16 +61,12 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 
 /* -------------------------------------------------------------------------- */
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & epot) {
-  epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      epot += sigma(i, j) * (grad_u(i, j) - (i == j));
-  epot *= .5;
+    MatrixProxy<Real> & grad_u, MatrixProxy<Real> & sigma, Real & epot) {
+  epot = sigma.doubleDot(grad_u) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real LocalMaterialDamage::getCelerity(__attribute__((unused))
-                                             const Element & element) const {
+inline Real
+LocalMaterialDamage::getCelerity(const Element & /*element*/) const {
   return (std::sqrt(E / rho));
 }

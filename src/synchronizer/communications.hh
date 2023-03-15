@@ -48,11 +48,11 @@ public:
   using Scheme = Array<Entity>;
 
 protected:
-  using CommunicationPerProcs = std::map<UInt, Communication>;
+  using CommunicationPerProcs = std::map<Int, Communication>;
   using CommunicationsPerTags =
       std::map<SynchronizationTag, CommunicationPerProcs>;
-  using CommunicationSchemes = std::map<UInt, Scheme>;
-  using Request = std::map<UInt, std::vector<CommunicationRequest>>;
+  using CommunicationSchemes = std::map<Int, Scheme>;
+  using Request = std::map<Int, std::vector<CommunicationRequest>>;
 
   friend class CommunicationDescriptor<Entity>;
 
@@ -72,8 +72,8 @@ public:
   /* ------------------------------------------------------------------------ */
   bool hasPending(const SynchronizationTag & tag,
                   const CommunicationSendRecv & sr) const;
-  UInt getPending(const SynchronizationTag & tag,
-                  const CommunicationSendRecv & sr) const;
+  Int getPending(const SynchronizationTag & tag,
+                 const CommunicationSendRecv & sr) const;
 
   /* ------------------------------------------------------------------------ */
   iterator begin(const SynchronizationTag & tag,
@@ -96,12 +96,12 @@ public:
                     const CommunicationSendRecv & sr);
 
   /* ------------------------------------------------------------------------ */
-  Scheme & createScheme(UInt proc, const CommunicationSendRecv & sr);
+  Scheme & createScheme(Idx proc, const CommunicationSendRecv & sr);
   void resetSchemes(const CommunicationSendRecv & sr);
 
   /* ------------------------------------------------------------------------ */
-  void setCommunicationSize(const SynchronizationTag & tag, UInt proc,
-                            UInt size, const CommunicationSendRecv & sr);
+  void setCommunicationSize(const SynchronizationTag & tag, Idx proc, Int size,
+                            const CommunicationSendRecv & sr);
 
 public:
   explicit Communications(const Communicator & communicator);
@@ -133,14 +133,6 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  // iterator begin_send(const SynchronizationTag & tag);
-  // iterator end_send(const SynchronizationTag & tag);
-
-  /* ------------------------------------------------------------------------ */
-  // iterator begin_recv(const SynchronizationTag & tag);
-  // iterator end_recv(const SynchronizationTag & tag);
-
-  /* ------------------------------------------------------------------------ */
   class IterableTags {
   public:
     explicit IterableTags(Communications & communications)
@@ -160,7 +152,7 @@ public:
   /* ------------------------------------------------------------------------ */
   bool hasCommunication(const SynchronizationTag & tag) const;
   void incrementCounter(const SynchronizationTag & tag);
-  UInt getCounter(const SynchronizationTag & tag) const;
+  Int getCounter(const SynchronizationTag & tag) const;
   bool hasCommunicationSize(const SynchronizationTag & tag) const;
   void invalidateSizes();
 
@@ -242,20 +234,20 @@ public:
   const_scheme_iterator end_recv_scheme() const;
 
   /* ------------------------------------------------------------------------ */
-  Scheme & createSendScheme(UInt proc);
-  Scheme & createRecvScheme(UInt proc);
+  Scheme & createSendScheme(Idx proc);
+  Scheme & createRecvScheme(Idx proc);
 
   /* ------------------------------------------------------------------------ */
-  Scheme & getScheme(UInt proc, const CommunicationSendRecv & sr);
-  const Scheme & getScheme(UInt proc, const CommunicationSendRecv & sr) const;
+  Scheme & getScheme(Idx proc, const CommunicationSendRecv & sr);
+  const Scheme & getScheme(Idx proc, const CommunicationSendRecv & sr) const;
 
   /* ------------------------------------------------------------------------ */
   void resetSchemes();
   /* ------------------------------------------------------------------------ */
-  void setSendCommunicationSize(const SynchronizationTag & tag, UInt proc,
-                                UInt size);
-  void setRecvCommunicationSize(const SynchronizationTag & tag, UInt proc,
-                                UInt size);
+  void setSendCommunicationSize(const SynchronizationTag & tag, Idx proc,
+                                Int size);
+  void setRecvCommunicationSize(const SynchronizationTag & tag, Idx proc,
+                                Int size);
 
   void initializeCommunications(const SynchronizationTag & tag);
 
@@ -263,8 +255,8 @@ protected:
   CommunicationSchemes schemes[2];
   CommunicationsPerTags communications[2];
 
-  std::map<SynchronizationTag, UInt> comm_counter;
-  std::map<SynchronizationTag, UInt> pending_communications[2];
+  std::map<SynchronizationTag, Int> comm_counter;
+  std::map<SynchronizationTag, Int> pending_communications[2];
   std::map<SynchronizationTag, bool> comm_size_computed;
 
   const Communicator & communicator;

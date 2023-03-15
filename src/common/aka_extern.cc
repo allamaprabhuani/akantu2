@@ -82,14 +82,17 @@ bool Parser::permissive_parser = false;
 Real Math::tolerance = 1e2 * std::numeric_limits<Real>::epsilon();
 
 /* -------------------------------------------------------------------------- */
-const UInt _all_dimensions [[gnu::unused]] = UInt(-1);
+const Int _all_dimensions [[gnu::unused]] = Int(-1);
 
 /* -------------------------------------------------------------------------- */
-const Array<UInt> empty_filter(0, 1, "empty_filter");
+const Array<Int> empty_filter(0, 1, "empty_filter");
 
 /* -------------------------------------------------------------------------- */
+template <> long int RandomGenerator<Idx>::_seed = 5489;
+template <> std::default_random_engine RandomGenerator<Idx>::generator(5489);
 template <> long int RandomGenerator<UInt>::_seed = 5489U;
 template <> std::default_random_engine RandomGenerator<UInt>::generator(5489U);
+
 /* -------------------------------------------------------------------------- */
 int Tag::max_tag = 0;
 

@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
   initialize(argc, argv);
   const ElementType element_type = _triangle_3;
   const GhostType ghost_type = _not_ghost;
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   const auto & comm = akantu::Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -91,15 +91,15 @@ int main(int argc, char * argv[]) {
           mesh, spatial_dimension, "my_fem");
 
   DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
-  UInt nb_global_nodes = mesh.getNbGlobalNodes();
+  Int nb_global_nodes = mesh.getNbGlobalNodes();
 
   dof_synchronizer.initGlobalDOFEquationNumbers();
 
   // construct an Akantu sparse matrix, build the profile and fill the matrix
   // for the given mesh
-  UInt nb_element = mesh.getNbElement(element_type);
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
-  UInt nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
+  Int nb_element = mesh.getNbElement(element_type);
+  Int nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
+  Int nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
   SparseMatrix K_akantu(nb_global_nodes * spatial_dimension, _unsymmetric);
   K_akantu.buildProfile(mesh, dof_synchronizer, spatial_dimension);
   /// use as elemental matrices a matrix with values equal to 1 every where

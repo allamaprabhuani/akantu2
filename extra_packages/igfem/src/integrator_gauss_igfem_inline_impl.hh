@@ -64,8 +64,8 @@ inline void IntegratorGauss<_ek_igfem, IOF>::integrateOnElement(
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom,
                       "The vector f do not have the good number of component.");
 
-  Real * f_val = f.storage() + elem * f.getNbComponent();
-  Real * jac_val = jac_loc.storage() + elem * nb_quadrature_points;
+  Real * f_val = f.data() + elem * f.getNbComponent();
+  Real * jac_val = jac_loc.data() + elem * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degree_of_freedom, nb_quadrature_points);
 }
@@ -81,10 +81,10 @@ inline Real IntegratorGauss<_ek_igfem, IOF>::integrate(
   AKANTU_DEBUG_ASSERT(in_f.size() == nb_quadrature_points,
                       "The vector f do not have nb_quadrature_points entries.");
 
-  Real * jac_val = jac_loc.storage() + index * nb_quadrature_points;
+  Real * jac_val = jac_loc.data() + index * nb_quadrature_points;
   Real intf;
 
-  integrate(in_f.storage(), jac_val, &intf, 1, nb_quadrature_points);
+  integrate(in_f.data(), jac_val, &intf, 1, nb_quadrature_points);
 
   return intf;
   return 0.;
@@ -144,16 +144,16 @@ IntegratorGauss<_ek_igfem, IOF>::computeQuadraturePoints(GhostType ghost_type) {
   UInt nb_quad_points_sub_2 =
       GaussIntegrationElement<sub_type_2>::getNbQuadraturePoints();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
 
   Matrix<Real> & quads = quadrature_points(type, ghost_type);
   quads = Matrix<Real>(spatial_dimension,
                        nb_quad_points_sub_1 + nb_quad_points_sub_2);
 
-  Matrix<Real> quads_1(quads.storage(), quads.rows(), nb_quad_points_sub_1);
+  Matrix<Real> quads_1(quads.data(), quads.rows(), nb_quad_points_sub_1);
   quads_1 = quads_sub_1;
 
-  Matrix<Real> quads_2(quads.storage() + quads.rows() * nb_quad_points_sub_1,
+  Matrix<Real> quads_2(quads.data() + quads.rows() * nb_quad_points_sub_1,
                        quads.rows(), nb_quad_points_sub_2);
 
   quads_2 = quads_sub_2;
@@ -201,7 +201,7 @@ IntegratorGauss<_ek_igfem, IOF>::checkJacobians(GhostType ghost_type) const {
 
   nb_element = mesh.getConnectivity(type, ghost_type).getSize();
 
-  Real * jacobians_val = jacobians(type, ghost_type).storage();
+  Real * jacobians_val = jacobians(type, ghost_type).data();
 
   for (UInt i = 0; i < nb_element * nb_quadrature_points;
        ++i, ++jacobians_val) {
@@ -227,7 +227,7 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
   const ElementType sub_type_1 = ElementClassProperty<type>::sub_element_type_1;
   const ElementType sub_type_2 = ElementClassProperty<type>::sub_element_type_2;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   /// get the number of nodes for the subelements and the parent element
   UInt nb_nodes_sub_1 =
@@ -267,7 +267,7 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
       x_el.begin(spatial_dimension, nb_nodes_per_element);
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
-  for (UInt elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
+  for (Int elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
     const Matrix<Real> & X = *x_it;
 
     Matrix<Real> sub_1_coords(spatial_dimension, nb_nodes_sub_1);
@@ -286,11 +286,11 @@ IntegratorGauss<_ek_igfem, IOF>::precomputeJacobiansOnQuadraturePoints(
     J_sub_2 *= weights_sub_2;
 
     /// copy results into the jacobian vector for this element
-    for (UInt i = 0; i < nb_quadrature_points_sub_1; ++i) {
+    for (Int i = 0; i < nb_quadrature_points_sub_1; ++i) {
       J(i) = J_sub_1(i);
     }
 
-    for (UInt i = 0; i < nb_quadrature_points_sub_2; ++i) {
+    for (Int i = 0; i < nb_quadrature_points_sub_2; ++i) {
       J(i + nb_quadrature_points_sub_1) = J_sub_2(i);
     }
   }
@@ -303,7 +303,7 @@ template <class IOF>
 template <ElementType type>
 inline void IntegratorGauss<_ek_igfem, IOF>::integrate(
     const Array<Real> & in_f, Array<Real> & intf, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -339,7 +339,7 @@ inline void IntegratorGauss<_ek_igfem, IOF>::integrate(
   f_it = in_f.begin_reinterpret(nb_degree_of_freedom, nb_points, nb_element);
   inte_it = intf.begin_reinterpret(nb_degree_of_freedom, 1, nb_element);
 
-  for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
+  for (Int el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
     const Matrix<Real> & f = *f_it;
     const Matrix<Real> & J = *J_it;
     Matrix<Real> & inte_f = *inte_it;
@@ -357,7 +357,7 @@ template <class IOF>
 template <ElementType type>
 inline Real IntegratorGauss<_ek_igfem, IOF>::integrate(
     const Array<Real> & in_f, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -382,7 +382,7 @@ inline Real IntegratorGauss<_ek_igfem, IOF>::integrate(
       intfv(nb_values - 2) += intfv(nb_values - 1);
 
     // sum to consecutive values and store the sum in the first half
-    for (UInt i = 0; i < nb_values_to_sum; ++i) {
+    for (Int i = 0; i < nb_values_to_sum; ++i) {
       intfv(i) = intfv(2 * i) + intfv(2 * i + 1);
     }
 
@@ -399,7 +399,7 @@ template <class IOF>
 template <ElementType type>
 inline void IntegratorGauss<_ek_igfem, IOF>::integrateOnIntegrationPoints(
     const Array<Real> & in_f, Array<Real> & intf, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -434,7 +434,7 @@ inline void IntegratorGauss<_ek_igfem, IOF>::integrateOnIntegrationPoints(
   f_it = in_f.begin(nb_degree_of_freedom);
   inte_it = intf.begin(nb_degree_of_freedom);
 
-  for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
+  for (Int el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
     const Real & J = *J_it;
     const Vector<Real> & f = *f_it;
     Vector<Real> & inte_f = *inte_it;

@@ -69,7 +69,7 @@ public:
   //                              const NewElementsEvent & event) {};
 
   // virtual void onElementsRemoved(const Array<Element> & element_list,
-  //                                const ElementTypeMapArray<UInt> &
+  //                                const ElementTypeMapArray<Idx> &
   //                                new_numbering,
   //                                const RemovedElementsEvent & event) {};
 protected:

@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
 
   akantu::initialize("material_test_boundary.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("periodic_plate.msh");
 

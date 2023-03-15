@@ -49,10 +49,10 @@ namespace akantu {
 
 void register_fe_engine(py::module & mod) {
   py::class_<Element>(mod, "Element")
-      .def(py::init([](ElementType type, UInt id) {
+      .def(py::init([](ElementType type, Int id) {
         return new Element{type, id, _not_ghost};
       }))
-      .def(py::init([](ElementType type, UInt id, GhostType ghost_type) {
+      .def(py::init([](ElementType type, Int id, GhostType ghost_type) {
         return new Element{type, id, ghost_type};
       }))
       .def("__lt__",
@@ -64,57 +64,44 @@ void register_fe_engine(py::module & mod) {
   py::class_<FEEngine>(mod, "FEEngine")
       .def(
           "getNbIntegrationPoints",
-          [](FEEngine & fem, const ElementType & type,
-             const GhostType & ghost_type) {
+          [](FEEngine & fem, ElementType type, GhostType ghost_type) {
             return fem.getNbIntegrationPoints(type, ghost_type);
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def(
           "gradientOnIntegrationPoints",
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
-             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
-             const Array<UInt> * filter_elements) {
-            if (filter_elements == nullptr) {
-              // This is due to the ArrayProxy that looses the
-              // empty_filter information
-              filter_elements = &empty_filter;
-            }
+             const Int nb_degree_of_freedom, ElementType type,
+             GhostType ghost_type, const Array<Idx> & filter_elements) {
             fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
-                                            type, ghost_type, *filter_elements);
+                                            type, ghost_type, filter_elements);
           },
           py::arg("u"), py::arg("nablauq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("filter_elements") = nullptr)
+          py::arg("filter_elements") = empty_filter)
       .def(
           "interpolateOnIntegrationPoints",
           [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
-             UInt nb_degree_of_freedom, ElementType type, GhostType ghost_type,
-             const Array<UInt> * filter_elements) {
-            if (filter_elements == nullptr) {
-              // This is due to the ArrayProxy that looses the
-              // empty_filter information
-              filter_elements = &empty_filter;
-            }
-
-            self.interpolateOnIntegrationPoints(u, uq, nb_degree_of_freedom,
-                                                type, ghost_type,
-                                                *filter_elements);
+             Int nb_degree_of_freedom, ElementType type, GhostType ghost_type,
+             const Array<Idx> & filter_elements) {
+            self.interpolateOnIntegrationPoints(
+                u, uq, nb_degree_of_freedom, type, ghost_type, filter_elements);
           },
           py::arg("u"), py::arg("uq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("filter_elements") = nullptr)
+          py::arg("filter_elements") = empty_filter)
       .def(
           "interpolateOnIntegrationPoints",
           [](FEEngine & self, const Array<Real> & u,
              ElementTypeMapArray<Real> & uq,
-             const ElementTypeMapArray<UInt> * filter_elements) {
+             const ElementTypeMapArray<Idx> * filter_elements) {
             self.interpolateOnIntegrationPoints(u, uq, filter_elements);
           },
           py::arg("u"), py::arg("uq"), py::arg("filter_elements") = nullptr)
       .def(
           "computeIntegrationPointsCoordinates",
           [](FEEngine & self, ElementTypeMapArray<Real> & coordinates,
-             const ElementTypeMapArray<UInt> * filter_elements)
+             const ElementTypeMapArray<Idx> * filter_elements)
               -> decltype(auto) {
             return self.computeIntegrationPointsCoordinates(coordinates,
                                                             filter_elements);

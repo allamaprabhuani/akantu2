@@ -47,7 +47,7 @@ using clk = std::chrono::high_resolution_clock;
 using second = std::chrono::duration<double>;
 using millisecond = std::chrono::duration<double, std::milli>;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
@@ -84,13 +84,13 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1000;
+  Int nbSteps = 1000;
   Real increment = 6e-6;
-  UInt nb_staggered_steps = 5;
+  Int nb_staggered_steps = 5;
 
   auto start_time = clk::now();
 
-  for (UInt s = 1; s < nbSteps; ++s) {
+  for (Int s = 1; s < nbSteps; ++s) {
 
     if (s >= 500) {
       increment = 2e-6;
@@ -111,7 +111,7 @@ int main(int argc, char * argv[]) {
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
 
-    for (UInt i = 0; i < nb_staggered_steps; ++i) {
+    for (Idx i = 0; i < nb_staggered_steps; ++i) {
       coupler.solve();
     }
 

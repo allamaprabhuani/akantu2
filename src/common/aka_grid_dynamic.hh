@@ -52,18 +52,18 @@ class Mesh;
 
 template <typename T> class SpatialGrid {
 public:
-  explicit SpatialGrid(UInt dimension)
+  explicit SpatialGrid(Int dimension)
       : dimension(dimension), spacing(dimension), center(dimension),
-        lower(dimension), upper(dimension), empty_cell() {}
-
-  SpatialGrid(UInt dimension, const Vector<Real> & spacing,
-              const Vector<Real> & center)
-      : dimension(dimension), spacing(spacing), center(center),
         lower(dimension), upper(dimension), empty_cell() {
-    for (UInt i = 0; i < dimension; ++i) {
-      lower(i) = std::numeric_limits<Real>::max();
-      upper(i) = -std::numeric_limits<Real>::max();
-    }
+    lower.fill(std::numeric_limits<Real>::max());
+    upper.fill(-std::numeric_limits<Real>::max());
+  }
+
+  SpatialGrid(Int dimension, const Vector<Real> & spacing,
+              const Vector<Real> & center)
+      : SpatialGrid(dimension) {
+    this->spacing = spacing;
+    this->center = center;
   }
 
   virtual ~SpatialGrid() = default;
@@ -74,19 +74,19 @@ public:
   class CellID {
   public:
     CellID() = default;
-    explicit CellID(UInt dimention) : ids(dimention) {}
-    void setID(UInt dir, Int id) { ids(dir) = id; }
-    Int getID(UInt dir) const { return ids(dir); }
+    explicit CellID(Int dimention) : ids(dimention) {}
+    void setID(Int dir, Int id) { ids(dir) = id; }
+    Idx getID(Int dir) const { return ids(dir); }
+    const Vector<Idx> & getIDs() const { return ids; }
 
     bool operator<(const CellID & id) const {
-      return std::lexicographical_compare(
-          ids.storage(), ids.storage() + ids.size(), id.ids.storage(),
-          id.ids.storage() + id.ids.size());
+      return std::lexicographical_compare(ids.data(), ids.data() + ids.size(),
+                                          id.ids.data(),
+                                          id.ids.data() + id.ids.size());
     }
 
     bool operator==(const CellID & id) const {
-      return std::equal(ids.storage(), ids.storage() + ids.size(),
-                        id.ids.storage());
+      return std::equal(ids.data(), ids.data() + ids.size(), id.ids.data());
     }
 
     bool operator!=(const CellID & id) const { return !(operator==(id)); }
@@ -94,8 +94,8 @@ public:
     class neighbor_cells_iterator {
     public:
       neighbor_cells_iterator(const CellID & cell_id, bool end)
-          : cell_id(cell_id), position(cell_id.ids.size(), end ? 1 : -1) {
-
+          : cell_id(cell_id), position(cell_id.ids.size()) {
+        position.fill(end ? 1 : -1);
         this->updateIt();
         if (end) {
           this->it++;
@@ -103,9 +103,8 @@ public:
       }
 
       neighbor_cells_iterator & operator++() {
-        UInt i = 0;
+        Int i = 0;
         for (; i < position.size() && position(i) == 1; ++i) {
-          ;
         }
 
         if (i == position.size()) {
@@ -113,7 +112,7 @@ public:
           return *this;
         }
 
-        for (UInt j = 0; j < i; ++j) {
+        for (decltype(i) j = 0; j < i; ++j) {
           position(j) = -1;
         }
         position(i)++;
@@ -144,7 +143,7 @@ public:
     private:
       void updateIt() {
         it = 0;
-        for (UInt i = 0; i < position.size(); ++i) {
+        for (Int i = 0; i < position.size(); ++i) {
           it = it * 3 + (position(i) + 1);
         }
       }
@@ -153,9 +152,9 @@ public:
       /// central cell id
       const CellID & cell_id;
       // number representing the current neighbor in base 3;
-      UInt it;
+      Int it{0};
       // current cell shift
-      Vector<Int> position;
+      Vector<Idx> position;
     };
 
     class Neighbors {
@@ -172,7 +171,7 @@ public:
 
   private:
     friend class cells_iterator;
-    Vector<Int> ids;
+    Vector<Idx> ids;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -289,16 +288,13 @@ public:
       Cell cell(cell_id);
       auto & tmp = (cells[cell_id] = cell).add(d);
 
-      for (UInt i = 0; i < dimension; ++i) {
-        Real posl = center(i) + cell_id.getID(i) * spacing(i);
-        Real posu = posl + spacing(i);
-        if (posl <= lower(i)) {
-          lower(i) = posl;
-        }
-        if (posu > upper(i)) {
-          upper(i) = posu;
-        }
-      }
+      auto posl =
+          center.array() +
+          cell_id.getIDs().array().template cast<Real>() * spacing.array();
+      auto posu = posl + spacing.array();
+
+      lower = lower.array().min(posl);
+      upper = upper.array().max(posu);
       return tmp;
     }
     return it->second.add(d);
@@ -318,10 +314,15 @@ public:
   template <class vector_type>
   CellID getCellID(const vector_type & position) const {
     CellID cell_id(dimension);
-    for (UInt i = 0; i < dimension; ++i) {
+    for (Int i = 0; i < dimension; ++i) {
       cell_id.setID(i, getCellID(position(i), i));
     }
     return cell_id;
+  }
+
+  template <class vector_type>
+  const Cell & getCell(const vector_type & position) const {
+    return this->getCell(this->getCellID(position));
   }
 
   void printself(std::ostream & stream, int indent = 0) const {
@@ -337,7 +338,7 @@ public:
            << "> [" << std::endl;
     stream << space << " + dimension    : " << this->dimension << std::endl;
     stream << space << " + lower bounds : {";
-    for (UInt i = 0; i < lower.size(); ++i) {
+    for (Int i = 0; i < lower.size(); ++i) {
       if (i != 0) {
         stream << ", ";
       }
@@ -345,7 +346,7 @@ public:
     };
     stream << "}" << std::endl;
     stream << space << " + upper bounds : {";
-    for (UInt i = 0; i < upper.size(); ++i) {
+    for (Int i = 0; i < upper.size(); ++i) {
       if (i != 0) {
         stream << ", ";
       }
@@ -353,7 +354,7 @@ public:
     };
     stream << "}" << std::endl;
     stream << space << " + spacing : {";
-    for (UInt i = 0; i < spacing.size(); ++i) {
+    for (Int i = 0; i < spacing.size(); ++i) {
       if (i != 0) {
         stream << ", ";
       }
@@ -361,7 +362,7 @@ public:
     };
     stream << "}" << std::endl;
     stream << space << " + center : {";
-    for (UInt i = 0; i < center.size(); ++i) {
+    for (Int i = 0; i < center.size(); ++i) {
       if (i != 0) {
         stream << ", ";
       }
@@ -373,11 +374,11 @@ public:
     Vector<Real> dist(this->dimension);
     dist = upper;
     dist -= lower;
-    for (UInt i = 0; i < this->dimension; ++i) {
+    for (Int i = 0; i < this->dimension; ++i) {
       dist(i) /= spacing(i);
     }
-    UInt nb_cells = std::ceil(dist(0));
-    for (UInt i = 1; i < this->dimension; ++i) {
+    auto nb_cells = std::ceil(dist(0));
+    for (Int i = 1; i < this->dimension; ++i) {
       nb_cells *= std::ceil(dist(i));
     }
     stream << nb_cells << std::endl;
@@ -392,7 +393,7 @@ public:
 private:
   /* --------------------------------------------------------------------------
    */
-  inline UInt getCellID(Real position, UInt direction) const {
+  inline decltype(auto) getCellID(Real position, Int direction) const {
     AKANTU_DEBUG_ASSERT(direction < center.size(), "The direction asked ("
                                                        << direction
                                                        << ") is out of range "
@@ -413,8 +414,8 @@ public:
   AKANTU_GET_MACRO(Center, center, const Vector<Real> &);
   AKANTU_SET_MACRO(Center, center, Vector<Real> &);
 
-protected:
-  UInt dimension;
+private:
+  Int dimension{0};
 
   cells_container cells;
 
@@ -436,12 +437,13 @@ inline std::ostream & operator<<(std::ostream & stream,
 }
 
 } // namespace akantu
+
 #include "mesh.hh"
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T> void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
-
   ElementType type = _not_defined;
   switch (dimension) {
   case 1:
@@ -458,21 +460,21 @@ template <typename T> void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
   MeshAccessor mesh_accessor(mesh);
   auto & connectivity = mesh_accessor.getConnectivity(type);
   auto & nodes = mesh_accessor.getNodes();
-  auto & uint_data = mesh.getDataPointer<UInt>("tag_1", type);
+  auto & uint_data = mesh.getDataPointer<Int>("tag_1", type);
 
   Vector<Real> pos(dimension);
 
-  UInt global_id = 0;
+  Int global_id = 0;
   for (auto & cell_pair : cells) {
-    UInt cur_node = nodes.size();
-    UInt cur_elem = connectivity.size();
-    const CellID & cell_id = cell_pair.first;
+    auto cur_node = nodes.size();
+    auto cur_elem = connectivity.size();
+    const auto & cell_id = cell_pair.first;
 
-    for (UInt i = 0; i < dimension; ++i) {
+    for (Int i = 0; i < dimension; ++i) {
       pos(i) = center(i) + cell_id.getID(i) * spacing(i);
     }
     nodes.push_back(pos);
-    for (UInt i = 0; i < dimension; ++i) {
+    for (Int i = 0; i < dimension; ++i) {
       pos(i) += spacing(i);
     }
     nodes.push_back(pos);

@@ -56,63 +56,49 @@ void ResolutionPenalty::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real ResolutionPenalty::computeNormalTraction(Real & gap) const {
+Real ResolutionPenalty::computeNormalTraction(const Real & gap) const {
   return epsilon_n * macaulay(gap);
 }
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalForce(const ContactElement & element,
                                            Vector<Real> & force) {
-
-  force.zero();
-
-  auto & gaps = model.getGaps();
-  auto & projections = model.getProjections();
-  auto & normals = model.getNormals();
+  const auto & gaps = model.getGaps();
+  const auto & projections = model.getProjections();
+  const auto & normals = model.getNormals();
+  const auto & nodal_area = model.getNodalArea();
 
   auto surface_dimension = spatial_dimension - 1;
 
-  Real gap(gaps.begin()[element.slave]);
-  Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
-  Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
-
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  auto gap = gaps(element.slave);
+  auto && normal = normals.begin(spatial_dimension)[element.slave];
+  auto && projection = projections.begin(surface_dimension)[element.slave];
 
   // compute normal traction
-  Real p_n = computeNormalTraction(gap);
-  p_n *= nodal_area[element.slave];
+  auto p_n = computeNormalTraction(gap) * nodal_area[element.slave];
 
-  UInt nb_nodes_per_contact = element.getNbNodes();
-  Matrix<Real> shape_matric(spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-  ResolutionUtils::computeShapeFunctionMatric(element, projection,
-                                              shape_matric);
+  auto shape_matrix =
+      ResolutionUtils::computeShapeFunctionMatrix(element, projection);
 
-  force.mul<true>(shape_matric, normal, p_n);
+  force = p_n * shape_matrix.transpose() * normal;
 }
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
                                                Vector<Real> & force) {
-
+  force.zero();
   if (mu == 0) {
     return;
   }
 
-  force.zero();
-
-  UInt surface_dimension = spatial_dimension - 1;
+  auto surface_dimension = spatial_dimension - 1;
 
   // compute covariant basis
-  auto & projections = model.getProjections();
-  Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
+  auto && projection =
+      model.getProjections().begin(surface_dimension)[element.slave];
 
-  auto & normals = model.getNormals();
-  Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
-
-  auto & tangents = model.getTangents();
-  Matrix<Real> covariant_basis(
-      tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
+  auto && covariant_basis = model.getTangents().begin(
+      spatial_dimension, surface_dimension)[element.slave];
 
   // check for no-contact to contact condition
   // need a better way to check if new node added is not presnt in the
@@ -129,46 +115,37 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 
   // compute tangential traction using return map algorithm
   auto & tangential_tractions = model.getTangentialTractions();
-  Vector<Real> tangential_traction(
-      tangential_tractions.begin(surface_dimension)[element.slave]);
+  auto && tangential_traction =
+      tangential_tractions.begin(surface_dimension)[element.slave];
   this->computeTangentialTraction(element, covariant_basis,
                                   tangential_traction);
 
-  UInt nb_nodes_per_contact = element.getNbNodes();
-  Matrix<Real> shape_matric(spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-  ResolutionUtils::computeShapeFunctionMatric(element, projection,
-                                              shape_matric);
+  auto shape_matrix =
+      ResolutionUtils::computeShapeFunctionMatrix(element, projection);
 
   auto contravariant_metric_tensor =
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  const auto & nodal_area = model.getNodalArea();
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
-    for (auto && values2 : enumerate(tangential_traction)) {
-      auto & beta = std::get<0>(values2);
-      auto & traction_beta = std::get<1>(values2);
-      Vector<Real> tmp(force.size());
-      tmp.mul<true>(shape_matric, tangent_alpha, traction_beta);
-      tmp *=
-          contravariant_metric_tensor(alpha, beta) * nodal_area[element.slave];
-      force += tmp;
+  for (auto && [alpha, tangent_alpha] : enumerate(covariant_basis)) {
+    for (auto && [beta, traction_beta] : enumerate(tangential_traction)) {
+      force += (traction_beta * shape_matrix.transpose() * tangent_alpha) *
+               contravariant_metric_tensor(alpha, beta) *
+               nodal_area[element.slave];
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D>
 void ResolutionPenalty::computeTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_tangential) {
+    Eigen::MatrixBase<D> & traction_tangential) {
 
-  UInt surface_dimension = spatial_dimension - 1;
+  Int surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
+  const auto & gap = model.getGaps()(element.slave);
 
   // Return map algorithm is employed
   // compute trial traction
@@ -186,7 +163,7 @@ void ResolutionPenalty::computeTangentialTraction(
                              contravariant_metric_tensor(i, j);
     }
   }
-  traction_trial_norm = sqrt(traction_trial_norm);
+  traction_trial_norm = std::sqrt(traction_trial_norm);
 
   // check stick or slip condition
   auto & contact_state = model.getContactState();
@@ -207,9 +184,10 @@ void ResolutionPenalty::computeTangentialTraction(
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D>
 void ResolutionPenalty::computeTrialTangentialTraction(
-    const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction) {
+    const ContactElement & element, const Matrix<Real> & current_tangent,
+    Eigen::MatrixBase<D> & traction) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
@@ -235,27 +213,23 @@ void ResolutionPenalty::computeTrialTangentialTraction(
 
   // method from Schweizerhof
   auto covariant_metric_tensor =
-      GeometryUtils::covariantMetricTensor(covariant_basis);
+      GeometryUtils::covariantMetricTensor(current_tangent);
 
   auto & previous_tangential_tractions = model.getPreviousTangentialTractions();
-  Vector<Real> previous_traction(
+  auto && previous_traction(
       previous_tangential_tractions.begin(surface_dimension)[element.slave]);
 
   auto & previous_tangents = model.getPreviousTangents();
-  Matrix<Real> previous_covariant_basis(previous_tangents.begin(
-      surface_dimension, spatial_dimension)[element.slave]);
+  auto && previous_tangent = previous_tangents.begin(
+      spatial_dimension, surface_dimension)[element.slave];
   auto previous_contravariant_metric_tensor =
-      GeometryUtils::contravariantMetricTensor(previous_covariant_basis);
-
-  auto current_tangent = covariant_basis.transpose();
-  auto previous_tangent = previous_covariant_basis.transpose();
+      GeometryUtils::contravariantMetricTensor(previous_tangent);
 
   for (auto alpha : arange(surface_dimension)) {
-    Vector<Real> tangent_alpha(current_tangent(alpha));
     for (auto gamma : arange(surface_dimension)) {
       for (auto beta : arange(surface_dimension)) {
-        Vector<Real> tangent_beta(previous_tangent(beta));
-        auto t_alpha_t_beta = tangent_beta.dot(tangent_alpha);
+        auto t_alpha_t_beta =
+            previous_tangent(beta).dot(current_tangent(alpha));
         traction[alpha] += previous_traction[gamma] *
                            previous_contravariant_metric_tensor(gamma, beta) *
                            t_alpha_t_beta;
@@ -266,21 +240,20 @@ void ResolutionPenalty::computeTrialTangentialTraction(
   auto & previous_master_elements = model.getPreviousMasterElements();
   auto & previous_element = previous_master_elements[element.slave];
 
-  Vector<Real> previous_real_projection(spatial_dimension);
-  GeometryUtils::realProjection(
-      model.getMesh(), model.getContactDetector().getPositions(),
-      previous_element, previous_projection, previous_real_projection);
+  auto coords = model.getMesh().extractNodalValuesFromElement(
+      model.getContactDetector().getPositions(), previous_element);
 
-  Vector<Real> current_real_projection(spatial_dimension);
-  GeometryUtils::realProjection(
-      model.getMesh(), model.getContactDetector().getPositions(),
-      element.master, current_projection, current_real_projection);
+  auto previous_real_projection = GeometryUtils::realProjection(
+      coords, previous_element, previous_projection);
+
+  auto current_real_projection =
+      GeometryUtils::realProjection(coords, element.master, current_projection);
 
   auto increment_real = current_real_projection - previous_real_projection;
   Vector<Real> increment_xi(surface_dimension);
 
   auto contravariant_metric_tensor =
-      GeometryUtils::contravariantMetricTensor(covariant_basis);
+      GeometryUtils::contravariantMetricTensor(current_tangent);
 
   // increment in natural coordinate
   for (auto beta : arange(surface_dimension)) {
@@ -291,27 +264,26 @@ void ResolutionPenalty::computeTrialTangentialTraction(
     }
   }
 
-  Vector<Real> temp(surface_dimension);
-  temp.mul<false>(covariant_metric_tensor, increment_xi, epsilon_t);
-
-  traction -= temp;
+  traction -= epsilon_t * covariant_metric_tensor * increment_xi;
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 void ResolutionPenalty::computeStickTangentialTraction(
-    const ContactElement & /*element*/, Vector<Real> & traction_trial,
-    Vector<Real> & traction_tangential) {
+    const ContactElement & /*element*/, Eigen::MatrixBase<D1> & traction_trial,
+    Eigen::MatrixBase<D2> & traction_tangential) {
   traction_tangential = traction_trial;
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 void ResolutionPenalty::computeSlipTangentialTraction(
     const ContactElement & element, const Matrix<Real> & covariant_basis,
-    Vector<Real> & traction_trial, Vector<Real> & traction_tangential) {
+    Eigen::MatrixBase<D1> & traction_trial,
+    Eigen::MatrixBase<D2> & traction_tangential) {
   UInt surface_dimension = spatial_dimension - 1;
 
-  auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
+  auto & gap = model.getGaps()(element.slave);
 
   // compute norm of trial traction
   Real traction_trial_norm = 0;
@@ -326,12 +298,8 @@ void ResolutionPenalty::computeSlipTangentialTraction(
   }
   traction_trial_norm = sqrt(traction_trial_norm);
 
-  auto slip_direction = traction_trial;
-  slip_direction /= traction_trial_norm;
-
   Real p_n = computeNormalTraction(gap);
-  traction_tangential = slip_direction;
-  traction_tangential *= mu * p_n;
+  traction_tangential = traction_trial / traction_trial_norm * mu * p_n;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -356,98 +324,47 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
-
-  UInt nb_nodes_per_contact = element.getNbNodes();
-  Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-
-  for (auto i : arange(nb_nodes_per_contact)) {
-    for (auto j : arange(spatial_dimension)) {
-      if (i == 0) {
-        A(j, i * spatial_dimension + j) = 1;
-        continue;
-      }
-      A(j, i * spatial_dimension + j) = -shapes[i - 1];
-    }
-  }
+  auto A = ResolutionUtils::computeShapeFunctionMatrix(element, projection);
 
   // construct the main part of normal matrix
-  Matrix<Real> k_main(nb_nodes_per_contact * spatial_dimension,
-                      nb_nodes_per_contact * spatial_dimension);
+  Matrix<Real> k_main(A.cols(), A.cols());
 
   Matrix<Real> n_outer_n(spatial_dimension, spatial_dimension);
-  Matrix<Real> mat_n(normal.storage(), normal.size(), 1.);
-  n_outer_n.mul<false, true>(mat_n, mat_n);
+  n_outer_n = normal * normal.transpose();
 
-  Matrix<Real> tmp(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-  tmp.mul<false, false>(n_outer_n, A);
-
-  k_main.mul<true, false>(A, tmp);
-  k_main *= epsilon_n * heaviside(gap) * nodal_area;
+  k_main =
+      (A.transpose() * n_outer_n * A) * epsilon_n * heaviside(gap) * nodal_area;
 
   // construct the rotational part of the normal matrix
-  auto & tangents = model.getTangents();
-  Matrix<Real> covariant_basis(
-      tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
+  const auto & tangents = model.getTangents();
+  auto && covariant_basis(
+      tangents.begin(spatial_dimension, surface_dimension)[element.slave]);
 
   auto contravariant_metric_tensor =
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
-  // computing shape derivatives
-  auto && shape_derivatives =
-      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
-
   // consists of 2 rotational parts
-  Matrix<Real> k_rot1(nb_nodes_per_contact * spatial_dimension,
-                      nb_nodes_per_contact * spatial_dimension);
-  Matrix<Real> k_rot2(nb_nodes_per_contact * spatial_dimension,
-                      nb_nodes_per_contact * spatial_dimension);
-  Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
+  Matrix<Real> k_rot1(A.cols(), A.cols());
+  Matrix<Real> k_rot2(A.cols(), A.cols());
 
-  auto construct_Aj = [&](auto && dnds) {
-    for (auto i : arange(nb_nodes_per_contact)) {
-      for (auto j : arange(spatial_dimension)) {
-        if (i == 0) {
-          Aj(j, i * spatial_dimension + j) = 0;
-          continue;
-        }
-        Aj(j, i * spatial_dimension + j) = dnds(i - 1);
-      }
-    }
-  };
+  k_rot1.zero();
+  k_rot2.zero();
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent = std::get<1>(values1);
+  auto Ajs = ResolutionUtils::computeDerivativeShapeFunctionMatrix(element,
+                                                                   projection);
 
-    Matrix<Real> n_outer_t(spatial_dimension, spatial_dimension);
-    Matrix<Real> mat_t(tangent.storage(), tangent.size(), 1.);
-    n_outer_t.mul<false, true>(mat_n, mat_t);
+  for (auto && [alpha, tangent] : enumerate(covariant_basis)) {
+    auto n_outer_t = normal * tangent.transpose();
+    // auto t_outer_n = tangent * normal.transpose();
 
-    Matrix<Real> t_outer_n(spatial_dimension, spatial_dimension);
-    t_outer_n.mul<false, true>(mat_t, mat_n);
-
-    for (auto && values2 : enumerate(shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & dnds = std::get<1>(values2);
+    for (auto && [beta, Aj] : enumerate(Ajs)) {
       // construct Aj from shape function wrt to jth natural
       // coordinate
-      construct_Aj(dnds);
+      k_rot1 += (Aj.transpose() * n_outer_t * A) *
+                contravariant_metric_tensor(alpha, beta);
 
-      Matrix<Real> tmp(spatial_dimension,
-                       spatial_dimension * nb_nodes_per_contact);
-      Matrix<Real> tmp1(nb_nodes_per_contact * spatial_dimension,
-                        spatial_dimension * nb_nodes_per_contact);
-      tmp.mul<false, false>(n_outer_t, A);
-      tmp1.mul<true, false>(Aj, tmp);
-      tmp1 *= contravariant_metric_tensor(alpha, beta);
-      k_rot1 += tmp1;
-
-      tmp.mul<false, false>(t_outer_n, Aj);
-      tmp1.mul<true, false>(A, tmp);
-      tmp1 *= contravariant_metric_tensor(alpha, beta);
-      k_rot2 += tmp1;
+      k_rot2 += (A.transpose() * n_outer_t * Aj) *
+                contravariant_metric_tensor(alpha, beta);
     }
   }
 
@@ -499,74 +416,30 @@ void ResolutionPenalty::computeStickModuli(const ContactElement & element,
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
-
-  UInt nb_nodes_per_contact = element.getNbNodes();
-  Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-
-  for (auto i : arange(nb_nodes_per_contact)) {
-    for (auto j : arange(spatial_dimension)) {
-      if (i == 0) {
-        A(j, i * spatial_dimension + j) = 1;
-        continue;
-      }
-      A(j, i * spatial_dimension + j) = -shapes[i - 1];
-    }
-  }
+  auto A = ResolutionUtils::computeShapeFunctionMatrix(element, projection);
 
   // computing shape derivatives
-  auto && shape_derivatives =
-      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
-
-  Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-
-  auto construct_Aj = [&](auto && dnds) {
-    for (auto i : arange(nb_nodes_per_contact)) {
-      for (auto j : arange(spatial_dimension)) {
-        if (i == 0) {
-          Aj(j, i * spatial_dimension + j) = 0;
-          continue;
-        }
-        Aj(j, i * spatial_dimension + j) = dnds(i - 1);
-      }
-    }
-  };
+  auto Ajs = ResolutionUtils::computeDerivativeShapeFunctionMatrix(element,
+                                                                   projection);
 
   // tangents should have been calculated in normal modulii
   auto & tangents = model.getTangents();
-  Matrix<Real> covariant_basis(
-      tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
+  auto && covariant_basis(
+      tangents.begin(spatial_dimension, surface_dimension)[element.slave]);
 
   auto contravariant_metric_tensor =
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
   // construct 1st part of the stick modulii
-  Matrix<Real> k_main(nb_nodes_per_contact * spatial_dimension,
-                      nb_nodes_per_contact * spatial_dimension);
+  Matrix<Real> k_main(A.cols(), A.cols());
+  k_main.zero();
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
+  for (auto && [alpha, tangent_alpha] : enumerate(covariant_basis)) {
+    for (auto && [beta, tangent_beta] : enumerate(covariant_basis)) {
+      auto t_outer_t = tangent_alpha * tangent_beta.transpose();
 
-    Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
-    Matrix<Real> mat_t_alpha(tangent_alpha.storage(), tangent_alpha.size(), 1.);
-
-    for (auto && values2 : enumerate(covariant_basis.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & tangent_beta = std::get<1>(values2);
-
-      Matrix<Real> mat_t_beta(tangent_beta.storage(), tangent_beta.size(), 1.);
-      t_outer_t.mul<false, true>(mat_t_alpha, mat_t_beta);
-
-      Matrix<Real> tmp(spatial_dimension,
-                       spatial_dimension * nb_nodes_per_contact);
-      Matrix<Real> tmp1(nb_nodes_per_contact * spatial_dimension,
-                        spatial_dimension * nb_nodes_per_contact);
-      tmp.mul<false, false>(t_outer_t, A);
-      tmp1.mul<true, false>(A, tmp);
-      tmp1 *= contravariant_metric_tensor(alpha, beta);
-      k_main += tmp1;
+      k_main += (A.transpose() * t_outer_t * A) *
+                contravariant_metric_tensor(alpha, beta);
     }
   }
 
@@ -574,58 +447,34 @@ void ResolutionPenalty::computeStickModuli(const ContactElement & element,
 
   // construct 2nd part of the stick modulii
   auto & tangential_tractions = model.getTangentialTractions();
-  Vector<Real> tangential_traction(
-      tangential_tractions.begin(surface_dimension)[element.slave]);
+  auto && tangential_traction =
+      tangential_tractions.begin(surface_dimension)[element.slave];
 
-  Matrix<Real> k_second(nb_nodes_per_contact * spatial_dimension,
-                        nb_nodes_per_contact * spatial_dimension);
+  Matrix<Real> k_second(A.cols(), A.cols());
+  k_second.zero();
+
+  Matrix<Real> k_sum(A.cols(), A.cols());
 
   for (auto alpha : arange(surface_dimension)) {
 
-    Matrix<Real> k_sum(nb_nodes_per_contact * spatial_dimension,
-                       nb_nodes_per_contact * spatial_dimension);
+    k_sum.zero();
 
-    for (auto && values1 : enumerate(shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values1);
-      auto & dnds = std::get<1>(values1);
-      // construct Aj from shape function wrt to jth natural
-      // coordinate
-      construct_Aj(dnds);
-      for (auto && values2 : enumerate(covariant_basis.transpose())) {
-        auto & gamma = std::get<0>(values2);
-        auto & tangent_gamma = std::get<1>(values2);
-
+    for (auto && [beta, Aj] : enumerate(Ajs)) {
+      for (auto && [gamma, tangent_gamma] : enumerate(covariant_basis)) {
         Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
-        Matrix<Real> mat_t_gamma(tangent_gamma.storage(), tangent_gamma.size(),
-                                 1.);
 
         for (auto && values3 : enumerate(covariant_basis.transpose())) {
           auto & theta = std::get<0>(values3);
           auto & tangent_theta = std::get<1>(values3);
 
-          Matrix<Real> mat_t_theta(tangent_theta.storage(),
-                                   tangent_theta.size(), 1.);
-          t_outer_t.mul<false, true>(mat_t_gamma, mat_t_theta);
+          t_outer_t = tangent_gamma * tangent_theta.transpose();
 
-          Matrix<Real> tmp(spatial_dimension,
-                           spatial_dimension * nb_nodes_per_contact);
-          Matrix<Real> tmp1(nb_nodes_per_contact * spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-          tmp.mul<false, false>(t_outer_t, Aj);
-          tmp1.mul<true, false>(A, tmp);
-          tmp1 *= contravariant_metric_tensor(alpha, theta) *
-                  contravariant_metric_tensor(beta, gamma);
-
-          Matrix<Real> tmp2(spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-          Matrix<Real> tmp3(nb_nodes_per_contact * spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-          tmp2.mul<false, false>(t_outer_t, A);
-          tmp3.mul<true, false>(Aj, tmp2);
-          tmp3 *= contravariant_metric_tensor(alpha, gamma) *
-                  contravariant_metric_tensor(beta, theta);
-
-          k_sum += tmp1 + tmp3;
+          k_sum += (A.transpose() * t_outer_t * Aj) *
+                       contravariant_metric_tensor(alpha, theta) *
+                       contravariant_metric_tensor(beta, gamma) +
+                   (Aj.transpose() * t_outer_t * A) *
+                       contravariant_metric_tensor(alpha, gamma) *
+                       contravariant_metric_tensor(beta, theta);
         }
       }
     }
@@ -657,51 +506,19 @@ void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
   auto & normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
 
-  // restructure normal as a matrix for an outer product
-  Matrix<Real> mat_n(normal.storage(), normal.size(), 1.);
-
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
-  const ElementType & type = element.master.type;
-  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
-
-  UInt nb_nodes_per_contact = element.getNbNodes();
-  Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-
-  for (auto i : arange(nb_nodes_per_contact)) {
-    for (auto j : arange(spatial_dimension)) {
-      if (i == 0) {
-        A(j, i * spatial_dimension + j) = 1;
-        continue;
-      }
-      A(j, i * spatial_dimension + j) = -shapes[i - 1];
-    }
-  }
+  auto A = ResolutionUtils::computeShapeFunctionMatrix(element, projection);
 
   // computing shape derivatives
-  auto && shape_derivatives =
-      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
-
-  Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
-
-  auto construct_Aj = [&](auto && dnds) {
-    for (auto i : arange(nb_nodes_per_contact)) {
-      for (auto j : arange(spatial_dimension)) {
-        if (i == 0) {
-          Aj(j, i * spatial_dimension + j) = 0;
-          continue;
-        }
-        Aj(j, i * spatial_dimension + j) = dnds(i - 1);
-      }
-    }
-  };
+  auto Ajs = ResolutionUtils::computeDerivativeShapeFunctionMatrix(element,
+                                                                   projection);
 
   // tangents should have been calculated in normal modulii
-  auto & tangents = model.getTangents();
-  Matrix<Real> covariant_basis(
-      tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
+  auto && covariant_basis = model.getTangents().begin(
+      spatial_dimension, surface_dimension)[element.slave];
 
   auto & tangential_tractions = model.getTangentialTractions();
   Vector<Real> tangential_traction(
@@ -721,109 +538,63 @@ void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
   traction_norm = sqrt(traction_norm);
 
   // construct four parts of stick modulii (eq 107,107a-c)
-  Matrix<Real> k_first(nb_nodes_per_contact * spatial_dimension,
-                       nb_nodes_per_contact * spatial_dimension);
-  Matrix<Real> k_second(nb_nodes_per_contact * spatial_dimension,
-                        nb_nodes_per_contact * spatial_dimension);
-  Matrix<Real> k_third(nb_nodes_per_contact * spatial_dimension,
-                       nb_nodes_per_contact * spatial_dimension);
-  Matrix<Real> k_fourth(nb_nodes_per_contact * spatial_dimension,
-                        nb_nodes_per_contact * spatial_dimension);
+  Matrix<Real> k_first(A.cols(), A.cols());
+  Matrix<Real> k_second(A.cols(), A.cols());
+  Matrix<Real> k_third(A.cols(), A.cols());
+  Matrix<Real> k_fourth(A.cols(), A.cols());
 
-  for (auto && values1 : enumerate(covariant_basis.transpose())) {
-    auto & alpha = std::get<0>(values1);
-    auto & tangent_alpha = std::get<1>(values1);
+  k_first.zero();
+  k_second.zero();
+  k_first.zero();
+  k_fourth.zero();
 
-    Matrix<Real> mat_t_alpha(tangent_alpha.storage(), tangent_alpha.size(), 1.);
+  Matrix<Real> t_outer_n(spatial_dimension, spatial_dimension);
+  Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
 
-    Matrix<Real> t_outer_n(spatial_dimension, spatial_dimension);
-    Matrix<Real> t_outer_t(spatial_dimension, spatial_dimension);
-
-    for (auto && values2 :
-         zip(arange(surface_dimension), covariant_basis.transpose(),
-             shape_derivatives.transpose())) {
-      auto & beta = std::get<0>(values2);
-      auto & tangent_beta = std::get<1>(values2);
-      auto & dnds = std::get<2>(values2);
-      // construct Aj from shape function wrt to jth natural
-      // coordinate
-      construct_Aj(dnds);
-
+  for (auto && [alpha, tangent_alpha] : enumerate(covariant_basis)) {
+    for (auto && [beta, tangent_beta, Aj] :
+         zip(arange(surface_dimension), covariant_basis, Ajs)) {
       // eq 107
-      Matrix<Real> mat_t_beta(tangent_beta.storage(), tangent_beta.size(), 1.);
-      t_outer_n.mul<false, true>(mat_t_beta, mat_n);
+      t_outer_n = tangent_beta * normal.transpose();
 
-      Matrix<Real> tmp(spatial_dimension,
-                       spatial_dimension * nb_nodes_per_contact);
-      Matrix<Real> tmp1(nb_nodes_per_contact * spatial_dimension,
-                        spatial_dimension * nb_nodes_per_contact);
-      tmp.mul<false, false>(t_outer_n, A);
-      tmp1.mul<true, false>(A, tmp);
-
-      tmp1 *= epsilon_n * mu * tangential_traction[alpha] *
-              contravariant_metric_tensor(alpha, beta);
-      tmp1 /= traction_norm;
-
-      k_first += tmp1 * nodal_area;
+      k_first += (A.transpose() * t_outer_n * A) * epsilon_n * mu *
+                 tangential_traction[alpha] *
+                 contravariant_metric_tensor(alpha, beta) / traction_norm *
+                 nodal_area;
 
       // eq 107a
-      t_outer_t.mul<false, true>(mat_t_alpha, mat_t_beta);
+      t_outer_t = tangent_alpha * tangent_beta.transpose();
 
-      tmp.mul<false, false>(t_outer_t, A);
-      tmp1.mul<true, false>(A, tmp);
+      k_second += (A.transpose() * t_outer_t * A) * epsilon_t * mu * p_n *
+                  contravariant_metric_tensor(alpha, beta) / traction_norm *
+                  nodal_area;
 
-      tmp1 *= epsilon_t * mu * p_n * contravariant_metric_tensor(alpha, beta);
-      tmp1 /= traction_norm;
-
-      k_second += tmp1 * nodal_area;
-
-      for (auto && values3 : enumerate(covariant_basis.transpose())) {
+      for (auto && values3 : enumerate(covariant_basis)) {
         auto & gamma = std::get<0>(values3);
         auto & tangent_gamma = std::get<1>(values3);
 
-        Matrix<Real> mat_t_gamma(tangent_gamma.storage(), tangent_gamma.size(),
-                                 1.);
-
-        for (auto && values4 : enumerate(covariant_basis.transpose())) {
+        for (auto && values4 : enumerate(covariant_basis)) {
           auto & theta = std::get<0>(values4);
           auto & tangent_theta = std::get<1>(values4);
 
-          Matrix<Real> mat_t_theta(tangent_theta.storage(),
-                                   tangent_theta.size(), 1.);
-          t_outer_t.mul<false, true>(mat_t_gamma, mat_t_theta);
+          t_outer_t = tangent_gamma * tangent_theta.transpose();
 
           // eq 107b
-          tmp.mul<false, false>(t_outer_t, A);
-          tmp1.mul<true, false>(A, tmp);
-
-          tmp1 *= epsilon_t * mu * p_n * tangential_traction[alpha] *
-                  tangential_traction[beta];
-          tmp1 *= contravariant_metric_tensor(alpha, gamma) *
-                  contravariant_metric_tensor(beta, theta);
-          tmp1 /= pow(traction_norm, 3);
-
-          k_third += tmp1 * nodal_area;
+          k_third += (A.transpose() * t_outer_t * A) * epsilon_t * mu * p_n *
+                     tangential_traction[alpha] * tangential_traction[beta] *
+                     contravariant_metric_tensor(alpha, gamma) *
+                     contravariant_metric_tensor(beta, theta) /
+                     pow(traction_norm, 3) * nodal_area;
 
           // eq 107c
-          tmp.mul<false, false>(t_outer_t, Aj);
-          tmp1.mul<true, false>(A, tmp);
-          tmp1 *= contravariant_metric_tensor(alpha, theta) *
-                  contravariant_metric_tensor(beta, gamma);
-          tmp1 *= mu * p_n * tangential_traction[alpha];
-          tmp1 /= traction_norm;
-
-          Matrix<Real> tmp2(spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-          Matrix<Real> tmp3(nb_nodes_per_contact * spatial_dimension,
-                            spatial_dimension * nb_nodes_per_contact);
-          tmp2.mul<false, false>(t_outer_t, A);
-          tmp3.mul<true, false>(Aj, tmp2);
-          tmp3 *= contravariant_metric_tensor(alpha, gamma) *
-                  contravariant_metric_tensor(beta, theta);
-          tmp3 *= mu * p_n * tangential_traction[alpha];
-          tmp3 /= traction_norm;
-
-          k_fourth += (tmp1 + tmp3) * nodal_area;
+          k_fourth += ((A.transpose() * t_outer_t * Aj) *
+                           contravariant_metric_tensor(alpha, theta) *
+                           contravariant_metric_tensor(beta, gamma) +
+                       (Aj.transpose() * t_outer_t * A) *
+                           contravariant_metric_tensor(alpha, gamma) *
+                           contravariant_metric_tensor(beta, theta)) *
+                      nodal_area * mu * p_n * tangential_traction[alpha] /
+                      traction_norm;
         }
       }
     }

@@ -53,7 +53,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class ContactMechanicsModel : public Model,
                               public DataAccessor<Element>,
-                              public DataAccessor<UInt>,
+                              public DataAccessor<Idx>,
                               public BoundaryCondition<ContactMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
@@ -64,7 +64,7 @@ class ContactMechanicsModel : public Model,
 
 public:
   ContactMechanicsModel(
-      Mesh & mesh, UInt dim = _all_dimensions,
+      Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "contact_mechanics_model",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
       ModelType model_type = ModelType::_contact_mechanics_model);
@@ -168,9 +168,9 @@ public:
                        bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
-  createNodalFieldUInt(const std::string & field_name,
-                       const std::string & group_name,
-                       bool padding_flag) override;
+  createNodalFieldInt(const std::string & field_name,
+                      const std::string & group_name,
+                      bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
@@ -181,8 +181,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -190,13 +190,13 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  UInt getNbData(const Array<UInt> & dofs,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  Int getNbData(const Array<Idx> & dofs,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                   const SynchronizationTag & tag) override;
 
 protected:

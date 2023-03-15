@@ -50,13 +50,12 @@ namespace akantu {
  *   - mu   : friction coefficient
  *   - penalty_for_friction : Penalty parameter for the friction behavior
  */
-template <UInt spatial_dimension>
-class MaterialCohesiveLinearFriction
-    : public MaterialCohesiveLinear<spatial_dimension> {
+template <Int dim>
+class MaterialCohesiveLinearFriction : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-  using MaterialParent = MaterialCohesiveLinear<spatial_dimension>;
+  using MaterialParent = MaterialCohesiveLinear<dim>;
 
 public:
   MaterialCohesiveLinearFriction(SolidMechanicsModel & model,
@@ -71,13 +70,26 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type) override;
+
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    using namespace tuple;
+    return zip_append(MaterialParent::getArguments(el_type, ghost_type),
+                      "residual_sliding"_n =
+                          residual_sliding(el_type, ghost_type),
+                      "friction_force"_n =
+                          make_view<dim>(friction_force(el_type, ghost_type)),
+                      "previous_residual_sliding"_n =
+                          residual_sliding.previous(el_type, ghost_type));
+  }
+
+  template <typename Args> void computeTractionOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

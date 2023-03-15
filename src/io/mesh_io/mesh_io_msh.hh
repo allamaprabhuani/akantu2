@@ -93,10 +93,10 @@ protected:
 #define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
   /// order in witch element as to be read
-  std::map<ElementType, std::vector<UInt>> _read_order;
+  std::map<ElementType, std::vector<Int>> _read_order;
 
   /// number of nodes per msh element
-  std::map<MSHElementType, UInt> _msh_nodes_per_elem;
+  std::map<MSHElementType, Int> _msh_nodes_per_elem;
 
   /// correspondence between msh element types and akantu element types
   std::map<MSHElementType, ElementType> _msh_to_akantu_element_types;

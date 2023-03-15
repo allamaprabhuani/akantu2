@@ -37,7 +37,7 @@ using namespace akantu;
 
 TYPED_TEST(TestFEMFixture, Inradius) {
   const auto & connectivities = this->mesh->getConnectivity(this->type);
-  const auto & nodes = this->mesh->getNodes().begin(this->dim);
+  auto nodes = this->mesh->getNodes().cbegin(this->dim);
 
   std::ifstream fin;
   fin.open(std::to_string(this->type) + ".csv");
@@ -69,7 +69,7 @@ TYPED_TEST(TestFEMFixture, Inradius) {
   for (auto && conn :
        make_view(connectivities, connectivities.getNbComponent())) {
     for (auto s : arange(conn.size())) {
-      Vector<Real>(X(s)) = Vector<Real>(nodes[conn(s)]);
+      X(s) = nodes[conn(s)];
     }
 
     auto inradius_coor = this->fem->getElementInradius(X, this->type);

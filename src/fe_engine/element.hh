@@ -44,59 +44,38 @@ namespace akantu {
 class Element {
 public:
   ElementType type;
-  UInt element;
+  Idx element;
   GhostType ghost_type;
-
-  // ElementKind kind;
-  // ElementType type{_not_defined};
-  // UInt element{0};
-  // GhostType ghost_type{_not_ghost};
-  // ElementKind kind{_ek_regular};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline ElementKind kind() const;
+  inline constexpr ElementKind kind() const;
 
-  inline bool operator==(const Element & elem) const {
-    return std::tie(type, element, ghost_type) ==
-           std::tie(elem.type, elem.element, elem.ghost_type);
+  inline constexpr bool operator==(const Element &elem) const {
+    return std::make_tuple(type, element, ghost_type) ==
+           std::make_tuple(elem.type, elem.element, elem.ghost_type);
   }
 
-  inline bool operator!=(const Element & elem) const {
-    return std::tie(type, element, ghost_type) !=
-           std::tie(elem.type, elem.element, elem.ghost_type);
+  inline constexpr bool operator!=(const Element &elem) const {
+    return std::make_tuple(type, element, ghost_type) !=
+           std::make_tuple(elem.type, elem.element, elem.ghost_type);
   }
 
-  // inline bool operator==(const Element & elem) const {
-  //   return ((element == elem.element) && (type == elem.type) &&
-  //           (ghost_type == elem.ghost_type) && (kind == elem.kind));
-  // }
-
-  // inline bool operator!=(const Element & elem) const {
-  //   return ((element != elem.element) || (type != elem.type) ||
-  //           (ghost_type != elem.ghost_type) || (kind != elem.kind));
-  // }
-
-  inline bool operator<(const Element & rhs) const;
+  inline constexpr bool operator<(const Element &rhs) const;
 };
 
+#if __cplusplus < 201703L
 namespace {
-  const Element ElementNull{_not_defined, UInt(-1), _casper};
-  //      Element{_not_defined, 0, _casper, _ek_not_defined};
+const Element ElementNull{_not_defined, -1, _casper};
 } // namespace
+#else
+inline constexpr Element ElementNull{_not_defined, -1, _casper};
+#endif
 
 /* -------------------------------------------------------------------------- */
-inline bool Element::operator<(const Element & rhs) const {
-  // bool res =
-  //     (rhs == ElementNull) ||
-  //     ((this->kind < rhs.kind) ||
-  //      ((this->kind == rhs.kind) &&
-  //       ((this->ghost_type < rhs.ghost_type) ||
-  //        ((this->ghost_type == rhs.ghost_type) &&
-  //         ((this->type < rhs.type) ||
-  //          ((this->type == rhs.type) && (this->element < rhs.element)))))));
+inline constexpr bool Element::operator<(const Element &rhs) const {
   return ((rhs == ElementNull) ||
           std::tie(ghost_type, type, element) <
               std::tie(rhs.ghost_type, rhs.type, rhs.element));
@@ -105,7 +84,7 @@ inline bool Element::operator<(const Element & rhs) const {
 } // namespace akantu
 
 namespace std {
-inline string to_string(const akantu::Element & _this) {
+inline string to_string(const akantu::Element &_this) {
   if (_this == akantu::ElementNull) {
     return "ElementNull";
   }
@@ -120,7 +99,7 @@ inline string to_string(const akantu::Element & _this) {
 namespace akantu {
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const Element & _this) {
+inline std::ostream &operator<<(std::ostream &stream, const Element &_this) {
   stream << std::to_string(_this);
   return stream;
 }

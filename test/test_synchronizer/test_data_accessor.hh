@@ -54,8 +54,8 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const;
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
                        const SynchronizationTag & tag) const;
@@ -78,29 +78,16 @@ inline TestAccessor::TestAccessor(const Mesh & mesh,
                                   const ElementTypeMapArray<Real> & barycenters)
     : barycenters(barycenters), mesh(mesh) {}
 
-inline UInt TestAccessor::getNbData(const Array<Element> & elements,
-                                    const SynchronizationTag &) const {
-  if (elements.size())
-    // return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) *
-    // elements.size();
-    return mesh.getSpatialDimension() * sizeof(Real) * elements.size();
-  else
-    return 0;
+inline Int TestAccessor::getNbData(const Array<Element> & elements,
+                                   const SynchronizationTag &) const {
+  return mesh.getSpatialDimension() * sizeof(Real) * elements.size();
 }
 
 inline void TestAccessor::packData(CommunicationBuffer & buffer,
                                    const Array<Element> & elements,
                                    const SynchronizationTag &) const {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  Array<Element>::const_iterator<Element> bit = elements.begin();
-  Array<Element>::const_iterator<Element> bend = elements.end();
-  for (; bit != bend; ++bit) {
-    const Element & element = *bit;
-
-    Vector<Real> bary(
-        this->barycenters(element.type, element.ghost_type).storage() +
-            element.element * spatial_dimension,
-        spatial_dimension);
+  for (const auto & element : elements) {
+    auto && bary = this->barycenters.get(element);
     buffer << bary;
   }
 }
@@ -108,18 +95,12 @@ inline void TestAccessor::packData(CommunicationBuffer & buffer,
 inline void TestAccessor::unpackData(CommunicationBuffer & buffer,
                                      const Array<Element> & elements,
                                      const SynchronizationTag &) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-
   for (const auto & element : elements) {
-    Vector<Real> barycenter_loc(
-        this->barycenters(element.type, element.ghost_type).storage() +
-            element.element * spatial_dimension,
-        spatial_dimension);
-
-    Vector<Real> bary(spatial_dimension);
+    auto && barycenter_loc = this->barycenters.get(element);
+    Vector<Real> bary(barycenter_loc.size());
     buffer >> bary;
 
-    auto dist = (barycenter_loc - bary).template norm<L_inf>();
+    auto dist = (barycenter_loc - bary).template lpNorm<Eigen::Infinity>();
     EXPECT_NEAR(0, dist, 1e-15);
   }
 }

@@ -47,7 +47,7 @@ public:
     std::string space(indent, AKANTU_INDENT);
 
     stream << space << "{";
-    for (UInt i = 0; i < this->cont.size(); ++i) {
+    for (Int i = 0; i < this->cont.size(); ++i) {
       stream << this->cont[i];
       if (i != this->cont.size() - 1)
         stream << ", ";
@@ -68,9 +68,9 @@ public:
     std::string space(indent, AKANTU_INDENT);
 
     stream << space << "{";
-    for (UInt i = 0; i < this->cont.size(); ++i) {
+    for (Int i = 0; i < this->cont.size(); ++i) {
       stream << "{";
-      for (UInt j = 0; j < this->cont.getNbComponent(); ++j) {
+      for (Int j = 0; j < this->cont.getNbComponent(); ++j) {
         stream << this->cont(i, j);
         if (j != this->cont.getNbComponent() - 1)
           stream << ", ";

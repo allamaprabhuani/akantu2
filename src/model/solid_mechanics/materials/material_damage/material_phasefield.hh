@@ -40,9 +40,8 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension>
-class MaterialPhaseField : public MaterialDamage<spatial_dimension> {
-  using Parent = MaterialDamage<spatial_dimension>;
+template <Int dim> class MaterialPhaseField : public MaterialDamage<dim> {
+  using Parent = MaterialDamage<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -62,21 +61,36 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
+  /* ------------------------------------------------------------------------ */
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(Parent::getArguments(el_type, ghost_type),
+                      "effective_damage"_n = make_view(
+                          this->effective_damage(el_type, ghost_type)));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type) {
+    return zip_append(
+        Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
+        "effective_damage"_n =
+            make_view(this->effective_damage(el_type, ghost_type)));
+  }
+
 protected:
   /// constitutive law for a given quadrature point
+  template <class Args> inline void computeStressOnQuad(Args && args);
 
   /// compute the tangent stiffness matrix for a given quadrature point
+  template <class Args> inline void computeTangentModuliOnQuad(Args && args);
 
+  /// Compute the effective damage
   void computeEffectiveDamage(ElementType el_type,
                               GhostType ghost_type = _not_ghost);
 
-  inline void computeEffectiveDamageOnQuad(Matrix<Real> & grad_u, Real & dam,
-                                           Real & eff_dam);
+  template <class Args> inline void computeEffectiveDamageOnQuad(Args && args);
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -86,7 +100,6 @@ protected:
   // effective damage to conserve stiffness in compression
   InternalField<Real> effective_damage;
 };
-
 
 } // namespace akantu
 

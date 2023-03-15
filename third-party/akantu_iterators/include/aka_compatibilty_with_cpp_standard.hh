@@ -36,6 +36,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+
 #if __cplusplus >= 201703L
 #include <functional>
 #endif
@@ -154,8 +155,8 @@ constexpr decltype(auto) apply(F && f, Tuple && t) {
 /* -------------------------------------------------------------------------- */
 // count_if
 template <class InputIt, class UnaryPredicate>
-typename std::iterator_traits<InputIt>::difference_type
-count_if(InputIt first, InputIt last, UnaryPredicate p) {
+auto count_if(InputIt first, InputIt last, UnaryPredicate p) ->
+    typename std::iterator_traits<InputIt>::difference_type {
   typename std::iterator_traits<InputIt>::difference_type ret = 0;
   for (; first != last; ++first) {
     if (p(*first)) {
@@ -163,6 +164,24 @@ count_if(InputIt first, InputIt last, UnaryPredicate p) {
     }
   }
   return ret;
+}
+
+namespace detail {
+  template <class T, class Tuple, std::size_t... I>
+  constexpr T make_from_tuple_impl(Tuple && t, std::index_sequence<I...>) {
+    static_assert(
+        std::is_constructible<T, decltype(std::get<I>(
+                                     std::declval<Tuple>()))...>::value,
+        "make_from_tuple needs T to be constructible");
+    return T(std::get<I>(std::forward<Tuple>(t))...);
+  }
+} // namespace detail
+
+template <class T, class Tuple> constexpr T make_from_tuple(Tuple && t) {
+  return detail::make_from_tuple_impl<T>(
+      std::forward<Tuple>(t),
+      std::make_index_sequence<
+          std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
 }
 
 #else
@@ -180,13 +199,26 @@ constexpr decltype(auto) apply(F && f, Tuple && t) {
 
 template <class InputIt, class UnaryPredicate>
 decltype(auto) count_if(InputIt first, InputIt last, UnaryPredicate p) {
-  return std::count_if(first, last, p);
+  return std::count_if(std::forward<InputIt>(first),
+                       std::forward<InputIt>(last),
+                       std::forward<UnaryPredicate>(p));
+}
+
+template <class T, class Tuple>
+constexpr auto make_from_tuple(Tuple && t) -> T {
+  return std::make_from_tuple<T>(std::forward<Tuple>(t));
 }
 #endif
 
 template <typename cat1, typename cat2>
 using is_iterator_category_at_least =
     std::is_same<std::common_type_t<cat1, cat2>, cat2>;
+
+template <typename T> struct size_type {
+  using type = typename std::decay_t<T>::size_type;
+};
+
+template <typename T> using size_type_t = typename size_type<T>::type;
 
 } // namespace aka
 

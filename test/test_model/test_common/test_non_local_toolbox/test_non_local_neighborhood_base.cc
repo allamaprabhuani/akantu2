@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
 
   // some configuration variables
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   // mesh creation and read
   Mesh mesh(spatial_dimension);
@@ -65,15 +65,17 @@ int main(int argc, char * argv[]) {
   quad_pairs.open("quadrature_pairs.0");
 
   std::string current_line;
-  while (getline(quad_pairs, current_line))
+  while (getline(quad_pairs, current_line)) {
     std::cout << current_line << std::endl;
+  }
 
   quad_pairs.close();
 
   std::ifstream neighborhoods;
   neighborhoods.open("neighborhoods.0");
-  while (getline(neighborhoods, current_line))
+  while (getline(neighborhoods, current_line)) {
     std::cout << current_line << std::endl;
+  }
   neighborhoods.close();
 
   finalize();

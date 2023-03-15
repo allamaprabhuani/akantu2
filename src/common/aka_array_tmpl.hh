@@ -35,11 +35,13 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh" // NOLINT
 /* -------------------------------------------------------------------------- */
+#include <algorithm>
 #include <memory>
+#include <type_traits>
 /* -------------------------------------------------------------------------- */
-
-#ifndef AKANTU_AKA_ARRAY_TMPL_HH_
-#define AKANTU_AKA_ARRAY_TMPL_HH_
+//#ifndef __AKANTU_AKA_ARRAY_TMPL_HH__
+//#define __AKANTU_AKA_ARRAY_TMPL_HH__
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -50,8 +52,7 @@ namespace debug {
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(UInt size,
-                                                    UInt nb_component,
+ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(Int size, Int nb_component,
                                                     const ID & id)
     : ArrayBase(id) {
   allocate(size, nb_component);
@@ -59,8 +60,7 @@ ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(UInt size,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(UInt size,
-                                                    UInt nb_component,
+ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(Int size, Int nb_component,
                                                     const_reference value,
                                                     const ID & id)
     : ArrayBase(id) {
@@ -103,16 +103,16 @@ ArrayDataLayer<T, allocation_trait>::operator=(const ArrayDataLayer & other) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-void ArrayDataLayer<T, allocation_trait>::allocate(UInt new_size,
-                                                   UInt nb_component) {
+void ArrayDataLayer<T, allocation_trait>::allocate(Int new_size,
+                                                   Int nb_component) {
   this->nb_component = nb_component;
   this->resize(new_size);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-void ArrayDataLayer<T, allocation_trait>::allocate(UInt new_size,
-                                                   UInt nb_component,
+void ArrayDataLayer<T, allocation_trait>::allocate(Int new_size,
+                                                   Int nb_component,
                                                    const T & val) {
   this->nb_component = nb_component;
   this->resize(new_size, val);
@@ -120,7 +120,7 @@ void ArrayDataLayer<T, allocation_trait>::allocate(UInt new_size,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-void ArrayDataLayer<T, allocation_trait>::resize(UInt new_size) {
+void ArrayDataLayer<T, allocation_trait>::resize(Int new_size) {
   this->data_storage.resize(new_size * this->nb_component);
   this->values = this->data_storage.data();
   this->size_ = new_size;
@@ -128,7 +128,7 @@ void ArrayDataLayer<T, allocation_trait>::resize(UInt new_size) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-void ArrayDataLayer<T, allocation_trait>::resize(UInt new_size,
+void ArrayDataLayer<T, allocation_trait>::resize(Int new_size,
                                                  const T & value) {
   this->data_storage.resize(new_size * this->nb_component, value);
   this->values = this->data_storage.data();
@@ -137,8 +137,8 @@ void ArrayDataLayer<T, allocation_trait>::resize(UInt new_size,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-void ArrayDataLayer<T, allocation_trait>::reserve(UInt size, UInt new_size) {
-  if (new_size != UInt(-1)) {
+void ArrayDataLayer<T, allocation_trait>::reserve(Int size, Int new_size) {
+  if (new_size != -1) {
     this->data_storage.resize(new_size * this->nb_component);
   }
 
@@ -164,17 +164,17 @@ inline void ArrayDataLayer<T, allocation_trait>::push_back(const T & value) {
  * append a matrix or a vector to the array
  * @param new_elem a reference to a Matrix<T> or Vector<T> */
 template <typename T, ArrayAllocationType allocation_trait>
-template <template <typename> class C, typename>
-inline void
-ArrayDataLayer<T, allocation_trait>::push_back(const C<T> & new_elem) {
+template <typename Derived>
+inline void ArrayDataLayer<T, allocation_trait>::push_back(
+    const Eigen::MatrixBase<Derived> & new_elem) {
   AKANTU_DEBUG_ASSERT(
       nb_component == new_elem.size(),
       "The vector("
           << new_elem.size()
           << ") as not a size compatible with the Array (nb_component="
           << nb_component << ").");
-  for (UInt i = 0; i < new_elem.size(); ++i) {
-    this->data_storage.push_back(new_elem[i]);
+  for (Idx i = 0; i < new_elem.size(); ++i) {
+    this->data_storage.push_back(new_elem.array()[i]);
   }
   this->values = this->data_storage.data();
   this->size_ += 1;
@@ -182,13 +182,13 @@ ArrayDataLayer<T, allocation_trait>::push_back(const C<T> & new_elem) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-inline UInt ArrayDataLayer<T, allocation_trait>::getAllocatedSize() const {
+inline Int ArrayDataLayer<T, allocation_trait>::getAllocatedSize() const {
   return this->data_storage.capacity() / this->nb_component;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-inline UInt ArrayDataLayer<T, allocation_trait>::getMemorySize() const {
+inline Int ArrayDataLayer<T, allocation_trait>::getMemorySize() const {
   return this->data_storage.capacity() * sizeof(T);
 }
 
@@ -201,19 +201,20 @@ public:
   using value_type = T;
   using reference = value_type &;
   using pointer_type = value_type *;
+  using size_type = typename ArrayBase::size_type;
   using const_reference = const value_type &;
 
 public:
   ~ArrayDataLayer() override { deallocate(); }
 
   /// Allocation of a new vector
-  ArrayDataLayer(UInt size = 0, UInt nb_component = 1, const ID & id = "")
+  ArrayDataLayer(Int size = 0, Int nb_component = 1, const ID & id = "")
       : ArrayBase(id) {
     allocate(size, nb_component);
   }
 
   /// Allocation of a new vector with a default value
-  ArrayDataLayer(UInt size, UInt nb_component, const_reference value,
+  ArrayDataLayer(Int size, Int nb_component, const_reference value,
                  const ID & id = "")
       : ArrayBase(id) {
     allocate(size, nb_component, value);
@@ -223,7 +224,7 @@ public:
   ArrayDataLayer(const ArrayDataLayer & vect, const ID & id = "")
       : ArrayBase(vect, id) {
     allocate(vect.size(), vect.getNbComponent());
-    std::copy_n(vect.storage(), this->size_ * this->nb_component, values);
+    std::copy_n(vect.data(), this->size_ * this->nb_component, values);
   }
 
   /// Copy constructor (deep copy)
@@ -236,7 +237,7 @@ public:
   inline ArrayDataLayer & operator=(const ArrayDataLayer & other) {
     if (this != &other) {
       allocate(other.size(), other.getNbComponent());
-      std::copy_n(other.storage(), this->size_ * this->nb_component, values);
+      std::copy_n(other.data(), this->size_ * this->nb_component, values);
     }
     return *this;
   }
@@ -256,7 +257,7 @@ protected:
   }
 
   // allocate the memory
-  virtual inline void allocate(UInt size, UInt nb_component) {
+  virtual inline void allocate(Int size, Int nb_component) {
     if (size != 0) { // malloc can return a non NULL pointer in case size is 0
       this->values = static_cast<T *>(                   // NOLINT
           std::malloc(nb_component * size * sizeof(T))); // NOLINT
@@ -270,7 +271,7 @@ protected:
   }
 
   // allocate and initialize the memory
-  virtual inline void allocate(UInt size, UInt nb_component, const T & value) {
+  virtual inline void allocate(Int size, Int nb_component, const T & value) {
     allocate(size, nb_component);
     std::fill_n(values, size * nb_component, value);
   }
@@ -282,10 +283,8 @@ public:
   }
 
   /// append a Vector or a Matrix
-  template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
-                                        aka::is_tensor_proxy<C<T>>::value>>
-  inline void push_back(const C<T> & new_elem) {
+  template <typename Derived>
+  inline void push_back(const Eigen::MatrixBase<Derived> & new_elem) {
     AKANTU_DEBUG_ASSERT(
         nb_component == new_elem.size(),
         "The vector("
@@ -293,22 +292,23 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    std::copy_n(new_elem.storage(), new_elem.size(),
-                values + this->nb_component * (this->size_ - 1));
+    make_view(*this, new_elem.rows(), new_elem.cols())
+        .begin()[this->size_ - 1] = new_elem;
   }
 
   /// changes the allocated size but not the size
-  virtual void reserve(UInt size, UInt new_size = UInt(-1)) {
-    UInt tmp_size = this->size_;
-    if (new_size != UInt(-1)) {
+  virtual void reserve(Int size, Int new_size = Int(-1)) {
+    auto tmp_size = this->size_;
+    if (new_size != Int(-1)) {
       tmp_size = new_size;
     }
+
     this->resize(size);
     this->size_ = std::min(this->size_, tmp_size);
   }
 
   /// change the size of the Array
-  virtual void resize(UInt size) {
+  virtual void resize(Int size) {
     if (size * this->nb_component == 0) {
       free(values); // NOLINT: cppcoreguidelines-no-malloc
       values = nullptr;
@@ -320,10 +320,10 @@ public:
       }
 
       Int diff = size - allocated_size;
-      UInt size_to_allocate = (std::abs(diff) > AKANTU_MIN_ALLOCATION) ? size
-                              : (diff > 0)
-                                  ? allocated_size + AKANTU_MIN_ALLOCATION
-                                  : allocated_size;
+      Int size_to_allocate = (std::abs(diff) > AKANTU_MIN_ALLOCATION) ? size
+                             : (diff > 0)
+                                 ? allocated_size + AKANTU_MIN_ALLOCATION
+                                 : allocated_size;
 
       if (size_to_allocate ==
           allocated_size) { // otherwhy the reserve + push_back might fail...
@@ -347,8 +347,8 @@ public:
   }
 
   /// change the size of the Array and initialize the values
-  virtual void resize(UInt size, const T & val) {
-    UInt tmp_size = this->size_;
+  virtual void resize(Int size, const T & val) {
+    Int tmp_size = this->size_;
     this->resize(size);
     if (size > tmp_size) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -358,26 +358,30 @@ public:
   }
 
   /// get the amount of space allocated in bytes
-  inline UInt getMemorySize() const final {
+  inline size_type getMemorySize() const final {
     return this->allocated_size * this->nb_component * sizeof(T);
   }
 
   /// Get the real size allocated in memory
-  inline UInt getAllocatedSize() const { return this->allocated_size; }
+  inline Int getAllocatedSize() const { return this->allocated_size; }
 
   /// give the address of the memory allocated for this vector
-  T * storage() const { return values; };
+  [[deprecated("use data instead to be stl compatible")]] T * storage() const {
+    return values;
+  };
+
+  T * data() const { return values; };
 
 protected:
   /// allocation type agnostic  data access
   T * values{nullptr};
 
-  UInt allocated_size{0};
+  Int allocated_size{0};
 };
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
-inline auto Array<T, is_scal>::operator()(UInt i, UInt j) -> reference {
+inline auto Array<T, is_scal>::operator()(Int i, Int j) -> reference {
   AKANTU_DEBUG_ASSERT(this->size_ > 0,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < this->size_) && (j < this->nb_component),
@@ -389,7 +393,7 @@ inline auto Array<T, is_scal>::operator()(UInt i, UInt j) -> reference {
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
-inline auto Array<T, is_scal>::operator()(UInt i, UInt j) const
+inline auto Array<T, is_scal>::operator()(Int i, Int j) const
     -> const_reference {
   AKANTU_DEBUG_ASSERT(this->size_ > 0,
                       "The array \"" << this->id << "\" is empty");
@@ -402,7 +406,7 @@ inline auto Array<T, is_scal>::operator()(UInt i, UInt j) const
 }
 
 template <class T, bool is_scal>
-inline auto Array<T, is_scal>::operator[](UInt i) -> reference {
+inline auto Array<T, is_scal>::operator[](Int i) -> reference {
   AKANTU_DEBUG_ASSERT(this->size_ > 0,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < this->size_ * this->nb_component),
@@ -414,7 +418,7 @@ inline auto Array<T, is_scal>::operator[](UInt i) -> reference {
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
-inline auto Array<T, is_scal>::operator[](UInt i) const -> const_reference {
+inline auto Array<T, is_scal>::operator[](Int i) const -> const_reference {
   AKANTU_DEBUG_ASSERT(this->size_ > 0,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < this->size_ * this->nb_component),
@@ -433,7 +437,7 @@ inline auto Array<T, is_scal>::operator[](UInt i) const -> const_reference {
  * elements.
  * @param i index of element to erase
  */
-template <class T, bool is_scal> inline void Array<T, is_scal>::erase(UInt i) {
+template <class T, bool is_scal> inline void Array<T, is_scal>::erase(Idx i) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((this->size_ > 0), "The array is empty");
   AKANTU_DEBUG_ASSERT((i < this->size_), "The element at position ["
@@ -441,8 +445,7 @@ template <class T, bool is_scal> inline void Array<T, is_scal>::erase(UInt i) {
                                              << ">=" << this->size_ << ")");
 
   if (i != (this->size_ - 1)) {
-    for (UInt j = 0; j < this->nb_component; ++j) {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    for (Idx j = 0; j < this->nb_component; ++j) {
       this->values[i * this->nb_component + j] =
           this->values[(this->size_ - 1) * this->nb_component + j];
     }
@@ -450,6 +453,17 @@ template <class T, bool is_scal> inline void Array<T, is_scal>::erase(UInt i) {
 
   this->resize(this->size_ - 1);
   AKANTU_DEBUG_OUT();
+}
+
+/* ------------------------------------------------------------------------ */
+template <class T, bool is_scal>
+template <typename R>
+inline auto Array<T, is_scal>::erase(const view_iterator<R> & it) {
+  auto && curr = it.data();
+  Idx pos = (curr - this->values) / this->nb_component;
+  erase(pos);
+  view_iterator<R> rit = it;
+  return --rit;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -464,14 +478,14 @@ template <class T, bool is_scal> inline void Array<T, is_scal>::erase(UInt i) {
  */
 template <class T, bool is_scal>
 Array<T, is_scal> &
-Array<T, is_scal>::operator-=(const Array<T, is_scal> & other) {
-  AKANTU_DEBUG_ASSERT((this->size_ == other.size_) &&
-                          (this->nb_component == other.nb_component),
+Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect) {
+  AKANTU_DEBUG_ASSERT((this->size_ == vect.size_) &&
+                          (this->nb_component == vect.nb_component),
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = other.storage();
-  for (UInt i = 0; i < this->size_ * this->nb_component; ++i) {
+  T * b = vect.data();
+  for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a -= *b;
     ++a;
     ++b;
@@ -493,14 +507,14 @@ Array<T, is_scal>::operator-=(const Array<T, is_scal> & other) {
  */
 template <class T, bool is_scal>
 Array<T, is_scal> &
-Array<T, is_scal>::operator+=(const Array<T, is_scal> & other) {
-  AKANTU_DEBUG_ASSERT((this->size_ == other.size()) &&
-                          (this->nb_component == other.nb_component),
+Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
+  AKANTU_DEBUG_ASSERT((this->size_ == vect.size()) &&
+                          (this->nb_component == vect.nb_component),
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = other.storage();
-  for (UInt i = 0; i < this->size_ * this->nb_component; ++i) {
+  T * b = vect.data();
+  for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a++ += *b++;
   }
 
@@ -516,17 +530,16 @@ Array<T, is_scal>::operator+=(const Array<T, is_scal> & other) {
  */
 
 template <class T, bool is_scal>
-Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
+auto Array<T, is_scal>::operator*=(const T & alpha) -> Array & {
   T * a = this->values;
-  for (UInt i = 0; i < this->size_ * this->nb_component; ++i) {
+  for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a++ *= alpha;
   }
 
   return *this;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 /**
  * Compare this array element by element to another.
  * @param other array to compare to
@@ -534,96 +547,86 @@ Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
  * the same shape, else false
  */
 template <class T, bool is_scal>
-bool Array<T, is_scal>::operator==(const Array<T, is_scal> & other) const {
+bool Array<T, is_scal>::operator==(const Array & other) const {
   bool equal = this->nb_component == other.nb_component &&
                this->size_ == other.size_ && this->id == other.id;
   if (not equal) {
     return false;
   }
-  if (this->values == other.storage()) {
+
+  if (this->values == other.data()) {
     return true;
   }
 
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   return std::equal(this->values,
                     this->values + this->size_ * this->nb_component,
-                    other.storage());
+                    other.data());
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
 bool Array<T, is_scal>::operator!=(const Array<T, is_scal> & other) const {
   return !operator==(other);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 /**
  * set all tuples of the array to a given vector or matrix
  * @param vm Matrix or Vector to fill the array with
  */
 template <class T, bool is_scal>
-template <template <typename> class C, typename>
-inline void Array<T, is_scal>::set(const C<T> & vm) {
-  AKANTU_DEBUG_ASSERT(this->nb_component == vm.size(),
-                      "The size of the object does not "
-                      "match the number of components");
-  for (T * it = this->values;
-       it < this->values + this->nb_component * this->size_;
-       it += this->nb_component) {
-    std::copy_n(vm.storage(), this->nb_component, it);
+template <typename C, std::enable_if_t<aka::is_tensor<C>::value> *>
+inline void Array<T, is_scal>::set(const C & elem) {
+  AKANTU_DEBUG_ASSERT(
+      this->nb_component == elem.array().size(),
+      "The size of the object does not match the number of components");
+
+  for (auto && v : make_view(*this, this->nb_component)) {
+    v = elem.reshaped(this->nb_component, 1);
   }
 }
-/* --------------------------------------------------------------------------
- */
+
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-void Array<T, is_scal>::append(const Array<T> & other) {
-  AKANTU_DEBUG_ASSERT(this->nb_component == other.nb_component,
-                      "Cannot append an array with a "
-                      "different number of component");
-  UInt old_size = this->size_;
+void Array<T, is_scal>::append(const Array & other) {
+  AKANTU_DEBUG_ASSERT(
+      this->nb_component == other.nb_component,
+      "Cannot append an array with a different number of component");
+  Idx old_size = this->size_;
   this->resize(this->size_ + other.size());
 
   T * tmp = this->values + this->nb_component * old_size;
-  std::copy_n(other.storage(), other.size() * this->nb_component, tmp);
+  std::copy_n(other.data(), other.size() * this->nb_component, tmp);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 /* Functions Array<T, is_scal> */
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-Array<T, is_scal>::Array(UInt size, UInt nb_component, const ID & id)
+Array<T, is_scal>::Array(Int size, Int nb_component, const ID & id)
     : parent(size, nb_component, id) {}
 
 template <>
-inline Array<std::string, false>::Array(UInt size, UInt nb_component,
+inline Array<std::string, false>::Array(Int size, Int nb_component,
                                         const ID & id)
     : parent(size, nb_component, "", id) {}
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-Array<T, is_scal>::Array(UInt size, UInt nb_component, const_reference value,
+Array<T, is_scal>::Array(Int size, Int nb_component, const_reference value,
                          const ID & id)
     : parent(size, nb_component, value, id) {}
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
 Array<T, is_scal>::Array(const Array & vect, const ID & id)
     : parent(vect, id) {}
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-Array<T, is_scal> &
-Array<T, is_scal>::operator=(const Array<T, is_scal> & other) {
+auto Array<T, is_scal>::operator=(const Array & other) -> Array & {
   AKANTU_DEBUG_WARNING("You are copying the array "
                        << this->id << " are you sure it is on purpose");
-
   if (&other == this) {
     return *this;
   }
@@ -632,17 +635,14 @@ Array<T, is_scal>::operator=(const Array<T, is_scal> & other) {
   return *this;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
 Array<T, is_scal>::Array(const std::vector<T> & vect) : parent(vect) {}
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal> Array<T, is_scal>::~Array() = default;
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 /**
  * search elem in the array, return  the position of the
  * first occurrence or -1 if not found
@@ -651,7 +651,7 @@ template <class T, bool is_scal> Array<T, is_scal>::~Array() = default;
  * elem is not present
  */
 template <class T, bool is_scal>
-UInt Array<T, is_scal>::find(const_reference elem) const {
+Idx Array<T, is_scal>::find(const_reference elem) const {
   AKANTU_DEBUG_IN();
 
   auto begin = this->begin();
@@ -659,47 +659,26 @@ UInt Array<T, is_scal>::find(const_reference elem) const {
   auto it = std::find(begin, end, elem);
 
   AKANTU_DEBUG_OUT();
-  return (it != end) ? it - begin : UInt(-1);
+  return (it != end) ? it - begin : Idx(-1);
 }
 
-/* --------------------------------------------------------------------------
- */
-// template <class T, bool is_scal> UInt Array<T,
-// is_scal>::find(T elem[]) const
-// {
-//   AKANTU_DEBUG_IN();
-//   T * it = this->values;
-//   UInt i = 0;
-//   for (; i < this->size_; ++i) {
-//     if (*it == elem[0]) {
-//       T * cit = it;
-//       UInt c = 0;
-//       for (; (c < this->nb_component) && (*cit ==
-//       elem[c]); ++c, ++cit)
-//         ;
-//       if (c == this->nb_component) {
-//         AKANTU_DEBUG_OUT();
-//         return i;
-//       }
-//     }
-//     it += this->nb_component;
-//   }
-//   return UInt(-1);
-// }
-
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
-template <template <typename> class C, typename>
-inline UInt Array<T, is_scal>::find(const C<T> & elem) {
+template <typename V, std::enable_if_t<aka::is_tensor<V>::value> *>
+inline Idx Array<T, is_scal>::find(const V & elem) {
   AKANTU_DEBUG_ASSERT(elem.size() == this->nb_component,
                       "Cannot find an element with a wrong size ("
                           << elem.size() << ") != " << this->nb_component);
-  return this->find(*elem.storage());
+  auto && view = make_view(*this, elem.size());
+
+  auto begin = view.begin();
+  auto end = view.end();
+  auto it = std::find(begin, end, elem);
+
+  return (it != end) ? it - begin : Idx(-1);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 /**
  * copy the content of another array. This overwrites the
  * current content.
@@ -722,13 +701,12 @@ void Array<T, is_scal>::copy(const Array<T, is_scal> & other,
 
   this->resize((other.size_ * other.nb_component) / this->nb_component);
 
-  std::copy_n(other.storage(), this->size_ * this->nb_component, this->values);
+  std::copy_n(other.data(), this->size_ * this->nb_component, this->values);
 
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <bool is_scal> class ArrayPrintHelper {
 public:
   template <typename T>
@@ -737,9 +715,9 @@ public:
     std::string space(indent, AKANTU_INDENT);
 
     stream << space << " + values         : {";
-    for (UInt i = 0; i < vect.size(); ++i) {
+    for (Idx i = 0; i < vect.size(); ++i) {
       stream << "{";
-      for (UInt j = 0; j < vect.getNbComponent(); ++j) {
+      for (Idx j = 0; j < vect.getNbComponent(); ++j) {
         stream << vect(i, j);
         if (j != vect.getNbComponent() - 1) {
           stream << ", ";
@@ -762,8 +740,7 @@ public:
                             __attribute__((unused)) int indent) {}
 };
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
 void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
@@ -809,345 +786,129 @@ bool Array<T, is_scal>::isFinite() const noexcept {
                      [](auto && a) { return std::isfinite(a); });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Inline Functions ArrayBase */
-/* -------------------------------------------------------------------------- */
-
-// inline bool ArrayBase::empty() { return (this->size_ ==
-// 0); }
-
-/* -------------------------------------------------------------------------- */
-/* Iterators */
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template <class R, class daughter, class IR, bool is_tensor>
-class Array<T, is_scal>::iterator_internal {
+/* ------------------------------------------------------------------------ */
+/* ArrayFilter                                                              */
+/* ------------------------------------------------------------------------ */
+template <typename T> class ArrayFilter {
 public:
-  using value_type = R;
-  using pointer = R *;
-  using reference = R &;
-  using const_reference = const R &;
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::random_access_iterator_tag;
-  static_assert(not is_tensor, "Cannot handle tensors");
-
-public:
-  iterator_internal(pointer data = nullptr) : ret(data), initial(data){};
-  iterator_internal(const iterator_internal & it) = default;
-  iterator_internal(iterator_internal && it) noexcept = default;
-
-  virtual ~iterator_internal() = default;
-
-  inline iterator_internal & operator=(const iterator_internal & it) = default;
-  inline iterator_internal &
-  operator=(iterator_internal && it) noexcept = default;
-
-  UInt getCurrentIndex() { return (this->ret - this->initial); };
-
-  inline reference operator*() { return *ret; };
-  inline const_reference operator*() const { return *ret; };
-  inline pointer operator->() { return ret; };
-  inline daughter & operator++() {
-    ++ret;
-    return static_cast<daughter &>(*this);
-  };
-  inline daughter & operator--() {
-    --ret;
-    return static_cast<daughter &>(*this);
-  };
-
-  inline daughter & operator+=(const UInt n) {
-    ret += n;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter & operator-=(const UInt n) {
-    ret -= n;
-    return static_cast<daughter &>(*this);
-  }
-
-  inline reference operator[](const UInt n) { return ret[n]; }
-
-  inline bool operator==(const iterator_internal & other) const {
-    return ret == other.ret;
-  }
-  inline bool operator!=(const iterator_internal & other) const {
-    return ret != other.ret;
-  }
-  inline bool operator<(const iterator_internal & other) const {
-    return ret < other.ret;
-  }
-  inline bool operator<=(const iterator_internal & other) const {
-    return ret <= other.ret;
-  }
-  inline bool operator>(const iterator_internal & other) const {
-    return ret > other.ret;
-  }
-  inline bool operator>=(const iterator_internal & other) const {
-    return ret >= other.ret;
-  }
-
-  inline daughter operator-(difference_type n) const {
-    return daughter(ret - n);
-  }
-  inline daughter operator+(difference_type n) const {
-    return daughter(ret + n);
-  }
-
-  inline difference_type operator-(const iterator_internal & b) const {
-    return ret - b.ret;
-  }
-
-  inline pointer data() const { return ret; }
-
-protected:
-  pointer ret{nullptr};
-  pointer initial{nullptr};
-};
-
-/* --------------------------------------------------------------------------
- */
-/**
- * Specialization for scalar types
- */
-template <class T, bool is_scal>
-template <class R, class daughter, class IR>
-class Array<T, is_scal>::iterator_internal<R, daughter, IR, true> {
-public:
-  using value_type = R;
-  using pointer = R *;
-  using pointer_type = typename Array<T, is_scal>::pointer_type;
-  using reference = R &;
-  using proxy = typename R::proxy;
-  using const_proxy = const typename R::proxy;
-  using const_reference = const R &;
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::random_access_iterator_tag;
-
-public:
-  iterator_internal() = default;
-
-  iterator_internal(pointer_type data, UInt _offset)
-      : _offset(_offset), initial(data), ret(nullptr), ret_ptr(data) {
-    AKANTU_ERROR("The constructor should never be called "
-                 "it is just an ugly trick...");
-  }
-
-  iterator_internal(std::unique_ptr<internal_value_type> && wrapped)
-      : _offset(wrapped->size()), initial(wrapped->storage()),
-        ret(std::move(wrapped)), ret_ptr(ret->storage()) {}
-
-  iterator_internal(const iterator_internal & it) {
-    if (this != &it) {
-      this->_offset = it._offset;
-      this->initial = it.initial;
-      this->ret_ptr = it.ret_ptr;
-      this->ret = std::make_unique<internal_value_type>(*it.ret, false);
+  /// const iterator
+  template <class original_iterator, typename filter_iterator>
+  class const_iterator {
+  public:
+    Idx getCurrentIndex() {
+      return (*this->filter_it * this->nb_item_per_elem +
+              this->sub_element_counter);
     }
-  }
 
-  iterator_internal(iterator_internal && it) noexcept = default;
+    inline const_iterator() = default;
+    inline const_iterator(original_iterator origin_it,
+                          filter_iterator filter_it, Int nb_item_per_elem)
+        : origin_it(std::move(origin_it)), filter_it(std::move(filter_it)),
+          nb_item_per_elem(nb_item_per_elem), sub_element_counter(0){};
 
-  virtual ~iterator_internal() = default;
+    inline bool operator!=(const_iterator & other) const {
+      return !((*this) == other);
+    }
+    inline bool operator==(const_iterator & other) const {
+      return (this->origin_it == other.origin_it &&
+              this->filter_it == other.filter_it &&
+              this->sub_element_counter == other.sub_element_counter);
+    }
 
-  inline iterator_internal & operator=(const iterator_internal & it) {
-    if (this != &it) {
-      this->_offset = it._offset;
-      this->initial = it.initial;
-      this->ret_ptr = it.ret_ptr;
-      if (this->ret) {
-        this->ret->shallowCopy(*it.ret);
-      } else {
-        this->ret = std::make_unique<internal_value_type>(*it.ret, false);
+    inline bool operator!=(const const_iterator & other) const {
+      return !((*this) == other);
+    }
+    inline bool operator==(const const_iterator & other) const {
+      return (this->origin_it == other.origin_it &&
+              this->filter_it == other.filter_it &&
+              this->sub_element_counter == other.sub_element_counter);
+    }
+
+    inline const_iterator & operator++() {
+      ++sub_element_counter;
+      if (sub_element_counter == nb_item_per_elem) {
+        sub_element_counter = 0;
+        ++filter_it;
       }
-    }
-    return *this;
-  }
+      return *this;
+    };
 
-  inline iterator_internal &
-  operator=(iterator_internal && it) noexcept = default;
+    inline decltype(auto) operator*() {
+      return origin_it[nb_item_per_elem * (*filter_it) + sub_element_counter];
+    };
 
-  UInt getCurrentIndex() {
-    return (this->ret_ptr - this->initial) / this->_offset;
+  private:
+    original_iterator origin_it;
+    filter_iterator filter_it;
+    /// the number of item per element
+    Int nb_item_per_elem;
+    /// counter for every sub element group
+    Int sub_element_counter;
   };
 
-  inline reference operator*() {
-    ret->values = ret_ptr;
-    return *ret;
-  };
-  inline const_reference operator*() const {
-    ret->values = ret_ptr;
-    return *ret;
-  };
-  inline pointer operator->() {
-    ret->values = ret_ptr;
-    return ret.get();
-  };
-  inline daughter & operator++() {
-    ret_ptr += _offset;
-    return static_cast<daughter &>(*this);
-  };
-  inline daughter & operator--() {
-    ret_ptr -= _offset;
-    return static_cast<daughter &>(*this);
-  };
+  using vector_iterator = void; // iterator<Vector<T>>;
+  using array_type = Array<T>;
+  using const_vector_iterator =
+      const_iterator<typename array_type::const_vector_iterator,
+                     Array<Idx>::const_scalar_iterator>;
+  using value_type = typename array_type::value_type;
 
-  inline daughter & operator+=(const UInt n) {
-    ret_ptr += _offset * n;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter & operator-=(const UInt n) {
-    ret_ptr -= _offset * n;
-    return static_cast<daughter &>(*this);
-  }
-
-  inline proxy operator[](const UInt n) {
-    ret->values = ret_ptr + n * _offset;
-    return proxy(*ret);
-  }
-  inline const_proxy operator[](const UInt n) const { // NOLINT
-    ret->values = ret_ptr + n * _offset;
-    return const_proxy(*ret);
-  }
-
-  inline bool operator==(const iterator_internal & other) const {
-    return this->ret_ptr == other.ret_ptr;
-  }
-  inline bool operator!=(const iterator_internal & other) const {
-    return this->ret_ptr != other.ret_ptr;
-  }
-  inline bool operator<(const iterator_internal & other) const {
-    return this->ret_ptr < other.ret_ptr;
-  }
-  inline bool operator<=(const iterator_internal & other) const {
-    return this->ret_ptr <= other.ret_ptr;
-  }
-  inline bool operator>(const iterator_internal & other) const {
-    return this->ret_ptr > other.ret_ptr;
-  }
-  inline bool operator>=(const iterator_internal & other) const {
-    return this->ret_ptr >= other.ret_ptr;
-  }
-
-  inline daughter operator+(difference_type n) const {
-    daughter tmp(static_cast<const daughter &>(*this));
-    tmp += n;
-    return tmp;
-  }
-  inline daughter operator-(difference_type n) const {
-    daughter tmp(static_cast<const daughter &>(*this));
-    tmp -= n;
-    return tmp;
-  }
-
-  inline difference_type operator-(const iterator_internal & b) const {
-    return (this->ret_ptr - b.ret_ptr) / _offset;
-  }
-
-  inline pointer_type data() const { return ret_ptr; }
-  inline difference_type offset() const { return _offset; }
-
-protected:
-  UInt _offset{0};
-  pointer_type initial{nullptr};
-  std::unique_ptr<internal_value_type> ret{nullptr};
-  pointer_type ret_ptr{nullptr};
-};
-
-/* -------------------------------------------------------------------------- */
-/* Iterators */
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template <typename R>
-class Array<T, is_scal>::const_iterator
-    : public iterator_internal<const R, Array<T, is_scal>::const_iterator<R>,
-                               R> {
+private:
+  /* ---------------------------------------------------------------------- */
+  /* Constructors/Destructors                                               */
+  /* ---------------------------------------------------------------------- */
 public:
-  using parent = iterator_internal<const R, const_iterator, R>;
-  using value_type = typename parent::value_type;
-  using pointer = typename parent::pointer;
-  using reference = typename parent::reference;
-  using difference_type = typename parent::difference_type;
-  using iterator_category = typename parent::iterator_category;
+  ArrayFilter(const Array<T> & array, const Array<Idx> & filter,
+              Int nb_item_per_elem)
+      : array(array), filter(filter), nb_item_per_elem(nb_item_per_elem){};
 
-public:
-  ~const_iterator() override = default;
+  decltype(auto) begin_reinterpret(Int n, Int new_size) const {
+    Int new_nb_item_per_elem = this->nb_item_per_elem;
+    if (new_size != 0 && n != 0)
+      new_nb_item_per_elem = this->array.getNbComponent() *
+                             this->filter.size() * this->nb_item_per_elem /
+                             (n * new_size);
 
-  const_iterator() = default;
-  const_iterator(const const_iterator & it) = default;
-  const_iterator(const_iterator && it) noexcept = default;
+    return const_vector_iterator(make_view(this->array, n).begin(),
+                                 this->filter.begin(), new_nb_item_per_elem);
+  };
 
-  const_iterator & operator=(const const_iterator & it) = default;
-  const_iterator & operator=(const_iterator && it) noexcept = default;
+  decltype(auto) end_reinterpret(Int n, Int new_size) const {
+    Int new_nb_item_per_elem = this->nb_item_per_elem;
+    if (new_size != 0 && n != 0)
+      new_nb_item_per_elem = this->array.getNbComponent() *
+                             this->filter.size() * this->nb_item_per_elem /
+                             (n * new_size);
 
-  template <typename P,
-            typename = std::enable_if_t<not aka::is_tensor<P>::value>>
-  const_iterator(P * data) : parent(data) {}
+    return const_vector_iterator(make_view(this->array, n).begin(),
+                                 this->filter.end(), new_nb_item_per_elem);
+  };
 
-  template <typename UP_P, typename = std::enable_if_t<aka::is_tensor<
-                               typename UP_P::element_type>::value>>
-  const_iterator(UP_P && tensor) : parent(std::forward<UP_P>(tensor)) {}
+  // vector_iterator begin_reinterpret(Int, Int) { throw; };
+  // vector_iterator end_reinterpret(Int, Int) { throw; };
+
+  /// return the size of the filtered array which is the filter size
+  Int size() const { return this->filter.size() * this->nb_item_per_elem; };
+  /// the number of components of the filtered array
+  Int getNbComponent() const { return this->array.getNbComponent(); };
+
+  /// tells if the container is empty
+  [[nodiscard]] bool empty() const { return (size() == 0); }
+  /* ---------------------------------------------------------------------- */
+  /* Class Members                                                          */
+  /* ---------------------------------------------------------------------- */
+private:
+  /// reference to array of data
+  const Array<T> & array;
+  /// reference to the filter used to select elements
+  const Array<Idx> & filter;
+  /// the number of item per element
+  Int nb_item_per_elem;
 };
 
-/* -------------------------------------------------------------------------- */
-template <class T, class R, bool is_tensor_ = aka::is_tensor<R>::value>
-struct ConstConverterIteratorHelper {
-  using const_iterator = typename Array<T>::template const_iterator<R>;
-  using iterator = typename Array<T>::template iterator<R>;
-
-  static inline const_iterator convert(const iterator & it) {
-    return const_iterator(std::unique_ptr<R>(new R(*it, false)));
-  }
-};
-
-template <class T, class R> struct ConstConverterIteratorHelper<T, R, false> {
-  using const_iterator = typename Array<T>::template const_iterator<R>;
-  using iterator = typename Array<T>::template iterator<R>;
-  static inline const_iterator convert(const iterator & it) {
-    return const_iterator(it.data());
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template <typename R>
-class Array<T, is_scal>::iterator
-    : public iterator_internal<R, Array<T, is_scal>::iterator<R>> {
-public:
-  using parent = iterator_internal<R, iterator>;
-  using value_type = typename parent::value_type;
-  using pointer = typename parent::pointer;
-  using reference = typename parent::reference;
-  using difference_type = typename parent::difference_type;
-  using iterator_category = typename parent::iterator_category;
-
-public:
-  ~iterator() override = default;
-  iterator() = default;
-  iterator(const iterator & it) = default;
-  iterator(iterator && it) noexcept = default;
-  iterator & operator=(const iterator & it) = default;
-  iterator & operator=(iterator && it) noexcept = default;
-
-  template <typename P,
-            typename = std::enable_if_t<not aka::is_tensor<P>::value>>
-  iterator(P * data) : parent(data) {}
-
-  template <typename UP_P, typename = std::enable_if_t<aka::is_tensor<
-                               typename UP_P::element_type>::value>>
-  iterator(UP_P && tensor) : parent(std::forward<UP_P>(tensor)) {}
-
-  operator const_iterator<R>() {
-    return ConstConverterIteratorHelper<T, R>::convert(*this);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-/* Begin/End functions implementation */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* Begin/End functions implementation                                       */
+/* ------------------------------------------------------------------------ */
 namespace detail {
   template <class Tuple, size_t... Is>
   constexpr auto take_front_impl(Tuple && t,
@@ -1158,12 +919,6 @@ namespace detail {
   template <size_t N, class Tuple> constexpr auto take_front(Tuple && t) {
     return take_front_impl(std::forward<Tuple>(t),
                            std::make_index_sequence<N>{});
-  }
-
-  template <typename... V> constexpr auto product_all(V &&... v) {
-    std::common_type_t<int, V...> result = 1;
-    (void)std::initializer_list<int>{(result *= v, 0)...};
-    return result;
   }
 
   template <typename... T> std::string to_string_all(T &&... t) {
@@ -1194,17 +949,17 @@ namespace detail {
   };
 
   template <typename Arr, typename T, typename... Ns>
-  decltype(auto) get_iterator(Arr && array, T * data, Ns &&... ns) {
-    using type = IteratorHelper_t<sizeof...(Ns) - 1, T>;
-    using array_type = std::decay_t<Arr>;
-    using iterator =
-        std::conditional_t<std::is_const<std::remove_reference_t<Arr>>::value,
-                           typename array_type::template const_iterator<type>,
-                           typename array_type::template iterator<type>>;
+  decltype(auto) __attribute__((visibility("hidden")))
+  get_iterator(Arr && array, T * data, Ns &&... ns) {
+    const bool is_const_arr =
+        std::is_const<std::remove_reference_t<Arr>>::value;
+    using type = ViewIteratorHelper_t<sizeof...(Ns) - 1, T>;
+    using iterator = std::conditional_t<is_const_arr, const_view_iterator<type>,
+                                        view_iterator<type>>;
     static_assert(sizeof...(Ns), "You should provide a least one size");
 
     if (array.getNbComponent() * array.size() !=
-        product_all(std::forward<Ns>(ns)...)) {
+        Int(product_all(std::forward<Ns>(ns)...))) {
       AKANTU_CUSTOM_EXCEPTION_INFO(
           debug::ArrayException(),
           "The iterator on "
@@ -1214,28 +969,23 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    auto && wrapped = aka::apply(
-        [&](auto... n) {
-          return InstantiationHelper<sizeof...(n)>::template instantiate<type>(
-              data, n...);
-        },
-        take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
-
-    return iterator(std::move(wrapped));
+    return std::apply([&](auto... n) { return iterator(data, n...); },
+                      take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
   }
 } // namespace detail
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::begin(Ns &&... ns) {
+inline auto Array<T, is_scal>::begin(Ns &&... ns) {
   return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
                               this->size_);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::end(Ns &&... ns) {
+inline auto Array<T, is_scal>::end(Ns &&... ns) {
   return detail::get_iterator(*this,
                               this->values + this->nb_component * this->size_,
                               std::forward<Ns>(ns)..., this->size_);
@@ -1243,14 +993,14 @@ inline decltype(auto) Array<T, is_scal>::end(Ns &&... ns) {
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::begin(Ns &&... ns) const {
+inline auto Array<T, is_scal>::begin(Ns &&... ns) const {
   return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
                               this->size_);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::end(Ns &&... ns) const {
+inline auto Array<T, is_scal>::end(Ns &&... ns) const {
   return detail::get_iterator(*this,
                               this->values + this->nb_component * this->size_,
                               std::forward<Ns>(ns)..., this->size_);
@@ -1258,13 +1008,28 @@ inline decltype(auto) Array<T, is_scal>::end(Ns &&... ns) const {
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::begin_reinterpret(Ns &&... ns) {
+inline auto Array<T, is_scal>::cbegin(Ns &&... ns) const {
+  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
+                              this->size_);
+}
+
+template <class T, bool is_scal>
+template <typename... Ns>
+inline auto Array<T, is_scal>::cend(Ns &&... ns) const {
+  return detail::get_iterator(*this,
+                              this->values + this->nb_component * this->size_,
+                              std::forward<Ns>(ns)..., this->size_);
+}
+
+template <class T, bool is_scal>
+template <typename... Ns>
+inline auto Array<T, is_scal>::begin_reinterpret(Ns &&... ns) {
   return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::end_reinterpret(Ns &&... ns) {
+inline auto Array<T, is_scal>::end_reinterpret(Ns &&... ns) {
   return detail::get_iterator(
       *this, this->values + detail::product_all(std::forward<Ns>(ns)...),
       std::forward<Ns>(ns)...);
@@ -1272,77 +1037,147 @@ inline decltype(auto) Array<T, is_scal>::end_reinterpret(Ns &&... ns) {
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::begin_reinterpret(Ns &&... ns) const {
+inline auto Array<T, is_scal>::begin_reinterpret(Ns &&... ns) const {
   return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
-inline decltype(auto) Array<T, is_scal>::end_reinterpret(Ns &&... ns) const {
+inline auto Array<T, is_scal>::end_reinterpret(Ns &&... ns) const {
   return detail::get_iterator(
       *this, this->values + detail::product_all(std::forward<Ns>(ns)...),
       std::forward<Ns>(ns)...);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Views */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* Views                                                                    */
+/* ------------------------------------------------------------------------ */
 namespace detail {
   template <typename Array, typename... Ns> class ArrayView {
     using tuple = std::tuple<Ns...>;
 
   public:
+    using size_type = Idx;
+
     ~ArrayView() = default;
-    ArrayView(Array && array, Ns... ns) noexcept
+    constexpr ArrayView(Array && array, Ns... ns) noexcept
         : array(array), sizes(std::move(ns)...) {}
 
-    ArrayView(const ArrayView & array_view) = default;
-    ArrayView & operator=(const ArrayView & array_view) = default;
+    constexpr ArrayView(const ArrayView & array_view) = default;
+    constexpr ArrayView(ArrayView && array_view) noexcept = default;
 
-    ArrayView(ArrayView && array_view) noexcept = default;
-    ArrayView & operator=(ArrayView && array_view) noexcept = default;
+    constexpr ArrayView & operator=(const ArrayView & array_view) = default;
+    constexpr ArrayView & operator=(ArrayView && array_view) noexcept = default;
 
-    decltype(auto) begin() {
-      return aka::apply(
-          [&](auto &&... ns) { return array.get().begin_reinterpret(ns...); },
+    auto begin() {
+      return std::apply(
+          [&](auto &&... ns) {
+            return detail::get_iterator(array.get(), array.get().data(),
+                                        std::forward<decltype(ns)>(ns)...);
+          },
           sizes);
     }
 
-    decltype(auto) begin() const {
-      return aka::apply(
-          [&](auto &&... ns) { return array.get().begin_reinterpret(ns...); },
+    auto begin() const {
+      return std::apply(
+          [&](auto &&... ns) {
+            return detail::get_iterator(array.get(), array.get().data(),
+                                        std::forward<decltype(ns)>(ns)...);
+          },
           sizes);
     }
 
-    decltype(auto) end() {
-      return aka::apply(
-          [&](auto &&... ns) { return array.get().end_reinterpret(ns...); },
+    auto end() {
+      return std::apply(
+          [&](auto &&... ns) {
+            return detail::get_iterator(
+                array.get(),
+                array.get().data() +
+                    detail::product_all(std::forward<decltype(ns)>(ns)...),
+                std::forward<decltype(ns)>(ns)...);
+          },
           sizes);
     }
 
-    decltype(auto) end() const {
-      return aka::apply(
-          [&](auto &&... ns) { return array.get().end_reinterpret(ns...); },
+    auto end() const {
+      return std::apply(
+          [&](auto &&... ns) {
+            return detail::get_iterator(
+                array.get(),
+                array.get().data() +
+                    detail::product_all(std::forward<decltype(ns)>(ns)...),
+                std::forward<decltype(ns)>(ns)...);
+          },
           sizes);
     }
 
-    decltype(auto) size() const {
+    auto cbegin() const { return this->begin(); }
+    auto cend() const { return this->end(); }
+
+    constexpr auto size() const {
       return std::get<std::tuple_size<tuple>::value - 1>(sizes);
     }
 
-    decltype(auto) dims() const { return std::tuple_size<tuple>::value - 1; }
+    constexpr auto dims() const { return std::tuple_size<tuple>::value - 1; }
 
   private:
     std::reference_wrapper<std::remove_reference_t<Array>> array;
     tuple sizes;
   };
+
+  /* ---------------------------------------------------------------------- */
+  template <typename T, typename... Ns>
+  class ArrayView<const ArrayFilter<T> &, Ns...> {
+    using tuple = std::tuple<Ns...>;
+
+  public:
+    constexpr ArrayView(const ArrayFilter<T> & array, Ns... ns)
+        : array(array), sizes(std::move(ns)...) {}
+
+    constexpr ArrayView(const ArrayView & array_view) = default;
+    constexpr ArrayView(ArrayView && array_view) = default;
+
+    constexpr ArrayView & operator=(const ArrayView & array_view) = default;
+    constexpr ArrayView & operator=(ArrayView && array_view) = default;
+
+    auto begin() const {
+      return std::apply(
+          [&](auto &&... ns) {
+            return array.get().begin_reinterpret(
+                std::forward<decltype(ns)>(ns)...);
+          },
+          sizes);
+    }
+
+    auto end() const {
+      return std::apply(
+          [&](auto &&... ns) {
+            return array.get().end_reinterpret(
+                std::forward<decltype(ns)>(ns)...);
+          },
+          sizes);
+    }
+
+    auto cbegin() const { return this->begin(); }
+    auto cend() const { return this->end(); }
+
+    constexpr auto size() const {
+      return std::get<std::tuple_size<tuple>::value - 1>(sizes);
+    }
+
+    constexpr auto dims() const { return std::tuple_size<tuple>::value - 1; }
+
+  private:
+    std::reference_wrapper<const ArrayFilter<T>> array;
+    tuple sizes;
+  };
 } // namespace detail
 
-/* -------------------------------------------------------------------------- */
-template <typename Array, typename... Ns>
+/* ------------------------------------------------------------------------ */
+template <typename Array, typename... Ns,
+          std::enable_if_t<aka::conjunction<
+              std::is_integral<std::decay_t<Ns>>...>::value> * = nullptr>
 decltype(auto) make_view(Array && array, const Ns... ns) {
-  static_assert(aka::conjunction<std::is_integral<std::decay_t<Ns>>...>::value,
-                "Ns should be integral types");
   AKANTU_DEBUG_ASSERT((detail::product_all(ns...) != 0),
                       "You must specify non zero dimensions");
   auto size = std::forward<decltype(array)>(array).size() *
@@ -1354,19 +1189,11 @@ decltype(auto) make_view(Array && array, const Ns... ns) {
       std::forward<Array>(array), std::move(ns)..., size);
 }
 
-/* --------------------------------------------------------------------------
- */
-template <class T, bool is_scal>
-template <typename R>
-inline typename Array<T, is_scal>::template iterator<R>
-Array<T, is_scal>::erase(const iterator<R> & it) {
-  T * curr = it.data();
-  UInt pos = (curr - this->values) / this->nb_component;
-  erase(pos);
-  iterator<R> rit = it;
-  return --rit;
+template <typename Array, typename... Ns>
+decltype(auto) make_const_view(const Array & array, const Ns... ns) {
+  return make_view(array, std::move(ns)...);
 }
 
 } // namespace akantu
 
-#endif /* AKANTU_AKA_ARRAY_TMPL_HH_ */
+//#endif /* __AKANTU_AKA_ARRAY_TMPL_HH__ */

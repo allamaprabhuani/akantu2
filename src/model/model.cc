@@ -43,7 +43,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id)
+Model::Model(Mesh & mesh, const ModelType & type, Int dim, const ID & id)
     : ModelSolver(mesh, type, id), mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
                                                : dim),
@@ -264,7 +264,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
 void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       const std::string & field_id,
                                       const std::string & group_name,
-                                      UInt spatial_dimension,
+                                      Int spatial_dimension,
                                       ElementKind element_kind,
                                       bool padding_flag) {
   std::shared_ptr<dumpers::Field> field;
@@ -273,7 +273,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
     field = this->createNodalFieldReal(field_id, group_name, padding_flag);
   }
   if (!field) {
-    field = this->createNodalFieldUInt(field_id, group_name, padding_flag);
+    field = this->createNodalFieldInt(field_id, group_name, padding_flag);
   }
   if (!field) {
     field = this->createNodalFieldBool(field_id, group_name, padding_flag);
@@ -283,8 +283,8 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                        spatial_dimension, element_kind);
   }
   if (!field) {
-    field = this->mesh.createFieldFromAttachedData<UInt>(field_id, group_name,
-                                                         element_kind);
+    field = this->mesh.createFieldFromAttachedData<Int>(field_id, group_name,
+                                                        element_kind);
   }
   if (!field) {
     field = this->mesh.createFieldFromAttachedData<Real>(field_id, group_name,
@@ -306,12 +306,12 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
 void Model::dump(const std::string & dumper_name) { mesh.dump(dumper_name); }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name, UInt step) {
+void Model::dump(const std::string & dumper_name, Int step) {
   mesh.dump(dumper_name, step);
 }
 
 /* ------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name, Real time, UInt step) {
+void Model::dump(const std::string & dumper_name, Real time, Int step) {
   mesh.dump(dumper_name, time, step);
 }
 
@@ -322,13 +322,13 @@ void Model::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(UInt step) {
+void Model::dump(Int step) {
   auto default_dumper = mesh.getDefaultDumperName();
   this->dump(default_dumper, step);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(Real time, UInt step) {
+void Model::dump(Real time, Int step) {
   auto default_dumper = mesh.getDefaultDumperName();
   this->dump(default_dumper, time, step);
 }

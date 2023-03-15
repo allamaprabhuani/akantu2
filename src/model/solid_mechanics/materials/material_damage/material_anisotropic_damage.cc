@@ -36,49 +36,30 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 
-namespace {
-  template <UInt dim>
-  std::unique_ptr<Material>
-  materialAnisotropicDamage(std::integral_constant<UInt, dim> /*unused*/,
-                            const ID & option, SolidMechanicsModel & model,
-                            const ID & id) {
-    if (option.empty() or option == "mazars") {
-      return std::make_unique<MaterialAnisotropicDamage<
-          dim, EquivalentStrainMazars, DamageThresholdTan>>(model, id);
-    }
-    if (option == "mazars-drucker-prager") {
-      return std::make_unique<MaterialAnisotropicDamage<
-          dim, EquivalentStrainMazarsDruckerPrager, DamageThresholdTan>>(model,
-                                                                         id);
-    }
-    AKANTU_EXCEPTION("The option " << option
-                                   << " is not valid for the material " << id);
-  }
-
-  template <class... Args>
-  decltype(auto) dimensionDispatch(UInt dim, Args &&... args) {
-    switch (dim) {
-    case 1:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 1>{},
-                                       std::forward<Args>(args)...);
-    case 2:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 2>{},
-                                       std::forward<Args>(args)...);
-    case 3:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 3>{},
-                                       std::forward<Args>(args)...);
-    default: {
-      AKANTU_EXCEPTION("In what dimension are you leaving ?");
-    }
-    }
-  }
-} // namespace
 static bool material_is_alocated_anisotropic_damage [[gnu::unused]] =
     MaterialFactory::getInstance().registerAllocator(
         "anisotropic_damage",
-        [](UInt dim, const ID & option, SolidMechanicsModel & model,
+        [](Int dim, const ID & option, SolidMechanicsModel & model,
            const ID & id) -> std::unique_ptr<Material> {
-          return dimensionDispatch(dim, option, model, id);
+          return tuple_dispatch<AllSpatialDimensions>(
+              [&](auto && _) -> std::unique_ptr<Material> {
+                constexpr auto dim_ = aka::decay_v<decltype(_)>;
+
+                if (option.empty() or option == "mazars") {
+                  return std::make_unique<MaterialAnisotropicDamage<
+                      dim_, EquivalentStrainMazars, DamageThresholdTan>>(model,
+                                                                         id);
+                }
+                if (option == "mazars-drucker-prager") {
+                  return std::make_unique<MaterialAnisotropicDamage<
+                      dim_, EquivalentStrainMazarsDruckerPrager,
+                      DamageThresholdTan>>(model, id);
+                }
+                AKANTU_EXCEPTION("The option "
+                                 << option << " is not valid for the material "
+                                 << id);
+              },
+              dim);
         });
 
 } // namespace akantu
