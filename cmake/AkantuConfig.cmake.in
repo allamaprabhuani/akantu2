@@ -49,6 +49,8 @@ else()
   include(AkantuSimulationMacros)
 endif()
 
+find_package(Eigen3 REQUIRED QUIET)
+
 # Akantu exported targets
 include("${AKANTU_CMAKE_DIR}/AkantuTargets.cmake")
 
