@@ -22,7 +22,9 @@ set(PYBIND11_INCLUDE_DIR "${PYBIND11_INCLUDE_DIR};${PYTHON_INCLUDE_DIRS}" CACHE 
 set(PYBIND11_LIBRARIES "${PYTHON_LIBRARIES}" CACHE INTERNAL "")
 
 mask_package_options(PYBIND11)
-mark_as_advanced(USE_PYTHON_INCLUDE_DIR)
+mark_as_advanced(
+  USE_PYTHON_INCLUDE_DIR
+  )
 
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args(pybind11

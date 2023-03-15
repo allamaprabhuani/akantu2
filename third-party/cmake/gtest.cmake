@@ -43,5 +43,8 @@ set(gtest_FOUND TRUE CACHE INTERNAL "" FORCE)
 set(GTEST_INCLUDE_DIRS third-party/google-test/googletest/include CACHE INTERNAL "" FORCE)
 set(GTEST_LIBRARIES GTest::Main CACHE INTERNAL "" FORCE)
 
-mark_as_advanced(INSTALL_GTEST)
+mark_as_advanced(
+  INSTALL_GTEST
+  GTEST_HAS_ABSL
+  )
 mask_package_options(gtest)

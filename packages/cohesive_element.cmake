@@ -22,7 +22,7 @@
 
 package_declare(cohesive_element DEFAULT ON
   DESCRIPTION "Use cohesive_element package of Akantu"
-  DEPENDS lapack solid_mechanics)
+  DEPENDS solid_mechanics)
 
 package_declare_sources(cohesive_element
   fe_engine/cohesive_element.hh

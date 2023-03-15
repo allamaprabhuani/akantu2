@@ -19,15 +19,14 @@
 #
 #===============================================================================
 
-
 if(AKANTU_BYPASS_AKANTU_TARGET)
   return()
 endif()
 
-package_declare(IOHelper EXTERNAL NOT_OPTIONAL
+package_declare(IOHelper EXTERNAL NOT_OPTIONAL DEFAULT ON
   DESCRIPTION "Add IOHelper support in akantu"
   SYSTEM OFF third-party/cmake/iohelper.cmake
-  DEFAULT ON)
+  EXTRA_PACKAGE_OPTIONS TARGET iohelper)
 
 set(_version "1.1.1")
 package_add_third_party_script_variable(IOHelper

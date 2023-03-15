@@ -146,10 +146,11 @@ target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
 target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
 
-set_target_properties(akantu
-  PROPERTIES
-    ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
-)
+if(AKANTU_LIBRARY_PROPERTIES)
+  set_target_properties(akantu
+    PROPERTIES ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
+    )
+endif()
 
 if(NOT AKANTU_SHARED)
   set_property(TARGET akantu PROPERTY

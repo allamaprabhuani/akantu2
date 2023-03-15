@@ -16,20 +16,25 @@ endif()
 
 set(CMAKE_BUILD_TYPE Release)
 set(BUILD_TESTING OFF CACHE BOOL "Eigen Tests" FORCE)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/eigen3)
 
-set_property(TARGET eigen APPEND
-  PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third-party/eigen3>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    )
+set(EIGEN3_LIBRARIES Eigen3::Eigen)
 
-set(Eigen3_FOUND TRUE CACHE INTERNAL "" FORCE)
-set(EIGEN3_LIBRARIES eigen CACHE INTERNAL "")
-
-mark_as_advanced(BUILD_TESTING)
 mask_package_options(EIGEN3)
 mask_package_options(EIGEN)
+mask_package_options(PASTIX)
+mark_as_advanced(
+  BUILD_TESTING
+  INCLUDE_INSTALL_DIR
+  PKGCONFIG_INSTALL_DIR
+  PATCH_COMMAND
+  QT_QMAKE_EXECUTABLE
+  RT_LIBRARY
+  CMAKEPACKAGE_INSTALL_DIR
+  BLA_VENDOR
+  )
+
 
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Eigen3

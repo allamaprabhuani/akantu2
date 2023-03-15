@@ -21,8 +21,7 @@
 
 
 package_declare(damage_non_local
-  DESCRIPTION "Package for Non-local damage constitutives laws Akantu"
-  DEPENDS lapack)
+  DESCRIPTION "Package for Non-local damage constitutives laws Akantu")
 
 package_declare_sources(damage_non_local
   model/solid_mechanics/materials/material_damage/material_damage_non_local.hh

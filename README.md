@@ -40,7 +40,7 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev zlib1g-dev liblapack-dev libblas-dev gmsh libeigen3-dev
+> sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
 # For parallel
 > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
 # For sequential

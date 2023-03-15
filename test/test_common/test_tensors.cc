@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -518,7 +518,6 @@ TEST_F(TensorFixture, MatrixIteratorZip) {
   }
 }
 
-#if defined(AKANTU_USE_LAPACK)
 TEST_F(TensorFixture, MatrixEigs) {
   Matrix<double, 4, 4> A{
       {0, 1., 0, 0}, {1., 0, 0, 0}, {0, 1., 0, 1.}, {0, 0, 4., 0}};
@@ -561,7 +560,6 @@ TEST_F(TensorFixture, MatrixEigs) {
     EXPECT_NEAR(lambda_v_minus_a_v, 0., 1e-14);
   }
 }
-#endif
 
 /* -------------------------------------------------------------------------- */
 

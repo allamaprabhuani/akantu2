@@ -39,7 +39,7 @@ register_test(test_interpolate_stress test_interpolate_stress.cc
   FILES_TO_COPY material_interpolate.dat
   DEPENDS test_interpolate_stress_mesh
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE lapack core
+  PACKAGE core
   )
 
 #===============================================================================
@@ -49,7 +49,7 @@ register_test(test_material_orthotropic
   DEPENDS test_material_orthotropic_square_mesh
   FILES_TO_COPY orthotropic.dat
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE core lapack
+  PACKAGE core
   )
 
 #===============================================================================
@@ -57,7 +57,7 @@ register_test(test_material_mazars
   SOURCES test_material_mazars.cc
   FILES_TO_COPY material_mazars.dat
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE core lapack
+  PACKAGE core
   UNSTABLE
   )
 

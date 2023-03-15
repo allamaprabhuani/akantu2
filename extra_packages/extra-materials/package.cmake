@@ -22,7 +22,7 @@
 
 package_declare(extra_materials ADVANCED
   DESCRIPTION "Add the extra list of materials in Akantu"
-  DEPENDS lapack)
+  DEPENDS solid_mechanics)
 
 package_declare_sources(extra_materials
   material_extra_includes.hh
