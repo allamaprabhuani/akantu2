@@ -19,8 +19,7 @@
 #
 #===============================================================================
 
-
-package_declare(contact_mechanics
+package_declare(contact_mechanics DEFAULT ON
   DEPENDS model_couplers cohesive_element
   DESCRIPTION "Use Contact Mechanics package of Akantu")
 

@@ -19,7 +19,6 @@
 #
 #===============================================================================
 
-
 package_declare(parallel META
   DESCRIPTION "Add parallel support in Akantu"
   DEPENDS mpi scotch)

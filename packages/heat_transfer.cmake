@@ -19,8 +19,7 @@
 #
 #===============================================================================
 
-
-package_declare(heat_transfer
+package_declare(heat_transfer DEFAULT ON
   DESCRIPTION "Use Heat Transfer package of Akantu")
 
 package_declare_sources(heat_transfer

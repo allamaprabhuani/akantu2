@@ -20,7 +20,7 @@
 #===============================================================================
 
 
-package_declare(cohesive_element
+package_declare(cohesive_element DEFAULT ON
   DESCRIPTION "Use cohesive_element package of Akantu"
   DEPENDS lapack solid_mechanics)
 
