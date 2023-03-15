@@ -20,7 +20,7 @@
 #===============================================================================
 
 
-package_declare(phase_field
+package_declare(phase_field DEFAULT ON
   DEPENDS model_couplers
   DESCRIPTION "Use Phase Field package of Akantu")
 

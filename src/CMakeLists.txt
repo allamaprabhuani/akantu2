@@ -48,28 +48,6 @@ foreach(src_ ${AKANTU_SPIRIT_SOURCES})
   set_property(SOURCE ${src_} PROPERTY COMPILE_FLAGS "-g0 -Werror")
 endforeach()
 
-#===========================================================================
-# header for blas/lapack (any other fortran libraries)
-#===========================================================================
-package_is_activated(BLAS _blas_activated)
-package_is_activated(LAPACK _lapack_activated)
-
-if(_blas_activated OR _lapack_activated)
-  if(CMAKE_Fortran_COMPILER)
-    # ugly hack
-    set(CMAKE_Fortran_COMPILER_LOADED TRUE)
-  endif()
-
-  include(FortranCInterface)
-  FortranCInterface_HEADER(
-    "${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh"
-    MACRO_NAMESPACE "AKA_FC_")
-  mark_as_advanced(CDEFS)
-  list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
-    "${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh"
-    )
-endif()
-
 list(APPEND AKANTU_LIBRARY_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
 set(AKANTU_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR} ${AKANTU_LIBRARY_INCLUDE_DIRS}
@@ -186,7 +164,7 @@ if(AKANTU_LIBRARY_PRIVATE_HDRS)
   set_property(TARGET akantu PROPERTY PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS})
 endif()
 
-target_compile_features(akantu PUBLIC cxx_std_17)
+target_compile_features(akantu PUBLIC cxx_std_${AKANTU_CXX_STANDARD})
 set_target_properties(akantu
   PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
 

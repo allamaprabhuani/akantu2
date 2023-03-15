@@ -30,3 +30,8 @@ set(EIGEN3_LIBRARIES eigen CACHE INTERNAL "")
 mark_as_advanced(BUILD_TESTING)
 mask_package_options(EIGEN3)
 mask_package_options(EIGEN)
+
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Eigen3
+  REQUIRED_VARS EIGEN3_LIBRARIES
+  VERSION_VAR EIGEN3_VERSION)

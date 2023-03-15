@@ -971,7 +971,7 @@ function(package_declare pkg)
     endif()
   endif()
 
-  # Set the option for third-partie that can be compiled as an ExternalProject
+  # Set the option for third-parties that can be compiled as an ExternalProject
   if(DEFINED _opt_pkg_SYSTEM)
     list(LENGTH _opt_pkg_SYSTEM _length)
     list(GET _opt_pkg_SYSTEM 0 _bool)
