@@ -1,11 +1,4 @@
-
-""" __init__.py: fe engine tester module"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
+__copyright__ = "Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale" \
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"

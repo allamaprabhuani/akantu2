@@ -1,3 +1,9 @@
+__copyright__ = "Copyright (©) 2022-2023 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 #!/usr/bin/env python3
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
@@ -187,3 +193,4 @@ for i in range(0, maxsteps):
     if i % 10 == 0:
         model.dump()
         model.dump("cohesive elements")
+

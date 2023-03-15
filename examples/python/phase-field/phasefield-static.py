@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
+__copyright__ = "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 """ phasefield-static.py: Static phase field example"""
 
 __author__ = "Mohit Pundir"

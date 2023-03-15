@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-""" phasefield-dynamic.py: Dynamic phasefield example in python"""
-
-__author__ = "Mohit Pundir"
-__credits__ = [
-    "Mohit Pundir <mohit.pundir@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+__copyright__ = "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale" \
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
+
 
 import akantu as aka
 

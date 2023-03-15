@@ -1,19 +1,5 @@
 /**
- * @file   aka_named_argument.hh
- *
- * @author Marco Arena <None>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 16 2017
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  tool to use named arguments in functions
- *
- *
- * @section LICENSE
- *
  * Public Domain ? https://gist.github.com/ilpropheta/7576dce4c3249df89f85
- *
  */
 
 /* -------------------------------------------------------------------------- */

@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
-""" solver_callback.py: solver_callback overload example"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
+__copyright__ = "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale" \
                 " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
+
 
 import numpy as np
 import akantu as aka

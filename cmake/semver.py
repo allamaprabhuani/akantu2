@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-
+__copyright__ = "Copyright (©) 2022-2023 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
 """module to get the VERSION from a git repository."""
 
 import os
@@ -234,3 +237,4 @@ def get_version():
 
 if __name__ == "__main__":
     print(get_version())
+

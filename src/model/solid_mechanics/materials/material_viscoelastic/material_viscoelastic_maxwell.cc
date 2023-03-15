@@ -1,37 +1,21 @@
 /**
- * @file   material_viscoelastic_maxwell.cc
- *
- * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- *
- * @date creation: Mon Jun 04 2018
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Material Visco-elastic, based on Maxwell chain,
- * see
- * [] R. de Borst and A.H. van den Boogaard "Finite-element modeling of
- * deformation and cracking in early-age concrete", J.Eng.Mech., 1994
- * as well as
- * [] Manual of DIANA FEA Theory manual v.10.2 Section 37.6
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ * 
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- *
+ * 
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */

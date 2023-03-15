@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+__copyright__ = "Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 """plate.py: Python example: plate with a hole breaking with cohesive
 elements"""
 
