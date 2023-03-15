@@ -1,8 +1,9 @@
 # `Akantu`: Swiss-Made Open-Source Finite-Element Library
 
 `Akantu` means a little element in Kinyarwanda, a Bantu language. From now on it
-is also an open- source object-oriented library which has the ambi- tion to be
-generic and efficient.
+is also an open-source object-oriented library which has the ambition to be
+generic and efficient. Even though the code is written to be generic, Akantu
+strength are in solid mechanics models for fracture and contact simulations.
 
 # Building `Akantu`
 
@@ -14,7 +15,7 @@ In addition some libraries are required:
  - CMake (>= 3.5.1)
  - Boost (preprocessor and Spirit)
  - zlib
- - blas/lapack
+ - Eigen3 (if not present the build system will try to download it)
 
 For the python interface:
 
@@ -39,9 +40,9 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev zlib1g-dev liblapack-dev libblas-dev gmsh
+> sudo apt install cmake libboost-dev zlib1g-dev liblapack-dev libblas-dev gmsh libeigen3-dev
 # For parallel
-> sudo apt install mpi-default-dev libmumps-dev 
+> sudo apt install mpi-default-dev libmumps-dev libscotch-dev
 # For sequential
 > sudo apt install libmumps-seq-dev 
 ```

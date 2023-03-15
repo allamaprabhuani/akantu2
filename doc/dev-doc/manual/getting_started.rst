@@ -13,7 +13,7 @@ In addition some libraries are required:
  - CMake (>= 3.5.1)
  - Boost (preprocessor and Spirit)
  - zlib
- - blas/lapack
+ - Eigen3 (if not present the build system will try to download it)
 
 For the python interface:
 
