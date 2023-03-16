@@ -17,7 +17,7 @@ Akantu: a FEM library
 **Akantu** means a little element in *Kinyarwanda*, a Bantu language. From now
 on it is also an opensource object-oriented *Finite-Element* library which has
 the ambition to be generic and efficient. **Akantu** is developed within the
-*[LSMS](https://lsms.epfl.ch) (Computational Solid Mechanics Laboratory)*, where
+`LSMS <https://lsms.epfl.ch>`_ (Computational Solid Mechanics Laboratory)*, where
 research is conducted at the interface of mechanics, material science, and
 scientific computing. The open-source philosophy is important for any scientific
 software project evolution. The collaboration permitted by shared codes enforces
