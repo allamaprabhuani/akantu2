@@ -345,7 +345,7 @@ function(register_gtest_test test_name)
 
   set(_argn ${test_name}_gtest)
 
-  set(_link_libraries GTest::GTest GTest::Main)
+  set(_link_libraries gtest_main)
 
   list(FIND _gtest_PACKAGE python_interface _pos)
   package_is_activated(python_interface _python_interface_act)
