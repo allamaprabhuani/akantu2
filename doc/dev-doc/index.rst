@@ -6,7 +6,13 @@
 Akantu: a FEM library
 =====================
 
-[![status](https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f/status.svg)](https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f) [![status](https://img.shields.io/badge/license-LGPLv3-green)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+|license| |joss|
+
+.. |joss| image:: https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f/status.svg
+   :target: https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f
+
+.. |license| image:: https://img.shields.io/badge/license-LGPLv3-green
+   :target: https://www.gnu.org/licenses/lgpl-3.0.en.html
 
 **Akantu** means a little element in *Kinyarwanda*, a Bantu language. From now
 on it is also an opensource object-oriented *Finite-Element* library which has
