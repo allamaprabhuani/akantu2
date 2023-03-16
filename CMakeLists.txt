@@ -55,6 +55,8 @@ endif()
   
 enable_language(CXX)
 
+set(ENV{RUNNING_IN_CMAKE} True)  # Used by sphinx but could be used by any script
+
 #===============================================================================
 # Misc. config for cmake
 #===============================================================================

@@ -49,12 +49,20 @@ extensions = [
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
+cmake_configure = os.environ.get("RUNNING_IN_CMAKE", None) == "True"
 if read_the_docs_build:
     akantu_path = "."
     akantu_source_path = "../../"
-else:
+elif cmake_configure:
     akantu_path = "@CMAKE_CURRENT_BINARY_DIR@"
     akantu_source_path = "@CMAKE_SOURCE_DIR@"
+else:  # most probably running by hand
+    akantu_path = "build-doc"
+    akantu_source_path = "../../"
+    try:
+        os.mkdir(akantu_path)
+    except FileExistsError:
+        pass
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -297,9 +305,9 @@ epub_exclude_files = ["search.html"]
 # -- Extension configuration -------------------------------------------------
 j2_args = {}
 
-if read_the_docs_build:
+if read_the_docs_build or not cmake_configure:
     j2_template_path = "."
-else:
+elif cmake_configure:
     j2_template_path = "@CMAKE_CURRENT_SOURCE_DIR@"
     os.makedirs(os.path.join(akantu_path, "_static"), exist_ok=True)
     shutil.copyfile(
