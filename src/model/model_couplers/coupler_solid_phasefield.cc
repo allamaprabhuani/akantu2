@@ -427,7 +427,7 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
              make_view(strain_vect, spatial_dimension, spatial_dimension))) {
       const auto & grad_u = std::get<0>(values);
       auto & strain = std::get<1>(values);
-      gradUToEpsilon(grad_u, strain);
+      strain = (grad_u + grad_u.transpose()) / 2.;
     }
   }
 

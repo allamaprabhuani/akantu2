@@ -125,8 +125,7 @@ public:
   virtual void savePreviousState();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
-  inline UInt addElement(const Element & element);
+  inline Int addElement(const Element & element);
 
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -134,6 +133,10 @@ public:
 protected:
   /// compute the dissipated energy by element
   void computeDissipatedEnergyByElements();
+
+  /// add an element to the local mesh filter
+  inline Int addElement(const ElementType & type, Idx element,
+                        const GhostType & ghost_type);
 
   /// resize the internals arrrays
   virtual void resizeInternals();
@@ -151,17 +154,16 @@ protected:
   /// compute the dissiapted energy
   virtual void computeDissipatedEnergy(ElementType el_type);
 
-  /// compute the potential energy for an element
+  /// compute the dissipated energy for an element
   virtual void
   computeDissipatedEnergyByElement(const Element & /*element*/,
                                    Vector<Real> & /*edis_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-protected:
-  /// compute the potential energy for an element
+  /// compute the dissipated energy for an element
   virtual void
-  computeDissipatedEnergyByElement(ElementType /*type*/, UInt /*index*/,
+  computeDissipatedEnergyByElement(ElementType /*type*/, Idx /*index*/,
                                    Vector<Real> & /*edis_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -198,7 +200,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// return the damage energyfor the provided element
-  virtual Real getEnergy(ElementType type, UInt index);
+  virtual Real getEnergy(ElementType type, Idx index);
 
 public:
   /// return the damage energyfor the subset of elements contained
@@ -244,7 +246,7 @@ public:
   template <typename T> InternalPhaseField<T> & getInternal(const ID & id);
 
   template <typename T>
-  inline bool isInternal(const ID & id, ElementKind element_kind) const;
+  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
@@ -269,7 +271,7 @@ protected:
   bool is_init;
 
   std::map<ID, InternalPhaseField<Real> *> internal_vectors_real;
-  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_int;
+  std::map<ID, InternalPhaseField<Int> *> internal_vectors_int;
   std::map<ID, InternalPhaseField<bool> *> internal_vectors_bool;
 
 protected:

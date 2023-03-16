@@ -59,7 +59,7 @@ public:
 
 protected:
   void
-  computeDissipatedEnergyByElement(ElementType type, UInt index,
+  computeDissipatedEnergyByElement(ElementType type, Idx index,
                                    Vector<Real> & edis_on_quad_points) override;
 
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
@@ -78,6 +78,7 @@ protected:
   inline void
   computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
                                 const Vector<Real> & /*grad_d_quad */,
+                                Real & /*energy*/, Real & /*g_c_quad*/);
 
 public:
   void updateInternalParameters() override;

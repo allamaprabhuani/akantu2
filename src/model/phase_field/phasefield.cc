@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phasefield.hh"
+#include "aka_common.hh"
 #include "phase_field_model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -92,11 +93,6 @@ PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
-    : PhaseField(model, model.getSpatialDimension(), model.getMesh(),
-                 model.getFEEngine(), id) {}
 
 /* -------------------------------------------------------------------------- */
 PhaseField::~PhaseField() = default;
@@ -382,7 +378,8 @@ Real PhaseField::getEnergy(ElementType type, Idx index) {
 
   computeDissipatedEnergyByElement(type, index, edis_on_quad_points);
 
-  edis = fem.integrate(edis_on_quad_points, type, element_filter(type)(index));
+  // edis = fem.integrate(edis_on_quad_points, type, element_filter(type)(index));
+  edis = fem.integrate(edis_on_quad_points, Element{type, index, _not_ghost});
 
   return edis;
 }

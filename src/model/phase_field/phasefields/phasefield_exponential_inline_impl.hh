@@ -46,8 +46,8 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
   Matrix<Real> mat_tmp(spatial_dimension, spatial_dimension);
   Matrix<Real> sigma_plus(spatial_dimension, spatial_dimension);
 
-  mat_tmp.mul<false, true>(strain_diag_plus, strain_dir);
-  strain_plus.mul<false, false>(strain_dir, mat_tmp);
+  mat_tmp = strain_diag_plus * strain_dir.transpose();
+  strain_plus = strain_dir * mat_tmp;
 
   trace_plus = std::max(Real(0.), strain_quad.trace());
 

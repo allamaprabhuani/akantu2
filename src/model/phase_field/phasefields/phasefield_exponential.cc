@@ -116,7 +116,7 @@ void PhaseFieldExponential::computeDissipatedEnergy(ElementType el_type) {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldExponential::computeDissipatedEnergyByElement(
-    ElementType type, UInt index, Vector<Real> & edis_on_quad_points) {
+    ElementType type, Idx index, Vector<Real> & edis_on_quad_points) {
   auto gradd_it = this->gradd(type).begin(spatial_dimension);
   auto gradd_end = this->gradd(type).begin(spatial_dimension);
   auto damage_it = this->damage_on_qpoints(type).begin();
@@ -129,7 +129,7 @@ void PhaseFieldExponential::computeDissipatedEnergyByElement(
   damage_it += index * nb_quadrature_points;
   g_c_it += index * nb_quadrature_points;
 
-  Real * edis_quad = edis_on_quad_points.storage();
+  Real * edis_quad = edis_on_quad_points.data();
 
   for (; gradd_it != gradd_end; ++gradd_it, ++damage_it, ++edis_quad) {
     this->computeDissipatedEnergyOnQuad(*damage_it, *gradd_it, *edis_quad,
