@@ -18,7 +18,7 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-set(AKANTU_EIGEN_VERSION 3.3.9)
+set(AKANTU_EIGEN_VERSION 3.3.7)
 
 package_declare(Eigen3 EXTERNAL NOT_OPTIONAL DEFAULT ON
   DESCRIPTION "Add Eigen3 dependency to akantu"
@@ -28,7 +28,7 @@ package_declare(Eigen3 EXTERNAL NOT_OPTIONAL DEFAULT ON
 
 mark_as_advanced(Eigen3_DIR)
 package_add_third_party_script_variable(Eigen3
-  EIGEN3_VERSION "${AKANTU_EIGEN_VERSION}")
+  EIGEN3_VERSION "3.4.0")
 package_add_third_party_script_variable(Eigen3
   EIGEN3_GIT "https://gitlab.com/libeigen/eigen.git")
 
