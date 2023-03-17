@@ -20,6 +20,7 @@ set(BUILD_TESTING OFF CACHE BOOL "Eigen Tests" FORCE)
 add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/eigen3)
 
 set(EIGEN3_LIBRARIES Eigen3::Eigen)
+package_set_libraries(Eigen3 ${EIGEN3_LIBRARIES})
 
 mask_package_options(EIGEN3)
 mask_package_options(EIGEN)

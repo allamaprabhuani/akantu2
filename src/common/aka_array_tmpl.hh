@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -568,9 +568,9 @@ inline void Array<T, is_scal>::set(const C & elem) {
   AKANTU_DEBUG_ASSERT(
       this->nb_component == elem.array().size(),
       "The size of the object does not match the number of components");
-
+  auto && v_elem = VectorProxy<Real>(elem.data(), this->nb_component);
   for (auto && v : make_view(*this, this->nb_component)) {
-    v = elem.reshaped(this->nb_component, 1);
+    v = v_elem;
   }
 }
 
