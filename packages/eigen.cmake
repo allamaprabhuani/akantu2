@@ -18,17 +18,17 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+set(AKANTU_EIGEN_VERSION 3.3.9)
 
-
-package_declare(Eigen3 EXTERNAL
+package_declare(Eigen3 EXTERNAL NOT_OPTIONAL DEFAULT ON
   DESCRIPTION "Add Eigen3 dependency to akantu"
   SYSTEM AUTO third-party/cmake/eigen3.cmake
-  EXTRA_PACKAGE_OPTIONS ARGS 3.4 ARGS NO_MODULE TARGET Eigen3::Eigen
+  EXTRA_PACKAGE_OPTIONS ARGS ${AKANTU_EIGEN_VERSION} ARGS NO_MODULE TARGET Eigen3::Eigen
   )
 
 mark_as_advanced(Eigen3_DIR)
 package_add_third_party_script_variable(Eigen3
-  EIGEN3_VERSION "3.4.0")
+  EIGEN3_VERSION "${AKANTU_EIGEN_VERSION}")
 package_add_third_party_script_variable(Eigen3
   EIGEN3_GIT "https://gitlab.com/libeigen/eigen.git")
 
