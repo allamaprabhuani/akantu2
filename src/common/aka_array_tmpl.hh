@@ -568,9 +568,8 @@ inline void Array<T, is_scal>::set(const C & elem) {
   AKANTU_DEBUG_ASSERT(
       this->nb_component == elem.array().size(),
       "The size of the object does not match the number of components");
-  auto && v_elem = VectorProxy<Real>(elem.data(), this->nb_component);
   for (auto && v : make_view(*this, this->nb_component)) {
-    v = v_elem;
+    std::copy_n(elem.data(), this->nb_component, v.data());
   }
 }
 
