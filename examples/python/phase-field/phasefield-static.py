@@ -6,20 +6,6 @@ __copyright__ = "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale" 
 __license__ = "LGPLv3"
 
 
-""" phasefield-static.py: Static phase field example"""
-
-__author__ = "Mohit Pundir"
-__credits__ = [
-    "Mohit Pundir <mohit.pundir@epfl.ch>",
-]
-__copyright__ = (
-    "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale"
-    " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation"
-    " en Mécanique des Solides)"
-)
-__license__ = "LGPLv3"
-
-
 import numpy as np
 import akantu as aka
 

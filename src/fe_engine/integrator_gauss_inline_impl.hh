@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -394,6 +394,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
   for (auto && data : zip(make_view(in_f, nb_degree_of_freedom, nb_points),
                           make_view(intf, nb_degree_of_freedom),
                           make_view(jacobians, nb_points))) {
+    // MatrixProxy<Real> f()
     auto && f = std::get<0>(data);
     auto && int_f = std::get<1>(data);
     auto && J = std::get<2>(data);

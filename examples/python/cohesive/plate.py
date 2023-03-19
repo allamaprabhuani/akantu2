@@ -4,23 +4,9 @@ __copyright__ = "Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
-
-"""plate.py: Python example: plate with a hole breaking with cohesive
-elements"""
-
-__author__ = "Guillaume Anciaux"
-__credits__ = [
-    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
-]
-__copyright__ = (
-    "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale"
-    " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation"
-    " en Mécanique des Solides)"
-)
-__license__ = "LGPLv3"
-
 import akantu as aka
 import numpy as np
+
 
 def set_dumpers(model):
     model.setBaseName("plate")
