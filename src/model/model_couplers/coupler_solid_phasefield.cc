@@ -408,8 +408,6 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
 
   auto & gradu_internal =
       solid->flattenInternal("grad_u", _ek_regular, ghost_type);
-  auto & strain_internal =
-      phase->flattenInternal("strain", _ek_regular, ghost_type);
 
   auto & mesh = solid->getMesh();
   auto & fem = solid->getFEEngine();

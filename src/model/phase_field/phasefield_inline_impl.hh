@@ -130,8 +130,6 @@ void PhaseField::flattenInternal(const std::string & field_id,
 
     // total number of elements in the corresponding mesh
     Int nb_element_dst = mesh.getNbElement(type, ghost_type);
-    // number of element in the internal field
-    Int nb_element_src = filter.size();
     // number of quadrature points per elem
     Int nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
     // number of data per quadrature point
@@ -202,21 +200,28 @@ void PhaseField::inflateInternal(const std::string & field_id,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int PhaseField::getNbData(const Array<Element> & elements,
+inline Int PhaseField::getNbData(__attribute__((unused))
+                                 const Array<Element> & elements,
+                                 __attribute__((unused))
                                  const SynchronizationTag & tag) const {
 
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseField::packData(CommunicationBuffer & buffer,
+inline void PhaseField::packData(__attribute__((unused))
+                                 CommunicationBuffer & buffer,
+                                 __attribute__((unused))
                                  const Array<Element> & elements,
+                                 __attribute__((unused))
                                  const SynchronizationTag & tag) const {}
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseField::unpackData(CommunicationBuffer & buffer,
-                                   const Array<Element> & elements,
-                                   const SynchronizationTag & tag) {}
+inline void
+PhaseField::unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
+                       __attribute__((unused)) const Array<Element> & elements,
+                       __attribute__((unused)) const SynchronizationTag & tag) {
+}
 
 /* -------------------------------------------------------------------------- */
 inline const Parameter & PhaseField::getParam(const ID & param) const {

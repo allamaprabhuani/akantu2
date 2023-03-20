@@ -373,8 +373,7 @@ Real PhaseFieldModel::getEnergy(ElementType type, Idx index) {
   AKANTU_DEBUG_IN();
 
   Idx phase_index = this->phasefield_index(type, _not_ghost)(index);
-  Idx phase_loc_num =
-      this->phasefield_local_numbering(type, _not_ghost)(index);
+  Idx phase_loc_num = this->phasefield_local_numbering(type, _not_ghost)(index);
   Real energy = this->phasefields[phase_index]->getEnergy(
       Element{type, phase_loc_num, _not_ghost});
 
@@ -573,17 +572,18 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-Int PhaseFieldModel::getNbData(const Array<Idx> & dofs,
-                                const SynchronizationTag & tag) const {
+Int PhaseFieldModel::getNbData(const Array<Idx> & indexes,
+                               const SynchronizationTag & tag) const {
   Int size = 0;
+  Int nb_nodes = indexes.size();
 
   switch (tag) {
   case SynchronizationTag::_for_dump: {
-    size += sizeof(Real);
+    size += nb_nodes * sizeof(Real);
     break;
   }
   case SynchronizationTag::_pfm_damage: {
-    size += sizeof(Real);
+    size += nb_nodes * sizeof(Real);
     break;
   }
   default: {

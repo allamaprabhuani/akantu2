@@ -40,14 +40,15 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
     : Parsable(ParserType::_phasefield, id), id(id), fem(model.getFEEngine()),
-      model(model), spatial_dimension(this->model.getSpatialDimension()),
+      model(model), g_c("g_c", *this),
+      spatial_dimension(this->model.getSpatialDimension()),
       element_filter("element_filter", id), damage_on_qpoints("damage", *this),
-      phi("phi", *this), strain("strain", *this), gradd("grad_d", *this),
-      g_c("g_c", *this), driving_force("driving_force", *this),
+      gradd("grad_d", *this), phi("phi", *this), strain("strain", *this),
+      driving_force("driving_force", *this),
       driving_energy("driving_energy", *this),
-      dissipated_energy("dissipated_energy", *this),
       damage_energy("damage_energy", *this),
-      damage_energy_density("damage_energy_density", *this) {
+      damage_energy_density("damage_energy_density", *this),
+      dissipated_energy("dissipated_energy", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -65,23 +66,23 @@ PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
 PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
                        FEEngine & fe_engine, const ID & id)
     : Parsable(ParserType::_phasefield, id), id(id), fem(fe_engine),
-      model(model), spatial_dimension(this->model.getSpatialDimension()),
+      model(model), g_c("g_c", *this),
+      spatial_dimension(this->model.getSpatialDimension()),
       element_filter("element_filter", id),
       damage_on_qpoints("damage", *this, dim, fe_engine, this->element_filter),
-      g_c("g_c", *this),
+      gradd("grad_d", *this, dim, fe_engine, this->element_filter),
       phi("phi", *this, dim, fe_engine, this->element_filter),
       strain("strain", *this, dim, fe_engine, this->element_filter),
-      gradd("grad_d", *this, dim, fe_engine, this->element_filter),
       driving_force("driving_force", *this, dim, fe_engine,
                     this->element_filter),
       driving_energy("driving_energy", *this, dim, fe_engine,
                      this->element_filter),
-      dissipated_energy("dissipated_energy", *this, dim, fe_engine,
-                        this->element_filter),
       damage_energy("damage_energy", *this, dim, fe_engine,
                     this->element_filter),
       damage_energy_density("damage_energy_density", *this, dim, fe_engine,
-                            this->element_filter) {
+                            this->element_filter),
+      dissipated_energy("dissipated_energy", *this, dim, fe_engine,
+                        this->element_filter) {
 
   AKANTU_DEBUG_IN();
 
@@ -202,7 +203,6 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<Real> & internal_force = model.getInternalForce();
-  const Array<Real> & damage = model.getDamage();
 
   for (auto type : element_filter.elementTypes(_ghost_type = ghost_type)) {
     auto & elem_filter = element_filter(type, ghost_type);
@@ -214,9 +214,6 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
-    // damage_energy_density_on_qpoints = gc/l0 + phi = scalar
-    // auto & damage_energy_density_vect = damage_energy_density(type,
-    // ghost_type);
     auto & driving_force_vect = driving_force(type, ghost_type);
 
     Array<Real> nt_driving_force(nb_quadrature_points, nb_nodes_per_element);
@@ -378,7 +375,6 @@ Real PhaseField::getEnergy(ElementType type, Idx index) {
 
   computeDissipatedEnergyByElement(type, index, edis_on_quad_points);
 
-  // edis = fem.integrate(edis_on_quad_points, type, element_filter(type)(index));
   edis = fem.integrate(edis_on_quad_points, Element{type, index, _not_ghost});
 
   return edis;
