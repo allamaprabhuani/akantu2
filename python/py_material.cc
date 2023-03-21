@@ -39,6 +39,7 @@
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_cohesive_linear.hh>
+#include <material_cohesive_linear_friction.hh>
 #include <solid_mechanics_model_cohesive.hh>
 #endif
 #include <material_elastic.hh>
@@ -115,6 +116,7 @@ namespace {
   }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
+  // trampoline for the cohesive materials
   template <typename _Material> class PyMaterialCohesive : public _Material {
   public:
     /* Inherit the constructors */
@@ -168,10 +170,29 @@ namespace {
     std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
 
+  // trampoline for the cohesive material inheritance where computeTraction is
+  // not pure virtual
+  template <typename _Material>
+  class PyMaterialCohesiveDaughters : public PyMaterialCohesive<_Material> {
+  public:
+    /* Inherit the constructors */
+    using PyMaterialCohesive<_Material>::PyMaterialCohesive;
+
+    ~PyMaterialCohesiveDaughters() override = default;
+
+    void computeTraction(const Array<Real> & normal, ElementType el_type,
+                         GhostType ghost_type = _not_ghost) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, normal, el_type,
+                        ghost_type);
+    }
+  };
+
   template <typename _Material>
   void register_material_cohesive_classes(py::module & mod,
                                           const std::string & name) {
-    py::class_<_Material, Material, Parsable, PyMaterialCohesive<_Material>>(
+    py::class_<_Material, MaterialCohesive,
+               PyMaterialCohesiveDaughters<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModelCohesive &, const ID &>());
   }
@@ -325,15 +346,16 @@ void register_material(py::module & mod) {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   /* ------------------------------------------------------------------------ */
-  py::class_<MaterialCohesive, Material, Parsable,
-             PyMaterialCohesive<MaterialCohesive>>(mod, "MaterialCohesive",
-                                                   py::multiple_inheritance())
+  py::class_<MaterialCohesive, Material, PyMaterialCohesive<MaterialCohesive>>(
+      mod, "MaterialCohesive", py::multiple_inheritance())
       .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
       .def("registerInternalReal",
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
-             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
-                 .registerInternal<Real>(name, nb_component);
+             auto & ref =
+                 dynamic_cast<PyMaterialCohesiveDaughters<MaterialCohesive> &>(
+                     self);
+             return ref.registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
            [](MaterialCohesive & self, const std::string & name,
@@ -372,6 +394,10 @@ void register_material(py::module & mod) {
       mod, "MaterialCohesiveLinear2D");
   register_material_cohesive_classes<MaterialCohesiveLinear<3>>(
       mod, "MaterialCohesiveLinear3D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<2>>(
+      mod, "MaterialCohesiveLinearFriction2D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(
+      mod, "MaterialCohesiveLinearFriction3D");
 #endif
 }
 
