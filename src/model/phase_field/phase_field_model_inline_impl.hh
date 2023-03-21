@@ -52,7 +52,7 @@ inline decltype(auto) PhaseFieldModel::getPhaseFields() const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline PhaseField & PhaseFieldModel::getPhaseField(UInt mat_index) {
+inline PhaseField & PhaseFieldModel::getPhaseField(Idx mat_index) {
   AKANTU_DEBUG_ASSERT(mat_index < phasefields.size(),
                       "The model " << id << " has no phasefield no "
                                    << mat_index);
@@ -60,7 +60,7 @@ inline PhaseField & PhaseFieldModel::getPhaseField(UInt mat_index) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const PhaseField & PhaseFieldModel::getPhaseField(UInt mat_index) const {
+inline const PhaseField & PhaseFieldModel::getPhaseField(Idx mat_index) const {
   AKANTU_DEBUG_ASSERT(mat_index < phasefields.size(),
                       "The model " << id << " has no phasefield no "
                                    << mat_index);

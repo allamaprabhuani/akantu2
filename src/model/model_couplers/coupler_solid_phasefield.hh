@@ -36,6 +36,7 @@
 #include "material.hh"
 #include "material_phasefield.hh"
 #include "model.hh"
+#include "phasefield.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"

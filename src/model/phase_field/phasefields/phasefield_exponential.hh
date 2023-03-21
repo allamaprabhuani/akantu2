@@ -49,7 +49,19 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+public:
+  /// compute the dissiapted energy
+  void computeDissipatedEnergy(ElementType el_type) override;
+
+  void
+  computeDissipatedEnergyByElement(const Element & element,
+                                   Vector<Real> & edis_on_quad_points) override;
+
 protected:
+  void
+  computeDissipatedEnergyByElement(ElementType type, Idx index,
+                                   Vector<Real> & edis_on_quad_points) override;
+
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
@@ -63,6 +75,11 @@ protected:
                                                Real & /*dam_energy_quad*/,
                                                const Real & /*g_c_quad*/);
 
+  inline void
+  computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
+                                const Vector<Real> & /*grad_d_quad */,
+                                Real & /*energy*/, Real & /*g_c_quad*/);
+
 public:
   void updateInternalParameters() override;
 };
@@ -71,6 +88,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+
 #include "phasefield_exponential_inline_impl.hh"
 
 #endif

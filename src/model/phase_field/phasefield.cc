@@ -31,10 +31,36 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phasefield.hh"
+#include "aka_common.hh"
 #include "phase_field_model.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+
+/* -------------------------------------------------------------------------- */
+PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
+    : Parsable(ParserType::_phasefield, id), id(id), fem(model.getFEEngine()),
+      model(model), g_c("g_c", *this),
+      spatial_dimension(this->model.getSpatialDimension()),
+      element_filter("element_filter", id), damage_on_qpoints("damage", *this),
+      gradd("grad_d", *this), phi("phi", *this), strain("strain", *this),
+      driving_force("driving_force", *this),
+      driving_energy("driving_energy", *this),
+      damage_energy("damage_energy", *this),
+      damage_energy_density("damage_energy_density", *this),
+      dissipated_energy("dissipated_energy", *this) {
+
+  AKANTU_DEBUG_IN();
+
+  /// for each connectivity types allocate the element filer array of the
+  /// material
+  element_filter.initialize(model.getMesh(),
+                            _spatial_dimension = spatial_dimension,
+                            _element_kind = _ek_regular);
+  this->initialize();
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
@@ -43,15 +69,20 @@ PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
       model(model), g_c("g_c", *this),
       spatial_dimension(this->model.getSpatialDimension()),
       element_filter("element_filter", id),
-      damage("damage", *this, dim, fe_engine, this->element_filter),
+      damage_on_qpoints("damage", *this, dim, fe_engine, this->element_filter),
+      gradd("grad_d", *this, dim, fe_engine, this->element_filter),
       phi("phi", *this, dim, fe_engine, this->element_filter),
       strain("strain", *this, dim, fe_engine, this->element_filter),
       driving_force("driving_force", *this, dim, fe_engine,
                     this->element_filter),
+      driving_energy("driving_energy", *this, dim, fe_engine,
+                     this->element_filter),
       damage_energy("damage_energy", *this, dim, fe_engine,
                     this->element_filter),
       damage_energy_density("damage_energy_density", *this, dim, fe_engine,
-                            this->element_filter) {
+                            this->element_filter),
+      dissipated_energy("dissipated_energy", *this, dim, fe_engine,
+                        this->element_filter) {
 
   AKANTU_DEBUG_IN();
 
@@ -63,11 +94,6 @@ PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
-    : PhaseField(model, model.getSpatialDimension(), model.getMesh(),
-                 model.getFEEngine(), id) {}
 
 /* -------------------------------------------------------------------------- */
 PhaseField::~PhaseField() = default;
@@ -82,14 +108,19 @@ void PhaseField::initialize() {
   registerParam("E", E, _pat_parsable | _pat_readable, "Young's modulus");
   registerParam("nu", nu, _pat_parsable | _pat_readable, "Poisson ratio");
 
-  damage.initialize(1);
+  damage_on_qpoints.initialize(1);
 
   phi.initialize(1);
   driving_force.initialize(1);
 
+  driving_energy.initialize(spatial_dimension);
+  gradd.initialize(spatial_dimension);
   g_c.initialize(1);
 
   strain.initialize(spatial_dimension * spatial_dimension);
+
+  dissipated_energy.initialize(1);
+
   damage_energy_density.initialize(1);
   damage_energy.initialize(spatial_dimension * spatial_dimension);
 }
@@ -140,6 +171,7 @@ void PhaseField::computeAllDrivingForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Int spatial_dimension = model.getSpatialDimension();
+  auto & damage = model.getDamage();
 
   for (const auto & type :
        element_filter.elementTypes(spatial_dimension, ghost_type)) {
@@ -148,6 +180,16 @@ void PhaseField::computeAllDrivingForces(GhostType ghost_type) {
     if (elem_filter.empty()) {
       continue;
     }
+
+    // compute the damage on quadrature points
+    auto & damage_interpolated = damage_on_qpoints(type, ghost_type);
+    fem.interpolateOnIntegrationPoints(damage, damage_interpolated, 1, type,
+                                       ghost_type);
+
+    auto & gradd_vect = gradd(type, _not_ghost);
+    /// compute @f$\nabla u@f$
+    fem.gradientOnIntegrationPoints(damage, gradd_vect, 1, type, ghost_type,
+                                    elem_filter);
 
     computeDrivingForce(type, ghost_type);
   }
@@ -172,16 +214,36 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
-    Array<Real> nt_driving_force(nb_quadrature_points, nb_nodes_per_element);
-    fem.computeNtb(driving_force(type, ghost_type), nt_driving_force, type,
-                   ghost_type, elem_filter);
+    auto & driving_force_vect = driving_force(type, ghost_type);
 
-    Array<Real> int_nt_driving_force(nb_element, nb_nodes_per_element);
+    Array<Real> nt_driving_force(nb_quadrature_points, nb_nodes_per_element);
+    fem.computeNtb(driving_force_vect, nt_driving_force, type, ghost_type,
+                   elem_filter);
+
+    Array<Real> int_nt_driving_force(nb_element * nb_quadrature_points,
+                                     nb_nodes_per_element);
     fem.integrate(nt_driving_force, int_nt_driving_force, nb_nodes_per_element,
                   type, ghost_type, elem_filter);
 
+    // damage_energy_on_qpoints = gc*l0 = scalar
+    auto & driving_energy_vect = driving_energy(type, ghost_type);
+
+    Array<Real> bt_driving_energy(nb_element * nb_quadrature_points,
+                                  nb_nodes_per_element);
+    fem.computeBtD(driving_energy_vect, bt_driving_energy, type, ghost_type,
+                   elem_filter);
+
+    Array<Real> int_bt_driving_energy(nb_element, nb_nodes_per_element);
+    fem.integrate(bt_driving_energy, int_bt_driving_energy,
+                  nb_nodes_per_element, type, ghost_type, elem_filter);
+
     model.getDOFManager().assembleElementalArrayLocalArray(
-        int_nt_driving_force, internal_force, type, ghost_type, 1, elem_filter);
+        int_nt_driving_force, internal_force, type, ghost_type, -1,
+        elem_filter);
+
+    model.getDOFManager().assembleElementalArrayLocalArray(
+        int_bt_driving_energy, internal_force, type, ghost_type, -1,
+        elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -248,6 +310,79 @@ void PhaseField::assembleStiffnessMatrix(GhostType ghost_type) {
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseField::computeDissipatedEnergyByElements() {
+  AKANTU_DEBUG_IN();
+
+  const Array<Real> & damage = model.getDamage();
+
+  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+
+    Array<Idx> & elem_filter = element_filter(type, _not_ghost);
+    if (elem_filter.empty()) {
+      continue;
+    }
+
+    Array<Real> & damage_interpolated = damage_on_qpoints(type, _not_ghost);
+
+    // compute the damage on quadrature points
+    fem.interpolateOnIntegrationPoints(damage, damage_interpolated, 1, type,
+                                       _not_ghost);
+
+    Array<Real> & gradd_vect = gradd(type, _not_ghost);
+
+    /// compute @f$\nabla u@f$
+    fem.gradientOnIntegrationPoints(damage, gradd_vect, 1, type, _not_ghost,
+                                    elem_filter);
+
+    computeDissipatedEnergy(type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseField::computeDissipatedEnergy(ElementType /*unused*/) {
+  AKANTU_DEBUG_IN();
+  AKANTU_TO_IMPLEMENT();
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseField::getEnergy() {
+  AKANTU_DEBUG_IN();
+  Real edis = 0.;
+
+  computeDissipatedEnergyByElements();
+
+  /// integrate the dissipated energy for each type of elements
+  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+    edis += fem.integrate(dissipated_energy(type, _not_ghost), type, _not_ghost,
+                          element_filter(type, _not_ghost));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return edis;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseField::getEnergy(ElementType type, Idx index) {
+  Real edis = 0.;
+
+  Vector<Real> edis_on_quad_points(fem.getNbIntegrationPoints(type));
+
+  computeDissipatedEnergyByElement(type, index, edis_on_quad_points);
+
+  edis = fem.integrate(edis_on_quad_points, Element{type, index, _not_ghost});
+
+  return edis;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseField::getEnergy(const Element & element) {
+  return getEnergy(element.type, element.element);
 }
 
 /* -------------------------------------------------------------------------- */

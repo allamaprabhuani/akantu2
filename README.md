@@ -1,7 +1,7 @@
 # `Akantu`: Swiss-Made Open-Source Finite-Element Library
 
 `Akantu` means a little element in Kinyarwanda, a Bantu language. From now on it
-is also an open- source object-oriented library which has the ambi- tion to be
+is also an open- source object-oriented library which has the ambition to be
 generic and efficient.
 
 # Building `Akantu`
