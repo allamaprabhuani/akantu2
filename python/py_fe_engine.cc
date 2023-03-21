@@ -250,7 +250,8 @@ void register_fe_engine(py::module & mod) {
           },
           py::arg("f"), py::arg("intf"), py::arg("nb_degree_of_feedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::arg("filter_elements") = nullptr);
+          py::arg("filter_elements") = nullptr)
+      .def("getCohesiveElementType", &FEEngine::getCohesiveElementType);
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }

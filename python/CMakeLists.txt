@@ -84,6 +84,12 @@ if (_is_activated)
     )
 endif()
 
+package_is_activated(fluid_diffusion _is_activated)
+if (_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_fluid_diffusion_model.cc
+    )
+endif()
 
 package_is_activated(contact_mechanics _is_activated)
 if(_is_activated)

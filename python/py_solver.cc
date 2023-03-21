@@ -97,7 +97,7 @@ void register_solvers(py::module & mod) {
           py::arg("alpha") = 1., py::arg("beta") = 0.);
 
   py::class_<SolverVector>(mod, "SolverVector")
-      .def("zero", &SolverVector::zero, py::return_value_policy::reference)
+      .def("zero", &SolverVector::zero)
       .def(
           "getValues",
           [](SolverVector & self) -> decltype(auto) {
@@ -107,21 +107,18 @@ void register_solvers(py::module & mod) {
           "Transform this into a vector, Is not copied.")
       .def("isDistributed",
            [](const SolverVector & self) { return self.isDistributed(); })
+      // had to use DUNder methods, otherwise compilation fails
       .def("__iadd__", &SolverVector::operator+=,
            py::return_value_policy::reference)
       .def("__isub__", &SolverVector::operator-=,
            py::return_value_policy::reference)
       .def("__imul__", &SolverVector::operator*=,
            py::return_value_policy::reference)
-
-      // .def(py::self += py::self, py::return_value_policy::reference)
-      // .def(py::self -= py::self, py::return_value_policy::reference)
-      // .def(py::self *= Real(), py::return_value_policy::reference)
-      .def("dot", &SolverVector::dot, py::return_value_policy::reference)
-      .def("set", &SolverVector::set, py::return_value_policy::reference)
-      .def("copy", &SolverVector::copy, py::return_value_policy::reference)
-      .def("add", &SolverVector::add, py::return_value_policy::reference)
-      .def("norm", &SolverVector::norm, py::return_value_policy::reference);
+      .def("dot", &SolverVector::dot)
+      .def("set", &SolverVector::set)
+      .def("copy", &SolverVector::copy)
+      .def("add", &SolverVector::add)
+      .def("norm", &SolverVector::norm);
 
   py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
       .def(py::init<Int, Int>())
