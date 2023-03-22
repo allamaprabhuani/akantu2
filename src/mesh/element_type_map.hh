@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -230,35 +230,6 @@ public:
                           ElementTypesIteratorHelper> {
     return elementTypesImpl(std::forward<decltype(_pack)>(_pack)...);
   }
-
-  /*! Get an iterator to the beginning of a subset datamap. This method expects
-   *  the SupportType to be ElementType.
-   *  @param dim optional: iterate over data of dimension dim (e.g. when
-   *         iterating over (surface) facets of a 3D mesh, dim would be 2).
-   *         by default, all dimensions are considered.
-   *  @param ghost_type optional: by default, the data map for non-ghost
-   *         elements is iterated over.
-   *  @param kind optional: the kind of element to search for (see
-   *         aka_common.hh), by default all kinds are considered
-   *  @return an iterator to the first stored data matching the filters
-   *          or an iterator to the end of the map if none match*/
-  [[deprecated("Use elementTypes instead")]] inline auto
-  firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-            ElementKind kind = _ek_not_defined) const -> type_iterator;
-  /*! Get an iterator to the end of a subset datamap. This method expects
-   *  the SupportType to be ElementType.
-   *  @param dim optional: iterate over data of dimension dim (e.g. when
-   *         iterating over (surface) facets of a 3D mesh, dim would be 2).
-   *         by default, all dimensions are considered.
-   *  @param ghost_type optional: by default, the data map for non-ghost
-   *         elements is iterated over.
-   *  @param kind optional: the kind of element to search for (see
-   *         aka_common.hh), by default all kinds are considered
-   *  @return an iterator to the last stored data matching the filters
-   *          or an iterator to the end of the map if none match */
-  [[deprecated("Use elementTypes instead")]] inline auto
-  lastType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-           ElementKind kind = _ek_not_defined) const -> type_iterator;
 
   /*! Direct access to the underlying data map. for internal use by daughter
    *  classes only

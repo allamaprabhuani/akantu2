@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -209,7 +209,7 @@ protected:
   /// compute the kinetic energy
   Real getKineticEnergy();
 
-  [[gnu::deprecated("Use the interface with an Element")]] Real
+  [[deprecated("Use the interface with an Element")]] Real
   getKineticEnergy(ElementType type, Idx index) {
     return getKineticEnergy({type, index, _not_ghost});
   }
@@ -381,12 +381,6 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ExternalForce, external_force);
   /// get the SolidMechanicsModel::external_force array
   AKANTU_GET_MACRO_DEREF_PTR(ExternalForce, external_force);
-
-  /// get the SolidMechanicsModel::force array (external forces)
-  [[deprecated("Use getExternalForce instead of this function")]] Array<Real> &
-  getForce() {
-    return getExternalForce();
-  }
 
   /// get the SolidMechanicsModel::internal_force array (internal forces)
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);

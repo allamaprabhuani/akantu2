@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -513,26 +513,11 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-
-  using type_iterator [[deprecated]] =
-      ElementTypeMapArray<Idx, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<Idx, ElementType>::ElementTypesIteratorHelper;
 
   template <typename... pack>
   auto elementTypes(pack &&... _pack) const -> ElementTypesIteratorHelper;
-
-  [[deprecated("Use elementTypes instead")]] inline decltype(auto)
-  firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-            ElementKind kind = _ek_regular) const {
-    return connectivities.elementTypes(dim, ghost_type, kind).begin();
-  }
-
-  [[deprecated("Use elementTypes instead")]] inline decltype(auto)
-  lastType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-           ElementKind kind = _ek_regular) const {
-    return connectivities.elementTypes(dim, ghost_type, kind).end();
-  }
 
   AKANTU_GET_MACRO_DEREF_PTR(ElementSynchronizer, element_synchronizer);
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ElementSynchronizer,
