@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -61,11 +61,9 @@ public:
   virtual Int getMemorySize() const = 0;
 
   // changed empty to match std::vector empty
-  inline bool empty() const __attribute__((warn_unused_result)) {
-    return size_ == 0;
-  }
+  [[nodiscard]] inline bool empty() const { return size_ == 0; }
 
-  /// function to print the containt of the class
+  /// function to print the content of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /* ------------------------------------------------------------------------ */
@@ -73,10 +71,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// Get the Size of the Array
-  decltype(auto) size() const { return size_; }
+  [[nodiscard]] decltype(auto) size() const { return size_; }
   /// Get the number of components
-  decltype(auto) getNbComponent() const { return nb_component; }
-  /// Get the name of th arrya
+  [[nodiscard]] decltype(auto) getNbComponent() const { return nb_component; }
+  /// Get the name of the array
   AKANTU_GET_MACRO_AUTO(ID, id);
   /// Set the name of th array
   AKANTU_SET_MACRO(ID, id, const ID &);

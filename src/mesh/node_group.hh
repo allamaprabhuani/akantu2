@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -50,21 +50,22 @@ public:
 
   /// returns treu if the group is empty \warning this changed beahavior if you
   /// want to empty the group use clear
-  bool empty() const __attribute__((warn_unused_result));
+  [[nodiscard]] bool empty() const;
 
   /// iterator to the beginning of the node group
-  inline auto begin() const;
+  [[nodiscard]] inline auto begin() const;
   /// iterator to the end of the node group
-  inline auto end() const;
+  [[nodiscard]] inline auto end() const;
 
-  
   /// add a node and give the local position through an iterator
   inline auto add(Idx node, bool check_for_duplicate = true);
 
   /// remove a node
   inline void remove(Idx node);
 
-  inline decltype(auto) find(Idx node) const { return node_group.find(node); }
+  [[nodiscard]] inline decltype(auto) find(Idx node) const {
+    return node_group.find(node);
+  }
 
   /// remove duplicated nodes
   void optimize();
@@ -87,7 +88,7 @@ public:
   AKANTU_GET_MACRO_AUTO(Name, name);
 
   /// give the number of nodes in the current group
-  inline Idx size() const;
+  [[nodiscard]] inline Idx size() const;
 
   // UInt * storage() { return node_group.data(); };
 

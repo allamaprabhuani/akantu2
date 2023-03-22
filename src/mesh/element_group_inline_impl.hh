@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -77,18 +77,6 @@ inline void ElementGroup::addElement(ElementType elem_type, Idx elem_id,
 
 /* -------------------------------------------------------------------------- */
 inline Int ElementGroup::getNbNodes() const { return node_group.size(); }
-
-/* -------------------------------------------------------------------------- */
-inline auto ElementGroup::firstType(Int dim, GhostType ghost_type,
-                                    ElementKind kind) const {
-  return elements.elementTypes(dim, ghost_type, kind).begin();
-}
-
-/* -------------------------------------------------------------------------- */
-inline auto ElementGroup::lastType(Int dim, GhostType ghost_type,
-                                   ElementKind kind) const {
-  return elements.elementTypes(dim, ghost_type, kind).end();
-}
 
 /* -------------------------------------------------------------------------- */
 inline auto ElementGroup::begin(ElementType type, GhostType ghost_type) const {

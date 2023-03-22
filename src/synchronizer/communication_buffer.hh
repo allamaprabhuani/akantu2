@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -86,8 +86,8 @@ public:
     return buffer.data();
   };
 
-  inline char * data() { return buffer.data(); };
-  inline const char * data() const { return buffer.data(); };
+  [[nodiscard]] inline char * data() { return buffer.data(); };
+  [[nodiscard]] inline const char * data() const { return buffer.data(); };
 
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
@@ -145,16 +145,18 @@ public:
   static inline std::size_t sizeInBuffer(const std::string & data);
 
   /// return the size in bytes of the stored values
-  inline std::size_t getPackedSize() const { return ptr_pack - buffer.data(); };
+  [[nodiscard]] inline std::size_t getPackedSize() const {
+    return ptr_pack - buffer.data();
+  };
   /// return the size in bytes of data left to be unpacked
-  inline std::size_t getLeftToUnpack() const {
+  [[nodiscard]] inline std::size_t getLeftToUnpack() const {
     return buffer.size() - (ptr_unpack - buffer.data());
   };
   /// return the global size allocated
-  inline std::size_t size() const { return buffer.size(); };
+  [[nodiscard]] inline std::size_t size() const { return buffer.size(); };
 
   /// is the buffer empty
-  inline bool empty() const {
+  [[nodiscard]] inline bool empty() const {
     return (getPackedSize() == 0) and (getLeftToUnpack() == 0);
   }
 

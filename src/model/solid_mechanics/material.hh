@@ -3,17 +3,17 @@
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
- * 
+ *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -111,7 +111,7 @@ protected:
   virtual void computePotentialEnergy(ElementType el_type);
 
   /// compute the potential energy for an element
-  [[gnu::deprecated("Use the interface with an Element")]] virtual void
+  [[deprecated("Use the interface with an Element")]] virtual void
   computePotentialEnergyByElement(ElementType /*type*/, Int /*index*/,
                                   Vector<Real> & /*epot_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
@@ -535,7 +535,7 @@ public:
   /// return the potential energy for the provided element
   Real getPotentialEnergy(const Element & element);
 
-  [[gnu::deprecated("Use the interface with an Element")]] Real
+  [[deprecated("Use the interface with an Element")]] Real
   getPotentialEnergy(ElementType type, Int index);
 
   /// return the energy (identified by id) for the subset of elements contained
@@ -545,7 +545,7 @@ public:
   virtual Real getEnergy(const std::string & energy_id,
                          const Element & element);
 
-  [[gnu::deprecated("Use the interface with an Element")]] virtual Real
+  [[deprecated("Use the interface with an Element")]] virtual Real
   getEnergy(const std::string & energy_id, ElementType type, Idx index) final {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }

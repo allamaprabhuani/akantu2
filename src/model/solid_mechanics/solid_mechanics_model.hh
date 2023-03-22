@@ -444,7 +444,7 @@ public:
   /// compute the energy for one element
   Real getEnergy(const std::string & energy_id, const Element & element);
 
-  [[gnu::deprecated("Use the interface with an Element")]] Real
+  [[deprecated("Use the interface with an Element")]] Real
   getEnergy(const std::string & energy_id, ElementType type, Int index) {
     return getEnergy(energy_id, Element{type, index, _not_ghost});
   }

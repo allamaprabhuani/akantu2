@@ -362,7 +362,7 @@ public:
 
   inline void clear();
 
-  inline bool empty() const __attribute__((warn_unused_result));
+  [[nodiscard]] inline bool empty() const;
 
   /*! set all values in the ElementTypeMap to zero*/
   inline void zero() { this->set(T()); }

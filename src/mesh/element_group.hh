@@ -62,14 +62,14 @@ public:
   using type_iterator = ElementList::type_iterator;
 
   template <typename... pack>
-  inline decltype(auto) elementTypes(pack &&... _pack) const {
+  [[nodiscard]] inline decltype(auto) elementTypes(pack &&... _pack) const {
     return elements.elementTypes(_pack...);
   }
 
-  inline auto begin(ElementType type, GhostType ghost_type = _not_ghost) const
-      [[nodiscard]];
-  inline auto end(ElementType type, GhostType ghost_type = _not_ghost) const
-      [[nodiscard]];
+  [[nodiscard]] inline auto begin(ElementType type,
+                                  GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] inline auto end(ElementType type,
+                                GhostType ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -79,7 +79,7 @@ public:
   void clear();
   void clear(ElementType type, GhostType ghost_type = _not_ghost);
 
-  bool empty() const __attribute__((warn_unused_result));
+  [[nodiscard]] bool empty() const;
 
   /// append another group to this group
   /// BE CAREFUL: it doesn't conserve the element order
