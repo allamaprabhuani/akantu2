@@ -1,4 +1,5 @@
 #include "phasefield_exponential.hh"
+#include <algorithm>
 
 namespace akantu {
 
@@ -24,41 +25,52 @@ inline void PhaseFieldExponential::computeDamageEnergyDensityOnQuad(
 inline void
 PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
                                         Real & phi_quad, Real & phi_hist_quad) {
-  Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_dir(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_diag_plus(spatial_dimension, spatial_dimension);
+  // Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
+  // Matrix<Real> strain_dir(spatial_dimension, spatial_dimension);
+  // Matrix<Real> strain_diag_plus(spatial_dimension, spatial_dimension);
 
-  Vector<Real> strain_values(spatial_dimension);
+  // Vector<Real> strain_values(spatial_dimension);
 
-  Real trace_plus;
+  Real trace = strain_quad.trace();
+  Real trace_plus = std::max(Real(0.), trace);
 
-  strain_plus.zero();
-  strain_dir.zero();
-  strain_values.zero();
-  strain_diag_plus.zero();
+  Matrix<Real> strain_dev(spatial_dimension, spatial_dimension);
+  strain_dev = strain_quad -
+               trace / static_cast<Real>(spatial_dimension) *
+                   Matrix<Real>::Identity(spatial_dimension, spatial_dimension);
 
-  strain_quad.eig(strain_values, strain_dir);
+  Real Kn = this->lambda + 2. * this->mu / static_cast<Real>(spatial_dimension);
 
-  for (Int i = 0; i < spatial_dimension; i++) {
-    strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
-  }
+  phi_quad = 0.5 * Kn * trace_plus * trace_plus +
+             this->mu * strain_dev.doubleDot(strain_dev);
 
-  Matrix<Real> mat_tmp(spatial_dimension, spatial_dimension);
-  Matrix<Real> sigma_plus(spatial_dimension, spatial_dimension);
+  // strain_plus.zero();
+  // strain_dir.zero();
+  // strain_values.zero();
+  // strain_diag_plus.zero();
 
-  mat_tmp = strain_diag_plus * strain_dir.transpose();
-  strain_plus = strain_dir * mat_tmp;
+  // strain_quad.eig(strain_values, strain_dir);
 
-  trace_plus = std::max(Real(0.), strain_quad.trace());
+  // for (Int i = 0; i < spatial_dimension; i++) {
+  //   strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
+  // }
 
-  for (Int i = 0; i < spatial_dimension; i++) {
-    for (Int j = 0; j < spatial_dimension; j++) {
-      sigma_plus(i, j) = static_cast<Real>(i == j) * lambda * trace_plus +
-                         2 * mu * strain_plus(i, j);
-    }
-  }
+  // Matrix<Real> mat_tmp(spatial_dimension, spatial_dimension);
+  // Matrix<Real> sigma_plus(spatial_dimension, spatial_dimension);
 
-  phi_quad = sigma_plus.doubleDot(strain_plus) / 2.;
+  // mat_tmp = strain_diag_plus * strain_dir.transpose();
+  // strain_plus = strain_dir * mat_tmp;
+
+  // trace_plus = std::max(Real(0.), strain_quad.trace());
+
+  // for (Int i = 0; i < spatial_dimension; i++) {
+  //   for (Int j = 0; j < spatial_dimension; j++) {
+  //     sigma_plus(i, j) = static_cast<Real>(i == j) * lambda * trace_plus +
+  //                        2 * mu * strain_plus(i, j);
+  //   }
+  // }
+
+  // phi_quad = sigma_plus.doubleDot(strain_plus) / 2.;
   if (phi_quad < phi_hist_quad) {
     phi_quad = phi_hist_quad;
   }

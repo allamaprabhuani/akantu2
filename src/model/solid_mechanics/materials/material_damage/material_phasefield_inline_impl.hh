@@ -30,6 +30,7 @@
  */
 
 #include "material_phasefield.hh"
+#include <algorithm>
 
 #ifndef AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
 #define AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
@@ -59,38 +60,53 @@ template <Int dim>
 template <class Args>
 inline void
 MaterialPhaseField<dim>::computeEffectiveDamageOnQuad(Args && args) {
-  using Mat = Matrix<Real, dim, dim>;
+  // using Mat = Matrix<Real, dim, dim>;
 
   auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
-  Mat strain_dir;
-  Vector<Real, dim> strain_values;
-  strain.eig(strain_values, strain_dir);
+  Real trace = strain.trace();
+  Real trace_plus = std::max(Real(0.), trace);
+  Real trace_minus = std::min(Real(0.), trace);
 
-  Mat strain_diag_plus;
-  Mat strain_diag_minus;
+  Matrix<Real> strain_dev(dim, dim);
+  strain_dev = strain - trace / static_cast<Real>(dim) *
+                            Matrix<Real>::Identity(dim, dim);
 
-  strain_diag_plus.zero();
-  strain_diag_minus.zero();
+  Real Kn = this->lambda + 2. * this->mu / static_cast<Real>(dim);
 
-  for (UInt i = 0; i < dim; i++) {
-    strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
-    strain_diag_minus(i, i) = std::min(Real(0.), strain_values(i));
-  }
+  Real strain_energy_plus = 0.5 * Kn * trace_plus * trace_plus +
+                            this->mu * strain_dev.doubleDot(strain_dev);
+  Real strain_energy_minus = 0.5 * Kn * trace_minus * trace_minus;
 
-  Mat strain_plus = strain_dir * strain_diag_plus * strain_dir.transpose();
-  Mat strain_minus = strain_dir * strain_diag_minus * strain_dir.transpose();
+  // Mat strain_dir;
+  // Vector<Real, dim> strain_values;
+  // strain.eig(strain_values, strain_dir);
 
-  auto trace_plus = std::max(Real(0.), strain.trace());
-  auto trace_minus = std::min(Real(0.), strain.trace());
+  // Mat strain_diag_plus;
+  // Mat strain_diag_minus;
 
-  Mat sigma_plus =
-      Mat::Identity() * trace_plus * this->lambda + 2. * this->mu * strain_plus;
-  Mat sigma_minus = Mat::Identity() * trace_minus * this->lambda +
-                    2. * this->mu * strain_minus;
+  // strain_diag_plus.zero();
+  // strain_diag_minus.zero();
 
-  auto strain_energy_plus = sigma_plus.doubleDot(strain_plus) / 2.;
-  auto strain_energy_minus = sigma_minus.doubleDot(strain_minus) / 2.;
+  // for (UInt i = 0; i < dim; i++) {
+  //   strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
+  //   strain_diag_minus(i, i) = std::min(Real(0.), strain_values(i));
+  // }
+
+  // Mat strain_plus = strain_dir * strain_diag_plus * strain_dir.transpose();
+  // Mat strain_minus = strain_dir * strain_diag_minus * strain_dir.transpose();
+
+  // auto trace_plus = std::max(Real(0.), strain.trace());
+  // auto trace_minus = std::min(Real(0.), strain.trace());
+
+  // Mat sigma_plus =
+  //     Mat::Identity() * trace_plus * this->lambda + 2. * this->mu *
+  //     strain_plus;
+  // Mat sigma_minus = Mat::Identity() * trace_minus * this->lambda +
+  //                   2. * this->mu * strain_minus;
+
+  // auto strain_energy_plus = sigma_plus.doubleDot(strain_plus) / 2.;
+  // auto strain_energy_minus = sigma_minus.doubleDot(strain_minus) / 2.;
 
   args["effective_damage"_n] =
       args["damage"_n] * (strain_energy_minus < strain_energy_plus);
