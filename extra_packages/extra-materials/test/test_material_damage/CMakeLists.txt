@@ -19,6 +19,7 @@
 #
 #===============================================================================
 
+
 add_mesh(single_agg energy_study.geo 2 1)
 
 register_test(test_material_damage_iterative

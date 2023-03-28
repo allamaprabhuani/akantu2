@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-##===============================================================================
+#===============================================================================
 
 
 register_test(test_material_FE2

@@ -4,6 +4,7 @@ __copyright__ = "Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale" 
                 " en Mécanique des Solides)"
 __license__ = "LGPLv3"
 
+
 import akantu as aka
 import numpy as np
 

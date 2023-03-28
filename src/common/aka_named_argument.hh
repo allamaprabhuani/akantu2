@@ -2,6 +2,14 @@
  * Public Domain ? https://gist.github.com/ilpropheta/7576dce4c3249df89f85
  */
 
+/**
+ * Public Domain ? https://gist.github.com/ilpropheta/7576dce4c3249df89f85
+ */
+
+/**
+ * Public Domain ? https://gist.github.com/ilpropheta/7576dce4c3249df89f85
+ */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_compatibilty_with_cpp_standard.hh"
 /* -------------------------------------------------------------------------- */

@@ -19,6 +19,7 @@
 #
 #===============================================================================
 
+
 package_declare(structural_mechanics DEFAULT ON
   DESCRIPTION "Use Structural mechanics model package of Akantu"
   DEPENDS implicit)
