@@ -319,6 +319,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smm_res)                                     \
   (smm_init_mat)                                \
   (smm_stress)                                  \
+  (smm_gradu)					\
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
   (smmc_facets_stress)                          \
@@ -332,9 +333,6 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
   (pfm_damage)                                  \
-  (pfm_driving)                                 \
-  (pfm_history)                                 \
-  (pfm_energy)                                  \
   (csp_damage)                                  \
   (csp_strain)                                  \
   (mnl_for_average)                             \
@@ -344,6 +342,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (user_1)                                      \
   (user_2)                                      \
   (material_id)                                 \
+  (phasefield_id)				\
   (for_dump)                                    \
   (cf_nodal)                                    \
   (cf_incr)                                     \
@@ -372,6 +371,8 @@ enum class SynchronizationTag {
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
+  _smm_gradu,    ///< synchronization of the gradu to compute the
+                  ///< strain
   _smmc_facets,   ///< synchronization of facet data to setup facet synch
   _smmc_facets_conn,   ///< synchronization of facet global connectivity
   _smmc_facets_stress, ///< synchronization of facets' stress to setup
@@ -398,13 +399,7 @@ enum class SynchronizationTag {
 
   // --- PhaseFieldModel tags ---
   _pfm_damage,  ///< synchronization of the nodal damage
-  _pfm_driving, ///< synchronization of the driving forces to
-                /// compute the internal
-  _pfm_history, ///< synchronization of the damage history to
-                ///  compute the internal
-  _pfm_energy,  ///< synchronization of the damage energy
-                /// density to compute the internal
-
+  
   // --- CouplerSolidPhaseField tags ---
   _csp_damage, ///< synchronization of the damage from phase
                /// model to solid model
@@ -428,6 +423,7 @@ enum class SynchronizationTag {
   _user_1,      ///< tag for user simulations
   _user_2,      ///< tag for user simulations
   _material_id, ///< synchronization of the material ids
+  _phasefield_id, ///< synchronization of the phasefield ids
   _for_dump,    ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---

@@ -242,6 +242,10 @@ inline Int Material::getNbData(const Array<Element> & elements,
            spatial_dimension * sizeof(Real) *
            this->getModel().getNbIntegrationPoints(elements);
   }
+  if (tag == SynchronizationTag::_smm_gradu) {
+    return spatial_dimension * spatial_dimension * sizeof(Real) *
+                 this->getModel().getNbIntegrationPoints(elements);
+  }
   return 0;
 }
 
@@ -256,6 +260,10 @@ inline void Material::packData(CommunicationBuffer & buffer,
     }
     packElementDataHelper(stress, buffer, elements);
   }
+
+  if (tag == SynchronizationTag::_smm_gradu) {
+    packElementDataHelper(gradu, buffer, elements);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -268,6 +276,9 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
       unpackElementDataHelper(gradu, buffer, elements);
     }
     unpackElementDataHelper(stress, buffer, elements);
+  }
+  if (tag == SynchronizationTag::_smm_gradu) {
+    unpackElementDataHelper(gradu, buffer, elements);
   }
 }
 

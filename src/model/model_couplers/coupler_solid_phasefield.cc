@@ -395,46 +395,30 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
 void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  auto & gradu_internal =
+      solid->flattenInternal("grad_u", _ek_regular, ghost_type);
+
   auto & mesh = solid->getMesh();
+  auto & fem = solid->getFEEngine();
 
-  auto nb_materials = solid->getNbMaterials();
-  auto nb_phasefields = phase->getNbPhaseFields();
+  ElementTypeMapArray<Real> strain_tmp("temporary strain on quads");
+  strain_tmp.initialize(
+      fem, _nb_component = spatial_dimension * spatial_dimension,
+      _spatial_dimension = spatial_dimension, _ghost_type = ghost_type);
 
-  AKANTU_DEBUG_ASSERT(
-      nb_phasefields == nb_materials,
-      "The number of phasefields and materials should be equal");
-
-  for (auto index : arange(nb_materials)) {
-    auto & material = solid->getMaterial(index);
-
-    for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase->getPhaseField(index2);
-
-      if (phasefield.getName() == material.getName()) {
-
-        auto & strain_on_qpoints = phasefield.getStrain();
-        const auto & gradu_on_qpoints = material.getGradU();
-
-        for (const auto & type :
-             mesh.elementTypes(spatial_dimension, ghost_type)) {
-          auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
-          const auto & gradu_on_qpoints_vect =
-              gradu_on_qpoints(type, ghost_type);
-          for (auto && values :
-               zip(make_view(strain_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension),
-                   make_view(gradu_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension))) {
-            auto & strain = std::get<0>(values);
-            const auto & grad_u = std::get<1>(values);
-            strain = (grad_u + grad_u.transpose()) / 2.;
-          }
-        }
-
-        break;
-      }
+  for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+    auto & strain_vect = strain_tmp(type, ghost_type);
+    const auto & gradu_vect = gradu_internal(type, ghost_type);
+    for (auto && values :
+         zip(make_view(gradu_vect, spatial_dimension, spatial_dimension),
+             make_view(strain_vect, spatial_dimension, spatial_dimension))) {
+      const auto & grad_u = std::get<0>(values);
+      auto & strain = std::get<1>(values);
+      strain = (grad_u + grad_u.transpose()) / 2.;
     }
   }
+
+  phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -444,10 +428,24 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
                                    const ID & phase_solver_id) {
 
   solid->solveStep(solid_solver_id);
+
+  solid->synchronize(SynchronizationTag::_smm_gradu);
+
+  AKANTU_DEBUG_INFO("exchange strain for local elements");
   this->computeStrainOnQuadPoints(_not_ghost);
 
+  AKANTU_DEBUG_INFO("exchange strain for ghost elements");
+  this->computeStrainOnQuadPoints(_ghost);
+
   phase->solveStep(phase_solver_id);
+
+  phase->synchronize(SynchronizationTag::_pfm_damage);
+
+  AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
+
+  AKANTU_DEBUG_INFO("exchange damage for ghost elements");
+  this->computeDamageOnQuadPoints(_ghost);
 
   solid->assembleInternalForces();
 }

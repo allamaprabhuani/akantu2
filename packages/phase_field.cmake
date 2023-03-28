@@ -27,7 +27,7 @@ package_declare(phase_field DEFAULT ON
 package_declare_sources(phase_field
   model/phase_field/phasefield.cc
   model/phase_field/phasefield.hh
-  model/phase_field/phasefield_inline_impl.cc
+  model/phase_field/phasefield_inline_impl.hh
   model/phase_field/phasefield_selector.hh
   model/phase_field/phasefield_selector_tmpl.hh
 
@@ -37,8 +37,10 @@ package_declare_sources(phase_field
   
   model/phase_field/phase_field_model.cc
   model/phase_field/phase_field_model.hh
-  model/phase_field/phase_field_model_inline_impl.cc
+  model/phase_field/phase_field_model_inline_impl.hh
 
   model/model_couplers/coupler_solid_phasefield.hh
   model/model_couplers/coupler_solid_phasefield.cc
+
+  model/phase_field/phase_field_element_filter.hh
   )
