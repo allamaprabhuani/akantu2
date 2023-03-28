@@ -7,6 +7,9 @@ import re
 import copy
 import json
 import subprocess
+import multiprocessing as mp
+from multiprocessing.pool import ThreadPool as Pool
+import tqdm
 
 
 class ClangToolIssueGenerator(IssueGenerator):
@@ -44,6 +47,9 @@ class ClangToolIssueGenerator(IssueGenerator):
         if len(self._files) == 0 and compiledb_path:
             self._get_files_from_compile_db(compiledb_path)
 
+        self._current_file = None
+        self._num_threads = mp.cpu_count()
+
     def _get_files_from_compile_db(self, compiledb_path):
         file_list = []
         with open(os.path.join(
@@ -56,7 +62,7 @@ class ClangToolIssueGenerator(IssueGenerator):
         self._filter_file_list()
 
     def _run_command(self, command):
-        print_info(f'''[{self._tool}] command: {' '.join(command)}''')
+        #print_info(f'''[{self._tool}] command: {' '.join(command)}''')
         popen = subprocess.Popen(command,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.DEVNULL,
@@ -72,3 +78,21 @@ class ClangToolIssueGenerator(IssueGenerator):
         if return_code:
             print_debug(
                 f"[{self._tool}] {command} ReturnCode {return_code}")
+
+    def generate_issues(self):
+        issues = []
+        self._current_file = tqdm.tqdm(total=0, position=1,
+                                       bar_format='{desc}')
+        with Pool(self._num_threads) as p:
+            list_of_lists = list(tqdm.tqdm(
+                p.imap(self._generate_issues_for_file,
+                       self._files),
+                position=0,
+                desc="Files: ",
+                total=len(self._files)))
+
+            for list_ in list_of_lists:
+                issues.extend(list_)
+
+        for issue in issues:
+            self.add_issue(issue)
