@@ -104,19 +104,12 @@ namespace {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   // trampoline for the cohesive materials
-  template <typename _Material> class PyMaterialCohesive : public _Material {
+  template <typename _Material>
+  class PyMaterialCohesive : public PyMaterial<_Material> {
+    using Parent = PyMaterial<_Material>;
+
   public:
-    /* Inherit the constructors */
-    using _Material::_Material;
-
-    ~PyMaterialCohesive() override = default;
-    void initMaterial() override {
-      // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, initMaterial, );
-    };
-
-    void computeStress(ElementType /*el_type*/,
-                       GhostType /*ghost_type*/ = _not_ghost) final {}
+    using Parent::Parent;
 
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
@@ -130,10 +123,6 @@ namespace {
                              ghost_type);
     }
 
-    void computeTangentModuli(ElementType /*el_type*/,
-                              Array<Real> & /*tangent_matrix*/,
-                              GhostType /*ghost_type*/ = _not_ghost) final {}
-
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
                                 GhostType ghost_type = _not_ghost) override {
@@ -141,6 +130,13 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
                         tangent_matrix, ghost_type);
     }
+
+    void computeStress(ElementType /*el_type*/,
+                       GhostType /*ghost_type*/ = _not_ghost) final {}
+
+    void computeTangentModuli(ElementType /*el_type*/,
+                              Array<Real> & /*tangent_matrix*/,
+                              GhostType /*ghost_type*/ = _not_ghost) final {}
 
     template <typename T>
     void registerInternal(const std::string & name, Int nb_component) {
@@ -152,26 +148,21 @@ namespace {
       internal->initialize(nb_component);
       this->internals[name] = internal;
     }
-
-  protected:
-    std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
 
   // trampoline for the cohesive material inheritance where computeTraction is
   // not pure virtual
   template <typename _Material>
   class PyMaterialCohesiveDaughters : public PyMaterialCohesive<_Material> {
+    using Parent = PyMaterialCohesive<_Material>;
+
   public:
-    /* Inherit the constructors */
-    using PyMaterialCohesive<_Material>::PyMaterialCohesive;
+    using Parent::Parent;
 
-    ~PyMaterialCohesiveDaughters() override = default;
-
-    void computeTraction(const Array<Real> & normal, ElementType el_type,
+    void computeTraction(ElementType el_type,
                          GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, computeTraction, normal, el_type,
-                        ghost_type);
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, el_type, ghost_type);
     }
   };
 
@@ -341,8 +332,7 @@ void register_material(py::module & mod) {
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
              auto & ref =
-                 dynamic_cast<PyMaterialCohesiveDaughters<MaterialCohesive> &>(
-                     self);
+                 dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self);
              return ref.registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
