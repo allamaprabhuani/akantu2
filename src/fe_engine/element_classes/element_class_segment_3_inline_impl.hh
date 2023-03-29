@@ -62,7 +62,7 @@ template <>
 template <class D1, class D2,
           aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_segment_3>::computeShapes(
-    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
+    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
   Real c = natural_coords(0);
   N(0) = (c - 1) * c / 2;
   N(1) = (c + 1) * c / 2;
@@ -72,7 +72,8 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeShapes(
 template <>
 template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
-    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &dnds) {
+    const Eigen::MatrixBase<D1> & natural_coords,
+    Eigen::MatrixBase<D2> & dnds) {
 
   Real c = natural_coords(0);
   dnds(0, 0) = c - .5;
@@ -84,7 +85,7 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
 template <>
 template <class D>
 inline Real GeometricalElement<_gt_segment_3>::getInradius(
-    const Eigen::MatrixBase<D> &coord) {
+    const Eigen::MatrixBase<D> & coord) {
   auto dist1 = (coord(1) - coord(0)).norm();
   auto dist2 = (coord(2) - coord(1)).norm();
   return std::min(dist1, dist2);
@@ -93,10 +94,9 @@ inline Real GeometricalElement<_gt_segment_3>::getInradius(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D1, class D2>
-inline void
-GeometricalElement<_gt_segment_3>::getNormal(const Eigen::MatrixBase<D1> &coord,
-                                             Eigen::MatrixBase<D2> &normal) {
-  Eigen::Matrix<Real, 1, 1> natural_coords{{.5}};
+inline void GeometricalElement<_gt_segment_3>::getNormal(
+    const Eigen::MatrixBase<D1> & coord, Eigen::MatrixBase<D2> & normal) {
+  Eigen::Matrix<Real, 1, 1> natural_coords{1. / 2.};
   ElementClass<_segment_3>::computeNormalsOnNaturalCoordinates(natural_coords,
                                                                coord, normal);
 }

@@ -1,3 +1,10 @@
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
+
 #!/usr/bin/env python3
 
 from . import print_debug, print_info
