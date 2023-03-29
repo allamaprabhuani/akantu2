@@ -3,6 +3,3 @@ __copyright__ = (
     "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
 )
 __license__ = "LGPLv3"
-
-
-
