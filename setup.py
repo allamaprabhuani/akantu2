@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 __copyright__ = (
     "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
     "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
@@ -5,8 +7,6 @@ __copyright__ = (
 __license__ = "LGPLv3"
 
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import sys
 import os.path
 import pybind11 as py11
