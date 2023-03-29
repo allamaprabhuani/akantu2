@@ -118,19 +118,12 @@ namespace {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   // trampoline for the cohesive materials
-  template <typename _Material> class PyMaterialCohesive : public _Material {
+  template <typename _Material>
+  class PyMaterialCohesive : public PyMaterial<_Material> {
+    using Parent = PyMaterial<_Material>;
+
   public:
-    /* Inherit the constructors */
-    using _Material::_Material;
-
-    ~PyMaterialCohesive() override = default;
-    void initMaterial() override {
-      // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, initMaterial, );
-    };
-
-    void computeStress(ElementType el_type,
-                       GhostType ghost_type = _not_ghost) final {}
+    using Parent::Parent;
 
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
@@ -144,9 +137,6 @@ namespace {
                              ghost_type);
     }
 
-    void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
-                              GhostType ghost_type = _not_ghost) final {}
-
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
                                 const Array<Real> & normal,
@@ -156,36 +146,38 @@ namespace {
                         tangent_matrix, normal, ghost_type);
     }
 
-    // template <typename T>
-    // void registerInternal(const std::string & name, UInt nb_component) {
-    //   auto && internal =
-    //       std::make_shared<CohesiveInternalField<T>>(name, *this);
-    //   AKANTU_DEBUG_INFO("alloc internal " << name << " "
-    //                                       << &this->internals[name]);
+    void computeStress(ElementType /*el_type*/,
+                       GhostType /*ghost_type*/ = _not_ghost) final {}
 
-    //   internal->initialize(nb_component);
-    //   this->internals[name] = internal;
-    // }
+    void computeTangentModuli(ElementType /*el_type*/,
+                              Array<Real> & /*tangent_matrix*/,
+                              GhostType /*ghost_type*/ = _not_ghost) final {}
 
-    // protected:
-    //   std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
+    template <typename T>
+    void registerInternal(const std::string & name, Int nb_component) {
+      auto && internal =
+          std::make_shared<CohesiveInternalField<T>>(name, *this);
+      AKANTU_DEBUG_INFO("alloc internal " << name << " "
+                                          << &this->internals[name]);
+
+      internal->initialize(nb_component);
+      this->internals[name] = internal;
+    }
   };
 
   // trampoline for the cohesive material inheritance where computeTraction is
   // not pure virtual
   template <typename _Material>
-  class PyMaterialCohesiveDaughter : public PyMaterialCohesive<_Material> {
+  class PyMaterialCohesiveDaughters : public PyMaterialCohesive<_Material> {
+    using Parent = PyMaterialCohesive<_Material>;
+
   public:
-    /* Inherit the constructors */
-    using PyMaterialCohesive<_Material>::PyMaterialCohesive;
+    using Parent::Parent;
 
-    ~PyMaterialCohesiveDaughter() override = default;
-
-    void computeTraction(const Array<Real> & normal, ElementType el_type,
+    void computeTraction(ElementType el_type,
                          GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, computeTraction, normal, el_type,
-                        ghost_type);
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, el_type, ghost_type);
     }
   };
 
@@ -378,7 +370,9 @@ void register_material(py::module & mod) {
       .def("registerInternalReal",
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
-             return self.registerCohesiveInternal<Real>(name, nb_component);
+             auto & ref =
+                 dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self);
+             return ref.registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
            [](MaterialCohesive & self, const std::string & name,
