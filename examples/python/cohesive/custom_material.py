@@ -115,7 +115,7 @@ class LinearCohesive(aka.MaterialCohesive):
             )
 
 
-def allocator(_dim, _unused, model, _id): # NOQA
+def allocator(_dim, _unused, model, _id):  # NOQA
     """Register the material to the material factory."""
     return LinearCohesive(model, _id)
 
