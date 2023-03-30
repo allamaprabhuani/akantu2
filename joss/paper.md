@@ -37,7 +37,7 @@ authors:
   - name: Fabian Barras
     orcid: 0000-0003-1109-0200
     affiliation: "1, 5"
-  - name: Shenghan Zang
+  - name: Shenghan Zhang
     orcid: 0000-0002-4327-9115
     affiliation: "1, 6"
   - name: Jean-François Molinari
