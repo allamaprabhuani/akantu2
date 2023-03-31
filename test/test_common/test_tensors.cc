@@ -1,18 +1,8 @@
 /**
- * @file   test_tensors.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Nov 14 2017
- * @date last modification:  Tue Feb 05 2019
- *
- * @brief  test the tensors types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -529,7 +518,6 @@ TEST_F(TensorFixture, MatrixIteratorZip) {
   }
 }
 
-#if defined(AKANTU_USE_LAPACK)
 TEST_F(TensorFixture, MatrixEigs) {
   Matrix<double, 4, 4> A{
       {0, 1., 0, 0}, {1., 0, 0, 0}, {0, 1., 0, 1.}, {0, 0, 4., 0}};
@@ -572,7 +560,6 @@ TEST_F(TensorFixture, MatrixEigs) {
     EXPECT_NEAR(lambda_v_minus_a_v, 0., 1e-14);
   }
 }
-#endif
 
 /* -------------------------------------------------------------------------- */
 

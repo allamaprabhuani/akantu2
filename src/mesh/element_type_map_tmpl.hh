@@ -1,21 +1,8 @@
 /**
- * @file   element_type_map_tmpl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 31 2011
- * @date last modification: Thu Mar 11 2021
- *
- * @brief  implementation of template functions of the ElementTypeMap and
- * ElementTypeMapArray classes
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -533,24 +519,6 @@ auto ElementTypeMap<Stored, SupportType>::elementTypesImpl(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Stored, typename SupportType>
-inline auto ElementTypeMap<Stored, SupportType>::firstType(
-    Int dim, GhostType ghost_type, ElementKind kind) const -> type_iterator {
-  return elementTypes(dim, ghost_type, kind).begin();
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Stored, typename SupportType>
-inline auto ElementTypeMap<Stored, SupportType>::lastType(
-    Int dim, GhostType ghost_type, ElementKind kind) const -> type_iterator {
-  typename DataMap::const_iterator e;
-  e = getData(ghost_type).end();
-  return typename ElementTypeMap<Stored, SupportType>::type_iterator(e, e, dim,
-                                                                     kind);
-}
-
-/* -------------------------------------------------------------------------- */
-
 /// standard output stream operator
 template <class Stored, typename SupportType>
 inline std::ostream &

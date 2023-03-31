@@ -378,7 +378,7 @@ cq:compilation_warnings:
   stage: code_quality
   image: python:latest
   script:
-    - pip install warning-parser termcolor Click
+    - pip install warning-parser termcolor Click tqdm
     - ls build-*-err.log
     - test/ci/scripts/cq
       -x third-party
@@ -419,6 +419,7 @@ pages:
   extends:
     - .debian_bullseye_gcc
   script:
+    - mkdir build
     - cd build
     - cmake -DAKANTU_DOCUMENTATION=ON ..
     - cmake --build . -t sphinx-doc

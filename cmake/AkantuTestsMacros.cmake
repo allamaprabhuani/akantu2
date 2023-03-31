@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   AkantuTestsMacros.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Fri Sep 03 2010
-# @date last modification: Tue Jun 30 2020
-#
-# @brief  macros for tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -355,7 +345,7 @@ function(register_gtest_test test_name)
 
   set(_argn ${test_name}_gtest)
 
-  set(_link_libraries GTest::GTest GTest::Main)
+  set(_link_libraries gtest_main)
 
   list(FIND _gtest_PACKAGE python_interface _pos)
   package_is_activated(python_interface _python_interface_act)

@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Mauro Corrado <mauro.corrado@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification:  Tue Jun 30 2020
-#
-# @brief  configuration for materials tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -50,7 +39,7 @@ register_test(test_interpolate_stress test_interpolate_stress.cc
   FILES_TO_COPY material_interpolate.dat
   DEPENDS test_interpolate_stress_mesh
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE lapack core
+  PACKAGE core
   )
 
 #===============================================================================
@@ -60,7 +49,7 @@ register_test(test_material_orthotropic
   DEPENDS test_material_orthotropic_square_mesh
   FILES_TO_COPY orthotropic.dat
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE core lapack
+  PACKAGE core
   )
 
 #===============================================================================
@@ -68,7 +57,7 @@ register_test(test_material_mazars
   SOURCES test_material_mazars.cc
   FILES_TO_COPY material_mazars.dat
   DIRECTORIES_TO_CREATE paraview
-  PACKAGE core lapack
+  PACKAGE core
   UNSTABLE
   )
 

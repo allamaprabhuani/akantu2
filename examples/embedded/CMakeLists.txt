@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Lucas Frerot <lucas.frerot@epfl.ch>
-#
-# @date creation: Fri Sep 03 2010
-# @date last modification: Fri Mar 16 2018
-#
-# @brief  Compilation of embedded solid mechanis model example
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
