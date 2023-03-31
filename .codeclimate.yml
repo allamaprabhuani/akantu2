@@ -33,6 +33,7 @@ plugins:
     enabled: true
     exclude_patterns:
       - "test/test_fe_engine/py_engine/py_engine.py"
+      - "test/ci/scripts"
   cppcheck:
     enabled: false
     project: build/compile_commands.json

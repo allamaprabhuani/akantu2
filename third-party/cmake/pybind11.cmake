@@ -16,23 +16,15 @@ endif()
 
 set(PYBIND11_PYTHON_VERSION ${AKANTU_PREFERRED_PYTHON_VERSION})
 add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/pybind11)
-set_property(TARGET pybind11 APPEND
-  PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${PYBIND11_INCLUDE_DIR}>
-    $<BUILD_INTERFACE:${PYTHON_INCLUDE_DIRS}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    )
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  target_compile_options(pybind11 INTERFACE -fsized-deallocation)
-endif()
-  
 set(pybind11_FOUND TRUE CACHE INTERNAL "" FORCE)
 set(PYBIND11_INCLUDE_DIR "${PYBIND11_INCLUDE_DIR};${PYTHON_INCLUDE_DIRS}" CACHE INTERNAL "")
 set(PYBIND11_LIBRARIES "${PYTHON_LIBRARIES}" CACHE INTERNAL "")
 
 mask_package_options(PYBIND11)
-mark_as_advanced(USE_PYTHON_INCLUDE_DIR)
+mark_as_advanced(
+  USE_PYTHON_INCLUDE_DIR
+  )
 
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args(pybind11

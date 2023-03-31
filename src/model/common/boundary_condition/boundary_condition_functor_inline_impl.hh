@@ -1,19 +1,8 @@
 /**
- * @file   boundary_condition_functor_inline_impl.hh
- *
- * @author Dana Christen <dana.christen@gmail.com>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri May 03 2013
- * @date last modification: Sat Dec 22 2018
- *
- * @brief  implementation of the BC::Functors
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */

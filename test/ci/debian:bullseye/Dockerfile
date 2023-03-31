@@ -22,7 +22,8 @@ RUN apt -qq update && apt -qq -y install \
 # for ci
 RUN apt -qq update && apt -qq -y install \
     gmsh python3-pytest python3-click python3-termcolor \
-    ccache clang-format python3-flake8 python3-pip clang-tidy \
+    python3-flake8 python3-pip python3-tqdm \
+    ccache clang-format clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
     ninja-build \

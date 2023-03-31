@@ -6,6 +6,25 @@
 Akantu: a FEM library
 =====================
 
+|license| |joss|
+
+.. |joss| image:: https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f/status.svg
+   :target: https://joss.theoj.org/papers/3abf3c7945cc9a016a946ce9e02e357f
+
+.. |license| image:: https://img.shields.io/badge/license-LGPLv3-green
+   :target: https://www.gnu.org/licenses/lgpl-3.0.en.html
+
+**Akantu** means a little element in *Kinyarwanda*, a Bantu language. From now
+on it is also an opensource object-oriented *Finite-Element* library which has
+the ambition to be generic and efficient. **Akantu** is developed within the
+`LSMS <https://lsms.epfl.ch>`_ (Computational Solid Mechanics Laboratory)*, where
+research is conducted at the interface of mechanics, material science, and
+scientific computing. The open-source philosophy is important for any scientific
+software project evolution. The collaboration permitted by shared codes enforces
+sanity when users (and not only developers) can criticize the implementation
+details. Akantu was born with the vision to associate genericity, robustness and
+efficiency while benefiting the open-source visibility.
+
 .. toctree::
    :maxdepth: 2
    :caption: User Manual

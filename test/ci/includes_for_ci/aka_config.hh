@@ -51,9 +51,6 @@ using UInt = unsigned int;
 
 /* #undef AKANTU_HAS_STRDUP */
 
-/* #undef AKANTU_USE_BLAS */
-#define AKANTU_USE_LAPACK
-
 #define AKANTU_PARALLEL
 #define AKANTU_USE_MPI
 

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
 
 from . import print_debug, print_info
 from .issue_generator_clang_tool import ClangToolIssueGenerator
@@ -7,6 +13,7 @@ import re
 import copy
 import json
 import subprocess
+import multiprocessing as mp
 
 
 class ClangTidyIssueGenerator(ClangToolIssueGenerator):
@@ -59,6 +66,7 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
                                                      'clang-tidy')
         super().__init__('clang-tidy',
                          need_compiledb=True, **kwargs)
+        self._num_threads = min(2, mp.cpu_count())
 
     def _get_classifiaction(self, issue):
         type_ = issue['type']
@@ -78,28 +86,32 @@ class ClangTidyIssueGenerator(ClangToolIssueGenerator):
 
         return (categories, severity)
 
-    def generate_issues(self):
-        issue = {}
-        for filename in self._files:
-            command = copy.copy(self._command)
-            command.append(filename)
-            for line in self._run_command(command):
-                line = line.rstrip()
-                match = self.ISSUE_PARSE.match(line)
-                if match:
-                    if len(issue) != 0:
-                        self.add_issue(issue)
-                    issue = match.groupdict()
-                    issue['type'] = issue['name']
-                    issue['name'] = f'''clang-tidy:{issue['name']}'''
+    def _generate_issues_for_file(self, filename):
+        command = copy.copy(self._command)
+        command.append(filename)
+        if self._current_file is not None:
+            self._current_file.set_description_str(f"Current file: {filename}")
 
-                    print_debug(f'[clang-tidy] new issue: {line}')
-                elif issue:
-                    if 'content' in issue:
-                        issue['content'].append(line)
-                        print_debug(f'[clang-tidy] more extra content: {line}')
-                    else:
-                        issue['content'] = [line]
-                        print_debug(f'[clang-tidy] extra content: {line}')
+        issues = []
+        issue = {}
+        for line in self._run_command(command):
+            line = line.rstrip()
+            match = self.ISSUE_PARSE.match(line)
+            if match:
+                if len(issue) != 0:
+                    issues.append(issue)
+                issue = match.groupdict()
+                issue['type'] = issue['name']
+                issue['name'] = f'''clang-tidy:{issue['name']}'''
+
+                #print_debug(f'[clang-tidy] new issue: {line}')
+            elif issue:
+                if 'content' in issue:
+                    issue['content'].append(line)
+                    #print_debug(f'[clang-tidy] more extra content: {line}')
+                else:
+                    issue['content'] = [line]
+                    #print_debug(f'[clang-tidy] extra content: {line}')
             if len(issue) != 0:
-                self.add_issue(issue)
+                issues.append(issue)
+        return issues

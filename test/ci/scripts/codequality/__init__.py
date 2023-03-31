@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
+
 import json as _cq_json
 import sys as _cq_sys
 try:

@@ -1,19 +1,8 @@
 /**
- * @file   aka_array_tmpl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Jul 15 2010
- * @date last modification: Fri Feb 26 2021
- *
- * @brief  Inline functions of the classes Array<T> and ArrayBase
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -580,9 +568,8 @@ inline void Array<T, is_scal>::set(const C & elem) {
   AKANTU_DEBUG_ASSERT(
       this->nb_component == elem.array().size(),
       "The size of the object does not match the number of components");
-
   for (auto && v : make_view(*this, this->nb_component)) {
-    v = elem.reshaped(this->nb_component, 1);
+    std::copy_n(elem.data(), this->nb_component, v.data());
   }
 }
 

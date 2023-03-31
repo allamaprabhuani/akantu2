@@ -1,19 +1,8 @@
 /**
- * @file   material_cohesive_linear_friction.cc
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- *
- * @date creation: Tue Jan 12 2016
- * @date last modification: Fri Dec 11 2020
- *
- * @brief  Linear irreversible cohesive law of mixed mode loading with
- * random stress definition for extrinsic type
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */

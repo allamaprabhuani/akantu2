@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
-"""printers.py: gdb pretty printers."""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
 __copyright__ = (
-    "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale"
-    " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation"
-    " en Mécanique des Solides)"
+    "Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
 )
 __license__ = "LGPLv3"
 

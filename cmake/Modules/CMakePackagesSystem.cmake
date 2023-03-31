@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   CMakePackagesSystem.cmake
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification: Mon Mar 08 2021
-#
-# @brief  Set of macros used by akantu to handle the package system
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -982,7 +971,7 @@ function(package_declare pkg)
     endif()
   endif()
 
-  # Set the option for third-partie that can be compiled as an ExternalProject
+  # Set the option for third-parties that can be compiled as an ExternalProject
   if(DEFINED _opt_pkg_SYSTEM)
     list(LENGTH _opt_pkg_SYSTEM _length)
     list(GET _opt_pkg_SYSTEM 0 _bool)

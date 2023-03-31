@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Mon Feb 12 2018
-# @date last modification:  Fri Nov 02 2018
-#
-# @brief  CMakeList of the mesh tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any

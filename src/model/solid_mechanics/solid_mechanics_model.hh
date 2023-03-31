@@ -1,20 +1,8 @@
 /**
- * @file   solid_mechanics_model.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Jul 27 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Model of Solid Mechanics
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -222,7 +209,7 @@ protected:
   /// compute the kinetic energy
   Real getKineticEnergy();
 
-  [[gnu::deprecated("Use the interface with an Element")]] Real
+  [[deprecated("Use the interface with an Element")]] Real
   getKineticEnergy(ElementType type, Idx index) {
     return getKineticEnergy({type, index, _not_ghost});
   }
@@ -395,12 +382,6 @@ public:
   /// get the SolidMechanicsModel::external_force array
   AKANTU_GET_MACRO_DEREF_PTR(ExternalForce, external_force);
 
-  /// get the SolidMechanicsModel::force array (external forces)
-  [[deprecated("Use getExternalForce instead of this function")]] Array<Real> &
-  getForce() {
-    return getExternalForce();
-  }
-
   /// get the SolidMechanicsModel::internal_force array (internal forces)
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);
   /// get the SolidMechanicsModel::internal_force array (internal forces)
@@ -463,7 +444,7 @@ public:
   /// compute the energy for one element
   Real getEnergy(const std::string & energy_id, const Element & element);
 
-  [[gnu::deprecated("Use the interface with an Element")]] Real
+  [[deprecated("Use the interface with an Element")]] Real
   getEnergy(const std::string & energy_id, ElementType type, Int index) {
     return getEnergy(energy_id, Element{type, index, _not_ghost});
   }
