@@ -410,24 +410,3 @@ cq:merge_code_quality:
       codequality: [gl-codequality.json]
     paths:
       - gl-codequality.json
-
-# ------------------------------------------------------------------------------
-# Deploy pages
-# ------------------------------------------------------------------------------
-pages:
-  stage: deploy
-  extends:
-    - .debian_bullseye_gcc
-  script:
-    - mkdir build
-    - cd build
-    - cmake -DAKANTU_DOCUMENTATION=ON ..
-    - cmake --build . -t sphinx-doc
-    - mv doc/dev-doc/html ../public
-  needs:
-    - job: configure:debian_bullseye_gcc
-  artifacts:
-    paths:
-      - public
-  only:
-    - master
