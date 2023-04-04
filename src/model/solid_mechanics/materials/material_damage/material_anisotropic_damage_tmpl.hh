@@ -99,7 +99,7 @@ namespace {
       trace_minus += std::min(eig, 0.);
     });
 
-    return std::make_pair(trace_plus, trace_minus);
+    return std::pair(trace_plus, trace_minus);
   }
 
   template <UInt dim, class Op>
@@ -300,10 +300,9 @@ class EquivalentStrainMazars : public EmptyIteratorContainer {
 public:
   EquivalentStrainMazars(Material & /*mat*/) {}
 
-  template <class... Other>
-  Real operator()(const Matrix<Real> & epsilon, Other &&... /*other*/) {
-    Real epsilon_hat = 0.;
-    std::tie(epsilon_hat, std::ignore) = tensorPlusTrace<dim>(epsilon);
+  template <class D, class... Other>
+  Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
+    auto && [epsilon_hat, _] = tensorPlusTrace<dim>(epsilon);
     return std::sqrt(epsilon_hat);
   }
 };
