@@ -181,6 +181,12 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  template <typename T>
+  void registerInternal(const std::string & name, UInt nb_component);
+
+  template <typename T>
+  void setDefaultValueToInternal(const ID & int_id, const T value);
+
   /// initialize the material computed parameter
   virtual void initMaterial();
 
@@ -546,6 +552,11 @@ protected:
   std::map<ID, InternalField<bool> *> internal_vectors_bool;
 
 protected:
+  /// std map to store pointers to the user-defined internals (have problem with
+  /// keeping pointers alive when registering them in internal_fields of
+  /// Material)
+  std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
+
   ID id;
 
   /// Link to the fem object in the model

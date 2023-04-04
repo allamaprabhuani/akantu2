@@ -141,6 +141,17 @@ void register_fe_engine(py::module & mod) {
           },
           py::arg("coordinates"), py::arg("filter_elements") = nullptr)
       .def(
+          "computeIntegrationPointsCoordinates",
+          [](FEEngine & self, Array<Real> & coordinates, ElementType type,
+             GhostType ghost_type,
+             const Array<UInt> & filter_elements) -> decltype(auto) {
+            return self.computeIntegrationPointsCoordinates(
+                coordinates, type, ghost_type, filter_elements);
+          },
+          py::arg("coordinates"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = nullptr)
+      .def(
           "assembleFieldLumped",
           [](FEEngine & fem,
              const std::function<void(Matrix<Real> &, const Element &)> &

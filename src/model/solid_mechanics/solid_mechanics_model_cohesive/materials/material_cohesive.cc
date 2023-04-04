@@ -54,7 +54,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       total_energy("total_energy", *this), opening("opening", *this),
       tractions("tractions", *this),
       contact_tractions("contact_tractions", *this),
-      contact_opening("contact_opening", *this), delta_max("delta max", *this),
+      contact_opening("contact_opening", *this), delta_max("delta_max", *this),
       use_previous_delta_max(false), use_previous_opening(false),
       damage("damage", *this), sigma_c("sigma_c", *this),
       normal(0, spatial_dimension, "normal") {
@@ -120,7 +120,27 @@ void MaterialCohesive::initMaterial() {
   }
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+/// registering cohesive internal field
+template <typename T>
+void registerCohesiveInternal(const std::string & name, UInt nb_component) {
+  AKANTU_TO_IMPLEMENT();
+};
 
+template <>
+void MaterialCohesive::registerCohesiveInternal<Real>(const std::string & name,
+                                                      UInt nb_component) {
+  auto && internal = std::make_shared<CohesiveInternalField<Real>>(name, *this);
+  internal->initialize(nb_component);
+  this->internals[name] = internal;
+}
+template <>
+void MaterialCohesive::registerCohesiveInternal<UInt>(const std::string & name,
+                                                      UInt nb_component) {
+  auto && internal = std::make_shared<CohesiveInternalField<UInt>>(name, *this);
+  internal->initialize(nb_component);
+  this->internals[name] = internal;
+}
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();

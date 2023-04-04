@@ -161,6 +161,56 @@ void Material::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename T>
+void registerInternal(const std::string & name, UInt nb_component) {
+  AKANTU_TO_IMPLEMENT();
+};
+
+template <>
+void Material::registerInternal<Real>(const std::string & name,
+                                      UInt nb_component) {
+  auto && internal = std::make_shared<InternalField<Real>>(name, *this);
+  internal->initialize(nb_component);
+  this->internals[name] = internal;
+}
+template <>
+void Material::registerInternal<UInt>(const std::string & name,
+                                      UInt nb_component) {
+  auto && internal = std::make_shared<InternalField<UInt>>(name, *this);
+  internal->initialize(nb_component);
+  this->internals[name] = internal;
+}
+
+/* --------------------------------------------------------------------------
+ */
+template <typename T>
+void Material::setDefaultValueToInternal(const ID & int_id, const T value) {
+  AKANTU_TO_IMPLEMENT();
+};
+
+template <>
+void Material::setDefaultValueToInternal<Real>(const ID & int_id,
+                                               const Real value) {
+  auto & internal_field = this->getInternal<Real>(int_id);
+  internal_field.setDefaultValue(value);
+};
+
+template <>
+void Material::setDefaultValueToInternal<UInt>(const ID & int_id,
+                                               const UInt value) {
+  auto & internal_field = this->getInternal<UInt>(int_id);
+  internal_field.setDefaultValue(value);
+};
+
+// template <>
+// void Material::setDefaultValueToInternal<bool>(const ID & int_id,
+//                                                const bool value) {
+//   auto & internal_field = this->getInternal<bool>(int_id);
+//   internal_field.setDefaultValue(value);
+// };
+
+/* --------------------------------------------------------------------------
+ */
 void Material::savePreviousState() {
   AKANTU_DEBUG_IN();
 
@@ -173,7 +223,8 @@ void Material::savePreviousState() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::restorePreviousState() {
   AKANTU_DEBUG_IN();
 
@@ -186,10 +237,11 @@ void Material::restorePreviousState() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 /**
- * Compute the internal forces by assembling @f$\int_{e} \sigma_e \frac{\partial
- * \varphi}{\partial X} dX @f$
+ * Compute the internal forces by assembling @f$\int_{e} \sigma_e
+ * \frac{\partial \varphi}{\partial X} dX @f$
  *
  * @param[in] ghost_type compute the internal forces for _ghost or _not_ghost
  * element
@@ -265,7 +317,8 @@ void Material::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 /**
  * Compute  the  stress from the gradu
  *
@@ -299,7 +352,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::computeAllCauchyStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -324,7 +378,8 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim>
 void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -347,7 +402,8 @@ void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::setToSteadyState(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -371,10 +427,11 @@ void Material::setToSteadyState(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 /**
- * Compute  the stiffness  matrix by  assembling @f$\int_{\omega}  B^t  \times D
- * \times B d\omega @f$
+ * Compute  the stiffness  matrix by  assembling @f$\int_{\omega}  B^t  \times
+ * D \times B d\omega @f$
  *
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
@@ -423,7 +480,8 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim>
 void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -484,7 +542,8 @@ void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim>
 void Material::assembleStiffnessMatrixNL(ElementType type,
                                          GhostType ghost_type) {
@@ -557,7 +616,8 @@ void Material::assembleStiffnessMatrixNL(ElementType type,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim>
 void Material::assembleStiffnessMatrixL2(ElementType type,
                                          GhostType ghost_type) {
@@ -648,7 +708,8 @@ void Material::assembleStiffnessMatrixL2(ElementType type,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt dim>
 void Material::assembleInternalForces(GhostType ghost_type) {
 
@@ -737,7 +798,8 @@ void Material::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_IN();
 
@@ -748,14 +810,16 @@ void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::computePotentialEnergy(ElementType /*unused*/) {
   AKANTU_DEBUG_IN();
   AKANTU_TO_IMPLEMENT();
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
@@ -772,7 +836,8 @@ Real Material::getPotentialEnergy() {
   return epot;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Real Material::getPotentialEnergy(ElementType & type, UInt index) {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
@@ -787,7 +852,8 @@ Real Material::getPotentialEnergy(ElementType & type, UInt index) {
   return epot;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Real Material::getEnergy(const std::string & type) {
   AKANTU_DEBUG_IN();
   if (type == "potential") {
@@ -797,7 +863,8 @@ Real Material::getEnergy(const std::string & type) {
   return 0.;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Real Material::getEnergy(const std::string & energy_id, ElementType type,
                          UInt index) {
   AKANTU_DEBUG_IN();
@@ -808,7 +875,8 @@ Real Material::getEnergy(const std::string & energy_id, ElementType type,
   return 0.;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::initElementalFieldInterpolation(
     const ElementTypeMapArray<Real> & interpolation_points_coordinates) {
   AKANTU_DEBUG_IN();
@@ -820,7 +888,8 @@ void Material::initElementalFieldInterpolation(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::interpolateStress(ElementTypeMapArray<Real> & result,
                                  const GhostType ghost_type) {
 
@@ -830,7 +899,8 @@ void Material::interpolateStress(ElementTypeMapArray<Real> & result,
       &(this->element_filter));
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::interpolateStressOnFacets(
     ElementTypeMapArray<Real> & result,
     ElementTypeMapArray<Real> & by_elem_result, const GhostType ghost_type) {
@@ -898,7 +968,8 @@ void Material::interpolateStressOnFacets(
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::addElements(const Array<Element> & elements_to_add) {
   AKANTU_DEBUG_IN();
 
@@ -914,7 +985,8 @@ void Material::addElements(const Array<Element> & elements_to_add) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::removeElements(const Array<Element> & elements_to_remove) {
   AKANTU_DEBUG_IN();
 
@@ -996,7 +1068,8 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::resizeInternals() {
   AKANTU_DEBUG_IN();
   for (auto it = internal_vectors_real.begin();
@@ -1016,13 +1089,15 @@ void Material::resizeInternals() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::onElementsAdded(const Array<Element> & /*unused*/,
                                const NewElementsEvent & /*unused*/) {
   this->resizeInternals();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::onElementsRemoved(
     const Array<Element> & element_list,
     const ElementTypeMapArray<UInt> & new_numbering,
@@ -1101,10 +1176,12 @@ void Material::onElementsRemoved(
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::beforeSolveStep() { this->savePreviousState(); }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::afterSolveStep(bool converged) {
   if (not converged) {
     this->restorePreviousState();
@@ -1116,10 +1193,12 @@ void Material::afterSolveStep(bool converged) {
     this->updateEnergies(type);
   }
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::onDamageIteration() { this->savePreviousState(); }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::onDamageUpdate() {
   for (const auto & type : element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
@@ -1127,14 +1206,16 @@ void Material::onDamageUpdate() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::onDump() {
   if (this->isFiniteDeformation()) {
     this->computeAllCauchyStresses(_not_ghost);
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
   std::string type = getID().substr(getID().find_last_of(':') + 1);
@@ -1144,7 +1225,8 @@ void Material::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 /// extrapolate internal values
 void Material::extrapolateInternal(const ID & id, const Element & element,
                                    [[gnu::unused]] const Matrix<Real> & point,
@@ -1189,7 +1271,8 @@ void Material::extrapolateInternal(const ID & id, const Element & element,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const GhostType ghost_type) {
 
@@ -1206,7 +1289,8 @@ void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 MaterialFactory & Material::getFactory() {
   return MaterialFactory::getInstance();
 }
