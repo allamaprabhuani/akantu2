@@ -23,8 +23,9 @@ class LinearCohesive(aka.MaterialCohesive):
         super().registerParamReal(
             "G_c", aka._pat_readable | aka._pat_parsable, "Fracture energy"
         )
-        super().registerParamReal("beta",
-                                  aka._pat_readable | aka._pat_parsable)
+        super().registerParamReal(
+            "beta", aka._pat_readable | aka._pat_parsable, ""
+        )
         self.registerInternalReal("delta_max", 1)
         self.beta = 0.
         self.sigma_c = 0.
@@ -39,7 +40,7 @@ class LinearCohesive(aka.MaterialCohesive):
         self.beta = self.getReal("beta")
         self.delta_c = 2 * self.G_c / self.sigma_c
 
-    def checkInsertion(self, check_only):
+    def checkInsertion(self, _check_only):
         """Check if need to insert a cohesive element."""
         model = self.getModel()
         facets = self.getFacetFilter()
@@ -97,8 +98,9 @@ class LinearCohesive(aka.MaterialCohesive):
                     insertion[facet] = True
 
     # constitutive law
-    def computeTraction(self, normals, el_type, ghost_type):
+    def computeTraction(self, el_type, ghost_type):
         """Compute the traction for a given opening."""
+        normals = self.getNormals(el_type, ghost_type)
         openings = self.getOpening(el_type, ghost_type)
         tractions = self.getTraction(el_type, ghost_type)
 
@@ -111,12 +113,10 @@ class LinearCohesive(aka.MaterialCohesive):
             delta_n = opening.dot(normal) * normal
             delta_s = opening - delta_n
 
-            delta = (
-                self.beta * np.linalg.norm(delta_s) ** 2 +
+            delta = self.beta * np.linalg.norm(delta_s) ** 2 + \
                 np.linalg.norm(delta_n) ** 2
-            )
 
-            delta_max[el] = max(delta_max[el], delta)
+            delta_max[el] = max(delta, delta_max[el])
 
             tractions[el, :] = (
                 (delta * delta_s + delta_n)
@@ -126,7 +126,7 @@ class LinearCohesive(aka.MaterialCohesive):
             )
 
 
-def allocator(_dim, unused, model, _id):
+def allocator(_dim, _unused, model, _id):  # NOQA
     """Register the material to the material factory."""
     return LinearCohesive(model, _id)
 
