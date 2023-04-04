@@ -113,7 +113,17 @@ namespace {
   void register_material_classes(py::module & mod, const std::string & name) {
     py::class_<_Material, Material, Parsable, PyMaterial<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
-        .def(py::init<SolidMechanicsModel &, const ID &>());
+        .def(py::init<SolidMechanicsModel &, const ID &>())
+        .def("registerInternalReal",
+             [](Material & self, const std::string & name, Int nb_component) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template registerInternal<Real>(name, nb_component);
+             })
+        .def("registerInternalUInt",
+             [](Material & self, const std::string & name, Int nb_component) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template registerInternal<UInt>(name, nb_component);
+             });
   }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
@@ -188,12 +198,18 @@ namespace {
                PyMaterialCohesiveDaughter<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
-        .def("computeTraction", [](_Material & self, const Array<Real> & normal,
-                                   ElementType el_type, GhostType ghost_type) {
-          auto & ref =
-              dynamic_cast<PyMaterialCohesiveDaughter<_Material> &>(self);
-          return ref.computeTraction(normal, el_type, ghost_type);
-        });
+        .def("registerInternalReal",
+             [](MaterialCohesive & self, const std::string & name,
+                UInt nb_component) {
+               auto & ref = dynamic_cast<PyMaterialCohesive<_Material> &>(self);
+               return ref.template registerInternal<Real>(name, nb_component);
+             })
+        .def("registerInternalUInt",
+             [](MaterialCohesive & self, const std::string & name,
+                UInt nb_component) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template registerInternal<UInt>(name, nb_component);
+             });
   }
 
 #endif
