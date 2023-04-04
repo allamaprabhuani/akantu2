@@ -98,8 +98,9 @@ class LinearCohesive(aka.MaterialCohesive):
                     insertion[facet] = True
 
     # constitutive law
-    def computeTraction(self, normals, el_type, ghost_type):
+    def computeTraction(self, el_type, ghost_type):
         """Compute the traction for a given opening."""
+        normals = self.getNormals(el_type, ghost_type)
         openings = self.getOpening(el_type, ghost_type)
         tractions = self.getTraction(el_type, ghost_type)
 

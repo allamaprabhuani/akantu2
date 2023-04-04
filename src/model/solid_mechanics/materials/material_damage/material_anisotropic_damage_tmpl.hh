@@ -90,7 +90,7 @@ namespace {
       trace_minus += std::min(eig, 0.);
     });
 
-    return std::make_pair(trace_plus, trace_minus);
+    return std::pair(trace_plus, trace_minus);
   }
 
   template <Int dim, class Op, class D1, class D2>
@@ -290,8 +290,7 @@ public:
 
   template <class D, class... Other>
   Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
-    Real epsilon_hat = 0.;
-    std::tie(epsilon_hat, std::ignore) = tensorPlusTrace<dim>(epsilon);
+    auto && [epsilon_hat, _] = tensorPlusTrace<dim>(epsilon);
     return std::sqrt(epsilon_hat);
   }
 };
