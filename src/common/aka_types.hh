@@ -33,17 +33,21 @@
 #define AKANTU_AKA_TYPES_HH
 
 /* -------------------------------------------------------------------------- */
+#if !defined(EIGEN_DEFAULT_DENSE_INDEX_TYPE)
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
+#endif
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
+#if !defined(EIGEN_DEFAULT_IO_FORMAT)
 #define EIGEN_DEFAULT_IO_FORMAT                                                \
   Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ",    \
                   "[", "]", "[", "]")
+#endif
 /* -------------------------------------------------------------------------- */
 #define EIGEN_MATRIXBASE_PLUGIN "aka_types_eigen_matrix_base_plugin.hh"
 #define EIGEN_MATRIX_PLUGIN "aka_types_eigen_matrix_plugin.hh"
 #define EIGEN_PLAINOBJECTBASE_PLUGIN                                           \
   "aka_types_eigen_plain_object_base_plugin.hh"
-
+#define EIGEN_VECTORWISEOP_PLUGIN "aka_types_eigen_vectorwiseop_plugin.hh"
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 /* -------------------------------------------------------------------------- */
@@ -318,6 +322,8 @@ decltype(auto) make_const_view(const Array & array,
 
 } // namespace akantu
 
+
+#if defined(AKANTU_EIGEN_MATRIX_BASE_PLUGIN_USED)
 namespace Eigen {
 
 template <typename Derived>
@@ -527,6 +533,9 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
 }
 
 } // namespace Eigen
+#else
+#error "Akantu cannot work without the eigen plugins, consider including aka_types.hh before <Eigen/Dense> in your code"
+#endif // AKANTU_EIGEN_MATRIX_BASE_PLUGIN_USED
 
 namespace std {
 template <typename POD1, typename POD2, int MapOptions, typename StrideType>

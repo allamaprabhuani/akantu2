@@ -27,7 +27,6 @@ EIGEN_DEVICE_FUNC constexpr EIGEN_STRONG_INLINE
 PlainObjectBase(std::initializer_list<Scalar> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
-  _check_template_params();
   this->template _init1<Index>(list.size());
 
   Index i = 0;

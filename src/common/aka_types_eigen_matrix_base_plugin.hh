@@ -20,6 +20,8 @@
 
 using size_type = Index;
 
+#define AKANTU_EIGEN_MATRIX_BASE_PLUGIN_USED
+
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void zero();
 
 template <bool _is_vector = IsVectorAtCompileTime,
