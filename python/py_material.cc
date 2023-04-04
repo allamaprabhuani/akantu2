@@ -94,18 +94,24 @@ namespace {
       PYBIND11_OVERRIDE(Real, _Material, getShearWaveSpeed, element);
     }
 
-    // template <typename T>
-    // void registerInternal(const std::string & name, UInt nb_component) {
-    //   auto && internal = std::make_shared<InternalField<T>>(name, *this);
-    //   AKANTU_DEBUG_INFO("alloc internal " << name << " "
-    //                                       << &this->internals[name]);
+    template <typename T>
+    void registerInternal(const std::string & name, UInt nb_component) {
+      auto && internal = std::make_shared<InternalField<T>>(name, *this);
+      AKANTU_DEBUG_INFO("alloc internal " << name << " "
+                                          << &this->internals[name]);
 
-    //   internal->initialize(nb_component);
-    //   this->internals[name] = internal;
-    // }
+      internal->initialize(nb_component);
+      this->internals[name] = internal;
+    }
 
-    // protected:
-    //   std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
+    template <typename T>
+    void setDefaultValueToInternal(const ID & int_id, const T value) {
+      auto & internal_field = this->template getInternal<T>(int_id);
+      internal_field.setDefaultValue(value);
+    }
+
+  protected:
+    std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -123,6 +129,16 @@ namespace {
              [](Material & self, const std::string & name, Int nb_component) {
                return dynamic_cast<PyMaterial<_Material> &>(self)
                    .template registerInternal<UInt>(name, nb_component);
+             })
+        .def("setDefaultValueToInternalReal",
+             [](Material & self, const ID & int_id, const Real value) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template setDefaultValueToInternal<Real>(int_id, value);
+             })
+        .def("setDefaultValueToInternalUInt",
+             [](Material & self, const ID & int_id, const UInt value) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template setDefaultValueToInternal<UInt>(int_id, value);
              });
   }
 
@@ -184,10 +200,11 @@ namespace {
   public:
     using Parent::Parent;
 
-    void computeTraction(ElementType el_type,
+    void computeTraction(const Array<Real> & normal, ElementType el_type,
                          GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, computeTraction, el_type, ghost_type);
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, normal, el_type,
+                        ghost_type);
     }
   };
 
@@ -195,21 +212,36 @@ namespace {
   void register_material_cohesive_classes(py::module & mod,
                                           const std::string & name) {
     py::class_<_Material, MaterialCohesive,
-               PyMaterialCohesiveDaughter<_Material>>(
+               PyMaterialCohesiveDaughters<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
         .def("registerInternalReal",
-             [](MaterialCohesive & self, const std::string & name,
-                UInt nb_component) {
-               auto & ref = dynamic_cast<PyMaterialCohesive<_Material> &>(self);
-               return ref.template registerInternal<Real>(name, nb_component);
+             [](_Material & self, const std::string & name, UInt nb_component) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template registerInternal<Real>(name, nb_component);
              })
         .def("registerInternalUInt",
-             [](MaterialCohesive & self, const std::string & name,
-                UInt nb_component) {
+             [](_Material & self, const std::string & name, UInt nb_component) {
                return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
                    .template registerInternal<UInt>(name, nb_component);
-             });
+             })
+        .def("setDefaultValueToInternalReal",
+             [](_Material & self, const ID & int_id, const Real value) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template setDefaultValueToInternal<Real>(int_id, value);
+             })
+        .def("setDefaultValueToInternalUInt",
+             [](_Material & self, const ID & int_id, const UInt value) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template setDefaultValueToInternal<UInt>(int_id, value);
+             })
+        .def("computeTraction", [](_Material & self, const Array<Real> & normal,
+                                   ElementType el_type, GhostType ghost_type) {
+          return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(self)
+              .computeTraction(normal, el_type, ghost_type);
+        });
+
+    ;
   }
 
 #endif
@@ -286,22 +318,24 @@ void register_material(py::module & mod) {
       .def("getModel", &Material::getModel)
       .def("registerInternalReal",
            [](Material & self, const std::string & name, UInt nb_component) {
-             return self.registerInternal<Real>(name, nb_component);
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
            [](Material & self, const std::string & name, UInt nb_component) {
-             return self.registerInternal<UInt>(name, nb_component);
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .registerInternal<UInt>(name, nb_component);
            })
-      // .def("registerInternalReal",
-      //      [](Material & self, const std::string & name, UInt nb_component) {
-      //        return dynamic_cast<PyMaterial<Material> &>(self)
-      //            .registerInternal<Real>(name, nb_component);
-      //      })
-      // .def("registerInternalUInt",
-      //      [](Material & self, const std::string & name, UInt nb_component) {
-      //        return dynamic_cast<PyMaterial<Material> &>(self)
-      //            .registerInternal<UInt>(name, nb_component);
-      //      })
+      .def("setDefaultValueToInternalReal",
+           [](Material & self, const ID & int_id, const Real value) {
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .setDefaultValueToInternal<Real>(int_id, value);
+           })
+      .def("setDefaultValueToInternalUInt",
+           [](Material & self, const ID & int_id, const UInt value) {
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .setDefaultValueToInternal<UInt>(int_id, value);
+           })
       .def(
           "getInternalReal",
           [](Material & self, const ID & id) -> decltype(auto) {
@@ -320,7 +354,6 @@ void register_material(py::module & mod) {
             return self.getElementFilter();
           },
           py::return_value_policy::reference)
-
       /*
        * These functions override the `Parsable` interface.
        * This ensure that the `updateInternalParameters()` function is called.
@@ -354,18 +387,6 @@ void register_material(py::module & mod) {
             return;
           },
           py::arg("name"), py::arg("value"))
-      .def(
-          "setDefaultValueToInternalReal",
-          [](Material & self, const ID & int_id, const Real value) -> void {
-            return self.setDefaultValueToInternal<Real>(int_id, value);
-          },
-          py::arg("int_id"), py::arg("value"))
-      .def(
-          "setDefaultValueToInternalUInt",
-          [](Material & self, const ID & int_id, const UInt value) -> void {
-            return self.setDefaultValueToInternal<UInt>(int_id, value);
-          },
-          py::arg("int_id"), py::arg("value"))
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed)
       .def("__repr__", [](Material & self) {
@@ -386,28 +407,15 @@ void register_material(py::module & mod) {
       .def("registerInternalReal",
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
-             auto & ref =
-                 dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self);
-             return ref.registerInternal<Real>(name, nb_component);
+             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                 .registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
-             return self.registerCohesiveInternal<UInt>(name, nb_component);
+             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                 .registerInternal<UInt>(name, nb_component);
            })
-      // .def("registerInternalReal",
-      //      [](MaterialCohesive & self, const std::string & name,
-      //         UInt nb_component) {
-      //        auto & ref =
-      //            dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self);
-      //        return ref.registerInternal<Real>(name, nb_component);
-      //      })
-      // .def("registerInternalUInt",
-      //      [](MaterialCohesive & self, const std::string & name,
-      //         UInt nb_component) {
-      //        return dynamic_cast<PyMaterialCohesive<MaterialCohesive>
-      //        &>(self)
-      //            .registerInternal<UInt>(name, nb_component);
       .def(
           "getFacetFilter",
           [](MaterialCohesive & self) -> decltype(auto) {
@@ -439,6 +447,15 @@ void register_material(py::module & mod) {
           [](MaterialCohesive & self, GhostType ghost_type) {
             return self.computeTraction(ghost_type);
           },
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeTraction",
+          [](MaterialCohesive & self, const Array<Real> & normal,
+             ElementType el_type, GhostType ghost_type) {
+            return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                .computeTraction(normal, el_type, ghost_type);
+          },
+          py::arg("normal"), py::arg("el_type"),
           py::arg("ghost_type") = _not_ghost)
       .def("getNormalsAtQuads", &MaterialCohesive::getNormalsAtQuads);
 

@@ -300,8 +300,8 @@ class EquivalentStrainMazars : public EmptyIteratorContainer {
 public:
   EquivalentStrainMazars(Material & /*mat*/) {}
 
-  template <class D, class... Other>
-  Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
+  template <class... Other>
+  Real operator()(const Matrix<Real> & epsilon, Other &&... /*other*/) {
     auto && [epsilon_hat, _] = tensorPlusTrace<dim>(epsilon);
     return std::sqrt(epsilon_hat);
   }

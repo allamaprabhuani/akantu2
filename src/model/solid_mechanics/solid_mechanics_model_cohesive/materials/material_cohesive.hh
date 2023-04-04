@@ -89,10 +89,6 @@ public:
   // add the facet to be handled by the material
   UInt addFacet(const Element & element);
 
-  /// registering cohesive internal field
-  template <typename T>
-  void registerCohesiveInternal(const std::string & name, UInt nb_component);
-
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
                                       Array<Real> & /*tangent_matrix*/,

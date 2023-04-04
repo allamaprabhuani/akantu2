@@ -160,54 +160,8 @@ void Material::initMaterial() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template <typename T>
-void registerInternal(const std::string & name, UInt nb_component) {
-  AKANTU_TO_IMPLEMENT();
-};
-
-template <>
-void Material::registerInternal<Real>(const std::string & name,
-                                      UInt nb_component) {
-  auto && internal = std::make_shared<InternalField<Real>>(name, *this);
-  internal->initialize(nb_component);
-  this->internals[name] = internal;
-}
-template <>
-void Material::registerInternal<UInt>(const std::string & name,
-                                      UInt nb_component) {
-  auto && internal = std::make_shared<InternalField<UInt>>(name, *this);
-  internal->initialize(nb_component);
-  this->internals[name] = internal;
-}
-
 /* --------------------------------------------------------------------------
  */
-template <typename T>
-void Material::setDefaultValueToInternal(const ID & int_id, const T value) {
-  AKANTU_TO_IMPLEMENT();
-};
-
-template <>
-void Material::setDefaultValueToInternal<Real>(const ID & int_id,
-                                               const Real value) {
-  auto & internal_field = this->getInternal<Real>(int_id);
-  internal_field.setDefaultValue(value);
-};
-
-template <>
-void Material::setDefaultValueToInternal<UInt>(const ID & int_id,
-                                               const UInt value) {
-  auto & internal_field = this->getInternal<UInt>(int_id);
-  internal_field.setDefaultValue(value);
-};
-
-// template <>
-// void Material::setDefaultValueToInternal<bool>(const ID & int_id,
-//                                                const bool value) {
-//   auto & internal_field = this->getInternal<bool>(int_id);
-//   internal_field.setDefaultValue(value);
-// };
 
 /* --------------------------------------------------------------------------
  */
