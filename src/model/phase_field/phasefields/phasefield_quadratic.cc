@@ -31,19 +31,27 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "phasefield_exponential.hh"
+#include "phasefield_quadratic.hh"
 #include "aka_common.hh"
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 #include <tuple>
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldExponential::PhaseFieldExponential(PhaseFieldModel & model,
-                                             const ID & id)
-    : PhaseField(model, id) {}
+PhaseFieldQuadratic::PhaseFieldQuadratic(PhaseFieldModel & model, const ID & id)
+    : PhaseField(model, id) {
+  registerParam("irreversibility_tol", tol_ir, Real(1e-2),
+                _pat_parsable | _pat_readable, "Irreversibility tolerance");
+
+  this->gamma = Real(this->g_c) / this->l0 * (1. / (tol_ir * tol_ir) - 1.);
+  std::cout << this->gamma << std::endl;
+}
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::updateInternalParameters() {
+void PhaseFieldQuadratic::updateInternalParameters() {
   PhaseField::updateInternalParameters();
 
   for (const auto & type :
@@ -60,9 +68,10 @@ void PhaseFieldExponential::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
-                                                GhostType ghost_type) {
+void PhaseFieldQuadratic::computeDrivingForce(ElementType el_type,
+                                              GhostType ghost_type) {
 
+  this->gamma = Real(this->g_c) / this->l0 * (1. / (tol_ir * tol_ir) - 1.);
   if (this->isotropic) {
     for (auto && tuple : zip(this->phi(el_type, ghost_type),
                              this->phi.previous(el_type, ghost_type),
@@ -95,7 +104,8 @@ void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
            make_view(this->damage_energy(el_type, ghost_type),
                      spatial_dimension, spatial_dimension),
            make_view(this->gradd(el_type, ghost_type), spatial_dimension),
-           this->g_c(el_type, ghost_type))) {
+           this->g_c(el_type, ghost_type),
+           this->damage_on_qpoints.previous(el_type, ghost_type))) {
     auto & phi_quad = std::get<0>(tuple);
     auto & driving_force_quad = std::get<1>(tuple);
     auto & dam_energy_density_quad = std::get<2>(tuple);
@@ -104,17 +114,23 @@ void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
     auto & damage_energy_quad = std::get<5>(tuple);
     auto & gradd_quad = std::get<6>(tuple);
     auto & g_c_quad = std::get<7>(tuple);
+    auto & dam_prev_quad = std::get<8>(tuple);
 
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
                                      g_c_quad);
+    dam_energy_density_quad += this->gamma * (dam_on_quad < dam_prev_quad);
 
-    driving_force_quad = dam_on_quad * dam_energy_density_quad - 2 * phi_quad;
+    Real penalization =
+        this->gamma * std::min(Real(0.), dam_on_quad - dam_prev_quad);
+
+    driving_force_quad =
+        dam_on_quad * dam_energy_density_quad - 2 * phi_quad + penalization;
     driving_energy_quad = damage_energy_quad * gradd_quad;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::computeDissipatedEnergy(ElementType el_type) {
+void PhaseFieldQuadratic::computeDissipatedEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
   for (auto && tuple :
@@ -131,7 +147,7 @@ void PhaseFieldExponential::computeDissipatedEnergy(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldExponential::computeDissipatedEnergyByElement(
+void PhaseFieldQuadratic::computeDissipatedEnergyByElement(
     ElementType type, Idx index, Vector<Real> & edis_on_quad_points) {
   auto gradd_it = this->gradd(type).begin(spatial_dimension);
   auto gradd_end = this->gradd(type).begin(spatial_dimension);
@@ -153,12 +169,12 @@ void PhaseFieldExponential::computeDissipatedEnergyByElement(
   }
 }
 
-void PhaseFieldExponential::computeDissipatedEnergyByElement(
+void PhaseFieldQuadratic::computeDissipatedEnergyByElement(
     const Element & element, Vector<Real> & edis_on_quad_points) {
   computeDissipatedEnergyByElement(element.type, element.element,
                                    edis_on_quad_points);
 }
 
-INSTANTIATE_PHASEFIELD(exponential, PhaseFieldExponential);
+INSTANTIATE_PHASEFIELD(quadratic, PhaseFieldQuadratic);
 
 } // namespace akantu

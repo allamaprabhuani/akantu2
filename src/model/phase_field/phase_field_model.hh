@@ -315,6 +315,12 @@ public:
                        const ElementTypeMapArray<Real> & field,
                        ElementKind kind, GhostType ghost_type = _not_ghost);
 
+  /// Compute strain tensors from grad_u tensors
+  void computeStrain(GhostType ghost_type);
+
+  /// Save previous damage
+  void savePreviousDamage();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

@@ -33,6 +33,7 @@
 #include "aka_common.hh"
 #include "material.hh"
 #include "material_phasefield.hh"
+#include "material_phasefield_anisotropic.hh"
 #include "non_linear_solver.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
@@ -66,6 +67,11 @@ int main(int argc, char * argv[]) {
   SolidMechanicsModel model(mesh);
   model.initFull(_analysis_method = _static);
 
+  auto & solver = model.getNonLinearSolver("static");
+  solver.set("max_iterations", 100);
+  solver.set("threshold", 1e-9);
+  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+
   PhaseFieldModel phase(mesh);
   auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
       "physical_names", phase);
@@ -75,6 +81,7 @@ int main(int argc, char * argv[]) {
   model.setBaseName("phase_solid");
   model.addDumpField("stress");
   model.addDumpField("grad_u");
+  model.addDumpField("strain");
   model.addDumpFieldVector("displacement");
   model.addDumpField("damage");
   model.dump();
@@ -105,7 +112,7 @@ int main(int argc, char * argv[]) {
     Real axial_strain = increment * s;
     applyDisplacement(model, axial_strain);
 
-    model.solveStep();
+    model.solveStep("static");
     computeStrainOnQuadPoints(model, phase, _not_ghost);
 
     phase.solveStep();
@@ -123,6 +130,9 @@ int main(int argc, char * argv[]) {
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
     if (error_damage > 1e-8 or error_stress > 1e-8) {
+      std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Axial strain: " << axial_strain << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Error damage: " << error_damage << std::endl;
       std::cerr << std::left << std::setw(15)
@@ -234,7 +244,8 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
 
         switch (spatial_dimension) {
         case 1: {
-          auto & mat = dynamic_cast<MaterialPhaseField<1> &>(material);
+          auto & mat =
+              dynamic_cast<MaterialPhaseFieldAnisotropic<1> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
@@ -248,7 +259,8 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
           break;
         }
         case 2: {
-          auto & mat = dynamic_cast<MaterialPhaseField<2> &>(material);
+          auto & mat =
+              dynamic_cast<MaterialPhaseFieldAnisotropic<2> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :

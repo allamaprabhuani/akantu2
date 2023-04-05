@@ -30,6 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "aka_factory.hh"
 #include "data_accessor.hh"
 #include "integration_point.hh"
@@ -263,6 +264,12 @@ public:
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined);
 
+  /// Compute strain tensors from grad_u tensors
+  void computeStrain(GhostType ghost_type);
+
+  /// Save previous damage, to call after solving loading step when using penalization
+  void savePreviousDamage();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -299,6 +306,15 @@ protected:
   /// Poisson ratio
   Real nu;
 
+  /// Finite deformation
+  bool plane_stress{false};
+
+  /// Finite deformation
+  bool finite_deformation{false};
+
+  /// Isotropic formulation
+  bool isotropic{false};
+
   /// Lame's first parameter
   Real lambda;
 
@@ -319,6 +335,9 @@ protected:
 
   /// phi arrays ordered by element types
   InternalPhaseField<Real> phi;
+
+  /// strain arrays ordered by element types
+  InternalPhaseField<Real> grad_u;
 
   /// strain arrays ordered by element types
   InternalPhaseField<Real> strain;

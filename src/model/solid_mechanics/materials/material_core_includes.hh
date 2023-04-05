@@ -54,6 +54,7 @@
 
 // phasefield laws
 #include "material_phasefield.hh"
+#include "material_phasefield_anisotropic.hh"
 
 // small-deformation plasticity
 #include "material_linear_isotropic_hardening.hh"
@@ -76,6 +77,7 @@
            MaterialLinearIsotropicHardening)))(                                \
       (2, (plastic_drucker_prager, MaterialDruckerPrager)))(                   \
       (2, (plastic_mazars, MaterialVonMisesMazars)))(                          \
-      (2, (phasefield, MaterialPhaseField)))
+      (2, (phasefield, MaterialPhaseField)))(                                  \
+      (2, (phasefield_anisotropic, MaterialPhaseFieldAnisotropic)))
 
 #endif /* AKANTU_MATERIAL_CORE_INCLUDES_HH_ */

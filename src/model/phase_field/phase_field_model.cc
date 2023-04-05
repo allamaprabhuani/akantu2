@@ -729,6 +729,20 @@ void PhaseFieldModel::inflateInternal(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
+void PhaseFieldModel::computeStrain(GhostType ghost_type) {
+  for (auto & phasefield : phasefields) {
+    phasefield->computeStrain(ghost_type);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseFieldModel::savePreviousDamage() {
+  for (auto & phasefield : phasefields) {
+    phasefield->savePreviousDamage();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 

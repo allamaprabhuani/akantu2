@@ -1,9 +1,9 @@
-#include "phasefield_exponential.hh"
+#include "phasefield_quadratic.hh"
 #include <algorithm>
 
 namespace akantu {
 
-inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
+inline void PhaseFieldQuadratic::computeDissipatedEnergyOnQuad(
     const Real & dam, const Vector<Real> & grad_d, Real & edis,
     Real & g_c_quad) {
 
@@ -16,16 +16,15 @@ inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseFieldExponential::computeDamageEnergyDensityOnQuad(
+inline void PhaseFieldQuadratic::computeDamageEnergyDensityOnQuad(
     const Real & phi_quad, Real & dam_energy_quad, const Real & g_c_quad) {
   dam_energy_quad = 2.0 * phi_quad + g_c_quad / this->l0;
 }
 
 /* -------------------------------------------------------------------------- */
 inline void
-PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
-                                        Real & phi_quad, Real & phi_hist_quad) {
-
+PhaseFieldQuadratic::computePhiOnQuad(const Matrix<Real> & strain_quad,
+                                      Real & phi_quad, Real & phi_hist_quad) {
   Real trace = strain_quad.trace();
   Real trace_plus = std::max(Real(0.), trace);
 
@@ -38,23 +37,15 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 
   phi_quad = 0.5 * kpa * trace_plus * trace_plus +
              this->mu * strain_dev.doubleDot(strain_dev);
-
-  if (phi_quad < phi_hist_quad) {
-    phi_quad = phi_hist_quad;
-  }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseFieldExponential::computePhiIsotropicOnQuad(
+inline void PhaseFieldQuadratic::computePhiIsotropicOnQuad(
     const Matrix<Real> & strain_quad, Real & phi_quad, Real & phi_hist_quad) {
-
   Real trace = strain_quad.trace();
 
   phi_quad = 0.5 * this->lambda * trace * trace +
              this->mu * strain_quad.doubleDot(strain_quad);
-
-  if (phi_quad < phi_hist_quad) {
-    phi_quad = phi_hist_quad;
-  }
 }
+
 } // namespace akantu

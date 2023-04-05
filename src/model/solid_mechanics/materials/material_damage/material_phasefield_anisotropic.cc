@@ -30,47 +30,73 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "material_phasefield_anisotropic.hh"
 #include "aka_common.hh"
-#include "material_phasefield.hh"
 #include "solid_mechanics_model.hh"
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-MatrerialPhaseFieldAnisotropic<dim>::MatrerialPhaseFieldAnisotropic(
+MaterialPhaseFieldAnisotropic<dim>::MaterialPhaseFieldAnisotropic(
     SolidMechanicsModel & model, const ID & id)
     : Parent(model, id) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
+  this->registerParam("is_isotropic", is_isotropic, false,
+                      _pat_parsable | _pat_readable,
+                      "Use isotropic formulation");
   this->damage.initialize(0);
 }
 
 template <Int dim>
-void MatrerialPhaseFieldAnisotropic<dim>::computeStress(ElementType el_type,
-                                                        GhostType ghost_type) {
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    computeStressOnQuad(args);
+void MaterialPhaseFieldAnisotropic<dim>::computeStress(ElementType el_type,
+                                                       GhostType ghost_type) {
+
+  auto && arguments = Parent::getArguments(el_type, ghost_type);
+
+  if (not this->finite_deformation) {
+    for (auto && args : arguments) {
+      this->computeStressOnQuad(args);
+    }
+  } else {
+    for (auto && args : arguments) {
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computeStressOnQuad(tuple::replace(args, "grad_u"_n = E));
+    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MatrerialPhaseFieldAnisotropic<dim>::computeTangentModuli(
+void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
 
-  for (auto && args :
-       getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
-    computeTangentModuliOnQuad(args);
+  auto && arguments = Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+
+  if (not this->finite_deformation) {
+    for (auto && args : arguments) {
+      this->computeTangentModuliOnQuad(args);
+    }
+  } else {
+    for (auto && args : arguments) {
+      auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
+      this->computeTangentModuliOnQuad(tuple::replace(args, "grad_u"_n = E));
+    }
   }
+
+  // for (auto && args :
+  //      Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+  //   computeTangentModuliOnQuad(args);
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
-template class MatrerialPhaseFieldAnisotropic<1>;
-template class MatrerialPhaseFieldAnisotropic<2>;
-template class MatrerialPhaseFieldAnisotropic<3>;
+template class MaterialPhaseFieldAnisotropic<1>;
+template class MaterialPhaseFieldAnisotropic<2>;
+template class MaterialPhaseFieldAnisotropic<3>;
 
 static bool material_is_allocated_phasefield =
-    instantiateMaterial<MatrerialPhaseFieldAnisotropic>(
+    instantiateMaterial<MaterialPhaseFieldAnisotropic>(
         "phasefield_anisotropic");
 
 } // namespace akantu

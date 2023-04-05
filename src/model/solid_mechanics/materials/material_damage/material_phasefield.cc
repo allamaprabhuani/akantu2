@@ -42,6 +42,9 @@ MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), effective_damage("effective_damage", *this) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
+  this->registerParam("is_hybrid", is_hybrid, false,
+                      _pat_parsable | _pat_readable,
+                      "Use isotropic formulation");
   this->damage.initialize(0);
   this->effective_damage.initialize(1);
 }
@@ -49,10 +52,18 @@ MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
 template <Int dim>
 void MaterialPhaseField<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
-  computeEffectiveDamage(el_type, ghost_type);
 
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    computeStressOnQuad(args);
+  if (this->is_hybrid) {
+    computeEffectiveDamage(el_type, ghost_type);
+
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      auto && dam = args["effective_damage"_n];
+      computeStressOnQuad(tuple::replace(args, "damage"_n = dam));
+    }
+  } else {
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      computeStressOnQuad(args);
+    }
   }
 }
 
@@ -63,9 +74,19 @@ void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
                                                    GhostType ghost_type) {
   computeEffectiveDamage(el_type, ghost_type);
 
-  for (auto && args :
-       getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
-    computeTangentModuliOnQuad(args);
+  if (this->is_hybrid) {
+    computeEffectiveDamage(el_type, ghost_type);
+
+    for (auto && args :
+         getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+      auto && dam = args["effective_damage"_n];
+      computeTangentModuliOnQuad(tuple::replace(args, "damage"_n = dam));
+    }
+  } else {
+    for (auto && args :
+         getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+      computeTangentModuliOnQuad(args);
+    }
   }
 }
 
@@ -73,8 +94,11 @@ void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
 template <Int dim>
 void MaterialPhaseField<dim>::computeEffectiveDamage(ElementType el_type,
                                                      GhostType ghost_type) {
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    computeEffectiveDamageOnQuad(args);
+
+  if (not is_hybrid) {
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      computeEffectiveDamageOnQuad(args);
+    }
   }
 }
 

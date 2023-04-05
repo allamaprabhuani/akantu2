@@ -112,6 +112,7 @@ void register_phase_field_model(py::module & mod) {
       .def_function_nocopy(getInternalForce)
       .def_function_nocopy(getBlockedDOFs)
       .def_function_nocopy(getMesh)
+      .def_function(savePreviousDamage)
       .def(
           "getPhaseField",
           [](PhaseFieldModel & self, Idx phase_field_id) -> decltype(auto) {

@@ -33,18 +33,18 @@
 #include "phasefield.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
-#define __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
+#ifndef __AKANTU_PHASEFIELD_QUADRATIC_HH__
+#define __AKANTU_PHASEFIELD_QUADRATIC_HH__
 
 namespace akantu {
-class PhaseFieldExponential : public PhaseField {
+class PhaseFieldQuadratic : public PhaseField {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  PhaseFieldExponential(PhaseFieldModel & model, const ID & id = "");
+  PhaseFieldQuadratic(PhaseFieldModel & model, const ID & id = "");
 
-  ~PhaseFieldExponential() override = default;
+  ~PhaseFieldQuadratic() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -62,12 +62,11 @@ protected:
   computeDissipatedEnergyByElement(ElementType type, Idx index,
                                    Vector<Real> & edis_on_quad_points) override;
 
-  inline void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
-                               Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
+  void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
+                        Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
-  inline void computePhiIsotropicOnQuad(const Matrix<Real> & /*strain_quad*/,
-                                        Real & /*phi_quad*/,
-                                        Real & /*phi_hist_quad*/);
+  void computePhiIsotropicOnQuad(const Matrix<Real> & /*strain_quad*/,
+                                 Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
   void computeDrivingForce(ElementType /*el_type*/,
                            GhostType /*ghost_type*/) override;
@@ -86,6 +85,13 @@ protected:
 
 public:
   void updateInternalParameters() override;
+
+private:
+  // irreversibility tolerance
+  Real tol_ir;
+
+  // penalization parameter
+  Real gamma;
 };
 
 } // namespace akantu
@@ -93,6 +99,6 @@ public:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-#include "phasefield_exponential_inline_impl.hh"
+#include "phasefield_quadratic_inline_impl.hh"
 
 #endif

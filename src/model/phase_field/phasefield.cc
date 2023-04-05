@@ -33,6 +33,7 @@
 #include "phasefield.hh"
 #include "aka_common.hh"
 #include "phase_field_model.hh"
+#include <array>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -43,8 +44,8 @@ PhaseField::PhaseField(PhaseFieldModel & model, const ID & id)
       model(model), g_c("g_c", *this),
       spatial_dimension(this->model.getSpatialDimension()),
       element_filter("element_filter", id), damage_on_qpoints("damage", *this),
-      gradd("grad_d", *this), phi("phi", *this), strain("strain", *this),
-      driving_force("driving_force", *this),
+      gradd("grad_d", *this), phi("phi", *this), grad_u("grad_u", *this),
+      strain("strain", *this), driving_force("driving_force", *this),
       driving_energy("driving_energy", *this),
       damage_energy("damage_energy", *this),
       damage_energy_density("damage_energy_density", *this),
@@ -72,6 +73,7 @@ PhaseField::PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
       damage_on_qpoints("damage", *this, dim, fe_engine, this->element_filter),
       gradd("grad_d", *this, dim, fe_engine, this->element_filter),
       phi("phi", *this, dim, fe_engine, this->element_filter),
+      grad_u("grad_u", *this, dim, fe_engine, this->element_filter),
       strain("strain", *this, dim, fe_engine, this->element_filter),
       driving_force("driving_force", *this, dim, fe_engine,
                     this->element_filter),
@@ -107,8 +109,15 @@ void PhaseField::initialize() {
                 "critical local fracture energy density");
   registerParam("E", E, _pat_parsable | _pat_readable, "Young's modulus");
   registerParam("nu", nu, _pat_parsable | _pat_readable, "Poisson ratio");
+  registerParam("Plane_Stress", plane_stress, false,
+                _pat_parsable | _pat_readable, "Is plane stress");
+  registerParam("finite_deformation", finite_deformation, false,
+                _pat_parsable | _pat_readable, "Is finite deformation");
+  registerParam("isotropic", isotropic, false, _pat_parsable | _pat_readable,
+                "Use isotropic formulation");
 
   damage_on_qpoints.initialize(1);
+  damage_on_qpoints.setDefaultValue(0.);
 
   phi.initialize(1);
   driving_force.initialize(1);
@@ -117,6 +126,7 @@ void PhaseField::initialize() {
   gradd.initialize(spatial_dimension);
   g_c.initialize(1);
 
+  grad_u.initialize(spatial_dimension * spatial_dimension);
   strain.initialize(spatial_dimension * spatial_dimension);
 
   dissipated_energy.initialize(1);
@@ -130,6 +140,8 @@ void PhaseField::initPhaseField() {
   AKANTU_DEBUG_IN();
 
   this->phi.initializeHistory();
+  this->damage_on_qpoints.initializeHistory();
+  this->savePreviousDamage();
 
   this->resizeInternals();
 
@@ -162,7 +174,46 @@ void PhaseField::resizeInternals() {
 /* -------------------------------------------------------------------------- */
 void PhaseField::updateInternalParameters() {
   this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
+  if (this->plane_stress) {
+    this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - this->nu));
+  }
   this->mu = this->E / (2 * (1 + this->nu));
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseField::computeStrain(GhostType ghost_type) {
+  Int dim = model.getSpatialDimension();
+
+  if (not this->finite_deformation) {
+
+    for (const auto & type : element_filter.elementTypes(dim, ghost_type)) {
+      for (auto && tuple :
+           zip(make_view(this->grad_u(type, ghost_type), dim, dim),
+               make_view(this->strain(type, ghost_type), dim, dim))) {
+
+        const auto & grad_u_quad = std::get<0>(tuple);
+        auto & strain_quad = std::get<1>(tuple);
+
+        strain_quad = (grad_u_quad + grad_u_quad.transpose()) / 2.;
+      }
+    }
+
+  } else {
+
+    for (const auto & type : element_filter.elementTypes(dim, ghost_type)) {
+      for (auto && tuple :
+           zip(make_view(this->grad_u(type, ghost_type), dim, dim),
+               make_view(this->strain(type, ghost_type), dim, dim))) {
+
+        const auto & grad_u_quad = std::get<0>(tuple);
+        auto & strain_quad = std::get<1>(tuple);
+
+        strain_quad = (grad_u_quad.transpose() * grad_u_quad +
+                       grad_u_quad.transpose() + grad_u_quad) /
+                      2.;
+      }
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -398,13 +449,24 @@ void PhaseField::afterSolveStep() {}
 void PhaseField::savePreviousState() {
   AKANTU_DEBUG_IN();
 
-  for (auto pair : internal_vectors_real) {
-    if (pair.second->hasHistory()) {
-      pair.second->saveCurrentValues();
-    }
+  // for (auto pair : internal_vectors_real) {
+  //   if (pair.second->hasHistory()) {
+  //     pair.second->saveCurrentValues();
+  //   }
+  // }
+  
+  if (this->phi.hasHistory()) {
+    this->phi.saveCurrentValues();
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseField::savePreviousDamage() {
+  if (this->damage_on_qpoints.hasHistory()){
+    this->damage_on_qpoints.saveCurrentValues();
+  }
 }
 
 /* -------------------------------------------------------------------------- */

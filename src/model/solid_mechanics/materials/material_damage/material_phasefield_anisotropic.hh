@@ -41,15 +41,15 @@
 namespace akantu {
 
 template <Int dim>
-class MatrerialPhaseFieldAnisotropic : public MaterialDamage<dim> {
+class MaterialPhaseFieldAnisotropic : public MaterialDamage<dim> {
   using Parent = MaterialDamage<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MatrerialPhaseFieldAnisotropic(SolidMechanicsModel & model,
+  MaterialPhaseFieldAnisotropic(SolidMechanicsModel & model,
                                  const ID & id = "");
-  ~MatrerialPhaseFieldAnisotropic() override = default;
+  ~MaterialPhaseFieldAnisotropic() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -64,21 +64,21 @@ public:
                             GhostType ghost_type = _not_ghost) override;
 
   /* ------------------------------------------------------------------------ */
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type = _not_ghost) {
-    return zip_append(Parent::getArguments(el_type, ghost_type),
-                      "effective_damage"_n = make_view(
-                          this->effective_damage(el_type, ghost_type)));
-  }
+  // decltype(auto) getArguments(ElementType el_type,
+  //                             GhostType ghost_type = _not_ghost) {
+  //   return zip_append(Parent::getArguments(el_type, ghost_type),
+  //                     "effective_damage"_n = make_view(
+  //                         this->effective_damage(el_type, ghost_type)));
+  // }
 
-  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
-                                     ElementType el_type,
-                                     GhostType ghost_type) {
-    return zip_append(
-        Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
-        "effective_damage"_n =
-            make_view(this->effective_damage(el_type, ghost_type)));
-  }
+  // decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+  //                                    ElementType el_type,
+  //                                    GhostType ghost_type) {
+  //   return zip_append(
+  //       Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
+  //       "effective_damage"_n =
+  //           make_view(this->effective_damage(el_type, ghost_type)));
+  // }
 
 protected:
   /// constitutive law for a given quadrature point
@@ -91,7 +91,11 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// Residual stiffness parameter
   Real eta;
+
+  /// Phasefield isotropic
+  bool is_isotropic;
 };
 
 } // namespace akantu

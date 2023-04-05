@@ -1,5 +1,5 @@
 model solid_mechanics_model [
-      material phasefield [
+      material phasefield_anisotropic [
 	 name = plate
 	 rho = 1.
 	 E = 210.0
@@ -15,5 +15,6 @@ model phase_field_model [
        nu = 0.3
        gc = 5e-3
        l0 = 0.1
+       Plane_Stress = false
 	   ]	
 ]	

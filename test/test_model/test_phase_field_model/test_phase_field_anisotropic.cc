@@ -34,11 +34,19 @@ int main(int argc, char * argv[]) {
   auto & phase = coupler.getPhaseFieldModel();
 
   model.initFull(_analysis_method = _static);
+  auto & solver = model.getNonLinearSolver("static");
+  solver.set("max_iterations", 1000);
+  solver.set("threshold", 1e-6);
+  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
 
   auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
       "physical_names", phase);
   phase.setPhaseFieldSelector(selector);
   phase.initFull(_analysis_method = _static);
+  auto & solver_phase = phase.getNonLinearSolver("static");
+  solver_phase.set("max_iterations", 1000);
+  solver_phase.set("threshold", 1e-6);
+  solver_phase.set("convergence_type", SolveConvergenceCriteria::_residual);
 
   model.setBaseName("phase_solid");
   model.addDumpField("stress");
@@ -87,6 +95,7 @@ int main(int argc, char * argv[]) {
     }
 
     coupler.solve("static", "static");
+    phase.savePreviousDamage();
 
     analytical_damage = max_strain * max_strain * c22 /
                         (gc / l0 + max_strain * max_strain * c22);
@@ -101,8 +110,14 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if ((error_damage > 1e-8 or error_stress > 1e-8) and
-        std::abs(axial_strain) < 1e-13) {
+    if (error_damage > 1e-5 or error_stress > 1e-5) {
+      std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Axial strain: " << axial_strain << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "An. damage: " << analytical_damage << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Damage: " << damage(0) << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Error damage: " << error_damage << std::endl;
       std::cerr << std::left << std::setw(15)

@@ -29,18 +29,18 @@
  *
  */
 
-#include "material_phasefield.hh"
+#include "material_phasefield_anisotropic.hh"
 #include <algorithm>
 
-#ifndef AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_PHASEFIELD_INLINE_IMPL_HH_
+#ifndef AKANTU_MATERIAL_PHASEFIELD_ANISOTROPIC_INLINE_IMPL_HH_
+#define AKANTU_MATERIAL_PHASEFIELD_ANISOTROPIC_INLINE_IMPL_HH_
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 template <Int dim>
 template <class Args>
 inline void
-MatrerialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
-  MaterialElastic<dim>::computeStressOnQuad(args);
+MaterialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
+  // MaterialElastic<dim>::computeStressOnQuad(args);
 
   auto && dam = args["damage"_n];
 
@@ -51,40 +51,36 @@ MatrerialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
   Real trace_plus = std::max(Real(0.), trace);
   Real trace_minus = std::min(Real(0.), trace);
 
-  Real sigma_th_plus = std::max(Real(0.), args["sigma"_n]);
-  Real sigma_th_minus = std::min(Real(0.), args["sigma"_n]);
+  Real sigma_th_plus = std::max(Real(0.), args["sigma_th"_n]);
+  Real sigma_th_minus = std::min(Real(0.), args["sigma_th"_n]);
 
   Matrix<Real> strain_dev(dim, dim);
-  strain_dev = strain - trace / static_cast<Real>(dim) *
-                            Matrix<Real>::Identity(dim, dim);
+  strain_dev = strain - trace / Real(dim) * Matrix<Real>::Identity(dim, dim);
 
-  Real kappa = this->lambda + 2. * this->mu / static_cast<Real>(dim);
+  Real kappa = this->lambda + 2. / Real(dim) * this->mu;
 
   Real g_d = (1 - dam) * (1 - dam) + eta;
 
-  auto sigma_plus =
-      (kappa * trace_plus + sigma_th_plus) * Matrix<Real>::Identity(dim, dim) +
-      2. * this->mu * strain_dev;
-  auto sigma_minus =
-      (kappa * trace_minus + sigma_th_minus) * Matrix<Real>::Identity(dim, dim);
+  auto sigma_plus = (kappa * trace_plus + sigma_th_plus) *
+                        Matrix<Real>::Identity(dim, dim) +
+                    2. * this->mu * strain_dev;
+  auto sigma_minus = (kappa * trace_minus + sigma_th_minus) *
+                     Matrix<Real>::Identity(dim, dim);
 
-  sigma = g_d * sigma_plus + sigma_minus
+  sigma = g_d * sigma_plus + sigma_minus;
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class Args>
-void MatrerialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
+void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
     Args && args) {
 
   auto && dam = args["damage"_n];
 
-  auto sigma = args["sigma"_n];
   auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
   Real trace = strain.trace();
-
-  Real kappa = this->lambda + 2. * this->mu / static_cast<Real>(dim);
 
   Real g_d = (1 - dam) * (1 - dam) + eta;
   Real g_d_hyd = trace > 0. ? g_d : 1.;
@@ -101,11 +97,11 @@ void MatrerialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
     return;
   }
 
-  auto Miiii =
-      g_d_hyd * kappa + g_d * 2. * mu * (1. - 1. / static_cast<Real>(dim));
-  [[maybe_unused]] auto Miijj =
-      g_d_hyd * kappa - g_d * 2. * mu / static_cast<Real>(dim);
-  [[maybe_unused]] auto Mijij = g_d * mu;
+  Real kappa = this->lambda + 2. / Real(dim) * this->mu;
+
+  auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dim));
+  [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dim);
+  [[maybe_unused]] auto Mijij = g_d * this->mu;
 
   tangent(0, 0) = Miiii;
 

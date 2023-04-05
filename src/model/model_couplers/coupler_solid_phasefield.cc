@@ -357,7 +357,7 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
 
         switch (spatial_dimension) {
         case 1: {
-          auto & mat = static_cast<MaterialPhaseField<1> &>(material);
+          auto & mat = static_cast<MaterialDamage<1> &>(material);
           auto & damage = mat.getDamage();
           for (const auto & type :
                mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
@@ -370,7 +370,7 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
         }
 
         case 2: {
-          auto & mat = static_cast<MaterialPhaseField<2> &>(material);
+          auto & mat = static_cast<MaterialDamage<2> &>(material);
           auto & damage = mat.getDamage();
 
           for (const auto & type :
@@ -383,7 +383,7 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
           break;
         }
         default:
-          auto & mat = static_cast<MaterialPhaseField<3> &>(material);
+          auto & mat = static_cast<MaterialDamage<3> &>(material);
           auto & damage = mat.getDamage();
 
           for (const auto & type :
@@ -425,11 +425,13 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
              make_view(strain_vect, spatial_dimension, spatial_dimension))) {
       const auto & grad_u = std::get<0>(values);
       auto & strain = std::get<1>(values);
-      strain = (grad_u + grad_u.transpose()) / 2.;
+      // strain = (grad_u + grad_u.transpose()) / 2.;
+      strain = grad_u;
     }
   }
 
-  phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
+  phase->inflateInternal("grad_u", strain_tmp, _ek_regular, ghost_type);
+  phase->computeStrain(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

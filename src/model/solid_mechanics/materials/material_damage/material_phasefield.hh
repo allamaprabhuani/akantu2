@@ -95,9 +95,13 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// Residual stiffness parameter
   Real eta;
 
-  // effective damage to conserve stiffness in compression
+  /// Phasefield isotropic
+  bool is_hybrid;
+
+  /// effective damage to conserve stiffness in compression
   InternalField<Real> effective_damage;
 };
 
