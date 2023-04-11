@@ -1,21 +1,8 @@
 /**
- * @file   newmark-beta.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Oct 23 2015
- * @date last modification: Wed Mar 27 2019
- *
- * @brief  implementation of the  newmark-@f$\beta@f$ integration  scheme.  This
- * implementation is taken from Méthodes  numériques en mécanique des solides by
- * Alain Curnier \note{ISBN: 2-88074-247-1}
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,8 +29,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NewmarkBeta::NewmarkBeta(DOFManager & dof_manager, const ID & dof_id,
                          Real alpha, Real beta)
-    : IntegrationScheme2ndOrder(dof_manager, dof_id), beta(beta), alpha(alpha),
-      k(0.), h(0.), m_release(0), k_release(0), c_release(0) {
+    : IntegrationScheme2ndOrder(dof_manager, dof_id), beta(beta), alpha(alpha) {
 
   this->registerParam("alpha", this->alpha, alpha, _pat_parsmod,
                       "The alpha parameter");
@@ -64,15 +49,15 @@ void NewmarkBeta::predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
                             const Array<bool> & blocked_dofs) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = u.size();
-  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
+  auto nb_nodes = u.size();
+  auto nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real * u_val = u.storage();
-  Real * u_dot_val = u_dot.storage();
-  Real * u_dot_dot_val = u_dot_dot.storage();
-  bool * blocked_dofs_val = blocked_dofs.storage();
+  auto * u_val = u.data();
+  auto * u_dot_val = u_dot.data();
+  auto * u_dot_dot_val = u_dot_dot.data();
+  auto * blocked_dofs_val = blocked_dofs.data();
 
-  for (UInt d = 0; d < nb_degree_of_freedom; d++) {
+  for (Int d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
       Real dt_a_n = delta_t * *u_dot_dot_val;
 
@@ -182,20 +167,20 @@ void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
                                const Array<Real> & delta) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = u.size();
-  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
+  auto nb_nodes = u.size();
+  auto nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real c = getAccelerationCoefficient(type, delta_t);
-  Real d = getVelocityCoefficient(type, delta_t);
-  Real e = getDisplacementCoefficient(type, delta_t);
+  auto c = getAccelerationCoefficient(type, delta_t);
+  auto d = getVelocityCoefficient(type, delta_t);
+  auto e = getDisplacementCoefficient(type, delta_t);
 
-  Real * u_val = u.storage();
-  Real * u_dot_val = u_dot.storage();
-  Real * u_dot_dot_val = u_dot_dot.storage();
-  Real * delta_val = delta.storage();
-  bool * blocked_dofs_val = blocked_dofs.storage();
+  auto * u_val = u.data();
+  auto * u_dot_val = u_dot.data();
+  auto * u_dot_dot_val = u_dot_dot.data();
+  auto * delta_val = delta.data();
+  auto * blocked_dofs_val = blocked_dofs.data();
 
-  for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
+  for (Int dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {
       *u_val += e * *delta_val;
       *u_dot_val += d * *delta_val;
@@ -215,24 +200,24 @@ void NewmarkBeta::allCorrector(Real delta_t, Array<Real> & u,
 void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
   AKANTU_DEBUG_IN();
 
-  SparseMatrix & J = this->dof_manager.getMatrix("J");
+  auto & J = this->dof_manager.getMatrix("J");
 
-  const SparseMatrix & M = this->dof_manager.getMatrix("M");
+  const auto & M = this->dof_manager.getMatrix("M");
 
-  Real c = this->getAccelerationCoefficient(type, delta_t);
-  Real e = this->getDisplacementCoefficient(type, delta_t);
+  auto c = this->getAccelerationCoefficient(type, delta_t);
+  auto e = this->getDisplacementCoefficient(type, delta_t);
 
   bool does_j_need_update = false;
   does_j_need_update |= M.getRelease() != m_release;
 
   // in explicit this coefficient is exactly 0.
   if (not(e == 0.)) {
-    const SparseMatrix & K = this->dof_manager.getMatrix("K");
+    const auto & K = this->dof_manager.getMatrix("K");
     does_j_need_update |= K.getRelease() != k_release;
   }
 
   if (this->dof_manager.hasMatrix("C")) {
-    const SparseMatrix & C = this->dof_manager.getMatrix("C");
+    const auto & C = this->dof_manager.getMatrix("C");
     does_j_need_update |= C.getRelease() != c_release;
   }
 
@@ -247,7 +232,7 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
   // J.zero();
 
   if (not(e == 0.)) {
-    const SparseMatrix & K = this->dof_manager.getMatrix("K");
+    const auto & K = this->dof_manager.getMatrix("K");
     J.add(K, e);
     k_release = K.getRelease();
   }
@@ -256,14 +241,15 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
   m_release = M.getRelease();
 
   if (this->dof_manager.hasMatrix("C")) {
-    Real d = this->getVelocityCoefficient(type, delta_t);
-    const SparseMatrix & C = this->dof_manager.getMatrix("C");
+    auto d = this->getVelocityCoefficient(type, delta_t);
+    const auto & C = this->dof_manager.getMatrix("C");
     J.add(C, d);
     c_release = C.getRelease();
   }
 
   AKANTU_DEBUG_OUT();
 }
+
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu

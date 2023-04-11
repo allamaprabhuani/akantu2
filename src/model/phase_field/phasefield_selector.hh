@@ -1,19 +1,8 @@
 /**
- * @file   phasefield_selector.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri May 14 2021
- *
- * @brief  class describing how to choose a phasefield variable
- * function for a given element
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +44,7 @@ class PhaseFieldSelector
 public:
   PhaseFieldSelector() = default;
   virtual ~PhaseFieldSelector() = default;
-  virtual inline UInt operator()(const Element & element) {
+  virtual inline Idx operator()(const Element & element) {
     if (fallback_selector) {
       return (*fallback_selector)(element);
     }
@@ -64,7 +52,7 @@ public:
     return fallback_value;
   }
 
-  inline void setFallback(UInt f) { fallback_value = f; }
+  inline void setFallback(Idx f) { fallback_value = f; }
   inline void
   setFallback(const std::shared_ptr<PhaseFieldSelector> & fallback_selector) {
     this->fallback_selector = fallback_selector;
@@ -78,7 +66,7 @@ public:
     return this->fallback_selector;
   }
 
-  inline UInt getFallbackValue() const { return this->fallback_value; }
+  inline Idx getFallbackValue() const { return this->fallback_value; }
 
 protected:
   UInt fallback_value{0};
@@ -92,10 +80,10 @@ protected:
 class DefaultPhaseFieldSelector : public PhaseFieldSelector {
 public:
   explicit DefaultPhaseFieldSelector(
-      const ElementTypeMapArray<UInt> & phasefield_index)
+      const ElementTypeMapArray<Idx> & phasefield_index)
       : phasefield_index(phasefield_index) {}
 
-  UInt operator()(const Element & element) override {
+  Idx operator()(const Element & element) override {
     if (not phasefield_index.exists(element.type, element.ghost_type)) {
       return PhaseFieldSelector::operator()(element);
     }
@@ -104,7 +92,7 @@ public:
         phasefield_index(element.type, element.ghost_type);
     if (element.element < phase_indexes.size()) {
       auto && tmp_phase = phase_indexes(element.element);
-      if (tmp_phase != UInt(-1)) {
+      if (tmp_phase != -1) {
         return tmp_phase;
       }
     }
@@ -113,7 +101,7 @@ public:
   }
 
 private:
-  const ElementTypeMapArray<UInt> & phasefield_index;
+  const ElementTypeMapArray<Idx> & phasefield_index;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -125,7 +113,7 @@ class ElementDataPhaseFieldSelector : public PhaseFieldSelector {
 public:
   ElementDataPhaseFieldSelector(const ElementTypeMapArray<T> & element_data,
                                 const PhaseFieldModel & model,
-                                UInt first_index = 1)
+                                Idx first_index = 1)
       : element_data(element_data), model(model), first_index(first_index) {}
 
   inline T elementData(const Element & element) {
@@ -136,7 +124,7 @@ public:
     return data;
   }
 
-  inline UInt operator()(const Element & element) override {
+  inline Idx operator()(const Element & element) override {
     return PhaseFieldSelector::operator()(element);
   }
 
@@ -161,7 +149,7 @@ class MeshDataPhaseFieldSelector : public ElementDataPhaseFieldSelector<T> {
 public:
   MeshDataPhaseFieldSelector(const std::string & name,
                              const PhaseFieldModel & model,
-                             UInt first_index = 1);
+                             Idx first_index = 1);
 };
 
 } // namespace akantu

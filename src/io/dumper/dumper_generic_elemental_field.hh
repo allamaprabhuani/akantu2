@@ -1,19 +1,8 @@
 /**
- * @file   dumper_generic_elemental_field.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 02 2014
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Generic interface for elemental fields
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH_
@@ -40,16 +28,13 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   template <class _types, template <class> class iterator_type>
   class GenericElementalField : public Field {
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     // check dumper_type_traits.hh for additional information over these types
     using types = _types;
@@ -62,14 +47,12 @@ namespace dumpers {
     using iterator = iterator_type<types>;
     using support_type = Element;
 
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     GenericElementalField(const field_type & field,
-                          UInt spatial_dimension = _all_dimensions,
+                          Int spatial_dimension = _all_dimensions,
                           GhostType ghost_type = _not_ghost,
                           ElementKind element_kind = _ek_not_defined)
         : field(field), spatial_dimension(spatial_dimension),
@@ -77,22 +60,20 @@ namespace dumpers {
       this->checkHomogeneity();
     }
 
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Methods */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     /// get the number of components of the hosted field
-    ElementTypeMap<UInt>
-    getNbComponents(UInt dim = _all_dimensions,
+    ElementTypeMap<Int>
+    getNbComponents(Int dim = _all_dimensions,
                     GhostType ghost_type = _not_ghost,
                     ElementKind kind = _ek_not_defined) override {
       return this->field.getNbComponents(dim, ghost_type, kind);
     };
 
     /// return the size of the contained data: i.e. the number of elements ?
-    virtual UInt size() {
+    virtual Int size() {
       checkHomogeneity();
       return this->nb_total_element;
     }
@@ -101,7 +82,7 @@ namespace dumpers {
     template <class T1 = data_type,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = data_type,
@@ -112,9 +93,9 @@ namespace dumpers {
 
   protected:
     /// return the number of entries per element
-    UInt getNbDataPerElem(ElementType type,
-                          GhostType ghost_type = _not_ghost) const {
-      if (!nb_data_per_elem.exists(type, ghost_type)) {
+    Int getNbDataPerElem(ElementType type,
+                         GhostType ghost_type = _not_ghost) const {
+      if (not nb_data_per_elem.exists(type, ghost_type)) {
         return field(type, ghost_type).getNbComponent();
       }
 
@@ -161,7 +142,7 @@ namespace dumpers {
 
       /// getting information for the field of the given type
       const auto & vect = this->field(type, this->ghost_type);
-      UInt nb_data_per_elem = this->getNbDataPerElem(type);
+      auto nb_data_per_elem = this->getNbDataPerElem(type);
 
       /// define element-wise iterator
       auto view = make_view(vect, nb_data_per_elem);
@@ -186,7 +167,7 @@ namespace dumpers {
       }
 
       const array_type & vect = this->field(type, this->ghost_type);
-      UInt nb_data = this->getNbDataPerElem(type);
+      Int nb_data = this->getNbDataPerElem(type);
       auto it = make_view(vect, nb_data).end();
       auto rit = iterator(this->field, end, end, it, it, this->ghost_type);
       rit.setNbDataPerElem(this->nb_data_per_elem);
@@ -194,7 +175,7 @@ namespace dumpers {
       return rit;
     }
 
-    virtual UInt getDim() {
+    virtual Int getDim() {
       if (this->homogeneous) {
         auto tit = this->field
                        .elementTypes(this->spatial_dimension, this->ghost_type,
@@ -207,28 +188,26 @@ namespace dumpers {
       return 0;
     }
 
-    void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data) override {
+    void setNbDataPerElem(const ElementTypeMap<Int> & nb_data) override {
       nb_data_per_elem = nb_data;
     }
 
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   protected:
     /// the ElementTypeMapArray embedded in the field
     const field_type & field;
     /// total number of elements
-    UInt nb_total_element;
+    Int nb_total_element;
     /// the spatial dimension of the problem
-    UInt spatial_dimension;
+    Int spatial_dimension;
     /// whether this is a ghost field or not (for type selection)
     GhostType ghost_type;
     /// The element kind to operate on
     ElementKind element_kind;
     /// The number of data per element type
-    ElementTypeMap<UInt> nb_data_per_elem;
+    ElementTypeMap<Int> nb_data_per_elem;
   };
 
 } // namespace dumpers

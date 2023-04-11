@@ -1,18 +1,8 @@
 /**
- * @file   solver_vector.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Feb 21 2013
- * @date last modification: Tue May 26 2020
- *
- * @brief  Solver vector interface base class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -67,8 +56,8 @@ public:
   virtual SolverVector & operator+(const SolverVector & y) = 0;
   virtual SolverVector & operator=(const SolverVector & y) = 0;
 
-  UInt & release() { return release_; }
-  UInt release() const { return release_; }
+  Int & release() { return release_; }
+  Int release() const { return release_; }
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
@@ -83,7 +72,7 @@ protected:
   /// Underlying dof manager
   DOFManager & _dof_manager;
 
-  UInt release_{0};
+  Int release_{0};
 };
 
 inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {

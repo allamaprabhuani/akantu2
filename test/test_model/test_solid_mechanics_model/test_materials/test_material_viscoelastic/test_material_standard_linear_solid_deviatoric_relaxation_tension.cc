@@ -1,19 +1,8 @@
 /**
- * @file   test_material_standard_linear_solid_deviatoric_relaxation_tension.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Aug 09 2010
- * @date last modification: Sat Dec 19 2020
- *
- * @brief  test of the viscoelastic material: relaxation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -48,8 +36,8 @@ int main(int argc, char * argv[]) {
   Real T = 10.;
   Real eps = 0.001;
 
-  //  const UInt dim = 3;
-  const UInt dim = 2;
+  //  const Int dim = 3;
+  const Int dim = 2;
   Real sim_time = 25.;
   // Real sim_time = 250.;
   Real time_factor = 0.1;
@@ -99,7 +87,7 @@ int main(int argc, char * argv[]) {
   Real tau = Eta / EV;
   std::cout << "relaxation time = " << tau << std::endl;
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   const Array<Real> & coordinate = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
 
@@ -108,15 +96,15 @@ int main(int argc, char * argv[]) {
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model.setTimeStep(time_step);
 
-  UInt max_steps = sim_time / time_step;
-  UInt out_interval = 1;
+  Int max_steps = sim_time / time_step;
+  Int out_interval = 1;
 
   Real time = 0.;
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     if (s % 1000 == 0)
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
@@ -130,8 +118,8 @@ int main(int argc, char * argv[]) {
       epsilon = eps;
     }
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      for (UInt d = 0; d < dim; ++d)
+    for (Int n = 0; n < nb_nodes; ++n) {
+      for (Int d = 0; d < dim; ++d)
         displacement(n, d) = epsilon * coordinate(n, d);
     }
 

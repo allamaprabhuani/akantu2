@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   AkantuExtraCompilationProfiles.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Fri Dec 02 2016
-# @date last modification: Wed Feb 03 2021
-#
-# @brief  Compilation profiles
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -28,6 +18,7 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
 mark_as_advanced(FORCE_COLORED_OUTPUT)
@@ -90,7 +81,7 @@ declare_compilation_profile(PROFILING
 
 # Valgrind
 declare_compilation_profile(VALGRIND
-  COMPILER "-g -ggdb3 -O3")
+  COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -O3")
 
 # Coverage
 declare_compilation_profile(COVERAGE
@@ -106,6 +97,9 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION
 
   declare_compilation_profile(SANITIZE
     COMPILER "-g -ggdb3 -O2 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
+
+  declare_compilation_profile(SANITIZE_DEBUG
+    COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -114,6 +108,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     DOC "\"sanitize memory\"")
 endif()
 
-if (CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]")
+string(TOLOWER "${CMAKE_BUILD_TYPE}" _cmake_build_type_lower)
+if (_cmake_build_type_lower MATCHES "valgrind")
   find_program(VALGRIND_EXECUTABLE valgrind)
 endif()

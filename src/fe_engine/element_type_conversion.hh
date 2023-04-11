@@ -1,18 +1,8 @@
 /**
- * @file   element_type_conversion.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  conversion between different types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,19 +27,25 @@
 
 namespace akantu {
 
-template <class InType, class OutType> OutType convertType(InType /*unused*/) {
+template <class InType, class OutType>
+constexpr inline auto convertType(InType /*unused*/) {
   return OutType();
 }
 
 template <>
-inline InterpolationType
-convertType<ElementType, InterpolationType>(ElementType type) {
-  InterpolationType itp_type = _itp_not_defined;
-#define GET_ITP(type) itp_type = ElementClassProperty<type>::interpolation_type;
+constexpr inline auto convertType<ElementType, ElementType>(ElementType type) {
+  return type;
+}
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ITP);
-#undef GET_ITP
-  return itp_type;
+template <>
+constexpr inline auto
+convertType<ElementType, InterpolationType>(ElementType type) {
+  return tuple_dispatch_with_default<AllElementTypes>(
+      [&](auto && enum_type) {
+        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+        return ElementClassProperty<type>::interpolation_type;
+      },
+      type, [&](auto && /*type*/) { return _itp_not_defined; });
 }
 
 } // namespace akantu

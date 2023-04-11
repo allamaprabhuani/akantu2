@@ -1,20 +1,8 @@
 /**
- * @file   material_cohesive_exponential.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Exponential irreversible cohesive law of mixed mode loading
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +40,7 @@ namespace akantu {
  * 0)
  *   - delta_c   : critical opening (default: 0)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveExponential : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -69,29 +56,36 @@ protected:
   void initMaterial() override;
 
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type = _not_ghost) override;
 
 private:
-  void computeCoupledTraction(Vector<Real> & tract, const Vector<Real> & normal,
-                              Real delta, const Vector<Real> & opening,
+  template <class D1, class D2, class D3>
+  void computeCoupledTraction(Eigen::MatrixBase<D1> & tract,
+                              const Eigen::MatrixBase<D2> & normal, Real delta,
+                              const Eigen::MatrixBase<D3> & opening,
                               Real & delta_max_new, Real delta_max);
 
-  void computeCompressiveTraction(Vector<Real> & tract,
-                                  const Vector<Real> & normal, Real delta_n,
-                                  const Vector<Real> & opening);
+  template <class D1, class D2, class D3>
+  void computeCompressiveTraction(Eigen::MatrixBase<D1> & tract,
+                                  const Eigen::MatrixBase<D2> & normal,
+                                  Real delta_n,
+                                  const Eigen::MatrixBase<D3> & opening);
 
-  void computeCoupledTangent(Matrix<Real> & tangent,
-                             const Vector<Real> & normal, Real delta,
-                             const Vector<Real> & opening, Real delta_max_new);
+  template <class D1, class D2, class D3>
+  void computeCoupledTangent(Eigen::MatrixBase<D1> & tangent,
+                             const Eigen::MatrixBase<D2> & normal, Real delta,
+                             const Eigen::MatrixBase<D3> & opening,
+                             Real delta_max_new);
 
-  void computeCompressivePenalty(Matrix<Real> & tangent,
-                                 const Vector<Real> & normal, Real delta_n);
+  template <class D1, class D2>
+  void computeCompressivePenalty(Eigen::MatrixBase<D1> & tangent,
+                                 const Eigen::MatrixBase<D2> & normal,
+                                 Real delta_n);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

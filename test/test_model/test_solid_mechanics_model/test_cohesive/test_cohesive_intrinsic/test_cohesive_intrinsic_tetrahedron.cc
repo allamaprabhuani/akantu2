@@ -1,18 +1,8 @@
 /**
- * @file   test_cohesive_intrinsic_tetrahedron.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Mon Dec 18 2017
- *
- * @brief  Test for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -76,7 +65,7 @@ private:
   const Real kappa;
   Real delta_c;
 
-  const UInt spatial_dimension;
+  const Int spatial_dimension;
 
   const ElementType type_facet;
   const ElementType type_cohesive;
@@ -100,7 +89,7 @@ int main(int argc, char * argv[]) {
   initialize("material_tetrahedron.dat", argc, argv);
 
   //  debug::setDebugLevel(dblDump);
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
   Math::setTolerance(1.e-12);
@@ -134,7 +123,7 @@ int main(int argc, char * argv[]) {
   /// find elements to displace
   Array<UInt> elements;
   Vector<Real> bary(spatial_dimension);
-  for (UInt el = 0; el < nb_element; ++el) {
+  for (Int el = 0; el < nb_element; ++el) {
     mesh.getBarycenter({type, el, _not_ghost}, bary);
     if (bary(_x) > 0.01)
       elements.push_back(el);
@@ -177,7 +166,7 @@ int main(int argc, char * argv[]) {
   Vector<Real> opening_old(spatial_dimension, 0.);
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     model.solveStep();
 
     model.dump();
@@ -222,11 +211,10 @@ void Checker::updateDisplacement(const Vector<Real> & increment) {
   auto conn_end = connectivity.begin(connectivity.getNbComponent());
   for (; conn_it != conn_end; ++conn_it) {
     const auto & conn = *conn_it;
-    for (UInt n = 0; n < conn.size(); ++n) {
+    for (Int n = 0; n < conn.size(); ++n) {
       UInt node = conn(n);
       if (!update(node)) {
-        Vector<Real> node_disp(displacement.storage() +
-                                   node * spatial_dimension,
+        Vector<Real> node_disp(displacement.data() + node * spatial_dimension,
                                spatial_dimension);
         node_disp += increment;
         update(node) = true;
@@ -258,7 +246,7 @@ Checker::Checker(const SolidMechanicsModelCohesive & model,
   auto conn_it = connectivity.begin(connectivity.getNbComponent());
   for (const auto & element : elements) {
     Vector<UInt> conn_el(conn_it[element]);
-    for (UInt n = 0; n < conn_el.size(); ++n) {
+    for (Int n = 0; n < conn_el.size(); ++n) {
       UInt node = conn_el(n);
       if (Math::are_float_equal(position(node, _x), 0.))
         nodes_to_check.insert(node);
@@ -295,8 +283,8 @@ void Checker::checkTractions(const Vector<Real> & opening,
   std::for_each(
       traction.begin(spatial_dimension), traction.end(spatial_dimension),
       [&theoretical_traction_rotated](auto && traction) {
-        Real diff =
-            Vector<Real>(theoretical_traction_rotated - traction).norm<L_inf>();
+        Real diff = Vector<Real>(theoretical_traction_rotated - traction)
+                        .lpNorm<Eigen::Infinity>();
         if (diff > 1e-14)
           throw std::domain_error("Tractions are incorrect");
       });
@@ -329,7 +317,7 @@ void Checker::checkEquilibrium() {
   for (; res_it != res_end; ++res_it)
     residual_sum += *res_it;
 
-  if (!Math::are_float_equal(residual_sum.norm<L_inf>(), 0.))
+  if (!Math::are_float_equal(residual_sum.lpNorm<Eigen::Infinity>(), 0.))
     throw std::domain_error("System is not in equilibrium!");
 }
 
@@ -346,7 +334,7 @@ void Checker::checkResidual(const Matrix<Real> & rotation) {
   theoretical_total_force.mul<false>(rotation, theoretical_traction);
   theoretical_total_force *= -1 * 2 * 2;
 
-  for (UInt s = 0; s < spatial_dimension; ++s) {
+  for (Int s = 0; s < spatial_dimension; ++s) {
     if (!Math::are_float_equal(total_force(s), theoretical_total_force(s))) {
       std::cout << "Total force isn't correct!" << std::endl;
       std::terminate();

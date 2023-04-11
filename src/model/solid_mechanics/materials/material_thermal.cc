@@ -1,19 +1,8 @@
 /**
- * @file   material_thermal.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Specialization of the material class for the thermal material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,25 +16,24 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "material_thermal.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
-                                                    const ID & id,
-                                                    const ID & fe_engine_id)
-    : Material(model, id, fe_engine_id), use_previous_stress_thermal(false) {
+template <Int dim>
+MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
+                                      const ID & id, const ID & fe_engine_id)
+    : Material(model, id, fe_engine_id) {
   this->initialize();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initialize() {
+template <Int dim> void MaterialThermal<dim>::initialize() {
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
@@ -61,25 +49,24 @@ template <UInt dim> void MaterialThermal<dim>::initialize() {
 /* -------------------------------------------------------------------------- */
 template <UInt dim> void MaterialThermal<dim>::initMaterial() {
   sigma_th = registerInternalField<T>("sigma_th", 1);
-
-  if (use_previous_stress_thermal) {
-    sigma_th->initializeHistory();
-  }
+  sigma_th->initializeHistory();
 
   Material::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialThermal<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
-  for (auto && tuple :
-       zip((*delta_T)(el_type, ghost_type), (*sigma_th)(el_type, ghost_type))) {
-    computeStressOnQuad(std::get<1>(tuple), std::get<0>(tuple));
+  auto && arguments = getArguments(el_type, ghost_type);
+  for (auto && args : arguments) {
+    computeStressOnQuad(args);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-INSTANTIATE_MATERIAL_ONLY(MaterialThermal);
+template class MaterialThermal<1>;
+template class MaterialThermal<2>;
+template class MaterialThermal<3>;
 
 } // namespace akantu

@@ -1,20 +1,8 @@
 /**
- * @file   material_selector_cohesive.cc
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Dec 11 2015
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Material selector for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,15 +28,30 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 DefaultMaterialCohesiveSelector::DefaultMaterialCohesiveSelector(
     const SolidMechanicsModelCohesive & model)
-    : facet_material(model.getFacetMaterial()), mesh(model.getMesh()) {
+    : model(model), facet_material(model.getFacetMaterial()),
+      mesh(model.getMesh()) {
   // backward compatibility v3: to get the former behavior back when the user
   // creates its own selector
   this->fallback_selector =
       std::make_shared<DefaultMaterialSelector>(model.getMaterialByElement());
+
+  Int cohesive_index = -1;
+  for (auto && material : enumerate(model.getConstitutiveLaws())) {
+    if (aka::is_of_type<MaterialCohesive>(std::get<1>(material))) {
+      cohesive_index = std::get<0>(material);
+      break;
+    }
+  }
+
+  if (cohesive_index == -1) {
+    AKANTU_EXCEPTION("No cohesive materials in the material input file");
+  }
+
+  this->setFallback(cohesive_index);
 }
 
 /* -------------------------------------------------------------------------- */
-UInt DefaultMaterialCohesiveSelector::operator()(const Element & element) {
+Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive) {
     try {
       const Array<Element> & cohesive_el_to_facet =
@@ -57,7 +59,7 @@ UInt DefaultMaterialCohesiveSelector::operator()(const Element & element) {
                                                       element.ghost_type);
       bool third_dimension = (mesh.getSpatialDimension() == 3);
       const Element & facet =
-          cohesive_el_to_facet(element.element, UInt(third_dimension));
+          cohesive_el_to_facet(element.element, Int(third_dimension));
       if (facet_material.exists(facet.type, facet.ghost_type)) {
         return facet_material(facet.type, facet.ghost_type)(facet.element);
       }
@@ -77,9 +79,10 @@ UInt DefaultMaterialCohesiveSelector::operator()(const Element & element) {
 /* -------------------------------------------------------------------------- */
 MeshDataMaterialCohesiveSelector::MeshDataMaterialCohesiveSelector(
     const SolidMechanicsModelCohesive & model)
-    : model(model), mesh_facets(model.getMeshFacets()),
-      material_index(mesh_facets.getData<std::string>("physical_names")) {
-  third_dimension = (model.getSpatialDimension() == 3);
+    : DefaultMaterialCohesiveSelector(model),
+      mesh_facets(model.getMeshFacets()),
+      material_index(mesh_facets.getData<std::string>("physical_names")),
+      third_dimension(model.getSpatialDimension() == 3) {
   // backward compatibility v3: to get the former behavior back when the user
   // creates its own selector
   this->fallback_selector =
@@ -88,7 +91,7 @@ MeshDataMaterialCohesiveSelector::MeshDataMaterialCohesiveSelector(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
+Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive or
       Mesh::getSpatialDimension(element.type) ==
           mesh_facets.getSpatialDimension() - 1) {
@@ -118,8 +121,8 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
     const MaterialCohesiveRules & rules,
     ID mesh_data_id) // what we have here is the name of model and also
                      // the name of different materials
-    : model(model), mesh_data_id(std::move(mesh_data_id)),
-      mesh(model.getMesh()), mesh_facets(model.getMeshFacets()),
+    : DefaultMaterialCohesiveSelector(model),
+      mesh_data_id(std::move(mesh_data_id)), mesh_facets(model.getMeshFacets()),
       spatial_dimension(model.getSpatialDimension()), rules(rules) {
 
   // cohesive fallback
@@ -133,22 +136,19 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialCohesiveRulesSelector::operator()(const Element & element) {
+Int MaterialCohesiveRulesSelector::operator()(const Element & element) {
   if (mesh_facets.getSpatialDimension(element.type) ==
       (spatial_dimension - 1)) {
-    const std::vector<Element> & element_to_subelement =
-        mesh_facets.getElementToSubelement(element.type,
-                                           element.ghost_type)(element.element);
-    const Element & el1 = element_to_subelement[0];
-    const Element & el2 = element_to_subelement[1];
+    const auto & element_to_subelement = mesh_facets.getElementToSubelement(
+        element.type, element.ghost_type)(element.element);
+    const auto & el1 = element_to_subelement[0];
+    const auto & el2 = element_to_subelement[1];
 
-    ID id1 = mesh.getData<std::string>(mesh_data_id, el1.type,
-                                       el1.ghost_type)(el1.element);
+    auto id1 = this->mesh.getData<std::string>(mesh_data_id, el1);
 
-    ID id2 = id1;
+    auto id2 = id1;
     if (el2 != ElementNull) {
-      id2 = mesh.getData<std::string>(mesh_data_id, el2.type,
-                                      el2.ghost_type)(el2.element);
+      id2 = this->mesh.getData<std::string>(mesh_data_id, el2);
     }
 
     auto rit = rules.find(std::make_pair(id1, id2));

@@ -1,24 +1,8 @@
 /**
- * @file   structural_mechanics_model.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
- * @author Philip Mueller <philip.paul.mueller@bluemail.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Damien Spielmann <damien.spielmann@epfl.ch>
- *
- * @date creation: Fri Jul 15 2011
- * @date last modification: Thu Apr 01 2021
- *
- * @brief  Particular implementation of the structural elements in the
- * StructuralMechanicsModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -32,12 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_named_argument.hh"
-#include "boundary_condition.hh"
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -77,7 +59,7 @@ public:
   using MyFEEngineType =
       FEEngineTemplate<IntegratorGauss, ShapeStructural, _ek_structural>;
 
-  StructuralMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+  StructuralMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                            const ID & id = "structural_mechanics_model");
 
   ~StructuralMechanicsModel() override;
@@ -218,7 +200,7 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -371,7 +353,7 @@ private:
   ElementTypeMapArray<UInt> set_ID;
 
   /// number of degre of freedom
-  UInt nb_degree_of_freedom;
+  Int nb_degree_of_freedom;
 
   // Rotation matrix
   ElementTypeMapArray<Real> rotation_matrix;
@@ -384,7 +366,7 @@ private:
 
   bool need_to_reassemble_mass{true};
   bool need_to_reassemble_stiffness{true};
-  bool need_to_reassemble_lumpedMass{true};
+  bool need_to_reassemble_lumped_mass{true};
 
   /* ------------------------------------------------------------------------ */
   std::vector<StructuralMaterial> materials;

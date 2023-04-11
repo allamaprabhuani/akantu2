@@ -1,19 +1,8 @@
 /**
- * @file   mesh_partition_scotch.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  implementation of the MeshPartitionScotch class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -61,7 +49,7 @@ namespace {
 }
 
 /* -------------------------------------------------------------------------- */
-MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, UInt spatial_dimension,
+MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, Int spatial_dimension,
                                          const ID & id)
     : MeshPartition(mesh, spatial_dimension, id) {
   AKANTU_DEBUG_IN();
@@ -71,10 +59,11 @@ MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, UInt spatial_dimension,
       sizeof(Int) == sizeof(SCOTCH_Num),
       "The integer type of Akantu does not match the one from Scotch");
 
-  static_if(aka::bool_constant<scotch_version >= 6>{})
-      .then([](auto && y) { SCOTCH_randomSeed(y); })
-      .else_([](auto && y) { srandom(y); })(
-          std::forward<UInt>(RandomGenerator<UInt>::seed()));
+  if constexpr (scotch_version >= 6) {
+    SCOTCH_randomSeed(RandomGenerator<Int>::seed());
+  } else {
+    srandom(RandomGenerator<Int>::seed());
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -83,15 +72,15 @@ MeshPartitionScotch::MeshPartitionScotch(Mesh & mesh, UInt spatial_dimension,
 static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto nb_nodes = mesh.getNbNodes();
 
-  UInt total_nb_element = 0;
-  UInt nb_edge = 0;
+  Int total_nb_element = 0;
+  Int nb_edge = 0;
 
   for (const auto & type : mesh.elementTypes(spatial_dimension)) {
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_element = mesh.getNbElement(type);
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     total_nb_element += nb_element;
     nb_edge += nb_element * nb_nodes_per_element;
@@ -117,24 +106,18 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
       continue;
     }
 
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
-
+    const auto & connectivity = mesh.getConnectivity(type, _not_ghost);
     /// count number of occurrence of each node
-    for (UInt el = 0; el < nb_element; ++el) {
-      UInt * conn_val = connectivity.storage() + el * nb_nodes_per_element;
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-        verttab[*(conn_val++)]++;
-      }
-    }
+    for (auto && conn : make_view(connectivity, connectivity.getNbComponent()))
+      for (auto && node : conn)
+        verttab[node]++;
   }
 
   /// convert the occurrence array in a csr one
-  for (UInt i = 1; i < nb_nodes; ++i) {
+  for (Int i = 1; i < nb_nodes; ++i) {
     verttab[i] += verttab[i - 1];
   }
-  for (UInt i = nb_nodes; i > 0; --i) {
+  for (Int i = nb_nodes; i > 0; --i) {
     verttab[i] = verttab[i - 1];
   }
   verttab[0] = 0;
@@ -143,7 +126,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
   SCOTCH_Num edgenbr = verttab[vnodnbr] + nb_edge;
   auto * edgetab = new SCOTCH_Num[edgenbr];
 
-  UInt linearized_el = 0;
+  Idx linearized_el = 0;
 
   for (const auto & type : mesh.elementTypes(spatial_dimension)) {
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -157,13 +140,13 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     }
   }
 
-  for (UInt i = nb_nodes; i > 0; --i) {
+  for (Int i = nb_nodes; i > 0; --i) {
     verttab[i] = verttab[i - 1];
   }
   verttab[0] = 0;
 
-  SCOTCH_Num * verttab_tmp = verttab + vnodnbr + 1;
-  SCOTCH_Num * edgetab_tmp = edgetab + verttab[vnodnbr];
+  auto * verttab_tmp = verttab + vnodnbr + 1;
+  auto * edgetab_tmp = edgetab + verttab[vnodnbr];
 
   for (const auto & type : mesh.elementTypes(spatial_dimension)) {
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -203,14 +186,13 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
-    Real * nodes_val = nodes.storage();
-    for (UInt i = 0; i < nb_nodes; ++i) {
+    Real * nodes_val = nodes.data();
+    for (Int i = 0; i < nb_nodes; ++i) {
       fgeominit << i << " ";
-      for (UInt s = 0; s < spatial_dimension; ++s) {
+      for (Int s = 0; s < spatial_dimension; ++s) {
         fgeominit << *(nodes_val++) << " ";
       }
       fgeominit << std::endl;
-      ;
     }
     fgeominit.close();
   }
@@ -253,7 +235,7 @@ static void destroyMesh(SCOTCH_Mesh * meshptr) {
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionScotch::partitionate(
-    UInt nb_part,
+    Int nb_part,
     const std::function<Int(const Element &, const Element &)> & edge_load_func,
     const std::function<Int(const Element &)> & vertex_load_func) {
   AKANTU_DEBUG_IN();
@@ -285,18 +267,18 @@ void MeshPartitionScotch::partitionate(
   SCOTCH_Num * parttab;                  // array of partitions
   SCOTCH_Num edgenbr = dxadj(vertnbr);   // twice  the number  of "edges"
   //(an "edge" bounds two nodes)
-  SCOTCH_Num * verttab = dxadj.storage(); // array of start indices in edgetab
-  SCOTCH_Num * vendtab = nullptr; // array of after-last indices in edgetab
-  SCOTCH_Num * velotab =
-      vertex_loads.storage(); // integer  load  associated with
+  SCOTCH_Num * verttab = dxadj.data(); // array of start indices in edgetab
+  SCOTCH_Num * vendtab = nullptr;      // array of after-last indices in edgetab
+  SCOTCH_Num * velotab = vertex_loads.data(); // integer  load  associated with
   // every vertex ( optional )
-  SCOTCH_Num * edlotab = edge_loads.storage(); // integer  load  associated with
+  SCOTCH_Num * edlotab = edge_loads.data(); // integer  load  associated with
   // every edge ( optional )
-  SCOTCH_Num * edgetab = dadjncy.storage(); // adjacency array of every vertex
-  SCOTCH_Num * vlbltab = nullptr;           // vertex label array (optional)
+  SCOTCH_Num * edgetab = dadjncy.data(); // adjacency array of every vertex
+  SCOTCH_Num * vlbltab = nullptr;        // vertex label array (optional)
 
   /// Allocate space for Scotch arrays
-  parttab = new SCOTCH_Num[vertnbr];
+  Array<SCOTCH_Num> parttab_array(vertnbr);
+  parttab = parttab_array.data();
 
   /// Initialize the strategy structure
   SCOTCH_stratInit(&scotch_strat);
@@ -320,31 +302,30 @@ void MeshPartitionScotch::partitionate(
     fgeominit.open("GeomIniFile.xyz");
     fgeominit << spatial_dimension << std::endl << vertnbr << std::endl;
 
-    const Array<Real> & nodes = mesh.getNodes();
+    const auto & nodes = mesh.getNodes();
 
     auto nodes_it = nodes.begin(spatial_dimension);
 
-    UInt out_linerized_el = 0;
+    Int out_linerized_el = 0;
     for (const auto & type :
          mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-      const Array<UInt> & connectivity = mesh.getConnectivity(type);
+      auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+      const auto & connectivity = mesh.getConnectivity(type);
 
       Vector<Real> mid(spatial_dimension);
       for (auto && conn : make_view(connectivity, nb_nodes_per_element)) {
         mid.set(0.);
         for (auto node : conn) {
-          mid += Vector<Real>(nodes_it[node]);
+          mid += nodes_it[node];
         }
-        mid /= nb_nodes_per_element;
+        mid /= conn.size();
 
         fgeominit << out_linerized_el++ << " ";
-        for (UInt s = 0; s < spatial_dimension; ++s) {
+        for (Int s = 0; s < spatial_dimension; ++s) {
           fgeominit << mid[s] << " ";
         }
 
         fgeominit << std::endl;
-        ;
       }
     }
     fgeominit.close();
@@ -387,8 +368,6 @@ void MeshPartitionScotch::partitionate(
 
   fillPartitionInformation(mesh, parttab);
 
-  delete[] parttab;
-
   if (mesh.isPeriodic()) {
     restoreConnectivity();
   }
@@ -403,12 +382,12 @@ void MeshPartitionScotch::reorder() {
   AKANTU_DEBUG_INFO("Reordering the mesh " << mesh.getID());
   SCOTCH_Mesh * scotch_mesh = createMesh(mesh);
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   SCOTCH_Strat scotch_strat;
   // SCOTCH_Ordering scotch_order;
 
-  auto * permtab = new SCOTCH_Num[nb_nodes];
+  Array<SCOTCH_Num> permtab(nb_nodes);
   SCOTCH_Num * peritab = nullptr;
   SCOTCH_Num cblknbr = 0;
   SCOTCH_Num * rangtab = nullptr;
@@ -434,15 +413,15 @@ void MeshPartitionScotch::reorder() {
   // AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
   //		      "Mesh to Graph is not consistent");
 
-  SCOTCH_graphOrder(&scotch_graph, &scotch_strat, permtab, peritab, &cblknbr,
-                    rangtab, treetab);
+  SCOTCH_graphOrder(&scotch_graph, &scotch_strat, permtab.data(), peritab,
+                    &cblknbr, rangtab, treetab);
 
   SCOTCH_graphExit(&scotch_graph);
   SCOTCH_stratExit(&scotch_strat);
   destroyMesh(scotch_mesh);
 
   /// Renumbering
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
   MeshAccessor mesh_accessor(mesh);
   for (auto gt : ghost_types) {
     for (const auto & type : mesh.elementTypes(_ghost_type = gt)) {
@@ -454,18 +433,14 @@ void MeshPartitionScotch::reorder() {
   }
 
   /// \todo think of a in-place way to do it
-  auto * new_coordinates = new Real[spatial_dimension * nb_nodes];
-  Real * old_coordinates = mesh.getNodes().storage();
-  for (UInt i = 0; i < nb_nodes; ++i) {
-    memcpy(new_coordinates + permtab[i] * spatial_dimension,
-           old_coordinates + i * spatial_dimension,
-           spatial_dimension * sizeof(Real));
+  Array<Real> new_coordinates(nb_nodes, spatial_dimension);
+  auto new_nodes_it = make_view(new_coordinates, spatial_dimension).begin();
+  for (auto && data :
+       zip(make_view(mesh.getNodes(), spatial_dimension), permtab)) {
+    new_nodes_it[std::get<1>(data)] = std::get<0>(data);
   }
-  memcpy(old_coordinates, new_coordinates,
-         nb_nodes * spatial_dimension * sizeof(Real));
-  delete[] new_coordinates;
 
-  delete[] permtab;
+  mesh_accessor.getNodes().copy(new_coordinates);
 
   AKANTU_DEBUG_OUT();
 }

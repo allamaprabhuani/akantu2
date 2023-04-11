@@ -1,18 +1,8 @@
 /**
- * @file   test_sparse_matrix_product.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Tue Jan 01 2019
- *
- * @brief  test the matrix vector product in parallel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,8 +34,8 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
-  const UInt spatial_dimension = 2;
-  const UInt nb_dof = 2;
+  const Int spatial_dimension = 2;
+  const Int nb_dof = 2;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -56,7 +45,7 @@ int main(int argc, char * argv[]) {
   mesh.read("bar.msh");
   mesh.distribute();
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
   Array<Real> test_synchronize(nb_nodes, nb_dof, "Test vector");
@@ -73,7 +62,7 @@ int main(int argc, char * argv[]) {
   if (prank == 0)
     std::cout << "Filling the matrix" << std::endl;
 
-  for (UInt i = 0; i < nb_nodes * nb_dof; ++i) {
+  for (Int i = 0; i < nb_nodes * nb_dof; ++i) {
     if (dof_manager.isLocalOrMasterDOF(i))
       A.add(i, i, 2.);
   }
@@ -82,8 +71,8 @@ int main(int argc, char * argv[]) {
   str << "Matrix_" << prank << ".mtx";
   A.saveMatrix(str.str());
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    for (UInt d = 0; d < nb_dof; ++d) {
+  for (Int n = 0; n < nb_nodes; ++n) {
+    for (Int d = 0; d < nb_dof; ++d) {
       dof_vector(n, d) = 1.;
     }
   }

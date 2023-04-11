@@ -1,18 +1,8 @@
 /**
- * @file   test_interpolate.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Tue Nov 14 2017
- *
- * @brief  test of the fem class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +42,7 @@ TYPED_TEST(TestFEMFixture, InterpolateConstant) {
   this->fem->interpolateOnIntegrationPoints(const_val, val_on_quad, 2, type);
 
   for (auto && int_ : make_view(val_on_quad, 2)) {
-    auto diff = (value - int_).template norm<L_inf>();
+    auto diff = (value - int_).template lpNorm<Eigen::Infinity>();
     EXPECT_NEAR(0, diff, 1e-14);
   }
 }

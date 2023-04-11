@@ -1,18 +1,8 @@
 /**
- * @file   material_neohookean.hh
- *
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Material isotropic elastic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -50,8 +39,8 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <UInt spatial_dimension>
-class MaterialNeohookean : public PlaneStressToolbox<spatial_dimension> {
+template <Int dim> class MaterialNeohookean : public PlaneStressToolbox<dim> {
+  using Parent = PlaneStressToolbox<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -96,6 +85,23 @@ public:
 
   MatrixType getTangentType() override { return _symmetric; }
 
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        Material::getArguments<dim>(el_type, ghost_type),
+        "C33"_n =
+            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        Material::getArgumentsTangent<dim>(tangent_matrix, el_type, ghost_type),
+        "C33"_n =
+            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
+  }
+
 protected:
   /// constitutive law for a given quadrature point
   inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
@@ -112,12 +118,11 @@ protected:
                                        Matrix<Real> & delta_S);
 
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & S,
-                                  const Real & C33 = 1.0);
+  template <class Args> inline void computeStressOnQuad(Args && args);
 
   /// constitutive law for a given quadrature point
-  inline void computeThirdAxisDeformationOnQuad(Matrix<Real> & grad_u,
-                                                Real & c33_value);
+  template <class Args>
+  inline void computeThirdAxisDeformationOnQuad(Args && args);
 
   /// constitutive law for a given quadrature point
   // inline void updateStressOnQuad(const Matrix<Real> & sigma,
@@ -128,8 +133,7 @@ protected:
                                            Real & epot);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u,
-                                  const Real & C33 = 1.0);
+  template <class Args> void computeTangentModuliOnQuad(Args && args);
 
   /// recompute the lame coefficient if E or nu changes
   void updateInternalParameters() override;
@@ -156,6 +160,8 @@ protected:
 
   /// Bulk modulus
   Real kpa;
+
+  Real C33{1.};
 };
 
 } // namespace akantu

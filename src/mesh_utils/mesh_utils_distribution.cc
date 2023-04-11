@@ -1,18 +1,8 @@
 /**
- * @file   mesh_utils_distribution.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Dec 02 2016
- * @date last modification: Wed Mar 04 2020
- *
- * @brief  Implementation of the methods of mesh  utils distribute
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -48,14 +37,13 @@ namespace MeshUtilsDistribution {
   void distributeMeshCentralized(Mesh & mesh, UInt /*unused*/,
                                  const MeshPartition & partition) {
     MeshAccessor mesh_accessor(mesh);
-    ElementSynchronizer & element_synchronizer =
-        mesh_accessor.getElementSynchronizer();
-    NodeSynchronizer & node_synchronizer = mesh_accessor.getNodeSynchronizer();
+    auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
+    auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
-    const Communicator & comm = element_synchronizer.getCommunicator();
+    const auto & comm = element_synchronizer.getCommunicator();
 
-    UInt nb_proc = comm.getNbProc();
-    UInt my_rank = comm.whoAmI();
+    auto nb_proc = comm.getNbProc();
+    auto my_rank = comm.whoAmI();
 
     mesh_accessor.setNbGlobalNodes(mesh.getNbNodes());
     auto & gids = mesh_accessor.getNodesGlobalIds();
@@ -117,13 +105,12 @@ namespace MeshUtilsDistribution {
   /* ------------------------------------------------------------------------ */
   void distributeMeshCentralized(Mesh & mesh, UInt root) {
     MeshAccessor mesh_accessor(mesh);
-    ElementSynchronizer & element_synchronizer =
-        mesh_accessor.getElementSynchronizer();
-    NodeSynchronizer & node_synchronizer = mesh_accessor.getNodeSynchronizer();
+    auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
+    auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
-    const Communicator & comm = element_synchronizer.getCommunicator();
+    const auto & comm = element_synchronizer.getCommunicator();
 
-    UInt nb_proc = comm.getNbProc();
+    auto nb_proc = comm.getNbProc();
 
     mesh_accessor.getNodesGlobalIds().resize(0);
 

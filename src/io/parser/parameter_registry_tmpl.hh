@@ -1,19 +1,8 @@
 /**
- * @file   parameter_registry_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed May 04 2016
- * @date last modification: Thu Mar 19 2020
- *
- * @brief  implementation of the templated part of ParameterRegistry class and
- * the derivated ones
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,13 +16,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
 #include "aka_iterators.hh"
-//#include "parameter_registry.hh"
+#include "aka_types.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
@@ -188,38 +176,6 @@ ParameterTyped<std::string>::setAuto(const ParserParameter & value) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ParameterTyped<Vector<Real>>::setAuto(const ParserParameter & in_param) {
-  Parameter::setAuto(in_param);
-  Vector<Real> tmp = in_param;
-  if (param.size() == 0) {
-    param = tmp;
-  } else {
-    for (UInt i = 0; i < param.size(); ++i) {
-      param(i) = tmp(i);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-ParameterTyped<Matrix<Real>>::setAuto(const ParserParameter & in_param) {
-  Parameter::setAuto(in_param);
-  Matrix<Real> tmp = in_param;
-  if (param.size() == 0) {
-    param = tmp;
-  } else {
-    for (UInt i = 0; i < param.rows(); ++i) {
-      for (UInt j = 0; j < param.cols(); ++j) {
-        param(i, j) = tmp(i, j);
-      }
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 template <typename T> const T & ParameterTyped<T>::getTyped() const {
   return param;
 }
@@ -233,6 +189,66 @@ inline void ParameterTyped<T>::printself(std::ostream & stream) const {
   stream << param << "\n";
 }
 
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+template <typename T, Int m, Int n>
+class ParameterTyped<Eigen::Matrix<T, m, n>> : public Parameter {
+public:
+  ParameterTyped(const std::string & name, const std::string & description,
+                 ParameterAccessType param_type, Eigen::Matrix<T, m, n> & param)
+      : Parameter(name, description, param_type), param(param) {}
+
+  template <typename V> void setTyped(const V & value) { param = value; }
+  void setAuto(const ParserParameter & value) override {
+    Parameter::setAuto(value);
+    if constexpr (n == 1) {
+      Vector<Real> tmp = value;
+      if (param.rows() != 0) {
+        param = tmp.block(0, 0, param.rows(), 1);
+      } else {
+        param = tmp;
+      }
+    } else {
+      Matrix<Real> tmp = value;
+      if (param.rows() != 0 and param.cols() != 0) {
+        param = tmp.block(0, 0, param.rows(), param.cols());
+      } else {
+        param = tmp;
+      }
+    }
+  }
+
+  Eigen::Matrix<T, m, n> & getTyped() { return param; }
+  const Eigen::Matrix<T, m, n> & getTyped() const { return param; }
+
+  void printself(std::ostream & stream) const override {
+    Parameter::printself(stream);
+
+    stream << "[ ";
+    for (int i : arange(param.rows())) {
+      if (param.cols() != 1) {
+        stream << "[ ";
+      }
+      for (int j : arange(param.cols())) {
+        stream << param(i, j) << " ";
+      }
+      if (param.cols() != 1) {
+        stream << "] ";
+      }
+    }
+    stream << "]\n";
+  }
+
+  inline const std::type_info & type() const override {
+    return typeid(Eigen::Matrix<T, m, n>);
+  }
+
+private:
+  /// Value of parameter
+  Eigen::Matrix<T, m, n> & param;
+};
+
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template <typename T> class ParameterTyped<std::vector<T>> : public Parameter {
 public:
@@ -274,6 +290,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <typename T> class ParameterTyped<std::set<T>> : public Parameter {
 public:
   ParameterTyped(const std::string & name, const std::string & description,
@@ -283,7 +300,7 @@ public:
   /* ------------------------------------------------------------------------
    */
   template <typename V> void setTyped(const V & value) { param = value; }
-  void setAuto(const ParserParameter & value) override {
+  void setAuto(const ParserParameter & value) {
     Parameter::setAuto(value);
     param.clear();
     const std::set<T> & tmp = value;
@@ -295,7 +312,7 @@ public:
   std::set<T> & getTyped() { return param; }
   const std::set<T> & getTyped() const { return param; }
 
-  void printself(std::ostream & stream) const override {
+  void printself(std::ostream & stream) const {
     Parameter::printself(stream);
     stream << "[ ";
     for (auto && v : param) {
@@ -304,9 +321,7 @@ public:
     stream << "]\n";
   }
 
-  inline const std::type_info & type() const override {
-    return typeid(std::set<T>);
-  }
+  inline const std::type_info & type() const { return typeid(std::set<T>); }
 
 private:
   /// Value of parameter
@@ -330,8 +345,9 @@ void ParameterRegistry::registerParam(const std::string & name, T & variable,
     AKANTU_CUSTOM_EXCEPTION(debug::ParameterException(
         name, "Parameter named " + name + " already registered."));
   }
-  auto * param = new ParameterTyped<T>(name, description, type, variable);
-  params[name] = param;
+  auto && param =
+      std::make_shared<ParameterTyped<T>>(name, description, type, variable);
+  params[name] = std::move(param);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -350,8 +366,8 @@ void ParameterRegistry::setMixed(const std::string & name, const V & value) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
-        it->second->setMixed<T>(name, value);
+      for (auto && [_, registery] : sub_registries) {
+        registery.get().template setMixed<T>(name, value);
       }
     } else {
       AKANTU_CUSTOM_EXCEPTION(debug::ParameterUnexistingException(name, *this));
@@ -373,9 +389,9 @@ template <typename T> T & ParameterRegistry::get_(const std::string & name) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get_<T>(name);
+          return registery.get().template get_<T>(name);
         } catch (...) {
         }
       }
@@ -394,9 +410,9 @@ const Parameter & ParameterRegistry::get(const std::string & name) const {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get(name);
+          return registery.get().get(name);
         } catch (...) {
         }
       }
@@ -415,9 +431,9 @@ Parameter & ParameterRegistry::get(const std::string & name) {
   auto it = params.find(name);
   if (it == params.end()) {
     if (consisder_sub) {
-      for (auto it = sub_registries.begin(); it != sub_registries.end(); ++it) {
+      for (auto && [_, registery] : sub_registries) {
         try {
-          return it->second->get(name);
+          return registery.get().get(name);
         } catch (...) {
         }
       }
@@ -432,19 +448,16 @@ Parameter & ParameterRegistry::get(const std::string & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-namespace {
-  namespace details {
-    template <class T, class R, class Enable = void> struct CastHelper {
-      static R convert(const T & /*unused*/) { throw std::bad_cast(); }
-    };
+namespace details {
+  template <class T, class R, class Enable = void> struct CastHelper {
+    static R convert(const T & /*unused*/) { throw std::bad_cast(); }
+  };
 
-    template <class T, class R>
-    struct CastHelper<T, R,
-                      std::enable_if_t<std::is_convertible<T, R>::value>> {
-      static R convert(const T & val) { return val; }
-    };
-  } // namespace details
-} // namespace
+  template <class T, class R>
+  struct CastHelper<T, R, std::enable_if_t<std::is_convertible<T, R>::value>> {
+    static R convert(const T & val) { return val; }
+  };
+} // namespace details
 
 template <typename T> inline ParameterTyped<T>::operator Real() const {
   if (not isReadable()) {

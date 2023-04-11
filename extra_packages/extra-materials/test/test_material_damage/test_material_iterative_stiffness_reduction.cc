@@ -1,27 +1,21 @@
 /**
- * @file   test_material_iterative_strength_reduction.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief  test the material iterative stiffness reduction
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -39,7 +33,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
@@ -100,7 +94,7 @@ int main(int argc, char * argv[]) {
 
     nb_damaged_elements = material.updateDamage();
 
-    for (UInt e = 0; e < mesh.getNbElement(element_type, _not_ghost); ++e) {
+    for (Int e = 0; e < mesh.getNbElement(element_type, _not_ghost); ++e) {
       std::cout << "the new modulus is " << (1 - damage(0)) * E << std::endl;
       std::cout << "the new strength is " << Sc(0) << std::endl;
     }

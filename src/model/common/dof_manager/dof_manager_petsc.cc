@@ -1,18 +1,8 @@
 /**
- * @file   dof_manager_petsc.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Oct 07 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  DOFManaterPETSc is the PETSc implementation of the DOFManager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -124,7 +113,7 @@ auto DOFManagerPETSc::getNewDOFData(const ID & dof_id)
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt, UInt>
+std::tuple<Int, Int, Int>
 DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
                                       Array<Real> & dofs_array) {
   dofs_ids.push_back(dof_id);
@@ -152,7 +141,7 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
 
       PetscInt n;
       PETSc_call(ISGlobalToLocalMappingApply, is_ltog_map, IS_GTOLM_MASK,
-                 gidx.size(), gidx.storage(), &n, lidx.storage());
+                 gidx.size(), gidx.data(), &n, lidx.data());
     }
   }
 
@@ -203,7 +192,7 @@ void DOFManagerPETSc::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
       A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,

@@ -1,21 +1,8 @@
 /**
- * @file   mesh_sphere_intersector.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Tue Jun 23 2015
- * @date last modification: Tue Feb 20 2018
- *
- * @brief  Computation of mesh intersection with sphere(s)
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +32,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 class MeshSphereIntersector
     : public MeshGeomIntersector<dim, type, Line_arc<cgal::Spherical>,
                                  cgal::Spherical::Sphere_3, cgal::Spherical> {
@@ -54,16 +40,16 @@ class MeshSphereIntersector
   using K = cgal::Cartesian;
 
   /// Parent class type
-  typedef MeshGeomIntersector<dim, type, Line_arc<SK>, SK::Sphere_3, SK>
-      parent_type;
+  using parent_type =
+      MeshGeomIntersector<dim, type, Line_arc<SK>, SK::Sphere_3, SK>;
 
   /// Result of intersection function type
-  typedef typename IntersectionTypeHelper<TreeTypeHelper<Triangle<K>, K>,
-                                          K::Segment_3>::intersection_type
-      result_type;
+  using result_type =
+      typename IntersectionTypeHelper<TreeTypeHelper<Triangle<K>, K>,
+                                      K::Segment_3>::intersection_type;
 
   /// Pair of intersection points and element id
-  typedef std::pair<SK::Circular_arc_point_3, UInt> pair_type;
+  using pair_type = std::pair<SK::Circular_arc_point_3, Int>;
 
 public:
   /// Construct from mesh
@@ -74,12 +60,12 @@ public:
 
 public:
   /// Construct the primitive tree object
-  virtual void constructData(GhostType ghost_type = _not_ghost);
+  void constructData(GhostType ghost_type = _not_ghost) override;
 
   /**
    * @brief Computes the intersection of the mesh with a sphere
    */
-  virtual void computeIntersectionQuery(const SK::Sphere_3 & /* query */) {
+  void computeIntersectionQuery(const SK::Sphere_3 & /* query */) override {
     AKANTU_ERROR("This function is not implemented for spheres (It was "
                  "to generic and has been replaced by "
                  "computeMeshQueryIntersectionPoint");
@@ -91,12 +77,12 @@ public:
    * same primitives are not considered. A maximum is set to the number of
    * intersection nodes per element: 2 in 2D and 4 in 3D
    */
-  virtual void computeMeshQueryIntersectionPoint(const SK::Sphere_3 & query,
-                                                 UInt nb_old_nodes);
+  void computeMeshQueryIntersectionPoint(const SK::Sphere_3 & query,
+                                         Int nb_old_nodes) override;
 
   /// Build the IGFEM mesh
-  virtual void
-  buildResultFromQueryList(const std::list<SK::Sphere_3> & /*query*/) {
+  void
+  buildResultFromQueryList(const std::list<SK::Sphere_3> & /*query*/) override {
     AKANTU_ERROR("This function is no longer implemented to split "
                  "geometrical operations and dedicated result "
                  "construction");

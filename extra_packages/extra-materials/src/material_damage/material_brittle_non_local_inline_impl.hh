@@ -1,15 +1,21 @@
 /**
- * @file   material_brittle_non_local_inline_impl.hh
- *
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- *
- *
- * @brief  MaterialBrittleNonLocal inline function implementation
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -23,7 +29,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialBrittleNonLocal<spatial_dimension>::MaterialBrittleNonLocal(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialBrittleNonLocalParent(model, id),
@@ -38,7 +44,7 @@ MaterialBrittleNonLocal<spatial_dimension>::MaterialBrittleNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   this->model.getNonLocalManager().registerNonLocalVariable(
@@ -48,19 +54,19 @@ void MaterialBrittleNonLocal<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Sigma_maxt = this->Sigma_max(el_type, ghost_type).storage();
-  Real * fracture_stress = this->Sigma_fracture(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * Sigma_maxt = this->Sigma_max(el_type, ghost_type).data();
+  Real * fracture_stress = this->Sigma_fracture(el_type, ghost_type).data();
 
   Array<Real> & velocity = this->model.getVelocity();
   Array<Real> & strain_rate_brittle =
       this->strain_rate_brittle(el_type, ghost_type);
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);
 
   this->model.getFEEngine().gradientOnIntegrationPoints(
       velocity, strain_rate_brittle, spatial_dimension, el_type, ghost_type,
@@ -86,14 +92,14 @@ void MaterialBrittleNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(type, ghost_type).storage();
-  Real * Sigma_maxnlt = this->Sigma_maxnl(type, ghost_type).storage();
-  Real * fracture_stress = this->Sigma_fracture(type, ghost_type).storage();
+  Real * dam = this->damage(type, ghost_type).data();
+  Real * Sigma_maxnlt = this->Sigma_maxnl(type, ghost_type).data();
+  Real * fracture_stress = this->Sigma_fracture(type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(type, ghost_type);
   this->computeDamageAndStressOnQuad(sigma, *dam, *Sigma_maxnlt,
@@ -108,7 +114,7 @@ void MaterialBrittleNonLocal<spatial_dimension>::computeNonLocalStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<
     spatial_dimension>::nonLocalVariableToNeighborhood() {
   this->model.getNonLocalManager().nonLocalVariableToNeighborhood(

@@ -1,23 +1,8 @@
 /**
- * @file   element_class_pentahedron_15_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Sacha Laffely <sacha.laffely@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Damien Scantamburlo <damien.scantamburlo@epfl.ch>
- *
- * @date creation: Tue Mar 31 2015
- * @date last modification: Fri Feb 07 2020
- *
- * @brief  Specialization of the element_class class for the type
- * _pentahedron_15
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**
@@ -89,12 +73,13 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_pentahedron_15, _gt_pentahedron_15,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
-    const vector_type & c, vector_type & N) {
-  auto & x = c(0);
-  auto & y = c(1);
-  auto & z = c(2);
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
+  auto &&x = c(0);
+  auto &&y = c(1);
+  auto &&z = c(2);
 
   // Shape Functions, Natural coordinates
   N(0) = 0.5 * y * (1 - x) * (2 * y - 2 - x);
@@ -116,12 +101,12 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
-  auto & x = c(0);
-  auto & y = c(1);
-  auto & z = c(2);
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
+  auto &&x = c(0);
+  auto &&y = c(1);
+  auto &&z = c(2);
 
   // ddx
   dnds(0, 0) = 0.5 * y * (2 * x - 2 * y + 1);
@@ -177,8 +162,9 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_pentahedron_15>::getInradius(
-    const Matrix<Real> & coord) {
+    const Eigen::MatrixBase<D> &coord) {
   return GeometricalElement<_gt_pentahedron_6>::getInradius(coord) * 0.5;
 }
 } // namespace akantu

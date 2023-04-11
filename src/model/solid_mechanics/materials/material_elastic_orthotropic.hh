@@ -1,20 +1,8 @@
 /**
- * @file   material_elastic_orthotropic.hh
- *
- * @author Till Junge <till.junge@epfl.ch>
- * @author Enrico Milanese <enrico.milanese@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Orthotropic elastic material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -65,7 +52,7 @@ namespace akantu {
  *   - G23  : Shear modulus along 23 (default: 0)
  */
 
-template <UInt Dim>
+template <Int Dim>
 class MaterialElasticOrthotropic
     : public MaterialElasticLinearAnisotropic<Dim> {
   /* ------------------------------------------------------------------------ */
@@ -81,10 +68,6 @@ public:
   void initMaterial() override;
 
   void updateInternalParameters() override;
-
-  void
-  computePotentialEnergyByElement(ElementType type, UInt index,
-                                  Vector<Real> & epot_on_quad_points) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

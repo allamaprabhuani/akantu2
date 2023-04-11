@@ -1,19 +1,8 @@
 /**
- * @file   element_info_per_processor_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Mar 16 2016
- * @date last modification: Thu Nov 12 2020
- *
- * @brief  Helper classes to create the distributed synchronizer and distribute
- * a mesh
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,12 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "element_group.hh"
-#include "element_info_per_processor.hh"
+//#include "element_info_per_processor.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -45,7 +33,7 @@ namespace akantu {
 template <typename T, typename BufferType>
 void ElementInfoPerProc::fillMeshDataTemplated(BufferType & buffer,
                                                const std::string & tag_name,
-                                               UInt nb_component) {
+                                               Int nb_component) {
 
   AKANTU_DEBUG_ASSERT(this->mesh.getNbElement(this->type) == nb_local_element,
                       "Did not got enought informations for the tag "
@@ -61,8 +49,8 @@ void ElementInfoPerProc::fillMeshDataTemplated(BufferType & buffer,
 
   data.resize(nb_local_element);
   /// unpacking the data, element by element
-  for (UInt i(0); i < nb_local_element; ++i) {
-    for (UInt j(0); j < nb_component; ++j) {
+  for (Int i(0); i < nb_local_element; ++i) {
+    for (Int j(0); j < nb_component; ++j) {
       buffer >> data(i, j);
     }
   }
@@ -80,8 +68,8 @@ void ElementInfoPerProc::fillMeshDataTemplated(BufferType & buffer,
   data_ghost.resize(nb_ghost_element);
 
   /// unpacking the ghost data, element by element
-  for (UInt j(0); j < nb_ghost_element; ++j) {
-    for (UInt k(0); k < nb_component; ++k) {
+  for (Int j(0); j < nb_ghost_element; ++j) {
+    for (Int k(0); k < nb_component; ++k) {
       buffer >> data_ghost(j, k);
     }
   }
@@ -92,7 +80,7 @@ template <typename BufferType>
 void ElementInfoPerProc::fillMeshData(BufferType & buffer,
                                       const std::string & tag_name,
                                       const MeshDataTypeCode & type_code,
-                                      UInt nb_component) {
+                                      Int nb_component) {
 #define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, extra_param, elem)          \
   case MeshDataTypeCode::BOOST_PP_TUPLE_ELEM(2, 0, elem): {                    \
     fillMeshDataTemplated<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(buffer, tag_name,   \
@@ -120,10 +108,10 @@ void ElementInfoPerProc::fillElementGroupsFromBuffer(
   el.type = type;
 
   for (auto ghost_type : ghost_types) {
-    UInt nb_element = mesh.getNbElement(type, ghost_type);
+    auto nb_element = mesh.getNbElement(type, ghost_type);
     el.ghost_type = ghost_type;
 
-    for (UInt e = 0; e < nb_element; ++e) {
+    for (Int e = 0; e < nb_element; ++e) {
       el.element = e;
 
       std::vector<std::string> element_to_group;

@@ -1,18 +1,8 @@
 /**
- * @file   test_cohesive_parallel_extrinsic.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Oct 13 2017
- * @date last modification:  Wed Nov 08 2017
- *
- * @brief  parallel test for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,7 +29,7 @@ int main(int argc, char * argv[]) {
 
   const UInt max_steps = 500;
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
 
   const auto & comm = Communicator::getStaticCommunicator();
@@ -91,7 +80,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
@@ -102,7 +91,7 @@ int main(int argc, char * argv[]) {
   /// initial conditions
   Real loading_rate = 0.5;
   Real disp_update = loading_rate * time_step;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
   }
 
@@ -127,10 +116,10 @@ int main(int argc, char * argv[]) {
   model.dump("cohesive elements");
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
 
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
         displacement(n, 1) += disp_update * position(n, 1);
     }
@@ -145,7 +134,7 @@ int main(int argc, char * argv[]) {
     }
 
     // // update displacement
-    // for (UInt n = 0; n < nb_nodes; ++n) {
+    // for (Int n = 0; n < nb_nodes; ++n) {
     //   if (position(n, 1) + displacement(n, 1) > 0) {
     // 	displacement(n, 0) -= 0.01;
     //   }

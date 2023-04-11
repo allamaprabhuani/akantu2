@@ -1,20 +1,8 @@
 /**
- * @file   model_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 25 2010
- * @date last modification: Wed Mar 10 2021
- *
- * @brief  inline implementation of the model class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -97,7 +84,7 @@ inline void Model::unRegisterFEEngineObject(const std::string & name) {
 /* -------------------------------------------------------------------------- */
 template <typename FEEngineClass>
 inline void Model::registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                          UInt spatial_dimension) {
+                                          Int spatial_dimension) {
   if (fems.empty()) {
     default_fem = name;
   }
@@ -149,20 +136,20 @@ inline bool Model::hasFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void Model::allocNodalField(std::unique_ptr<Array<T>> & array,
-                            UInt nb_component, const ID & name) const {
+                            Int nb_component, const ID & name) const {
   if (array) {
     return;
   }
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
   array =
       std::make_unique<Array<T>>(nb_nodes, nb_component, T(), id + ":" + name);
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Model::getNbIntegrationPoints(const Array<Element> & elements,
+inline Int Model::getNbIntegrationPoints(const Array<Element> & elements,
                                           const ID & fem_id) const {
-  UInt nb_quad = 0;
+  Int nb_quad = 0;
   for (auto && el : elements) {
     nb_quad +=
         getFEEngine(fem_id).getNbIntegrationPoints(el.type, el.ghost_type);

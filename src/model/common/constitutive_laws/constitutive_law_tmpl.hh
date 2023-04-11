@@ -46,7 +46,7 @@ namespace akantu {
 template <typename T, template <typename Type> class InternalFieldType>
 inline std::shared_ptr<InternalFieldType<T>>
 ConstitutiveLawInternalHandler::registerInternal(const ID & id,
-                                                 UInt nb_component) {
+                                                 Int nb_component) {
   return this->registerInternal<T, InternalFieldType>(
       id, nb_component, this->default_fe_engine_id);
 }
@@ -54,7 +54,7 @@ ConstitutiveLawInternalHandler::registerInternal(const ID & id,
 template <typename T, template <typename Type> class InternalFieldType>
 inline std::shared_ptr<InternalFieldType<T>>
 ConstitutiveLawInternalHandler::registerInternal(const ID & id,
-                                                 UInt nb_component,
+                                                 Int nb_component,
                                                  const ID & fe_engine_id) {
   auto && internal = std::make_shared<InternalFieldType<T>>(
       id, *this, this->spatial_dimension, fe_engine_id, this->element_filter);
@@ -184,7 +184,7 @@ Array<T> & ConstitutiveLawInternalHandler::getArray(const ID & vect_id,
 
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::removeIntegrationPoints(
-    ElementTypeMapArray<UInt> & new_numbering) {
+    ElementTypeMapArray<Idx> & new_numbering) {
   for (auto pair : internal_vectors) {
     pair.second->removeIntegrationPoints(new_numbering);
   }
@@ -256,19 +256,19 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
 
   auto & mesh = handler.getMesh();
 
-  ElementTypeMapArray<UInt> constitutive_law_local_new_numbering(
+  ElementTypeMapArray<Idx> constitutive_law_local_new_numbering(
       "remove constitutive law filter elem", id);
 
   constitutive_law_local_new_numbering.initialize(
       mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
       _with_nb_element = true);
 
-  ElementTypeMapArray<UInt> element_filter_tmp("element_filter_tmp", id);
+  ElementTypeMapArray<Idx> element_filter_tmp("element_filter_tmp", id);
 
   element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
                                 _element_kind = _ek_not_defined);
 
-  ElementTypeMap<UInt> new_ids, element_ids;
+  ElementTypeMap<Idx> new_ids, element_ids;
 
   for_each_element(
       mesh,
@@ -323,12 +323,12 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsAdded(
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
+    const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & /*event*/) {
 
   UInt my_num = handler.getInternalIndexFromID(getID());
 
-  ElementTypeMapArray<UInt> constitutive_law_local_new_numbering(
+  ElementTypeMapArray<Idx> constitutive_law_local_new_numbering(
       "remove constitutive law filter elem", getID());
 
   auto el_begin = element_list.begin();
@@ -360,15 +360,15 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
 
       auto & law_renumbering = constitutive_law_local_new_numbering(type, gt);
       const auto & renumbering = new_numbering(type, gt);
-      Array<UInt> elem_filter_tmp;
-      UInt ni = 0;
+      Array<Idx> elem_filter_tmp;
+      Int ni = 0;
       Element el{type, 0, gt};
 
-      for (UInt i = 0; i < elem_filter.size(); ++i) {
+      for (Int i = 0; i < elem_filter.size(); ++i) {
         el.element = elem_filter(i);
         if (std::find(el_begin, el_end, el) == el_end) {
-          UInt new_el = renumbering(el.element);
-          AKANTU_DEBUG_ASSERT(new_el != UInt(-1),
+          auto new_el = renumbering(el.element);
+          AKANTU_DEBUG_ASSERT(new_el != -1,
                               "A not removed element as been badly renumbered");
           elem_filter_tmp.push_back(new_el);
           law_renumbering(i) = ni;
@@ -449,7 +449,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(
 template <class ConstitutiveLawsHandler_>
 inline UInt ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(
     ElementType type, UInt element, GhostType ghost_type) {
-  Array<UInt> & el_filter = this->element_filter(type, ghost_type);
+  auto & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
@@ -490,7 +490,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::setParam(const ID & param, T value) {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 template <typename T>
-inline ElementTypeMap<UInt>
+inline ElementTypeMap<Int>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::getInternalDataPerElem(
     const ID & field_id, ElementKind element_kind) const {
 
@@ -501,12 +501,12 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::getInternalDataPerElem(
 
   const auto & internal_field = this->template getInternal<T>(field_id);
   const FEEngine & fe_engine = internal_field.getFEEngine();
-  UInt nb_data_per_quad = internal_field.getNbComponent();
+  auto nb_data_per_quad = internal_field.getNbComponent();
 
-  ElementTypeMap<UInt> res;
+  ElementTypeMap<Int> res;
   for (auto ghost_type : ghost_types) {
-    for (auto & type : internal_field.elementTypes(ghost_type)) {
-      UInt nb_quadrature_points =
+    for (auto && type : internal_field.elementTypes(ghost_type)) {
+      auto nb_quadrature_points =
           fe_engine.getNbIntegrationPoints(type, ghost_type);
       res(type, ghost_type) = nb_data_per_quad * nb_quadrature_points;
     }
@@ -527,24 +527,23 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
                      << id << " in the constitutive law " << this->name);
   }
 
-  const InternalField<T> & internal_field =
-      this->template getInternal<T>(field_id);
+  const auto & internal_field = this->template getInternal<T>(field_id);
 
-  const FEEngine & fe_engine = internal_field.getFEEngine();
-  const Mesh & mesh = fe_engine.getMesh();
+  const auto & fe_engine = internal_field.getFEEngine();
+  const auto & mesh = fe_engine.getMesh();
 
   for (auto && type : internal_field.filterTypes(ghost_type)) {
-    const Array<Real> & src_vect = internal_field(type, ghost_type);
-    const Array<UInt> & filter = internal_field.getFilter(type, ghost_type);
+    const auto & src_vect = internal_field(type, ghost_type);
+    const auto & filter = internal_field.getFilter(type, ghost_type);
 
     // total number of elements in the corresponding mesh
-    UInt nb_element_dst = mesh.getNbElement(type, ghost_type);
+    auto nb_element_dst = mesh.getNbElement(type, ghost_type);
     // number of element in the internal field
-    UInt nb_element_src = filter.size();
+    auto nb_element_src = filter.size();
     // number of quadrature points per elem
-    UInt nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
+    auto nb_quad_per_elem = fe_engine.getNbIntegrationPoints(type);
     // number of data per quadrature point
-    UInt nb_data_per_quad = internal_field.getNbComponent();
+    auto nb_data_per_quad = internal_field.getNbComponent();
 
     if (!internal_flat.exists(type, ghost_type)) {
       internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
@@ -556,9 +555,9 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
     }
 
     // number of data per element
-    UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
+    auto nb_data = nb_quad_per_elem * nb_data_per_quad;
 
-    Array<Real> & dst_vect = internal_flat(type, ghost_type);
+    auto & dst_vect = internal_flat(type, ghost_type);
     dst_vect.resize(nb_element_dst * nb_quad_per_elem);
 
     auto it_dst = make_view(dst_vect, nb_data).begin();
@@ -575,13 +574,13 @@ template <typename T>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::inflateInternal(
     const std::string & field_id, const ElementTypeMapArray<T> & field,
     GhostType ghost_type, ElementKind element_kind) {
-  if (!this->template isInternal<T>(field_id, element_kind)) {
+  if (not this->template isInternal<T>(field_id, element_kind)) {
     AKANTU_EXCEPTION("Cannot find internal field " << id << " in material "
                                                    << this->name);
   }
 
-  InternalField<T> & internal_field = this->template getInternal<T>(field_id);
-  const FEEngine & fe_engine = internal_field.getFEEngine();
+  auto & internal_field = this->template getInternal<T>(field_id);
+  const auto & fe_engine = internal_field.getFEEngine();
 
   for (auto && type : field.elementTypes(ghost_type)) {
     if (not internal_field.exists(type, ghost_type)) {

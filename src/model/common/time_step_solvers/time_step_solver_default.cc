@@ -1,19 +1,8 @@
 /**
- * @file   time_step_solver_default.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 15 2015
- * @date last modification: Tue Sep 08 2020
- *
- * @brief  Default implementation of the time step solver
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -183,10 +171,7 @@ void TimeStepSolverDefault::solveStep(SolverCallback & solver_callback) {
 void TimeStepSolverDefault::predictor() {
   TimeStepSolver::predictor();
 
-  for (auto && pair : this->integration_schemes) {
-    const auto & dof_id = pair.first;
-    auto & integration_scheme = pair.second;
-
+  for (auto && [dof_id, integration_scheme] : this->integration_schemes) {
     if (this->_dof_manager.hasPreviousDOFs(dof_id)) {
       this->_dof_manager.savePreviousDOFs(dof_id);
     }
@@ -200,10 +185,7 @@ void TimeStepSolverDefault::predictor() {
 void TimeStepSolverDefault::corrector() {
   AKANTU_DEBUG_IN();
 
-  for (auto & pair : this->integration_schemes) {
-    const auto & dof_id = pair.first;
-    auto & integration_scheme = pair.second;
-
+  for (auto && [dof_id, integration_scheme] : this->integration_schemes) {
     const auto & solution_type = this->solution_types[dof_id];
     integration_scheme->corrector(solution_type, this->time_step);
 
@@ -220,11 +202,15 @@ void TimeStepSolverDefault::corrector() {
 
       auto dof_array_comp = this->_dof_manager.getDOFs(dof_id).getNbComponent();
 
-      increment.copy(this->_dof_manager.getDOFs(dof_id));
+      if (solution_type == IntegrationScheme::_displacement) {
+        increment.copy(this->_dof_manager.getSolution(dof_id), true);
+      } else {
+        increment.copy(this->_dof_manager.getDOFs(dof_id));
 
-      for (auto && data : zip(make_view(increment, dof_array_comp),
-                              make_view(previous, dof_array_comp))) {
-        std::get<0>(data) -= std::get<1>(data);
+        for (auto && data : zip(make_view(increment, dof_array_comp),
+                                make_view(previous, dof_array_comp))) {
+          std::get<0>(data) -= std::get<1>(data);
+        }
       }
     }
   }
@@ -253,30 +239,6 @@ void TimeStepSolverDefault::assembleMatrix(const ID & matrix_id) {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-// void TimeStepSolverDefault::assembleLumpedMatrix(const ID & matrix_id) {
-//   AKANTU_DEBUG_IN();
-
-//   TimeStepSolver::assembleLumpedMatrix(matrix_id);
-
-//   if (matrix_id != "J")
-//     return;
-
-//   for (auto & pair : this->integration_schemes) {
-//     auto & dof_id = pair.first;
-//     auto & integration_scheme = pair.second;
-
-//     const auto & solution_type = this->solution_types[dof_id];
-
-//     integration_scheme->assembleJacobianLumped(solution_type,
-//     this->time_step);
-//   }
-
-//   this->_dof_manager.applyBoundaryLumped("J");
-
-//   AKANTU_DEBUG_OUT();
-// }
 
 /* -------------------------------------------------------------------------- */
 void TimeStepSolverDefault::assembleResidual() {

@@ -1,18 +1,24 @@
 #===============================================================================
-# @file   package.cmake
-#
-# @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-#
-# @brief  package description for interface-enriched generalized IGFEM
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
 #===============================================================================
+
 
 package_declare(IGFEM ADVANCED
   DESCRIPTION "Use Interface-enriched generalized FEM"
@@ -70,30 +76,4 @@ package_declare_sources(igfem
 
   non_local_manager_igfem.hh
   non_local_manager_igfem.cc
-  )
-
-package_declare_elements(igfem
-  ELEMENT_TYPES
-  _igfem_segment_3
-  _igfem_triangle_4
-  _igfem_triangle_5
-  KIND igfem
-  GEOMETRICAL_TYPES
-  _gt_igfem_segment_3
-  _gt_igfem_triangle_4
-  _gt_igfem_triangle_5
-  INTERPOLATION_TYPES
-  _itp_igfem_segment_3
-  _itp_igfem_triangle_4
-  _itp_igfem_triangle_5
-  INTERPOLATION_KIND
-  _itk_igfem
-  FE_ENGINE_LISTS
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  interpolate
-  compute_normals_on_integration_points
-  inverse_map
-  contains
-  get_shapes_derivatives
   )

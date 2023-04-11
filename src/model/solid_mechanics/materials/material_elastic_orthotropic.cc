@@ -1,21 +1,8 @@
 /**
- * @file   material_elastic_orthotropic.cc
- *
- * @author Till Junge <till.junge@epfl.ch>
- * @author Enrico Milanese <enrico.milanese@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Orthotropic elastic material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,7 +28,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim>
+template <Int Dim>
 MaterialElasticOrthotropic<Dim>::MaterialElasticOrthotropic(
     SolidMechanicsModel & model, const ID & id)
     : MaterialElasticLinearAnisotropic<Dim>(model, id) {
@@ -70,7 +56,7 @@ MaterialElasticOrthotropic<Dim>::MaterialElasticOrthotropic(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
+template <Int Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElasticLinearAnisotropic<Dim>::initMaterial();
 
@@ -84,7 +70,7 @@ template <UInt Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim>
+template <Int Dim>
 void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   this->C.zero();
@@ -92,9 +78,9 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   /* 1) construction of temporary material frame stiffness tensor------------ */
   // http://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php#Sect3_2_13
-  Real nu21 = nu12 * E2 / E1;
-  Real nu31 = nu13 * E3 / E1;
-  Real nu32 = nu23 * E3 / E2;
+  auto nu21 = nu12 * E2 / E1;
+  auto nu31 = nu13 * E3 / E1;
+  auto nu32 = nu23 * E3 / E2;
 
   // Full (i.e. dim^2 by dim^2) stiffness tensor in material frame
   if (Dim == 1) {
@@ -142,35 +128,11 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialElasticOrthotropic<spatial_dimension>::
-    computePotentialEnergyByElement(ElementType type, UInt index,
-                                    Vector<Real> & epot_on_quad_points) {
+template class MaterialElasticOrthotropic<1>;
+template class MaterialElasticOrthotropic<2>;
+template class MaterialElasticOrthotropic<3>;
 
-  auto gradu_it = this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  auto gradu_end =
-      this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  auto stress_it =
-      this->stress(type).begin(spatial_dimension, spatial_dimension);
-
-  UInt nb_quadrature_points = this->getFEEngine().getNbIntegrationPoints(type);
-
-  gradu_it += index * nb_quadrature_points;
-  gradu_end += (index + 1) * nb_quadrature_points;
-  stress_it += index * nb_quadrature_points;
-
-  Real * epot_quad = epot_on_quad_points.storage();
-
-  Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
-
-  for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-    grad_u.copy(*gradu_it);
-
-    this->computePotentialEnergyOnQuad(grad_u, *stress_it, *epot_quad);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-INSTANTIATE_MATERIAL(elastic_orthotropic, MaterialElasticOrthotropic);
+static bool material_is_allocated_elastic_orthotropic =
+    instantiateMaterial<MaterialElasticOrthotropic>("elastic_orthotropic");
 
 } // namespace akantu

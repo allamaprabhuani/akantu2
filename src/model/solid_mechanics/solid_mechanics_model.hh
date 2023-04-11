@@ -1,20 +1,8 @@
 /**
- * @file   solid_mechanics_model.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Jul 27 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Model of Solid Mechanics
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,7 +45,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class SolidMechanicsModel
     : public ConstitutiveLawsHandler<Material, Model>,
-      public DataAccessor<UInt>,
+      public DataAccessor<Idx>,
       public BoundaryCondition<SolidMechanicsModel>,
       public EventHandlerManager<SolidMechanicsModelEventHandler> {
 
@@ -73,7 +60,7 @@ protected:
   using CLHParent = ConstitutiveLawsHandler<Material, Model>;
 
 public:
-  SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+  SolidMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
                       std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
@@ -196,7 +183,13 @@ protected:
 protected:
   /// compute the kinetic energy
   Real getKineticEnergy();
-  Real getKineticEnergy(ElementType type, UInt index);
+
+  [[deprecated("Use the interface with an Element")]] Real
+  getKineticEnergy(ElementType type, Idx index) {
+    return getKineticEnergy({type, index, _not_ghost});
+  }
+
+  Real getKineticEnergy(const Element & element);
 
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
@@ -221,8 +214,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -230,23 +223,23 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  UInt getNbData(const Array<UInt> & dofs,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  Int getNbData(const Array<Idx> & dofs,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                   const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
-  void onNodesRemoved(const Array<UInt> & element_list,
-                      const Array<UInt> & new_numbering,
+  void onNodesRemoved(const Array<Idx> & element_list,
+                      const Array<Idx> & new_numbering,
                       const RemovedNodesEvent & event) override;
 
   /* ------------------------------------------------------------------------ */
@@ -268,15 +261,15 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
 
   void dump(const std::string & dumper_name) override;
-  void dump(const std::string & dumper_name, UInt step) override;
-  void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Int step) override;
+  void dump(const std::string & dumper_name, Real time, Int step) override;
 
   void dump() override;
-  void dump(UInt step) override;
-  void dump(Real time, UInt step) override;
+  void dump(Int step) override;
+  void dump(Real time, Int step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -325,12 +318,6 @@ public:
   /// get the SolidMechanicsModel::external_force array
   AKANTU_GET_MACRO_DEREF_PTR(ExternalForce, external_force);
 
-  /// get the SolidMechanicsModel::force array (external forces)
-  [[deprecated("Use getExternalForce instead of this function")]] Array<Real> &
-  getForce() {
-    return getExternalForce();
-  }
-
   /// get the SolidMechanicsModel::internal_force array (internal forces)
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);
   /// get the SolidMechanicsModel::internal_force array (internal forces)
@@ -340,6 +327,9 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
   /// get the SolidMechanicsModel::blocked_dofs array
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
+
+  AKANTU_GET_MACRO_AUTO(DisplacementRelease, displacement_release);
+  AKANTU_GET_MACRO_AUTO(CurrentPositionRelease, current_position_release);
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() { return this->getConstitutiveLaws(); }
@@ -375,12 +365,12 @@ public:
   }
 
   /// get a particular material id from is name
-  inline UInt getMaterialIndex(const std::string & name) const {
+  inline auto getMaterialIndex(const std::string & name) const {
     return this->getConstitutiveLawIndex(name);
   }
 
   /// give the number of materials
-  inline UInt getNbMaterials() const { return this->getNbConstitutiveLaws(); }
+  inline auto getNbMaterials() const { return this->getNbConstitutiveLaws(); }
 
   void reassignMaterial() { this->reassignConstitutiveLaw(); }
   void registerNewMaterial(const ID & mat_name, const ID & mat_type,
@@ -435,10 +425,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 private:
   /// release version of the displacement array
-  UInt displacement_release{0};
+  Int displacement_release{0};
 
   /// release version of the current_position array
-  UInt current_position_release{0};
+  Int current_position_release{0};
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};

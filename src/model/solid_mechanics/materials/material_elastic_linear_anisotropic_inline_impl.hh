@@ -1,20 +1,8 @@
 /**
- * @file   material_elastic_linear_anisotropic_inline_impl.hh
- *
- * @author Enrico Milanese <enrico.milanese@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Feb 16 2018
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Implementation of the inline functions of the material elastic linear
- * anisotropic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,32 +28,37 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma) const {
+template <Int dim>
+template <typename Args>
+inline void
+MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(Args && args) const {
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
+
   auto voigt_strain = strainToVoigt<dim>(gradUToEpsilon<dim>(grad_u));
   auto voigt_stress = this->C * voigt_strain;
   voigtToStress<dim>(voigt_stress, sigma);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
+template <class Args>
 inline void MaterialElasticLinearAnisotropic<dim>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent) const {
-
-  tangent.copy(this->C);
+    Args && args) const {
+  args["tangent_moduli"_n] = this->C;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
+template <class Args>
 inline void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
+    Args && args, Real & epot) {
 
   AKANTU_DEBUG_ASSERT(this->symmetric,
                       "The elastic constants matrix is not symmetric,"
                       "energy is not path independent.");
 
-  epot = .5 * sigma.doubleDot(grad_u);
+  epot = args["sigma"_n].doubleDot(args["grad_u"_n]) / 2.;
 }
 
 } // namespace akantu

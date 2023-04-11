@@ -1,15 +1,21 @@
 /**
- * @file   solid_mechanics_model_igfem.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  solid mechanics model for IGFEM analysis
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -32,7 +38,7 @@ namespace akantu {
 const SolidMechanicsModelIGFEMOptions
     default_solid_mechanics_model_igfem_options(_static, false);
 
-SolidMechanicsModelIGFEM::SolidMechanicsModelIGFEM(Mesh & mesh, UInt dim,
+SolidMechanicsModelIGFEM::SolidMechanicsModelIGFEM(Mesh & mesh, Int dim,
                                                    const ID & id)
     : SolidMechanicsModel(mesh, dim, id), IGFEMEnrichment(mesh),
       global_ids_updater(NULL) {
@@ -173,7 +179,7 @@ void SolidMechanicsModelIGFEM::initModel() {
       if (connectivity.getSize() != 0) {
         ElementType type = *it;
         Vector<ElementType> types_igfem = FEEngine::getIGFEMElementTypes(type);
-        for (UInt i = 0; i < types_igfem.size(); ++i)
+        for (Int i = 0; i < types_igfem.size(); ++i)
           mesh.addConnectivityType(types_igfem(i), type_ghost);
       }
     }
@@ -196,7 +202,7 @@ void SolidMechanicsModelIGFEM::onElementsAdded(const Array<Element> & elements,
   if (igfem_event != NULL) {
     this->element_map.zero();
     const Array<Element> & old_elements = igfem_event->getOldElementsList();
-    for (UInt e = 0; e < elements.getSize(); ++e) {
+    for (Int e = 0; e < elements.getSize(); ++e) {
       this->element_map[elements(e)] = old_elements(e);
     }
   }
@@ -462,8 +468,8 @@ SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelIGFEM::computeValuesOnEnrichedNodes() {
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
-    for (UInt s = 0; s < spatial_dimension; ++s)
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int s = 0; s < spatial_dimension; ++s)
       (*real_displacement)(n, s) = (*displacement)(n, s);
   }
 
@@ -483,28 +489,28 @@ void SolidMechanicsModelIGFEM::computeValuesOnEnrichedNodes() {
       UInt nb_element = mesh.getNbElement(*it, *gt);
       if (!nb_element)
         continue;
-      UInt * elem_val = mesh.getConnectivity(*it, *gt).storage();
+      UInt * elem_val = mesh.getConnectivity(*it, *gt).data();
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
       Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
       Matrix<Real> displ_val(spatial_dimension, nb_nodes_per_element);
 
       UInt nb_enriched_nodes = IGFEMHelper::getNbEnrichedNodes(*it);
       UInt nb_parent_nodes = IGFEMHelper::getNbParentNodes(*it);
-      for (UInt el = 0; el < nb_element; ++el) {
+      for (Int el = 0; el < nb_element; ++el) {
         element.element = el;
         /// get the node coordinates of the element
-        mesh.extractNodalValuesFromElement(
-            mesh.getNodes(), nodes_coord.storage(),
-            elem_val + el * nb_nodes_per_element, nb_nodes_per_element,
-            spatial_dimension);
+        mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
+                                           elem_val + el * nb_nodes_per_element,
+                                           nb_nodes_per_element,
+                                           spatial_dimension);
 
         /// get the displacement values at the nodes of the element
         mesh.extractNodalValuesFromElement(
-            *(this->displacement), displ_val.storage(),
+            *(this->displacement), displ_val.data(),
             elem_val + el * nb_nodes_per_element, nb_nodes_per_element,
             spatial_dimension);
 
-        for (UInt i = 0; i < nb_enriched_nodes; ++i) {
+        for (Int i = 0; i < nb_enriched_nodes; ++i) {
           /// coordinates of enriched node
           real_coords = nodes_coord(nb_parent_nodes + i);
           /// global index of the enriched node
@@ -539,7 +545,7 @@ void SolidMechanicsModelIGFEM::transferInternalValues(
       nb_internal_component, nb_new_quads, nb_new_elements);
   Vector<Real> default_values(nb_internal_component, 0.);
 
-  for (UInt e = 0; e < nb_new_elements; ++e, ++quad_coords, ++internal_val) {
+  for (Int e = 0; e < nb_new_elements; ++e, ++quad_coords, ++internal_val) {
     Element new_element = new_elements[e];
     Element old_element = this->element_map[new_element];
     UInt mat_idx = (this->material_index(

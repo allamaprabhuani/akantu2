@@ -1,20 +1,8 @@
 /**
- * @file   element_class_triangle_6_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jul 16 2010
- * @date last modification: Fri Feb 28 2020
- *
- * @brief  Specialization of the element_class class for the type _triangle_6
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**
@@ -105,9 +92,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6,
 /* -------------------------------------------------------------------------- */
 
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   Real c0 =
       1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
@@ -123,9 +111,9 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
-    const vector_type & natural_coords, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &dnds) {
 
   /**
    * @f[
@@ -172,23 +160,13 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Real
-GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
-  UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
+template <class D>
+inline Real GeometricalElement<_gt_triangle_6>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  Int triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 
   Real inradius = std::numeric_limits<Real>::max();
-  for (UInt t = 0; t < 4; t++) {
+  for (Int t = 0; t < 4; t++) {
     auto ir = Math::triangle_inradius(
         coord(triangles[t][0]), coord(triangles[t][1]), coord(triangles[t][2]));
     inradius = std::min(ir, inradius);
@@ -197,9 +175,4 @@ GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
   return 2. * inradius;
 }
 
-/* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_6>::contains(const Vector<Real>
-// & natural_coords) {
-//   return ElementClass<_triangle_3>::contains(natural_coords);
-// }
 } // namespace akantu

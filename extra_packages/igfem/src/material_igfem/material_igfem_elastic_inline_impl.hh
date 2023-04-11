@@ -1,19 +1,26 @@
 /**
- * @file   material_igfem_elastic_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  Implementation of the inline functions of the material igfem elastic
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, const Real lambda,
     const Real mu) const {
@@ -21,8 +28,8 @@ inline void MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   // u_{ij} + \nabla u_{ji})
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) =
           (i == j) * lambda * trace + mu * (grad_u(i, j) + grad_u(j, i));
     }
@@ -38,7 +45,7 @@ inline void MaterialIGFEMElastic<1>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, const Real lambda, const Real mu) const {
   UInt n = tangent.cols();
@@ -76,7 +83,7 @@ inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialIGFEMElastic<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
   AKANTU_DEBUG_TO_IMPLEMENT();

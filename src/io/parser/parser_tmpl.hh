@@ -1,18 +1,8 @@
 /**
- * @file   parser_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Thu Mar 19 2020
- *
- * @brief  Implementation of the parser templated methods
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -98,22 +87,25 @@ template <> inline ParserParameter::operator std::set<std::string>() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <> inline ParserParameter::operator Vector<Real>() const {
+template <typename T, Int m, Int n, std::enable_if_t<n == 1> *>
+inline ParserParameter::operator Matrix<T, m, n>() const {
   return Parser::parseVector(value, *parent_section);
 }
 
-/* --------------------------------------------------------- ---------------- */
-template <> inline ParserParameter::operator Vector<UInt>() const {
-  Vector<Real> tmp = Parser::parseVector(value, *parent_section);
-  Vector<UInt> tmp_uint(tmp.size());
-  for (UInt i = 0; i < tmp.size(); ++i) {
-    tmp_uint(i) = UInt(tmp(i));
-  }
-  return tmp_uint;
-}
+// /* --------------------------------------------------------- ----------------
+// */ template <Int m, Int n, std::enable_if_t<n == 1> * = nullptr> inline
+// ParserParameter::operator Matrix<Int, m, n>() const {
+//   Vector<Real> tmp = Parser::parseVector(value, *parent_section);
+//   Vector<Int> tmp_int(tmp.size());
+//   for (Int i = 0; i < tmp.size(); ++i) {
+//     tmp_int(i) = Int(tmp(i));
+//   }
+//   return tmp_int;
+// }
 
 /* --------------------------------------------------------- ---------------- */
-template <> inline ParserParameter::operator Matrix<Real>() const {
+template <typename T, Int m, Int n, std::enable_if_t<n != 1> *>
+inline ParserParameter::operator Matrix<T, m, n>() const {
   return Parser::parseMatrix(value, *parent_section);
 }
 

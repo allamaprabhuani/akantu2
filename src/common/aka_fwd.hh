@@ -1,21 +1,8 @@
 /**
- * @file   aka_fwd.hh
- *
- * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Apr 13 2012
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  File containing forward declarations in akantu.
- * This file helps if circular #include would be needed because two classes
- * refer both to each other. This file usually does not need any modification.
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,10 +30,6 @@ namespace akantu {
 // forward declaration
 template <int dim, class model_type> struct ContactData;
 
-template <typename T> class Matrix;
-template <typename T> class Vector;
-template <typename T> class Tensor3;
-
 template <typename T, bool is_scal = aka::is_scalar<T>::value> class Array;
 template <typename T, typename SupportType = ElementType>
 class ElementTypeMapArray;
@@ -57,7 +39,7 @@ template <class T> class SpatialGrid;
 // Model element
 template <class ModelPolicy> class ModelElement;
 
-extern const Array<UInt> empty_filter;
+extern const Array<Int> empty_filter;
 
 class Parser;
 class ParserSection;
@@ -68,6 +50,14 @@ extern cppargparse::ArgumentParser static_argparser; // NOLINT
 
 class Mesh;
 class SparseMatrix;
+
 } // namespace akantu
+
+namespace aka {
+
+template <class T> struct is_array : public std::false_type {};
+template <class T> struct is_array<akantu::Array<T>> : public std::true_type {};
+
+} // namespace aka
 
 #endif /* AKANTU_FWD_HH_ */

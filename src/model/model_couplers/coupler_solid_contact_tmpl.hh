@@ -1,20 +1,8 @@
 /**
- * @file   coupler_solid_contact_tmpl.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jan 21 2019
- * @date last modification: Wed Jun 23 2021
- *
- * @brief  class for coupling of solid mechanics and conatct mechanics
- * model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -290,7 +277,7 @@ template <class SolidMechanicsModelType>
 std::shared_ptr<dumpers::Field>
 CouplerSolidContactTemplate<SolidMechanicsModelType>::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
+    bool padding_flag, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
   field = contact->createElementalField(field_name, group_name, padding_flag,
@@ -321,13 +308,13 @@ CouplerSolidContactTemplate<SolidMechanicsModelType>::createNodalFieldReal(
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 std::shared_ptr<dumpers::Field>
-CouplerSolidContactTemplate<SolidMechanicsModelType>::createNodalFieldUInt(
+CouplerSolidContactTemplate<SolidMechanicsModelType>::createNodalFieldInt(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag) {
   std::shared_ptr<dumpers::Field> field;
-  field = contact->createNodalFieldUInt(field_name, group_name, padding_flag);
+  field = contact->createNodalFieldInt(field_name, group_name, padding_flag);
   if (not field) {
-    field = solid->createNodalFieldUInt(field_name, group_name, padding_flag);
+    field = solid->createNodalFieldInt(field_name, group_name, padding_flag);
   }
 
   return field;
@@ -358,7 +345,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(
-    const std::string & dumper_name, UInt step) {
+    const std::string & dumper_name, Int step) {
   solid->onDump();
   Model::dump(dumper_name, step);
 }
@@ -366,7 +353,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(
-    const std::string & dumper_name, Real time, UInt step) {
+    const std::string & dumper_name, Real time, Int step) {
   solid->onDump();
   Model::dump(dumper_name, time, step);
 }
@@ -380,7 +367,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump() {
 
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
-void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(UInt step) {
+void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(Int step) {
   solid->onDump();
   Model::dump(step);
 }
@@ -388,7 +375,7 @@ void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(UInt step) {
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
 void CouplerSolidContactTemplate<SolidMechanicsModelType>::dump(Real time,
-                                                                UInt step) {
+                                                                Int step) {
   solid->onDump();
   Model::dump(time, step);
 }

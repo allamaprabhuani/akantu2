@@ -1,18 +1,8 @@
 /**
- * @file   dumper_variable.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Tue Jun 04 2013
- * @date last modification: Wed Nov 08 2017
- *
- * @brief  template of variable
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -65,9 +54,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](UInt i) const { return vari[i]; }
+    const T & operator[](Idx i) const { return vari[i]; }
 
-    UInt getDim() { return vari.size(); }
+    Int getDim() { return vari.size(); }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:
@@ -85,9 +74,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](UInt i) const { return vari[i]; }
+    const T & operator[](Idx i) const { return vari[i]; }
 
-    UInt getDim() { return vari.size(); }
+    Int getDim() { return vari.size(); }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:
@@ -106,9 +95,9 @@ namespace dumpers {
       dumper.addVariable(id, *this);
     }
 
-    const T & operator[](__attribute__((unused)) UInt i) const { return vari; }
+    const T & operator[](Idx /*i*/) const { return vari; }
 
-    UInt getDim() { return 1; }
+    Int getDim() { return 1; }
     iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   protected:

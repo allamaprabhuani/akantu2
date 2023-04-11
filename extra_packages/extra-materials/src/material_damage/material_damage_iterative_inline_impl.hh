@@ -1,16 +1,23 @@
 /**
- * @file   material_damage_iterative_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  Implementation of inline functions of the material damage iterative
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
+
 /* -------------------------------------------------------------------------- */
 #include "material_damage_iterative.hh"
 /* -------------------------------------------------------------------------- */
@@ -18,7 +25,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam) {
@@ -26,7 +33,7 @@ MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage(
     UInt quad_index, const Real /*eq_stress*/, ElementType el_type,
     GhostType ghost_type) {
@@ -50,7 +57,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline UInt MaterialDamageIterative<spatial_dimension>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
 
@@ -62,7 +69,7 @@ inline UInt MaterialDamageIterative<spatial_dimension>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageIterative<spatial_dimension>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
@@ -75,7 +82,7 @@ inline void MaterialDamageIterative<spatial_dimension>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageIterative<spatial_dimension>::unpackData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) {

@@ -1,19 +1,8 @@
 /**
- * @file   neighborhood_base.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sat Sep 26 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Generic neighborhood of quadrature points
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -74,7 +62,7 @@ public:
 
   /// initialize the material computed parameter
   inline void insertIntegrationPoint(const IntegrationPoint & quad,
-                                     const Vector<Real> & coords);
+                                     const Ref<Vector<Real>> & coords);
 
   /// create the pairs of quadrature points
   void updatePairList();
@@ -91,10 +79,9 @@ public:
                            const SynchronizationTag & tag) = 0;
 
   /// inherited function from MeshEventHandler
-  virtual void
-  onElementsRemoved(const Array<Element> & element_list,
-                    const ElementTypeMapArray<UInt> & new_numbering,
-                    const RemovedElementsEvent & event);
+  virtual void onElementsRemoved(const Array<Element> & element_list,
+                                 const ElementTypeMapArray<Idx> & new_numbering,
+                                 const RemovedElementsEvent & event);
 
 protected:
   /// create the grid
@@ -104,7 +91,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
   AKANTU_GET_MACRO(Model, model, const Model &);
   /// return the object handling synchronizers
   const PairList & getPairLists(GhostType type) {
@@ -143,7 +130,7 @@ protected:
   const ElementTypeMapArray<Real> & quad_coordinates;
 
   /// the spatial dimension of the problem
-  const UInt spatial_dimension;
+  const Int spatial_dimension;
 };
 
 } // namespace akantu

@@ -1,19 +1,8 @@
 /**
- * @file   internal_field_tmpl.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Apr 02 2021
- *
- * @brief  Constitutive law internal properties
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,8 +30,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 InternalField<T>::InternalField(
-    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, UInt dim,
-    const ID & fem_id, const ElementTypeMapArray<UInt> & element_filter)
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
     : InternalFieldBase(id), ElementTypeMapArray<T>(id,
                                                     constitutive_law.getID()),
       constitutive_law(constitutive_law),
@@ -62,7 +50,7 @@ InternalField<T>::InternalField(
 template <typename T>
 InternalField<T>::InternalField(
     const ID & id, ConstitutiveLawInternalHandler & constitutive_law,
-    const ID & fem_id, const ElementTypeMapArray<UInt> & element_filter)
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
     : InternalField(id, constitutive_law,
                     constitutive_law.getSpatialDimension(), fem_id,
                     element_filter) {}
@@ -96,7 +84,7 @@ void InternalField<T>::setElementKind(ElementKind element_kind) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> void InternalField<T>::initialize(UInt nb_component) {
+template <typename T> void InternalField<T>::initialize(Int nb_component) {
   internalInitialize(nb_component);
 }
 
@@ -114,7 +102,7 @@ template <typename T> void InternalField<T>::resize() {
     return;
   }
 
-  ElementTypeMap<UInt> old_sizes;
+  ElementTypeMap<Int> old_sizes;
   for (auto ghost : ghost_types) {
     for (const auto & type : this->filterTypes(ghost)) {
       if (this->exists(type, ghost)) {
@@ -135,8 +123,8 @@ template <typename T> void InternalField<T>::resize() {
       auto & vect = this->operator()(type, ghost);
       auto old_size = old_sizes(type, ghost);
       auto new_size = vect.size();
-      this->setArrayValues(vect.storage() + old_size * vect.getNbComponent(),
-                           vect.storage() + new_size * vect.getNbComponent());
+      this->setArrayValues(vect.data() + old_size * vect.getNbComponent(),
+                           vect.data() + new_size * vect.getNbComponent());
     }
   }
 }
@@ -151,17 +139,16 @@ template <typename T> void InternalField<T>::setDefaultValue(const T & value) {
 template <typename T> void InternalField<T>::reset() {
   for (auto ghost_type : ghost_types) {
     for (const auto & type : this->elementTypes(ghost_type)) {
-      Array<T> & vect = (*this)(type, ghost_type);
-      // vect.zero();
-      this->setArrayValues(
-          vect.storage(), vect.storage() + vect.size() * vect.getNbComponent());
+      auto & vect = (*this)(type, ghost_type);
+      this->setArrayValues(vect.data(),
+                           vect.data() + vect.size() * vect.getNbComponent());
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void InternalField<T>::internalInitialize(UInt nb_component) {
+void InternalField<T>::internalInitialize(Int nb_component) {
   if (not this->is_init) {
     this->nb_component = nb_component;
 
@@ -226,7 +213,7 @@ template <typename T> void InternalField<T>::restorePreviousValues() {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void InternalField<T>::removeIntegrationPoints(
-    const ElementTypeMapArray<UInt> & new_numbering) {
+    const ElementTypeMapArray<Idx> & new_numbering) {
   for (auto ghost_type : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, ghost_type,
                                                 _ek_not_defined)) {
@@ -239,10 +226,10 @@ void InternalField<T>::removeIntegrationPoints(
         continue;
       }
 
-      const Array<UInt> & renumbering = new_numbering(type, ghost_type);
+      const auto & renumbering = new_numbering(type, ghost_type);
 
-      UInt nb_quad_per_elem = fem.getNbIntegrationPoints(type, ghost_type);
-      UInt nb_component = vect.getNbComponent();
+      auto nb_quad_per_elem = fem.getNbIntegrationPoints(type, ghost_type);
+      auto nb_component = vect.getNbComponent();
 
       Array<T> tmp(renumbering.size() * nb_quad_per_elem, nb_component);
 
@@ -257,12 +244,12 @@ void InternalField<T>::removeIntegrationPoints(
               << ") "
                  "!!");
 
-      UInt new_size = 0;
-      for (UInt i = 0; i < renumbering.size(); ++i) {
-        UInt new_i = renumbering(i);
-        if (new_i != UInt(-1)) {
-          memcpy(tmp.storage() + new_i * nb_component * nb_quad_per_elem,
-                 vect.storage() + i * nb_component * nb_quad_per_elem,
+      Int new_size = 0;
+      for (Int i = 0; i < renumbering.size(); ++i) {
+        auto new_i = renumbering(i);
+        if (new_i != Int(-1)) {
+          memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
+                 vect.data() + i * nb_component * nb_quad_per_elem,
                  nb_component * nb_quad_per_elem * sizeof(T));
           ++new_size;
         }

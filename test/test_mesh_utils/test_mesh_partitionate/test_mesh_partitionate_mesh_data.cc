@@ -1,18 +1,8 @@
 /**
- * @file   test_mesh_partitionate_mesh_data.cc
- *
- * @author Dana Christen <dana.christen@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri Nov 02 2018
- *
- * @brief  test of manual partitioner
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,20 +35,20 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt dim = 2;
+  Int dim = 2;
   UInt nb_partitions = 8;
   akantu::Mesh mesh(dim);
   mesh.read("quad.msh");
 
-  ElementTypeMapArray<UInt> partition;
+  ElementTypeMapArray<Int> partition;
   UInt nb_component = 1;
 
   GhostType gt = _not_ghost;
-  for (auto & type : mesh.elementTypes(dim, gt)) {
-    UInt nb_element = mesh.getNbElement(type, gt);
+  for (const auto & type : mesh.elementTypes(dim, gt)) {
+    Int nb_element = mesh.getNbElement(type, gt);
     partition.alloc(nb_element, nb_component, type, gt);
-    Array<UInt> & type_partition_reference = partition(type, gt);
-    for (UInt i(0); i < nb_element; ++i) {
+    auto & type_partition_reference = partition(type, gt);
+    for (Int i(0); i < nb_element; ++i) {
       Vector<Real> barycenter(dim);
       Element element{type, i, gt};
       mesh.getBarycenter(element, barycenter);
@@ -79,16 +68,15 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  akantu::MeshPartitionMeshData * partitioner =
-      new akantu::MeshPartitionMeshData(mesh, dim);
+  auto * partitioner = new akantu::MeshPartitionMeshData(mesh, dim);
   partitioner->setPartitionMapping(partition);
   partitioner->partitionate(nb_partitions);
 
-  for (auto & type : mesh.elementTypes(dim, gt)) {
-    UInt nb_element = mesh.getNbElement(type, gt);
-    const Array<UInt> & type_partition_reference = partition(type, gt);
-    const Array<UInt> & type_partition = partitioner->getPartitions()(type, gt);
-    for (UInt i(0); i < nb_element; ++i) {
+  for (const auto & type : mesh.elementTypes(dim, gt)) {
+    auto nb_element = mesh.getNbElement(type, gt);
+    const auto & type_partition_reference = partition(type, gt);
+    const auto & type_partition = partitioner->getPartitions()(type, gt);
+    for (Int i(0); i < nb_element; ++i) {
       if (not(type_partition(i) == type_partition_reference(i))) {
         std::cout << "Incorrect partitioning" << std::endl;
         return 1;
@@ -100,7 +88,7 @@ int main(int argc, char * argv[]) {
   DumperParaview dumper("test-mesh-data-partition");
   dumpers::Field * field1 =
       new dumpers::ElementalField<UInt>(partitioner->getPartitions(), dim);
-  dumpers::Field * field2 = new dumpers::ElementalField<UInt>(partition, dim);
+  dumpers::Field * field2 = new dumpers::ElementalField<Int>(partition, dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field1);
   dumper.registerField("partitions_ref", field2);

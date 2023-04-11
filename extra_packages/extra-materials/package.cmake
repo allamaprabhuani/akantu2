@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   package.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Thu Mar 15 2018
-# @date last modification:  Wed Dec 09 2020
-#
-# @brief  package description for extra materials list
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -32,7 +22,7 @@
 
 package_declare(extra_materials ADVANCED
   DESCRIPTION "Add the extra list of materials in Akantu"
-  DEPENDS lapack)
+  DEPENDS solid_mechanics)
 
 package_declare_sources(extra_materials
   material_extra_includes.hh

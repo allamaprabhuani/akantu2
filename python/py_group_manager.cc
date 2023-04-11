@@ -1,19 +1,8 @@
 /**
- * @file   py_group_manager.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Jun 16 2019
- * @date last modification: Mon Dec 02 2019
- *
- * @brief  pybind11 interface to GroupManager, ElementGroup and NodeGroup
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -59,10 +47,8 @@ void register_group_manager(py::module & mod) {
             return py::make_iterator(self.begin(), self.end());
           },
           py::keep_alive<0, 1>())
-      .def("__contains__",
-           [](const NodeGroup & self, UInt node) {
-             return self.find(node) != UInt(-1);
-           })
+      .def("__contains__", [](const NodeGroup & self,
+                              UInt node) { return self.find(node) != -1; })
       .def("getName", &NodeGroup::getName)
       .def("clear", &NodeGroup::clear)
       .def("empty", &NodeGroup::empty)
@@ -141,8 +127,8 @@ void register_group_manager(py::module & mod) {
            py::return_value_policy::reference)
       .def(
           "createElementGroup",
-          [](GroupManager & self, const std::string & id,
-             UInt spatial_dimension, bool replace_group) -> decltype(auto) {
+          [](GroupManager & self, const std::string & id, Int spatial_dimension,
+             bool replace_group) -> decltype(auto) {
             return self.createElementGroup(id, spatial_dimension,
                                            replace_group);
           },

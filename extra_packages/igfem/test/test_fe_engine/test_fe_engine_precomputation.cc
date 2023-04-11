@@ -1,30 +1,21 @@
 /**
- * @file   test_fe_engine_percompuation.cc
- *
- * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Fri Oct 30 2015
- * @date last modification: Fri Oct 30 2015
- *
- * @brief  test the fe-engine precomputations for IGFEM elements
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -60,7 +51,7 @@ int main(int argc, char * argv[]) {
 /* -------------------------------------------------------------------------- */
 void precompute(const ElementType type) {
 
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
 

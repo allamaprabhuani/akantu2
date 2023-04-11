@@ -1,18 +1,8 @@
 /**
- * @file   test_material_cohesive_linear.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Feb 21 2018
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  Test material cohesive linear
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,7 +24,7 @@
 #include "material_cohesive_linear.hh"
 /* -------------------------------------------------------------------------- */
 
-template <UInt dim>
+template <Int dim>
 struct TestMaterialCohesiveLinear
     : public TestMaterialCohesive<MaterialCohesiveLinear, dim> {
 
@@ -56,27 +45,29 @@ struct TestMaterialCohesiveLinear
   }
 
   void resetInternal() override {
-    normal_opening = Vector<Real>(dim, 0.);
-    tangential_opening = Vector<Real>(dim, 0.);
-    contact_traction = Vector<Real>(dim, 0.);
-    contact_opening = Vector<Real>(dim, 0.);
+    // normal_opening_ = Vector<Real>::Zero(dim);
+    // tangential_opening_ = Vector<Real>::Zero(dim);
+    contact_traction_ = Vector<Real>::Zero(dim);
+    contact_opening_ = Vector<Real>::Zero(dim);
   }
 
   void computeTractions(Array<Real> & openings, const Vector<Real> & normal,
                         Array<Real> & tractions) override {
-    for (auto && data :
+    for (auto && [opening, traction] :
          zip(make_view(openings, dim), make_view(tractions, dim))) {
-      auto & opening = std::get<0>(data);
-      auto & traction = std::get<1>(data);
 
-      this->computeTractionOnQuad(
-          traction, opening, normal, delta_max, this->delta_c_,
-          this->insertion_stress_, this->sigma_c_, normal_opening,
-          tangential_opening, normal_opening_norm, tangential_opening_norm,
-          damage, penetration, contact_traction, contact_opening);
+      auto && args = tuple::make_named_tuple(
+          "normal"_n = normal, "opening"_n = opening, "traction"_n = traction,
+          "contact_opening"_n = contact_opening_,
+          "contact_traction"_n = contact_traction_, "delta_max"_n = delta_max_,
+          "sigma_c"_n = this->sigma_c_, "damage"_n = damage_,
+          "delta_c"_n = this->delta_c_,
+          "insertion_stress"_n = this->insertion_stress_);
 
-      opening += contact_opening;
-      traction += contact_traction;
+      this->computeTractionOnQuad(args);
+
+      opening += contact_opening_;
+      traction += contact_traction_;
     }
   }
 
@@ -108,7 +99,7 @@ struct TestMaterialCohesiveLinear
 
     if (opening.dot(normal) / delta_c < -Math::getTolerance()) {
       ADD_FAILURE() << "This is contact";
-      return Vector<Real>(dim, 0.);
+      return Vector<Real>::Zero(dim);
     }
 
     auto T = sigma_c * (delta_c - delta_) / delta_c / delta_ *
@@ -128,22 +119,22 @@ struct TestMaterialCohesiveLinear
   }
 
 public:
-  Real delta_c_{0};
+  Real delta_c_{0.};
 
-  Real delta_max{0.};
-  Real normal_opening_norm{0};
-  Real tangential_opening_norm{0};
-  Real damage{0};
-  bool penetration{false};
+  Real delta_max_{0.};
+  // Real normal_opening_norm_{0.};
+  // Real tangential_opening_norm{0.};
+  Real damage_{0.};
+  bool penetration_{false};
 
   Real etot{0.};
   Real edis{0.};
 
-  Vector<Real> normal_opening;
-  Vector<Real> tangential_opening;
+  Vector<Real> normal_opening_;
+  Vector<Real> tangential_opening_;
 
-  Vector<Real> contact_traction;
-  Vector<Real> contact_opening;
+  Vector<Real> contact_traction_;
+  Vector<Real> contact_opening_;
 };
 
 template <typename dim_>

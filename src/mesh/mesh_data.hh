@@ -1,19 +1,8 @@
 /**
- * @file   mesh_data.hh
- *
- * @author Dana Christen <dana.christen@gmail.com>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri May 03 2013
- * @date last modification: Fri Dec 28 2018
- *
- * @brief  Stores generic data loaded from the mesh file
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -120,15 +108,15 @@ public:
   Array<T> & getElementalDataArrayAlloc(const ID & data_name,
                                         ElementType elem_type,
                                         GhostType ghost_type = _not_ghost,
-                                        UInt nb_component = 1);
+                                        Int nb_component = 1);
 
   template <typename T>
-  inline UInt getNbComponentTemplated(const ID & name, ElementType el_type,
-                                      GhostType ghost_type) const;
-  inline UInt getNbComponent(const ID & name, ElementType el_type,
-                             GhostType ghost_type = _not_ghost) const;
+  inline Int getNbComponentTemplated(const ID & name, ElementType el_type,
+                                     GhostType ghost_type) const;
+  inline Int getNbComponent(const ID & name, ElementType el_type,
+                            GhostType ghost_type = _not_ghost) const;
 
-  inline UInt getNbComponent(const ID & name) const;
+  inline Int getNbComponent(const ID & name) const;
 
   /// Get an existing elemental data
   template <typename T>
@@ -137,7 +125,7 @@ public:
   ElementTypeMapArray<T> & getElementalData(const ID & name);
 
   template <typename T>
-  Array<T> & getNodalData(const ID & name, UInt nb_components = 1);
+  Array<T> & getNodalData(const ID & name, Int nb_components = 1);
   template <typename T> const Array<T> & getNodalData(const ID & name) const;
 
 private:
@@ -150,8 +138,8 @@ private:
   ///  Register new nodal data (and alloc data) with check if the name is
   ///  new
   template <typename T>
-  Array<T> & registerNodalData(const ID & name, UInt nb_components = 1);
-  inline void registerNodalData(const ID & name, UInt nb_components,
+  Array<T> & registerNodalData(const ID & name, Int nb_components = 1);
+  inline void registerNodalData(const ID & name, Int nb_components,
                                 TypeCode type);
 
   ///  Register new elemental data (add alloc data)
@@ -160,7 +148,7 @@ private:
 
   ///  Register new nodal data (add alloc data)
   template <typename T>
-  Array<T> & allocNodalData(const ID & name, UInt nb_components);
+  Array<T> & allocNodalData(const ID & name, Int nb_components);
 
   friend class SlaveNodeInfoPerProc;
 

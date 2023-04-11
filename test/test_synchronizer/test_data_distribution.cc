@@ -1,18 +1,8 @@
 /**
- * @file   test_data_distribution.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri Dec 28 2018
- *
- * @brief  Test the mesh distribution on creation of a distributed synchonizer
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,11 +47,12 @@ TEST_F(TestSynchronizerFixture, DataDistribution) {
 
       for (auto && data :
            enumerate(make_view(barycenters, spatial_dimension))) {
-        Element element{type, UInt(std::get<0>(data)), ghost_type};
+        Element element{type, std::get<0>(data), ghost_type};
         Vector<Real> barycenter(spatial_dimension);
         this->mesh->getBarycenter(element, barycenter);
 
-        auto dist = (std::get<1>(data) - barycenter).template norm<L_inf>();
+        auto dist =
+            (std::get<1>(data) - barycenter).template lpNorm<Eigen::Infinity>();
         EXPECT_NEAR(dist, 0, 1e-7);
       }
     }
@@ -79,9 +69,9 @@ TEST_F(TestSynchronizerFixture, DataDistributionTags) {
   this->distribute();
 
   for (const auto & type : this->mesh->elementTypes(_all_dimensions)) {
-    auto & tags = this->mesh->getData<UInt>("tag_0", type);
-    Array<UInt>::const_vector_iterator tags_it = tags.begin(1);
-    Array<UInt>::const_vector_iterator tags_end = tags.end(1);
+    auto & tags = this->mesh->getData<Int>("tag_0", type);
+    auto tags_it = tags.begin(1);
+    auto tags_end = tags.end(1);
 
     // The number of tags should match the number of elements on rank"
     EXPECT_EQ(this->mesh->getNbElement(type), tags.size());

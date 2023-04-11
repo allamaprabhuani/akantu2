@@ -1,18 +1,8 @@
 /**
- * @file   ntn_base_contact_inline_impl.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Sun Dec 30 2018
- *
- * @brief  ntn base contact inline functions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,18 +24,15 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-inline UInt NTNBaseContact::getNbData(const Array<Element> & elements,
-                                      const SynchronizationTag & tag) const {
+inline Int NTNBaseContact::getNbData(const Array<Element> & elements,
+                                     const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt spatial_dimension = this->model.getSpatialDimension();
+  Int size = 0;
+  Int spatial_dimension = this->model.getSpatialDimension();
 
-  UInt nb_nodes = 0;
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
+  Int nb_nodes = 0;
+  for (const auto & el : elements) {
     nb_nodes += Mesh::getNbNodesPerElement(el.type);
   }
 

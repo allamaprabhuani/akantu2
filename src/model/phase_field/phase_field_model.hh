@@ -1,18 +1,8 @@
 /**
- * @file   phase_field_model.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Tue Sep 04 2018
- * @date last modification: Wed Jun 23 2021
- *
- * @brief  Model class for Phase Field problem
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +43,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class PhaseFieldModel : public Model,
                         public DataAccessor<Element>,
-                        public DataAccessor<UInt>,
+                        public DataAccessor<Idx>,
                         public BoundaryCondition<PhaseFieldModel> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -62,8 +51,9 @@ class PhaseFieldModel : public Model,
 public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
-  PhaseFieldModel(Mesh & mesh, UInt dim = _all_dimensions,
+  PhaseFieldModel(Mesh & mesh, Int dim = _all_dimensions,
                   const ID & id = "phase_field_model",
+                  std::shared_ptr<DOFManager> dof_manager = nullptr,
                   ModelType model_type = ModelType::_phase_field_model);
 
   ~PhaseFieldModel() override;
@@ -103,14 +93,18 @@ protected:
   /// callback to assemble a lumped Matrix
   void assembleLumpedMatrix(const ID & /*unused*/) override;
 
+  /// function to print the containt of the class
+  void printself(std::ostream & stream, int indent = 0) const override;
+
+protected:
+  /* ------------------------------------------------------------------------ */
+  TimeStepSolverType getDefaultSolverType() const override;
+
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
-
-  /// function to print the containt of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Materials (phase_field_model.cc)                                         */
@@ -133,8 +127,8 @@ protected:
 
   /// set the element_id_by_phasefield and add the elements to the good
   /// phasefields
-  void assignPhaseFieldToElements(
-      const ElementTypeMapArray<UInt> * filter = nullptr);
+  void
+  assignPhaseFieldToElements(const ElementTypeMapArray<Idx> * filter = nullptr);
 
   /* ------------------------------------------------------------------------ */
   /* Methods for static                                                       */
@@ -147,7 +141,7 @@ public:
   virtual void assembleInternalForces();
 
   // compute the internal forces
-  void assembleInternalForces(const GhostType & ghost_type);
+  void assembleInternalForces(GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Methods for dynamic                                                      */
@@ -166,8 +160,8 @@ protected:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -175,18 +169,22 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  UInt getNbData(const Array<UInt> & indexes,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
+  Int getNbData(const Array<Idx> & indexes,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & indexes,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & indexes,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & indexes,
                   const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// Compute dissipated energy for an element type and phasefield index
+  Real getEnergy(ElementType type, Idx index);
+
 public:
   /// return the damage array
   AKANTU_GET_MACRO_DEREF_PTR(Damage, damage);
@@ -220,10 +218,10 @@ public:
   inline decltype(auto) getPhaseFields() const;
 
   /// get a particular phasefield (by phasefield index)
-  inline PhaseField & getPhaseField(UInt mat_index);
+  inline PhaseField & getPhaseField(Idx mat_index);
 
   /// get a particular phasefield (by phasefield index)
-  inline const PhaseField & getPhaseField(UInt mat_index) const;
+  inline const PhaseField & getPhaseField(Idx mat_index) const;
 
   /// get a particular phasefield (by phasefield name)
   inline PhaseField & getPhaseField(const std::string & name);
@@ -232,28 +230,42 @@ public:
   inline const PhaseField & getPhaseField(const std::string & name) const;
 
   /// get a particular phasefield id from is name
-  inline UInt getPhaseFieldIndex(const std::string & name) const;
+  inline Idx getPhaseFieldIndex(const std::string & name) const;
 
   /// give the number of phasefields
-  inline UInt getNbPhaseFields() const { return phasefields.size(); }
+  inline Idx getNbPhaseFields() const { return phasefields.size(); }
 
   /// give the phasefield internal index from its id
-  Int getInternalIndexFromID(const ID & id) const;
+  Idx getInternalIndexFromID(const ID & id) const;
+
+  /**
+   * @brief Returns the total dissipated energy
+   *
+   */
+  Real getEnergy();
+
+  /// Compute dissipated energy for an individual element
+  Real getEnergy(const Element & element) {
+    return getEnergy(element.type, element.element);
+  }
+
+  /// Compute dissipated energy for an element group
+  Real getEnergy(const ID & group_id);
 
   AKANTU_GET_MACRO(PhaseFieldByElement, phasefield_index,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
   AKANTU_GET_MACRO(PhaseFieldLocalNumbering, phasefield_local_numbering,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
 
   /// vectors containing local material element index for each global element
   /// index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PhaseFieldByElement, phasefield_index,
-                                         UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(PhaseFieldByElement, phasefield_index, UInt);
+                                         Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(PhaseFieldByElement, phasefield_index, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PhaseFieldLocalNumbering,
-                                         phasefield_local_numbering, UInt);
+                                         phasefield_local_numbering, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(PhaseFieldLocalNumbering,
-                                   phasefield_local_numbering, UInt);
+                                   phasefield_local_numbering, Idx);
 
   AKANTU_GET_MACRO_NOT_CONST(PhaseFieldSelector, *phasefield_selector,
                              PhaseFieldSelector &);
@@ -280,14 +292,24 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       Int spatial_dimension, ElementKind kind) override;
+
+  //! flatten a given phasefield internal field
+  ElementTypeMapArray<Real> &
+  flattenInternal(const std::string & field_name, ElementKind kind,
+                  GhostType ghost_type = _not_ghost);
+
+  //! inverse operation of the flatten
+  void inflateInternal(const std::string & field_name,
+                       const ElementTypeMapArray<Real> & field,
+                       ElementKind kind, GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// number of iterations
-  UInt n_iter;
+  Int n_iter;
 
   /// damage array
   std::unique_ptr<Array<Real>> damage;
@@ -305,20 +327,27 @@ private:
   std::unique_ptr<Array<Real>> internal_force;
 
   /// Arrays containing the phasefield index for each element
-  ElementTypeMapArray<UInt> phasefield_index;
+  ElementTypeMapArray<Idx> phasefield_index;
 
   /// Arrays containing the position in the element filter of the phasefield
   /// (phasefield's local numbering)
-  ElementTypeMapArray<UInt> phasefield_local_numbering;
+  ElementTypeMapArray<Idx> phasefield_local_numbering;
 
   /// class defining of to choose a phasefield
   std::shared_ptr<PhaseFieldSelector> phasefield_selector;
 
   /// mapping between phasefield name and phasefield internal id
-  std::map<std::string, UInt> phasefields_names_to_id;
+  std::map<std::string, Idx> phasefields_names_to_id;
 
   /// list of used phasefields
   std::vector<std::unique_ptr<PhaseField>> phasefields;
+
+  using flatten_internal_map =
+      std::map<std::pair<std::string, ElementKind>,
+               std::unique_ptr<ElementTypeMapArray<Real>>>;
+
+  /// tells if the phasefields are instantiated
+  flatten_internal_map registered_internals;
 
   /// tells if the phasefield are instantiated
   bool are_phasefields_instantiated{false};
@@ -332,7 +361,7 @@ private:
 #include "parser.hh"
 #include "phasefield.hh"
 
-#include "phase_field_model_inline_impl.cc"
+#include "phase_field_model_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
 
 #endif

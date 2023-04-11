@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
-""" compression.py: Python contact mechanics example"""
-
-__author__ = "Mohit Pundir"
-__credits__ = [
-    "Mohit Pundir <mohit.pundir@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
 __license__ = "LGPLv3"
+
 
 import akantu as aka
 
 
-max_steps = 20000
+MAX_STEPS = 20000
 max_displacement = 1e-2
 
 damping_interval = 10
@@ -62,10 +58,10 @@ coupler.dump()
 
 velocity = solid.getVelocity()
 
-increment = max_displacement / max_steps
+increment = max_displacement / MAX_STEPS
 
 
-for s in range(0, max_steps):
+for s in range(0, MAX_STEPS):
 
     print("Step : ", s)
 

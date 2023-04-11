@@ -1,32 +1,21 @@
 /**
- * @file mesh_igfem_spherical_growing_gel.hh
- *
- * @author Clement Roux-Langlois <clement.roux@epfl.ch>
- *
- * @date creation: Mon Jul 13 2015
- *
- * @brief Computation of mesh intersection with sphere(s) and growing of these
- *        spheres. This class handle the intersectors templated for every
- * element
- *        types.
- *
- *
- * Copyright (©) 2010-2015 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -57,23 +46,23 @@ protected:
 
 class NewIGFEMNodesEvent : public NewNodesEvent {
 public:
-  void setNewNodePerElem(const Array<UInt> & new_node_per_elem) {
+  void setNewNodePerElem(const Array<Idx> & new_node_per_elem) {
     this->new_node_per_elem = &new_node_per_elem;
   }
   void setType(ElementType new_type) { type = new_type; }
   void setGhostType(GhostType new_type) { ghost_type = new_type; }
-  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<UInt> &);
+  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<Idx> &);
   AKANTU_GET_MACRO(ElementType, type, ElementType);
   AKANTU_GET_MACRO(GhostType, ghost_type, GhostType);
 
 protected:
   ElementType type;
   GhostType ghost_type;
-  const Array<UInt> * new_node_per_elem;
+  const Array<Idx> * new_node_per_elem;
 };
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> class MeshIgfemSphericalGrowingGel {
+template <Int dim> class MeshIgfemSphericalGrowingGel {
 // definition of the element list
 #define ELEMENT_LIST (_triangle_3)(_igfem_triangle_4)(_igfem_triangle_5)
 
@@ -165,8 +154,8 @@ public:
   }
 
   /// update node type
-  void updateNodeType(const Array<UInt> & nodes_list,
-                      const Array<UInt> & new_node_per_elem, ElementType type,
+  void updateNodeType(const Array<Idx> & nodes_list,
+                      const Array<Idx> & new_node_per_elem, ElementType type,
                       GhostType ghost_type);
 
 protected:

@@ -1,19 +1,8 @@
 /**
- * @file   custom_non_local_test_material.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri Jun 26 2020
- *
- * @brief  Custom material to test the non local implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,7 +28,7 @@
 
 namespace akantu {
 
-template <UInt dim>
+template <Int dim>
 class CustomNonLocalTestMaterial
     : public MaterialNonLocal<dim, MaterialElastic<dim>> {
 public:
@@ -61,7 +49,8 @@ protected:
   void computeNonLocalStresses(GhostType ghost_type) override {
     AKANTU_DEBUG_IN();
 
-    for (auto & type : this->element_filter.elementTypes(dim, ghost_type)) {
+    for (const auto & type :
+         this->element_filter.elementTypes(dim, ghost_type)) {
       computeNonLocalStress(type, ghost_type);
     }
 

@@ -1,25 +1,8 @@
 /**
- * @file   mesh_utils.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Dana Christen <dana.christen@epfl.ch>
- * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Aug 20 2010
- * @date last modification: Thu Jan 14 2021
- *
- * @brief  All mesh utils necessary for various tasks
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -33,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,14 +36,14 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2Elements(const Mesh & mesh,
                                    CSR<Element> & node_to_elem,
-                                   UInt spatial_dimension) {
+                                   Int spatial_dimension) {
   AKANTU_DEBUG_IN();
   if (spatial_dimension == _all_dimensions) {
     spatial_dimension = mesh.getSpatialDimension();
   }
 
   /// count number of occurrence of each node
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   /// array for the node-element list
   node_to_elem.resizeRows(nb_nodes);
@@ -70,7 +52,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   for_each_element(
       mesh,
       [&](auto && element) {
-        Vector<UInt> conn = mesh.getConnectivity(element);
+        auto conn = mesh.getConnectivity(element);
         for (auto && node : conn) {
           ++node_to_elem.rowOffset(node);
         }
@@ -87,7 +69,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   for_each_element(
       mesh,
       [&](auto && element) {
-        Vector<UInt> conn = mesh.getConnectivity(element);
+        auto conn = mesh.getConnectivity(element);
         for (auto && node : conn) {
           node_to_elem.insertInRow(node, element);
         }
@@ -101,25 +83,25 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
-                                                 CSR<UInt> & node_to_elem,
+                                                 CSR<Idx> & node_to_elem,
                                                  ElementType type,
                                                  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_elements = mesh.getConnectivity(type, ghost_type).size();
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_elements = mesh.getConnectivity(type, ghost_type).size();
 
-  UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
+  auto * conn_val = mesh.getConnectivity(type, ghost_type).data();
 
   /// array for the node-element list
   node_to_elem.resizeRows(nb_nodes);
   node_to_elem.clearRows();
 
   /// count number of occurrence of each node
-  for (UInt el = 0; el < nb_elements; ++el) {
-    UInt el_offset = el * nb_nodes_per_element;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+  for (Int el = 0; el < nb_elements; ++el) {
+    auto el_offset = el * nb_nodes_per_element;
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
       ++node_to_elem.rowOffset(conn_val[el_offset + n]);
     }
   }
@@ -131,9 +113,9 @@ void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
   node_to_elem.beginInsertions();
 
   /// save the element index in the node-element list
-  for (UInt el = 0; el < nb_elements; ++el) {
-    UInt el_offset = el * nb_nodes_per_element;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+  for (Int el = 0; el < nb_elements; ++el) {
+    auto el_offset = el * nb_nodes_per_element;
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
       node_to_elem.insertInRow(conn_val[el_offset + n], el);
     }
   }
@@ -147,7 +129,7 @@ void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
 void MeshUtils::buildFacets(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   for (auto ghost_type : ghost_types) {
     for (const auto & type :
@@ -164,10 +146,10 @@ void MeshUtils::buildFacets(Mesh & mesh) {
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
-                               UInt to_dimension) {
+                               Int to_dimension) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   buildAllFacets(mesh, mesh_facets, spatial_dimension, to_dimension);
 
@@ -175,10 +157,10 @@ void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
 }
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
-                               UInt from_dimension, UInt to_dimension) {
+                               Int from_dimension, Int to_dimension) {
   AKANTU_DEBUG_IN();
 
-  to_dimension = std::max(to_dimension, UInt(0));
+  to_dimension = std::max(to_dimension, Int(0));
 
   AKANTU_DEBUG_ASSERT(
       mesh_facets.isMeshFacets(),
@@ -188,7 +170,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
   buildFacetsDimension(mesh, mesh_facets, false, from_dimension);
 
   /// sort facets and generate sub-facets
-  for (UInt i = from_dimension - 1; i > to_dimension; --i) {
+  for (Int i = from_dimension - 1; i > to_dimension; --i) {
     buildFacetsDimension(mesh_facets, mesh_facets, false, i);
   }
 
@@ -197,7 +179,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
-                                     bool boundary_only, UInt dimension) {
+                                     bool boundary_only, Int dimension) {
   AKANTU_DEBUG_IN();
 
   // save the current parent of mesh_facets and set it temporarly to mesh since
@@ -213,7 +195,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
   mesh_facets.defineMeshParent(mesh);
   MeshAccessor mesh_accessor(mesh_facets);
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   const Array<Real> & mesh_facets_nodes = mesh_facets.getNodes();
   const auto mesh_facets_nodes_it = mesh_facets_nodes.begin(spatial_dimension);
@@ -221,7 +203,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
   CSR<Element> node_to_elem;
   buildNode2Elements(mesh, node_to_elem, dimension);
 
-  Array<UInt> counter;
+  Array<Int> counter;
   std::vector<Element> connected_elements;
 
   NewElementsEvent event(AKANTU_CURRENT_FUNCTION);
@@ -236,8 +218,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
 
       auto facet_types = mesh.getAllFacetTypes(type);
 
-      for (auto && ft : arange(facet_types.size())) {
-        auto facet_type = facet_types(ft);
+      for (auto && facet_type : facet_types) {
         mesh_accessor.getElementToSubelement(facet_type, ghost_type);
         mesh_accessor.getConnectivity(facet_type, ghost_type);
       }
@@ -270,16 +251,16 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
         auto nb_nodes_per_facet = connectivity_facets->getNbComponent();
         // Vector<UInt> facet(nb_nodes_per_facet);
 
-        for (UInt el = 0; el < nb_element; ++el) {
+        for (Int el = 0; el < nb_element; ++el) {
           current_element.element = el;
 
-          auto && facets =
+          Matrix<Idx> facets =
               mesh.getFacetConnectivity(current_element, ft).transpose();
 
-          for (auto facet : facets) {
+          for (auto & facet : facets) {
             // facet = facets(f);
 
-            UInt first_node_nb_elements = node_to_elem.getNbCols(facet(0));
+            auto first_node_nb_elements = node_to_elem.getNbCols(facet(0));
             counter.resize(first_node_nb_elements);
             counter.zero();
 
@@ -299,8 +280,8 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
             // counting the number of elements connected to the facets and
             // taking the minimum element number, because the facet should
             // be inserted just once
-            UInt nb_element_connected_to_facet = 0;
-            Element minimum_el = ElementNull;
+            auto nb_element_connected_to_facet = 0;
+            auto minimum_el = ElementNull;
             connected_elements.clear();
             for (auto && data : enumerate(node_to_elem.getRow(facet(0)))) {
 
@@ -321,7 +302,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
 
             bool full_ghost_facet = false;
 
-            UInt n = 0;
+            Int n = 0;
             while (n < nb_nodes_per_facet and mesh.isPureGhostNode(facet(n))) {
               ++n;
             }
@@ -360,13 +341,13 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
               /// it's ghost
               GhostType gt[2] = {_not_ghost, _not_ghost};
 
-              for (UInt el = 0; el < connected_elements.size(); ++el) {
-                gt[el] = connected_elements[el].ghost_type;
+              for (auto && data : enumerate(connected_elements)) {
+                gt[std::get<0>(data)] = std::get<1>(data).ghost_type;
               }
 
               if ((gt[0] == _not_ghost) xor (gt[1] == _not_ghost)) {
-                UInt prank[2];
-                for (UInt el = 0; el < 2; ++el) {
+                Int prank[2];
+                for (Int el = 0; el < 2; ++el) {
                   prank[el] = synchronizer->getRank(connected_elements[el]);
                 }
 
@@ -389,7 +370,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
             connectivity_facets->push_back(facet);
 
             /// current facet index
-            UInt current_facet = connectivity_facets->size() - 1;
+            auto current_facet = connectivity_facets->size() - 1;
             Element facet_element{facet_type, current_facet, facet_ghost_type};
             event.getList().push_back(facet_element);
             /// loop on every element connected to current facet and
@@ -440,16 +421,16 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::renumberMeshNodes(Mesh & mesh,
-                                  Array<UInt> & local_connectivities,
-                                  UInt nb_local_element, UInt nb_ghost_element,
+                                  Array<Idx> & local_connectivities,
+                                  Int nb_local_element, Int nb_ghost_element,
                                   ElementType type,
-                                  Array<UInt> & old_nodes_numbers) {
+                                  Array<Idx> & old_nodes_numbers) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  std::map<UInt, UInt> renumbering_map;
-  for (UInt i = 0; i < old_nodes_numbers.size(); ++i) {
+  std::map<Idx, Idx> renumbering_map;
+  for (Int i = 0; i < old_nodes_numbers.size(); ++i) {
     renumbering_map[old_nodes_numbers(i)] = i;
   }
 
@@ -472,39 +453,35 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   local_conn.resize(nb_local_element);
 
   if (nb_local_element > 0) {
-    memcpy(local_conn.storage(), local_connectivities.storage(),
-           nb_local_element * nb_nodes_per_element * sizeof(UInt));
+    std::copy_n(local_connectivities.data(),
+                nb_local_element * nb_nodes_per_element, local_conn.data());
   }
 
   auto & ghost_conn = mesh_accessor.getConnectivity(type, _ghost);
   ghost_conn.resize(nb_ghost_element);
 
   if (nb_ghost_element > 0) {
-    std::memcpy(ghost_conn.storage(),
-                local_connectivities.storage() +
+    std::copy_n(local_connectivities.data() +
                     nb_local_element * nb_nodes_per_element,
-                nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
+                nb_ghost_element * nb_nodes_per_element, ghost_conn.data());
   }
-
-  auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
-  ghost_counter.resize(nb_ghost_element, 1);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::renumberNodesInConnectivity(
-    Array<UInt> & list_nodes, UInt nb_nodes,
-    std::map<UInt, UInt> & renumbering_map) {
+    Array<Idx> & list_nodes, Int nb_nodes,
+    std::map<Idx, Idx> & renumbering_map) {
   AKANTU_DEBUG_IN();
 
-  UInt * connectivity = list_nodes.storage();
-  UInt new_node_num = renumbering_map.size();
-  for (UInt n = 0; n < nb_nodes; ++n, ++connectivity) {
-    UInt & node = *connectivity;
+  auto * connectivity = list_nodes.data();
+  auto new_node_num = renumbering_map.size();
+  for (Int n = 0; n < nb_nodes; ++n, ++connectivity) {
+    auto & node = *connectivity;
     auto it = renumbering_map.find(node);
     if (it == renumbering_map.end()) {
-      UInt old_node = node;
+      auto old_node = node;
       renumbering_map[old_node] = new_node_num;
       node = new_node_num;
       ++new_node_num;
@@ -520,33 +497,33 @@ void MeshUtils::renumberNodesInConnectivity(
 void MeshUtils::purifyMesh(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
-  std::map<UInt, UInt> renumbering_map;
+  std::map<Idx, Idx> renumbering_map;
 
   RemovedNodesEvent remove_nodes(mesh, AKANTU_CURRENT_FUNCTION);
-  Array<UInt> & nodes_removed = remove_nodes.getList();
+  auto & nodes_removed = remove_nodes.getList();
 
   for (auto ghost_type : ghost_types) {
     for (auto type :
          mesh.elementTypes(_all_dimensions, ghost_type, _ek_not_defined)) {
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+      auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-      Array<UInt> & connectivity = mesh.getConnectivity(type, ghost_type);
-      UInt nb_element(connectivity.size());
+      auto & connectivity = mesh.getConnectivity(type, ghost_type);
+      auto nb_element(connectivity.size());
 
       renumberNodesInConnectivity(
           connectivity, nb_element * nb_nodes_per_element, renumbering_map);
     }
   }
 
-  Array<UInt> & new_numbering = remove_nodes.getNewNumbering();
-  std::fill(new_numbering.begin(), new_numbering.end(), UInt(-1));
+  auto & new_numbering = remove_nodes.getNewNumbering();
+  std::fill(new_numbering.begin(), new_numbering.end(), Int(-1));
 
   for (auto && pair : renumbering_map) {
     new_numbering(std::get<0>(pair)) = std::get<1>(pair);
   }
 
-  for (UInt i = 0; i < new_numbering.size(); ++i) {
-    if (new_numbering(i) == UInt(-1)) {
+  for (Int i = 0; i < new_numbering.size(); ++i) {
+    if (new_numbering(i) == Int(-1)) {
       nodes_removed.push_back(i);
     }
   }
@@ -559,14 +536,14 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void MeshUtils::flipFacets(
     Mesh & mesh_facets,
-    const ElementTypeMapArray<UInt> & remote_global_connectivities,
+    const ElementTypeMapArray<Idx> & remote_global_connectivities,
     GhostType gt_facet) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh_facets.getSpatialDimension();
+  auto spatial_dimension = mesh_facets.getSpatialDimension();
 
   /// get global connectivity for local mesh
-  ElementTypeMapArray<UInt> local_global_connectivities(
+  ElementTypeMapArray<Idx> local_global_connectivities(
       "local_global_connectivity", mesh_facets.getID());
 
   local_global_connectivities.initialize(
@@ -613,7 +590,7 @@ void MeshUtils::flipFacets(
       }
 
       /// re-arrange connectivity
-      auto conn_tmp = conn;
+      Vector<Idx> conn_tmp = conn;
       auto begin = local_gconn.begin();
       auto end = local_gconn.end();
 
@@ -624,9 +601,8 @@ void MeshUtils::flipFacets(
       for (auto && data : enumerate(remote_gconn)) {
         auto it = std::find(begin, end, std::get<1>(data));
         AKANTU_DEBUG_ASSERT(it != end, "Node not found");
-        UInt new_position = it - begin;
+        auto new_position = it - begin;
         conn(new_position) = conn_tmp(std::get<0>(data));
-        ;
       }
       // std::transform(remote_gconn.begin(), remote_gconn.end(), conn.begin(),
       //                [&](auto && gnode) {
@@ -641,8 +617,8 @@ void MeshUtils::flipFacets(
         /// find first node
         auto it = std::find(begin, remote_gconn.end(), local_gconn(0));
 
-        UInt n;
-        UInt start = it - begin;
+        auto start = it - begin;
+        decltype(start) n;
         /// count how many nodes in the received connectivity follow
         /// the same order of those in the local connectivity
         for (n = 1; n < nb_nodes_per_P1_facet &&
@@ -684,7 +660,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
     return;
   }
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   ElementTypeMapArray<Real> barycenters("barycenter_tmp", mesh.getID());
   barycenters.initialize(mesh, _nb_component = spatial_dimension,
                          _spatial_dimension = _all_dimensions);
@@ -695,13 +671,13 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
     for (const auto & type : mesh.elementTypes(_all_dimensions, ghost_type)) {
       element.type = type;
 
-      UInt nb_element = mesh.getNbElement(type, ghost_type);
-      Array<Real> & barycenters_arr = barycenters(type, ghost_type);
+      auto nb_element = mesh.getNbElement(type, ghost_type);
+      auto & barycenters_arr = barycenters(type, ghost_type);
       barycenters_arr.resize(nb_element);
       auto bary = barycenters_arr.begin(spatial_dimension);
       auto bary_end = barycenters_arr.end(spatial_dimension);
 
-      for (UInt el = 0; bary != bary_end; ++bary, ++el) {
+      for (Int el = 0; bary != bary_end; ++bary, ++el) {
         element.element = el;
         mesh.getBarycenter(element, *bary);
       }
@@ -744,14 +720,13 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
             mesh_accessor.getElementToSubelement(type, ghost_type);
 
         const auto & connectivity = mesh.getConnectivity(type, ghost_type);
-        // element_to_subelement.resize(connectivity.size());
 
         for (auto && data : enumerate(
-                 make_view(connectivity, mesh.getNbNodesPerElement(type)))) {
+                 make_view(connectivity, connectivity.getNbComponent()))) {
           const auto & facet = std::get<1>(data);
           facet_element.element = std::get<0>(data);
 
-          std::map<Element, UInt> element_seen_counter;
+          std::map<Element, Int> element_seen_counter;
           auto nb_nodes_per_facet =
               mesh.getNbNodesPerElement(Mesh::getP1ElementType(type));
 
@@ -784,7 +759,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
 
           // add the element as sub-element to the connected elements
           for (auto & connected_element : connected_elements) {
-            Vector<Element> subelements_to_element =
+            auto subelements_to_element =
                 mesh.getSubelementToElement(connected_element);
 
             // find the position where to insert the element

@@ -1,20 +1,8 @@
 /**
- * @file   shape_structural.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Feb 15 2011
- * @date last modification: Fri May 14 2021
- *
- * @brief  shape class for element with different set of shapes functions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +33,7 @@ template <ElementKind kind> class ShapeStructural : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   // Ctors/Dtors should be explicitely implemented for _ek_structural
 public:
-  ShapeStructural(Mesh & mesh, UInt spatial_dimension,
+  ShapeStructural(Mesh & mesh, Int spatial_dimension,
                   const ID & id = "shape_structural");
   ~ShapeStructural() override;
 
@@ -68,7 +55,7 @@ private:
   void computeShapesOnIntegrationPointsInternal(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter,
+      const Array<Idx> & filter_elements = empty_filter,
       bool mass = false) const;
 
 public:
@@ -77,7 +64,7 @@ public:
   void computeShapesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Idx> & filter_elements = empty_filter) const {
     this->template computeShapesOnIntegrationPointsInternal<type>(
         nodes, integration_points, shapes, ghost_type, filter_elements, false);
   }
@@ -86,7 +73,7 @@ public:
   void computeShapesMassOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const {
+      const Array<Idx> & filter_elements = empty_filter) const {
     this->template computeShapesOnIntegrationPointsInternal<type>(
         nodes, integration_points, shapes, ghost_type, filter_elements, true);
   }
@@ -116,38 +103,40 @@ public:
   /// interpolate nodal values on the integration points
   template <ElementType type>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & uq, UInt nb_dof,
+      const Array<Real> & u, Array<Real> & uq, Int nb_dof,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>
   void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq, UInt nb_dof,
+      const Array<Real> & u, Array<Real> & nablauq, Int nb_dof,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
-  template <ElementType type>
-  void interpolate(const Vector<Real> & /*real_coords*/, UInt /*elem*/,
-                   const Matrix<Real> & /*nodal_values*/,
-                   Vector<Real> & /*interpolated*/,
+  template <ElementType type, typename D1, typename D2, typename D3,
+            aka::enable_if_t<aka::are_vectors<D1, D3>::value> * = nullptr>
+  void interpolate(const Eigen::MatrixBase<D1> & /*real_coords*/, Idx /*elem*/,
+                   const Eigen::MatrixBase<D2> & /*nodal_values*/,
+                   Eigen::MatrixBase<D3> & /*interpolated*/,
                    GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the shapes on a provided point
-  template <ElementType type>
-  void computeShapes(const Vector<Real> & /*real_coords*/, UInt /*elem*/,
-                     Vector<Real> & /*shapes*/,
+  template <ElementType type, typename D1, typename D2,
+            aka::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+  void computeShapes(const Eigen::MatrixBase<D1> & /*real_coords*/,
+                     Idx /*elem*/, Eigen::MatrixBase<D2> & /*shapes*/,
                      GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the shape derivatives on a provided point
-  template <ElementType type>
-  void computeShapeDerivatives(const Matrix<Real> & /*real_coords*/,
-                               UInt /*elem*/, Tensor3<Real> & /*shapes*/,
+  template <ElementType type, typename D1>
+  void computeShapeDerivatives(const Eigen::MatrixBase<D1> & /*real_coords*/,
+                               Idx /*elem*/, Tensor3Base<Real> & /*shapes*/,
                                GhostType /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
@@ -163,30 +152,29 @@ public:
   template <ElementType type>
   void computeBtD(const Array<Real> & /*Ds*/, Array<Real> & /*BtDs*/,
                   GhostType /*ghost_type*/,
-                  const Array<UInt> & /*filter_elements*/) const {
+                  const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   template <ElementType type>
   void computeBtDB(const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/,
-                   UInt /*order_d*/, GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
+                   Int /*order_d*/, GhostType /*ghost_type*/,
+                   const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   template <ElementType type>
   void computeNtbN(const Array<Real> & /*bs*/, Array<Real> & /*NtbNs*/,
                    GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
+                   const Array<Idx> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void
-  computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-             GhostType /*ghost_type*/,
-             const Array<UInt> & /*filter_elements*/ = empty_filter) const {
+  void computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
+                  GhostType /*ghost_type*/,
+                  const Array<Idx> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }
 

@@ -1,18 +1,8 @@
 /**
- * @file   coupler_solid_phasefield.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Mon Jun 24 2019
- * @date last modification: Fri Apr 02 2021
- *
- * @brief  class for coupling of solid mechancis and phase model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,13 +30,10 @@
 
 namespace akantu {
 
-CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
+CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
                                                const ID & id,
                                                const ModelType model_type)
     : Model(mesh, model_type, dim, id) {
-
-  AKANTU_DEBUG_IN();
-
   this->registerFEEngineObject<MyFEEngineType>("CouplerSolidPhaseField", mesh,
                                                Model::spatial_dimension);
 
@@ -69,8 +55,6 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, UInt dim,
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_strain);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +62,6 @@ CouplerSolidPhaseField::~CouplerSolidPhaseField() = default;
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::initFullImpl(const ModelOptions & options) {
-
   Model::initFullImpl(options);
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
@@ -88,7 +71,6 @@ void CouplerSolidPhaseField::initFullImpl(const ModelOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::initModel() {
-
   getFEEngine().initShapeFunctions(_not_ghost);
   getFEEngine().initShapeFunctions(_ghost);
 }
@@ -114,7 +96,6 @@ void CouplerSolidPhaseField::initSolver(
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 CouplerSolidPhaseField::getDefaultSolverID(const AnalysisMethod & method) {
-
   switch (method) {
   case _explicit_lumped_mass: {
     return std::make_tuple("explicit_lumped",
@@ -341,8 +322,7 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 }
 
 /* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::computeDamageOnQuadPoints(
-    const GhostType & ghost_type) {
+void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
 
@@ -412,50 +392,33 @@ void CouplerSolidPhaseField::computeDamageOnQuadPoints(
 }
 
 /* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::computeStrainOnQuadPoints(
-    const GhostType & ghost_type) {
+void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  auto & gradu_internal =
+      solid->flattenInternal("grad_u", _ek_regular, ghost_type);
+
   auto & mesh = solid->getMesh();
+  auto & fem = solid->getFEEngine();
 
-  auto nb_materials = solid->getNbMaterials();
-  auto nb_phasefields = phase->getNbPhaseFields();
+  ElementTypeMapArray<Real> strain_tmp("temporary strain on quads");
+  strain_tmp.initialize(
+      fem, _nb_component = spatial_dimension * spatial_dimension,
+      _spatial_dimension = spatial_dimension, _ghost_type = ghost_type);
 
-  AKANTU_DEBUG_ASSERT(
-      nb_phasefields == nb_materials,
-      "The number of phasefields and materials should be equal");
-
-  for (auto index : arange(nb_materials)) {
-    auto & material = solid->getMaterial(index);
-
-    for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase->getPhaseField(index2);
-
-      if (phasefield.getName() == material.getName()) {
-
-        auto & strain_on_qpoints = phasefield.getStrain();
-        const auto & gradu_on_qpoints = material.getGradU();
-
-        for (const auto & type :
-             mesh.elementTypes(spatial_dimension, ghost_type)) {
-          auto & strain_on_qpoints_vect = strain_on_qpoints(type, ghost_type);
-          const auto & gradu_on_qpoints_vect =
-              gradu_on_qpoints(type, ghost_type);
-          for (auto && values :
-               zip(make_view(strain_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension),
-                   make_view(gradu_on_qpoints_vect, spatial_dimension,
-                             spatial_dimension))) {
-            auto & strain = std::get<0>(values);
-            const auto & grad_u = std::get<1>(values);
-            gradUToEpsilon(grad_u, strain);
-          }
-        }
-
-        break;
-      }
+  for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
+    auto & strain_vect = strain_tmp(type, ghost_type);
+    const auto & gradu_vect = gradu_internal(type, ghost_type);
+    for (auto && values :
+         zip(make_view(gradu_vect, spatial_dimension, spatial_dimension),
+             make_view(strain_vect, spatial_dimension, spatial_dimension))) {
+      const auto & grad_u = std::get<0>(values);
+      auto & strain = std::get<1>(values);
+      strain = (grad_u + grad_u.transpose()) / 2.;
     }
   }
+
+  phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -465,22 +428,26 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
                                    const ID & phase_solver_id) {
 
   solid->solveStep(solid_solver_id);
+
+  solid->synchronize(SynchronizationTag::_smm_gradu);
+
+  AKANTU_DEBUG_INFO("exchange strain for local elements");
   this->computeStrainOnQuadPoints(_not_ghost);
 
+  AKANTU_DEBUG_INFO("exchange strain for ghost elements");
+  this->computeStrainOnQuadPoints(_ghost);
+
   phase->solveStep(phase_solver_id);
+
+  phase->synchronize(SynchronizationTag::_pfm_damage);
+
+  AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
 
-  solid->assembleInternalForces();
-}
+  AKANTU_DEBUG_INFO("exchange damage for ghost elements");
+  this->computeDamageOnQuadPoints(_ghost);
 
-/* ------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::gradUToEpsilon(const Matrix<Real> & grad_u,
-                                            Matrix<Real> & epsilon) {
-  for (UInt i = 0; i < Model::spatial_dimension; ++i) {
-    for (UInt j = 0; j < Model::spatial_dimension; ++j) {
-      epsilon(i, j) = 0.5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
+  solid->assembleInternalForces();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -490,15 +457,14 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
                                               Array<Real> & d_old) {
 
   const Array<bool> & blocked_dofs = solid->getBlockedDOFs();
-  UInt nb_degree_of_freedom = u_new.size();
+  Int nb_degree_of_freedom = u_new.size();
 
   auto u_n_it = u_new.begin();
   auto u_o_it = u_old.begin();
   auto bld_it = blocked_dofs.begin();
 
   Real norm = 0;
-  for (UInt n = 0; n < nb_degree_of_freedom;
-       ++n, ++u_n_it, ++u_o_it, ++bld_it) {
+  for (Int n = 0; n < nb_degree_of_freedom; ++n, ++u_n_it, ++u_o_it, ++bld_it) {
     if ((!*bld_it)) {
       norm += (*u_n_it - *u_o_it) * (*u_n_it - *u_o_it);
     }
@@ -511,7 +477,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
   nb_degree_of_freedom = d_new.size();
 
   Real norm2 = 0;
-  for (UInt i = 0; i < nb_degree_of_freedom; ++i) {
+  for (Int i = 0; i < nb_degree_of_freedom; ++i) {
     norm2 += (*d_n_it - *d_o_it);
   }
 
@@ -526,7 +492,7 @@ bool CouplerSolidPhaseField::checkConvergence(Array<Real> & u_new,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidPhaseField::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
+    bool padding_flag, Idx spatial_dimension, ElementKind kind) {
 
   return solid->createElementalField(field_name, group_name, padding_flag,
                                      spatial_dimension, kind);
@@ -566,14 +532,14 @@ void CouplerSolidPhaseField::dump(const std::string & dumper_name) {
 }
 
 /* ------------------------------------------------------------------------*/
-void CouplerSolidPhaseField::dump(const std::string & dumper_name, UInt step) {
+void CouplerSolidPhaseField::dump(const std::string & dumper_name, Int step) {
   solid->onDump();
   mesh.dump(dumper_name, step);
 }
 
 /* ----------------------------------------------------------------------- */
 void CouplerSolidPhaseField::dump(const std::string & dumper_name, Real time,
-                                  UInt step) {
+                                  Int step) {
   solid->onDump();
   mesh.dump(dumper_name, time, step);
 }
@@ -585,13 +551,13 @@ void CouplerSolidPhaseField::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(UInt step) {
+void CouplerSolidPhaseField::dump(Int step) {
   solid->onDump();
   mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(Real time, UInt step) {
+void CouplerSolidPhaseField::dump(Real time, Int step) {
   solid->onDump();
   mesh.dump(time, step);
 }

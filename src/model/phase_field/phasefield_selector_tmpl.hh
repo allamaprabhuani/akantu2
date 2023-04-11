@@ -1,18 +1,8 @@
 /**
- * @file   phasefield_selector_tmpl.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Jun 19 2020
- *
- * @brief  Implementation of the template PhaseFieldSelector
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,7 +29,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt ElementDataPhaseFieldSelector<std::string>::operator()(
+inline Idx ElementDataPhaseFieldSelector<std::string>::operator()(
     const Element & element) {
   try {
     std::string material_name = this->elementData(element);
@@ -52,8 +41,8 @@ inline UInt ElementDataPhaseFieldSelector<std::string>::operator()(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
-ElementDataPhaseFieldSelector<UInt>::operator()(const Element & element) {
+inline Idx
+ElementDataPhaseFieldSelector<Idx>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -64,7 +53,7 @@ ElementDataPhaseFieldSelector<UInt>::operator()(const Element & element) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 MeshDataPhaseFieldSelector<T>::MeshDataPhaseFieldSelector(
-    const std::string & name, const PhaseFieldModel & model, UInt first_index)
+    const std::string & name, const PhaseFieldModel & model, Idx first_index)
     : ElementDataPhaseFieldSelector<T>(model.getMesh().getData<T>(name), model,
                                        first_index) {}
 

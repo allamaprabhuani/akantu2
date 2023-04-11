@@ -1,20 +1,8 @@
 /**
- * @file   remove_damaged_with_damage_rate_weight_function.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Removed damaged weight function for non local materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "base_weight_function.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_REMOVE_DAMAGED_WITH_DAMAGE_RATE_WEIGHT_FUNCTION_HH_
 #define AKANTU_REMOVE_DAMAGED_WITH_DAMAGE_RATE_WEIGHT_FUNCTION_HH_
@@ -61,9 +49,9 @@ public:
   /* Base Weight Function inherited methods */
   /* --------------------------------------------------------------------------
    */
-  inline Real operator()(Real r,
-                         const __attribute__((unused)) IntegrationPoint & q1,
-                         const IntegrationPoint & q2);
+  inline auto operator()(Real r,
+                         const IntegrationPoint & q1,
+                         const IntegrationPoint & q2) -> Real;
 
   inline void init() override;
 

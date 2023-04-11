@@ -1,3 +1,51 @@
+## Version 5.0 (03-28-2023)
+
+### Changed 
+
+- C++ standard 17 is now accepted
+- `Vector<T>` and `Matrix<T>` changed from internal types to Eigen::Matrix<T>
+- `VectorProxy<T>` and `MatrixProxy<T>` are now `Eigen::Map<Eigen::Matrix<T>>`
+  This introduces a potential bug if codes like the following example where used:
+  ```
+  for(auto && v_ : make_view(vectors, dim)) {
+    Vector<Real> v(v_);
+    ...
+  }
+  ```
+  With the new version the temporary vector `v` will be a deep copy of `v_`
+  instead of a shallow copy as in the previous version
+  
+### Added
+
+- `make_view` as a static dimension version for vectors and matrices
+  `make_view<size>(vectors)` and `make_view<rows, cols>(matrices)`
+- `zip` iterators can be named, in which case the
+  return tuple is a `named_tuple`.
+  ```
+  for(auto && t : zip("a"_n = as, "b"_n = bs)) {
+    auto && a = t["a"_n];
+    auto && b = t["b"_n];
+    ...
+  }
+  ```
+  
+### Deprecated
+
+- `begin_reinterpret` and `end_reinterpret` are error prone and deprecated in favor of `make_view`
+- `storage()` members are deprecated in favor of `data()` in order to be compatible with the STL
+- `get(.*)Energy(ElementType type, Idx index)` are deprecated in favor of `get(.*)Energy(const Element & element)`
+  elements can be implicitly created, `getEnergy({type, index, _not_ghost})`
+- `begin_(node|element)_group` and `end_(node|element)_group` are replaced by `iterate(Node|Element)Groups` 
+- In the python interface:
+  - the global `setDebugLevel`, `getDebugLevel` and `printBacktrace` were moved in the sub-module `debug`
+  - the call to `finalize` is not needed
+  - `applyDirichketBC` was replaced by `applyBC`
+
+### Deleted
+
+- `getForce`, `firstType()`, `lastType()` that where deprecated in version 4.0
+
+
 ## Version 4.0 (09-21-2021)
 
 ### Added
@@ -10,7 +58,7 @@
 ### Changed
 
 - transferred CI from jenkinsfile to gitlab CI/CD
-- API changes to make container mode STL compatible
+- API changes to make container more STL compatible
   - clear does not set to 0 anymore but empties containers
   - empty does not empty containers but tells if the container is empty
   - zero replace the old empty and set containers to 0
@@ -48,7 +96,7 @@
 - Simplification of the parallel simulation with the mesh.distribute() function
 - Switch from C++ standard 2003 to 2014 Example of changes implied by this:
 
-   for (UInt g = _not_ghost; g <= _ghost; ++g) {
+   for (Int g = _not_ghost; g <= _ghost; ++g) {
       GhostType gt = (GhostType)g;
       Mesh::type_iterator it = this->mesh.firstType(spatial_dimension, gt);
       Mesh::type_iterator end = this->mesh.lastType(spatial_dimension, gt);

@@ -91,7 +91,7 @@ nodes is set to :math:`0.1` and :math:`1`, respectively::
     auto & disp = model.getDisplacement();
     auto & velo = model.getVelocity();
 
-    for (UInt node = 0; node < mesh.getNbNodes(); ++node) {
+    for (Int node = 0; node < mesh.getNbNodes(); ++node) {
         disp(node, 0) = 0.1;
         velo(node, 1) = 1.;
     }
@@ -152,7 +152,7 @@ The detail codes are shown as follows
 
    UInt nb_nodes = mesh.getNbNodes();
 
-   for (UInt node = 0; node < nb_nodes; ++node) {
+   for (Int node = 0; node < nb_nodes; ++node) {
      if(Math::are_float_equal(pos(node, _x), 0)) {
        blocked(node, _x) = true; // block dof in x-direction
        blocked(node, _y) = true; // block dof in y-direction
@@ -701,7 +701,7 @@ loop::
    solver.set("threshold", 1e-12);
    solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
-   for (UInt s = 1; time <max_time; ++s, time += time_step) {
+   for (Int s = 1; time <max_time; ++s, time += time_step) {
        model.solveStep();
    }
 
@@ -820,7 +820,7 @@ Newmark:math:`-\beta` equations with :math:`\beta=1/2` and :math:`\alpha=0`. In 
 these computations at each time step are invoked by calling the
 function ``solveStep``::
 
-   for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
+   for (Int s = 1; (s-1)*applied_time_step < total_time; ++s) {
      model.solveStep();
    }
 

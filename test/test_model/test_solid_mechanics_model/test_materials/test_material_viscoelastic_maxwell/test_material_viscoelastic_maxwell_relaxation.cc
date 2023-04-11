@@ -1,18 +1,8 @@
 /**
- * @file   test_material_viscoelastic_maxwell_relaxation.cc
- *
- * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- *
- * @date creation: Tue Nov 20 2018
- * @date last modification:  Sun Dec 30 2018
- *
- * @brief  test of the viscoelastic material: relaxation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +41,7 @@ int main(int argc, char * argv[]) {
   // sim data
   Real eps = 0.1;
 
-  const UInt dim = 2;
+  const Int dim = 2;
   Real sim_time = 100.;
   Real T = 10.;
   Real tolerance = 1e-6;
@@ -105,7 +94,7 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for (UInt s = 0; s <= max_steps; ++s) {
+  for (Int s = 0; s <= max_steps; ++s) {
 
     std::cout << "Time Step = " << time_step << "s" << std::endl;
     std::cout << "Time = " << time << std::endl;
@@ -118,7 +107,7 @@ int main(int argc, char * argv[]) {
       epsilon = eps;
     }
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (Math::are_float_equal(coordinate(n, 0), 0.0)) {
         displacement(n, 0) = 0;
         blocked(n, 0) = true;

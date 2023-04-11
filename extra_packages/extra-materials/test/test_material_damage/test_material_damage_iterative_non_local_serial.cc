@@ -1,27 +1,21 @@
 /**
- * @file   test_material_damage_iterative_non_local_serial.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief  test the material damage iterative non local in serial
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -39,7 +33,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_non_local.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   /// read the mesh and partion it
   Mesh mesh(spatial_dimension);
@@ -173,8 +167,8 @@ int main(int argc, char * argv[]) {
   Vector<Real> q2(spatial_dimension);
   q1 = coord_it[34];
   q2 = coord_it[38];
-  for (UInt e = 0; e < nb_elements; ++e) {
-    for (UInt q = 0; q < nb_quads; ++q, ++coord_it, ++grad_u_nl_it) {
+  for (Int e = 0; e < nb_elements; ++e) {
+    for (Int q = 0; q < nb_quads; ++q, ++coord_it, ++grad_u_nl_it) {
       diff_matrix = (*grad_u_nl_it) - const_grad_u;
       if ((q1.distance(*coord_it) <= (nl_radius + Math::getTolerance())) ||
           (q2.distance(*coord_it) <= (nl_radius + Math::getTolerance()))) {
@@ -202,8 +196,8 @@ int main(int argc, char * argv[]) {
       material.getInternal<Real>("equivalent_stress")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator eq_stress_it = eq_stress.begin();
   counter = 0;
-  for (UInt e = 0; e < nb_elements; ++e) {
-    for (UInt q = 0; q < nb_quads;
+  for (Int e = 0; e < nb_elements; ++e) {
+    for (Int q = 0; q < nb_quads;
          ++q, ++coord_it, ++grad_u_nl_it, ++eq_stress_it) {
       if (counter == 34 || counter == 38)
         continue;

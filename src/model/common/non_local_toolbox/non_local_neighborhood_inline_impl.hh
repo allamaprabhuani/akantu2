@@ -1,19 +1,8 @@
 /**
- * @file   non_local_neighborhood_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Oct 06 2015
- * @date last modification: Sun Dec 30 2018
- *
- * @brief  Implementation of inline functions of non-local neighborhood class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,11 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "non_local_neighborhood.hh"
+//#include "non_local_neighborhood.hh"
+#include "non_local_manager.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_INLINE_IMPL_HH_
@@ -40,12 +29,12 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class WeightFunction>
-inline UInt NonLocalNeighborhood<WeightFunction>::getNbData(
+inline Int NonLocalNeighborhood<WeightFunction>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
-  UInt size = 0;
+  Int size = 0;
 
   if (tag == SynchronizationTag::_mnl_for_average) {
-    for (auto & variable_id : non_local_variables) {
+    for (auto && variable_id : non_local_variables) {
       size += this->non_local_manager.getNbData(elements, variable_id);
     }
   }
@@ -61,7 +50,7 @@ inline void NonLocalNeighborhood<WeightFunction>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_mnl_for_average) {
-    for (auto & variable_id : non_local_variables) {
+    for (auto && variable_id : non_local_variables) {
       this->non_local_manager.packData(buffer, elements, variable_id);
     }
   }

@@ -1,19 +1,8 @@
 /**
- * @file   base_weight_function.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Mon Aug 24 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Base weight function for non local materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,13 +16,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_factory.hh"
 #include "data_accessor.hh"
 #include "model.hh"
 #include "non_local_manager.hh"
+#include "non_local_neighborhood.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -55,7 +45,7 @@ public:
       : Parsable(ParserType::_weight_function, "weight_function:" + type),
         manager(manager), type(type),
         spatial_dimension(manager.getModel().getMesh().getSpatialDimension()) {
-    this->registerParam("update_rate", update_rate, UInt(1), _pat_parsmod,
+    this->registerParam("update_rate", update_rate, Int(1), _pat_parsmod,
                         "Update frequency");
   }
 
@@ -100,15 +90,15 @@ public:
   /// get the radius
   Real getRadius() const { return R; }
   /// get the update rate
-  UInt getUpdateRate() const { return update_rate; }
+  Int getUpdateRate() const { return update_rate; }
 
 public:
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 
-  UInt getNbData(const Array<Element> & /*elements*/,
-                 const SynchronizationTag & /*tag*/) const override {
+  Int getNbData(const Array<Element> &,
+                const SynchronizationTag &) const override {
     return 0;
   }
 
@@ -140,13 +130,13 @@ protected:
   Real R2;
 
   /// the update rate
-  UInt update_rate;
+  Int update_rate;
 
   /// name of the type of weight function
   const std::string type;
 
   /// the spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 inline std::ostream & operator<<(std::ostream & stream,
@@ -154,6 +144,20 @@ inline std::ostream & operator<<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
+
+using NonLocalNeighborhoodFactory =
+    Factory<NonLocalNeighborhoodBase, ID, ID, NonLocalManager &,
+            const ElementTypeMapReal &, const ID &>;
+
+#define INSTANTIATE_NL_NEIGHBORHOOD(id, weight_fun_name)                       \
+  static bool weigth_is_alocated_##id [[gnu::unused]] =                        \
+      NonLocalNeighborhoodFactory::getInstance().registerAllocator(            \
+          #id,                                                                 \
+          [](const ID & /*name*/, NonLocalManager & non_local_manager,         \
+             const ElementTypeMapReal & quad_point_positions, const ID & id) { \
+            return std::make_unique<NonLocalNeighborhood<weight_fun_name>>(    \
+                non_local_manager, quad_point_positions, id);                  \
+          })
 
 } // namespace akantu
 

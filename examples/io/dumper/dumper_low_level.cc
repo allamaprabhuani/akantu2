@@ -1,19 +1,8 @@
 /**
- * @file   dumper_low_level.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Aug 17 2015
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Example using the low level dumper interface
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,12 +42,12 @@ int main(int argc, char * argv[]) {
 
   // To start let us load the swiss train mesh and its mesh data information.
   // We aknowledge here a weel-known swiss industry for mesh donation.
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("swiss_train.msh");
 
   Array<Real> & nodes = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
 
   /* swiss_train.msh has the following physical groups that can be viewed with
     GMSH:
@@ -86,13 +74,13 @@ int main(int argc, char * argv[]) {
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<UInt> & lnode_1 =
+  const Array<Idx> & lnode_1 =
       (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
-  const Array<UInt> & lnode_2 =
+  const Array<Idx> & lnode_2 =
       (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
-  const Array<UInt> & rnode_1 =
+  const Array<Idx> & rnode_1 =
       (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
-  const Array<UInt> & rnode_2 =
+  const Array<Idx> & rnode_2 =
       (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
   /* Note this Array is constructed with three components in order to warp train
@@ -101,7 +89,7 @@ int main(int argc, char * argv[]) {
   Array<Real> displacement(nb_nodes, 3);
 
   // ElementalField are constructed with an ElementTypeMapArray.
-  ElementTypeMapArray<UInt> colour;
+  ElementTypeMapArray<Int> colour;
   colour.initialize(mesh, _with_nb_element = true);
 
   /* ------------------------------------------------------------------------ */
@@ -134,7 +122,7 @@ int main(int argc, char * argv[]) {
 
   // NodalField are constructed with an Array.
   auto displ_field = std::make_shared<dumpers::NodalField<Real>>(displacement);
-  auto colour_field = std::make_shared<dumpers::ElementalField<UInt>>(colour);
+  auto colour_field = std::make_shared<dumpers::ElementalField<Int>>(colour);
 
   // Register the freshly created fields to our dumper.
   dumper.registerField("displacement", displ_field);
@@ -148,11 +136,11 @@ int main(int argc, char * argv[]) {
   wheels.registerField("displacement", displ_field_wheel);
 
   // For the ElementalField, an ElementTypeMapArrayFilter has to be created.
-  ElementTypeMapArrayFilter<UInt> filtered_colour(
-      colour, wheels_elements.getElements());
+  ElementTypeMapArrayFilter<Int> filtered_colour(colour,
+                                                 wheels_elements.getElements());
 
   auto colour_field_wheel =
-      std::make_shared<dumpers::ElementalField<UInt, Vector, true>>(
+      std::make_shared<dumpers::ElementalField<Int, Vector<Int>, true>>(
           filtered_colour);
   wheels.registerField("colour", colour_field_wheel);
 
@@ -166,18 +154,18 @@ int main(int argc, char * argv[]) {
   // Apply displacement and wheels rotation.
   Real tot_displacement = 50.;
   Real radius = 1.;
-  UInt nb_steps = 100;
+  Int nb_steps = 100;
   Real theta = tot_displacement / radius;
 
   Vector<Real> l_center(3);
   Vector<Real> r_center(3);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
     l_center(i) = nodes(14, i);
     r_center(i) = nodes(2, i);
   }
 
-  for (UInt i = 0; i < nb_steps; ++i) {
+  for (Int i = 0; i < nb_steps; ++i) {
     displacement.zero();
 
     Real angle = (Real)i / (Real)nb_steps * theta;
@@ -186,7 +174,7 @@ int main(int argc, char * argv[]) {
     applyRotation(r_center, angle, nodes, displacement, rnode_1);
     applyRotation(r_center, angle, nodes, displacement, rnode_2);
 
-    for (UInt j = 0; j < nb_nodes; ++j) {
+    for (Int j = 0; j < nb_nodes; ++j) {
       displacement(j, 0) += (Real)i / (Real)nb_steps * tot_displacement;
     }
     // Output results after each moving steps for main and wheel dumpers.

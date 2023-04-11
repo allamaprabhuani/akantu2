@@ -7,7 +7,9 @@ checks:
   structure:
     enabled: true
     exclude_patterns:
+      - "cmake/"
       - "test/"
+      - "examples/"
 
 plugins:
   editorconfig:
@@ -17,16 +19,27 @@ plugins:
     exclude_patterns:
       - ".clangd/"
       - ".cache/"
+  pylint:
+    enabled: false
+    exclude_patterns:
+      - "cmake"
+      - "doc"
+      - "test/test_fe_engine/py_engine/py_engine.py"
+      - "test/ci"
+    PYTHONPATH:
+      - python
+      - build/python
   pep8:
     enabled: true
     exclude_patterns:
       - "test/test_fe_engine/py_engine/py_engine.py"
+      - "test/ci/scripts"
   cppcheck:
     enabled: false
     project: build/compile_commands.json
     language: c++
     check: warning, style, performance
-    stds: [c++14]
+    stds: [c++17]
     exclude_patterns:
       - "python/"
 
@@ -35,5 +48,5 @@ plugins:
     exclude_patterns:
       - "doc/"
 exclude_patterns:
-- "third-party/"
-- "build*/"
+  - "third-party/"
+  - "build*/"

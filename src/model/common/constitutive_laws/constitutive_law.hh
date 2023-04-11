@@ -46,18 +46,18 @@ namespace akantu {
 
 class ConstitutiveLawInternalHandler {
 public:
-  ConstitutiveLawInternalHandler(const ID & id, UInt dim,
+  ConstitutiveLawInternalHandler(const ID & id, Int dim,
                                  const ID & fe_engine_id)
-      : id(id), spatial_dimension(dim) {}
+      : id(id), spatial_dimension(dim), default_fe_engine_id(fe_engine_id) {}
 
   template <typename T = Real,
             template <typename Type> class InternalFieldType = InternalField>
   inline std::shared_ptr<InternalFieldType<T>>
-  registerInternal(const ID & id, UInt nb_component);
+  registerInternal(const ID & id, Int nb_component);
 
   template <typename T, template <typename Type> class InternalFieldType>
   inline std::shared_ptr<InternalFieldType<T>>
-  registerInternal(const ID & id, UInt nb_component, const ID & fe_engine_id);
+  registerInternal(const ID & id, Int nb_component, const ID & fe_engine_id);
 
   inline void unregisterInternal(const ID & id);
 
@@ -86,15 +86,18 @@ public:
   Array<T> & getArray(const ID & id, ElementType type,
                       GhostType ghost_type = _not_ghost);
 
-  inline void
-  removeIntegrationPoints(ElementTypeMapArray<UInt> & new_numbering);
+  inline void removeIntegrationPoints(ElementTypeMapArray<Idx> & new_numbering);
 
 public:
   virtual const FEEngine & getFEEngine(const ID & id = "") const = 0;
   virtual FEEngine & getFEEngine(const ID & id = "") = 0;
-  UInt getSpatialDimension() const { return spatial_dimension; }
+  Int getSpatialDimension() const { return spatial_dimension; }
 
-  virtual const ElementTypeMapArray<UInt> & getElementFilter() const = 0;
+  const ElementTypeMapArray<Idx> & getElementFilter() const {
+    return element_filter;
+  }
+
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
 
   AKANTU_GET_MACRO(Name, name, const std::string &);
   AKANTU_GET_MACRO(ID, id, const ID &);
@@ -106,13 +109,13 @@ protected:
   ID id;
 
   // spatial dimension for constitutive law
-  UInt spatial_dimension;
+  Int spatial_dimension{0};
 
   /// constitutive law name
   std::string name;
 
   /// list of element handled by the constitutive law
-  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<Idx> element_filter;
 
   /// ID of the FEEngine containing the interpolation points that are the
   /// support of the internal fields
@@ -195,22 +198,22 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  void onNodesAdded(const Array<UInt> & /*unused*/,
+  void onNodesAdded(const Array<Idx> & /*unused*/,
                     const NewNodesEvent & /*unused*/) override{};
-  void onNodesRemoved(const Array<UInt> & /*unused*/,
-                      const Array<UInt> & /*unused*/,
+  void onNodesRemoved(const Array<Idx> & /*unused*/,
+                      const Array<Idx> & /*unused*/,
                       const RemovedNodesEvent & /*unused*/) override{};
 
   void onElementsChanged(const Array<Element> & /*unused*/,
                          const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ElementTypeMapArray<Idx> & /*unused*/,
                          const ChangedElementsEvent & /*unused*/) override{};
 
   void onElementsAdded(const Array<Element> & /*unused*/,
                        const NewElementsEvent & /*unused*/) override;
 
   void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
 
 public:
@@ -240,15 +243,9 @@ public:
     return handler.getFEEngine(id.empty() ? default_fe_engine_id : id);
   }
 
-  const ElementTypeMapArray<UInt> & getElementFilter() const override {
-    return element_filter;
-  }
-
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
-
   template <typename T>
-  ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
-                                              ElementKind element_kind) const;
+  ElementTypeMap<Int> getInternalDataPerElem(const ID & id,
+                                             ElementKind element_kind) const;
 
   AKANTU_GET_MACRO(Handler, handler, auto &);
 

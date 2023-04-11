@@ -1,18 +1,8 @@
 /**
- * @file   test_gtest_utils.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Nov 14 2017
- * @date last modification:  Fri Jan 10 2020
- *
- * @brief  Utils to help write tests
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,10 +47,6 @@
 #endif
 
 namespace {
-
-/* -------------------------------------------------------------------------- */
-template <::akantu::ElementType t>
-using element_type_t = std::integral_constant<::akantu::ElementType, t>;
 
 /* -------------------------------------------------------------------------- */
 template <typename... T> struct gtest_list {};
@@ -110,7 +95,7 @@ protected:
   using split = tuple_split<N - 1, std::tuple<Ts...>>;
 
 public:
-  using type = tuple_concat_t<std::tuple<T>, typename split::type>;
+  using type = akantu::tuple::cat_t<std::tuple<T>, typename split::type>;
   using type_tail = typename split::type_tail;
 };
 
@@ -136,7 +121,7 @@ struct cross_product<std::tuple<>, std::tuple<T2s...>> {
 
 template <typename T1, typename... T1s, typename... T2s>
 struct cross_product<std::tuple<T1, T1s...>, std::tuple<T2s...>> {
-  using type = tuple_concat_t<
+  using type = akantu::tuple::cat_t<
       std::tuple<std::tuple<T1, T2s>...>,
       typename cross_product<std::tuple<T1s...>, std::tuple<T2s...>>::type>;
 };
@@ -149,27 +134,16 @@ using cross_product_t = typename cross_product<T...>::type;
 
 #define OP_CAT(s, data, elem) BOOST_PP_CAT(_element_type, elem)
 
-// creating a type instead of a using helps to debug
-#define AKANTU_DECLARE_ELEMENT_TYPE_STRUCT(r, data, elem)                      \
-  struct BOOST_PP_CAT(_element_type, elem)                                     \
-      : public element_type_t<::akantu::elem> {};
-
-BOOST_PP_SEQ_FOR_EACH(AKANTU_DECLARE_ELEMENT_TYPE_STRUCT, _,
-                      AKANTU_ALL_ELEMENT_TYPE)
-
-#undef AKANTU_DECLARE_ELEMENT_TYPE_STRUCT
-
-using TestElementTypesAll = std::tuple<BOOST_PP_SEQ_ENUM(
-    BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ek_regular_ELEMENT_TYPE))>;
+using TestElementTypesAll = akantu::ElementTypes_t<akantu::_ek_regular>;
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-using TestCohesiveElementTypes = std::tuple<BOOST_PP_SEQ_ENUM(
-    BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ek_cohesive_ELEMENT_TYPE))>;
+using TestCohesiveElementTypes = akantu::ElementTypes_t<akantu::_ek_cohesive>;
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
-using TestElementTypesStructural = std::tuple<BOOST_PP_SEQ_ENUM(
-    BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ek_structural_ELEMENT_TYPE))>;
+using TestElementTypesStructural =
+    akantu::ElementTypes_t<akantu::_ek_structural>;
+
 #endif
 
 using TestAllDimensions = std::tuple<std::integral_constant<unsigned int, 1>,
@@ -182,11 +156,12 @@ using is_element = aka::bool_constant<T::value == type>;
 template <typename T>
 using not_is_point_1 = aka::negation<is_element<T, ::akantu::_point_1>>;
 
-using TestElementTypes = tuple_filter_t<not_is_point_1, TestElementTypesAll>;
+using TestElementTypes =
+    akantu::tuple::filter_t<not_is_point_1, TestElementTypesAll>;
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 using StructuralTestElementTypes =
-    tuple_filter_t<not_is_point_1, TestElementTypesStructural>;
+    akantu::tuple::filter_t<not_is_point_1, TestElementTypesStructural>;
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -195,14 +170,14 @@ template <size_t degree> class Polynomial {
 public:
   Polynomial() = default;
 
-  Polynomial(std::initializer_list<double> && init) {
-    for (auto && pair : akantu::zip(init, constants))
+  Polynomial(std::initializer_list<double> &&init) {
+    for (auto &&pair : akantu::zip(init, constants))
       std::get<1>(pair) = std::get<0>(pair);
   }
 
   double operator()(double x) {
     double res = 0.;
-    for (auto && vals : akantu::enumerate(constants)) {
+    for (auto &&vals : akantu::enumerate(constants)) {
       double a;
       int k;
       std::tie(k, a) = vals;
@@ -242,7 +217,7 @@ protected:
 };
 
 template <size_t degree>
-std::ostream & operator<<(std::ostream & stream, const Polynomial<degree> & p) {
+std::ostream &operator<<(std::ostream &stream, const Polynomial<degree> &p) {
   for (size_t d = 0; d < degree + 1; ++d) {
     if (d != 0)
       stream << " + ";

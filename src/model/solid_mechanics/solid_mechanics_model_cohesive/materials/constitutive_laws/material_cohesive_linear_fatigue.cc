@@ -1,18 +1,8 @@
 /**
- * @file   material_cohesive_linear_fatigue.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Feb 20 2015
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  See material_cohesive_linear_fatigue.hh for information
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,7 +24,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialCohesiveLinearFatigue<spatial_dimension>::MaterialCohesiveLinearFatigue(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
@@ -61,7 +50,7 @@ MaterialCohesiveLinearFatigue<spatial_dimension>::MaterialCohesiveLinearFatigue(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
   MaterialCohesiveLinear<spatial_dimension>::initMaterial();
 
@@ -85,9 +74,9 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
-    const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -102,7 +91,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
 
-  auto normal_it = normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
 
   auto traction_end =
       this->tractions(el_type, ghost_type).end(spatial_dimension);
@@ -129,17 +118,15 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     delta_dot_prec_array = &delta_dot_prec(el_type, ghost_type);
   }
 
-  auto * memory_space = new Real[2 * spatial_dimension];
-  Vector<Real> normal_opening(memory_space, spatial_dimension);
-  Vector<Real> tangential_opening(memory_space + spatial_dimension,
-                                  spatial_dimension);
+  Vector<Real, spatial_dimension> normal_opening;
+  Vector<Real, spatial_dimension> tangential_opening;
 
   Real tolerance = Math::getTolerance();
 
   /// loop on each quadrature point
-  for (UInt q = 0; traction_it != traction_end; ++traction_it, ++opening_it,
-            ++normal_it, ++contact_traction_it, ++insertion_stress_it,
-            ++contact_opening_it, ++q) {
+  for (Int q = 0; traction_it != traction_end; ++traction_it, ++opening_it,
+           ++normal_it, ++contact_traction_it, ++insertion_stress_it,
+           ++contact_opening_it, ++q) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
@@ -295,12 +282,15 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     delta_prec_array(q) = delta;
   }
 
-  delete[] memory_space;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(cohesive_linear_fatigue, MaterialCohesiveLinearFatigue);
+template class MaterialCohesiveLinearFatigue<1>;
+template class MaterialCohesiveLinearFatigue<2>;
+template class MaterialCohesiveLinearFatigue<3>;
+static bool material_is_alocated_cohesive_linear_fatigue =
+    instantiateMaterial<MaterialCohesiveLinearFatigue>(
+        "cohesive_linear_fatigue");
 
 } // namespace akantu

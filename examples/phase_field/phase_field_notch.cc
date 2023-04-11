@@ -1,18 +1,8 @@
 /**
- * @file   phase_field_notch.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Tue Oct 02 2018
- * @date last modification: Wed Apr 07 2021
- *
- * @brief  Example of phase field model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,12 +16,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_phasefield.hh"
+#include "group_manager.hh"
 #include "non_linear_solver.hh"
+#include "phase_field_element_filter.hh"
 #include "phase_field_model.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
@@ -45,10 +36,9 @@ using clk = std::chrono::high_resolution_clock;
 using second = std::chrono::duration<double>;
 using millisecond = std::chrono::duration<double, std::milli>;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
-
 int main(int argc, char * argv[]) {
 
   initialize("material_notch.dat", argc, argv);
@@ -83,18 +73,20 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1500;
-  Real increment = 1e-5;
+  Int nbSteps = 1000;
+  Real increment = 6e-6;
+  Int nb_staggered_steps = 5;
 
   auto start_time = clk::now();
 
-  for (UInt s = 1; s < nbSteps; ++s) {
+  for (Int s = 1; s < nbSteps; ++s) {
 
     if (s >= 500) {
-      increment = 1.e-6;
+      increment = 2e-6;
+      nb_staggered_steps = 10;
     }
 
-    if (s % 10 == 0) {
+    if (s % 200 == 0) {
       constexpr char wheel[] = "/-\\|";
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
@@ -108,12 +100,28 @@ int main(int argc, char * argv[]) {
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
 
-    coupler.solve();
+    for (Idx i = 0; i < nb_staggered_steps; ++i) {
+      coupler.solve();
+    }
+
+    auto energy = phase.getEnergy();
 
     if (s % 100 == 0) {
       model.dump();
     }
   }
+
+  Real damage_limit = 0.15;
+  auto global_nb_clusters = mesh.createClusters(
+      spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
+
+  auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
+
+  model.dumpGroup("crack_0");
+
+  std::cout << std::endl;
+  std::cout << "Nb clusters: " << global_nb_clusters << std::endl;
+  std::cout << "Nb fragments: " << nb_fragment << std::endl;
 
   finalize();
   return EXIT_SUCCESS;

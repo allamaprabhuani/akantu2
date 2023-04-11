@@ -1,18 +1,8 @@
 /**
- * @file   neighborhood_max_criterion.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Sat Sep 26 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Neighborhood to find a maximum value in a neighborhood
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +56,7 @@ public:
 protected:
   /// remove unneccessary ghost elements
   void
-  cleanupExtraGhostElements(const ElementTypeMap<UInt> & nb_ghost_protected);
+  cleanupExtraGhostElements(const ElementTypeMap<Int> & nb_ghost_protected);
 
   /// insert the quadrature points in the grid
   void insertAllQuads(GhostType ghost_type);
@@ -81,7 +70,7 @@ protected:
   /* --------------------------------------------------------------------------
    */
 public:
-  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
+  virtual inline Int getNbDataForElements(const Array<Element> & elements,
                                            SynchronizationTag tag) const;
 
   virtual inline void packElementData(CommunicationBuffer & buffer,

@@ -1,18 +1,8 @@
 /**
- * @file   gauss_integration_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue May 10 2016
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  implementation of the gauss integration helpers
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,13 +16,15 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_math.hh"
 
 #ifndef AKANTU_GAUSS_INTEGRATION_TMPL_HH_
 #define AKANTU_GAUSS_INTEGRATION_TMPL_HH_
+
+#include "element_class.hh"
 
 namespace akantu {
 
@@ -40,33 +32,31 @@ namespace akantu {
 /* GaussIntegrationElement                                                    */
 /* -------------------------------------------------------------------------- */
 namespace _aka_gauss_helpers {
-  template <GaussIntegrationType type, UInt n> struct GaussIntegrationNbPoints {
-    static const UInt nb_points = 0;
+  template <GaussIntegrationType type, Int n>
+  struct GaussIntegrationNbPoints {};
+
+  template <Int n> struct GaussIntegrationNbPoints<_git_not_defined, n> {
+    static constexpr Int nb_points = 0;
   };
 
-#if !defined(DOXYGEN)
-  template <UInt n> struct GaussIntegrationNbPoints<_git_not_defined, n> {
-    static const UInt nb_points = 0;
+  template <Int n> struct GaussIntegrationNbPoints<_git_point, n> {
+    static constexpr Int nb_points = 1;
   };
 
-  template <UInt n> struct GaussIntegrationNbPoints<_git_point, n> {
-    static const UInt nb_points = 1;
-  };
-
-  template <UInt n> struct GaussIntegrationNbPoints<_git_segment, n> {
-    static const UInt nb_points = (n + 1) / 2 + (bool((n + 1) % 2) ? 1 : 0);
+  template <Int n> struct GaussIntegrationNbPoints<_git_segment, n> {
+    static constexpr Int nb_points = (n + 1) / 2 + (bool((n + 1) % 2) ? 1 : 0);
   };
 
 #define DECLARE_GAUSS_NB_POINTS(type, order, points)                           \
   template <> struct GaussIntegrationNbPoints<type, order> {                   \
-    static const UInt nb_points = points;                                      \
+    static constexpr Int nb_points = points;                                   \
   }
 
 #define DECLARE_GAUSS_NB_POINTS_PENT(type, order, xo, yo)                      \
   template <> struct GaussIntegrationNbPoints<type, order> {                   \
-    static const UInt x_order = xo;                                            \
-    static const UInt yz_order = yo;                                           \
-    static const UInt nb_points = 1;                                           \
+    static constexpr Int x_order = xo;                                         \
+    static constexpr Int yz_order = yo;                                        \
+    static constexpr Int nb_points = 1;                                        \
   }
 
   DECLARE_GAUSS_NB_POINTS(_git_triangle, 1, 1);
@@ -90,37 +80,45 @@ namespace _aka_gauss_helpers {
   DECLARE_GAUSS_NB_POINTS_PENT(_git_pentahedron, 5, 5,
                                5); // order 5 in x, order 5 in y and z
 
-  template <GaussIntegrationType type, UInt n, UInt on = n,
+  template <GaussIntegrationType type, Int n, Int on = n,
             bool end_recurse = false>
   struct GaussIntegrationNbPointsHelper {
-    static const UInt pnp = GaussIntegrationNbPoints<type, n>::nb_points;
-    static const UInt order = n;
-    static const UInt nb_points = pnp;
+    static constexpr Int pnp = GaussIntegrationNbPoints<type, n>::nb_points;
+    static constexpr Int order = n;
+    static constexpr Int nb_points = pnp;
   };
 
-  template <GaussIntegrationType type, UInt n, UInt on>
+  template <GaussIntegrationType type, Int n, Int on>
   struct GaussIntegrationNbPointsHelper<type, n, on, true> {
-    static const UInt nb_points = 0;
+    static constexpr Int nb_points = 0;
   };
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* Generic helper                                                           */
   /* ------------------------------------------------------------------------ */
-  template <GaussIntegrationType type, UInt dimension, UInt n>
+  template <GaussIntegrationType type, Int dimension, Int n>
   struct GaussIntegrationTypeDataHelper {
     using git_np = GaussIntegrationNbPoints<type, n>;
     using git_data = GaussIntegrationTypeData<type, git_np::nb_points>;
 
-    static UInt getNbQuadraturePoints() { return git_np::nb_points; }
+    static constexpr Int getNbQuadraturePoints() { return git_np::nb_points; }
 
-    static Matrix<Real> getQuadraturePoints() {
-      return Matrix<Real>(git_data::quad_positions, dimension,
-                          git_np::nb_points);
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, std::max(1, dimension),
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      constexpr auto nb_points = git_np::nb_points;
+      using Matrix = Eigen::Matrix<Real, std::max(1, dimension), nb_points>;
+      Matrix quads = Eigen::Map<const Matrix>(git_data::quad_positions);
+      return quads;
     }
 
-    static Vector<Real> getWeights() {
-      return Vector<Real>(git_data::quad_weights, git_np::nb_points);
+    static constexpr auto getWeights()
+        -> Vector<Real,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      constexpr auto nb_points = git_np::nb_points;
+      using Vector = Eigen::Matrix<Real, nb_points, 1>;
+      Vector weights = Eigen::Map<const Vector>(git_data::quad_weights);
+      return weights;
     }
   };
 
@@ -128,26 +126,29 @@ namespace _aka_gauss_helpers {
   /* ------------------------------------------------------------------------ */
   /* helper for _segment _quadrangle _hexahedron                              */
   /* ------------------------------------------------------------------------ */
-  template <UInt dimension, UInt dp>
+  template <Int dimension, Int dp>
   struct GaussIntegrationTypeDataHelper<_git_segment, dimension, dp> {
     using git_np = GaussIntegrationNbPoints<_git_segment, dp>;
     using git_data = GaussIntegrationTypeData<_git_segment, git_np::nb_points>;
 
-    static UInt getNbQuadraturePoints() {
-      return Math::pow<dimension>(git_np::nb_points);
+    static constexpr Int getNbQuadraturePoints() {
+      return Math::pow(git_np::nb_points, dimension);
     }
 
-    static Matrix<Real> getQuadraturePoints() {
-      UInt tot_nquad = getNbQuadraturePoints();
-      UInt nquad = git_np::nb_points;
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, dimension,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      const auto tot_nquad = getNbQuadraturePoints();
+      const auto nquad = git_np::nb_points;
 
-      Matrix<Real> quads(dimension, tot_nquad);
-      Vector<Real> pos(git_data::quad_positions, nquad);
+      Eigen::Matrix<Real, dimension, tot_nquad> quads;
+      Eigen::Map<const Eigen::Matrix<Real, nquad, 1>> pos(
+          git_data::quad_positions);
 
-      UInt offset = 1;
-      for (UInt d = 0; d < dimension; ++d) {
-        for (UInt n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
-          UInt rq = q % tot_nquad + q / tot_nquad;
+      Int offset = 1;
+      for (Int d = 0; d < dimension; ++d) {
+        for (Int n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
+          Int rq = q % tot_nquad + q / tot_nquad;
           quads(d, rq) = pos(n % nquad);
         }
         offset *= nquad;
@@ -155,17 +156,21 @@ namespace _aka_gauss_helpers {
       return quads;
     }
 
-    static Vector<Real> getWeights() {
-      UInt tot_nquad = getNbQuadraturePoints();
-      UInt nquad = git_np::nb_points;
+    static constexpr Vector<
+        Real, GaussIntegrationTypeDataHelper::getNbQuadraturePoints()>
+    getWeights() {
+      const auto tot_nquad = getNbQuadraturePoints();
+      const auto nquad = git_np::nb_points;
 
-      Vector<Real> quads_weights(tot_nquad, 1.);
-      Vector<Real> weights(git_data::quad_weights, nquad);
+      Eigen::Matrix<Real, tot_nquad, 1> quads_weights;
+      quads_weights.fill(1);
+      Eigen::Map<const Eigen::Matrix<Real, nquad, 1>> weights(
+          git_data::quad_weights);
 
-      UInt offset = 1;
-      for (UInt d = 0; d < dimension; ++d) {
-        for (UInt n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
-          UInt rq = q % tot_nquad + q / tot_nquad;
+      Int offset = 1;
+      for (Int d = 0; d < dimension; ++d) {
+        for (Int n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
+          Int rq = q % tot_nquad + q / tot_nquad;
           quads_weights(rq) *= weights(n % nquad);
         }
         offset *= nquad;
@@ -177,7 +182,7 @@ namespace _aka_gauss_helpers {
   /* ------------------------------------------------------------------------ */
   /* helper for _pentahedron                                                  */
   /* ------------------------------------------------------------------------ */
-  template <UInt dimension, UInt dp>
+  template <Int dimension, Int dp>
   struct GaussIntegrationTypeDataHelper<_git_pentahedron, dimension, dp> {
     using git_info = GaussIntegrationNbPoints<_git_pentahedron, dp>;
     using git_np_seg =
@@ -189,44 +194,48 @@ namespace _aka_gauss_helpers {
     using git_data_tri =
         GaussIntegrationTypeData<_git_triangle, git_np_tri::nb_points>;
 
-    static UInt getNbQuadraturePoints() {
+    static constexpr Int getNbQuadraturePoints() {
       return git_np_seg::nb_points * git_np_tri::nb_points;
     }
 
-    static Matrix<Real> getQuadraturePoints() {
-      UInt tot_nquad = getNbQuadraturePoints();
-      UInt nquad_seg = git_np_seg::nb_points;
-      UInt nquad_tri = git_np_tri::nb_points;
+    static constexpr auto getQuadraturePoints()
+        -> Matrix<Real, dimension,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      constexpr auto tot_nquad = getNbQuadraturePoints();
+      constexpr auto nquad_seg = git_np_seg::nb_points;
+      constexpr auto nquad_tri = git_np_tri::nb_points;
 
-      Matrix<Real> quads(dimension, tot_nquad);
-      Matrix<Real> pos_seg_w(git_data_seg::quad_positions, 1, nquad_seg);
-      Matrix<Real> pos_tri_w(git_data_tri::quad_positions, 2, nquad_tri);
+      Matrix<Real, dimension, tot_nquad> quads;
+      Eigen::Map<Vector<Real, nquad_seg>> pos_seg(git_data_seg::quad_positions);
+      Eigen::Map<Matrix<Real, 2, nquad_tri>> pos_tri(
+          git_data_tri::quad_positions);
 
-      for (UInt ns = 0, q = 0; ns < nquad_seg; ++ns) {
-        Vector<Real> pos_seg = pos_seg_w(ns);
-        for (UInt nt = 0; nt < nquad_tri; ++nt, ++q) {
-          Vector<Real> pos_tri = pos_tri_w(nt);
-          Vector<Real> quad = quads(q);
-          quad(_x) = pos_seg(_x);
-          quad(_y) = pos_tri(_x);
-          quad(_z) = pos_tri(_y);
+      for (Int ns = 0, q = 0; ns < nquad_seg; ++ns) {
+        for (Int nt = 0; nt < nquad_tri; ++nt, ++q) {
+          auto && quad = quads(q);
+          quad(_x) = pos_seg(ns);
+          quad(_y) = pos_tri(_x, nt);
+          quad(_z) = pos_tri(_y, nt);
         }
       }
       return quads;
     }
 
-    static Vector<Real> getWeights() {
-      UInt tot_nquad = getNbQuadraturePoints();
-      UInt nquad_seg = git_np_seg::nb_points;
-      UInt nquad_tri = git_np_tri::nb_points;
+    static constexpr auto getWeights()
+        -> Vector<Real,
+                  GaussIntegrationTypeDataHelper::getNbQuadraturePoints()> {
+      constexpr auto tot_nquad = getNbQuadraturePoints();
+      constexpr auto nquad_seg = git_np_seg::nb_points;
+      constexpr auto nquad_tri = git_np_tri::nb_points;
 
-      Vector<Real> quads_weights(tot_nquad);
+      Vector<Real, tot_nquad> quads_weights;
+      Eigen::Map<const Vector<Real, nquad_seg>> weight_seg(
+          git_data_seg::quad_weights);
+      Eigen::Map<const Vector<Real, nquad_tri>> weight_tri(
+          git_data_tri::quad_weights);
 
-      Vector<Real> weight_seg(git_data_seg::quad_weights, nquad_seg);
-      Vector<Real> weight_tri(git_data_tri::quad_weights, nquad_tri);
-
-      for (UInt ns = 0, q = 0; ns < nquad_seg; ++ns) {
-        for (UInt nt = 0; nt < nquad_tri; ++nt, ++q) {
+      for (Int ns = 0, q = 0; ns < nquad_seg; ++ns) {
+        for (Int nt = 0; nt < nquad_tri; ++nt, ++q) {
           quads_weights(q) = weight_seg(ns) * weight_tri(nt);
         }
       }
@@ -236,41 +245,31 @@ namespace _aka_gauss_helpers {
 #endif
 } // namespace _aka_gauss_helpers
 
-template <ElementType element_type, UInt n>
-Matrix<Real> GaussIntegrationElement<element_type, n>::getQuadraturePoints() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
-  using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
-      ElementClassProperty<element_type>::gauss_integration_type,
-      interpolation_property::natural_space_dimension, n>;
-  Matrix<Real> tmp(data_helper::getQuadraturePoints());
-  return tmp;
-}
-
 /* -------------------------------------------------------------------------- */
-template <ElementType element_type, UInt n>
-Vector<Real> GaussIntegrationElement<element_type, n>::getWeights() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
-  using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
-      ElementClassProperty<element_type>::gauss_integration_type,
-      interpolation_property::natural_space_dimension, n>;
-  Vector<Real> tmp(data_helper::getWeights());
-  return tmp;
-}
-
-/* -------------------------------------------------------------------------- */
-template <ElementType element_type, UInt n>
-UInt GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
-  const InterpolationType itp_type =
-      ElementClassProperty<element_type>::interpolation_type;
-  using interpolation_property = InterpolationProperty<itp_type>;
+template <ElementType element_type, Int n>
+constexpr Int
+GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
   using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
       ElementClassProperty<element_type>::gauss_integration_type,
       interpolation_property::natural_space_dimension, n>;
   return data_helper::getNbQuadraturePoints();
+}
+
+/* -------------------------------------------------------------------------- */
+template <ElementType element_type, Int n>
+constexpr auto GaussIntegrationElement<element_type, n>::getWeights() {
+  using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
+      ElementClassProperty<element_type>::gauss_integration_type,
+      interpolation_property::natural_space_dimension, n>;
+  return data_helper::getWeights();
+}
+
+template <ElementType type, Int n>
+constexpr auto GaussIntegrationElement<type, n>::getQuadraturePoints() {
+  using data_helper = _aka_gauss_helpers::GaussIntegrationTypeDataHelper<
+      ElementClassProperty<type>::gauss_integration_type,
+      interpolation_property::natural_space_dimension, n>;
+  return data_helper::getQuadraturePoints();
 }
 
 } // namespace akantu

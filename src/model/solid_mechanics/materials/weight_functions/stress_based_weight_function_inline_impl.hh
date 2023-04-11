@@ -1,21 +1,8 @@
 /**
- * @file   stress_based_weight_function_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Fri Apr 13 2012
- * @date last modification: Tue Dec 04 2018
- *
- * @brief  Implementation of inline function of remove damaged with
- * damage rate weight function
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,7 +48,7 @@ inline Real StressBasedWeightFunction::
   //   if (spatial_dimension == 1)
   //     return eigs[0];
   //   else if (spatial_dimension == 2) {
-  //     Vector<Real> u1(eigenvects.storage(), 2);
+  //     Vector<Real> u1(eigenvects.data(), 2);
   //     Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
 
   //     Real cos_t_2;
@@ -93,9 +79,9 @@ inline Real StressBasedWeightFunction::
 
   //     return 1./ (rhop1 + rhop2);
   //   } else if (spatial_dimension == 3) {
-  //     Vector<Real> u1(eigenvects.storage() + 0*3, 3);
-  //     //Vector<Real> u2(eigenvects.storage() + 1*3, 3);
-  //     Vector<Real> u3(eigenvects.storage() + 2*3, 3);
+  //     Vector<Real> u1(eigenvects.data() + 0*3, 3);
+  //     //Vector<Real> u2(eigenvects.data() + 1*3, 3);
+  //     Vector<Real> u3(eigenvects.data() + 2*3, 3);
 
   //     Real zero = std::numeric_limits<Real>::epsilon();
 

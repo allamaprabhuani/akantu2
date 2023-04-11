@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Fabian Barras <fabian.barras@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification:  Mon Mar 15 2021
-#
-# @brief  Structural Mechanics Model Tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -54,9 +44,7 @@ register_gtest_sources(
 #===============================================================================
 
 # Adding meshes for element types
-package_get_element_types(structural_mechanics _types)
-
-foreach(_type ${_types})
+foreach(_type _bernoulli_beam_2 _bernoulli_beam_3 _discrete_kirchhoff_triangle_18)
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
     list(APPEND _meshes ${_type}.msh)
     #register_fem_test(fe_engine_precomputation ${_type })

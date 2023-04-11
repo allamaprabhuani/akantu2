@@ -1,18 +1,8 @@
 /**
- * @file   test_dof_manager.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Feb 26 2019
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  test the dof managers
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -101,7 +90,7 @@ private:
 template <class T> class DOFManagerFixture : public ::testing::Test {
 public:
   constexpr static DOFManagerType type = T::value;
-  constexpr static UInt dim = 3;
+  constexpr static Int dim = 3;
   void SetUp() override {
     mesh = std::make_unique<Mesh>(this->dim);
 
@@ -162,7 +151,7 @@ protected:
 };
 
 template <class T> constexpr DOFManagerType DOFManagerFixture<T>::type;
-template <class T> constexpr UInt DOFManagerFixture<T>::dim;
+template <class T> constexpr Int DOFManagerFixture<T>::dim;
 
 TYPED_TEST_SUITE(DOFManagerFixture, dof_manager_types, );
 

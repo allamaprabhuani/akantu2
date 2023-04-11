@@ -1,18 +1,8 @@
 /**
- * @file   material_von_mises_mazars_inline_impl.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Wed Apr 06 2011
- * @date last modification: Wed Dec 23 2020
- *
- * @brief  Mazars damage with Von Misses criteria
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,31 +24,26 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-inline void
-MaterialVonMisesMazars<spatial_dimension, Parent>::computeStressOnQuad(
+template <Int dim, template <UInt> class Parent>
+inline void MaterialVonMisesMazars<dim, Parent>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
   Matrix<Real> epsilon(3, 3);
   epsilon.zero();
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
+  epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon(grad_u);
 
-  Vector<Real> Fdiag(3);
-  Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+  Vector<Real, 3> Fdiag(3);
+  epsilon.eig(Fdiag);
 
   Ehat = 0.;
   for (UInt i = 0; i < 3; ++i) {
     Real epsilon_p = std::max(Real(0.), Fdiag(i));
     Ehat += epsilon_p * epsilon_p;
   }
-  Ehat = sqrt(Ehat);
+  Ehat = std::sqrt(Ehat);
 
-  // MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  // MaterialElastic<dim>::computeStressOnQuad(grad_u, sigma);
 
   if (damage_in_compute_stress) {
     computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
@@ -71,23 +55,16 @@ MaterialVonMisesMazars<spatial_dimension, Parent>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-inline void
-MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageAndStressOnQuad(
+template <Int dim, template <UInt> class Parent>
+inline void MaterialVonMisesMazars<dim, Parent>::computeDamageAndStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
   if (!damage_in_compute_stress) {
-    Vector<Real> Fdiag(3);
-    Fdiag.zero();
+    auto && Fdiag = Vector<Real, 3>::Zero();
 
-    Matrix<Real> epsilon(3, 3);
-    epsilon.zero();
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      for (UInt j = 0; j < spatial_dimension; ++j) {
-        epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
-      }
-    }
-    Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+    auto && epsilon = Matrix<Real, 3, 3>::Zero();
+    epsilon.block(0, 0, dim, dim) = Material::gradUToEpsilon<dim>(grad_u);
+    epsilon.eig(Fdiag);
 
     computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
   }
@@ -96,9 +73,8 @@ MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-inline void
-MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageOnQuad(
+template <Int dim, template <UInt> class Parent>
+inline void MaterialVonMisesMazars<dim, Parent>::computeDamageOnQuad(
     const Real & epsilon_equ,
     __attribute__((unused)) const Matrix<Real> & sigma,
     const Vector<Real> & epsilon_princ, Real & dam) {
@@ -123,7 +99,7 @@ MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageOnQuad(
                      this->lambda * (epsilon_princ(1) + epsilon_princ(0));
 
     Vector<Real> sigma_p(3);
-    for (UInt i = 0; i < 3; i++) {
+    for (Int i = 0; i < 3; i++) {
       sigma_p(i) = std::max(Real(0.), sigma_princ(i));
     }
     // sigma_p *= 1. - dam;
@@ -131,7 +107,7 @@ MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageOnQuad(
     Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
 
     Real alpha_t = 0;
-    for (UInt i = 0; i < 3; ++i) {
+    for (Int i = 0; i < 3; ++i) {
       Real epsilon_t = (1 + this->nu) / this->E * sigma_p(i) - trace_p;
       Real epsilon_p = std::max(Real(0.), epsilon_princ(i));
       alpha_t += epsilon_t * epsilon_p;

@@ -1,21 +1,9 @@
 #===============================================================================
-# @file   cohesive_element.cmake
-#
-# @author Mauro Corrado <mauro.corrado@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @author Marco Vocialta <marco.vocialta@epfl.ch>
-#
-# @date creation: Tue Oct 16 2012
-# @date last modification: Thu Mar 11 2021
-#
-# @brief  package description for cohesive elements
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -32,9 +20,9 @@
 #===============================================================================
 
 
-package_declare(cohesive_element
+package_declare(cohesive_element DEFAULT ON
   DESCRIPTION "Use cohesive_element package of Akantu"
-  DEPENDS lapack solid_mechanics)
+  DEPENDS solid_mechanics)
 
 package_declare_sources(cohesive_element
   fe_engine/cohesive_element.hh
@@ -80,31 +68,3 @@ package_declare_sources(cohesive_element
   model/solid_mechanics/solid_mechanics_model_cohesive/solid_mechanics_model_cohesive_parallel.cc
   )
 
-
-package_declare_elements(cohesive_element
-  ELEMENT_TYPES
-  _cohesive_1d_2
-  _cohesive_2d_4
-  _cohesive_2d_6
-  _cohesive_3d_12
-  _cohesive_3d_16
-  _cohesive_3d_6
-  _cohesive_3d_8
-  KIND cohesive
-  GEOMETRICAL_TYPES
-  _gt_cohesive_1d_2
-  _gt_cohesive_2d_4
-  _gt_cohesive_2d_6
-  _gt_cohesive_3d_12
-  _gt_cohesive_3d_16
-  _gt_cohesive_3d_6
-  _gt_cohesive_3d_8
-  FE_ENGINE_LISTS
-  compute_normals_on_integration_points
-  contains
-  get_shapes_derivatives
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  inverse_map
-  lagrange_base
-  )

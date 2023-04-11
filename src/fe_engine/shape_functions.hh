@@ -1,19 +1,8 @@
 /**
- * @file   shape_functions.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  shape function class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +33,7 @@ class ShapeFunctions {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ShapeFunctions(const Mesh & mesh, UInt spatial_dimension,
+  ShapeFunctions(const Mesh & mesh, Int spatial_dimension,
                  const ID & id = "shape");
   virtual ~ShapeFunctions() = default;
 
@@ -55,10 +43,8 @@ public:
 public:
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-      ;
-    }
+    std::string space(indent, AKANTU_INDENT);
+
     stream << space << "Shapes [" << std::endl;
     integration_points.printself(stream, indent + 1);
     // shapes.printself(stream, indent + 1);
@@ -67,9 +53,10 @@ public:
   }
 
   /// set the integration points for a given element
-  template <ElementType type>
-  void setIntegrationPointsByType(const Matrix<Real> & integration_points,
-                                  GhostType ghost_type);
+  template <ElementType type, class D1>
+  void
+  setIntegrationPointsByType(const Eigen::MatrixBase<D1> & integration_points,
+                             GhostType ghost_type);
 
   /// Build pre-computed matrices for interpolation of field form integration
   /// points at other given positions (interpolation_points)
@@ -78,7 +65,7 @@ public:
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
       const ElementTypeMapArray<Real> & quadrature_points_coordinates,
-      const ElementTypeMapArray<UInt> * element_filter) const;
+      const ElementTypeMapArray<Idx> * element_filter) const;
 
   /// Interpolate field at given position from given values of this field at
   /// integration points (field)
@@ -90,7 +77,7 @@ public:
           interpolation_points_coordinates_matrices,
       const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
       ElementTypeMapArray<Real> & result, GhostType ghost_type,
-      const ElementTypeMapArray<UInt> * element_filter) const;
+      const ElementTypeMapArray<Idx> * element_filter) const;
 
 protected:
   /// interpolate nodal values stored by element on the integration points
@@ -98,14 +85,30 @@ protected:
   void interpolateElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
       const Array<Real> & shapes,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// gradient of nodal values stored by element on the control points
-  template <ElementType type>
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() !=
+                             0> * = nullptr>
   void gradientElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & out_nablauq, GhostType ghost_type,
       const Array<Real> & shapes_derivatives,
-      const Array<UInt> & filter_elements) const;
+      const Array<Idx> & filter_elements) const;
+
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() ==
+                             0> * = nullptr>
+  void gradientElementalFieldOnIntegrationPoints(
+      const Array<Real> & /*u_el*/, Array<Real> & out_nablauq,
+      GhostType ghost_type, const Array<Real> & /*shapes_derivatives*/,
+      const Array<Idx> & /*filter_elements*/) const {
+    auto nb_points = integration_points(type, ghost_type).cols();
+    auto nb_element = mesh.getNbElement(type, ghost_type);
+
+    out_nablauq.resize(nb_element * nb_points);
+    out_nablauq.zero();
+  }
 
 protected:
   /// By element versions of non-templated eponym methods
@@ -115,7 +118,7 @@ protected:
       const Array<Real> & interpolation_points_coordinates_matrices,
       const Array<Real> & quad_points_coordinates_inv_matrices,
       ElementTypeMapArray<Real> & result, GhostType ghost_type,
-      const Array<UInt> & element_filter) const;
+      const Array<Idx> & element_filter) const;
 
   /// Interpolate field at given position from given values of this field at
   /// integration points (field)
@@ -127,27 +130,33 @@ protected:
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
       const Array<Real> & quadrature_points_coordinates, GhostType ghost_type,
-      const Array<UInt> & element_filter) const;
+      const Array<Idx> & element_filter) const;
 
   /// build matrix for the interpolation of field form integration points
-  template <ElementType type>
+  template <ElementType type, typename D1, typename D2>
   inline void buildElementalFieldInterpolationMatrix(
-      const Matrix<Real> & coordinates, Matrix<Real> & coordMatrix,
-      UInt integration_order =
+      const Eigen::MatrixBase<D1> & coordinates,
+      Eigen::MatrixBase<D2> & coordMatrix,
+      Int integration_order =
           ElementClassProperty<type>::polynomial_degree) const;
 
   /// build the so called interpolation matrix (first collumn is 1, then the
   /// other collumns are the traansposed coordinates)
-  static inline void buildInterpolationMatrix(const Matrix<Real> & coordinates,
-                                              Matrix<Real> & coordMatrix,
-                                              UInt integration_order);
+  template <typename D1, typename D2>
+  inline void
+  buildInterpolationMatrix(const Eigen::MatrixBase<D1> & coordinates,
+                           Eigen::MatrixBase<D2> & coordMatrix,
+                           Int integration_order) const;
+
+  template <ElementType type>
+  friend struct BuildElementalFieldInterpolationMatrix;
 
 public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
   virtual void onElementsRemoved(const Array<Element> & /*unused*/,
-                                 const ElementTypeMapArray<UInt> & /*unused*/) {
+                                 const ElementTypeMapArray<Idx> & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
   /* ------------------------------------------------------------------------ */
@@ -155,10 +164,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the size of the shapes returned by the element class
-  static inline UInt getShapeSize(ElementType type);
+  static inline Int getShapeSize(ElementType type);
 
   /// get the size of the shapes derivatives returned by the element class
-  static inline UInt getShapeDerivativesSize(ElementType type);
+  static inline Int getShapeDerivativesSize(ElementType type);
 
   inline const Matrix<Real> & getIntegrationPoints(ElementType type,
                                                    GhostType ghost_type) const {
@@ -192,7 +201,7 @@ protected:
   const Mesh & mesh;
 
   // spatial dimension of the elements to consider
-  UInt _spatial_dimension;
+  Int _spatial_dimension;
 
   /// shape functions for all elements
   ElementTypeMap<Matrix<Real>> integration_points;

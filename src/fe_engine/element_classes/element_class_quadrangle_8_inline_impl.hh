@@ -1,18 +1,8 @@
 /**
- * @file   element_class_quadrangle_8_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed May 18 2011
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Specialization of the ElementClass for the _quadrangle_8
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**
@@ -96,9 +85,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
 
   /// Natural coordinates
   const Real xi = c(0);
@@ -116,9 +106,9 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
 
   const Real xi = c(0);
   const Real eta = c(1);
@@ -146,44 +136,35 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_quadrangle_8>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
-  Vector<Real> u6 = coord(6);
-  Vector<Real> u7 = coord(7);
+template <class D>
+inline Real GeometricalElement<_gt_quadrangle_8>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  auto &&u0 = coord.col(0);
+  auto &&u1 = coord.col(1);
+  auto &&u2 = coord.col(2);
+  auto &&u3 = coord.col(3);
+  auto &&u4 = coord.col(4);
+  auto &&u5 = coord.col(5);
+  auto &&u6 = coord.col(6);
+  auto &&u7 = coord.col(7);
 
-  auto a = u0.distance(u4);
-  auto b = u4.distance(u1);
-  auto h = std::min(a, b);
+  Real a = (u0 - u4).norm();
+  Real b = (u4 - u1).norm();
+  Real h = std::min(a, b);
 
-  a = u1.distance(u5);
-  b = u5.distance(u2);
+  a = (u1 - u5).norm();
+  b = (u5 - u2).norm();
   h = std::min(h, std::min(a, b));
 
-  a = u2.distance(u6);
-  b = u6.distance(u3);
+  a = (u2 - u6).norm();
+  b = (u6 - u3).norm();
   h = std::min(h, std::min(a, b));
 
-  a = u3.distance(u7);
-  b = u7.distance(u0);
+  a = (u3 - u7).norm();
+  b = (u7 - u0).norm();
   h = std::min(h, std::min(a, b));
 
   return h;
 }
 
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-InterpolationElement<_itp_serendip_quadrangle_8>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
-}
 } // namespace akantu

@@ -1,18 +1,8 @@
 /**
- * @file   phasefield.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri Jun 19 2020
- * @date last modification: Wed Jun 23 2021
- *
- * @brief  Mother class for all phasefield laws
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,12 +16,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "data_accessor.hh"
+#include "integration_point.hh"
 #include "parsable.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
@@ -79,7 +69,7 @@ public:
   PhaseField(PhaseFieldModel & model, const ID & id = "");
 
   /// Initialize phasefield with custom mesh & fe_engine
-  PhaseField(PhaseFieldModel & model, UInt dim, const Mesh & mesh,
+  PhaseField(PhaseFieldModel & model, Int dim, const Mesh & mesh,
              FEEngine & fe_engine, const ID & id = "");
 
   /// Destructor
@@ -124,14 +114,19 @@ public:
   virtual void savePreviousState();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(const ElementType & type, UInt element,
-                         const GhostType & ghost_type);
-  inline UInt addElement(const Element & element);
+  inline Int addElement(const Element & element);
 
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
+  /// compute the dissipated energy by element
+  void computeDissipatedEnergyByElements();
+
+  /// add an element to the local mesh filter
+  inline Int addElement(const ElementType & type, Idx element,
+                        const GhostType & ghost_type);
+
   /// resize the internals arrrays
   virtual void resizeInternals();
 
@@ -140,8 +135,25 @@ protected:
   virtual void updateInternalParameters();
 
   // constitutive law for driving force
-  virtual void computeDrivingForce(const ElementType & /* el_type */,
+  virtual void computeDrivingForce(ElementType /* el_type */,
                                    GhostType /* ghost_type */ = _not_ghost) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// compute the dissiapted energy
+  virtual void computeDissipatedEnergy(ElementType el_type);
+
+  /// compute the dissipated energy for an element
+  virtual void
+  computeDissipatedEnergyByElement(const Element & /*element*/,
+                                   Vector<Real> & /*edis_on_quad_points*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// compute the dissipated energy for an element
+  virtual void
+  computeDissipatedEnergyByElement(ElementType /*type*/, Idx /*index*/,
+                                   Vector<Real> & /*edis_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -149,8 +161,8 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -175,7 +187,18 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// return the damage energyfor the provided element
+  virtual Real getEnergy(ElementType type, Idx index);
+
 public:
+  /// return the damage energyfor the subset of elements contained
+  /// by the phasefield
+  virtual Real getEnergy();
+
+  /// Compute dissipated energy for an individual element
+  Real getEnergy(const Element & element);
+
   AKANTU_GET_MACRO(Name, name, const std::string &);
 
   AKANTU_GET_MACRO(Model, model, const PhaseFieldModel &)
@@ -188,15 +211,24 @@ public:
 
   AKANTU_GET_MACRO_NOT_CONST(Strain, strain, ElementTypeMapArray<Real> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage_on_qpoints, Real);
 
-  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Damage, damage_on_qpoints,
+                             ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(Damage, damage_on_qpoints,
+                   const ElementTypeMapArray<Real> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
 
   AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Idx> &);
+
+  template <typename T>
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
 
   template <typename T>
   const InternalPhaseField<T> & getInternal(const ID & id) const;
@@ -214,6 +246,12 @@ public:
                        GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
+  template <typename T>
+  void inflateInternal(const std::string & field_id,
+                       const ElementTypeMapArray<T> & field,
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -222,7 +260,7 @@ protected:
   bool is_init;
 
   std::map<ID, InternalPhaseField<Real> *> internal_vectors_real;
-  std::map<ID, InternalPhaseField<UInt> *> internal_vectors_uint;
+  std::map<ID, InternalPhaseField<Int> *> internal_vectors_int;
   std::map<ID, InternalPhaseField<bool> *> internal_vectors_bool;
 
 protected:
@@ -257,13 +295,16 @@ protected:
   Real mu;
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// list of element handled by the phasefield
-  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<Idx> element_filter;
 
   /// damage arrays ordered by element types
-  InternalPhaseField<Real> damage;
+  InternalPhaseField<Real> damage_on_qpoints;
+
+  /// grad_d arrays ordered by element types
+  InternalPhaseField<Real> gradd;
 
   /// phi arrays ordered by element types
   InternalPhaseField<Real> phi;
@@ -274,11 +315,17 @@ protected:
   /// driving force ordered by element types
   InternalPhaseField<Real> driving_force;
 
+  /// driving energy ordered by element types
+  InternalPhaseField<Real> driving_energy;
+
   /// damage energy ordered by element types
   InternalPhaseField<Real> damage_energy;
 
   /// damage energy density ordered by element types
   InternalPhaseField<Real> damage_energy_density;
+
+  /// dissipated energy by element
+  InternalPhaseField<Real> dissipated_energy;
 };
 
 /// standard output stream operator
@@ -290,7 +337,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#include "phasefield_inline_impl.cc"
+#include "phasefield_inline_impl.hh"
 
 #include "internal_field_tmpl.hh"
 #include "random_internal_field_tmpl.hh"
@@ -303,7 +350,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   }
 
 #define INSTANTIATE_PHASEFIELD(id, phase_name)                                 \
-  static bool phasefield_is_alocated_##id [[gnu::unused]] =                    \
+  static bool phasefield_is_allocated_##id [[gnu::unused]] =                   \
       PhaseFieldFactory::getInstance().registerAllocator(                      \
           #id, PHASEFIELD_DEFAULT_ALLOCATOR(id, phase_name))
 

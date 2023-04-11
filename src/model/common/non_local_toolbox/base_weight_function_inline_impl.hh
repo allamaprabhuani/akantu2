@@ -1,19 +1,8 @@
 /**
- * @file   base_weight_function_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Wed Sep 01 2010
- * @date last modification: Wed Sep 27 2017
- *
- * @brief  Implementation of inline function of base weight function
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -70,4 +58,5 @@ BaseWeightFunction::operator()(Real r, const IntegrationPoint & /* q1 */,
 }
 
 } // namespace akantu
+
 #endif /* AKANTU_BASE_WEIGHT_FUNCTION_INLINE_IMPL_HH_ */

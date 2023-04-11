@@ -1,18 +1,8 @@
 /**
- * @file   periodic_node_synchronizer.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed May 30 2018
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  PeriodicNodeSynchronizer definition
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,15 +45,11 @@ public:
   void reduceSynchronizeWithPBCSlaves(Array<T> & array) const;
 
   /// synchronize ghosts without state
-  void synchronizeOnceImpl(DataAccessor<UInt> & data_accessor,
+  void synchronizeOnceImpl(DataAccessor<Idx> & data_accessor,
                            const SynchronizationTag & tag) const override;
 
-  // /// asynchronous synchronization of ghosts
-  // void asynchronousSynchronizeImpl(const DataAccessor<UInt> & data_accessor,
-  //                                  const SynchronizationTag & tag) override;
-
   /// wait end of asynchronous synchronization of ghosts
-  void waitEndSynchronizeImpl(DataAccessor<UInt> & data_accessor,
+  void waitEndSynchronizeImpl(DataAccessor<Idx> & data_accessor,
                               const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
@@ -72,16 +57,16 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   // NodeSynchronizer master_to_slaves_synchronizer;
-  Array<UInt> masters_list;
-  Array<UInt> slaves_list;
+  Array<Idx> masters_list;
+  Array<Idx> slaves_list;
 };
 
 /* -------------------------------------------------------------------------- */
 template <template <class> class Op, typename T>
 void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
     Array<T> & array) const {
-  ReduceDataAccessor<UInt, Op, T> data_accessor(array,
-                                                SynchronizationTag::_whatever);
+  ReduceDataAccessor<Idx, Op, T> data_accessor(array,
+                                               SynchronizationTag::_whatever);
   auto size =
       data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
   CommunicationBuffer buffer(size);

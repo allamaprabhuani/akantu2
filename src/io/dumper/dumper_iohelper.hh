@@ -1,21 +1,8 @@
 /**
- * @file   dumper_iohelper.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Dana Christen <dana.christen@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Oct 26 2012
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Define the akantu dumper interface for IOhelper dumpers
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,6 +24,7 @@
 #include "aka_types.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
@@ -46,12 +33,30 @@
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
-class Dumper;
-}
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_vector<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {
+};
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_matrix<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<
+          not Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_vector<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<Derived::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_matrix<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<not Derived::IsVectorAtCompileTime> {};
+
+} // namespace iohelper
 
 namespace akantu {
 
-UInt getIOHelperType(ElementType type);
+Int getIOHelperType(ElementType type);
 
 namespace dumpers {
   class Field;
@@ -74,18 +79,16 @@ public:
 public:
   /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh,
-                            UInt spatial_dimension = _all_dimensions,
+                            Int spatial_dimension = _all_dimensions,
                             GhostType ghost_type = _not_ghost,
                             ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
-  virtual void
-  registerFilteredMesh(const Mesh & mesh,
-                       const ElementTypeMapArray<UInt> & elements_filter,
-                       const Array<UInt> & nodes_filter,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined);
+  virtual void registerFilteredMesh(
+      const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+      const Array<Idx> & nodes_filter, Int spatial_dimension = _all_dimensions,
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id,
@@ -102,10 +105,10 @@ public:
   virtual void dump();
   /// request dump: this first set the current step and then calls IOHelper dump
   /// routine
-  virtual void dump(UInt step);
+  virtual void dump(Int step);
   /// request dump: this first set the current step and current time and then
   /// calls IOHelper dump routine
-  virtual void dump(Real current_time, UInt step);
+  virtual void dump(Real current_time, Int step);
   /// set the parallel context for IOHeper
   virtual void setParallelContext(bool is_parallel);
   /// set the directory where to generate the dumped files
@@ -145,7 +148,7 @@ protected:
   Variables variables;
 
   /// dump counter
-  UInt count{0};
+  Int count{0};
 
   /// directory name
   std::string directory;

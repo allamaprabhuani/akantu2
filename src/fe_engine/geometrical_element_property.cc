@@ -1,18 +1,8 @@
 /**
- * @file   geometrical_element_property.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 29 2017
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Specialization of the geometrical types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,15 +27,15 @@
 namespace akantu {
 
 #define AKANTU_INSTANTIATE_TYPES(r, data, type)                                \
-  constexpr std::array<UInt, ElementClass<type>::getNbFacetTypes()>            \
+  constexpr std::array<Int, ElementClass<type>::getNbFacetTypes()>             \
       GeometricalElementProperty<                                              \
           ElementClassProperty<type>::geometrical_type>::nb_facets;            \
-  constexpr std::array<UInt, ElementClass<type>::getNbFacetTypes()>            \
+  constexpr std::array<Int, ElementClass<type>::getNbFacetTypes()>             \
       GeometricalElementProperty<                                              \
           ElementClassProperty<type>::geometrical_type>::nb_nodes_per_facet;   \
   constexpr std::array<                                                        \
-      UInt, detail::sizeFacetConnectivity<GeometricalElementProperty<          \
-                ElementClassProperty<type>::geometrical_type>>()>              \
+      Int, detail::sizeFacetConnectivity<GeometricalElementProperty<           \
+               ElementClassProperty<type>::geometrical_type>>()>               \
       GeometricalElementProperty<ElementClassProperty<                         \
           type>::geometrical_type>::facet_connectivity_vect;                   \
   constexpr std::array<ElementType, ElementClass<type>::getNbFacetTypes()>     \

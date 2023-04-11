@@ -1,18 +1,8 @@
 /**
- * @file   ntn_base_contact.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  implementation of ntn base contact
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -133,8 +122,7 @@ void NTNBaseContact::initParallel() {
 
   this->synchronizer->filterScheme([&](auto && element) {
     // loop over all nodes of this element
-    Vector<UInt> conn = const_cast<const Mesh &>(this->model.getMesh())
-                            .getConnectivity(element);
+    auto && conn = this->model.getMesh().getConnectivity(element);
     for (auto & node : conn) {
       // if one nodes is in this contact, we need this element
       if (this->getNodeIndex(node) >= 0) {
@@ -153,20 +141,19 @@ void NTNBaseContact::initParallel() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseContact::findBoundaryElements(
-    const Array<UInt> & interface_nodes, ElementTypeMapArray<UInt> & elements) {
+void NTNBaseContact::findBoundaryElements(const Array<Idx> & interface_nodes,
+                                          ElementTypeMapArray<Idx> & elements) {
   AKANTU_DEBUG_IN();
 
   // add connected boundary elements that have all nodes on this contact
   for (const auto & node : interface_nodes) {
     for (const auto & element : this->node_to_elements.getRow(node)) {
-      Vector<UInt> conn = const_cast<const Mesh &>(this->model.getMesh())
-                              .getConnectivity(element);
+      Vector<Idx> conn = this->model.getMesh().getConnectivity(element);
       auto nb_nodes = conn.size();
       decltype(nb_nodes) nb_found_nodes = 0;
 
       for (auto & nn : conn) {
-        if (interface_nodes.find(nn) != UInt(-1)) {
+        if (interface_nodes.find(nn) != -1) {
           nb_found_nodes++;
         } else {
           break;
@@ -177,7 +164,7 @@ void NTNBaseContact::findBoundaryElements(
       // and is not already in the elements
       if ((nb_found_nodes == nb_nodes) &&
           (elements(element.type, element.ghost_type).find(element.element) ==
-           UInt(-1))) {
+           -1)) {
         elements(element.type, element.ghost_type).push_back(element.element);
       }
     }
@@ -187,10 +174,10 @@ void NTNBaseContact::findBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseContact::addSplitNode(UInt node, UInt /*unused*/) {
+void NTNBaseContact::addSplitNode(Idx node, Idx /*unused*/) {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   // add to node arrays
   this->slaves.push_back(node);
@@ -205,7 +192,9 @@ void NTNBaseContact::addSplitNode(UInt node, UInt /*unused*/) {
   this->lumped_boundary_slaves.push_back(
       std::numeric_limits<Real>::quiet_NaN());
 
-  Vector<Real> nan_normal(dim, std::numeric_limits<Real>::quiet_NaN());
+  Vector<Real> nan_normal(dim);
+  nan_normal.fill(std::numeric_limits<Real>::quiet_NaN());
+
   this->normals.push_back(nan_normal);
 
   AKANTU_DEBUG_OUT();
@@ -249,17 +238,17 @@ void NTNBaseContact::readRestart(const std::string & file_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt NTNBaseContact::getNbNodesInContact() const {
+Int NTNBaseContact::getNbNodesInContact() const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_contact = 0;
+  Int nb_contact = 0;
 
-  UInt nb_nodes = this->getNbContactNodes();
-  const Mesh & mesh = this->model.getMesh();
+  auto nb_nodes = this->getNbContactNodes();
+  const auto & mesh = this->model.getMesh();
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    bool is_local_node = mesh.isLocalOrMasterNode(this->slaves(n));
-    bool is_pbc_slave_node = mesh.isPeriodicSlave(this->slaves(n));
+  for (Int n = 0; n < nb_nodes; ++n) {
+    auto is_local_node = mesh.isLocalOrMasterNode(this->slaves(n));
+    auto is_pbc_slave_node = mesh.isPeriodicSlave(this->slaves(n));
     if (is_local_node && !is_pbc_slave_node && this->is_in_contact(n)) {
       nb_contact++;
     }
@@ -295,28 +284,27 @@ void NTNBaseContact::updateLumpedBoundary() {
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::internalUpdateLumpedBoundary(
-    const Array<UInt> & nodes, const ElementTypeMapArray<UInt> & elements,
+    const Array<Idx> & nodes, const ElementTypeMapArray<Idx> & elements,
     SynchronizedArray<Real> & boundary) {
   AKANTU_DEBUG_IN();
 
   // set all values in lumped_boundary to zero
   boundary.zero();
 
-  UInt dim = this->model.getSpatialDimension();
-  //  UInt nb_contact_nodes = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
 
-  const FEEngine & boundary_fem = this->model.getFEEngineBoundary();
+  const auto & boundary_fem = this->model.getFEEngineBoundary();
 
-  const Mesh & mesh = this->model.getMesh();
+  const auto & mesh = this->model.getMesh();
 
   for (auto ghost_type : ghost_types) {
     for (const auto & type : mesh.elementTypes(dim - 1, ghost_type)) {
-      UInt nb_elements = mesh.getNbElement(type, ghost_type);
-      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-      const Array<UInt> & connectivity = mesh.getConnectivity(type, ghost_type);
+      auto nb_elements = mesh.getNbElement(type, ghost_type);
+      auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+      const auto & connectivity = mesh.getConnectivity(type, ghost_type);
 
       // get shapes and compute integral
-      const Array<Real> & shapes = boundary_fem.getShapes(type, ghost_type);
+      const auto & shapes = boundary_fem.getShapes(type, ghost_type);
       Array<Real> area(nb_elements, nb_nodes_per_element);
       boundary_fem.integrate(shapes, area, nb_nodes_per_element, type,
                              ghost_type);
@@ -327,19 +315,15 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
             << " You have to define the lumped boundary by yourself.");
       }
 
-      Array<UInt>::const_iterator<UInt> elem_it =
-          (elements)(type, ghost_type).begin();
-      Array<UInt>::const_iterator<UInt> elem_it_end =
-          (elements)(type, ghost_type).end();
       // loop over contact nodes
-      for (; elem_it != elem_it_end; ++elem_it) {
-        for (UInt q = 0; q < nb_nodes_per_element; ++q) {
-          UInt node = connectivity(*elem_it, q);
-          UInt node_index = nodes.find(node);
-          AKANTU_DEBUG_ASSERT(node_index != UInt(-1), "Could not find node "
-                                                          << node
-                                                          << " in the array!");
-          Real area_to_add = area(*elem_it, q);
+      for (auto && elem : elements(type, ghost_type)) {
+        for (Int q = 0; q < nb_nodes_per_element; ++q) {
+          auto node = connectivity(elem, q);
+          auto node_index = nodes.find(node);
+          AKANTU_DEBUG_ASSERT(node_index != Int(-1), "Could not find node "
+                                                         << node
+                                                         << " in the array!");
+          Real area_to_add = area(elem, q);
           boundary(node_index) += area_to_add;
         }
       }
@@ -373,9 +357,9 @@ void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
 void NTNBaseContact::computeContactPressure() {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
-  Real delta_t = this->model.getTimeStep();
-  UInt nb_contact_nodes = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
+  auto delta_t = this->model.getTimeStep();
+  auto nb_contact_nodes = getNbContactNodes();
 
   AKANTU_DEBUG_ASSERT(delta_t > 0.,
                       "Cannot compute contact pressure if no time step is set");
@@ -405,12 +389,12 @@ void NTNBaseContact::computeContactPressure() {
 
   // compute gap array for all nodes
   Array<Real> gap(nb_contact_nodes, 1);
-  Real * gap_p = gap.storage();
-  Real * r_disp_p = r_disp.storage();
-  Real * r_velo_p = r_velo.storage();
-  Real * r_acce_p = r_acce.storage();
-  Real * r_old_acce_p = r_old_acce.storage();
-  for (UInt i = 0; i < nb_contact_nodes; ++i) {
+  Real * gap_p = gap.data();
+  Real * r_disp_p = r_disp.data();
+  Real * r_velo_p = r_velo.data();
+  Real * r_acce_p = r_acce.data();
+  Real * r_old_acce_p = r_old_acce.data();
+  for (Int i = 0; i < nb_contact_nodes; ++i) {
     *gap_p = *r_disp_p + delta_t * *r_velo_p + delta_t * delta_t * *r_acce_p -
              0.5 * delta_t * delta_t * *r_old_acce_p;
     // increment pointers
@@ -422,15 +406,15 @@ void NTNBaseContact::computeContactPressure() {
   }
 
   // check if gap is negative -> is in contact
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     if (gap(n) <= 0.) {
-      for (UInt d = 0; d < dim; ++d) {
+      for (Int d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) =
             this->impedance(n) * gap(n) / (2 * delta_t) * this->normals(n, d);
       }
       this->is_in_contact(n) = true;
     } else {
-      for (UInt d = 0; d < dim; ++d) {
+      for (Int d = 0; d < dim; ++d) {
         this->contact_pressure(n, d) = 0.;
       }
       this->is_in_contact(n) = false;
@@ -442,39 +426,31 @@ void NTNBaseContact::computeContactPressure() {
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::applyContactPressure() {
-  AKANTU_DEBUG_IN();
+  auto nb_contact_nodes = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
 
-  UInt nb_contact_nodes = getNbContactNodes();
-  UInt dim = this->model.getSpatialDimension();
+  auto & residual = this->model.getInternalForce();
 
-  Array<Real> & residual = this->model.getInternalForce();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = this->slaves(n);
 
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt slave = this->slaves(n);
-
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       // residual(master,d) += this->lumped_boundary(n,0) *
       // this->contact_pressure(n,d);
       residual(slave, d) -=
           this->lumped_boundary_slaves(n) * this->contact_pressure(n, d);
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-Int NTNBaseContact::getNodeIndex(UInt node) const {
+Int NTNBaseContact::getNodeIndex(Idx node) const {
   return this->slaves.find(node);
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::printself(std::ostream & stream, int indent) const {
-  AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "NTNBaseContact [" << std::endl;
   stream << space << " + id            : " << id << std::endl;
@@ -486,22 +462,16 @@ void NTNBaseContact::printself(std::ostream & stream, int indent) const {
   this->contact_pressure.printself(stream, indent + 2);
 
   stream << space << "]" << std::endl;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::syncArrays(SyncChoice sync_choice) {
-  AKANTU_DEBUG_IN();
-
   this->slaves.syncElements(sync_choice);
   this->normals.syncElements(sync_choice);
   this->is_in_contact.syncElements(sync_choice);
   this->contact_pressure.syncElements(sync_choice);
   this->lumped_boundary_slaves.syncElements(sync_choice);
   this->impedance.syncElements(sync_choice);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -509,13 +479,13 @@ void NTNBaseContact::addDumpFieldToDumper(const std::string & dumper_name,
                                           const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-  const Array<UInt> & nodal_filter = this->slaves.getArray();
+  const auto & nodal_filter = this->slaves.getArray();
 
 #define ADD_FIELD(field_id, field, type)                                       \
   internalAddDumpFieldToDumper(                                                \
       dumper_name, field_id,                                                   \
       std::make_unique<                                                        \
-          dumpers::NodalField<type, true, Array<type>, Array<UInt>>>(          \
+          dumpers::NodalField<type, true, Array<type>, Array<Idx>>>(           \
           field, 0, 0, &nodal_filter))
 
   if (field_id == "displacement") {

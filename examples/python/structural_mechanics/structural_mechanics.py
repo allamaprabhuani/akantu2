@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-""" structural_mechanics.py: Simple structural mechanics example"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
 __license__ = "LGPLv3"
+
 
 # # Test of Structural Mechanics
 # In this example a beam, consisting of two elements, three nodes, is created.
@@ -18,9 +13,9 @@ __license__ = "LGPLv3"
 import numpy as np
 try:
     import matplotlib.pyplot as plt
-    has_matplotlib = True
+    HAS_MATPLOTLIB = True
 except ImportError:
-    has_matplotlib = False
+    HAS_MATPLOTLIB = False
 import akantu as aka
 
 # ### Creating the Mesh
@@ -136,7 +131,7 @@ for d in disps:
     maxMin[0] = max(np.max(d), maxMin[0])
     maxMin[1] = min(np.min(d), maxMin[1])
 
-if has_matplotlib:
+if HAS_MATPLOTLIB:
     plt.plot(disp1, times, color='g', label="middle node")
     plt.plot(disp2, times, color='b', label="right node")
 

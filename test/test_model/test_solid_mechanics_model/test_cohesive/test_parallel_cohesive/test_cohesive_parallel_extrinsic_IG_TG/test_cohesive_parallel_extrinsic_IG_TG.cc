@@ -1,21 +1,8 @@
 /**
- * @file   test_cohesive_parallel_extrinsic_IG_TG.cc
- *
- * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Test for considering different cohesive properties for
- * intergranular (IG) and transgranular (TG) fractures in extrinsic
- * cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -94,7 +80,7 @@ private:
   const SolidMechanicsModelCohesive & model;
   const Mesh & mesh;
   const Mesh & mesh_facets;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   UInt nb_IG;
   UInt nb_TG;
@@ -109,7 +95,7 @@ void limitInsertion(SolidMechanicsModelCohesive & model) {
   const Mesh & mesh_facets = model.getMeshFacets();
   CohesiveElementInserter & inserter = model.getElementInserter();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> bary_facet(spatial_dimension);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -128,7 +114,7 @@ void limitInsertion(SolidMechanicsModelCohesive & model) {
       for (UInt f = 0; f < nb_facet; ++f) {
         if (f_check(f)) {
 
-          mesh_facets.getBarycenter(f, type, bary_facet.storage(), ghost_type);
+          mesh_facets.getBarycenter(f, type, bary_facet.data(), ghost_type);
 
           if (!(bary_facet(0) > -tolerance && bary_facet(0) < tolerance) &&
               !(bary_facet(1) > -tolerance && bary_facet(1) < tolerance))
@@ -146,7 +132,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const UInt max_steps = 600;
 
   Mesh mesh(spatial_dimension);
@@ -192,7 +178,7 @@ int main(int argc, char * argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
@@ -223,7 +209,7 @@ int main(int argc, char * argv[]) {
   Real loading_rate = 0.1;
   // bar_height  = 2
   Real VI = loading_rate * 2 * 0.5;
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
     velocity(n, 0) = loading_rate * position(n, 0);
   }
@@ -238,10 +224,10 @@ int main(int argc, char * argv[]) {
   // UInt nb_coh_elem = 0;
 
   /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
+  for (Int s = 1; s <= max_steps; ++s) {
     dispy += VI * time_step;
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    for (Int n = 0; n < mesh.getNbNodes(); ++n) {
       if (position(n, 1) > 0.99) {
         displacement(n, 1) = dispy;
         velocity(n, 1) = VI;
@@ -303,8 +289,8 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  // for (UInt n = 0; n < position.getSize(); ++n) {
-  //   for (UInt s = 0; s < spatial_dimension; ++s) {
+  // for (Int n = 0; n < position.getSize(); ++n) {
+  //   for (Int s = 0; s < spatial_dimension; ++s) {
   //     position(n, s) += displacement(n, s);
   //   }
   // }

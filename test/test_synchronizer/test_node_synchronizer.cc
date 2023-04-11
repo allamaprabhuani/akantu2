@@ -1,18 +1,8 @@
 /**
- * @file   test_node_synchronizer.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu May 11 2017
- * @date last modification:  Wed Jan 15 2020
- *
- * @brief  test the default node synchronizer present in the mesh
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,22 +34,22 @@
 
 using namespace akantu;
 
-class DataAccessorTest : public DataAccessor<UInt> {
+class DataAccessorTest : public DataAccessor<Idx> {
 public:
   explicit DataAccessorTest(Array<int> & data) : data(data) {}
 
-  UInt getNbData(const Array<UInt> & nodes, const SynchronizationTag &) const {
+  Int getNbData(const Array<Idx> & nodes, const SynchronizationTag &) const {
     return nodes.size() * sizeof(int);
   }
 
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                 const SynchronizationTag &) const {
     for (auto node : nodes) {
       buffer << data(node);
     }
   }
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & nodes,
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & nodes,
                   const SynchronizationTag &) {
     for (auto node : nodes) {
       buffer >> data(node);

@@ -1,18 +1,8 @@
 /**
- * @file   node_group.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Node group definition
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,27 +43,29 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  using const_node_iterator = Array<UInt>::const_iterator<UInt>;
+  using const_node_iterator = Array<Idx>::const_scalar_iterator;
 
   /// empty the node group
   void clear();
 
   /// returns treu if the group is empty \warning this changed beahavior if you
   /// want to empty the group use clear
-  bool empty() const __attribute__((warn_unused_result));
+  [[nodiscard]] bool empty() const;
 
   /// iterator to the beginning of the node group
-  inline const_node_iterator begin() const;
+  [[nodiscard]] inline auto begin() const;
   /// iterator to the end of the node group
-  inline const_node_iterator end() const;
+  [[nodiscard]] inline auto end() const;
 
   /// add a node and give the local position through an iterator
-  inline const_node_iterator add(UInt node, bool check_for_duplicate = true);
+  inline auto add(Idx node, bool check_for_duplicate = true);
 
   /// remove a node
-  inline void remove(UInt node);
+  inline void remove(Idx node);
 
-  inline decltype(auto) find(UInt node) const { return node_group.find(node); }
+  [[nodiscard]] inline decltype(auto) find(Idx node) const {
+    return node_group.find(node);
+  }
 
   /// remove duplicated nodes
   void optimize();
@@ -92,14 +83,14 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_NOT_CONST(Nodes, node_group, Array<UInt> &);
-  AKANTU_GET_MACRO(Nodes, node_group, const Array<UInt> &);
-  AKANTU_GET_MACRO(Name, name, const std::string &);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Nodes, node_group);
+  AKANTU_GET_MACRO_AUTO(Nodes, node_group);
+  AKANTU_GET_MACRO_AUTO(Name, name);
 
   /// give the number of nodes in the current group
-  inline UInt size() const;
+  [[nodiscard]] inline Idx size() const;
 
-  // UInt * storage() { return node_group.storage(); };
+  // UInt * storage() { return node_group.data(); };
 
   friend class GroupManager;
   /* ------------------------------------------------------------------------ */
@@ -110,7 +101,7 @@ private:
   std::string name;
 
   /// list of nodes in the group
-  Array<UInt> node_group;
+  Array<Idx> node_group;
 
   /// reference to the mesh in question
   // const Mesh & mesh;

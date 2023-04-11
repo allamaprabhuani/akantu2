@@ -1,19 +1,8 @@
 /**
- * @file   non_local_manager.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Apr 13 2012
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of non-local manager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,12 +16,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "non_local_manager.hh"
+#include "base_weight_function.hh"
 #include "grid_synchronizer.hh"
+#include "integrator.hh"
 #include "model.hh"
 #include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
@@ -82,11 +72,6 @@ void NonLocalManager::initialize() {
   auto & mesh = this->model.getMesh();
   mesh.registerEventHandler(*this, _ehp_non_local_manager);
 
-  /// store the number of current ghost elements for each type in the mesh
-  // ElementTypeMap<UInt> nb_ghost_protected;
-  // for (auto type : mesh.elementTypes(spatial_dimension, _ghost))
-  //   nb_ghost_protected(mesh.getNbElement(type, _ghost), type, _ghost);
-
   /// exchange the missing ghosts for the non-local neighborhoods
   this->createNeighborhoodSynchronizers();
 
@@ -110,14 +95,8 @@ void NonLocalManager::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::setJacobians(const FEEngine & fe_engine,
-                                   ElementKind kind) {
-  Mesh & mesh = this->model.getMesh();
-  for (auto ghost_type : ghost_types) {
-    for (auto type : mesh.elementTypes(spatial_dimension, ghost_type, kind)) {
-      jacobians(type, ghost_type) =
-          &fe_engine.getIntegratorInterface().getJacobians(type, ghost_type);
-    }
-  }
+                                   ElementKind /*kind*/) {
+  jacobians = &(fe_engine.getIntegratorInterface().getJacobians());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,31 +113,13 @@ void NonLocalManager::createNeighborhood(const ID & weight_func,
 
   const ParserSection & section = weight_func_it->second;
   const ID weight_func_type = section.getOption();
-  /// create new neighborhood for given ID
-  std::stringstream sstr;
-  sstr << id << ":neighborhood:" << neighborhood_id;
 
-  if (weight_func_type == "base_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<BaseWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-#if defined(AKANTU_DAMAGE_NON_LOCAL)
-  } else if (weight_func_type == "remove_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<RemoveDamagedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-  } else if (weight_func_type == "stress_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<StressBasedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-  } else if (weight_func_type == "damage_wf") {
-    neighborhoods[neighborhood_id] =
-        std::make_unique<NonLocalNeighborhood<DamagedWeightFunction>>(
-            *this, this->integration_points_positions, sstr.str());
-#endif
-  } else {
-    AKANTU_EXCEPTION("error in weight function type provided in material file");
-  }
+  /// create new neighborhood for given ID
+  neighborhoods[neighborhood_id] =
+      NonLocalNeighborhoodFactory::getInstance().allocate(
+          weight_func_type, neighborhood_id, *this,
+          this->integration_points_positions,
+          id + ":neighborhood:" + neighborhood_id);
 
   neighborhoods[neighborhood_id]->parseSection(section);
   neighborhoods[neighborhood_id]->initNeighborhood();
@@ -171,11 +132,11 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// exchange all the neighborhood IDs, so that every proc knows how many
   /// neighborhoods exist globally
   /// First: Compute locally the maximum ID size
-  UInt max_id_size = 0;
-  UInt current_size = 0;
+  Int max_id_size = 0;
+  Int current_size = 0;
   NeighborhoodMap::const_iterator it;
-  for (it = neighborhoods.begin(); it != neighborhoods.end(); ++it) {
-    current_size = it->first.size();
+  for (const auto & id : make_keys_adaptor(neighborhoods)) {
+    current_size = id.size();
     if (current_size > max_id_size) {
       max_id_size = current_size;
     }
@@ -186,8 +147,8 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   static_communicator.allReduce(max_id_size, SynchronizerOperation::_max);
 
   /// get the rank for this proc and the total nb proc
-  UInt prank = static_communicator.whoAmI();
-  UInt psize = static_communicator.getNbProc();
+  Int prank = static_communicator.whoAmI();
+  Int psize = static_communicator.getNbProc();
 
   /// exchange the number of neighborhoods on each proc
   Array<Int> nb_neighborhoods_per_proc(psize);
@@ -195,23 +156,24 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   static_communicator.allGather(nb_neighborhoods_per_proc);
 
   /// compute the total number of neighborhoods
-  UInt nb_neighborhoods_global = std::accumulate(
+  Int nb_neighborhoods_global = std::accumulate(
       nb_neighborhoods_per_proc.begin(), nb_neighborhoods_per_proc.end(), 0);
 
   /// allocate an array of chars to store the names of all neighborhoods
   Array<char> buffer(nb_neighborhoods_global, max_id_size);
 
   /// starting index on this proc
-  UInt starting_index =
+  Int starting_index =
       std::accumulate(nb_neighborhoods_per_proc.begin(),
                       nb_neighborhoods_per_proc.begin() + prank, 0);
 
-  it = neighborhoods.begin();
   /// store the names of local neighborhoods in the buffer
-  for (UInt i = 0; i < neighborhoods.size(); ++i, ++it) {
-    UInt c = 0;
-    for (; c < it->first.size(); ++c) {
-      buffer(i + starting_index, c) = it->first[c];
+  for (auto && data : enumerate(make_keys_adaptor(neighborhoods))) {
+    Int c = 0;
+    auto i = std::get<0>(data);
+    const auto & id = std::get<1>(data);
+    for (; c < Int(id.size()); ++c) {
+      buffer(i + starting_index, c) = id[c];
     }
 
     for (; c < max_id_size; ++c) {
@@ -225,9 +187,9 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// exchange the names of all the neighborhoods with all procs
   static_communicator.allGatherV(buffer, buffer_size);
 
-  for (UInt i = 0; i < nb_neighborhoods_global; ++i) {
+  for (Int i = 0; i < nb_neighborhoods_global; ++i) {
     std::stringstream neighborhood_id;
-    for (UInt c = 0; c < max_id_size; ++c) {
+    for (Int c = 0; c < max_id_size; ++c) {
       if (buffer(i, c) == char(0)) {
         break;
       }
@@ -239,9 +201,10 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// this proc does not know all the neighborhoods -> create dummy
   /// grid so that this proc can participate in the all gather for
   /// detecting the overlap of neighborhoods this proc doesn't know
-  Vector<Real> grid_center(this->spatial_dimension,
-                           std::numeric_limits<Real>::max());
-  Vector<Real> spacing(this->spatial_dimension, 0.);
+  Vector<Real> grid_center(this->spatial_dimension);
+  grid_center.fill(std::numeric_limits<Real>::max());
+  Vector<Real> spacing(this->spatial_dimension);
+  spacing.fill(0.);
 
   dummy_grid = std::make_unique<SpatialGrid<IntegrationPoint>>(
       this->spatial_dimension, spacing, grid_center);
@@ -329,8 +292,8 @@ void NonLocalManager::updatePairLists() {
   this->model.getFEEngine().computeIntegrationPointsCoordinates(
       integration_points_positions);
 
-  for (auto & pair : neighborhoods) {
-    pair.second->updatePairList();
+  for (auto & neighborhood : make_values_adaptor(neighborhoods)) {
+    neighborhood->updatePairList();
   }
 
   AKANTU_DEBUG_OUT();
@@ -440,8 +403,6 @@ void NonLocalManager::computeAllNonLocalStresses() {
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::cleanupExtraGhostElements() {
-  // ElementTypeMap<UInt> & nb_ghost_protected) {
-
   using ElementSet = std::set<Element>;
   ElementSet relevant_ghost_elements;
 
@@ -459,68 +420,13 @@ void NonLocalManager::cleanupExtraGhostElements() {
     auto & neighborhood = *pair.second;
     neighborhood.cleanupExtraGhostElements(relevant_ghost_elements);
   }
-
-  // /// remove all unneccessary ghosts from the mesh
-  // /// Create list of element to remove and new numbering for element to keep
-  // Mesh & mesh = this->model.getMesh();
-  // ElementSet ghost_to_erase;
-
-  // RemovedElementsEvent remove_elem(mesh);
-  // auto & new_numberings = remove_elem.getNewNumbering();
-  // Element element;
-  // element.ghost_type = _ghost;
-
-  // for (auto & type : mesh.elementTypes(spatial_dimension, _ghost)) {
-  //   element.type = type;
-  //   UInt nb_ghost_elem = mesh.getNbElement(type, _ghost);
-  //   // UInt nb_ghost_elem_protected = 0;
-  //   // try {
-  //   //   nb_ghost_elem_protected = nb_ghost_protected(type, _ghost);
-  //   // } catch (...) {
-  //   // }
-
-  //   if (!new_numberings.exists(type, _ghost))
-  //     new_numberings.alloc(nb_ghost_elem, 1, type, _ghost);
-  //   else
-  //     new_numberings(type, _ghost).resize(nb_ghost_elem);
-
-  //   Array<UInt> & new_numbering = new_numberings(type, _ghost);
-  //   for (UInt g = 0; g < nb_ghost_elem; ++g) {
-  //     element.element = g;
-  //     if (element.element >= nb_ghost_elem_protected &&
-  //         relevant_ghost_elements.find(element) ==
-  //             relevant_ghost_elements.end()) {
-  //       remove_elem.getList().push_back(element);
-  //       new_numbering(element.element) = UInt(-1);
-  //     }
-  //   }
-  //   /// renumber remaining ghosts
-  //   UInt ng = 0;
-  //   for (UInt g = 0; g < nb_ghost_elem; ++g) {
-  //     if (new_numbering(g) != UInt(-1)) {
-  //       new_numbering(g) = ng;
-  //       ++ng;
-  //     }
-  //   }
-  // }
-
-  // for (auto & type : mesh.elementTypes(spatial_dimension, _not_ghost)) {
-  //   UInt nb_elem = mesh.getNbElement(type, _not_ghost);
-  //   if (!new_numberings.exists(type, _not_ghost))
-  //     new_numberings.alloc(nb_elem, 1, type, _not_ghost);
-  //   Array<UInt> & new_numbering = new_numberings(type, _not_ghost);
-  //   for (UInt e = 0; e < nb_elem; ++e) {
-  //     new_numbering(e) = e;
-  //   }
-  // }
-  // mesh.sendEvent(remove_elem);
 }
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
-    __attribute__((unused)) const RemovedElementsEvent & event) {
+    const ElementTypeMapArray<Idx> & new_numbering,
+    const RemovedElementsEvent & event) {
 
   FEEngine & fee = this->model.getFEEngine();
   NonLocalManager::removeIntegrationPointsFromMap(
@@ -553,16 +459,16 @@ void NonLocalManager::onElementsAdded(const Array<Element> & /*unused*/,
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLocalManager::resizeElementTypeMap(UInt nb_component,
+void NonLocalManager::resizeElementTypeMap(Int nb_component,
                                            ElementTypeMapReal & element_map,
                                            const FEEngine & fee,
                                            const ElementKind el_kind) {
-  Mesh & mesh = this->model.getMesh();
+  auto & mesh = this->model.getMesh();
 
   for (auto gt : ghost_types) {
     for (auto type : mesh.elementTypes(spatial_dimension, gt, el_kind)) {
-      UInt nb_element = mesh.getNbElement(type, gt);
-      UInt nb_quads = fee.getNbIntegrationPoints(type, gt);
+      auto nb_element = mesh.getNbElement(type, gt);
+      auto nb_quads = fee.getNbIntegrationPoints(type, gt);
       if (!element_map.exists(type, gt)) {
         element_map.alloc(nb_element * nb_quads, nb_component, type, gt);
       } else {
@@ -574,17 +480,17 @@ void NonLocalManager::resizeElementTypeMap(UInt nb_component,
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::removeIntegrationPointsFromMap(
-    const ElementTypeMapArray<UInt> & new_numbering, UInt nb_component,
+    const ElementTypeMapArray<Idx> & new_numbering, Int nb_component,
     ElementTypeMapReal & element_map, const FEEngine & fee,
     const ElementKind el_kind) {
 
   for (auto gt : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, gt, el_kind)) {
       if (element_map.exists(type, gt)) {
-        const Array<UInt> & renumbering = new_numbering(type, gt);
+        const auto & renumbering = new_numbering(type, gt);
 
-        Array<Real> & vect = element_map(type, gt);
-        UInt nb_quad_per_elem = fee.getNbIntegrationPoints(type, gt);
+        auto & vect = element_map(type, gt);
+        auto nb_quad_per_elem = fee.getNbIntegrationPoints(type, gt);
         Array<Real> tmp(renumbering.size() * nb_quad_per_elem, nb_component);
 
         AKANTU_DEBUG_ASSERT(
@@ -594,12 +500,12 @@ void NonLocalManager::removeIntegrationPointsFromMap(
                 << ") "
                    "!!");
 
-        UInt new_size = 0;
-        for (UInt i = 0; i < renumbering.size(); ++i) {
-          UInt new_i = renumbering(i);
-          if (new_i != UInt(-1)) {
-            memcpy(tmp.storage() + new_i * nb_component * nb_quad_per_elem,
-                   vect.storage() + i * nb_component * nb_quad_per_elem,
+        Int new_size = 0;
+        for (Int i = 0; i < renumbering.size(); ++i) {
+          auto new_i = renumbering(i);
+          if (new_i != Int(-1)) {
+            memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
+                   vect.data() + i * nb_component * nb_quad_per_elem,
                    nb_component * nb_quad_per_elem * sizeof(Real));
             ++new_size;
           }
@@ -612,10 +518,10 @@ void NonLocalManager::removeIntegrationPointsFromMap(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt NonLocalManager::getNbData(const Array<Element> & elements,
-                                const ID & id) const {
-  UInt size = 0;
-  UInt nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
+Int NonLocalManager::getNbData(const Array<Element> & elements,
+                               const ID & id) const {
+  Int size = 0;
+  auto nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
   auto it = non_local_variables.find(id);
 
   AKANTU_DEBUG_ASSERT(it != non_local_variables.end(),
@@ -629,7 +535,6 @@ UInt NonLocalManager::getNbData(const Array<Element> & elements,
 void NonLocalManager::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
                                const ID & id) const {
-
   auto it = non_local_variables.find(id);
 
   AKANTU_DEBUG_ASSERT(it != non_local_variables.end(),

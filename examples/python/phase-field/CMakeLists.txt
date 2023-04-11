@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Tue Aug 03 2021
-# @date last modification: Tue Aug 03 2021
-#
-# @brief  CMake file for phase-field python example
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any

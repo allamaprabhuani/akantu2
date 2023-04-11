@@ -1,18 +1,8 @@
 /**
- * @file   test_material_thermal.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  Test the thermal material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +44,8 @@ template <> void FriendMaterial<MaterialThermal<3>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E / (1 - 2 * nu) * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);
@@ -71,7 +61,8 @@ template <> void FriendMaterial<MaterialThermal<2>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E / (1 - 2 * nu) * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);
@@ -87,7 +78,8 @@ template <> void FriendMaterial<MaterialThermal<1>>::testComputeStress() {
 
   Real deltaT = 1;
   Real sigma = 0;
-  this->computeStressOnQuad(sigma, deltaT);
+  this->computeStressOnQuad(
+      make_named_tuple("sigma_th"_n = sigma, "delta_T"_n = deltaT));
   Real solution = -E * alpha * deltaT;
   auto error = std::abs(sigma - solution);
   ASSERT_NEAR(error, 0, 1e-14);

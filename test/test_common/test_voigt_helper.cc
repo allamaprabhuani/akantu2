@@ -1,18 +1,8 @@
 /**
- * @file   test_voigt_helper.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 27 2019
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  unit tests for VoigtHelper
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,7 +32,7 @@ using namespace akantu;
 template <class Dim_v> class VoigtHelperFixture : public ::testing::Test {
 protected:
   using voigt_h = VoigtHelper<Dim_v::value>;
-  constexpr static UInt dim = Dim_v::value;
+  constexpr static Int dim = Dim_v::value;
 
   VoigtHelperFixture() {
     switch (this->dim) {
@@ -88,7 +77,7 @@ protected:
   Vector<Real> vector_factor;
 };
 
-template <UInt dim>
+template <Int dim>
 using spatial_dimension_t = std::integral_constant<UInt, dim>;
 
 using TestTypes =
@@ -114,7 +103,7 @@ TYPED_TEST(VoigtHelperFixture, Size) {
 TYPED_TEST(VoigtHelperFixture, Indicies) {
   using voigt_h = typename TestFixture::voigt_h;
 
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     EXPECT_EQ(this->indices[I].first, voigt_h::vec[I][0]);
     EXPECT_EQ(this->indices[I].second, voigt_h::vec[I][1]);
   }
@@ -122,7 +111,7 @@ TYPED_TEST(VoigtHelperFixture, Indicies) {
 
 TYPED_TEST(VoigtHelperFixture, Factors) {
   using voigt_h = typename TestFixture::voigt_h;
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     if (I < this->dim) {
       EXPECT_EQ(voigt_h::factors[I], 1);
     } else {
@@ -136,7 +125,7 @@ TYPED_TEST(VoigtHelperFixture, MatrixToVoight) {
 
   auto voigt = voigt_h::matrixToVoigt(this->matrix);
 
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     EXPECT_EQ(voigt(I), this->vector(I));
   }
 }
@@ -146,7 +135,7 @@ TYPED_TEST(VoigtHelperFixture, MatrixToVoightFactors) {
 
   auto voigt = voigt_h::matrixToVoigtWithFactors(this->matrix);
 
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     EXPECT_EQ(voigt(I), this->vector_factor(I));
   }
 }
@@ -156,8 +145,8 @@ TYPED_TEST(VoigtHelperFixture, VoightToMatrix) {
 
   auto matrix = voigt_h::voigtToMatrix(this->vector);
 
-  for (UInt i = 0; i < this->dim; ++i) {
-    for (UInt j = 0; j < this->dim; ++j) {
+  for (Int i = 0; i < this->dim; ++i) {
+    for (Int j = 0; j < this->dim; ++j) {
       EXPECT_EQ(matrix(i, j), this->matrix(std::min(i, j), std::max(i, j)));
     }
   }

@@ -1,18 +1,8 @@
 /**
- * @file   material_reinforcement.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Fri Mar 13 2015
- * @date last modification: Fri Feb 09 2018
- *
- * @brief  Reinforcement material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +44,7 @@ namespace akantu {
  *  -  the template parameter dim is the dimension of the problem
  */
 
-template <class Mat, UInt dim> class MaterialReinforcement : public Mat {
+template <class Mat, Int dim> class MaterialReinforcement : public Mat {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -109,8 +98,10 @@ protected:
   void computeDirectingCosines(ElementType type, GhostType ghost_type);
 
   /// Compute the directing cosines matrix on quadrature points.
-  inline void computeDirectingCosinesOnQuad(const Matrix<Real> & nodes,
-                                            Matrix<Real> & cosines);
+  template <class Derived1, class Derived2>
+  inline void
+  computeDirectingCosinesOnQuad(const Eigen::MatrixBase<Derived1> & nodes,
+                                Eigen::MatrixBase<Derived2> & cosines);
 
   /// Add the prestress to the computed stress
   void addPrestress(ElementType type, GhostType ghost_type);
@@ -134,11 +125,11 @@ protected:
   void computeBackgroundShapeDerivatives(ElementType interface_type,
                                          ElementType bg_type,
                                          GhostType ghost_type,
-                                         const Array<UInt> & filter);
+                                         const Array<Idx> & filter);
 
   /// Filter elements crossed by interface of a type
-  void filterInterfaceBackgroundElements(Array<UInt> & foreground,
-                                         Array<UInt> & background,
+  void filterInterfaceBackgroundElements(Array<Idx> & foreground,
+                                         Array<Idx> & background,
                                          ElementType type,
                                          ElementType interface_type,
                                          GhostType ghost_type);
@@ -151,21 +142,15 @@ protected:
                                        ElementType background_type,
                                        GhostType ghost_type);
 
-  // TODO figure out why voigt size is 4 in 2D
-  inline void stressTensorToVoigtVector(const Matrix<Real> & tensor,
-                                        Vector<Real> & vector);
-  inline void strainTensorToVoigtVector(const Matrix<Real> & tensor,
-                                        Vector<Real> & vector);
-
   /// Get background filter
-  Array<UInt> & getBackgroundFilter(ElementType fg_type, ElementType bg_type,
-                                    GhostType ghost_type) {
+  Array<Idx> & getBackgroundFilter(ElementType fg_type, ElementType bg_type,
+                                   GhostType ghost_type) {
     return (*background_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
 
   /// Get foreground filter
-  Array<UInt> & getForegroundFilter(ElementType fg_type, ElementType bg_type,
-                                    GhostType ghost_type) {
+  Array<Idx> & getForegroundFilter(ElementType fg_type, ElementType bg_type,
+                                   GhostType ghost_type) {
     return (*foreground_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
 
@@ -195,10 +180,10 @@ protected:
   CrossMap<Real> shape_derivatives;
 
   /// Foreground mesh filter (contains segment ids)
-  CrossMap<UInt> foreground_filter;
+  CrossMap<Idx> foreground_filter;
 
   /// Background element filter (contains bg ids)
-  CrossMap<UInt> background_filter;
+  CrossMap<Idx> background_filter;
 };
 
 } // namespace akantu

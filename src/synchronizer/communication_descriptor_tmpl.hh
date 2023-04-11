@@ -1,18 +1,8 @@
 /**
- * @file   communication_descriptor_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Dec 02 2016
- * @date last modification: Thu Jan 25 2018
- *
- * @brief  implementation of CommunicationDescriptor
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,9 +32,9 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 CommunicationDescriptor<Entity>::CommunicationDescriptor(
-    Communication & communication, Array<Entity> & scheme,
-    Communications<Entity> & communications, const SynchronizationTag & tag,
-    UInt proc)
+    Communication &communication, Array<Entity> &scheme,
+    Communications<Entity> &communications, const SynchronizationTag &tag,
+    Int proc)
     : communication(communication), scheme(scheme),
       communications(communications), tag(tag), proc(proc),
       rank(communications.getCommunicator().whoAmI()) {
@@ -54,19 +43,19 @@ CommunicationDescriptor<Entity>::CommunicationDescriptor(
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
-CommunicationBuffer & CommunicationDescriptor<Entity>::getBuffer() {
+CommunicationBuffer &CommunicationDescriptor<Entity>::getBuffer() {
   return communication.buffer();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
-CommunicationRequest & CommunicationDescriptor<Entity>::getRequest() {
+CommunicationRequest &CommunicationDescriptor<Entity>::getRequest() {
   return communication.request();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Entity> void CommunicationDescriptor<Entity>::freeRequest() {
-  const auto & comm = communications.getCommunicator();
+  const auto &comm = communications.getCommunicator();
 
   // comm.test(communication.request());
   comm.freeCommunicationRequest(communication.request());
@@ -76,7 +65,7 @@ template <class Entity> void CommunicationDescriptor<Entity>::freeRequest() {
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
-const Array<Entity> & CommunicationDescriptor<Entity>::getScheme() {
+const Array<Entity> &CommunicationDescriptor<Entity>::getScheme() {
   return scheme;
 }
 
@@ -87,7 +76,7 @@ template <class Entity> void CommunicationDescriptor<Entity>::resetBuffer() {
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 void CommunicationDescriptor<Entity>::packData(
-    const DataAccessor<Entity> & accessor) {
+    const DataAccessor<Entity> &accessor) {
   AKANTU_DEBUG_ASSERT(
       communication.type() == _send,
       "Cannot pack data on communication that is not of type _send");
@@ -97,7 +86,7 @@ void CommunicationDescriptor<Entity>::packData(
 /* -------------------------------------------------------------------------- */
 template <class Entity>
 void CommunicationDescriptor<Entity>::unpackData(
-    DataAccessor<Entity> & accessor) {
+    DataAccessor<Entity> &accessor) {
   AKANTU_DEBUG_ASSERT(
       communication.type() == _recv,
       "Cannot unpack data from communication that is not of type _recv");
@@ -111,7 +100,7 @@ void CommunicationDescriptor<Entity>::postSend(int hash_id) {
                       "Cannot send a communication that is not of type _send");
   Tag comm_tag = Tag::genTag(rank, counter, tag, hash_id);
   AKANTU_DEBUG_ASSERT(communication.buffer().getPackedSize() ==
-                          communication.size(),
+                          std::size_t(communication.size()),
                       "a problem have been introduced with "
                           << "false sent sizes declaration "
                           << communication.buffer().getPackedSize()
@@ -122,7 +111,7 @@ void CommunicationDescriptor<Entity>::postSend(int hash_id) {
                                             << " data to send) "
                                             << " [ " << comm_tag << " ]");
 
-  CommunicationRequest & request = communication.request();
+  CommunicationRequest &request = communication.request();
   request = communications.getCommunicator().asyncSend(communication.buffer(),
                                                        proc, comm_tag);
   communications.incrementPending(tag, communication.type());
@@ -142,7 +131,7 @@ void CommunicationDescriptor<Entity>::postRecv(int hash_id) {
                     << " data to receive) "
                     << " [ " << comm_tag << " ]");
 
-  CommunicationRequest & request = communication.request();
+  CommunicationRequest &request = communication.request();
   request = communications.getCommunicator().asyncReceive(
       communication.buffer(), proc, comm_tag);
   communications.incrementPending(tag, communication.type());

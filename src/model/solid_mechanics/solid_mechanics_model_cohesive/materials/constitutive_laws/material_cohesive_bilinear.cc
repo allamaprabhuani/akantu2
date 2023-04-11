@@ -1,18 +1,8 @@
 /**
- * @file   material_cohesive_bilinear.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Feb 22 2012
- * @date last modification: Sat Dec 19 2020
- *
- * @brief  Bilinear cohesive constitutive law
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +26,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesiveLinear<spatial_dimension>(model, id) {
@@ -51,7 +40,7 @@ MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
@@ -68,7 +57,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
@@ -83,31 +72,27 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     scale_traction = true;
   }
 
-  Array<Element>::const_scalar_iterator el_it = element_list.begin();
-  Array<Element>::const_scalar_iterator el_end = element_list.end();
-
-  for (; el_it != el_end; ++el_it) {
+  for (auto && el : element_list) {
     // filter not ghost cohesive elements
-    if ((el_it->ghost_type != _not_ghost) or
-        (Mesh::getKind(el_it->type) != _ek_cohesive)) {
+    if ((el.ghost_type != _not_ghost) or
+        (Mesh::getKind(el.type) != _ek_cohesive)) {
       continue;
     }
 
-    UInt index = el_it->element;
-    ElementType type = el_it->type;
-    UInt nb_element = this->model->getMesh().getNbElement(type);
-    UInt nb_quad_per_element = this->fem_cohesive.getNbIntegrationPoints(type);
+    auto index = el.element;
+    auto type = el.type;
+    auto nb_quad_per_element = this->fem_cohesive.getNbIntegrationPoints(type);
 
-    auto sigma_c_begin = this->sigma_c_eff(type).begin_reinterpret(
-        nb_quad_per_element, nb_element);
-    Vector<Real> sigma_c_vec = sigma_c_begin[index];
+    auto sigma_c_begin =
+        make_view(this->sigma_c_eff(type), nb_quad_per_element).begin();
+    auto && sigma_c_vec = sigma_c_begin[index];
 
-    auto delta_c_begin = this->delta_c_eff(type).begin_reinterpret(
-        nb_quad_per_element, nb_element);
-    Vector<Real> delta_c_vec = delta_c_begin[index];
+    auto delta_c_begin =
+        make_view(this->delta_c_eff(type), nb_quad_per_element).begin();
+    auto && delta_c_vec = delta_c_begin[index];
 
     if (scale_traction) {
-      scaleTraction(*el_it, sigma_c_vec);
+      scaleTraction(el, sigma_c_vec);
     }
 
     /**
@@ -116,7 +101,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
      * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
      */
 
-    for (UInt q = 0; q < nb_quad_per_element; ++q) {
+    for (Int q = 0; q < nb_quad_per_element; ++q) {
       delta_c_vec(q) = 2 * this->G_c / sigma_c_vec(q);
 
       if (delta_c_vec(q) - delta_0 < Math::getTolerance()) {
@@ -133,83 +118,81 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
+template <typename D1>
 void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
-    const Element & el, Vector<Real> & sigma_c_vec) {
+    const Element & el, Eigen::MatrixBase<D1> & sigma_c_vec) {
   AKANTU_DEBUG_IN();
 
-  Real base_sigma_c = this->sigma_c_eff;
+  auto base_sigma_c = Real(this->sigma_c_eff);
 
-  const Mesh & mesh_facets = this->model->getMeshFacets();
-  const FEEngine & fe_engine = this->model->getFEEngine();
+  const auto & mesh_facets = this->model->getMeshFacets();
+  const auto & fe_engine = this->model->getFEEngine();
 
   auto coh_element_to_facet_begin =
       mesh_facets.getSubelementToElement(el.type).begin(2);
-  const Vector<Element> & coh_element_to_facet =
-      coh_element_to_facet_begin[el.element];
+  const auto & coh_element_to_facet = coh_element_to_facet_begin[el.element];
 
   // compute bounding volume
-  Real volume = 0;
+  Real volume = 0.;
 
   // loop over facets
-  for (UInt f = 0; f < 2; ++f) {
-    const Element & facet = coh_element_to_facet(f);
+  for (Int f = 0; f < 2; ++f) {
+    const auto & facet = coh_element_to_facet(f);
 
-    const Array<std::vector<Element>> & facet_to_element =
+    const auto & facet_to_element =
         mesh_facets.getElementToSubelement(facet.type, facet.ghost_type);
 
-    const std::vector<Element> & element_list = facet_to_element(facet.element);
-
-    auto elem = element_list.begin();
-    auto elem_end = element_list.end();
-
     // loop over elements connected to each facet
-    for (; elem != elem_end; ++elem) {
+    for (auto && elem : facet_to_element(facet.element)) {
       // skip cohesive elements and dummy elements
-      if (*elem == ElementNull || Mesh::getKind(elem->type) == _ek_cohesive) {
+      if (elem == ElementNull || Mesh::getKind(elem.type) == _ek_cohesive) {
         continue;
       }
 
       // unit vector for integration in order to obtain the volume
-      UInt nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem->type);
-      Vector<Real> unit_vector(nb_quadrature_points, 1);
+      auto nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem.type);
+      Vector<Real> unit_vector(nb_quadrature_points);
+      unit_vector.fill(1);
 
-      volume += fe_engine.integrate(unit_vector, elem->type, elem->element,
-                                    elem->ghost_type);
+      volume += fe_engine.integrate(unit_vector, elem);
     }
   }
 
   // scale sigma_c
-  sigma_c_vec -= base_sigma_c;
-  sigma_c_vec *= std::pow(this->volume_s / volume, 1. / this->m_s);
-  sigma_c_vec += base_sigma_c;
+  sigma_c_vec = (sigma_c_vec.array() - base_sigma_c) *
+                    std::pow(this->volume_s / volume, 1. / this->m_s) +
+                base_sigma_c;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(
-    const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  MaterialCohesiveLinear<spatial_dimension>::computeTraction(normal, el_type,
+  MaterialCohesiveLinear<spatial_dimension>::computeTraction(el_type,
                                                              ghost_type);
 
   // adjust damage
-  auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
-  auto delta_max_it = this->delta_max(el_type, ghost_type).begin();
-  auto damage_it = this->damage(el_type, ghost_type).begin();
-  auto damage_end = this->damage(el_type, ghost_type).end();
+  for (auto && data : zip(this->damage(el_type, ghost_type),
+                          this->delta_max(el_type, ghost_type),
+                          this->delta_c_eff(el_type, ghost_type))) {
+    auto & dam = std::get<0>(data);
+    auto & delta_max = std::get<1>(data);
+    auto & delta_c = std::get<2>(data);
 
-  for (; damage_it != damage_end; ++damage_it, ++delta_max_it, ++delta_c_it) {
-    *damage_it =
-        std::max((*delta_max_it - delta_0) / (*delta_c_it - delta_0), Real(0.));
-    *damage_it = std::min(*damage_it, Real(1.));
+    dam = std::max((delta_max - delta_0) / (delta_c - delta_0), Real(0.));
+    dam = std::min(dam, Real(1.));
   }
 }
 
 /* -------------------------------------------------------------------------- */
-
-INSTANTIATE_MATERIAL(cohesive_bilinear, MaterialCohesiveBilinear);
+template class MaterialCohesiveBilinear<1>;
+template class MaterialCohesiveBilinear<2>;
+template class MaterialCohesiveBilinear<3>;
+static bool material_is_alocated_cohesive_bilinear =
+    instantiateMaterial<MaterialCohesiveBilinear>("cohesive_bilinear");
 
 } // namespace akantu

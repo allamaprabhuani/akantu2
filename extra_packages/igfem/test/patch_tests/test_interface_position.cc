@@ -1,15 +1,21 @@
 /**
- * @file   test_interface_position.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  patch test for interface close to standard nodes
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -30,7 +36,7 @@ int main(int argc, char * argv[]) {
 
   /// create a mesh and read the regular elements from the mesh file
   /// mesh creation
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   akantu::MeshPartition * partition = NULL;
   if (prank == 0) {
@@ -288,7 +294,7 @@ Real computeL2Error(SolidMechanicsModelIGFEM & model,
   Real normalization = 0;
 
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   ElementTypeMapReal quad_coords("quad_coords");
   GhostType ghost_type = _not_ghost;
   const std::map<ElementKind, FEEngine *> & fe_engines =
@@ -324,10 +330,10 @@ Real computeL2Error(SolidMechanicsModelIGFEM & model,
       Array<Real>::const_vector_iterator coord_it =
           quad_coords.begin(spatial_dimension);
       Vector<Real> error_vec(spatial_dimension);
-      for (UInt e = 0; e < nb_elements; ++e) {
+      for (Int e = 0; e < nb_elements; ++e) {
         Vector<Real> error_per_quad(nb_quads);
         Vector<Real> normalization_per_quad(nb_quads);
-        for (UInt q = 0; q < nb_quads; ++q, ++displ_it, ++coord_it) {
+        for (Int q = 0; q < nb_quads; ++q, ++displ_it, ++coord_it) {
           Real exact = 0.5 * (*coord_it)(0) + 0.5;
           error_vec = *displ_it;
           error_vec(0) -= exact;

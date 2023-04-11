@@ -1,18 +1,8 @@
 /**
- * @file   test_structural_mechanics_model_bernoulli_beam_3.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu Feb 25 2021
- *
- * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -64,8 +53,8 @@ public:
     // Boundary conditions (blocking all DOFs of nodes 2 & 3)
     auto boundary = ++this->model->getBlockedDOFs().begin(parent::ndof);
     // clang-format off
-    *boundary = {true, true, true, true, true, true}; ++boundary;
-    *boundary = {true, true, true, true, true, true}; ++boundary;
+    *boundary = Vector<bool>{true, true, true, true, true, true}; ++boundary;
+    *boundary = Vector<bool>{true, true, true, true, true, true}; ++boundary;
     // clang-format on
   }
 

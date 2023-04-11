@@ -1,18 +1,8 @@
 /**
- * @file   test_solid_mechanics_model_reassign_material.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu Mar 11 2021
- *
- * @brief  test the function reassign material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -48,8 +37,8 @@ public:
                                     const std::string & mat_2_material)
       : model(model), horizontal(horizontal), pos_interface(pos_interface),
         mat_1_material(mat_1_material), mat_2_material(mat_2_material) {
-    Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = mesh.getSpatialDimension();
+    auto & mesh = model.getMesh();
+    auto spatial_dimension = mesh.getSpatialDimension();
 
     /// store barycenters of all elements
     barycenters.initialize(mesh, _spatial_dimension = spatial_dimension,
@@ -67,11 +56,11 @@ public:
     mat_ids[1] = model.getMaterialIndex(mat_2_material);
   }
 
-  UInt operator()(const Element & elem) override {
+  Int operator()(const Element & elem) override {
     if (not materials_set) {
       setMaterials();
     }
-    const Vector<Real> bary = barycenters.get(elem);
+    const auto bary = barycenters.get(elem);
     /// check for a given element on which side of the material interface plane
     /// the bary center lies and assign corresponding material
     if (bary(horizontal) < pos_interface) {
@@ -92,7 +81,7 @@ public:
         auto & bary = std::get<1>(data);
         /// compare element_index_by material to material index that should be
         /// assigned due to the geometry of the interface
-        UInt mat_index;
+        Int mat_index;
         if (bary(horizontal) < pos_interface) {
           mat_index = mat_ids[0];
         } else {
@@ -139,7 +128,7 @@ int main(int argc, char * argv[]) {
   /// specify position and orientation of material interface plane
   Real pos_interface = 0.;
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
 
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();

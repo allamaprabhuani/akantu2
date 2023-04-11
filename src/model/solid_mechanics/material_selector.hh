@@ -1,19 +1,8 @@
 /**
- * @file   material_selector.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  class describing how to choose a material for a given element
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,7 +46,7 @@ class ElementDataMaterialSelector : public ConstitutiveLawSelector {
 public:
   ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
                               const SolidMechanicsModel & model,
-                              UInt first_index = 1)
+                              Int first_index = 1)
       : element_data(element_data), model(model), first_index(first_index) {}
 
   inline T elementData(const Element & element) {
@@ -69,7 +57,7 @@ public:
     return data;
   }
 
-  inline UInt operator()(const Element & element) override {
+  inline Int operator()(const Element & element) override {
     return ConstitutiveLawSelector::operator()(element);
   }
 
@@ -81,7 +69,7 @@ protected:
   const SolidMechanicsModel & model;
 
   /// first material index: equal to 1 if none specified
-  UInt first_index;
+  Int first_index;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -94,7 +82,7 @@ class MeshDataMaterialSelector : public ElementDataMaterialSelector<T> {
 public:
   MeshDataMaterialSelector(const std::string & name,
                            const SolidMechanicsModel & model,
-                           UInt first_index = 1);
+                           Int first_index = 1);
 };
 
 } // namespace akantu

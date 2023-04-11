@@ -1,22 +1,8 @@
 /**
- * @file   patch_test_linear_anisotropic_implicit.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Till Junge <till.junge@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Tue May 14 2019
- * @date last modification:  Thu Oct 29 2020
- *
- * @brief  patch test for elastic material in solid mechanics model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -30,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -74,10 +59,10 @@ TYPED_TEST(TestPatchTestSMMLinear, AnisotropicStatic) {
         {-2.13683293282e-10, 3.69840984851, 112.93753505}}}};
 
   if (this->dim == 2) {
-    for (UInt i = 0; i < this->dim; ++i) {
-      for (UInt j = 0; j < this->dim; ++j) {
-        for (UInt k = 0; k < this->dim; ++k) {
-          for (UInt l = 0; l < this->dim; ++l) {
+    for (Int i = 0; i < this->dim; ++i) {
+      for (Int j = 0; j < this->dim; ++j) {
+        for (Int k = 0; k < this->dim; ++k) {
+          for (Int l = 0; l < this->dim; ++l) {
             C[i][j][k][l] = 0;
           }
         }
@@ -113,13 +98,13 @@ TYPED_TEST(TestPatchTestSMMLinear, AnisotropicStatic) {
   this->checkResults(
       [&](const Matrix<Real> & pstrain) {
         auto strain = (pstrain + pstrain.transpose()) / 2.;
-        decltype(strain) stress(this->dim, this->dim);
+        Matrix<Real> stress(this->dim, this->dim);
 
-        for (UInt i = 0; i < this->dim; ++i) {
-          for (UInt j = 0; j < this->dim; ++j) {
+        for (Int i = 0; i < this->dim; ++i) {
+          for (Int j = 0; j < this->dim; ++j) {
             stress(i, j) = 0;
-            for (UInt k = 0; k < this->dim; ++k) {
-              for (UInt l = 0; l < this->dim; ++l) {
+            for (Int k = 0; k < this->dim; ++k) {
+              for (Int l = 0; l < this->dim; ++l) {
                 stress(i, j) += C[i][j][k][l] * strain(k, l);
               }
             }

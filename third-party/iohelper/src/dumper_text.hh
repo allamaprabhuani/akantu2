@@ -12,15 +12,15 @@
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * IOHelper is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * IOHelper is free  software: you can redistribute it and/or  modify it under
+ * the terms  of the  GNU Lesser  General Public  License as  published by  the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
  *
- * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- * details.
+ * IOHelper is  distributed in the  hope that it  will be useful, but  WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for
+ * more details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with IOHelper. If not, see <http://www.gnu.org/licenses/>.
@@ -31,10 +31,11 @@
 #ifndef IOHELPER_DUMPER_TEXT_H_
 #define IOHELPER_DUMPER_TEXT_H_
 /* -------------------------------------------------------------------------- */
-#include <map>
-#include <string>
 #include "dumper.hh"
 #include "file_manager.hh"
+/* -------------------------------------------------------------------------- */
+#include <map>
+#include <string>
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
@@ -48,12 +49,10 @@ class DumperText : public Dumper, public Visitor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-  
+
 public:
-  
-  DumperText(TextDumpMode md = _tdm_space, 
-	     const std::string & prefix = "./",
-	     bool file_per_time_step = false);
+  DumperText(TextDumpMode md = _tdm_space, const std::string & prefix = "./",
+             bool file_per_time_step = false);
   ~DumperText() override;
 
   /* ------------------------------------------------------------------------ */
@@ -61,13 +60,12 @@ public:
   /* ------------------------------------------------------------------------ */
 
   void dump(const std::string & name, UInt count) override;
-  void setEmbeddedValue(const std::string & /*name*/,
-                        int /*value*/) {};
+  void setEmbeddedValue(const std::string & /*name*/, int /*value*/){};
 
   void dumpDescription(char descr_sep = ' ') override;
   virtual void dumpFieldDescription(char descr_sep = ' ');
   virtual void dumpTimeDescription(char descr_sep = ' ');
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -78,16 +76,22 @@ public:
   void setDumpMode(const TextDumpMode & mode);
 
   void setPrecision(UInt prec) { this->precision = prec; };
- 
+
   //! visitor system
   template <typename T> void visitField(T & visited);
   template <typename T> void visitVariable(T & visited);
-  
+
+protected:
+  template <typename Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
+  void writeData(File & file, const Cont & cont, UInt dim);
+
+  template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> * = nullptr>
+  void writeData(File & file, const Cont & cont, UInt dim);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   using FileMap = std::map<std::string, File *>;
 
   /**
@@ -116,44 +120,63 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-void DumperText::visitField(T & visited) {
-  File file;
-  
-  if (this->file_per_time_step || this->is_first_dump) {
-    file.open(this->getAbsoluteFilePath(this->getBaseName() + "_" + visited.getName(),
-					"data_fields"),
-	      std::fstream::out);
+template <typename Cont, std::enable_if_t<is_vector<Cont>::value> *>
+void DumperText::writeData(File & file, const Cont & cont, UInt dim) {
+  for (UInt i = 0; i < dim; ++i) {
+    if (i != 0)
+      file << this->separator;
+    file << cont[i];
   }
-  else {
-    file.open(this->getAbsoluteFilePath(this->getBaseName() + "_" + visited.getName(),
-					"data_fields"),
-	      std::fstream::out | std::fstream::app);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Cont, std::enable_if_t<is_matrix<Cont>::value> *>
+void DumperText::writeData(File & file, const Cont & cont, UInt /*dim*/) {
+  for (decltype(cont.rows()) i = 0; i < cont.rows(); ++i) {
+    for (decltype(cont.cols()) j = 0; j < cont.cols(); ++j) {
+      if (i != 0 and j != 0)
+        file << this->separator;
+      file << cont(i, j);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T> void DumperText::visitField(T & visited) {
+  File file;
+
+  if (this->file_per_time_step || this->is_first_dump) {
+    file.open(this->getAbsoluteFilePath(
+                  this->getBaseName() + "_" + visited.getName(), "data_fields"),
+              std::fstream::out);
+  } else {
+    file.open(this->getAbsoluteFilePath(
+                  this->getBaseName() + "_" + visited.getName(), "data_fields"),
+              std::fstream::out | std::fstream::app);
   }
   file << std::scientific << std::setprecision(this->precision);
 
   typename T::iterator it = visited.begin();
   typename T::iterator end = visited.end();
-  
+
   UInt dim = visited.getDim();
-  
+
   for (; it != end; ++it) {
-    for (UInt i=0; i<dim; ++i) {
+    for (UInt i = 0; i < dim; ++i) {
       if (i != 0) {
         file << this->separator;
       }
-      file << (*it)[i];
+      file << (*it)(i);
     }
     file << std::endl;
   }
 
-  file << std::endl;  
+  file << std::endl;
   file.close();
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-void DumperText::visitVariable(T & visited) {
+template <typename T> void DumperText::visitVariable(T & visited) {
 
   // only root rank dumps variables
   if (this->my_rank != this->root_rank) {
@@ -169,30 +192,28 @@ void DumperText::visitVariable(T & visited) {
   if (it == end) {
     auto * new_file = new File;
     new_file->open(this->getAbsoluteFilePath(this->getBaseName() + "_" + name,
-					     "data_variables"), 
-		   std::fstream::out);
+                                             "data_variables"),
+                   std::fstream::out);
     this->file_map[name] = new_file;
     file = new_file;
     (*file) << std::scientific << std::setprecision(this->precision);
-  }
-  else {
+  } else {
     file = it->second;
   }
 
   UInt dim = visited.getDim();
-  
+
   //  File file = it->second;
-  for (UInt i=0; i<dim; ++i) {
+  for (UInt i = 0; i < dim; ++i) {
     if (i != 0) {
       (*file) << this->separator;
     }
     (*file) << (*visited)[i];
   }
   (*file) << std::endl;
-  
 }
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace iohelper
 
 #endif /* IOHELPER_DUMPER_TEXT_H_ */

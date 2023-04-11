@@ -1,19 +1,8 @@
 /**
- * @file   test_solid_mechanics_model_dynamics.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 29 2017
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  test of the class SolidMechanicsModel on the 3d cube
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,108 +30,117 @@ namespace {
 const Real A = 1e-1;
 const Real E = 1.;
 const Real poisson = 3. / 10;
-const Real lambda = E * poisson / (1 + poisson) / (1 - 2 * poisson);
-const Real mu = E / 2 / (1. + poisson);
+const auto lambda = E * poisson / (1 + poisson) / (1 - 2 * poisson);
+const auto mu = E / 2 / (1. + poisson);
 const Real rho = 1.;
-const Real cp = std::sqrt((lambda + 2 * mu) / rho);
-const Real cs = std::sqrt(mu / rho);
-const Real c = std::sqrt(E / rho);
+const auto cp = std::sqrt((lambda + 2 * mu) / rho);
+const auto cs = std::sqrt(mu / rho);
+const auto c = std::sqrt(E / rho);
 
-const Vector<Real> k = {.5, 0., 0.};
-const Vector<Real> psi1 = {0., 0., 1.};
-const Vector<Real> psi2 = {0., 1., 0.};
-const Real knorm = k.norm();
+const Vector<Real, 3> k{.5, 0., 0.};
+const Vector<Real, 3> psi1{0., 0., 1.};
+const Vector<Real, 3> psi2{0., 1., 0.};
+const auto knorm = k.norm();
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> struct Verification {};
+template <Int dim> struct Verification {};
 
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<1> {
-  void displacement(Vector<Real> & disp, const Vector<Real> & coord,
-                    Real current_time) {
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void displacement(Eigen::MatrixBase<D1> & disp,
+                    const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & x = coord(_x);
-    const Real omega = c * k[0];
-    disp(_x) = A * cos(k[0] * x - omega * current_time);
+    const auto omega = c * k[0];
+    disp(_x) = A * std::cos(k[0] * x - omega * current_time);
   }
 
-  void velocity(Vector<Real> & vel, const Vector<Real> & coord,
-                Real current_time) {
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void velocity(Eigen::MatrixBase<D1> & vel,
+                const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & x = coord(_x);
-    const Real omega = c * k[0];
-    vel(_x) = omega * A * sin(k[0] * x - omega * current_time);
+    const auto omega = c * k[0];
+    vel(_x) = omega * A * std::sin(k[0] * x - omega * current_time);
   }
 };
 
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<2> {
-  void displacement(Vector<Real> & disp, const Vector<Real> & X,
-                    Real current_time) {
-    Vector<Real> kshear = {k[1], k[0]};
-    Vector<Real> kpush = {k[0], k[1]};
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void displacement(Eigen::MatrixBase<D1> & disp,
+                    const Eigen::MatrixBase<D2> & X, Real current_time) {
+    Vector<Real> kshear{k[1], k[0]};
+    Vector<Real> kpush{k[0], k[1]};
 
-    const Real omega_p = knorm * cp;
-    const Real omega_s = knorm * cs;
+    const auto omega_p = knorm * cp;
+    const auto omega_s = knorm * cs;
 
-    Real phase_p = X.dot(kpush) - omega_p * current_time;
-    Real phase_s = X.dot(kpush) - omega_s * current_time;
+    auto phase_p = X.dot(kpush) - omega_p * current_time;
+    auto phase_s = X.dot(kpush) - omega_s * current_time;
 
-    disp = A * (kpush * cos(phase_p) + kshear * cos(phase_s));
+    disp = A * (kpush * std::cos(phase_p) + kshear * std::cos(phase_s));
   }
 
-  void velocity(Vector<Real> & vel, const Vector<Real> & X, Real current_time) {
-    Vector<Real> kshear = {k[1], k[0]};
-    Vector<Real> kpush = {k[0], k[1]};
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void velocity(Eigen::MatrixBase<D1> & vel, const Eigen::MatrixBase<D2> & X,
+                Real current_time) {
+    Vector<Real> kshear{k[1], k[0]};
+    Vector<Real> kpush{k[0], k[1]};
 
-    const Real omega_p = knorm * cp;
-    const Real omega_s = knorm * cs;
+    const auto omega_p = knorm * cp;
+    const auto omega_s = knorm * cs;
 
-    Real phase_p = X.dot(kpush) - omega_p * current_time;
-    Real phase_s = X.dot(kpush) - omega_s * current_time;
+    auto phase_p = X.dot(kpush) - omega_p * current_time;
+    auto phase_s = X.dot(kpush) - omega_s * current_time;
 
-    vel =
-        A * (kpush * omega_p * cos(phase_p) + kshear * omega_s * cos(phase_s));
+    vel = A * (kpush * omega_p * std::cos(phase_p) +
+               kshear * omega_s * std::cos(phase_s));
   }
 };
 
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<3> {
-  void displacement(Vector<Real> & disp, const Vector<Real> & coord,
-                    Real current_time) {
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void displacement(Eigen::MatrixBase<D1> & disp,
+                    const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & X = coord;
-    Vector<Real> kpush = k;
-    Vector<Real> kshear1(3);
-    Vector<Real> kshear2(3);
-    kshear1.crossProduct(k, psi1);
-    kshear2.crossProduct(k, psi2);
+    auto kpush = k;
+    Vector<Real, 3> kshear1 = k.cross(psi1);
+    Vector<Real, 3> kshear2 = k.cross(psi2);
 
-    const Real omega_p = knorm * cp;
-    const Real omega_s = knorm * cs;
+    const auto omega_p = knorm * cp;
+    const auto omega_s = knorm * cs;
 
-    Real phase_p = X.dot(kpush) - omega_p * current_time;
-    Real phase_s = X.dot(kpush) - omega_s * current_time;
+    auto phase_p = X.dot(kpush) - omega_p * current_time;
+    auto phase_s = X.dot(kpush) - omega_s * current_time;
 
-    disp = A * (kpush * cos(phase_p) + kshear1 * cos(phase_s) +
-                kshear2 * cos(phase_s));
+    disp = A * (kpush * std::cos(phase_p) + kshear1 * std::cos(phase_s) +
+                kshear2 * std::cos(phase_s));
   }
 
-  void velocity(Vector<Real> & vel, const Vector<Real> & coord,
-                Real current_time) {
+  template <typename D1, typename D2,
+            std::enable_if_t<aka::are_vectors_v<D1, D2>> * = nullptr>
+  void velocity(Eigen::MatrixBase<D1> & vel,
+                const Eigen::MatrixBase<D2> & coord, Real current_time) {
     const auto & X = coord;
-    Vector<Real> kpush = k;
-    Vector<Real> kshear1(3);
-    Vector<Real> kshear2(3);
-    kshear1.crossProduct(k, psi1);
-    kshear2.crossProduct(k, psi2);
+    auto kpush = k;
+    Vector<Real, 3> kshear1 = k.cross(psi1);
+    Vector<Real, 3> kshear2 = k.cross(psi2);
 
-    const Real omega_p = knorm * cp;
-    const Real omega_s = knorm * cs;
+    const auto omega_p = knorm * cp;
+    const auto omega_s = knorm * cs;
 
-    Real phase_p = X.dot(kpush) - omega_p * current_time;
-    Real phase_s = X.dot(kpush) - omega_s * current_time;
+    auto phase_p = X.dot(kpush) - omega_p * current_time;
+    auto phase_s = X.dot(kpush) - omega_s * current_time;
 
-    vel =
-        A * (kpush * omega_p * cos(phase_p) + kshear1 * omega_s * cos(phase_s) +
-             kshear2 * omega_s * cos(phase_s));
+    vel = A * (kpush * omega_p * std::cos(phase_p) +
+               kshear1 * omega_s * std::cos(phase_s) +
+               kshear2 * omega_s * std::cos(phase_s));
   }
 };
 
@@ -155,14 +152,14 @@ public:
       : current_time(current_time), model(model) {}
 
 public:
-  static constexpr UInt dim = ElementClass<_type>::getSpatialDimension();
+  static constexpr auto dim = ElementClass<_type>::getSpatialDimension();
 
-  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal,
+  inline void operator()(Int node, Vector<bool> & flags, Vector<Real> & primal,
                          const Vector<Real> & coord) const {
     flags(0) = true;
-    auto & vel = model.getVelocity();
+    const auto & vel = model.getVelocity();
     auto it = vel.begin(model.getSpatialDimension());
-    Vector<Real> v = it[node];
+    auto v = it[node];
 
     Verification<dim> verif;
     verif.displacement(primal, coord, current_time);
@@ -206,8 +203,9 @@ public:
       verif.velocity(std::get<2>(tuple), std::get<0>(tuple), 0.);
     }
 
-    if (this->dump_paraview)
+    if (this->dump_paraview) {
       this->model->dump();
+    }
 
     /// boundary conditions
     this->model->applyBC(SolutionFunctor<parent::type>(0., *this->model), "BC");
@@ -224,8 +222,8 @@ public:
     Real current_time = 0.;
     const auto & position = this->mesh->getNodes();
     const auto & displacement = this->model->getDisplacement();
-    UInt nb_nodes = this->mesh->getNbNodes();
-    UInt nb_global_nodes = this->mesh->getNbGlobalNodes();
+    auto nb_nodes = this->mesh->getNbNodes();
+    auto nb_global_nodes = this->mesh->getNbGlobalNodes();
 
     max_error = -1.;
 
@@ -235,10 +233,10 @@ public:
     auto ndump = 50;
     auto dump_freq = max_steps / ndump;
 
-    for (UInt s = 0; s < this->max_steps;
-         ++s, current_time += this->time_step) {
-      if (s % dump_freq == 0 && this->dump_paraview)
+    for (Int s = 0; s < this->max_steps; ++s, current_time += this->time_step) {
+      if (s % dump_freq == 0 && this->dump_paraview) {
         this->model->dump();
+      }
 
       /// boundary conditions
       this->model->applyBC(
@@ -277,7 +275,7 @@ protected:
   Real time_step;
   Real wave_velocity;
   Real simulation_time;
-  UInt max_steps;
+  Int max_steps;
   Real max_error{-1};
 };
 

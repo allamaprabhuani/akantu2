@@ -1,9 +1,10 @@
+_skbuild
 build*
 .dir-locals.el
 TAGS
 third-party/*/
 !third-party/cmake/*
-!third-party/akantu-iterators
+!third-party/akantu_iterators
 !third-party/iohelper
 *~
 release
@@ -28,5 +29,7 @@ setup.cfg
 .vscode
 .auctex*
 .clangd
+.ccls-cache
 .ccls
 VERSION
+

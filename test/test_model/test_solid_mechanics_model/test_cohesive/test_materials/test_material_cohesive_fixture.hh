@@ -1,18 +1,8 @@
 /**
- * @file   test_material_cohesive_fixture.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Feb 21 2018
- * @date last modification:  Sun Dec 30 2018
- *
- * @brief  Test the traction separations laws for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,10 +32,10 @@ using namespace akantu;
 //#define debug_
 
 /* -------------------------------------------------------------------------- */
-template <template <UInt> class Mat, typename dim_>
+template <template <Int> class Mat, typename dim_>
 class TestMaterialCohesiveFixture : public ::testing::Test {
 public:
-  static constexpr UInt dim = dim_::value;
+  static constexpr Int dim = dim_::value;
   using Material = Mat<dim>;
 
   void SetUp() override {
@@ -116,14 +105,13 @@ public:
     auto dim = normal.size();
     Matrix<Real> tangent(dim, dim - 1);
     if (dim == 2) {
-      Math::normal2(normal.storage(), tangent(0).storage());
+      tangent(0) = Math::normal(normal);
     }
 
     if (dim == 3) {
       auto v = getRandomVector();
-      tangent(0) = (v - v.dot(normal) * normal).normalize();
-      Math::normal3(normal.storage(), tangent(0).storage(),
-                    tangent(1).storage());
+      tangent(0) = (v - v.dot(normal) * normal).normalized();
+      tangent(1) = Math::normal(tangent(0), normal);
     }
 
 #if defined(debug_)
@@ -179,8 +167,8 @@ public:
 
   /* ------------------------------------------------------------------------ */
   Real dissipated() {
-    Vector<Real> prev_opening(dim, 0.);
-    Vector<Real> prev_traction(dim, 0.);
+    Vector<Real> prev_opening = Vector<Real>::Zero(dim);
+    Vector<Real> prev_traction = Vector<Real>::Zero(dim);
 
     Real etot = 0.;
     Real erev = 0.;
@@ -231,15 +219,16 @@ public:
 
     std::uniform_real_distribution<Real> dis;
 
-    auto direction = Vector<Real>(tangents(0));
+    Vector<Real> direction = tangents(0);
     auto alpha = dis(gen) + 0.1;
     auto beta = dis(gen) + 0.2;
 #ifndef debug_
-    direction = alpha * Vector<Real>(tangents(0));
-    if (dim > 2)
-      direction += beta * Vector<Real>(tangents(1));
+    direction = alpha * tangents(0);
+    if (dim > 2) {
+      direction += beta * tangents(1);
+    }
 
-    direction = direction.normalize();
+    direction = direction.normalized();
 #endif
 
     beta = this->material->get("beta");
@@ -284,10 +273,10 @@ protected:
   std::mt19937 gen;
 };
 
-template <template <UInt> class Mat, UInt dim>
+template <template <Int> class Mat, Int dim>
 struct TestMaterialCohesive : public Mat<dim> {
   TestMaterialCohesive(SolidMechanicsModel & model)
-      : Mat<dim>(model, "test"), insertion_stress_(dim, 0.) {}
+      : Mat<dim>(model, "test"), insertion_stress_(Vector<Real>(dim)) {}
 
   virtual void SetUp() {}
   virtual void resetInternal() {}
@@ -310,5 +299,5 @@ struct TestMaterialCohesive : public Mat<dim> {
   bool is_extrinsic{true};
 };
 
-template <template <UInt> class Mat, typename dim_>
-constexpr UInt TestMaterialCohesiveFixture<Mat, dim_>::dim;
+template <template <Int> class Mat, typename dim_>
+constexpr Int TestMaterialCohesiveFixture<Mat, dim_>::dim;

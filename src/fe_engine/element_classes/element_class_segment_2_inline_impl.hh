@@ -1,20 +1,8 @@
 /**
- * @file   element_class_segment_2_inline_impl.hh
- *
- * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jul 16 2010
- * @date last modification: Fri Dec 11 2020
- *
- * @brief  Specialization of the element_class class for the type _segment_2
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**
@@ -60,9 +47,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Eigen::MatrixBase<D1> &natural_coords, Eigen::MatrixBase<D2> &N) {
 
   /// natural coordinate
   Real c = natural_coords(0);
@@ -70,13 +58,13 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
   N(0) = 0.5 * (1 - c);
   N(1) = 0.5 * (1 + c);
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
-    __attribute__((unused)) const vector_type & natural_coords,
-    matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> &dnds) {
 
   /// dN1/de
   dnds(0, 0) = -.5;
@@ -88,35 +76,27 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
 template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
-    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+    const vector_type & /*natural_coords*/, matrix_type &d2nds2) {
   d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
-    const Matrix<Real> & dxds, Real & jac) {
-  jac = dxds.norm<L_2>();
+template <class D>
+inline Real GeometricalElement<_gt_segment_2>::getInradius(
+    const Eigen::MatrixBase<D> &coord) {
+  return (coord.col(1) - coord.col(0)).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> a(coord(0));
-  Vector<Real> b(coord(1));
-  return a.distance(b);
+template <class D1, class D2>
+inline void
+GeometricalElement<_gt_segment_2>::getNormal(const Eigen::MatrixBase<D1> &coord,
+                                             Eigen::MatrixBase<D2> &normal) {
+  assert(normal.size() == 2 && "The normal is only uniquely defined in 2D");
+  Math::normal(coord.col(0) - coord.col(1), normal);
 }
-
-// /* --------------------------------------------------------------------------
-// */
-// template<> inline bool ElementClass<_segment_2>::contains(const Vector<Real>
-// & natural_coords) {
-//   if (natural_coords(0) < -1.) return false;
-//   if (natural_coords(0) > 1.) return false;
-//   return true;
-// }
 
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

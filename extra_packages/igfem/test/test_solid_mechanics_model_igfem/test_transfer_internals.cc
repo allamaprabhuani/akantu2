@@ -1,15 +1,21 @@
 /**
- * @file   test_transfer_internals.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  test to test the transfer of internals such as damage
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +40,7 @@ public:
       return this->fallback_value_igfem;
 
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     if (model.isInside(barycenter))
@@ -57,7 +63,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   /// problem dimension
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   /// mesh creation and partioning
   Mesh mesh(spatial_dimension);
@@ -230,7 +236,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
   FEEngine & fee = model.getFEEngine("IGFEMFEEngine");
   GhostType ghost_type = _not_ghost;
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = model.getSpatialDimension();
+  Int spatial_dimension = model.getSpatialDimension();
   bool check_passed = true;
 
   /// loop over all IGFEM elements of type _not_ghost
@@ -245,17 +251,17 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
     Array<Real> barycenter_igfem(nb_igfem_element, spatial_dimension);
     Array<Real>::vector_iterator bary_it =
         barycenter_igfem.begin(spatial_dimension);
-    UInt * conn_val = mesh.getConnectivity(igfem_el_type, ghost_type).storage();
+    UInt * conn_val = mesh.getConnectivity(igfem_el_type, ghost_type).data();
     Array<Real> & nodes = mesh.getNodes();
     UInt nb_parent_nodes = IGFEMHelper::getNbParentNodes(igfem_el_type);
     /// compute the bary center of the underlying parent element
     UInt nb_el_nodes = mesh.getNbNodesPerElement(igfem_el_type);
-    for (UInt elem = 0; elem < nb_igfem_element; ++elem) {
+    for (Int elem = 0; elem < nb_igfem_element; ++elem) {
       Real local_coord[spatial_dimension * nb_parent_nodes];
       UInt offset = elem * nb_el_nodes;
-      for (UInt n = 0; n < nb_parent_nodes; ++n) {
+      for (Int n = 0; n < nb_parent_nodes; ++n) {
         memcpy(local_coord + n * spatial_dimension,
-               nodes.storage() + conn_val[offset + n] * spatial_dimension,
+               nodes.data() + conn_val[offset + n] * spatial_dimension,
                spatial_dimension * sizeof(Real));
       }
       Math::barycenter(local_coord, nb_parent_nodes, spatial_dimension,
@@ -275,7 +281,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
       Array<Real>::scalar_iterator damage_it = damage.begin();
       Array<UInt>::scalar_iterator sub_mat_it = sub_mat.begin();
       Array<Real>::scalar_iterator Sc_it = strength.begin();
-      for (UInt q = 0; q < nb_quads; ++q) {
+      for (Int q = 0; q < nb_quads; ++q) {
         UInt q_global = local_index * nb_quads + q;
         if (sub_mat_it[q_global] == 1) {
           if (std::abs(Sc_it[q_global] - 100) > 1e-15) {

@@ -1,21 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author David Simon Kammer <david.kammer@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification:  Thu Oct 29 2020
-#
-# @brief  configuration for patch tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -50,7 +38,7 @@ register_gtest_sources(SOURCES patch_test_linear_elastic_implicit.cc
                 data/material_check_stress_plane_stress_finite_deformation.dat)
 
 register_gtest_sources(SOURCES patch_test_linear_anisotropic_explicit.cc
-  PACKAGE solid_mechanics lapack
+  PACKAGE solid_mechanics
   FILES_TO_COPY
     data/material_anisotropic_1.dat
     data/material_anisotropic_2.dat
@@ -58,7 +46,7 @@ register_gtest_sources(SOURCES patch_test_linear_anisotropic_explicit.cc
   )
 
 register_gtest_sources(SOURCES patch_test_linear_anisotropic_implicit.cc
-  PACKAGE solid_mechanics lapack implicit
+  PACKAGE solid_mechanics implicit
   FILES_TO_COPY
     data/material_anisotropic_1.dat
     data/material_anisotropic_2.dat
@@ -107,7 +95,7 @@ register_test(test_linear_anisotropic_explicit_python
   SCRIPT test_patch_linear_anisotropic_explicit.py
   PYTHON
   UNSTABLE
-  PACKAGE python_interface lapack
+  PACKAGE python_interface
   FILES_TO_COPY patch_test_linear_fixture.py
   FILES_TO_COPY patch_test_linear_solid_mechanics_fixture.py
   FILES_TO_COPY data/material_anisotropic_3.dat)

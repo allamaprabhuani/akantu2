@@ -1,27 +1,21 @@
 /**
- * @file   igfem_mesh_generation.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Fri Oct 30 14:55:51 2015
- *
- * @brief  function to generate a IGFEM mesh for fe_engine tests
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,9 +52,9 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
 
       UInt index;
       Real coord[3];
-      UInt spatial_dimension = nodes.getNbComponent();
+      Int spatial_dimension = nodes.getNbComponent();
       /// for each node, read the coordinates
-      for (UInt i = 0; i < nb_nodes; ++i) {
+      for (Int i = 0; i < nb_nodes; ++i) {
         UInt offset = i * spatial_dimension;
 
         std::getline(infile, line);
@@ -72,8 +66,8 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
         last_node_number = std::max(last_node_number, index);
 
         /// read the coordinates
-        for (UInt j = 0; j < spatial_dimension; ++j)
-          nodes.storage()[offset + j] = coord[j];
+        for (Int j = 0; j < spatial_dimension; ++j)
+          nodes.data()[offset + j] = coord[j];
       }
       std::getline(infile, line); /// the end of block line
     }
@@ -90,12 +84,12 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
       sstr >> nb_elements;
       current_line++;
 
-      for (UInt i = 0; i < nb_elements; ++i) {
+      for (Int i = 0; i < nb_elements; ++i) {
         std::getline(infile, line);
         std::stringstream sstr_elem(line);
         current_line++;
         Vector<UInt> local_connect(node_per_element);
-        for (UInt j = 0; j < node_per_element; ++j) {
+        for (Int j = 0; j < node_per_element; ++j) {
           UInt node_index;
           sstr_elem >> node_index;
 

@@ -1,19 +1,8 @@
 /**
- * @file   material_elastic_inline_impl.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Implementation of the inline functions of the material elastic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,63 +16,78 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_HH_
+// #ifndef __AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_CC__
+// #define __AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_CC__
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real sigma_th) const {
+template <Int dim>
+template <typename Args>
+inline void MaterialElastic<dim>::computeStressOnQuad(Args && args) const {
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
+  Real sigma_th = 0.;
+
+  if constexpr (named_tuple_t<Args>::has("sigma_th"_n)) {
+    sigma_th = args["sigma_th"_n];
+  }
+
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   // u_{ij} + \nabla u_{ji})
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      sigma(i, j) = Math::kronecker(i, j) * lambda * trace +
-                    mu * (grad_u(i, j) + grad_u(j, i)) +
-                    Math::kronecker(i, j) * sigma_th;
-    }
-  }
+  sigma = 2. * mu * Material::gradUToEpsilon<dim>(grad_u) +
+          (lambda * trace + sigma_th) * Matrix<Real, dim, dim>::Identity();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
-                                                    Matrix<Real> & sigma,
-                                                    Real sigma_th) const {
+template <typename Args>
+inline void MaterialElastic<1>::computeStressOnQuad(Args && args) const {
+  auto && sigma = args["sigma"_n];
+  auto && grad_u = args["grad_u"_n];
+  Real sigma_th = 0.;
+
+  if constexpr (std::decay_t<Args>::has("sigma_th"_n)) {
+    sigma_th = args["sigma_th"_n];
+  }
+
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent) const {
-  UInt n = tangent.cols();
+template <Int dim>
+template <typename Args>
+inline void
+MaterialElastic<dim>::computeTangentModuliOnQuad(Args && args) const {
+  auto && tangent = args["tangent_moduli"_n];
+  tangent.zero();
+
+  constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
 
   // Real Ep = E/((1+nu)*(1-2*nu));
-  Real Miiii = lambda + 2 * mu;
-  Real Miijj = lambda;
-  Real Mijij = mu;
 
-  if (spatial_dimension == 1) {
+  if constexpr (dim == 1) {
     tangent(0, 0) = this->E;
-  } else {
-    tangent(0, 0) = Miiii;
+    return;
   }
+
+  auto Miiii = lambda + 2 * mu;
+  [[maybe_unused]] auto Miijj = lambda;
+  [[maybe_unused]] auto Mijij = mu;
+
+  tangent(0, 0) = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the
   // template
-  if (spatial_dimension >= 2) {
+  if constexpr (dim >= 2) {
     tangent(1, 1) = Miiii;
     tangent(0, 1) = Miijj;
     tangent(1, 0) = Miijj;
@@ -91,7 +95,7 @@ inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(
     tangent(n - 1, n - 1) = Mijij;
   }
 
-  if (spatial_dimension == 3) {
+  if constexpr (dim == 3) {
     tangent(2, 2) = Miiii;
     tangent(0, 2) = Miijj;
     tangent(1, 2) = Miijj;
@@ -104,19 +108,13 @@ inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
-  epot = .5 * sigma.doubleDot(grad_u);
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-MaterialElastic<1>::computeTangentModuliOnQuad(Matrix<Real> & tangent) const {
-  tangent(0, 0) = E;
+template <Int dim>
+template <class Args>
+inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(Args && args,
+                                                               Real & epot) {
+  epot = .5 * args["sigma"_n].doubleDot(args["grad_u"_n]);
 }
 
 } // namespace akantu
 
-#endif /* AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_HH_ */
+// #endif /* __AKANTU_MATERIAL_ELASTIC_INLINE_IMPL_CC__ */

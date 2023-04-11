@@ -1,18 +1,8 @@
 /**
- * @file   periodic_node_synchronizer.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed May 30 2018
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Implementation of the periodic node synchronizer
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +44,7 @@ void PeriodicNodeSynchronizer::update() {
 
   reset();
 
-  std::set<UInt> masters_to_receive;
+  std::set<Idx> masters_to_receive;
   for (auto && data : masters_to_slaves) {
     auto master = std::get<0>(data);
     auto slave = std::get<1>(data);
@@ -72,7 +61,7 @@ void PeriodicNodeSynchronizer::update() {
     return;
   }
 
-  std::map<Int, Array<UInt>> buffers;
+  std::map<Int, Array<Idx>> buffers;
   for (auto node : masters_to_receive) {
     auto && proc = mesh.getNodePrank(node);
     auto && scheme = this->communications.createRecvScheme(proc);
@@ -94,7 +83,7 @@ void PeriodicNodeSynchronizer::update() {
               << std::endl;
   }
 
-  communicator.receiveAnyNumber<UInt>(
+  communicator.receiveAnyNumber<Idx>(
       requests,
       [&](auto && proc, auto && msg) {
         auto && scheme = this->communications.createSendScheme(proc);
@@ -110,7 +99,7 @@ void PeriodicNodeSynchronizer::update() {
 
 /* -------------------------------------------------------------------------- */
 void PeriodicNodeSynchronizer::synchronizeOnceImpl(
-    DataAccessor<UInt> & data_accessor, const SynchronizationTag & tag) const {
+    DataAccessor<Idx> & data_accessor, const SynchronizationTag & tag) const {
   NodeSynchronizer::synchronizeOnceImpl(data_accessor, tag);
 
   auto size = data_accessor.getNbData(masters_list, tag);
@@ -122,7 +111,7 @@ void PeriodicNodeSynchronizer::synchronizeOnceImpl(
 
 /* -------------------------------------------------------------------------- */
 void PeriodicNodeSynchronizer::waitEndSynchronizeImpl(
-    DataAccessor<UInt> & data_accessor, const SynchronizationTag & tag) {
+    DataAccessor<Idx> & data_accessor, const SynchronizationTag & tag) {
   NodeSynchronizer::waitEndSynchronizeImpl(data_accessor, tag);
 
   auto size = data_accessor.getNbData(masters_list, tag);

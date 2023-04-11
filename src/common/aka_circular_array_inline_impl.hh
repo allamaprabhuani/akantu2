@@ -1,18 +1,8 @@
 /**
- * @file   aka_circular_array_inline_impl.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Nov 11 2011
- * @date last modification: Fri Mar 16 2018
- *
- * @brief  implementation of circular array
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,7 +27,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class T>
 inline typename CircularArray<T>::reference
-CircularArray<T>::operator()(UInt i, UInt j) {
+CircularArray<T>::operator()(Idx i, Idx j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -57,7 +46,7 @@ CircularArray<T>::operator()(UInt i, UInt j) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline typename CircularArray<T>::const_reference
-CircularArray<T>::operator()(UInt i, UInt j) const {
+CircularArray<T>::operator()(Idx i, Idx j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
                       "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT(
@@ -86,9 +75,7 @@ template <class T> inline void CircularArray<T>::makeStep() {
 /* -------------------------------------------------------------------------- */
 template <class T>
 void CircularArray<T>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "CircularArray<" << debug::demangle(typeid(T).name())
          << "> [" << std::endl;

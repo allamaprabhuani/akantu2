@@ -1,19 +1,8 @@
 /**
- * @file   test_damage_materials.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Nov 17 2017
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  Tests for damage materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -51,11 +39,13 @@ using namespace akantu;
 namespace py = pybind11;
 using namespace py::literals;
 
+template <Int dim> using MaterialMazars_ = MaterialMazars<dim, MaterialElastic>;
+
 using mat_types = ::testing::Types<
     // Traits<MaterialMarigo, 1>, Traits<MaterialMarigo, 2>,
     // Traits<MaterialMarigo, 3>,
-    Traits<MaterialMazars, 1>, Traits<MaterialMazars, 2>,
-    Traits<MaterialMazars, 3>>;
+    Traits<MaterialMazars_, 1>, Traits<MaterialMazars_, 2>,
+    Traits<MaterialMazars_, 3>>;
 
 /*****************************************************************/
 
@@ -121,13 +111,15 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   Real dam = 0.;
   Real dam_ref = 0.;
   Real ehat = 0.;
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
 
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -163,13 +155,16 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   Real dam_ref = 0.;
   Real ehat = 0.;
 
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
+
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = -this->nu * epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =
@@ -205,13 +200,16 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   Real dam_ref = 0.;
   Real ehat = 0.;
 
+  Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension);
+  Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension);
+
   for (auto && epsilon : epsilons) {
-    Matrix<Real> strain(this->spatial_dimension, this->spatial_dimension, 0.);
-    Matrix<Real> sigma(this->spatial_dimension, this->spatial_dimension, 0.);
+    strain.zero();
     strain(0, 0) = epsilon;
     strain(1, 1) = strain(2, 2) = -this->nu * epsilon;
 
-    computeStressOnQuad(strain, sigma, dam, ehat);
+    computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
+                                         "damage"_n = dam, "Ehat"_n = ehat));
 
     Real sigma_ref;
     auto py_data =

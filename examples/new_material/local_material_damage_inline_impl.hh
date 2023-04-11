@@ -1,20 +1,8 @@
 /**
- * @file   local_material_damage_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Implementation of the inline functions of the material damage
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,24 +25,24 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                     Matrix<Real> & sigma,
-                                                     Real & dam) {
+template <typename D1, typename D2>
+inline void LocalMaterialDamage::computeStressOnQuad(
+    Eigen::MatrixBase<D1> &grad_u, Eigen::MatrixBase<D2> &sigma, Real &dam) {
 
   Real trace = grad_u.trace();
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla
   /// u_{ij} + \nabla u_{ji})
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) =
           (i == j) * lambda * trace + mu * (grad_u(i, j) + grad_u(j, i));
     }
   }
 
   Real Y = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < spatial_dimension; ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
       Y += sigma(i, j) * grad_u(i, j);
     }
   }
@@ -71,18 +58,19 @@ inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & epot) {
+    Eigen::MatrixBase<D1> &grad_u, Eigen::MatrixBase<D2> &sigma, Real &epot) {
   epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
+  for (Int i = 0, t = 0; i < spatial_dimension; ++i)
+    for (Int j = 0; j < spatial_dimension; ++j, ++t)
       epot += sigma(i, j) * (grad_u(i, j) - (i == j));
   epot *= .5;
 }
 
 /* -------------------------------------------------------------------------- */
 inline Real LocalMaterialDamage::getCelerity(__attribute__((unused))
-                                             const Element & element) const {
+                                             const Element &element) const {
   // Here the fastest celerity is the push wave speed
   return (std::sqrt((2 * mu + lambda) / rho));
 }

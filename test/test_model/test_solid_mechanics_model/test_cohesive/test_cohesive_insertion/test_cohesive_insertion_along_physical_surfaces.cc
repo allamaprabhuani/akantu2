@@ -1,19 +1,8 @@
 /**
- * @file   test_cohesive_insertion_along_physical_surfaces.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Aug 07 2015
- * @date last modification:  Thu Oct 29 2020
- *
- * @brief  Test intrinsic insertion of cohesive elements along physical surfaces
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +41,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-15);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   Mesh mesh(spatial_dimension);
 
@@ -70,16 +58,16 @@ int main(int argc, char * argv[]) {
 
   std::vector<std::string> surfaces_name = {"interface", "coh1", "coh2",
                                             "coh3",      "coh4", "coh5"};
-  UInt nb_surf = surfaces_name.size();
+  Int nb_surf = surfaces_name.size();
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
-    for (UInt i = 0; i < nb_surf; ++i) {
+    for (Int i = 0; i < nb_surf; ++i) {
 
-      UInt expected_insertion = mesh.getElementGroup(surfaces_name[i])
+      auto expected_insertion = mesh.getElementGroup(surfaces_name[i])
                                     .getElements(mesh.getFacetType(type))
                                     .size();
-      UInt inserted_elements =
+      auto inserted_elements =
           model.getMaterial(surfaces_name[i]).getElementFilter()(type).size();
       if (not(expected_insertion == inserted_elements)) {
         std::cout << "!!! Mismatch in insertion of surface named "

@@ -1,20 +1,8 @@
 /**
- * @file   material_cohesive_linear_friction.hh
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Apr 28 2020
- *
- * @brief  Linear irreversible cohesive law of mixed mode loading with
- * random stress definition for extrinsic type
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -50,13 +37,12 @@ namespace akantu {
  *   - mu   : friction coefficient
  *   - penalty_for_friction : Penalty parameter for the friction behavior
  */
-template <UInt spatial_dimension>
-class MaterialCohesiveLinearFriction
-    : public MaterialCohesiveLinear<spatial_dimension> {
+template <Int dim>
+class MaterialCohesiveLinearFriction : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-  using MaterialParent = MaterialCohesiveLinear<spatial_dimension>;
+  using MaterialParent = MaterialCohesiveLinear<dim>;
 
 public:
   MaterialCohesiveLinearFriction(SolidMechanicsModel & model,
@@ -71,13 +57,26 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              const Array<Real> & normal,
                               GhostType ghost_type) override;
+
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    using namespace tuple;
+    return zip_append(MaterialParent::getArguments(el_type, ghost_type),
+                      "residual_sliding"_n =
+                          residual_sliding(el_type, ghost_type),
+                      "friction_force"_n =
+                          make_view<dim>(friction_force(el_type, ghost_type)),
+                      "previous_residual_sliding"_n =
+                          residual_sliding.previous(el_type, ghost_type));
+  }
+
+  template <typename Args> void computeTractionOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

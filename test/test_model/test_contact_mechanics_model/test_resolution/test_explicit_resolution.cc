@@ -1,18 +1,8 @@
 /**
- * @file   test_explicit_resolution.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Thu Feb 21 2013
- * @date last modification: Thu Jan 17 2019
- *
- * @brief  Test for explicit contact resolution
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +23,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 int main(int argc, char * argv[]) {
   initialize("options.dat", argc, argv);

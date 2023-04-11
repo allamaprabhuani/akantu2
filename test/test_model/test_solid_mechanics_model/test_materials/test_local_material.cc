@@ -1,22 +1,8 @@
 /**
- * @file   test_local_material.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Wed Jun 05 2019
- *
- * @brief  test of the class SolidMechanicsModel with custom local damage on a
- * notched plate
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -30,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,9 +29,9 @@ using namespace akantu;
 
 int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
-  UInt max_steps = 1100;
+  Int max_steps = 1100;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("mesh_section_gap.msh");
 
@@ -78,12 +63,12 @@ int main(int argc, char * argv[]) {
   /// Dirichlet boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed");
   // model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed");
-  Matrix<Real> stress(2, 2);
-  stress.eye(5e7);
+  Matrix<Real> stress = Matrix<Real, 2, 2>::Identity() * 5e7;
   model.applyBC(BC::Neumann::FromHigherDim(stress), "Traction");
 
-  for (UInt s = 0; s < max_steps; ++s)
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
+  }
 
   model.dump();
 
@@ -91,7 +76,7 @@ int main(int argc, char * argv[]) {
   auto & mat =
       dynamic_cast<LocalMaterialDamage &>(model.getMaterial("concrete"));
   const auto & filter = mat.getElementFilter();
-  for (auto & type : filter.elementTypes(spatial_dimension)) {
+  for (const auto & type : filter.elementTypes(spatial_dimension)) {
     std::cout << mat.getDamage(type) << std::endl;
   }
 

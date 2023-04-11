@@ -1,19 +1,8 @@
 /**
- * @file   stress_based_weight_function.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Aug 24 2015
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  implementation of the stres based weight function classes
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,7 +28,6 @@ StressBasedWeightFunction::StressBasedWeightFunction(NonLocalManager & manager)
 // stress_base("stress_base", material), selected_stress_base(NULL),
 // characteristic_size("lc", material),  selected_characteristic_size(NULL)
 {
-
   // this->registerParam("ft", this->ft, 0., _pat_parsable, "Tensile strength");
   // stress_diag.initialize(spatial_dimension);
   // stress_base.initialize(spatial_dimension * spatial_dimension);
@@ -52,14 +39,14 @@ StressBasedWeightFunction::StressBasedWeightFunction(NonLocalManager & manager)
 /// points are computed
 void StressBasedWeightFunction::init() {
   // const Mesh & mesh = this->material.getModel().getFEEngine().getMesh();
-  // for (UInt g = _not_ghost; g <= _ghost; ++g) {
+  // for (Int g = _not_ghost; g <= _ghost; ++g) {
   //   GhostType gt = GhostType(g);
   //   Mesh::type_iterator it = mesh.firstType(spatial_dimension, gt);
   //   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, gt);
   //   for(; it != last_type; ++it) {
   //     UInt nb_quadrature_points =
   // 	this->material.getModel().getFEEngine().getNbQuadraturePoints(*it, gt);
-  //     const Array<UInt> & element_filter =
+  //     const Array<Int> & element_filter =
   //     this->material.getElementFilter(*it, gt);
   //     UInt nb_element = element_filter.size();
 
@@ -72,7 +59,7 @@ void StressBasedWeightFunction::init() {
   // 								     gt,
   // 								     element_filter);
 
-  //     for (UInt q = 0;  q < nb_quadrature_points * nb_element; q++) {
+  //     for (Int q = 0;  q < nb_quadrature_points * nb_element; q++) {
   // 	lc(q) = pow(lc(q), 1./ Real(spatial_dimension));
   //     }
   //   }
@@ -113,7 +100,7 @@ void StressBasedWeightFunction::updatePrincipalStress(__attribute__((unused))
   // #ifndef __trick__
   //       // specify a lower bound for principal stress based on the size of
   //       the element
-  //       for (UInt i = 0; i < spatial_dimension; ++i) {
+  //       for (Int i = 0; i < spatial_dimension; ++i) {
   //         (*eigenvalues)(i) = std::max(*cl / this->R, (*eigenvalues)(i));
   //       }
   // #endif

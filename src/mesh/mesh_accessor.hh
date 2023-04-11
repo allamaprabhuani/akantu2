@@ -1,19 +1,8 @@
 /**
- * @file   mesh_accessor.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Jun 30 2015
- * @date last modification: Tue Feb 09 2021
- *
- * @brief  this class allow to access some private member of mesh it is used for
- * IO for examples
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -61,7 +49,7 @@ public:
   inline UInt getNbGlobalNodes() const { return this->_mesh.nb_global_nodes; }
 
   /// set the global number of nodes
-  inline void setNbGlobalNodes(UInt nb_global_nodes) {
+  inline void setNbGlobalNodes(Int nb_global_nodes) {
     this->_mesh.nb_global_nodes = nb_global_nodes;
   }
 
@@ -99,14 +87,14 @@ public:
   }
 
   /// resize the connectivity (use carefully)
-  inline void resizeConnectivity(UInt new_size, ElementType type,
+  inline void resizeConnectivity(Int new_size, ElementType type,
                                  GhostType ghost_type = _not_ghost) {
-    this->getConnectivity(type, ghost_type).resize(new_size, UInt(-1));
+    this->getConnectivity(type, ghost_type).resize(new_size, Idx(-1));
   }
 
   /// resize the nodes (use carefully)
-  inline void resizeNodes(UInt new_size) {
-    this->getNodes().resize(new_size, UInt(-1));
+  inline void resizeNodes(Int new_size) {
+    this->getNodes().resize(new_size);
   }
 
   /// get the connectivity for the given element
@@ -128,8 +116,8 @@ public:
   }
 
   inline decltype(auto)
-  getElementToSubelementNC(const ElementType & type,
-                           const GhostType & ghost_type = _not_ghost) {
+  getElementToSubelementNC(ElementType type,
+                           GhostType ghost_type = _not_ghost) {
     return this->_mesh.getElementToSubelementNC(type, ghost_type);
   }
 
@@ -141,8 +129,8 @@ public:
   }
 
   inline decltype(auto)
-  getSubelementToElementNC(const ElementType & type,
-                           const GhostType & ghost_type = _not_ghost) {
+  getSubelementToElementNC(ElementType type,
+                           GhostType ghost_type = _not_ghost) {
     return this->_mesh.getSubelementToElementNC(type, ghost_type);
   }
 
@@ -169,10 +157,10 @@ public:
   }
 
   template <typename T>
-  inline auto & getData(const std::string & data_name, ElementType el_type,
-                        GhostType ghost_type = _not_ghost,
-                        UInt nb_component = 1, bool size_to_nb_element = true,
-                        bool resize_with_parent = false) {
+  inline auto &
+  getData(const std::string & data_name, ElementType el_type,
+          GhostType ghost_type = _not_ghost, Int nb_component = 1,
+          bool size_to_nb_element = true, bool resize_with_parent = false) {
     return this->_mesh.getDataPointer<T>(data_name, el_type, ghost_type,
                                          nb_component, size_to_nb_element,
                                          resize_with_parent);
@@ -200,12 +188,12 @@ public:
   void makeReady() { this->_mesh.makeReady(); }
 
   /* ------------------------------------------------------------------------ */
-  void addPeriodicSlave(UInt slave, UInt master) {
+  void addPeriodicSlave(Idx slave, Idx master) {
     this->_mesh.addPeriodicSlave(slave, master);
   }
 
   void markMeshPeriodic() {
-    for (UInt s : arange(this->_mesh.spatial_dimension)) {
+    for (Idx s : arange(this->_mesh.spatial_dimension)) {
       this->_mesh.is_periodic |= 1 << s;
     }
   }

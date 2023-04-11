@@ -1,20 +1,8 @@
 /**
- * @file   material_damage.hh
- *
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Material isotropic elastic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -39,10 +26,8 @@
 #define AKANTU_MATERIAL_DAMAGE_HH_
 
 namespace akantu {
-
-template <UInt spatial_dimension,
-          template <UInt> class Parent = MaterialElastic>
-class MaterialDamage : public Parent<spatial_dimension> {
+template <Int dim, template <Int> class Parent = MaterialElastic>
+class MaterialDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -60,7 +45,7 @@ public:
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
-  bool hasStiffnessMatrixChanged() override { return true; }
+  auto hasStiffnessMatrixChanged() -> bool override { return true; }
 
 protected:
   /// update the dissipated energy, must be called after the stress have been
@@ -68,7 +53,10 @@ protected:
   void updateEnergies(ElementType el_type) override;
 
   /// compute the tangent stiffness matrix for a given quadrature point
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
+  template <class Args>
+  inline void computeTangentModuliOnQuad(Args && arguments);
+
+  auto getDissipatedEnergy() const -> Real;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -78,13 +66,25 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// give the dissipated energy for the time step
-  Real getDissipatedEnergy() const;
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(Parent<dim>::getArguments(el_type, ghost_type),
+                      "damage"_n =
+                          make_view(this->damage(el_type, ghost_type)));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type) {
+    return zip_append(
+        Parent<dim>::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
+        "damage"_n = make_view(this->damage(el_type, ghost_type)));
+  }
 
   Real getEnergy(const std::string & type) override;
 
-  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Damage, damage);
+  AKANTU_GET_MACRO_AUTO(Damage, damage);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real)
 
   /* ------------------------------------------------------------------------ */

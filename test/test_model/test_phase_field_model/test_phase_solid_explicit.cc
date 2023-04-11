@@ -1,18 +1,8 @@
 /**
- * @file   test_phase_solid_explicit.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Sun Feb 28 2021
- * @date last modification: Fri Jun 25 2021
- *
- * @brief  test of the class PhaseFieldModel on the 2d square
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,7 +27,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
 void applyDisplacement(SolidMechanicsModel &, Real &);
@@ -78,7 +67,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  UInt nbSteps = 1000;
+  Int nbSteps = 1000;
   Real increment = 1e-4;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
@@ -99,7 +88,7 @@ int main(int argc, char * argv[]) {
   Real error_stress{0.};
   Real error_damage{0.};
 
-  for (UInt s = 0; s < nbSteps; ++s) {
+  for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
     applyDisplacement(model, axial_strain);
 
@@ -142,7 +131,7 @@ void applyDisplacement(SolidMechanicsModel & model, Real & increment) {
   auto & positions = model.getMesh().getNodes();
   auto & blocked_dofs = model.getBlockedDOFs();
 
-  for (UInt n = 0; n < model.getMesh().getNbNodes(); ++n) {
+  for (Int n = 0; n < model.getMesh().getNbNodes(); ++n) {
     if (positions(n, 1) == -0.5) {
       displacement(n, 0) = 0;
       displacement(n, 1) = 0;

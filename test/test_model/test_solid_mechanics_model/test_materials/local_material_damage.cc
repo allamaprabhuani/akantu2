@@ -1,20 +1,8 @@
 /**
- * @file   local_material_damage.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri May 03 2019
- *
- * @brief  Specialization of the material class for the damage material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -73,15 +60,19 @@ void LocalMaterialDamage::initMaterial() {
 void LocalMaterialDamage::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+  auto dim = this->spatial_dimension;
 
-  auto dam = damage(el_type, ghost_type).begin();
+  for (auto && data :
+       zip(make_view(this->gradu(el_type, ghost_type), dim, dim),
+           make_view(this->stress(el_type, ghost_type), dim, dim),
+           damage(el_type, ghost_type))) {
+    auto && grad_u = std::get<0>(data);
+    auto && sigma = std::get<1>(data);
+    auto && dam = std::get<2>(data);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  computeStressOnQuad(grad_u, sigma, *dam);
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    computeStressOnQuad(grad_u, sigma, dam);
+    ++dam;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -89,16 +80,17 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
-
+  auto dim = this->spatial_dimension;
   Material::computePotentialEnergy(el_type);
 
-  Real * epot = potential_energy(el_type).storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  epot++;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
+  for (auto && data : zip(make_view(this->gradu(el_type), dim, dim),
+                          make_view(this->stress(el_type), dim, dim),
+                          potential_energy(el_type))) {
+    auto && grad_u = std::get<0>(data);
+    auto && sigma = std::get<1>(data);
+    auto && epot = std::get<2>(data);
+    computePotentialEnergyOnQuad(grad_u, sigma, epot);
+  }
   AKANTU_DEBUG_OUT();
 }
 

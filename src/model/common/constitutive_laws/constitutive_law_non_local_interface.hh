@@ -77,7 +77,8 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
 class ConstitutiveLawNonLocal : public ConstitutiveLawNonLocalInterface,
                                 public ConstitutiveLawParent {
 

@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   CMakePackagesSystemPrivateFunctions.cmake
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Sat Jul 18 2015
-# @date last modification: Mon Mar 08 2021
-#
-# @brief  Set of macros used by the package system, internal functions
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -85,7 +74,7 @@ function(_package_set_system_option pkg_name default)
   string(TOUPPER "${_real_name}" _u_package)
 
   set(${_project}_USE_SYSTEM_${_u_package} ${default} CACHE STRING
-    "Should akantu compile the third-party: \"${_real_name}\"")
+    "Should akantu compile the third-party: \"${_real_name}\"" ${ARGN})
   mark_as_advanced(${_project}_USE_SYSTEM_${_u_package})
   set_property(CACHE ${_project}_USE_SYSTEM_${_u_package} PROPERTY STRINGS ON OFF AUTO)
 endfunction()
@@ -95,7 +84,7 @@ function(_package_use_system pkg_name use)
   _package_get_real_name(${pkg_name} _real_name)
   string(TOUPPER "${_real_name}" _u_package)
   if(DEFINED ${_project}_USE_SYSTEM_${_u_package})
-    if(${${_project}_USE_SYSTEM_${_u_package}} MATCHES "(ON|AUTO)")
+    if(${${_project}_USE_SYSTEM_${_u_package}} MATCHES "(ON|AUTO|TRUE)")
       set(${use} TRUE PARENT_SCOPE)
     else()
       set(${use} FALSE PARENT_SCOPE)
@@ -705,7 +694,7 @@ function(_package_load_dependencies_package pkg_name loading_list)
       set(_type BOOL)
       _package_get_nature(${_dep_name} _nature)
       if(_nature MATCHES ".*not_optional$")
-	set(_type INTERNAL)
+        set(_type INTERNAL)
       endif()
       set(${_dep_option_name} ON CACHE BOOL "${_dep_desc}" FORCE)
 
@@ -765,8 +754,10 @@ function(_package_load_package pkg_name)
     set(_activated TRUE)
     if(_use_system)
       _package_load_external_package(${pkg_name} _activated)
+      _package_set_system_option(${pkg_name} ${_activated} FORCE)
     endif()
 
+    _package_use_system(${pkg_name} _use_system)
     _package_has_system_fallback(${pkg_name} _fallback)
     if((NOT _use_system) OR (_fallback AND (NOT _activated)))
       _package_load_third_party_script(${pkg_name})
@@ -804,9 +795,9 @@ function(_package_load_external_package pkg_name activate)
 
   _package_get_find_package_extra_options(${pkg_name} _options)
   if(_options)
-    cmake_parse_arguments(_opt_pkg "" "LANGUAGE" "LINK_LIBRARIES;PREFIX;FOUND;ARGS" ${_options})
+    cmake_parse_arguments(_opt_pkg "" "LANGUAGE;TARGET" "LINK_LIBRARIES;PREFIX;FOUND;ARGS" ${_options})
     if(_opt_pkg_UNPARSED_ARGUMENTS)
-      message("You passed too many options for the find_package related to ${${pkg_name}} \"${_opt_pkg_UNPARSED_ARGUMENTS}\"")
+      message(FATAL_ERROR "You passed too many options for the find_package related to ${${pkg_name}} \"${_opt_pkg_UNPARSED_ARGUMENTS}\"")
     endif()
   endif()
 
@@ -849,26 +840,52 @@ function(_package_load_external_package pkg_name activate)
   endif()
 
   if(_act)
-    foreach(_prefix ${_prefix_to_consider})
-      # Generate the include dir for the package
-      if(DEFINED ${_prefix}_INCLUDE_DIRS)
-        _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_DIRS})
-      elseif(DEFINED ${_prefix}_INCLUDE_DIR)
-        _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_DIR})
-      elseif(DEFINED ${_prefix}_INCLUDE_PATH)
-        _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_PATH})
+    set(_include_dirs)
+    set(_libraries)
+    if(_opt_pkg_TARGET)
+      _package_set_libraries(${pkg_name} ${_opt_pkg_TARGET})
+      list(APPEND _libraries ${_opt_pkg_TARGET})
+    else()
+      foreach(_prefix ${_prefix_to_consider})
+        # Generate the include dir for the package
+        if(DEFINED ${_prefix}_INCLUDE_DIRS)
+          _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_DIRS})
+          list(APPEND _include_dirs ${${_prefix}_INCLUDE_DIRS})
+        elseif(DEFINED ${_prefix}_INCLUDE_DIR)
+          _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_DIR})
+          list(APPEND _include_dirs ${${_prefix}_INCLUDE_DIR})
+        elseif(DEFINED ${_prefix}_INCLUDE_PATH)
+          _package_set_include_dir(${pkg_name} ${${_prefix}_INCLUDE_PATH})
+          list(APPEND _include_dirs ${${_prefix}_INCLUDE_PATH})
+        endif()
+
+        # Generate the libraries for the package
+        if(_opt_pkg_LINK_LIBRARIES)
+          _package_set_libraries(${pkg_name} ${_opt_pkg_LINK_LIBRARIES})
+          list(APPEND _libraries ${${_prefix}_LINK_LIBRARIES})
+        elseif(DEFINED ${_prefix}_LIBRARIES)
+          _package_set_libraries(${pkg_name} ${${_prefix}_LIBRARIES})
+          list(APPEND _libraries ${${_prefix}_LIBRARIES})
+        elseif(DEFINED ${_prefix}_LIBRARY)
+          _package_set_libraries(${pkg_name} ${${_prefix}_LIBRARY})
+          list(APPEND _libraries ${${_prefix}_LIBRARY})
+        endif()
+      endforeach()
+    endif()
+
+    if(_required STREQUAL "QUIET")
+      if(_libraries)
+        set(_msg ${_libraries})
+      else()
+        set(_msg ${_include_dirs})
       endif()
 
-      # Generate the libraries for the package
-      if(_opt_pkg_LINK_LIBRARIES)
-        _package_set_libraries(${pkg_name} ${_opt_pkg_LINK_LIBRARIES})
-      elseif(DEFINED ${_prefix}_LIBRARIES)
-        _package_set_libraries(${pkg_name} ${${_prefix}_LIBRARIES})
-      elseif(DEFINED ${_prefix}_LIBRARY)
-        _package_set_libraries(${pkg_name} ${${_prefix}_LIBRARY})
+      set(_version "")
+      if(${_real_name}_VERSION)
+        set(_version " (${${_real_name}_VERSION})")
       endif()
-    endforeach()
-
+      message(STATUS "Found ${_real_name}: ${_msg}${_version}")
+    endif()
     _package_get_callback_script(${pkg_name} _script_file)
     if(_script_file)
       include("${_script_file}")

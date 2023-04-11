@@ -1,20 +1,8 @@
 /**
- * @file   solid_mechanics_model_io.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Jul 09 2017
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Dumpable part of the SolidMechnicsModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -60,16 +47,17 @@ void SolidMechanicsModel::onDump() {
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
+    bool padding_flag, Int spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
   if (field_name == "partitions") {
-    field = mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, spatial_dimension, kind);
   } else if (field_name == "material_index") {
-    field = mesh.createElementalField<UInt, Vector, dumpers::ElementalField>(
-        getConstitutiveLawByElement(), group_name, spatial_dimension, kind);
+    field =
+        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+            getConstitutiveLawByElement(), group_name, spatial_dimension, kind);
   } else {
     // this copy of field_name is used to compute derivated data such as
     // strain and von mises stress that are based on grad_u and stress
@@ -192,7 +180,7 @@ void SolidMechanicsModel::dump(const std::string & dumper_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
+void SolidMechanicsModel::dump(const std::string & dumper_name, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(dumper_name, step);
@@ -200,7 +188,7 @@ void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Real time,
-                               UInt step) {
+                               Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(dumper_name, time, step);
@@ -214,14 +202,14 @@ void SolidMechanicsModel::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(UInt step) {
+void SolidMechanicsModel::dump(Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::dump(Real time, UInt step) {
+void SolidMechanicsModel::dump(Real time, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
   mesh.dump(time, step);

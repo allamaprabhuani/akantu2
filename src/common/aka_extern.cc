@@ -1,19 +1,8 @@
 /**
- * @file   aka_extern.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jun 14 2010
- * @date last modification: Tue Oct 27 2020
- *
- * @brief  initialisation of all global variables
- * to insure the order of creation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -82,14 +70,17 @@ bool Parser::permissive_parser = false;
 Real Math::tolerance = 1e2 * std::numeric_limits<Real>::epsilon();
 
 /* -------------------------------------------------------------------------- */
-const UInt _all_dimensions [[gnu::unused]] = UInt(-1);
+const Int _all_dimensions [[gnu::unused]] = Int(-1);
 
 /* -------------------------------------------------------------------------- */
-const Array<UInt> empty_filter(0, 1, "empty_filter");
+const Array<Int> empty_filter(0, 1, "empty_filter");
 
 /* -------------------------------------------------------------------------- */
+template <> long int RandomGenerator<Idx>::_seed = 5489;
+template <> std::default_random_engine RandomGenerator<Idx>::generator(5489);
 template <> long int RandomGenerator<UInt>::_seed = 5489U;
 template <> std::default_random_engine RandomGenerator<UInt>::generator(5489U);
+
 /* -------------------------------------------------------------------------- */
 int Tag::max_tag = 0;
 

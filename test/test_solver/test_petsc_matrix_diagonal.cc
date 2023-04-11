@@ -1,18 +1,8 @@
 /**
- * @file   test_petsc_matrix_diagonal.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Wed Nov 08 2017
- *
- * @brief  test the connectivity is correctly represented in the PETScMatrix
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +41,7 @@ int main(int argc, char * argv[]) {
   initialize(argc, argv);
   const ElementType element_type = _triangle_3;
   const GhostType ghost_type = _not_ghost;
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   const auto & comm = akantu::Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -89,15 +78,15 @@ int main(int argc, char * argv[]) {
           mesh, spatial_dimension, "my_fem");
 
   DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
-  UInt nb_global_nodes = mesh.getNbGlobalNodes();
+  Int nb_global_nodes = mesh.getNbGlobalNodes();
 
   dof_synchronizer.initGlobalDOFEquationNumbers();
 
   // construct an Akantu sparse matrix, build the profile and fill the matrix
   // for the given mesh
-  UInt nb_element = mesh.getNbElement(element_type);
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
-  UInt nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
+  Int nb_element = mesh.getNbElement(element_type);
+  Int nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
+  Int nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
   SparseMatrix K_akantu(nb_global_nodes * spatial_dimension, _unsymmetric);
   K_akantu.buildProfile(mesh, dof_synchronizer, spatial_dimension);
   /// use as elemental matrices a matrix with values equal to 1 every where
@@ -134,12 +123,12 @@ int main(int argc, char * argv[]) {
   /// true for the serial case
   Real error = 0.;
   /// loop over all diagonal values of the matrix
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      UInt dof = i * spatial_dimension + j;
+  for (Int i = 0; i < mesh.getNbNodes(); ++i) {
+    for (Int j = 0; j < spatial_dimension; ++j) {
+      Int dof = i * spatial_dimension + j;
       /// for PETSc matrix only DOFs on the processor and be accessed
       if (dof_synchronizer.isLocalOrMasterDOF(dof)) {
-        UInt global_dof = dof_synchronizer.getDOFGlobalID(dof);
+        Int global_dof = dof_synchronizer.getDOFGlobalID(dof);
         std::cout << "Number of elements connected: "
                   << node_to_elem.getNbCols(i) << std::endl;
         std::cout << "K_petsc(" << global_dof << "," << global_dof

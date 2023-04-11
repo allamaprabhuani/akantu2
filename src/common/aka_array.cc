@@ -1,18 +1,8 @@
 /**
- * @file   aka_array.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Implementation of akantu::Array
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,7 +33,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <> UInt Array<Real>::find(const Real & elem) const {
+template <> Idx Array<Real>::find(const Real & elem) const {
   AKANTU_DEBUG_IN();
 
   Real epsilon = std::numeric_limits<Real>::epsilon();
@@ -53,46 +42,35 @@ template <> UInt Array<Real>::find(const Real & elem) const {
   });
 
   AKANTU_DEBUG_OUT();
-  return (it != end()) ? end() - it : UInt(-1);
+  return (it != end()) ? end() - it : -1;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-Array<ElementType> &
-Array<ElementType>::operator*=(const ElementType & /*alpha*/) {
+auto Array<ElementType>::operator*=(const ElementType & /*alpha*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 template <>
-Array<ElementType> &
-Array<ElementType>::operator-=(const Array<ElementType> & /*vect*/) {
+auto Array<ElementType>::operator-=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 template <>
-Array<ElementType> &
-Array<ElementType>::operator+=(const Array<ElementType> & /*vect*/) {
+auto Array<ElementType>::operator+=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <> Array<char> & Array<char>::operator*=(const char & /*alpha*/) {
+template <> auto Array<char>::operator*=(const char & /*alpha*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <>
-Array<char> & Array<char>::operator-=(const Array<char> & /*vect*/) {
+template <> auto Array<char>::operator-=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
-template <>
-Array<char> & Array<char>::operator+=(const Array<char> & /*vect*/) {
+template <> auto Array<char>::operator+=(const Array & /*vect*/) -> Array & {
   AKANTU_TO_IMPLEMENT();
-  return *this;
 }
 
 } // namespace akantu

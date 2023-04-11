@@ -1,18 +1,8 @@
 /**
- * @file   mesh_io_msh.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue May 21 2019
- *
- * @brief  Read/Write for MSH files
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -93,10 +82,10 @@ protected:
 #define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
   /// order in witch element as to be read
-  std::map<ElementType, std::vector<UInt>> _read_order;
+  std::map<ElementType, std::vector<Int>> _read_order;
 
   /// number of nodes per msh element
-  std::map<MSHElementType, UInt> _msh_nodes_per_elem;
+  std::map<MSHElementType, Int> _msh_nodes_per_elem;
 
   /// correspondence between msh element types and akantu element types
   std::map<MSHElementType, ElementType> _msh_to_akantu_element_types;

@@ -1,14 +1,21 @@
 /**
- * @file   shape_igfem_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @brief  ShapeIGFEM inline implementation
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -64,10 +71,10 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
         Array<Real> & quadrature_points_coordinates, ElementType type,
-        GhostType ghost_type, const Array<UInt> & filter_elements) const {
+        GhostType ghost_type, const Array<Int> & filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   /// create an array with the nodal coordinates that need to be
   /// interpolated. The nodal coordinates of the enriched nodes need
   /// to be set to zero, because they represent the enrichment of the
@@ -88,10 +95,10 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
         ElementTypeMapArray<Real> & quadrature_points_coordinates,
-        const ElementTypeMapArray<UInt> * filter_elements) const {
+        const ElementTypeMapArray<Idx> * filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   /// create an array with the nodal coordinates that need to be
   /// interpolated. The nodal coordinates of the enriched nodes need
   /// to be set to zero, because they represent the enrichment of the

@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   AkantuMacros.cmake
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Fri Oct 22 2010
-# @date last modification: Tue Mar 24 2020
-#
-# @brief  Set of macros used by akantu cmake files
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -204,6 +193,34 @@ function(declare_akantu_types)
     set(_incs "#include <${_inc}>\n${_incs}")
   endforeach()
   set(AKANTU_TYPES_EXTRA_INCLUDES ${_incs} CACHE INTERNAL "")
+
+  # ----------------------------------------------------------------------------
+  set(CMAKE_REQUIRED_FLAGS "-Werror -Wall -std=c++${AKANTU_CXX_STANDARD}")
+  set(CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/src/common")
+  file(READ ${PROJECT_SOURCE_DIR}/cmake/check_constexpr_map.cc _check_constexpr_map_code)
+  check_cxx_source_compiles("${_check_constexpr_map_code}"
+    can_compile_constexpr_map)
+
+  if(can_compile_constexpr_map EQUAL 1)
+    set(AKANTU_CAN_COMPILE_CONSTEXPR_MAP TRUE CACHE INTERNAL "")
+  else()
+    set(AKANTU_CAN_COMPILE_CONSTEXPR_MAP FALSE CACHE INTERNAL "")
+  endif()
+
+
+  file(READ ${PROJECT_SOURCE_DIR}/cmake/check_gnu_unlikely.cc _has_gnu_unlikely_code)
+  check_cxx_source_compiles("${_has_unlikely_code}"
+    has_gnu_unlikely)
+  if(has_gnu_unlikely EQUAL 1)
+    set(AKANTU_HAS_GNU_UNLIKELY FALSE CACHE INTERNAL "")
+  else()
+    file(READ ${PROJECT_SOURCE_DIR}/cmake/check_builtin_expect.cc _has_builtin_expect_code)
+    check_cxx_source_compiles("${_has_builtin_expect_code}"
+      has_builtin_expect)
+    if(has_builtin_expect EQUAL 1)
+      set(AKANTU_HAS_BUILTIN_EXPECT FALSE CACHE INTERNAL "")
+    endif()
+  endif()
 endfunction()
 
 

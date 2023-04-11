@@ -1,18 +1,8 @@
 /**
- * @file   test_solid_mechanics_model_work_quasistatic.cc
- *
- * @author Tobias Brink <tobias.brink@epfl.ch>
- *
- * @date creation: Wed Nov 29 2017
- * @date last modification:  Wed Dec 04 2019
- *
- * @brief  test work in quasistatic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  * @section description
  *
  * Assuming that the potential energy of a linear elastic material
@@ -67,7 +56,7 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
   auto & lower = this->mesh->getLowerBounds();
   auto & upper = this->mesh->getUpperBounds();
 
-  UInt i = 0;
+  Int i = 0;
   for (auto && data : zip(make_view(pos, spatial_dimension),
                           make_view(flags, spatial_dimension))) {
     const auto & posv = std::get<0>(data);
@@ -97,10 +86,11 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
     this->model->applyBC(BC::Dirichlet::FixedValue(u, _x), "el_fixed");
 
     Vector<Real> surface_traction(spatial_dimension);
+    surface_traction.zero();
     Real work = 0.0;
     Real Epot;
-    static const UInt N = 100;
-    for (UInt i = 0; i <= N; ++i) {
+    static const Int N = 100;
+    for (Int i = 0; i <= N; ++i) {
       this->model->getExternalForce().zero(); // reset external forces to zero
 
       surface_traction(_x) = (1.0 * i) / N;

@@ -1,18 +1,8 @@
 /**
- * @file   test_solver_petsc.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Tue Jan 01 2019
- *
- * @brief  test the PETSc solver interface
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +42,7 @@ int main(int argc, char * argv[]) {
   initialize(argc, argv);
   const ElementType element_type = _segment_2;
   const GhostType ghost_type = _not_ghost;
-  UInt spatial_dimension = 1;
+  Int spatial_dimension = 1;
 
   const auto & comm = akantu::Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -85,19 +74,20 @@ int main(int argc, char * argv[]) {
           mesh, spatial_dimension, "my_fem");
 
   DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
-  UInt nb_global_nodes = mesh.getNbGlobalNodes();
+  Int nb_global_nodes = mesh.getNbGlobalNodes();
 
   dof_synchronizer.initGlobalDOFEquationNumbers();
 
   // fill the matrix with
-  UInt nb_element = mesh.getNbElement(element_type);
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
-  UInt nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
+  Int nb_element = mesh.getNbElement(element_type);
+  Int nb_nodes_per_element = mesh.getNbNodesPerElement(element_type);
+  Int nb_dofs_per_element = spatial_dimension * nb_nodes_per_element;
   SparseMatrix K(nb_global_nodes * spatial_dimension, _symmetric);
   K.buildProfile(mesh, dof_synchronizer, spatial_dimension);
-  Matrix<Real> element_input(nb_dofs_per_element, nb_dofs_per_element, 0);
-  for (UInt i = 0; i < nb_dofs_per_element; ++i) {
-    for (UInt j = 0; j < nb_dofs_per_element; ++j) {
+  Matrix<Real> element_input(nb_dofs_per_element, nb_dofs_per_element);
+  element_input.zero();
+  for (Int i = 0; i < nb_dofs_per_element; ++i) {
+    for (Int j = 0; j < nb_dofs_per_element; ++j) {
       element_input(i, j) = ((i == j) ? 1 : -1);
     }
   }
@@ -116,9 +106,9 @@ int main(int argc, char * argv[]) {
 
   // apply boundary: block first node
   const Array<Real> & position = mesh.getNodes();
-  UInt nb_nodes = mesh.getNbNodes();
+  Int nb_nodes = mesh.getNbNodes();
   Array<bool> boundary = Array<bool>(nb_nodes, spatial_dimension, false);
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     if (std::abs(position(i, 0)) < Math::getTolerance())
       boundary(i, 0) = true;
   }
@@ -139,7 +129,7 @@ int main(int argc, char * argv[]) {
   // compute residual: apply nodal force on last node
   Array<Real> residual(nb_nodes, spatial_dimension, 0.);
 
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     if (std::abs(position(i, 0) - 10) < Math::getTolerance())
       residual(i, 0) += 2;
   }
@@ -156,7 +146,7 @@ int main(int argc, char * argv[]) {
 
   /// verify solution
   Math::setTolerance(1e-11);
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  for (Int i = 0; i < nb_nodes; ++i) {
     if (!dof_synchronizer.isPureGhostDOF(i) &&
         !Math::are_float_equal(2 * position(i, 0), solution(i, 0))) {
       std::cout << "The solution is not correct!!!!" << std::endl;

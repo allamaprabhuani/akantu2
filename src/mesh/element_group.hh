@@ -1,20 +1,8 @@
 /**
- * @file   element_group.hh
- *
- * @author Dana Christen <dana.christen@gmail.com>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri May 03 2013
- * @date last modification: Mon Mar 08 2021
- *
- * @brief  Stores information relevent to the notion of domain boundary and
- * surfaces.
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,13 +40,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class ElementGroup : public Dumpable {
-
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   ElementGroup(const std::string & name, const Mesh & mesh,
-               NodeGroup & node_group, UInt dimension = _all_dimensions,
+               NodeGroup & node_group, Int dimension = _all_dimensions,
                const std::string & id = "element_group");
 
   ElementGroup(const ElementGroup & /*unused*/);
@@ -68,33 +54,22 @@ public:
   /* Type definitions                                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  using ElementList = ElementTypeMapArray<UInt>;
-  using NodeList = Array<UInt>;
+  using ElementList = ElementTypeMapArray<Idx>;
 
   /* ------------------------------------------------------------------------ */
   /* Element iterator                                                         */
   /* ------------------------------------------------------------------------ */
-
   using type_iterator = ElementList::type_iterator;
-  [[deprecated("Use elementTypes instead")]] inline type_iterator
-  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-            ElementKind kind = _ek_regular) const;
-
-  [[deprecated("Use elementTypes instead")]] inline type_iterator
-  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
-           ElementKind kind = _ek_regular) const;
 
   template <typename... pack>
-  inline decltype(auto) elementTypes(pack &&... _pack) const {
+  [[nodiscard]] inline decltype(auto) elementTypes(pack &&... _pack) const {
     return elements.elementTypes(_pack...);
   }
 
-  using const_element_iterator = Array<UInt>::const_iterator<UInt>;
-
-  inline const_element_iterator begin(ElementType type,
-                                      GhostType ghost_type = _not_ghost) const;
-  inline const_element_iterator end(ElementType type,
-                                    GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] inline auto begin(ElementType type,
+                                  GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] inline auto end(ElementType type,
+                                GhostType ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -104,7 +79,7 @@ public:
   void clear();
   void clear(ElementType type, GhostType ghost_type = _not_ghost);
 
-  bool empty() const __attribute__((warn_unused_result));
+  [[nodiscard]] bool empty() const;
 
   /// append another group to this group
   /// BE CAREFUL: it doesn't conserve the element order
@@ -117,13 +92,13 @@ public:
 
   /// \todo fix the default for add_nodes : make it coherent with the other
   /// method
-  inline void add(ElementType type, UInt element,
+  inline void add(ElementType type, Idx element,
                   GhostType ghost_type = _not_ghost, bool add_nodes = true,
                   bool check_for_duplicate = true);
 
-  inline void addNode(UInt node_id, bool check_for_duplicate = true);
+  inline void addNode(Idx node_id, bool check_for_duplicate = true);
 
-  inline void removeNode(UInt node_id);
+  inline void removeNode(Idx node_id);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -135,12 +110,12 @@ public:
   void optimize();
 
   /// change the dimension if needed
-  void addDimension(UInt dimension);
+  void addDimension(Int dimension);
 
-  void onNodesAdded(const Array<UInt> & new_nodes, const NewNodesEvent & event);
+  void onNodesAdded(const Array<Idx> & new_nodes, const NewNodesEvent & event);
 
 private:
-  inline void addElement(ElementType elem_type, UInt elem_id,
+  inline void addElement(ElementType elem_type, Idx elem_id,
                          GhostType ghost_type);
 
   friend class GroupManager;
@@ -149,10 +124,10 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  const Array<UInt> & getElements(ElementType type,
-                                  GhostType ghost_type = _not_ghost) const;
-  AKANTU_GET_MACRO(Elements, elements, const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO_NOT_CONST(Elements, elements, ElementTypeMapArray<UInt> &);
+  const Array<Idx> & getElements(ElementType type,
+                                 GhostType ghost_type = _not_ghost) const;
+  AKANTU_GET_MACRO_AUTO(Elements, elements);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Elements, elements);
 
   template <class... Args> auto size(Args &&... pack) const {
     return elements.size(std::forward<Args>(pack)...);
@@ -163,12 +138,13 @@ public:
 
   //  AKANTU_GET_MACRO(Nodes, node_group.getNodes(), const Array<UInt> &);
 
-  AKANTU_GET_MACRO(NodeGroup, node_group, const NodeGroup &);
-  AKANTU_GET_MACRO_NOT_CONST(NodeGroup, node_group, NodeGroup &);
+  AKANTU_GET_MACRO_AUTO(NodeGroup, node_group);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(NodeGroup, node_group);
 
-  AKANTU_GET_MACRO(Dimension, dimension, UInt);
-  AKANTU_GET_MACRO(Name, name, std::string);
-  inline UInt getNbNodes() const;
+  AKANTU_GET_MACRO_AUTO(Dimension, dimension);
+  AKANTU_GET_MACRO_AUTO(Name, name);
+
+  inline Int getNbNodes() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -187,10 +163,10 @@ private:
   NodeGroup & node_group;
 
   /// group dimension
-  UInt dimension{_all_dimensions};
+  Int dimension{_all_dimensions};
 
   /// empty arry for the iterator to work when an element type not present
-  Array<UInt> empty_elements;
+  Array<Idx> empty_elements;
 };
 
 /// standard output stream operator

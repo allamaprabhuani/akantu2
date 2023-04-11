@@ -1,18 +1,8 @@
 /**
- * @file   terms_to_assemble.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Oct 11 2017
- *
- * @brief  List of terms to assemble to a matrix
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -51,7 +40,7 @@ public:
 
   class TermToAssemble {
   public:
-    TermToAssemble(UInt i, UInt j) : _i(i), _j(j) {}
+    TermToAssemble(Idx i, Idx j) : _i(i), _j(j) {}
     inline TermToAssemble & operator=(Real val) {
       this->val = val;
       return *this;
@@ -61,11 +50,11 @@ public:
       return *this;
     }
     inline operator Real() const { return val; }
-    inline UInt i() const { return _i; }
-    inline UInt j() const { return _j; }
+    inline Idx i() const { return _i; }
+    inline Idx j() const { return _j; }
 
   private:
-    UInt _i, _j;
+    Idx _i, _j;
     Real val{0.};
   };
 
@@ -73,7 +62,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline TermToAssemble & operator()(UInt i, UInt j) {
+  inline TermToAssemble & operator()(Idx i, Idx j) {
     terms.emplace_back(i, j);
     return terms.back();
   }

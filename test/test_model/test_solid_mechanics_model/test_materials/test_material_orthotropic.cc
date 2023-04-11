@@ -1,18 +1,8 @@
 /**
- * @file   test_material_orthotropic.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu May 09 2019
- *
- * @brief  test of the class SolidMechanicsModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,7 +29,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   //  akantu::initialize("orthotropic.dat", argc, argv);
   akantu::initialize("orthotropic.dat", argc, argv);
-  UInt max_steps = 1000;
+  Int max_steps = 1000;
   Real epot, ekin;
 
   Mesh mesh(2);
@@ -60,8 +49,8 @@ int main(int argc, char * argv[]) {
   std::cout << model << std::endl;
 
   // Boundary condition (Neumann)
-  Matrix<Real> stress(2, 2);
-  stress.eye(Real(1e3));
+  Matrix<Real> stress = Matrix<Real, 2, 2>::Identity() * 1e3;
+
   model.applyBC(BC::Neumann::FromHigherDim(stress), "boundary_0");
 
   model.setBaseName("square-orthotrope");
@@ -79,7 +68,7 @@ int main(int argc, char * argv[]) {
   energy.open("energy.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     epot = model.getEnergy("potential");
@@ -89,8 +78,9 @@ int main(int argc, char * argv[]) {
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
            << std::endl;
 
-    if (s % 100 == 0)
+    if (s % 100 == 0) {
       model.dump();
+    }
   }
 
   energy.close();

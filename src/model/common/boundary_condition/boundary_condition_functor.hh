@@ -1,20 +1,8 @@
 /**
- * @file   boundary_condition_functor.hh
- *
- * @author Dana Christen <dana.christen@gmail.com>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri May 03 2013
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Definitions of the functors to apply boundary conditions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,9 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "fe_engine.hh"
 #include "integration_point.hh"
 /* -------------------------------------------------------------------------- */
@@ -62,11 +48,9 @@ namespace BC {
       DirichletFunctor() = default;
       explicit DirichletFunctor(Axis ax) : axis(ax) {}
 
-      virtual void operator()(__attribute__((unused)) UInt node,
-                              __attribute__((unused)) Vector<bool> & flags,
-                              __attribute__((unused)) Vector<Real> & primal,
-                              __attribute__((unused))
-                              const Vector<Real> & coord) const {
+      virtual void operator()(Idx /*node*/, Vector<bool> & /*flags*/,
+                              Vector<Real> & /*primal*/,
+                              const Vector<Real> & /*coord*/) const {
         AKANTU_TO_IMPLEMENT();
       }
 
@@ -83,21 +67,10 @@ namespace BC {
       explicit FlagOnly(Axis ax = _x) : DirichletFunctor(ax) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
     };
-
-    /* ---------------------------------------------------------------------- */
-    // class FreeBoundary : public DirichletFunctor {
-    // public:
-    //   explicit FreeBoundary(Axis ax = _x) : DirichletFunctor(ax) {}
-
-    // public:
-    //   inline void operator()(UInt node, Vector<bool> & flags,
-    //                          Vector<Real> & primal,
-    //                          const Vector<Real> & coord) const;
-    // };
 
     /* ---------------------------------------------------------------------- */
     class FixedValue : public DirichletFunctor {
@@ -105,7 +78,7 @@ namespace BC {
       FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 
@@ -120,7 +93,7 @@ namespace BC {
           : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 
@@ -137,7 +110,7 @@ namespace BC {
           : DirichletFunctor(_x), value(val) {}
 
     public:
-      inline void operator()(UInt node, Vector<bool> & flags,
+      inline void operator()(Idx node, Vector<bool> & flags,
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const override;
 

@@ -1,18 +1,8 @@
 /**
- * @file   py_solver.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 29 2020
- * @date last modification: Sat Mar 06 2021
- *
- * @brief  pybind11 interface to Solver and SparseMatrix
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,11 +45,11 @@ void register_solvers(py::module & mod) {
       .def("saveProfile", &SparseMatrix::saveProfile)
       .def("saveMatrix", &SparseMatrix::saveMatrix)
       .def(
-          "add", [](SparseMatrix & self, UInt i, UInt j) { self.add(i, j); },
+          "add", [](SparseMatrix & self, Int i, Int j) { self.add(i, j); },
           "Add entry in the profile")
       .def(
           "add",
-          [](SparseMatrix & self, UInt i, UInt j, Real value) {
+          [](SparseMatrix & self, Int i, Int j, Real value) {
             self.add(i, j, value);
           },
           "Add the value to the matrix")
@@ -74,9 +63,9 @@ void register_solvers(py::module & mod) {
       .def("isFinite", &SparseMatrix::isFinite)
 
       .def("getRelease",
-           [](const SparseMatrix & self) -> UInt { return self.getRelease(); })
+           [](const SparseMatrix & self) -> Int { return self.getRelease(); })
       .def("__call__",
-           [](const SparseMatrix & self, UInt i, UInt j) { return self(i, j); })
+           [](const SparseMatrix & self, Int i, Int j) { return self(i, j); })
       .def("getRelease", &SparseMatrix::getRelease);
 
   py::class_<SparseMatrixAIJ, SparseMatrix>(mod, "SparseMatrixAIJ")
@@ -107,7 +96,7 @@ void register_solvers(py::module & mod) {
       .def("getDOFIdN", &TermsToAssemble::getDOFIdN)
       .def(
           "__call__",
-          [](TermsToAssemble & self, UInt i, UInt j, Real val) {
+          [](TermsToAssemble & self, Int i, Int j, Real val) {
             auto & term = self(i, j);
             term = val;
             return term;

@@ -1,20 +1,8 @@
 /**
- * @file   py_material.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Jun 20 2019
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  pybind11 interface to Material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,6 +27,7 @@
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_cohesive_linear.hh>
+#include <material_cohesive_linear_friction.hh>
 #include <solid_mechanics_model_cohesive.hh>
 #endif
 #include <material_elastic.hh>
@@ -68,8 +56,7 @@ namespace {
     void computeStress(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE(void, _Material, computeStress, el_type,
-                             ghost_type);
+      PYBIND11_OVERRIDE(void, _Material, computeStress, el_type, ghost_type);
     }
     void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                               GhostType ghost_type = _not_ghost) override {
@@ -103,6 +90,7 @@ namespace {
   }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
+  // trampoline for the cohesive materials
   template <typename _Material>
   class PyMaterialCohesive : public PyMaterial<_Material> {
   public:
@@ -117,31 +105,36 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, checkInsertion, check_only);
     }
 
-    void computeTraction(const Array<Real> & normal, ElementType el_type,
+    void computeTraction(ElementType el_type,
                          GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_PURE(void, _Material, computeTraction, normal, el_type,
-                             ghost_type);
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, el_type, ghost_type);
     }
 
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
-                                const Array<Real> & normal,
                                 GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
-                        tangent_matrix, normal, ghost_type);
+                        tangent_matrix, ghost_type);
     }
+
+    void computeStress(ElementType /*el_type*/,
+                       GhostType /*ghost_type*/ = _not_ghost) final {}
+
+    void computeTangentModuli(ElementType /*el_type*/,
+                              Array<Real> & /*tangent_matrix*/,
+                              GhostType /*ghost_type*/ = _not_ghost) final {}
   };
 
   template <typename _Material>
   void register_material_cohesive_classes(py::module & mod,
                                           const std::string & name) {
-    py::class_<_Material, Material, Parsable, PyMaterialCohesive<_Material>>(
+    py::class_<_Material, MaterialCohesive,
+               PyMaterialCohesiveDaughters<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModelCohesive &, const ID &>());
   }
-
 #endif
 } // namespace
 
@@ -177,10 +170,10 @@ void register_material(py::module & mod) {
           py::arg("el_type"), py::return_value_policy::reference)
       .def(
           "getPotentialEnergy",
-          [](Material & self, ElementType el_type, UInt index) -> Real {
-            return self.getPotentialEnergy(el_type, index);
+          [](Material & self, Element element) -> Real {
+            return self.getPotentialEnergy(element);
           },
-          py::arg("el_type"), py::arg("index"))
+          py::arg("element"))
       .def("getPotentialEnergy",
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)
@@ -216,6 +209,46 @@ void register_material(py::module & mod) {
            py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
+  /* ------------------------------------------------------------------------ */
+  py::class_<MaterialCohesive, Material, PyMaterialCohesive<MaterialCohesive>>(
+      mod, "MaterialCohesive", py::multiple_inheritance())
+      .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
+      .def(
+          "getFacetFilter",
+          [](MaterialCohesive & self) -> decltype(auto) {
+            return self.getFacetFilter();
+          },
+          py::return_value_policy::reference)
+      .def(
+          "getFacetFilter",
+          [](MaterialCohesive & self, ElementType type,
+             GhostType ghost_type) -> decltype(auto) {
+            return self.getFacetFilter(type, ghost_type);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
+          "getOpening",
+          [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
+              -> decltype(auto) { return self.getOpening(type, ghost_type); },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
+          "getTraction",
+          [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
+              -> decltype(auto) { return self.getTraction(type, ghost_type); },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference);
+
+  register_material_cohesive_classes<MaterialCohesiveLinear<2>>(
+      mod, "MaterialCohesiveLinear2D");
+  register_material_cohesive_classes<MaterialCohesiveLinear<3>>(
+      mod, "MaterialCohesiveLinear3D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<2>>(
+      mod, "MaterialCohesiveLinearFriction2D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(
+      mod, "MaterialCohesiveLinearFriction3D");
+
   py::class_<DefaultMaterialCohesiveSelector, ConstitutiveLawSelector,
              std::shared_ptr<DefaultMaterialCohesiveSelector>>(
       mod, "DefaultMaterialCohesiveSelector")

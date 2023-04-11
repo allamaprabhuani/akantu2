@@ -1,20 +1,8 @@
 /**
- * @file   local_material_damage.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Specialization of the material class for the damage material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -74,7 +61,7 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -90,7 +77,7 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  Real * epot = potential_energy(el_type).storage();
+  Real * epot = potential_energy(el_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);

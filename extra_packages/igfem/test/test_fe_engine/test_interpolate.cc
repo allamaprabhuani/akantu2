@@ -1,15 +1,21 @@
 /**
- * @file   test_interpolate.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  test the interpolation function of the igfem elements
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +52,7 @@ int main(int argc, char * argv[]) {
 /* -------------------------------------------------------------------------- */
 void interpolate(const ElementType type) {
 
-  UInt dim = 2;
+  Int dim = 2;
   std::stringstream mesh_info;
   mesh_info << "mesh_info" << type << ".txt";
   Mesh my_mesh(dim);
@@ -72,17 +78,17 @@ void interpolate(const ElementType type) {
   UInt nb_standard_nodes = 9;
 
   /// impose constant value at standard nodes
-  for (UInt i = 0; i < nb_standard_nodes; ++i) {
-    const_val.storage()[i * 2 + 0] = 1.;
-    const_val.storage()[i * 2 + 1] = 2.;
+  for (Int i = 0; i < nb_standard_nodes; ++i) {
+    const_val.data()[i * 2 + 0] = 1.;
+    const_val.data()[i * 2 + 1] = 2.;
   }
 
   /// for field to be constant the enriched values need to be zero,
   /// because enrichment is not needed since there is no kink in the
   /// applied field
-  for (UInt i = nb_standard_nodes; i < const_val.getSize(); ++i) {
-    const_val.storage()[i * 2 + 0] = 0.;
-    const_val.storage()[i * 2 + 1] = 0.;
+  for (Int i = nb_standard_nodes; i < const_val.getSize(); ++i) {
+    const_val.data()[i * 2 + 0] = 0.;
+    const_val.data()[i * 2 + 1] = 0.;
   }
 
   fem->interpolateOnIntegrationPoints(const_val, val_on_quad, 2, type);

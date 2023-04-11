@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   core.cmake
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Mon Nov 21 2011
-# @date last modification: Fri Apr 09 2021
-#
-# @brief  package description for core
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -33,18 +22,23 @@
 
 package_declare(core NOT_OPTIONAL
   DESCRIPTION "core package for Akantu"
-  FEATURES_PUBLIC cxx_strong_enums cxx_defaulted_functions
-                  cxx_deleted_functions cxx_auto_type cxx_decltype_auto
-  FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
-                   cxx_delegating_constructors
-  DEPENDS INTERFACE akantu_iterators Boost
+  DEPENDS INTERFACE akantu_iterators Boost Eigen3
   )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  package_set_compile_flags(core "-Wall -Wextra -pedantic")
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic")
 else()
-  package_set_compile_flags(core "-Wall")
+  package_set_compile_flags(core CXX "-Wall")
 endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0.0)
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-attributes")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
+  package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template -Wno-unknown-attributes")
+endif()
+
 
 package_declare_sources(core
   common/aka_array.cc
@@ -53,13 +47,14 @@ package_declare_sources(core
   common/aka_array_tmpl.hh
   common/aka_array_printer.hh
   common/aka_bbox.hh
-  common/aka_blas_lapack.hh
   common/aka_circular_array.hh
   common/aka_circular_array_inline_impl.hh
   common/aka_common.cc
   common/aka_common.hh
   common/aka_common_inline_impl.hh
+  common/aka_constexpr_map.hh
   common/aka_csr.hh
+  common/aka_element_classes_info.hh
   common/aka_element_classes_info_inline_impl.hh
   common/aka_enum_macros.hh
   common/aka_error.cc
@@ -75,7 +70,12 @@ package_declare_sources(core
   common/aka_named_argument.hh
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
+  common/aka_tensor.hh
   common/aka_types.hh
+  common/aka_types_eigen_matrix_plugin.hh
+  common/aka_types_eigen_matrix_base_plugin.hh
+  common/aka_types_eigen_plain_object_base_plugin.hh
+  common/aka_view_iterators.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh
   common/aka_voigthelper.cc
@@ -236,6 +236,7 @@ package_declare_sources(core
   model/common/non_local_toolbox/non_local_neighborhood_tmpl.hh
   model/common/non_local_toolbox/non_local_neighborhood_inline_impl.hh
   model/common/non_local_toolbox/base_weight_function.hh
+  model/common/non_local_toolbox/base_weight_function.cc
   model/common/non_local_toolbox/base_weight_function_inline_impl.hh
 
   model/common/model_solver.cc
@@ -352,80 +353,6 @@ set(AKANTU_SPIRIT_SOURCES
   PARENT_SCOPE
   )
 
-package_declare_elements(core
-  ELEMENT_TYPES
-  _point_1
-  _segment_2
-  _segment_3
-  _triangle_3
-  _triangle_6
-  _quadrangle_4
-  _quadrangle_8
-  _tetrahedron_4
-  _tetrahedron_10
-  _pentahedron_6
-  _pentahedron_15
-  _hexahedron_8
-  _hexahedron_20
-  KIND regular
-  GEOMETRICAL_TYPES
-  _gt_point
-  _gt_segment_2
-  _gt_segment_3
-  _gt_triangle_3
-  _gt_triangle_6
-  _gt_quadrangle_4
-  _gt_quadrangle_8
-  _gt_tetrahedron_4
-  _gt_tetrahedron_10
-  _gt_hexahedron_8
-  _gt_hexahedron_20
-  _gt_pentahedron_6
-  _gt_pentahedron_15
-  INTERPOLATION_TYPES
-  _itp_lagrange_point_1
-  _itp_lagrange_segment_2
-  _itp_lagrange_segment_3
-  _itp_lagrange_triangle_3
-  _itp_lagrange_triangle_6
-  _itp_lagrange_quadrangle_4
-  _itp_serendip_quadrangle_8
-  _itp_lagrange_tetrahedron_4
-  _itp_lagrange_tetrahedron_10
-  _itp_lagrange_hexahedron_8
-  _itp_serendip_hexahedron_20
-  _itp_lagrange_pentahedron_6
-  _itp_lagrange_pentahedron_15
-  GEOMETRICAL_SHAPES
-  _gst_point
-  _gst_triangle
-  _gst_square
-  _gst_prism
-  GAUSS_INTEGRATION_TYPES
-  _git_point
-  _git_segment
-  _git_triangle
-  _git_tetrahedron
-  _git_pentahedron
-  INTERPOLATION_KIND _itk_lagrangian
-  FE_ENGINE_LISTS
-  gradient_on_integration_points
-  interpolate_on_integration_points
-  interpolate
-  compute_normals_on_integration_points
-  inverse_map
-  contains
-  compute_shapes
-  compute_shapes_derivatives
-  get_N
-  compute_dnds
-  compute_d2nds2
-  compute_jmat
-  get_shapes_derivatives
-  lagrange_base
-  assemble_fields
-  )
-
 find_program(READLINK_COMMAND readlink)
 find_program(ADDR2LINE_COMMAND addr2line)
 find_program(PATCH_COMMAND patch)
@@ -437,7 +364,3 @@ package_declare_extra_files_to_package(core
     common/aka_element_classes_info.hh.in
     common/aka_config.hh.in
   )
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
-  package_set_compile_flags(core CXX "-Wno-undefined-var-template")
-endif()

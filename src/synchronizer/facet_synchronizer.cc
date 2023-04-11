@@ -1,19 +1,8 @@
 /**
- * @file   facet_synchronizer.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Oct 13 2017
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  Facet synchronizer for parallel simulations with cohesive elments
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,13 +50,9 @@ FacetSynchronizer::FacetSynchronizer(
     const auto & scheme = std::get<1>(scheme_pair);
 
     for (auto && elem : scheme) {
-      const auto & facet_to_element =
-          mesh.getSubelementToElement(elem.type, elem.ghost_type);
-      Vector<Element> facets = facet_to_element.begin(
-          facet_to_element.getNbComponent())[elem.element];
+      const auto & facets = mesh.getSubelementToElement().get(elem);
 
-      for (UInt f = 0; f < facets.size(); ++f) {
-        const auto & facet = facets(f);
+      for (auto && facet : facets) {
         if (facet == ElementNull) {
           continue;
         }
@@ -78,14 +62,14 @@ FacetSynchronizer::FacetSynchronizer(
         }
 
         auto & facet_rank = element_to_prank(facet);
-        if ((proc < UInt(facet_rank)) || (UInt(facet_rank) == rank)) {
+        if ((proc < facet_rank) || (facet_rank == rank)) {
           facet_rank = proc;
         }
       }
     }
   }
 
-  ElementTypeMapArray<UInt> facet_global_connectivities(
+  ElementTypeMapArray<Idx> facet_global_connectivities(
       "facet_global_connectivities", id);
   facet_global_connectivities.initialize(
       mesh, _spatial_dimension = spatial_dimension - 1, _with_nb_element = true,
@@ -99,13 +83,13 @@ FacetSynchronizer::FacetSynchronizer(
     auto & conn = facet_global_connectivities(type, _not_ghost);
     auto conn_view = make_view(conn, conn.getNbComponent());
     std::for_each(conn_view.begin(), conn_view.end(), [&](auto & conn) {
-      std::sort(conn.storage(), conn.storage() + conn.size());
+      std::sort(conn.data(), conn.data() + conn.size());
     });
   }
 
   /// init facet check tracking
   ElementTypeMapArray<bool> facet_checked("facet_checked", id);
-  std::map<UInt, ElementTypeMapArray<UInt>> recv_connectivities;
+  std::map<Int, ElementTypeMapArray<Idx>> recv_connectivities;
 
   /// Generate the recv scheme and connnectivities to send to the other
   /// processors
@@ -132,14 +116,10 @@ FacetSynchronizer::FacetSynchronizer(
     // check the facets to see if they should be communicated and create a
     // connectivity array to match with the one other processors might send
     for (auto && element : elements) {
-      const auto & facet_to_element =
-          mesh.getSubelementToElement(element.type, element.ghost_type);
-      Vector<Element> facets = facet_to_element.begin(
-          facet_to_element.getNbComponent())[element.element];
+      const auto & facet_to_element = mesh.getSubelementToElement();
+      auto && facets = facet_to_element.get(element);
 
-      for (UInt f = 0; f < facets.size(); ++f) {
-        auto & facet = facets(f);
-
+      for (auto && facet : facets) {
         // exclude no valid facets
         if (facet == ElementNull) {
           continue;
@@ -152,7 +132,7 @@ FacetSynchronizer::FacetSynchronizer(
 
         // exclude facet from other processors then the one of current
         // interest in case of receive scheme
-        if (UInt(element_to_prank(facet)) != proc) {
+        if (element_to_prank(facet) != proc) {
           continue;
         }
 
@@ -166,11 +146,8 @@ FacetSynchronizer::FacetSynchronizer(
 
         facet_scheme.push_back(facet);
 
-        auto & global_conn =
-            facet_global_connectivities(facet.type, facet.ghost_type);
-        Vector<UInt> conn =
-            global_conn.begin(global_conn.getNbComponent())[facet.element];
-        std::sort(conn.storage(), conn.storage() + conn.size());
+        auto && conn = facet_global_connectivities.get(facet);
+        std::sort(conn.data(), conn.data() + conn.size());
 
         connectivities_for_proc(facet.type, facet.ghost_type).push_back(conn);
       }
@@ -191,7 +168,7 @@ FacetSynchronizer::FacetSynchronizer(
 
     auto nb_nodes_per_facet = Mesh::getNbNodesPerElement(type);
 
-    communicator.receiveAnyNumber<UInt>(
+    communicator.receiveAnyNumber<Idx>(
         send_requests,
         [&](auto && proc, auto && message) {
           auto & local_connectivities =
@@ -206,7 +183,7 @@ FacetSynchronizer::FacetSynchronizer(
             auto it = std::find(conn_begin, conn_end, c_to_match);
 
             if (it != conn_end) {
-              auto facet = Element{type, UInt(it - conn_begin), _not_ghost};
+              auto facet = Element{type, it - conn_begin, _not_ghost};
               send_scheme.push_back(facet);
             } else {
               AKANTU_EXCEPTION("No local facet found to send to proc "

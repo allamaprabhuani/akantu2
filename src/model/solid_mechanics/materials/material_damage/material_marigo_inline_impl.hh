@@ -1,20 +1,8 @@
 /**
- * @file   material_marigo_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of the inline functions of the material marigo
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,52 +16,57 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "material_marigo.hh"
+/* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_
+// #ifndef __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__
+// #define __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__
 
 namespace akantu {
 
-template <UInt spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, Real & Y,
-    Real & Ydq) {
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+template <typename Args>
+inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
+  auto && sigma = arguments["sigma"_n];
+  auto && grad_u = arguments["grad_u"_n];
+  auto && dam = arguments["damage"_n];
+  auto && Y = arguments["Y"_n];
 
-  Y = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      Y += sigma(i, j) * (grad_u(i, j) + grad_u(j, i)) / 2.;
-    }
-  }
-  Y *= 0.5;
+  MaterialElastic<dim>::computeStressOnQuad(arguments);
 
-  if (damage_in_y) {
+  Y = sigma.doubleDot(Material::gradUToEpsilon<dim>(grad_u)) / 2.;
+
+  if (this->damage_in_y) {
     Y *= (1 - dam);
   }
 
-  if (yc_limit) {
-    Y = std::min(Y, Yc);
+  if (this->yc_limit) {
+    Y = std::min(Y, this->Yc);
   }
 
-  if (!this->is_non_local) {
-    computeDamageAndStressOnQuad(sigma, dam, Y, Ydq);
+  if (not this->is_non_local) {
+    computeDamageAndStressOnQuad(arguments);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
-    Matrix<Real> & sigma, Real & dam, Real & Y, Real & Ydq) {
-  Real Fd = Y - Ydq - Sd * dam;
+template <Int dim>
+template <typename Args>
+inline void
+MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) {
+  auto && sigma = arguments["sigma"_n];
+  auto && dam = arguments["damage"_n];
+  auto && Y = arguments["Y"_n];
+  auto && Yd = arguments["Yd"_n];
+
+  Real Fd = Y - Yd - Sd * dam;
 
   if (Fd > 0) {
-    dam = (Y - Ydq) / Sd;
+    dam = (Y - Yd) / Sd;
   }
   dam = std::min(dam, Real(1.));
 
@@ -81,9 +74,10 @@ inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline UInt MaterialMarigo<spatial_dimension>::getNbData(
-    const Array<Element> & elements, const SynchronizationTag & tag) const {
+template <Int dim>
+inline auto MaterialMarigo<dim>::getNbData(const Array<Element> & elements,
+                                           const SynchronizationTag & tag) const
+    -> Int {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -91,45 +85,45 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbData(
     size += sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
   }
 
-  size += MaterialDamage<spatial_dimension>::getNbData(elements, tag);
+  size += MaterialDamage<dim>::getNbData(elements, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::packData(
-    CommunicationBuffer & buffer, const Array<Element> & elements,
-    const SynchronizationTag & tag) const {
+template <Int dim>
+inline void
+MaterialMarigo<dim>::packData(CommunicationBuffer & buffer,
+                              const Array<Element> & elements,
+                              const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   if (tag == SynchronizationTag::_clh_init_cl) {
     this->packInternalFieldHelper(Yd, buffer, elements);
   }
 
-  MaterialDamage<spatial_dimension>::packData(buffer, elements, tag);
+  MaterialDamage<dim>::packData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-inline void
-MaterialMarigo<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
-                                              const Array<Element> & elements,
-                                              const SynchronizationTag & tag) {
+template <Int dim>
+inline void MaterialMarigo<dim>::unpackData(CommunicationBuffer & buffer,
+                                            const Array<Element> & elements,
+                                            const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
 
   if (tag == SynchronizationTag::_clh_init_cl) {
     this->unpackInternalFieldHelper(Yd, buffer, elements);
   }
 
-  MaterialDamage<spatial_dimension>::unpackData(buffer, elements, tag);
+  MaterialDamage<dim>::unpackData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu
 
-#endif /* AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__ */

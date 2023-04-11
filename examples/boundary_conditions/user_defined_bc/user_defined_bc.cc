@@ -1,19 +1,8 @@
 /**
- * @file   user_defined_bc.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Wed Feb 06 2019
- *
- * @brief  example of  boundary conditions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,7 +50,7 @@ protected:
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("fine_mesh.msh");
@@ -73,7 +61,7 @@ int main(int argc, char * argv[]) {
   model.initFull();
 
   /// boundary conditions
-  Vector<Real> traction(2, 0.2);
+  Vector<Real, 2> traction{.2, .2};
   model.applyBC(SineBoundary(.2, 10., _x), "Fixed_x");
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "Fixed_y");
   model.applyBC(BC::Neumann::FromTraction(traction), "Traction");

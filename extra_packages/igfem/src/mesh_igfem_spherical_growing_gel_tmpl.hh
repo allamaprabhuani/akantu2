@@ -1,27 +1,21 @@
 /**
- * @file   mesh_igfem_spherical_growing_gel.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Sep 21 12:42:11 2015
- *
- * @brief  Implementation of the functions of MeshIgfemSphericalGrowingGel
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -31,13 +25,13 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MeshIgfemSphericalGrowingGel<dim>::MeshIgfemSphericalGrowingGel(Mesh & mesh)
     : mesh(mesh), nb_nodes_fem(mesh.getNbNodes()), nb_enriched_nodes(0),
       synchronizer(NULL) {}
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
+template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
   nb_nodes_fem = mesh.getNbNodes();
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -64,7 +58,7 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
     const std::list<SK::Sphere_3> & query_list) {
   /// store number of currently enriched nodes
@@ -85,7 +79,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
                                                         nb_old_nodes);
       const Array<Real> intersection_points_current_type =
           *(intersector.getIntersectionPoints());
-      const Array<UInt> & new_node_per_elem = intersector.getNewNodePerElem();
+      const Array<Idx> & new_node_per_elem = intersector.getNewNodePerElem();
 
       /// Send the new node event
       UInt new_points = intersection_points_current_type.getSize();
@@ -100,7 +94,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
             intersection_points_current_type.begin(dim);
 
         NewIGFEMNodesEvent new_nodes_event;
-        for (UInt in = 0; in < intersection_points_current_type.getSize();
+        for (Int in = 0; in < intersection_points_current_type.getSize();
              ++in, ++intersec_p_it) {
           nodes.push_back(*intersec_p_it);
           new_nodes_event.getList().push_back(nb_node + in);
@@ -115,7 +109,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
   AKANTU_DEBUG_IN();
 
@@ -131,24 +125,24 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
     return;
 
   RemovedNodesEvent remove_nodes(this->mesh);
-  Array<UInt> & nodes_removed = remove_nodes.getList();
-  Array<UInt> & new_numbering = remove_nodes.getNewNumbering();
+  Array<Idx> & nodes_removed = remove_nodes.getList();
+  Array<Idx> & new_numbering = remove_nodes.getNewNumbering();
 
-  for (UInt nnod = 0; nnod < this->nb_nodes_fem; ++nnod) {
+  for (Int nnod = 0; nnod < this->nb_nodes_fem; ++nnod) {
     new_numbering(nnod) = nnod;
   }
 
-  for (UInt nnod = nb_nodes_fem; nnod < old_total_nodes; ++nnod) {
+  for (Int nnod = nb_nodes_fem; nnod < old_total_nodes; ++nnod) {
     new_numbering(nnod) = UInt(-1);
     nodes_removed.push_back(nnod);
   }
 
-  for (UInt nnod = 0; nnod < nb_new_enriched_nodes; ++nnod) {
+  for (Int nnod = 0; nnod < nb_new_enriched_nodes; ++nnod) {
     new_numbering(nnod + old_total_nodes) = this->nb_nodes_fem + nnod;
   }
 
   if (nb_new_enriched_nodes > 0) {
-    for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
+    for (Int gt = _not_ghost; gt <= _ghost; ++gt) {
       GhostType ghost_type = (GhostType)gt;
 
       Mesh::type_iterator it =
@@ -157,17 +151,17 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
           mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
       for (; it != end; ++it) {
         ElementType type = *it;
-        Array<UInt> & connectivity_array =
+        Array<Idx> & connectivity_array =
             mesh.getConnectivity(type, ghost_type);
         UInt nb_nodes_per_element = connectivity_array.getNbComponent();
 
-        Array<UInt>::vector_iterator conn_it =
+        Array<Idx>::vector_iterator conn_it =
             connectivity_array.begin(nb_nodes_per_element);
-        Array<UInt>::vector_iterator conn_end =
+        Array<Idx>::vector_iterator conn_end =
             connectivity_array.end(nb_nodes_per_element);
 
         for (; conn_it != conn_end; ++conn_it) {
-          for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+          for (Int n = 0; n < nb_nodes_per_element; ++n) {
             (*conn_it)(n) = new_numbering((*conn_it)(n));
           }
         }
@@ -180,7 +174,7 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
+template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
   AKANTU_DEBUG_IN();
 
   NewIGFEMElementsEvent new_elements_event;
@@ -207,17 +201,17 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
 
       MeshAbstractIntersector<SK::Sphere_3> & intersector =
           *intersectors(type, ghost_type);
-      const Array<UInt> & new_node_per_elem = intersector.getNewNodePerElem();
+      const Array<Idx> & new_node_per_elem = intersector.getNewNodePerElem();
 
       UInt n_new_el = 0;
-      Array<UInt> & connectivity = this->mesh.getConnectivity(type, ghost_type);
+      Array<Idx> & connectivity = this->mesh.getConnectivity(type, ghost_type);
 
       /// get the connectivities of all types that that may transform
-      Array<UInt> & connec_igfem_tri_4 =
+      Array<Idx> & connec_igfem_tri_4 =
           this->mesh.getConnectivity(_igfem_triangle_4, ghost_type);
-      Array<UInt> & connec_igfem_tri_5 =
+      Array<Idx> & connec_igfem_tri_5 =
           this->mesh.getConnectivity(_igfem_triangle_5, ghost_type);
-      Array<UInt> & connec_tri_3 =
+      Array<Idx> & connec_tri_3 =
           this->mesh.getConnectivity(_triangle_3, ghost_type);
 
       /// create elements to store the newly generated elements
@@ -225,13 +219,13 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
       Element el_igfem_tri_4(_igfem_triangle_4, 0, ghost_type, _ek_igfem);
       Element el_igfem_tri5(_igfem_triangle_5, 0, ghost_type, _ek_igfem);
 
-      Array<UInt> & new_numbering =
+      Array<Idx> & new_numbering =
           removed_elements_event.getNewNumbering(type, ghost_type);
       new_numbering.resize(connectivity.getSize());
       /// container for element to be removed
       Element old_element(type, 0, ghost_type, Mesh::getKind(type));
 
-      for (UInt nel = 0; nel != new_node_per_elem.getSize(); ++nel) {
+      for (Int nel = 0; nel != new_node_per_elem.getSize(); ++nel) {
         /// a former IGFEM triangle is transformed into a regular triangle
         if ((type != _triangle_3) && (new_node_per_elem(nel, 0) == 0)) {
 
@@ -365,12 +359,12 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
     Mesh::type_iterator iend = mesh.lastType(dim, ghost_type, _ek_not_defined);
     for (; iit != iend; ++iit) {
       ElementType type = *iit;
-      Array<UInt> & new_numbering =
+      Array<Idx> & new_numbering =
           removed_elements_event.getNewNumbering(type, ghost_type);
       UInt el_index = 0;
       UInt nb_element = this->mesh.getNbElement(type, ghost_type);
       new_numbering.resize(nb_element);
-      for (UInt e = 0; e < nb_element; ++e) {
+      for (Int e = 0; e < nb_element; ++e) {
         if (new_numbering(e) != UInt(-1)) {
           new_numbering(e) = el_index;
           ++el_index;
@@ -402,13 +396,13 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
   Mesh mesh_facets(mesh.initMeshFacets());
   MeshUtils::buildSegmentToNodeType(mesh, mesh_facets, synchronizer);
 
   // only the ghost elements are considered
-  for (UInt g = _not_ghost; g <= _ghost; ++g) {
+  for (Int g = _not_ghost; g <= _ghost; ++g) {
     GhostType ghost_type = (GhostType)g;
 
     Mesh::type_iterator it = mesh_facets.firstType(1, ghost_type);
@@ -419,7 +413,7 @@ void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
       const Array<Int> & segment_to_nodetype =
           mesh_facets.getData<Int>("segment_to_nodetype", type, ghost_type);
 
-      const Array<UInt> & segment_connectivity =
+      const Array<Idx> & segment_connectivity =
           mesh_facets.getConnectivity(type, ghost_type);
 
       // looping over all the segments
@@ -446,7 +440,7 @@ void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::updateNodeType(
     const Array<UInt> & nodes_list, const Array<UInt> & new_node_per_elem,
     ElementType type, GhostType ghost_type) {
@@ -475,10 +469,10 @@ void MeshIgfemSphericalGrowingGel<dim>::updateNodeType(
   unordered_map<std::pair<UInt, UInt>, Int>::type::iterator seg_type_end =
       segment_conn_to_node_type.end();
 
-  for (UInt el = 0; el < new_node_per_elem.getSize(); ++el) {
+  for (Int el = 0; el < new_node_per_elem.getSize(); ++el) {
     UInt nb_nodes = new_node_per_elem(el, 0);
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       UInt node_index = new_node_per_elem(el, 2 * n + 1);
       if (node_index < old_nodes || checked_node(node_index - old_nodes))
         continue;

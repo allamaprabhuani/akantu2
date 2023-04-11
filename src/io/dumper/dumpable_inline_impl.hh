@@ -1,20 +1,8 @@
 /**
- * @file   dumpable_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Implementation of the Dumpable class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef AKANTU_DUMPABLE_INLINE_IMPL_HH_
@@ -85,7 +72,7 @@ Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
 template <typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const ElementTypeMapArray<T> & field,
-                                           UInt spatial_dimension,
+                                           Int spatial_dimension,
                                            GhostType ghost_type,
                                            ElementKind element_kind) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field,
@@ -97,7 +84,7 @@ inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
 template <typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(
     const std::string & dumper_name, const std::string & field_id,
-    const ElementTypeMapArray<T> & field, UInt spatial_dimension,
+    const ElementTypeMapArray<T> & field, Int spatial_dimension,
     GhostType ghost_type, ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field_cont;

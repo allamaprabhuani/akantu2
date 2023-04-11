@@ -1,19 +1,8 @@
 /**
- * @file   material_drucker_prager_inline_impl.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Sat Sep 12 2020
- * @date last modification: Tue Apr 06 2021
- *
- * @brief  Implementation of the inline functions of the material
- * Drucker-Prager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include "material_drucker_prager.hh"
@@ -36,22 +24,10 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /// Deviatoric Stress
-template <UInt dim>
-inline void
-MaterialDruckerPrager<dim>::computeDeviatoricStress(const Matrix<Real> & sigma,
-                                                    Matrix<Real> & sigma_dev) {
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      sigma_dev(i, j) = sigma(i, j);
-    }
-  }
-
-  sigma_dev -= Matrix<Real>::eye(dim, sigma.trace() / dim);
-}
 
 /* -------------------------------------------------------------------------- */
 /// Yield Stress
-template <UInt dim>
+template <Int dim>
 inline Real
 MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> & sigma) {
   return this->alpha * sigma.trace() - this->k;
@@ -59,32 +35,34 @@ MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> & sigma) {
 
 /* -------------------------------------------------------------------------- */
 /// Yield function
-template <UInt dim>
+template <Int dim>
 inline Real
 MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> & sigma) {
-  Matrix<Real> sigma_dev(dim, dim, 0);
-  this->computeDeviatoricStress(sigma, sigma_dev);
+  Matrix<Real, dim, dim> sigma_dev = Material::computeDeviatoric<dim>(sigma);
 
   // compute deviatoric invariant J2
-  Real j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
-  Real sigma_dev_eff = std::sqrt(3. * j2);
+  auto j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
+  auto sigma_dev_eff = std::sqrt(3. * j2);
 
-  Real modified_yield_stress = computeYieldStress(sigma);
+  auto modified_yield_stress = computeYieldStress(sigma);
 
   return sigma_dev_eff + modified_yield_stress;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
+template <typename D1, typename D2, typename D3,
+          aka::enable_if_t<aka::are_vectors_v<D2, D3>> *>
 inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
-    const Matrix<Real> & sigma_trial, Real & plastic_multiplier_guess,
-    Vector<Real> & gradient_f, Vector<Real> & delta_inelastic_strain,
-    UInt max_iterations, Real tolerance) {
+    const Eigen::MatrixBase<D1> & sigma_trial, Real & plastic_multiplier_guess,
+    Eigen::MatrixBase<D2> & gradient_f,
+    Eigen::MatrixBase<D3> & delta_inelastic_strain, Int max_iterations,
+    Real tolerance) {
 
-  UInt size = voigt_h::size;
+  const Int size = voigt_h::size;
 
   // guess stress state at each iteration, initial guess is the trial state
-  Matrix<Real> sigma_guess(sigma_trial);
+  Matrix<Real, dim, dim> sigma_guess(sigma_trial);
 
   // plastic multiplier guess at each iteration, initial guess is zero
   plastic_multiplier_guess = 0.;
@@ -96,64 +74,47 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   delta_inelastic_strain.zero();
 
   // variation in sigma at each iteration
-  Vector<Real> delta_sigma(size, 0.);
+  Vector<Real, size> delta_sigma;
 
   // krocker delta vector in voigt notation
-  Vector<Real> kronecker_delta(size, 0.);
-  for (auto i : arange(dim)) {
-    kronecker_delta[i] = 1.;
-  }
+  Vector<Real, size> kronecker_delta;
+  kronecker_delta.template block<dim, 1>(0, 0).fill(1.);
 
   // hessian matrix of yield surface
-  Matrix<Real> hessian_f(size, size, 0.);
+  Matrix<Real, size, size> hessian_f;
 
   // scaling matrix for computing gradient and hessian from voigt notation
-  Matrix<Real> scaling_matrix(size, size, 0.);
-  scaling_matrix.eye(1.);
-  for (auto i : arange(dim, size)) {
-    for (auto j : arange(dim, size)) {
-      scaling_matrix(i, j) *= 2.;
-    }
-  }
+  Matrix<Real, size, size> scaling_matrix =
+      Matrix<Real, size, size>::Identity();
+  scaling_matrix.template block<dim, dim>(0, 0) =
+      scaling_matrix.template block<dim, dim>(0, 0) * 2;
 
   // elastic stifnness tensor
-  Matrix<Real> De(size, size, 0.);
-  MaterialElastic<dim>::computeTangentModuliOnQuad(De);
+  Matrix<Real, size, size> De;
+  MaterialElastic<dim>::computeTangentModuliOnQuad(
+      make_named_tuple("tangent_moduli"_n = De));
 
   // elastic compliance tensor
-  Matrix<Real> Ce(size, size, 0.);
-  Ce.inverse(De);
+  Matrix<Real, size, size> Ce = De.inverse();
 
   // objective function to be computed
-  Vector<Real> f(size, 0.);
+  Vector<Real, size> f;
+  f.zero();
 
   // yield function value at each iteration
   Real yield_function;
 
   // if sigma is above the threshold value
   auto above_threshold = [&sigma_guess](Real & k, Real & alpha) {
-    Real I1 = sigma_guess.trace();
-
+    auto I1 = sigma_guess.trace();
     return I1 >= k / alpha;
   };
 
   // to project stress state at origin of yield function if first
   // invariant is greater than the threshold
   if (above_threshold(k, alpha) and this->alpha > 0) {
-
     auto update_first_obj = [&sigma_guess]() {
-      // const UInt dimension = sigma_guess.cols();
-
-      Matrix<Real> sigma_dev(dim, dim, 0);
-
-      for (UInt i = 0; i < dim; ++i) {
-        for (UInt j = 0; j < dim; ++j) {
-          sigma_dev(i, j) = sigma_guess(i, j);
-        }
-      }
-
-      sigma_dev -= Matrix<Real>::eye(dim, sigma_guess.trace() / dim);
-
+      auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
       auto error = (1. / 2) * sigma_dev.doubleDot(sigma_dev);
       return error;
     };
@@ -166,42 +127,24 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
     auto projection_error = update_first_obj();
 
     while (tolerance < projection_error) {
+      auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
 
-      Matrix<Real> delta_sigma(dim, dim);
-
-      Matrix<Real> jacobian(dim, dim);
-      Matrix<Real> jacobian_inv(dim, dim);
-
-      Matrix<Real> sigma_dev(dim, dim, 0);
-      this->computeDeviatoricStress(sigma_guess, sigma_dev);
-
-      jacobian_inv.inverse(sigma_dev);
-
-      delta_sigma = -projection_error * jacobian_inv;
-      sigma_guess += delta_sigma;
+      sigma_guess += -projection_error * sigma_dev.inverse();
       projection_error = update_first_obj();
     }
 
     projection_error = update_sec_obj(k, alpha);
 
     while (tolerance < projection_error) {
-
-      Matrix<Real> delta_sigma(dim, dim);
-      Matrix<Real> jacobian(dim, dim);
-      Matrix<Real> jacobian_inv(dim, dim);
-
-      jacobian = this->alpha * Matrix<Real>::eye(dim, dim);
-      jacobian_inv.inverse(jacobian);
-
-      delta_sigma += -projection_error * jacobian_inv;
-      sigma_guess += delta_sigma;
+      sigma_guess += -projection_error * 1. / this->alpha *
+                     Matrix<Real, dim, dim>::Identity();
       projection_error = update_sec_obj(k, alpha);
     }
 
     auto delta_sigma_final = sigma_trial - sigma_guess;
     auto delta_sigma_voigt = voigt_h::matrixToVoigt(delta_sigma_final);
 
-    delta_inelastic_strain.mul<false>(Ce, delta_sigma_voigt);
+    delta_inelastic_strain = Ce * delta_sigma_voigt;
 
     return;
   }
@@ -209,59 +152,35 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   // lambda function to compute gradient of yield surface in voigt notation
   auto compute_gradient_f = [&sigma_guess, &scaling_matrix, &kronecker_delta,
                              &gradient_f](Real & alpha) {
-    // const UInt dimension = sigma_guess.cols();
-
-    Matrix<Real> sigma_dev(dim, dim, 0);
-
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
-        sigma_dev(i, j) = sigma_guess(i, j);
-      }
-    }
-
-    sigma_dev -= Matrix<Real>::eye(dim, sigma_guess.trace() / dim);
-
+    auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
     Vector<Real> sigma_dev_voigt = voigt_h::matrixToVoigt(sigma_dev);
 
     // compute deviatoric invariant
-    Real j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
+    auto j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
 
-    gradient_f.mul<false>(scaling_matrix, sigma_dev_voigt,
-                          3. / (2. * std::sqrt(3. * j2)));
-    gradient_f += alpha * kronecker_delta;
+    gradient_f =
+        scaling_matrix * sigma_dev_voigt * 3. / (2. * std::sqrt(3. * j2)) +
+        alpha * kronecker_delta;
   };
 
   // lambda function to compute hessian matrix of yield surface
   auto compute_hessian_f = [&sigma_guess, &hessian_f, &scaling_matrix,
                             &kronecker_delta]() {
-    Matrix<Real> sigma_dev(dim, dim, 0);
-
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
-        sigma_dev(i, j) = sigma_guess(i, j);
-      }
-    }
-
-    sigma_dev -= Matrix<Real>::eye(dim, sigma_guess.trace() / dim);
-
+    const Int size = voigt_h::size;
+    auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
     auto sigma_dev_voigt = voigt_h::matrixToVoigt(sigma_dev);
 
     // compute deviatoric invariant J2
-    Real j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
+    auto j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
 
-    Vector<Real> temp(sigma_dev_voigt.size());
-    temp.mul<false>(scaling_matrix, sigma_dev_voigt);
+    auto temp = scaling_matrix * sigma_dev_voigt;
 
-    Matrix<Real> id(kronecker_delta.size(), kronecker_delta.size());
-    id.outerProduct(kronecker_delta, kronecker_delta);
-    id *= -1. / 3.;
-    id += Matrix<Real>::eye(kronecker_delta.size(), 1.);
+    auto id = -kronecker_delta * kronecker_delta.transpose() / 3. +
+              Matrix<Real, size, size>::Identity();
 
-    Matrix<Real> tmp3(kronecker_delta.size(), kronecker_delta.size());
-    tmp3.mul<false, false>(scaling_matrix, id);
-    hessian_f.outerProduct(temp, temp);
-    hessian_f *= -9. / (4. * pow(3. * j2, 3. / 2.));
-    hessian_f += (3. / (2. * pow(3. * j2, 1. / 2.))) * tmp3;
+    hessian_f =
+        temp * temp.transpose() * -9. / (4. * std::pow(3. * j2, 3. / 2.)) +
+        +(3. / (2. * std::pow(3. * j2, 1. / 2.))) * scaling_matrix * id;
   };
 
   /* --------------------------- */
@@ -275,20 +194,11 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
     compute_gradient_f(alpha);
 
     // compute yield function
-    Matrix<Real> sigma_dev(dim, dim, 0);
+    auto sigma_dev = Material::computeDeviatoric<dim>(sigma_guess);
+    auto j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
+    auto sigma_dev_eff = std::sqrt(3. * j2);
 
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
-        sigma_dev(i, j) = sigma_guess(i, j);
-      }
-    }
-
-    sigma_dev -= Matrix<Real>::eye(dim, sigma_guess.trace() / dim);
-
-    Real j2 = (1. / 2.) * sigma_dev.doubleDot(sigma_dev);
-    Real sigma_dev_eff = std::sqrt(3. * j2);
-
-    Real modified_yield_stress = alpha * sigma_guess.trace() - k;
+    auto modified_yield_stress = alpha * sigma_guess.trace() - k;
 
     yield_function = sigma_dev_eff + modified_yield_stress;
 
@@ -296,14 +206,14 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
     auto sigma_trial_voigt = voigt_h::matrixToVoigt(sigma_trial);
     auto sigma_guess_voigt = voigt_h::matrixToVoigt(sigma_guess);
     auto tmp = sigma_trial_voigt - sigma_guess_voigt;
-    delta_inelastic_strain.mul<false>(Ce, tmp);
+    delta_inelastic_strain = Ce * tmp;
 
     // compute objective function
-    f.mul<false>(De, gradient_f, plastic_multiplier_guess);
+    f = De * gradient_f * plastic_multiplier_guess;
     f = tmp - f;
 
     // compute error
-    auto error = std::max(f.norm<L_2>(), std::abs(yield_function));
+    auto error = std::max(f.norm(), std::abs(yield_function));
     return error;
   };
 
@@ -319,18 +229,13 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
+  Matrix<Real, size, size> xi;
+  Matrix<Real, size, size> xi_inv;
+  Vector<Real, size> tmp;
+  Vector<Real, size> tmp1;
+  Matrix<Real, size, size> tmp2;
 
-  Matrix<Real> xi(size, size);
-
-  Matrix<Real> xi_inv(size, size);
-
-  Vector<Real> tmp(size);
-
-  Vector<Real> tmp1(size);
-
-  Matrix<Real> tmp2(size, size);
-
-  UInt iterations{0};
+  Int iterations{0};
   while (tolerance < projection_error and iterations < max_iterations) {
 
     // compute hessian at previous step
@@ -339,32 +244,25 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
     // compute inverse matrix Xi
     xi = Ce + plastic_multiplier_guess * hessian_f;
 
-    // compute inverse matrix Xi
-    xi_inv.inverse(xi);
-
-    tmp.mul<false>(xi_inv, gradient_f);
+    xi_inv = xi.inverse();
+    tmp = xi_inv * gradient_f;
 
     auto denominator = gradient_f.dot(tmp);
 
     // compute plastic multplier guess
 
-    tmp1.mul<false>(xi_inv, delta_inelastic_strain);
-    plastic_multiplier_guess = gradient_f.dot(tmp1);
-    plastic_multiplier_guess += yield_function;
-    plastic_multiplier_guess /= denominator;
+    tmp1 = xi_inv * delta_inelastic_strain;
+    plastic_multiplier_guess =
+        (gradient_f.dot(tmp1) + yield_function) / denominator;
 
     // compute delta sigma
 
-    tmp2.outerProduct(tmp, tmp);
-    tmp2 /= denominator;
-
-    tmp2 = xi_inv - tmp2;
-    delta_sigma.mul<false>(tmp2, delta_inelastic_strain);
-
-    delta_sigma -= tmp * yield_function / denominator;
+    tmp2 = xi_inv - tmp * tmp.transpose() / denominator;
+    delta_sigma =
+        tmp2 * delta_inelastic_strain - tmp * yield_function / denominator;
 
     // compute sigma_guess
-    Matrix<Real> delta_sigma_mat(dim, dim);
+    Matrix<Real, dim, dim> delta_sigma_mat;
     voigt_h::voigtToMatrix(delta_sigma, delta_sigma_mat);
     sigma_guess += delta_sigma_mat;
 
@@ -375,13 +273,14 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
 
 /* -------------------------------------------------------------------------- */
 /// Infinitesimal deformations
-template <UInt dim>
-inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-    Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-    Matrix<Real> & inelastic_strain,
-    const Matrix<Real> & previous_inelastic_strain, const Real & sigma_th,
-    const Real & previous_sigma_th) {
+template <Int dim>
+template <class Args>
+inline void MaterialDruckerPrager<dim>::computeStressOnQuad(Args && args) {
+  const auto & grad_u = args["grad_u"_n];
+  const auto & previous_grad_u = args["previous_grad_u"_n];
+  const auto & previous_sigma = args["previous_sigma"_n];
+  const auto & sigma_th = args["sigma_th"_n];
+  const auto & previous_sigma_th = args["previous_sigma_th"_n];
 
   Real delta_sigma_th = sigma_th - previous_sigma_th;
 
@@ -390,40 +289,30 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
 
   // Compute trial stress, sigma_tr
   Matrix<Real> sigma_tr(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr,
-                                            delta_sigma_th);
+  MaterialElastic<dim>::computeStressOnQuad(
+      tuple::make_named_tuple("grad_u"_n = grad_delta_u, "sigma"_n = sigma_tr,
+                              "sigma_th"_n = delta_sigma_th));
   sigma_tr += previous_sigma;
-
-  // Compute the yielding sress
-  /*Real yield_stress = computeYieldStress(sigma_tr);
-
-  Matrix<Real> sigma_tr_dev(dim, dim, 0);
-  this->computeDeviatoricStress(sigma_tr, sigma_tr_dev);
-
-  Real j2 = (1./ 2.) * sigma_tr_dev.doubleDot(sigma_tr_dev);
-  Real sigma_tr_dev_eff = std::sqrt(3. * j2);
-
-  bool initial_yielding = ((sigma_tr_dev_eff + yield_stress) > 0);*/
 
   bool initial_yielding = (this->computeYieldFunction(sigma_tr) > 0);
 
   // use closet point projection to compute the plastic multiplier and
   // gradient  and inealstic strain at the surface for the given trial stress
   // state
-  Matrix<Real> delta_inelastic_strain(dim, dim, 0.);
+  Matrix<Real, dim, dim> delta_inelastic_strain;
+  delta_inelastic_strain.zero();
 
   if (initial_yielding) {
-
-    UInt size = voigt_h::size;
+    constexpr auto size = voigt_h::size;
 
     // plastic multiplier
     Real dp{0.};
 
     // gradient of yield surface in voigt notation
-    Vector<Real> gradient_f(size, 0.);
+    Vector<Real, size> gradient_f;
 
     // inelastic strain in voigt notation
-    Vector<Real> delta_inelastic_strain_voigt(size, 0.);
+    Vector<Real, size> delta_inelastic_strain_voigt;
 
     // compute using closet-point projection
     this->computeGradientAndPlasticMultplier(sigma_tr, dp, gradient_f,
@@ -438,34 +327,9 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
   }
 
   // Compute the increment in inelastic strain
-
   MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
-      grad_delta_u, sigma, previous_sigma, inelastic_strain,
-      previous_inelastic_strain, delta_inelastic_strain);
+      tuple::append(args, "delta_grad_u"_n = grad_delta_u,
+                    "delta_inelastic_strain"_n = delta_inelastic_strain));
 }
-
-/* -------------------------------------------------------------------------- */
-/// Finite deformations
-template <UInt dim>
-inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
-    __attribute__((unused)) const Matrix<Real> & grad_u,
-    __attribute__((unused)) const Matrix<Real> & previous_grad_u,
-    __attribute__((unused)) Matrix<Real> & sigma,
-    __attribute__((unused)) const Matrix<Real> & previous_sigma,
-    __attribute__((unused)) Matrix<Real> & inelastic_strain,
-    __attribute__((unused)) const Matrix<Real> & previous_inelastic_strain,
-    __attribute__((unused)) const Real & sigma_th,
-    __attribute__((unused)) const Real & previous_sigma_th,
-    __attribute__((unused)) const Matrix<Real> & F_tensor) {}
-
-/* -------------------------------------------------------------------------- */
-
-template <UInt dim>
-inline void MaterialDruckerPrager<dim>::computeTangentModuliOnQuad(
-    __attribute__((unused)) Matrix<Real> & tangent,
-    __attribute__((unused)) const Matrix<Real> & grad_u,
-    __attribute__((unused)) const Matrix<Real> & previous_grad_u,
-    __attribute__((unused)) const Matrix<Real> & sigma_tensor,
-    __attribute__((unused)) const Matrix<Real> & previous_sigma_tensor) const {}
 
 } // namespace akantu

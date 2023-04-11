@@ -1,23 +1,8 @@
 /**
- * @file   material_standard_linear_solid_deviatoric.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Material Visco-elastic, based on Standard Solid rheological model,
- * see
- * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
- * see Sections 10.2 and 10.3
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -68,12 +52,13 @@ namespace akantu {
  *   - Ev  : stiffness of the viscous element
  */
 
-template <UInt spatial_dimension>
-class MaterialStandardLinearSolidDeviatoric
-    : public MaterialElastic<spatial_dimension> {
+template <Int dim>
+class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialElastic<dim>;
+
 public:
   MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                         const ID & id = "");
@@ -97,6 +82,15 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
+  inline decltype(auto) getArguments(ElementType el_type,
+                                     GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        Parent::getArguments(el_type, ghost_type),
+        "sigma_dev"_n = make_view<dim, dim>(stress_dev(el_type, ghost_type)),
+        "history"_n =
+            make_view<dim, dim>(history_integral(el_type, ghost_type)));
+  }
+
 protected:
   /// update the dissipated energy, is called after the stress have been
   /// computed
@@ -108,12 +102,12 @@ protected:
 public:
   /// give the dissipated energy for the time step
   Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(ElementType type, UInt index) const;
+  Real getDissipatedEnergy(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
   Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index) override;
+  Real getEnergy(const std::string & energy_id,
+                 const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

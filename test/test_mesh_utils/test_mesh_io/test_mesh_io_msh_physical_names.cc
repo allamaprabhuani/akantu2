@@ -1,18 +1,8 @@
 /**
- * @file   test_mesh_io_msh_physical_names.cc
- *
- * @author Dana Christen <dana.christen@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri Nov 02 2018
- *
- * @brief  unit test for the MeshIOMSH physical names class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include "aka_common.hh"
@@ -50,7 +39,7 @@ int main(int argc, char * argv[]) {
   for (auto type : mesh.elementTypes()) {
     const Array<std::string> & name_vec =
         mesh.getData<std::string>("physical_names", type);
-    for (UInt i(0); i < name_vec.size(); i++) {
+    for (Int i(0); i < name_vec.size(); i++) {
       std::cout << "Element " << i << " (of type " << type
                 << ") has physical name " << name_vec(i) << "." << std::endl;
     }

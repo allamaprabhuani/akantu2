@@ -1,18 +1,8 @@
 /**
- * @file   heat_transfer_static_2d.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun May 01 2011
- * @date last modification: Fri Mar 16 2018
- *
- * @brief  Heat transfer model example in 2D
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +30,7 @@
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
-UInt spatial_dimension = 2;
+Int spatial_dimension = 2;
 std::string base_name;
 
 int main(int argc, char * argv[]) {
@@ -60,15 +49,15 @@ int main(int argc, char * argv[]) {
   Array<bool> & blocked_dofs = model.getBlockedDOFs();
   Array<Real> & temperature = model.getTemperature();
   double length = 1.;
-  UInt nb_nodes = nodes.size();
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  Int nb_nodes = nodes.size();
+  for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
     Real dx = nodes(i, 0);
     Real dy = nodes(i, 1);
 
     Vector<Real> dX = {dx, dy};
-    dX -= length / 4.;
+    dX.array() -= length / 4.;
     Real d = dX.norm();
     if (d < 0.1) {
       blocked_dofs(i) = true;

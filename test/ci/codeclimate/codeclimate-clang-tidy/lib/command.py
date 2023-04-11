@@ -1,13 +1,7 @@
-
-""" command.py: command to run clang-tidy in codeclimate"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
 __license__ = "LGPLv3"
 
 
@@ -18,6 +12,7 @@ import re
 
 class Command:
     """Returns command line arguments by parsing codeclimate config file."""
+
     def __init__(self, config, workspace):
         self.config = config
         self._workspace = workspace
@@ -70,7 +65,7 @@ class Command:
                 cmd = {
                     'directory': os.path.dirname(file_),
                     'file': file_,
-                    'command': f'/usr/bin/clang++ {include_flags} {" ".join(extra_args)} -c {file_} -o dummy.o', # noqa
+                    'command': f'/usr/bin/clang++ {include_flags} {" ".join(extra_args)} -c {file_} -o dummy.o',  # noqa
                 }
                 compile_commands.append(cmd)
 

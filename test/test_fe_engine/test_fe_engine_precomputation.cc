@@ -1,18 +1,8 @@
 /**
- * @file   test_fe_engine_precomputation.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  test of the fem class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +43,7 @@ public:
     parent::SetUp();
 
     const auto & connectivities = this->mesh->getConnectivity(this->type);
-    const auto & nodes = this->mesh->getNodes().begin(this->dim);
+    auto nodes = this->mesh->getNodes().cbegin(this->dim);
     coordinates = std::make_unique<Array<Real>>(
         connectivities.size(), connectivities.getNbComponent() * this->dim);
 
@@ -62,10 +51,10 @@ public:
          zip(make_view(connectivities, connectivities.getNbComponent()),
              make_view(*coordinates, this->dim,
                        connectivities.getNbComponent()))) {
-      const auto & conn = std::get<0>(tuple);
-      const auto & X = std::get<1>(tuple);
+      auto && conn = std::get<0>(tuple);
+      auto & X = std::get<1>(tuple);
       for (auto s : arange(conn.size())) {
-        Vector<Real>(X(s)) = Vector<Real>(nodes[conn(s)]);
+        X(s) = nodes[conn(s)];
       }
     }
   }
@@ -105,7 +94,8 @@ TYPED_TEST(TestFEMPyFixture, Precompute) {
     SCOPED_TRACE(std::to_string(this->type) + " " + id);
     for (auto && n : zip(make_view(ref_A, ref_A.getNbComponent()),
                          make_view(A, A.getNbComponent()))) {
-      auto diff = (std::get<0>(n) - std::get<1>(n)).template norm<L_inf>();
+      auto diff =
+          (std::get<0>(n) - std::get<1>(n)).template lpNorm<Eigen::Infinity>();
       EXPECT_NEAR(0., diff, 1e-10);
     }
   };

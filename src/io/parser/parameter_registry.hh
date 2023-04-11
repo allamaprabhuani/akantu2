@@ -1,18 +1,8 @@
 /**
- * @file   parameter_registry.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Aug 09 2012
- * @date last modification: Wed Oct 17 2018
- *
- * @brief  Interface of the parameter registry
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -209,13 +198,13 @@ protected:
   virtual void printself(std::ostream & stream, int indent) const;
 
 protected:
-  /// Parameters map
-  using Parameters = std::map<std::string, Parameter *>;
-  Parameters params;
+  /// list of registered parameters, shared_ptr instead of unique_ptr is only
+  /// for py11 interface to compile propoerly
+  std::map<std::string, std::shared_ptr<Parameter>> params;
 
   /// list of sub-registries
-  using SubRegisteries = std::map<std::string, ParameterRegistry *>;
-  SubRegisteries sub_registries;
+  std::map<std::string, std::reference_wrapper<ParameterRegistry>>
+      sub_registries;
 
   /// should accessor check in sub registries
   bool consisder_sub{true};

@@ -1,19 +1,8 @@
 /**
- * @file   mesh_partition_mesh_data.cc
- *
- * @author Dana Christen <dana.christen@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri May 03 2013
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  implementation of the MeshPartitionMeshData class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,8 +31,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh,
-                                             UInt spatial_dimension,
+MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh, Int spatial_dimension,
                                              const ID & id)
     : MeshPartition(mesh, spatial_dimension, id) {
   AKANTU_DEBUG_IN();
@@ -54,8 +41,8 @@ MeshPartitionMeshData::MeshPartitionMeshData(Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionMeshData::MeshPartitionMeshData(
-    Mesh & mesh, const ElementTypeMapArray<UInt> & mapping,
-    UInt spatial_dimension, const ID & id)
+    Mesh & mesh, const ElementTypeMapArray<Idx> & mapping,
+    Int spatial_dimension, const ID & id)
     : MeshPartition(mesh, spatial_dimension, id), partition_mapping(&mapping) {
   AKANTU_DEBUG_IN();
 
@@ -64,7 +51,7 @@ MeshPartitionMeshData::MeshPartitionMeshData(
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionMeshData::partitionate(
-    UInt nb_part,
+    Int nb_part,
     const std::function<Int(const Element &,
                             const Element &)> & /*edge_load_func*/,
     const std::function<Int(const Element &)> & /*vertex_load_func*/) {
@@ -79,12 +66,12 @@ void MeshPartitionMeshData::partitionate(
   auto ghost_type = _not_ghost;
   auto spatial_dimension = mesh.getSpatialDimension();
 
-  UInt linearized_el = 0;
+  Idx linearized_el = 0;
   auto nb_elements = mesh.getNbElement(mesh.getSpatialDimension(), ghost_type);
   auto * partition_list = new Int[nb_elements];
 
 #if !defined(AKANTU_NDEBUG)
-  std::set<UInt> partitions;
+  std::set<Int> partitions;
 #endif
   for (auto type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_not_defined)) {
@@ -107,7 +94,7 @@ void MeshPartitionMeshData::partitionate(
   }
 
 #if !defined(AKANTU_NDEBUG)
-  AKANTU_DEBUG_ASSERT(partitions.size() == nb_part,
+  AKANTU_DEBUG_ASSERT(partitions.size() == std::size_t(nb_part),
                       "The number of real partitions does not match with the "
                       "number of asked partitions");
 #endif
@@ -128,14 +115,14 @@ void MeshPartitionMeshData::reorder() { AKANTU_TO_IMPLEMENT(); }
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionMeshData::setPartitionMapping(
-    const ElementTypeMapArray<UInt> & mapping) {
+    const ElementTypeMapArray<Idx> & mapping) {
   partition_mapping = &mapping;
 }
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionMeshData::setPartitionMappingFromMeshData(
     const std::string & data_name) {
-  partition_mapping = &(mesh.getData<UInt>(data_name));
+  partition_mapping = &(mesh.getData<Int>(data_name));
 }
 
 } // namespace akantu

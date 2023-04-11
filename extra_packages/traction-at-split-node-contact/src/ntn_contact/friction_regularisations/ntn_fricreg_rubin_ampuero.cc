@@ -1,18 +1,8 @@
 /**
- * @file   ntn_fricreg_rubin_ampuero.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Fri Jul 19 2019
- *
- * @brief  implementation of no regularisation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -57,26 +46,25 @@ const SynchronizedArray<Real> &
 NTNFricRegRubinAmpuero::internalGetContactPressure() {
   AKANTU_DEBUG_IN();
 
-  SolidMechanicsModel & model = this->contact.getModel();
-  UInt dim = model.getSpatialDimension();
-  Real delta_t = model.getTimeStep();
+  auto & model = this->contact.getModel();
+  auto dim = model.getSpatialDimension();
+  auto delta_t = model.getTimeStep();
 
   // get contact arrays
-  const SynchronizedArray<bool> & is_in_contact =
-      this->internalGetIsInContact();
-  const Array<Real> & pressure = this->contact.getContactPressure().getArray();
-  Array<Real>::const_iterator<Vector<Real>> it = pressure.begin(dim);
+  const auto & is_in_contact = this->internalGetIsInContact();
+  const auto & pressure = this->contact.getContactPressure().getArray();
+  auto it = pressure.begin(dim);
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // node pair is NOT in contact
-    if (!is_in_contact(n)) {
+    if (not is_in_contact(n)) {
       this->frictional_contact_pressure(n) = 0.;
 
       // if t_star is too small compute like Coulomb friction (without
       // regularization)
     } else if (Math::are_float_equal(this->t_star(n), 0.)) {
-      const Vector<Real> & pres = it[n];
+      const auto & pres = it[n];
       this->frictional_contact_pressure(n) = pres.norm();
     }
 
@@ -86,8 +74,8 @@ NTNFricRegRubinAmpuero::internalGetContactPressure() {
       // method
       // \reg_pres_n+1 = (\reg_pres_n + \delta_t / \t_star * \cur_pres)
       //               / (1 + \delta_t / \t_star)
-      Real alpha = delta_t / this->t_star(n);
-      const Vector<Real> & pres = it[n];
+      auto alpha = delta_t / this->t_star(n);
+      const auto & pres = it[n];
       this->frictional_contact_pressure(n) += alpha * pres.norm();
       this->frictional_contact_pressure(n) /= 1 + alpha;
     }
@@ -99,19 +87,13 @@ NTNFricRegRubinAmpuero::internalGetContactPressure() {
 
 /* -------------------------------------------------------------------------- */
 void NTNFricRegRubinAmpuero::setToSteadyState() {
-  AKANTU_DEBUG_IN();
   NTNFricRegNoRegularisation::computeFrictionalContactPressure();
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTNFricRegRubinAmpuero::registerSynchronizedArray(
     SynchronizedArrayBase & array) {
-  AKANTU_DEBUG_IN();
-
   this->t_star.registerDependingArray(array);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -140,10 +122,7 @@ void NTNFricRegRubinAmpuero::readRestart(const std::string & file_name) {
 void NTNFricRegRubinAmpuero::printself(std::ostream & stream,
                                        int indent) const {
   AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "NTNFricRegRubinAmpuero [" << std::endl;
   NTNFricRegNoRegularisation::printself(stream, ++indent);

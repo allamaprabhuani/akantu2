@@ -1,18 +1,8 @@
 /**
- * @file   test_coupled_stiffness.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri May 24 2019
- * @date last modification: Wed Oct 02 2019
- *
- * @brief  Test for contact mechanics model class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +34,7 @@ int main(int argc, char * argv[]) {
 
   Real max_displacement = 0.01;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   initialize("material_stiffness.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
@@ -117,7 +106,7 @@ int main(int argc, char * argv[]) {
 
   Array<Real> & contact_force = contact.getInternalForce();
 
-  for (UInt n : arange(contact_force.size())) {
+  for (Int n : arange(contact_force.size())) {
     std::cerr << contact_force(n, 1) << std::endl;
   }
 

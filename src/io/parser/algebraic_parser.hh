@@ -1,18 +1,8 @@
 /**
- * @file   algebraic_parser.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Tue Mar 03 2020
- *
- * @brief  algebraic_parser definition of the grammar
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -249,7 +238,7 @@ namespace parser {
     operator Vector<Real>() {
       Vector<Real> tmp(_cells.size());
       auto it = _cells.begin();
-      for (UInt i = 0; it != _cells.end(); ++it, ++i) {
+      for (Int i = 0; it != _cells.end(); ++it, ++i) {
         tmp(i) = *it;
       }
       return tmp;
@@ -280,12 +269,13 @@ namespace parser {
         cols = std::max(cols, it_rows->_cells.size());
       }
 
-      Matrix<Real> tmp(_cells.size(), _cells[0]._cells.size(), 0.);
+      Matrix<Real> tmp(_cells.size(), cols);
+      tmp.fill(0.);
 
       it_rows = _cells.begin();
-      for (UInt i = 0; it_rows != _cells.end(); ++it_rows, ++i) {
+      for (Int i = 0; it_rows != _cells.end(); ++it_rows, ++i) {
         auto it_cols = it_rows->_cells.begin();
-        for (UInt j = 0; it_cols != it_rows->_cells.end(); ++it_cols, ++j) {
+        for (Int j = 0; it_cols != it_rows->_cells.end(); ++it_cols, ++j) {
           tmp(i, j) = *it_cols;
         }
       }
@@ -442,7 +432,7 @@ namespace parser {
 
   inline std::ostream & operator<<(std::ostream & stream,
                                    const ParsableRandomGenerator & prg) {
-    stream << "prg[" << prg.base << " " << UInt(prg.type) << " "
+    stream << "prg[" << prg.base << " " << Int(prg.type) << " "
            << prg.parameters << "]";
     return stream;
   }

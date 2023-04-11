@@ -1,14 +1,9 @@
-""" issue_formatter.py: issue_formater for clang-tidy in codeclimate (inspired
-from cpp-check)"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
-__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
-                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
-                " en Mécanique des Solides)"
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
 __license__ = "LGPLv3"
+
 
 import hashlib
 import os
@@ -99,6 +94,7 @@ class IssueFormatter:
         ).hexdigest()
 
         type_ = self.issue_dict['type'].split('-')[0]
-        issue['categories'], issue['severity'] = self._get_classifiaction(type_)
+        issue['categories'], issue['severity'] = \
+            self._get_classifiaction(type_)
 
         return issue

@@ -1,26 +1,8 @@
 /**
- * @file   solid_mechanics_model.cc
- *
- * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Tue Jul 27 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of the SolidMechanicsModel class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -34,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +50,7 @@ namespace akantu {
  * @param model_type this is an internal parameter for inheritance purposes
  */
 SolidMechanicsModel::SolidMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
     : CLHParent(mesh, model_type, dim, id) {
   AKANTU_DEBUG_IN();
@@ -94,6 +75,7 @@ SolidMechanicsModel::SolidMechanicsModel(
                                SynchronizationTag::_constitutive_law_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_mass);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_stress);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_gradu);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
 
@@ -448,12 +430,9 @@ void SolidMechanicsModel::updateCurrentPosition() {
 
   this->current_position->copy(this->mesh.getNodes());
 
-  auto cpos_it = this->current_position->begin(Model::spatial_dimension);
-  auto cpos_end = this->current_position->end(Model::spatial_dimension);
-  auto disp_it = this->displacement->begin(Model::spatial_dimension);
-
-  for (; cpos_it != cpos_end; ++cpos_it, ++disp_it) {
-    *cpos_it += *disp_it;
+  for (auto && data : zip(make_view(*this->current_position, spatial_dimension),
+                          make_view(*this->displacement, spatial_dimension))) {
+    std::get<0>(data) += std::get<1>(data);
   }
 
   this->current_position_release = this->displacement_release;
@@ -506,14 +485,17 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
     FEEngine::extractNodalToElementField(mesh, *current_position, X, type,
                                          _not_ghost);
 
-    auto X_el = X.begin(Model::spatial_dimension, nb_nodes_per_element);
+    for (auto && data :
+         zip(make_view(X, spatial_dimension, nb_nodes_per_element),
+             make_view(material_index(type, ghost_type)),
+             make_view(material_local_numbering(type, ghost_type)))) {
+      auto && X_el = std::get<0>(data);
+      auto && mat_idx = std::get<1>(data);
+      elem.element = std::get<2>(data);
 
-    for (UInt el = 0; el < nb_element;
-         ++el, ++X_el, ++mat_indexes, ++mat_loc_num) {
-      elem.element = *mat_loc_num;
-      Real el_h = getFEEngine().getElementInradius(*X_el, type);
-      Real el_c = getConstitutiveLaw(*mat_indexes).getCelerity(elem);
-      Real el_dt = el_h / el_c;
+      auto el_h = getFEEngine().getElementInradius(X_el, type);
+      auto el_c = this->materials[mat_idx]->getCelerity(elem);
+      auto el_dt = el_h / el_c;
 
       min_dt = std::min(min_dt, el_dt);
     }
@@ -528,7 +510,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   AKANTU_DEBUG_IN();
 
   Real ekin = 0.;
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   if (this->getDOFManager().hasLumpedMatrix("M")) {
     this->assembleLumpedMatrix("M");
@@ -537,7 +519,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     auto m_end = this->mass->end(Model::spatial_dimension);
     auto v_it = this->velocity->begin(Model::spatial_dimension);
 
-    for (UInt n = 0; m_it != m_end; ++n, ++m_it, ++v_it) {
+    for (Int n = 0; m_it != m_end; ++n, ++m_it, ++v_it) {
       const auto & v = *v_it;
       const auto & m = *m_it;
 
@@ -546,7 +528,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
       // bool is_not_pbc_slave_node = !isPBCSlaveNode(n);
       auto count_node = is_local_node; // && is_not_pbc_slave_node;
       if (count_node) {
-        for (UInt i = 0; i < Model::spatial_dimension; ++i) {
+        for (Int i = 0; i < spatial_dimension; ++i) {
           if (m(i) > std::numeric_limits<Real>::epsilon()) {
             mv2 += v(i) * v(i) * m(i);
           }
@@ -578,68 +560,63 @@ Real SolidMechanicsModel::getKineticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getKineticEnergy(ElementType type, UInt index) {
+Real SolidMechanicsModel::getKineticEnergy(const Element & element) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
+  auto nb_quadrature_points =
+      getFEEngine().getNbIntegrationPoints(element.type);
 
   Array<Real> vel_on_quad(nb_quadrature_points, Model::spatial_dimension);
-  Array<UInt> filter_element(1, 1, index);
+  Array<Idx> filter_element(1, 1, element.element);
 
-  getFEEngine().interpolateOnIntegrationPoints(*velocity, vel_on_quad,
-                                               Model::spatial_dimension, type,
-                                               _not_ghost, filter_element);
-
-  auto vit = vel_on_quad.begin(spatial_dimension);
-  auto vend = vel_on_quad.end(spatial_dimension);
-
+  getFEEngine().interpolateOnIntegrationPoints(
+      *velocity, vel_on_quad, Model::spatial_dimension, element.type,
+      _not_ghost, filter_element);
   Vector<Real> rho_v2(nb_quadrature_points);
-
   Real rho = getConstitutiveLaw(Element{type, index, _not_ghost}).getRho();
 
-  for (auto && data : zip(rho_v2, make_view(vel_on_quad, spatial_dimension))) {
+  for (auto && data : enumerate(make_view(vel_on_quad, spatial_dimension))) {
     auto && vel = std::get<1>(data);
-    std::get<0>(data) = rho * vel.dot(vel);
+    rho_v2(std::get<0>(data)) = rho * vel.dot(vel);
   }
 
   AKANTU_DEBUG_OUT();
 
-  return getFEEngine().integrate(rho_v2, type, index) / 2.;
+  return .5 * getFEEngine().integrate(rho_v2, element);
 }
 
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getExternalWork() {
   AKANTU_DEBUG_IN();
 
-  auto ext_force_it = external_force->begin(Model::spatial_dimension);
-  auto int_force_it = internal_force->begin(Model::spatial_dimension);
-  auto boun_it = blocked_dofs->begin(Model::spatial_dimension);
-
-  decltype(ext_force_it) incr_or_velo_it;
+  Array<Real> * incrs_or_velos;
   if (this->method == _static) {
-    incr_or_velo_it =
-        this->displacement_increment->begin(Model::spatial_dimension);
+    incrs_or_velos = this->displacement_increment.get();
   } else {
-    incr_or_velo_it = this->velocity->begin(Model::spatial_dimension);
+    incrs_or_velos = this->velocity.get();
   }
 
   Real work = 0.;
 
-  UInt nb_nodes = this->mesh.getNbNodes();
+  auto nb_nodes = this->mesh.getNbNodes();
 
-  for (UInt n = 0; n < nb_nodes;
-       ++n, ++ext_force_it, ++int_force_it, ++boun_it, ++incr_or_velo_it) {
-    const auto & int_force = *int_force_it;
-    const auto & ext_force = *ext_force_it;
-    const auto & boun = *boun_it;
-    const auto & incr_or_velo = *incr_or_velo_it;
+  for (auto && data :
+       zip(make_view(*external_force, spatial_dimension),
+           make_view(*internal_force, spatial_dimension),
+           make_view(*blocked_dofs, spatial_dimension),
+           make_view(*incrs_or_velos, spatial_dimension), arange(nb_nodes))) {
+    auto && ext_force = std::get<0>(data);
+    auto && int_force = std::get<1>(data);
+    auto && boun = std::get<2>(data);
+    auto && incr_or_velo = std::get<3>(data);
+    auto && n = std::get<4>(data);
 
-    bool is_local_node = this->mesh.isLocalOrMasterNode(n);
+    auto is_local_node = this->mesh.isLocalOrMasterNode(n);
     // bool is_not_pbc_slave_node = !this->isPBCSlaveNode(n);
-    bool count_node = is_local_node; // && is_not_pbc_slave_node;
+    auto count_node = is_local_node; // && is_not_pbc_slave_node;
 
     if (count_node) {
-      for (UInt i = 0; i < Model::spatial_dimension; ++i) {
+      for (Int i = 0; i < spatial_dimension; ++i) {
         if (boun(i)) {
           work -= int_force(i) * incr_or_velo(i);
         } else {
@@ -684,17 +661,17 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
-                                    ElementType type, UInt index) {
+                                    const Element & element) {
   AKANTU_DEBUG_IN();
 
   if (energy_id == "kinetic") {
-    return getKineticEnergy(type, index);
+    return getKineticEnergy(element);
   }
 
   Element el{type, index, _not_ghost};
   UInt mat_loc_num = this->getConstitutiveLawLocalNumbering()(el);
-  Real energy =
-      this->getConstitutiveLaw(el).getEnergy(energy_id, type, mat_loc_num);
+  Real energy = this->getConstitutiveLaw(el).getEnergy(
+      energy_id, {element.type, mat_loc_num, element.ghost_type});
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -720,7 +697,7 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
 void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
                                        const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   if (displacement) {
     displacement->resize(nb_nodes, 0.);
@@ -765,8 +742,8 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesRemoved(const Array<UInt> & /*element_list*/,
-                                         const Array<UInt> & new_numbering,
+void SolidMechanicsModel::onNodesRemoved(const Array<Idx> & /*element_list*/,
+                                         const Array<Idx> & new_numbering,
                                          const RemovedNodesEvent & /*event*/) {
   if (displacement) {
     mesh.removeNodesFromArray(*displacement, new_numbering);
@@ -856,39 +833,12 @@ FEEngine & SolidMechanicsModel::getFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
                                     const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  }
-
-  switch (tag) {
-  case SynchronizationTag::_smm_mass: {
-    size += nb_nodes_per_element * sizeof(Real) *
-            Model::spatial_dimension; // mass vector
-    break;
-  }
-  case SynchronizationTag::_smm_for_gradu: {
-    size += nb_nodes_per_element * Model::spatial_dimension *
-            sizeof(Real); // displacement
-    break;
-  }
-  case SynchronizationTag::_smm_boundary: {
-    // force, displacement, boundary
-    size += nb_nodes_per_element * Model::spatial_dimension *
-            (2 * sizeof(Real) + sizeof(bool));
-    break;
-  }
-  case SynchronizationTag::_for_dump: {
-    // displacement, velocity, acceleration, residual, force
-    size += nb_nodes_per_element * Model::spatial_dimension * sizeof(Real) * 5;
-    break;
-  }
-  default: {
-  }
   }
 
   CLHParent::getNbData(elements, tag);
@@ -897,7 +847,8 @@ UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
   return size;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
                                    const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {
@@ -935,50 +886,19 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
                                      const Array<Element> & elements,
                                      const SynchronizationTag & tag) {
-  AKANTU_DEBUG_IN();
-
-  switch (tag) {
-  case SynchronizationTag::_smm_mass: {
-    unpackNodalDataHelper(*mass, buffer, elements, mesh);
-    break;
-  }
-  case SynchronizationTag::_smm_for_gradu: {
-    unpackNodalDataHelper(*displacement, buffer, elements, mesh);
-    break;
-  }
-  case SynchronizationTag::_for_dump: {
-    unpackNodalDataHelper(*displacement, buffer, elements, mesh);
-    unpackNodalDataHelper(*velocity, buffer, elements, mesh);
-    unpackNodalDataHelper(*acceleration, buffer, elements, mesh);
-    unpackNodalDataHelper(*internal_force, buffer, elements, mesh);
-    unpackNodalDataHelper(*external_force, buffer, elements, mesh);
-    break;
-  }
-  case SynchronizationTag::_smm_boundary: {
-    unpackNodalDataHelper(*external_force, buffer, elements, mesh);
-    unpackNodalDataHelper(*velocity, buffer, elements, mesh);
-    unpackNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
-    break;
-  }
-  default: {
-  }
-  }
-
   CLHParent::unpackData(buffer, elements, tag);
-  AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-UInt SolidMechanicsModel::getNbData(const Array<UInt> & dofs,
-                                    const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  //  UInt nb_nodes = mesh.getNbNodes();
+/* --------------------------------------------------------------------------
+ */
+Int SolidMechanicsModel::getNbData(const Array<Idx> & dofs,
+                                   const SynchronizationTag & tag) const {
+  Int size = 0;
 
   switch (tag) {
   case SynchronizationTag::_smm_uv: {
@@ -999,13 +919,13 @@ UInt SolidMechanicsModel::getNbData(const Array<UInt> & dofs,
   }
   }
 
-  AKANTU_DEBUG_OUT();
   return size * dofs.size();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
-                                   const Array<UInt> & dofs,
+                                   const Array<Idx> & dofs,
                                    const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
@@ -1039,9 +959,10 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
-                                     const Array<UInt> & dofs,
+                                     const Array<Idx> & dofs,
                                      const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
 
@@ -1075,7 +996,8 @@ void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::applyEigenGradU(
     const Matrix<Real> & prescribed_eigen_grad_u, const ID & material_name,
     const GhostType ghost_type) {
@@ -1089,13 +1011,15 @@ void SolidMechanicsModel::applyEigenGradU(
   });
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModel::registerNewMaterial(const ID & mat_name,
                                               const ID & mat_type,
                                               const ID & opt_param) {
   this->registerNewConstitutiveLaw(mat_name, mat_type, opt_param);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 } // namespace akantu

@@ -1,20 +1,25 @@
 /**
- * @file   material_igfem_saw_tooth_damage_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief Implementation of inline functions of the squentially linear
- * saw-tooth damage model for IGFEM elements
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialIGFEMSawToothDamage<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam) {
@@ -22,7 +27,7 @@ MaterialIGFEMSawToothDamage<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage(
     UInt quad_index, const Real eq_stress, ElementType el_type,
     GhostType ghost_type) {
@@ -40,17 +45,17 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage(
         quad_index / this->element_filter(el_type, ghost_type).getSize();
     UInt nb_quads = this->fem->getNbIntegrationPoints(el_type, ghost_type);
     UInt start_idx = el_index * nb_quads;
-    Array<UInt> & sub_mat = this->sub_material(el_type, ghost_type);
+    Array<Idx> & sub_mat = this->sub_material(el_type, ghost_type);
     UInt damaged_quads = 0;
     if (dam_on_quad < dam_threshold) {
-      for (UInt q = 0; q < nb_quads; ++q, ++start_idx) {
+      for (Int q = 0; q < nb_quads; ++q, ++start_idx) {
         if (sub_mat(start_idx)) {
           dam(start_idx) += prescribed_dam;
           damaged_quads += 1;
         }
       }
     } else {
-      for (UInt q = 0; q < nb_quads; ++q, ++start_idx) {
+      for (Int q = 0; q < nb_quads; ++q, ++start_idx) {
         if (sub_mat(start_idx)) {
           dam(start_idx) += max_damage;
           damaged_quads += 1;

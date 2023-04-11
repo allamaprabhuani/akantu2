@@ -1,15 +1,21 @@
 /**
- * @file   material_FE2.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @brief Material for multi-scale simulations. It stores an
- * underlying RVE on each integration point of the material.
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -21,7 +27,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), C("material_stiffness", *this) {
@@ -34,11 +40,11 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialFE2<spatial_dimension>::~MaterialFE2() = default;
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialFE2<dim>::initialize() {
+template <Int dim> void MaterialFE2<dim>::initialize() {
   this->registerParam("element_type", el_type, _triangle_3,
                       _pat_parsable | _pat_modifiable,
                       "element type in RVE mesh");
@@ -50,7 +56,7 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialFE2<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
@@ -84,7 +90,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
                                                    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -113,7 +119,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   const Real & sigma_th = *sigma_th_it;
 
   /// copy strains in Voigt notation
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     /// copy stress in
     Real voigt_factor = voigt_h::factors[I];
     UInt i = voigt_h::vec[I][0];
@@ -126,7 +132,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   voigt_stress.mul<false>(C_mat, voigt_strain);
 
   /// copy stresses back in full vectorised notation
-  for (UInt I = 0; I < voigt_h::size; ++I) {
+  for (Int I = 0; I < voigt_h::size; ++I) {
     UInt i = voigt_h::vec[I][0];
     UInt j = voigt_h::vec[I][1];
     sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
@@ -140,7 +146,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -157,7 +163,7 @@ void MaterialFE2<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialFE2<spatial_dimension>::advanceASR(
     const Matrix<Real> & prestrain) {
   AKANTU_DEBUG_IN();

@@ -1,20 +1,8 @@
 /**
- * @file   material_elastic.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Material isotropic elastic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -49,16 +36,13 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <UInt spatial_dimension>
-class MaterialElastic
-    : public PlaneStressToolbox<spatial_dimension,
-                                MaterialThermal<spatial_dimension>> {
+template <Int dim>
+class MaterialElastic : public PlaneStressToolbox<dim, MaterialThermal<dim>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 private:
-  using Parent =
-      PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>;
+  using Parent = PlaneStressToolbox<dim, MaterialThermal<dim>>;
 
 public:
   MaterialElastic(SolidMechanicsModel & model, const ID & id = "",
@@ -86,37 +70,42 @@ public:
   /// compute the elastic potential energy
   void computePotentialEnergy(ElementType el_type) override;
 
+  [[deprecated("Use the interface with an Element")]] void
+  computePotentialEnergyByElement(ElementType type, Int index,
+                                  Vector<Real> & epot_on_quad_points) override {
+    computePotentialEnergyByElement({type, index, _not_ghost},
+                                    epot_on_quad_points);
+  }
+
   void
-  computePotentialEnergyByElement(ElementType type, UInt index,
+  computePotentialEnergyByElement(const Element & element,
                                   Vector<Real> & epot_on_quad_points) override;
 
   /// compute the p-wave speed in the material
-  Real getPushWaveSpeed(const Element & element) const override;
+  auto getPushWaveSpeed(const Element & element) const -> Real override;
 
   /// compute the s-wave speed in the material
-  Real getShearWaveSpeed(const Element & element) const override;
+  auto getShearWaveSpeed(const Element & element) const -> Real override;
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-                                  Matrix<Real> & sigma,
-                                  Real sigma_th = 0) const;
+  template <typename Args> inline void computeStressOnQuad(Args && args) const;
 
   /// compute the tangent stiffness matrix for an element
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent) const;
+  template <typename Args>
+  inline void computeTangentModuliOnQuad(Args && args) const;
 
   /// recompute the lame coefficient if E or nu changes
   void updateInternalParameters() override;
 
-  static inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                                  const Matrix<Real> & sigma,
-                                                  Real & epot);
+  template <class Args>
+  static inline void computePotentialEnergyOnQuad(Args && args, Real & epot);
 
-  bool hasStiffnessMatrixChanged() override {
+  auto hasStiffnessMatrixChanged() -> bool override {
     return (not was_stiffness_assembled);
   }
 
-  MatrixType getTangentType() override { return _symmetric; }
+  auto getTangentType() -> MatrixType override { return _symmetric; }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

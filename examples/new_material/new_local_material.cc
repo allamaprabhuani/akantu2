@@ -1,20 +1,8 @@
 /**
- * @file   new_local_material.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Wed Jan 15 2020
- *
- * @brief  test of the class SolidMechanicsModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,10 +33,10 @@ akantu::Real eps = 1e-10;
 int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
 
-  UInt max_steps = 10000;
+  Int max_steps = 10000;
   Real epot, ekin;
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("barre_trou.msh");
@@ -85,7 +72,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  for (UInt s = 0; s < max_steps; ++s) {
+  for (Int s = 0; s < max_steps; ++s) {
     model.solveStep();
 
     epot = model.getEnergy("potential");

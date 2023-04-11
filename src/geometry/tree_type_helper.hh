@@ -1,18 +1,8 @@
 /**
- * @file   tree_type_helper.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Fri Jan 04 2013
- * @date last modification: Thu Feb 01 2018
- *
- * @brief  Converts element types of a mesh to CGAL primitive types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -95,10 +84,9 @@ template <class TTHelper, class Query> struct IntersectionTypeHelper;
   struct IntersectionTypeHelper<                                               \
       TreeTypeHelper<my_primitive<my_kernel>, /*NOLINT*/ my_kernel>,           \
       my_query> {                                                              \
-    typedef boost::optional<TreeTypeHelper<                                    \
+    using intersection_type = boost::optional<TreeTypeHelper<                  \
         my_primitive<my_kernel>, /*NOLINT*/                                    \
-        my_kernel>::tree::Intersection_and_primitive_id<my_query>::Type>       \
-        intersection_type;                                                     \
+        my_kernel>::tree::Intersection_and_primitive_id<my_query>::Type>;      \
   }
 
 TREE_TYPE_HELPER_MACRO(Triangle, cgal::Cartesian::Segment_3, cgal::Cartesian);

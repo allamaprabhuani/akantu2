@@ -1,18 +1,8 @@
 /**
- * @file   test_csr.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Sun Dec 03 2017
- *
- * @brief  Test the CSR (compressed sparse row) data structure
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,10 +32,10 @@ protected:
     csr.resizeRows(N);
     csr.clearRows();
 
-    for (UInt i = 0; i < N; ++i) {
-      UInt nb_cols(UInt(rand() * double(N) / (RAND_MAX + 1.)));
+    for (Int i = 0; i < N; ++i) {
+      Int nb_cols(Int(rand() * double(N) / (RAND_MAX + 1.)));
       nb_cols_per_row.push_back(nb_cols);
-      for (UInt j = 0; j < nb_cols; ++j) {
+      for (Int j = 0; j < nb_cols; ++j) {
         ++csr.rowOffset(i);
       }
     }
@@ -55,24 +44,24 @@ protected:
     csr.resizeCols();
 
     csr.beginInsertions();
-    for (UInt i = 0; i < N; ++i) {
-      UInt nb_cols = nb_cols_per_row[i];
-      for (UInt j = 0; j < nb_cols; ++j) {
+    for (Int i = 0; i < N; ++i) {
+      Int nb_cols = nb_cols_per_row[i];
+      for (Int j = 0; j < nb_cols; ++j) {
         csr.insertInRow(i, nb_cols - j);
       }
     }
     csr.endInsertions();
   }
 
-  std::vector<UInt> nb_cols_per_row;
-  CSR<UInt> csr;
-  size_t N = 1000;
+  std::vector<Int> nb_cols_per_row;
+  CSR<Idx> csr;
+  Int N = 1000;
 };
 
 TEST_F(TestCsrFixture, CheckInsertion) { EXPECT_EQ(N, this->csr.getNbRows()); }
 
 TEST_F(TestCsrFixture, Iteration) {
-  for (UInt i = 0; i < this->csr.getNbRows(); ++i) {
+  for (Int i = 0; i < this->csr.getNbRows(); ++i) {
     auto it = this->csr.begin(i);
     auto end = this->csr.end(i);
     UInt nb_cols = this->nb_cols_per_row[i];
@@ -86,7 +75,7 @@ TEST_F(TestCsrFixture, Iteration) {
 }
 
 TEST_F(TestCsrFixture, ReverseIteration) {
-  for (UInt i = 0; i < csr.getNbRows(); ++i) {
+  for (Int i = 0; i < csr.getNbRows(); ++i) {
     auto it = csr.rbegin(i);
     auto end = csr.rend(i);
 

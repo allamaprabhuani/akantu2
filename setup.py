@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
+
 import sys
-import re
 import os.path
 import pybind11 as py11
 import configparser
 from setuptools import find_packages
-from packaging.version import LegacyVersion
+from packaging.version import Version
 from skbuild.exceptions import SKBuildError
 from skbuild.cmaker import get_cmake_version
 
@@ -36,7 +42,8 @@ if "cmake_config" in parser:
 akantu_libs = []
 if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    akantu_dir = os.path.join(ci_akantu_install_prefix,
+                              "lib", "cmake", "Akantu")
     akantu_libs.extend(
         [
             # paths comming from the manylinux install via gitlab-ci
@@ -70,7 +77,7 @@ except ImportError:
 # version
 setup_requires = []
 try:
-    if LegacyVersion(get_cmake_version()) < LegacyVersion("3.4"):
+    if Version(get_cmake_version()) < Version("3.4"):
         setup_requires.append("cmake")
 except SKBuildError:
     setup_requires.append("cmake")
@@ -106,7 +113,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",  # noqa
         "Natural Language :: English",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: C++",

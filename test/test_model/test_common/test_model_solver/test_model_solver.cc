@@ -1,18 +1,8 @@
 /**
- * @file   test_model_solver.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Apr 13 2016
- * @date last modification:  Tue Apr 23 2019
- *
- * @brief  Test default dof manager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -47,8 +36,8 @@
 
 using namespace akantu;
 
-static void genMesh(Mesh & mesh, UInt nb_nodes);
-static void printResults(MyModel & model, UInt nb_nodes);
+static void genMesh(Mesh & mesh, Int nb_nodes);
+static void printResults(MyModel & model, Int nb_nodes);
 
 Real F = -10;
 
@@ -68,7 +57,7 @@ int main(int argc, char * argv[]) {
   UInt global_nb_nodes = 100;
   Mesh mesh(1);
 
-  RandomGenerator<UInt>::seed(1);
+  RandomGenerator<Idx>::seed(1);
 
   if (prank == 0) {
     genMesh(mesh, global_nb_nodes);
@@ -96,20 +85,20 @@ int main(int argc, char * argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void genMesh(Mesh & mesh, UInt nb_nodes) {
+void genMesh(Mesh & mesh, Int nb_nodes) {
   MeshAccessor mesh_accessor(mesh);
-  Array<Real> & nodes = mesh_accessor.getNodes();
-  Array<UInt> & conn = mesh_accessor.getConnectivity(_segment_2);
+  auto & nodes = mesh_accessor.getNodes();
+  auto & conn = mesh_accessor.getConnectivity(_segment_2);
 
   nodes.resize(nb_nodes);
   mesh_accessor.setNbGlobalNodes(nb_nodes);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
   }
 
   conn.resize(nb_nodes - 1);
-  for (UInt n = 0; n < nb_nodes - 1; ++n) {
+  for (Int n = 0; n < nb_nodes - 1; ++n) {
     conn(n, 0) = n;
     conn(n, 1) = n + 1;
   }
@@ -117,7 +106,7 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
 }
 
 /* -------------------------------------------------------------------------- */
-void printResults(MyModel & model, UInt /*nb_nodes*/) {
+void printResults(MyModel & model, Int /*nb_nodes*/) {
   // if (model.mesh.isDistributed()) {
   //   UInt prank = model.mesh.getCommunicator().whoAmI();
   //   auto & sync = dynamic_cast<DOFManagerDefault &>(model.getDOFManager())

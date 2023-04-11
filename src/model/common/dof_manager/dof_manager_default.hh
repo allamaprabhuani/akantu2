@@ -1,18 +1,8 @@
 /**
- * @file   dof_manager_default.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Aug 18 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Default implementation of the dof manager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -85,7 +74,7 @@ public:
       const ID & matrix_id, const ID & dof_id,
       const Array<Real> & elementary_mat, ElementType type,
       GhostType ghost_type, const MatrixType & elemental_matrix_type,
-      const Array<UInt> & filter_elements) override;
+      const Array<Int> & filter_elements) override;
 
   void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
                                  const Array<Real> & x, Array<Real> & array,
@@ -132,18 +121,18 @@ private:
   /// Add a symmetric matrices to a symmetric sparse matrix
   void addSymmetricElementalMatrixToSymmetric(
       SparseMatrixAIJ & matrix, const Matrix<Real> & element_mat,
-      const Vector<Int> & equation_numbers, UInt max_size);
+      const Vector<Idx> & equation_numbers, Int max_size);
 
   /// Add a unsymmetric matrices to a symmetric sparse matrix (i.e. cohesive
   /// elements)
   void addUnsymmetricElementalMatrixToSymmetric(
       SparseMatrixAIJ & matrix, const Matrix<Real> & element_mat,
-      const Vector<Int> & equation_numbers, UInt max_size);
+      const Vector<Idx> & equation_numbers, Int max_size);
 
   /// Add a matrices to a unsymmetric sparse matrix
   void addElementalMatrixToUnsymmetric(SparseMatrixAIJ & matrix,
                                        const Matrix<Real> & element_mat,
-                                       const Vector<Int> & equation_numbers,
+                                       const Vector<Idx> & equation_numbers,
                                        UInt max_size);
 
   void addToProfile(const ID & matrix_id, const ID & dof_id, ElementType type,
@@ -153,7 +142,7 @@ private:
   /* MeshEventHandler interface                                               */
   /* ------------------------------------------------------------------------ */
 protected:
-  std::tuple<UInt, UInt, UInt>
+  std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) override;
 
   // std::pair<UInt, UInt>
@@ -164,7 +153,7 @@ protected:
 
 public:
   /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
 
   /* ------------------------------------------------------------------------ */

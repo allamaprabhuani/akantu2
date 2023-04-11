@@ -1,18 +1,8 @@
 /**
- * @file   sparse_matrix_aij_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Aug 21 2015
- * @date last modification: Tue Mar 31 2020
- *
- * @brief  Implementation of inline functions of SparseMatrixAIJ
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,11 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "sparse_matrix_aij.hh"
+//#include "sparse_matrix_aij.hh"
 
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_SPARSE_MATRIX_AIJ_INLINE_IMPL_HH_
@@ -38,7 +27,7 @@
 
 namespace akantu {
 
-inline UInt SparseMatrixAIJ::add(UInt i, UInt j) {
+inline Idx SparseMatrixAIJ::add(Idx i, Idx j) {
   KeyCOO jcn_irn = this->key(i, j);
 
   auto it = this->irn_jcn_k.find(jcn_irn);
@@ -86,8 +75,8 @@ inline void SparseMatrixAIJ::clearProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SparseMatrixAIJ::add(UInt i, UInt j, Real value) {
-  UInt idx = this->add(i, j);
+inline void SparseMatrixAIJ::add(Idx i, Idx j, Real value) {
+  Idx idx = this->add(i, j);
 
   this->a(idx) += value;
 
@@ -95,7 +84,7 @@ inline void SparseMatrixAIJ::add(UInt i, UInt j, Real value) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real SparseMatrixAIJ::operator()(UInt i, UInt j) const {
+inline Real SparseMatrixAIJ::operator()(Idx i, Idx j) const {
   KeyCOO jcn_irn = this->key(i, j);
   auto irn_jcn_k_it = this->irn_jcn_k.find(jcn_irn);
 
@@ -106,7 +95,7 @@ inline Real SparseMatrixAIJ::operator()(UInt i, UInt j) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real & SparseMatrixAIJ::operator()(UInt i, UInt j) {
+inline Real & SparseMatrixAIJ::operator()(Idx i, Idx j) {
   KeyCOO jcn_irn = this->key(i, j);
   auto irn_jcn_k_it = this->irn_jcn_k.find(jcn_irn);
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != this->irn_jcn_k.end(),
@@ -121,14 +110,14 @@ inline Real & SparseMatrixAIJ::operator()(UInt i, UInt j) {
 
 /* -------------------------------------------------------------------------- */
 inline void
-SparseMatrixAIJ::addSymmetricValuesToSymmetric(const Vector<Int> & is,
-                                               const Vector<Int> & js,
+SparseMatrixAIJ::addSymmetricValuesToSymmetric(const Vector<Idx> & is,
+                                               const Vector<Idx> & js,
                                                const Matrix<Real> & values) {
-  for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
+  for (decltype(values.rows()) i = 0; i < values.rows(); ++i) {
+    auto c_irn = is(i);
     if (c_irn < size_) {
-      for (UInt j = i; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
+      for (decltype(values.cols()) j = i; j < values.cols(); ++j) {
+        auto c_jcn = js(j);
         if (c_jcn < size_) {
           operator()(c_irn, c_jcn) += values(i, j);
         }
@@ -139,14 +128,14 @@ SparseMatrixAIJ::addSymmetricValuesToSymmetric(const Vector<Int> & is,
 
 /* -------------------------------------------------------------------------- */
 inline void
-SparseMatrixAIJ::addUnsymmetricValuesToSymmetric(const Vector<Int> & is,
-                                                 const Vector<Int> & js,
+SparseMatrixAIJ::addUnsymmetricValuesToSymmetric(const Vector<Idx> & is,
+                                                 const Vector<Idx> & js,
                                                  const Matrix<Real> & values) {
-  for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
+  for (decltype(values.rows()) i = 0; i < values.rows(); ++i) {
+    auto c_irn = is(i);
     if (c_irn < size_) {
-      for (UInt j = 0; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
+      for (decltype(values.cols()) j = 0; j < values.cols(); ++j) {
+        auto c_jcn = js(j);
         if (c_jcn < size_) {
           if (c_jcn >= c_irn) {
             operator()(c_irn, c_jcn) += values(i, j);
@@ -159,14 +148,14 @@ SparseMatrixAIJ::addUnsymmetricValuesToSymmetric(const Vector<Int> & is,
 
 /* -------------------------------------------------------------------------- */
 inline void
-SparseMatrixAIJ::addValuesToUnsymmetric(const Vector<Int> & is,
-                                        const Vector<Int> & js,
+SparseMatrixAIJ::addValuesToUnsymmetric(const Vector<Idx> & is,
+                                        const Vector<Idx> & js,
                                         const Matrix<Real> & values) {
-  for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
+  for (decltype(values.rows()) i = 0; i < values.rows(); ++i) {
+    auto c_irn = is(i);
     if (c_irn < size_) {
-      for (UInt j = 0; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
+      for (decltype(values.cols()) j = 0; j < values.cols(); ++j) {
+        auto c_jcn = js(j);
         if (c_jcn < size_) {
           operator()(c_irn, c_jcn) += values(i, j);
         }
@@ -176,8 +165,8 @@ SparseMatrixAIJ::addValuesToUnsymmetric(const Vector<Int> & is,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SparseMatrixAIJ::addValues(const Vector<Int> & is,
-                                       const Vector<Int> & js,
+inline void SparseMatrixAIJ::addValues(const Vector<Idx> & is,
+                                       const Vector<Idx> & js,
                                        const Matrix<Real> & values,
                                        MatrixType values_type) {
   if (getMatrixType() == _symmetric) {
@@ -193,7 +182,7 @@ inline void SparseMatrixAIJ::addValues(const Vector<Int> & is,
 
 /* -------------------------------------------------------------------------- */
 inline Real SparseMatrixAIJ::min() {
-  return *std::min(this->a.begin(), this->a.end());
+  return *std::min_element(this->a.cbegin(), this->a.cend());
 }
 
 } // namespace akantu

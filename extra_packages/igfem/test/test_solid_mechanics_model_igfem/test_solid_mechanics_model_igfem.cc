@@ -1,15 +1,21 @@
 /**
- * @file   test_solid_mechanics_model_igfem.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  test the solidmechancis model for IGFEM analysis
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -32,7 +38,7 @@ void outputArray(const Mesh & mesh, const Array<Real> & array) {
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   UInt nb_global_nodes = mesh.getNbGlobalNodes();
   Array<Real> solution(nb_global_nodes, spatial_dimension, 0.);
 
@@ -45,7 +51,7 @@ void outputArray(const Mesh & mesh, const Array<Real> & array) {
       solution_begin[mesh.getNodeGlobalId(n)] = *array_it;
   }
 
-  comm.allReduce(solution.storage(),
+  comm.allReduce(solution.data(),
                  solution.getSize() * solution.getNbComponent(), _so_sum);
   std::cout << std::fixed;
   std::cout << std::setprecision(6);
@@ -180,7 +186,7 @@ public:
       return this->fallback_value_igfem;
     //  return 2;//2model.getMaterialIndex(2);
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     std::vector<Sphere>::const_iterator iit = spheres.begin();
@@ -219,7 +225,7 @@ int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   /// problem dimension
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -298,7 +304,7 @@ int main(int argc, char * argv[]) {
   Vector<Real> lambda(2);
   Vector<Real> mu(2);
 
-  for (UInt m = 0; m < 2; ++m) {
+  for (Int m = 0; m < 2; ++m) {
     MaterialElastic<spatial_dimension> & mat =
         dynamic_cast<MaterialElastic<spatial_dimension> &>(
             model.getMaterial(m));

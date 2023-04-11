@@ -1,17 +1,23 @@
 /**
- * @file   material_viscoplastic.cc
- *
- * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
- *
- *
- * @brief  Specialization of the material class for isotropic viscoplastic
- * (small deformation)
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
+
 /* -------------------------------------------------------------------------- */
 #include "material_viscoplastic.hh"
 #include "solid_mechanics_model.hh"
@@ -20,7 +26,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
                                                 const ID & id)
     : MaterialPlastic<dim>(model, id) {
@@ -37,12 +43,12 @@ MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
                                               GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).storage();
+  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).data();
 
   auto previous_grad_u_it =
       this->gradu.previous(el_type, ghost_type).begin(dim, dim);
@@ -72,7 +78,7 @@ void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type, Array<Real> & tangent_matrix,
     __attribute__((unused)) GhostType ghost_type) {
@@ -84,7 +90,7 @@ void MaterialViscoPlastic<dim>::computeTangentModuli(
   auto previous_strain_it =
       this->gradu.previous(el_type, ghost_type).begin(dim, dim);
 
-  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).storage();
+  Real * iso_hardening = this->iso_hardening(el_type, ghost_type).data();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 

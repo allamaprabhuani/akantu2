@@ -1,19 +1,8 @@
 /**
- * @file   heat_transfer_dynamics_2d.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun May 01 2011
- * @date last modification: Fri Mar 16 2018
- *
- * @brief  Example of heat transfer model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +25,7 @@
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
-const UInt spatial_dimension = 2;
+const Int spatial_dimension = 2;
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char * argv[]) {
@@ -63,8 +51,8 @@ int main(int argc, char * argv[]) {
   Array<Real> & temperature = model.getTemperature();
   double length = 1.;
 
-  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
-  for (UInt i = 0; i < nb_nodes; ++i) {
+  auto nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
     Real dx = nodes(i, 0) - length / 4.;

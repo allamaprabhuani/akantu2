@@ -1,19 +1,8 @@
 /**
- * @file   fe_engine.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Jul 20 2010
- * @date last modification: Fri Feb 28 2020
- *
- * @brief  Implementation of the FEEngine class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,25 +16,25 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
+#include "integrator.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-FEEngine::FEEngine(Mesh & mesh, UInt element_dimension, const ID & id)
+FEEngine::FEEngine(Mesh & mesh, Int element_dimension, const ID & id)
     : mesh(mesh), normals_on_integration_points("normals_on_quad_points", id) {
   AKANTU_DEBUG_IN();
   this->element_dimension = (element_dimension != _all_dimensions)
                                 ? element_dimension
                                 : mesh.getSpatialDimension();
 
-  this->mesh.registerEventHandler(*this, _ehp_fe_engine);
+  mesh.registerEventHandler(*this, _ehp_fe_engine);
 
   init();
 
@@ -64,7 +53,7 @@ FEEngine::~FEEngine() {
 
 /* -------------------------------------------------------------------------- */
 typename FEEngine::ElementTypesIteratorHelper
-FEEngine::elementTypes(UInt dim, GhostType ghost_type, ElementKind kind) const {
+FEEngine::elementTypes(Int dim, GhostType ghost_type, ElementKind kind) const {
   return this->getIntegratorInterface().getJacobians().elementTypes(
       dim, ghost_type, kind);
 }

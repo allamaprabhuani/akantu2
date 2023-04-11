@@ -1,20 +1,8 @@
 /**
- * @file   material_marigo.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Marigo damage law
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -49,11 +36,12 @@ namespace akantu {
  *   - Sd  : (default: 5000)
  *   - Ydrandomness  : (default:0)
  */
-template <UInt spatial_dimension>
-class MaterialMarigo : public MaterialDamage<spatial_dimension> {
+template <Int dim> class MaterialMarigo : public MaterialDamage<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using parent = MaterialDamage<dim>;
+
 public:
   MaterialMarigo(SolidMechanicsModel & model, const ID & id = "");
   ~MaterialMarigo() override = default;
@@ -72,18 +60,17 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-                                  Real & dam, Real & Y, Real & Ydq);
+  template <typename Args> inline void computeStressOnQuad(Args && arguments);
 
-  inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam,
-                                           Real & Y, Real & Ydq);
+  template <typename Args>
+  inline void computeDamageAndStressOnQuad(Args && arguments);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -97,6 +84,13 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_append(
+        parent::getArguments(el_type, ghost_type),
+        "Yd"_n = make_view(this->Yd(el_type, ghost_type)),
+        "Y"_n = broadcast(this->Y, this->damage(el_type, ghost_type).size()));
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -105,15 +99,15 @@ protected:
   RandomInternalField<Real> Yd;
 
   /// damage threshold
-  Real Sd;
+  Real Sd{5000};
 
   /// critical epsilon when the material is considered as broken
-  Real epsilon_c;
+  Real epsilon_c{0.};
 
-  Real Yc;
-
-  bool damage_in_y;
-  bool yc_limit;
+  Real Yc{0.};
+  bool damage_in_y{false};
+  bool yc_limit{false};
+  Real Y{0};
 };
 
 } // namespace akantu

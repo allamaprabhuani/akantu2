@@ -1,27 +1,21 @@
 /**
- * @file   non_local_manager_igfem.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Mon Sep 21 15:32:10 2015
- *
- * @brief  Implementation of non-local manager igfem
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +48,7 @@ void NonLocalManagerIGFEM::init() {
   /// store the number of current ghost elements for each type in the mesh
   ElementTypeMap<UInt> nb_ghost_protected;
   Mesh & mesh = this->model.getMesh();
-  for (UInt k = _ek_regular; k <= _ek_igfem; ++k) {
+  for (Int k = _ek_regular; k <= _ek_igfem; ++k) {
     ElementKind el_kind = (ElementKind)k;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost, el_kind);
     Mesh::type_iterator last_type =
@@ -68,7 +62,7 @@ void NonLocalManagerIGFEM::init() {
 
   /// insert the ghost quadrature points of the non-local materials into the
   /// non-local neighborhoods
-  for (UInt m = 0; m < this->non_local_materials.size(); ++m) {
+  for (Int m = 0; m < this->non_local_materials.size(); ++m) {
     switch (spatial_dimension) {
     case 1:
       dynamic_cast<MaterialNonLocal<1> &>(*(this->non_local_materials[m]))
@@ -112,7 +106,7 @@ void NonLocalManagerIGFEM::computeAllNonLocalStresses() {
        ++non_local_variable_it) {
     non_local_variable_it->second->local.zero();
     non_local_variable_it->second->non_local.zero();
-    for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
+    for (Int gt = _not_ghost; gt <= _ghost; ++gt) {
       GhostType ghost_type = (GhostType)gt;
       this->flattenInternal(non_local_variable_it->second->local, ghost_type,
                             _ek_regular);
@@ -162,7 +156,7 @@ void NonLocalManagerIGFEM::computeAllNonLocalStresses() {
   /// copy the results in the materials
   this->distributeInternals(_ek_regular);
   /// loop over all the materials and update the weights
-  for (UInt m = 0; m < this->non_local_materials.size(); ++m) {
+  for (Int m = 0; m < this->non_local_materials.size(); ++m) {
     switch (spatial_dimension) {
     case 1:
       dynamic_cast<MaterialNonLocal<1> &>(*(this->non_local_materials[m]))
@@ -208,7 +202,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
   RemovedElementsEvent remove_elem(mesh);
   Element element;
 
-  for (UInt k = _ek_regular; k < _ek_igfem; ++k) {
+  for (Int k = _ek_regular; k < _ek_igfem; ++k) {
     ElementKind el_kind = (ElementKind)k;
     element.kind = _ek_igfem;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost, el_kind);
@@ -231,7 +225,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
       else
         remove_elem.getNewNumbering(*it, _ghost).resize(nb_ghost_elem);
       Array<UInt> & new_numbering = remove_elem.getNewNumbering(*it, _ghost);
-      for (UInt g = 0; g < nb_ghost_elem; ++g) {
+      for (Int g = 0; g < nb_ghost_elem; ++g) {
         element.element = g;
         if (element.element >= nb_ghost_elem_protected &&
             relevant_ghost_elements.find(element) ==
@@ -242,7 +236,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
       }
       /// renumber remaining ghosts
       UInt ng = 0;
-      for (UInt g = 0; g < nb_ghost_elem; ++g) {
+      for (Int g = 0; g < nb_ghost_elem; ++g) {
         if (new_numbering(g) != UInt(-1)) {
           new_numbering(g) = ng;
           ++ng;
@@ -251,7 +245,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
     }
   }
 
-  for (UInt k = _ek_regular; k < _ek_igfem; ++k) {
+  for (Int k = _ek_regular; k < _ek_igfem; ++k) {
     ElementKind el_kind = (ElementKind)k;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost, el_kind);
     Mesh::type_iterator last_type =
@@ -262,7 +256,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
         remove_elem.getNewNumbering().alloc(nb_elem, 1, *it, _not_ghost);
       Array<UInt> & new_numbering =
           remove_elem.getNewNumbering(*it, _not_ghost);
-      for (UInt e = 0; e < nb_elem; ++e) {
+      for (Int e = 0; e < nb_elem; ++e) {
         new_numbering(e) = e;
       }
     }

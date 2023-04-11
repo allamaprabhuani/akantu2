@@ -1,18 +1,8 @@
 /**
- * @file   communicator_mpi_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Nov 07 2017
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  StaticCommunicatorMPI implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -63,7 +52,7 @@ namespace akantu {
 
 class CommunicationRequestMPI : public InternalCommunicationRequest {
 public:
-  CommunicationRequestMPI(UInt source, UInt dest)
+  CommunicationRequestMPI(Idx source, Idx dest)
       : InternalCommunicationRequest(source, dest),
         request(std::make_unique<MPI_Request>()) {}
   MPI_Request & getMPIRequest() { return *request; };
@@ -308,7 +297,7 @@ void Communicator::waitAll(std::vector<CommunicationRequest> & requests) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
+Int Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
   auto && mpi_requests = convertRequests(requests);
 
   int pos;
@@ -318,7 +307,7 @@ UInt Communicator::waitAny(std::vector<CommunicationRequest> & requests) {
   if (pos != MPI_UNDEFINED) {
     return pos;
   }
-  return UInt(-1);
+  return -1;
 }
 
 /* -------------------------------------------------------------------------- */

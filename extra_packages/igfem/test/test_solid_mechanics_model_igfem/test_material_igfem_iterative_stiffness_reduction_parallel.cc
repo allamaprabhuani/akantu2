@@ -1,27 +1,21 @@
 /**
- * @file   test_material_igfem_iterative_stiffness_reduction_parallel.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief test the material iterative stiffness reduction in parallel
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +51,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -70,7 +64,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction_2.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -230,7 +224,7 @@ int main(int argc, char * argv[]) {
 bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
 
   bool test_result = true;
-  const UInt spatial_dimension = model.getSpatialDimension();
+  const Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh = model.getMesh();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -239,11 +233,11 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
   if (psize == 1) {
     const ElementType element_type = _triangle_3;
     /// prepare output: compute barycenters for elements that can be damaged
-    const Array<UInt> & element_filter =
+    const Array<Int> & element_filter =
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     Array<Real> barycenters(element_filter.getSize(), spatial_dimension);
     Array<Real>::vector_iterator bary_it = barycenters.begin(spatial_dimension);
-    for (UInt e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
+    for (Int e = 0; e < element_filter.getSize(); ++e, ++bary_it) {
       UInt global_el_idx = element_filter(e);
       mesh.getBarycenter(global_el_idx, element_type, bary_it->storage(),
                          _not_ghost);
@@ -261,7 +255,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     file_output.open(file_name.str());
     file_output << std::setprecision(14);
 
-    for (UInt e = 0; e < barycenters.getSize(); ++e)
+    for (Int e = 0; e < barycenters.getSize(); ++e)
       file_output << barycenters(e, 0) << " " << barycenters(e, 1) << " "
                   << damage(e) << " " << Sc(e) << std::endl;
 
@@ -273,10 +267,10 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     Array<Real> barycenters_igfem(nb_sub_elements * nb_igfem_elements,
                                   spatial_dimension);
     bary_it = barycenters_igfem.begin(spatial_dimension);
-    for (UInt e = 0; e < nb_igfem_elements; ++e) {
+    for (Int e = 0; e < nb_igfem_elements; ++e) {
       /// note global index is local index because there is only one igfem
       /// material
-      for (UInt s = 0; s < nb_sub_elements; ++s, ++bary_it)
+      for (Int s = 0; s < nb_sub_elements; ++s, ++bary_it)
         model.getSubElementBarycenter(e, s, element_type_igfem, *bary_it,
                                       _not_ghost);
     }
@@ -288,8 +282,8 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
         element_type_igfem, _not_ghost);
     Array<Real>::const_scalar_iterator Sc_it = Sc_igfem.begin();
 
-    for (UInt e = 0; e < nb_igfem_elements; ++e) {
-      for (UInt s = 0; s < nb_sub_elements; ++s)
+    for (Int e = 0; e < nb_igfem_elements; ++e) {
+      for (Int s = 0; s < nb_sub_elements; ++s)
         if (IGFEMHelper::getSubElementType(element_type_igfem, s) ==
             _triangle_3) {
           file_output << barycenters_igfem(e * nb_sub_elements + s, 0) << " "
@@ -342,7 +336,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
         bary_regular.end(spatial_dimension);
     /// compare the regular elements
     ElementType element_type = _triangle_3;
-    const Array<UInt> & element_filter =
+    const Array<Int> & element_filter =
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     const Array<Real> & damage_regular_el =
         model.getMaterial(0).getInternal<Real>("damage")(element_type,
@@ -350,10 +344,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     const Array<Real> & Sc_regular_el =
         model.getMaterial(0).getInternal<Real>("Sc")(element_type, _not_ghost);
 
-    for (UInt e = 0; e < element_filter.getSize(); ++e) {
+    for (Int e = 0; e < element_filter.getSize(); ++e) {
       UInt global_el_idx = element_filter(e);
-      mesh.getBarycenter(global_el_idx, element_type, bary.storage(),
-                         _not_ghost);
+      mesh.getBarycenter(global_el_idx, element_type, bary.data(), _not_ghost);
       /// find element
       for (bary_it = bary_begin; bary_it != bary_end; ++bary_it) {
         UInt matched_dim = 0;
@@ -380,7 +373,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     /// compare the IGFEM elements
     UInt nb_sub_elements = 2;
     element_type = _igfem_triangle_5;
-    const Array<UInt> & element_filter_igfem =
+    const Array<Int> & element_filter_igfem =
         model.getMaterial(2).getElementFilter(element_type, _not_ghost);
     const Array<Real> & damage_regular_el_igfem =
         model.getMaterial(2).getInternal<Real>("damage")(element_type,
@@ -392,9 +385,9 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     Array<Real>::const_scalar_iterator Sc_igfem_it =
         Sc_regular_el_igfem.begin();
 
-    for (UInt e = 0; e < element_filter_igfem.getSize(); ++e) {
+    for (Int e = 0; e < element_filter_igfem.getSize(); ++e) {
       UInt global_el_idx = element_filter_igfem(e);
-      for (UInt s = 0; s < nb_sub_elements; ++s) {
+      for (Int s = 0; s < nb_sub_elements; ++s) {
         model.getSubElementBarycenter(global_el_idx, s, element_type, bary,
                                       _not_ghost);
         /// find element

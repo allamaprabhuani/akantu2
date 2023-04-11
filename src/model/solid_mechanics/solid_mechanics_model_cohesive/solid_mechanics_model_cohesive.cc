@@ -1,21 +1,8 @@
 /**
- * @file   solid_mechanics_model_cohesive.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Tue May 08 2012
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Solid mechanics model for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -60,7 +46,8 @@ class CohesiveMeshGlobalDataUpdater : public MeshGlobalDataUpdater {
 public:
   CohesiveMeshGlobalDataUpdater(SolidMechanicsModelCohesive & model)
       : model(model), mesh(model.getMesh()),
-        global_ids_updater(model.getMesh(), *model.cohesive_synchronizer) {}
+        global_ids_updater(model.getMesh(), model.cohesive_synchronizer.get()) {
+  }
 
   /* ------------------------------------------------------------------------ */
   std::tuple<UInt, UInt>
@@ -120,7 +107,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager)
     : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
@@ -235,23 +222,7 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
   // make sure the material are instantiated
   instantiateMaterials();
 
-  /// find the first cohesive material
-  UInt cohesive_index = UInt(-1);
-
-  for (auto && material : enumerate(this->getConstitutiveLaws())) {
-    if (aka::is_of_type<MaterialCohesive>(std::get<1>(material))) {
-      cohesive_index = std::get<0>(material);
-      break;
-    }
-  }
-
-  if (cohesive_index == UInt(-1)) {
-    AKANTU_EXCEPTION("No cohesive materials in the material input file");
-  }
-
   auto & material_selector = this->getConstitutiveLawSelector();
-
-  material_selector.setFallback(cohesive_index);
 
   // set the facet information in the material in case of dynamic insertion
   // to know what material to call for stress checks
@@ -309,6 +280,9 @@ void SolidMechanicsModelCohesive::initModel() {
       type = tmp_type;
       auto type_facet = Mesh::getFacetType(type);
       auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+      AKANTU_DEBUG_ASSERT(Mesh::getKind(type_cohesive) == _ek_cohesive,
+                          "The element type " << type_cohesive
+                                              << " is not a cohesive type");
       mesh.addConnectivityType(type_cohesive, type_ghost);
     }
   }
@@ -417,7 +391,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
           continue;
         }
 
-        Matrix<Real> quad_f =
+        auto && quad_f =
             make_view(quad_facets(global_facet.type, global_facet.ghost_type),
                       spatial_dimension, nb_quad_per_facet)
                 .begin()[global_facet.element];
@@ -475,8 +449,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
 
   tangents.initialize(mesh_facets, _nb_component = tangent_components,
                       _spatial_dimension = Model::spatial_dimension - 1);
-  // mesh_facets.initElementTypeMapArray(tangents, tangent_components,
-  //                                     Model::spatial_dimension - 1);
 
   for (auto facet_type :
        mesh_facets.elementTypes(Model::spatial_dimension - 1)) {
@@ -526,7 +498,7 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
   });
 
   /// insert cohesive elements
-  UInt nb_new_elements = inserter->insertElements();
+  auto nb_new_elements = inserter->insertElements();
 
   AKANTU_DEBUG_OUT();
 
@@ -548,7 +520,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
+void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
                                                const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
 
@@ -563,19 +535,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
   const auto & old_nodes = cohesive_event->getOldNodesList();
 
   auto copy = [this, &new_nodes, &old_nodes](auto & arr) {
-    UInt new_node;
-    UInt old_node;
-
-    auto view = make_view(arr, spatial_dimension);
-    auto begin = view.begin();
-
-    for (auto && pair : zip(new_nodes, old_nodes)) {
-      std::tie(new_node, old_node) = pair;
-
-      auto old_ = begin + old_node;
-      auto new_ = begin + new_node;
-
-      *new_ = *old_;
+    auto it = make_view(arr, spatial_dimension).begin();
+    for (auto [new_node, old_node] : zip(new_nodes, old_nodes)) {
+      it[new_node] = it[old_node];
     }
   };
 
@@ -658,7 +620,7 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
     bool padding_flag) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = Model::spatial_dimension;
+  Int spatial_dimension = Model::spatial_dimension;
   ElementKind _element_kind = element_kind;
   if (dumper_name == "cohesive elements") {
     _element_kind = _ek_cohesive;

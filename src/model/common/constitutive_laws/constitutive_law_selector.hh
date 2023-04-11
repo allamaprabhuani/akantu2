@@ -47,7 +47,7 @@ class ConstitutiveLawSelector
 public:
   ConstitutiveLawSelector() = default;
   virtual ~ConstitutiveLawSelector() = default;
-  virtual inline UInt operator()(const Element & element) {
+  virtual inline Idx operator()(const Element & element) {
     if (fallback_selector) {
       return (*fallback_selector)(element);
     }
@@ -69,10 +69,10 @@ public:
     return this->fallback_selector;
   }
 
-  inline UInt getFallbackValue() const { return this->fallback_value; }
+  inline Idx getFallbackValue() const { return this->fallback_value; }
 
 protected:
-  UInt fallback_value{0};
+  Idx fallback_value{0};
   std::shared_ptr<ConstitutiveLawSelector> fallback_selector;
 };
 
@@ -83,10 +83,10 @@ protected:
 class DefaultConstitutiveLawSelector : public ConstitutiveLawSelector {
 public:
   explicit DefaultConstitutiveLawSelector(
-      const ElementTypeMapArray<UInt> & constitutive_law_index)
+      const ElementTypeMapArray<Idx> & constitutive_law_index)
       : constitutive_law_index(constitutive_law_index) {}
 
-  UInt operator()(const Element & element) override {
+  Int operator()(const Element & element) override {
     if (not constitutive_law_index.exists(element.type, element.ghost_type)) {
       return ConstitutiveLawSelector::operator()(element);
     }
@@ -95,7 +95,7 @@ public:
         constitutive_law_index(element.type, element.ghost_type);
     if (element.element < mat_indexes.size()) {
       auto && tmp_mat = mat_indexes(element.element);
-      if (tmp_mat != UInt(-1)) {
+      if (tmp_mat != -1) {
         return tmp_mat;
       }
     }
@@ -104,7 +104,7 @@ public:
   }
 
 private:
-  const ElementTypeMapArray<UInt> & constitutive_law_index;
+  const ElementTypeMapArray<Idx> & constitutive_law_index;
 };
 
 } // namespace akantu

@@ -1,21 +1,9 @@
 #===============================================================================
-# @file   FindMumps.cmake
-#
-# @author Mathias Lebihain <mathias.lebihain@enpc.fr>
-# @author Philip Mueller <philip.mueller@math.ethz.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification: Fri Jan 22 2021
-#
-# @brief  The find_package file for the Mumps solver
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -229,7 +217,7 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   # ADD here the symbols needed to compile
   set(_mumps_dep_compile_MPI mpi.h)
   # ADD here the symbols needed to link
-  set(_mumps_dep_link_MPI mpi_send mpi_type_free mpi_allreduce)
+  set(_mumps_dep_link_MPI mpi_send mpi_type_free mpi_allreduce MPI_)
   set(_mumps_dep_link_BLAS ${_first_precision}gemm)
   set(_mumps_dep_link_ScaLAPACK numroc)
   set(_mumps_dep_link_LAPACK ilaenv)
@@ -240,9 +228,8 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_mumps_dep_link_pord SPACE_ordering)
   set(_mumps_dep_link_METIS metis_nodend)
   set(_mumps_dep_link_Threads pthread_create)
-  set(_mumps_dep_link_OpenMP GOMP_loop_end_nowait)
+  set(_mumps_dep_link_OpenMP omp_ GOMP_loop_end_nowait)
   set(_mumps_dep_link_gfortran gfortran)
-  # TODO find missing symbols for IOMP
   set(_mumps_dep_link_Math lround)
   set(_mumps_dep_link_ParMETIS ParMETIS_V3_NodeND)
 

@@ -1,18 +1,8 @@
 /**
- * @file   integration_scheme.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  This class is just a base class for the integration schemes
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,7 +47,7 @@ public:
     _acceleration = 2,
   };
 
-  IntegrationScheme(DOFManager & dof_manager, const ID & dof_id, UInt order);
+  IntegrationScheme(DOFManager &dof_manager, const ID &dof_id, UInt order);
   ~IntegrationScheme() override = default;
 
   /* ------------------------------------------------------------------------ */
@@ -69,10 +58,10 @@ public:
   virtual void predictor(Real delta_t) = 0;
 
   /// generic interface of a corrector
-  virtual void corrector(const SolutionType & type, Real delta_t) = 0;
+  virtual void corrector(const SolutionType &type, Real delta_t) = 0;
 
   /// assemble the jacobian matrix
-  virtual void assembleJacobian(const SolutionType & type, Real delta_t) = 0;
+  virtual void assembleJacobian(const SolutionType &type, Real delta_t) = 0;
 
   /// assemble the residual
   virtual void assembleResidual(bool is_lumped) = 0;
@@ -98,16 +87,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// The underlying DOFManager
-  DOFManager & dof_manager;
+  DOFManager &dof_manager;
 
   /// The id of the dof treated by this integration scheme.
   ID dof_id;
 
   /// The order of the integrator
-  UInt order;
+  Int order;
 
   /// last release of M matrix
-  UInt m_release{UInt(-1)};
+  Int m_release{-1};
 
   /// stores the values at begining of solve
   std::vector<std::unique_ptr<Array<Real>>> u_store;
@@ -116,8 +105,8 @@ protected:
 /* -------------------------------------------------------------------------- */
 // std::ostream & operator<<(std::ostream & stream,
 //                           const IntegrationScheme::SolutionType & type);
-std::istream & operator>>(std::istream & stream,
-                          IntegrationScheme::SolutionType & type);
+std::istream &operator>>(std::istream &stream,
+                         IntegrationScheme::SolutionType &type);
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu

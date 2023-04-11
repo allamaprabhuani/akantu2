@@ -1,18 +1,8 @@
 /**
- * @file   embedded_interface_model.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Fri Mar 13 2015
- * @date last modification: Wed Feb 14 2018
- *
- * @brief  Model of Solid Mechanics with embedded interfaces
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +35,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 EmbeddedInterfaceModel::EmbeddedInterfaceModel(Mesh & mesh,
                                                Mesh & primitive_mesh,
-                                               UInt spatial_dimension,
+                                               Int spatial_dimension,
                                                const ID & id)
     : SolidMechanicsModel(mesh, spatial_dimension, id),
       intersector(mesh, primitive_mesh), interface_mesh(nullptr),
@@ -69,7 +58,7 @@ EmbeddedInterfaceModel::EmbeddedInterfaceModel(Mesh & mesh,
   // Registering allocator for material reinforcement
   MaterialFactory::getInstance().registerAllocator(
       "reinforcement",
-      [&](UInt dim, const ID & constitutive, SolidMechanicsModel & /*unused*/,
+      [&](Int dim, const ID & constitutive, SolidMechanicsModel & /*unused*/,
           const ID & id) -> std::unique_ptr<Material> {
         if (constitutive == "elastic") {
           using mat = MaterialElastic<1>;
@@ -120,7 +109,7 @@ void EmbeddedInterfaceModel::initModel() {
 
 /* -------------------------------------------------------------------------- */
 void EmbeddedInterfaceModel::assignMaterialToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
   delete interface_material_selector;
   interface_material_selector =
       new InterfaceMeshDataMaterialSelector<std::string>("physical_names",

@@ -1,18 +1,8 @@
 /**
- * @file   test_sparse_matrix_assemble.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri May 19 2017
- *
- * @brief  test the assembling method of the SparseMatrix class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +34,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
 
@@ -73,7 +62,7 @@ int main(int argc, char * argv[]) {
 
   //   for(akantu::UInt e = 0; e < nb_element; ++e) {
   //     element.element = e;
-  //     sparse_matrix.addToMatrix(local_mat.storage(), element,
+  //     sparse_matrix.addToMatrix(local_mat.data(), element,
   //     nb_nodes_per_element);
   //   }
   // }

@@ -1,20 +1,8 @@
 /**
- * @file   test_structural_mechanics_model_bernoulli_beam_2.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu Feb 25 2021
- *
- * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -67,9 +54,9 @@ public:
   void setDirichletBCs() override {
     auto boundary = this->model->getBlockedDOFs().begin(parent::ndof);
     // clang-format off
-    *boundary = {true, true, true}; ++boundary;
-    *boundary = {false, true, false}; ++boundary;
-    *boundary = {false, true, false}; ++boundary;
+    *boundary = Vector<bool>{true, true, true}; ++boundary;
+    *boundary = Vector<bool>{false, true, false}; ++boundary;
+    *boundary = Vector<bool>{false, true, false}; ++boundary;
     // clang-format on
   }
 

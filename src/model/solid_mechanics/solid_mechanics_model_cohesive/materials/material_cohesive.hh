@@ -1,20 +1,8 @@
 /**
- * @file   material_cohesive.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Jan 14 2021
- *
- * @brief  Specialization of the material class for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "material.hh"
+#include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include "cohesive_internal_field.hh"
 /* -------------------------------------------------------------------------- */
@@ -87,12 +75,31 @@ public:
   void computeAllStresses(GhostType /*ghost_type*/ = _not_ghost) final{};
 
   // add the facet to be handled by the material
-  UInt addFacet(const Element & element);
+  Idx addFacet(const Element & element);
+
+  template <Int dim>
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
+    return zip(
+        "normal"_n = make_view<dim>(this->normals(element_type, ghost_type)),
+        "opening"_n = make_view<dim>(this->opening(element_type, ghost_type)),
+        "traction"_n =
+            make_view<dim>(this->tractions(element_type, ghost_type)),
+        "contact_opening"_n =
+            make_view<dim>(this->contact_opening(element_type, ghost_type)),
+        "contact_traction"_n =
+            make_view<dim>(this->contact_tractions(element_type, ghost_type)),
+        "previous_opening"_n =
+            make_view<dim>(this->opening.previous(element_type, ghost_type)),
+        "previous_traction"_n =
+            make_view<dim>(this->tractions.previous(element_type, ghost_type)),
+        "delta_max"_n = this->delta_max(element_type, ghost_type),
+        "damage"_n = this->damage(element_type, ghost_type));
+  }
 
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
                                       Array<Real> & /*tangent_matrix*/,
-                                      const Array<Real> & /*normal*/,
                                       GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -113,12 +120,12 @@ protected:
   void assembleStiffnessMatrix(GhostType ghost_type) override;
 
   /// constitutive law
-  virtual void computeTraction(const Array<Real> & normal, ElementType el_type,
+  virtual void computeTraction(ElementType el_type,
                                GhostType ghost_type = _not_ghost) = 0;
 
   /// parallelism functions
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -145,37 +152,36 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /// get facet filter
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
-  AKANTU_GET_MACRO(FacetFilter, facet_filter,
-                   const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, Idx);
+  AKANTU_GET_MACRO_AUTO(FacetFilter, facet_filter);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
 
   /// compute reversible energy
-  Real getReversibleEnergy();
+  auto getReversibleEnergy() -> Real;
 
   /// compute dissipated energy
-  Real getDissipatedEnergy();
+  auto getDissipatedEnergy() -> Real;
 
   /// compute contact energy
-  Real getContactEnergy();
+  auto getContactEnergy() -> Real;
 
   /// get energy
-  Real getEnergy(const std::string & type) override;
+  auto getEnergy(const std::string & type) -> Real override;
 
   /// return the energy (identified by id) for the provided element
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index) override {
-    return Material::getEnergy(energy_id, type, index);
-  }
+  // Real getEnergy(const std::string & energy_id, const Element & element
+  //                ) override {
+  //   return Material::getEnergy(energy_id, element);
+  // }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// list of facets assigned to this material
-  ElementTypeMapArray<UInt> facet_filter;
+  ElementTypeMapArray<Idx> facet_filter;
 
   /// Link to the cohesive fem object in the model
   FEEngine & fem_cohesive;
@@ -222,7 +228,7 @@ protected:
   Real delta_c;
 
   /// array to temporarily store the normals
-  Array<Real> normal;
+  CohesiveInternalField<Real> normals;
 };
 
 } // namespace akantu

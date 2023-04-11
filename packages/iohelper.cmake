@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   iohelper.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Tue Nov 29 2011
-# @date last modification: Fri Mar 16 2018
-#
-# @brief  package description for iohelper
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -29,14 +19,15 @@
 #
 #===============================================================================
 
+
 if(AKANTU_BYPASS_AKANTU_TARGET)
   return()
 endif()
 
-package_declare(IOHelper EXTERNAL NOT_OPTIONAL
+package_declare(IOHelper EXTERNAL NOT_OPTIONAL DEFAULT ON
   DESCRIPTION "Add IOHelper support in akantu"
   SYSTEM OFF third-party/cmake/iohelper.cmake
-  DEFAULT ON)
+  EXTRA_PACKAGE_OPTIONS TARGET iohelper)
 
 set(_version "1.1.1")
 package_add_third_party_script_variable(IOHelper

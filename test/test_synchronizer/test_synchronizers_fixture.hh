@@ -1,18 +1,8 @@
 /**
- * @file   test_synchronizers_fixture.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jan 26 2018
- * @date last modification:  Wed Feb 28 2018
- *
- * @brief  Fixture for synchronizer tests
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,7 +31,7 @@ using namespace akantu;
 class TestSynchronizerFixture : public ::testing::Test {
 public:
   virtual void SetUp() {
-    const UInt spatial_dimension = 3;
+    const Int spatial_dimension = 3;
 
     mesh = std::make_unique<Mesh>(spatial_dimension);
 
@@ -67,7 +56,7 @@ public:
       for (const auto & type : mesh.elementTypes(_all_dimensions, ghost_type)) {
         for (auto && data : enumerate(
                  make_view(barycenters(type, ghost_type), spatial_dimension))) {
-          Element element{type, UInt(std::get<0>(data)), ghost_type};
+          Element element{type, std::get<0>(data), ghost_type};
           mesh.getBarycenter(element, std::get<1>(data));
         }
       }

@@ -1,19 +1,8 @@
 /**
- * @file   dof_synchronizer.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 17 2011
- * @date last modification: Wed Mar 04 2020
- *
- * @brief  Synchronize Array of DOFs
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,13 +16,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh"
 #include "aka_common.hh"
-#include "synchronizer_impl.hh"
+#include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -46,7 +34,7 @@ class DOFManagerDefault;
 
 namespace akantu {
 
-class DOFSynchronizer : public SynchronizerImpl<UInt> {
+class DOFSynchronizer : public SynchronizerImpl<Idx> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -60,18 +48,18 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void onNodesAdded(const Array<UInt> & nodes);
+  void onNodesAdded(const Array<Idx> & nodes);
 
 protected:
-  Int getRank(const UInt & /*node*/) const final { AKANTU_TO_IMPLEMENT(); }
+  Int getRank(const Idx & /*node*/) const final { AKANTU_TO_IMPLEMENT(); }
 
   /// list the entities to send to root process
-  void fillEntityToSend(Array<UInt> & dofs_to_send) override;
+  void fillEntityToSend(Array<Idx> & dofs_to_send) override;
 
-  inline UInt canScatterSize() override;
-  inline UInt gatheredSize() override;
+  inline Int canScatterSize() override;
+  inline Int gatheredSize() override;
 
-  inline UInt localToGlobalEntity(const UInt & local) override;
+  inline Idx localToGlobalEntity(const Idx & local) override;
 
 private:
   /// information on the dofs

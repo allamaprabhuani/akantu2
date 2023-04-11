@@ -1,19 +1,25 @@
 /**
- * @file   material_vreepeerlings_tmpl.hh
- *
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- *
- * @brief  Specialization of the material class for the VreePeerlings material
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialVreePeerlingsParent(model, id),
@@ -46,7 +52,7 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlings<spatial_dimension, MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialVreePeerlingsParent::initMaterial();
@@ -54,25 +60,24 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MaterialVreePeerlingsParent::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
-  Real * Kapaq = Kapa(el_type, ghost_type).storage();
-  Real * FullDam_Valstrain =
-      Full_dam_value_strain(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * equi_straint = equi_strain(el_type, ghost_type).data();
+  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).data();
+  Real * Kapaq = Kapa(el_type, ghost_type).data();
+  Real * FullDam_Valstrain = Full_dam_value_strain(el_type, ghost_type).data();
   Real * FullDam_Valstrain_rate =
-      Full_dam_value_strain_rate(el_type, ghost_type).storage();
-  Real * Nb_damage = Number_damage(el_type, ghost_type).storage();
+      Full_dam_value_strain_rate(el_type, ghost_type).data();
+  Real * Nb_damage = Number_damage(el_type, ghost_type).data();
   Real dt = this->model.getTimeStep();
 
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);
   Array<Real> & velocity = this->model.getVelocity();
   Array<Real> & strain_rate_vrplgs =
       this->strain_rate_vreepeerlings(el_type, ghost_type);

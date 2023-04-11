@@ -1,20 +1,8 @@
 /**
- * @file   local_material_damage.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Fri May 03 2019
- *
- * @brief  Material isotropic elastic
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -48,42 +35,36 @@ class LocalMaterialDamage : public Material {
 public:
   LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
-  virtual ~LocalMaterialDamage(){};
+  ~LocalMaterialDamage() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial();
+  void initMaterial() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
-                                  Real & damage);
-
-  /// compute tangent stiffness
-  virtual void computeTangentStiffness(__attribute__((unused))
-                                       ElementType el_type,
-                                       __attribute__((unused))
-                                       Array<Real> & tangent_matrix,
-                                       __attribute__((unused))
-                                       GhostType ghost_type = _not_ghost){};
+  inline void computeStressOnQuad(MatrixProxy<Real> & grad_u,
+                                  MatrixProxy<Real> & sigma, Real & damage);
 
   /// compute the potential energy for all elements
-  void computePotentialEnergy(ElementType el_type);
+  void computePotentialEnergy(ElementType el_type) override;
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
-                                           Matrix<Real> & sigma, Real & epot);
+  inline void computePotentialEnergyOnQuad(MatrixProxy<Real> & grad_u,
+                                           MatrixProxy<Real> & sigma,
+                                           Real & epot);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the celerity of wave in the material
-  inline Real getCelerity(const Element & element) const;
+  inline Real getCelerity(const Element & element) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

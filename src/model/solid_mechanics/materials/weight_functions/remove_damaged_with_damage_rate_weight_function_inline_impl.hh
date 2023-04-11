@@ -1,21 +1,8 @@
 /**
- * @file   remove_damaged_with_damage_rate_weight_function_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Mon Aug 24 2015
- * @date last modification: Fri Jan 15 2016
- *
- * @brief  Implementation of inline function of remove damaged with
- * damage rate weight function
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -37,6 +23,7 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+
 /* -------------------------------------------------------------------------- */
 inline void RemoveDamagedWithDamageRateWeightFunction::init() {
   this->damage_with_damage_rate =
@@ -45,11 +32,10 @@ inline void RemoveDamagedWithDamageRateWeightFunction::init() {
 
 /* -------------------------------------------------------------------------- */
 inline Real RemoveDamagedWithDamageRateWeightFunction::operator()(
-    Real r, const __attribute__((unused)) IntegrationPoint & q1,
+    Real r, const IntegrationPoint & q1, const IntegrationPoint & q2) {
 
-    const IntegrationPoint & q2) {
   /// compute the weight
-  UInt quad = q2.global_num;
+  auto quad = q2.global_num;
 
   if (q1.global_num == quad) {
     return 1.;
@@ -68,4 +54,5 @@ inline Real RemoveDamagedWithDamageRateWeightFunction::operator()(
 
   return w;
 }
+
 } // namespace akantu

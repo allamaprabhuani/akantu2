@@ -1,11 +1,11 @@
 FROM debian:bullseye
-MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 # library dependencies
 RUN apt -qq update && apt -qq -y install \
     g++ gfortran clang cmake \
     openmpi-bin libmumps-dev libscotch-dev \
     libboost-dev libopenblas-dev \
+    libeigen3-dev \
     python3 python3-dev python3-numpy python3-scipy python3-mpi4py \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,7 +22,8 @@ RUN apt -qq update && apt -qq -y install \
 # for ci
 RUN apt -qq update && apt -qq -y install \
     gmsh python3-pytest python3-click python3-termcolor \
-    ccache clang-format python3-flake8 python3-pip clang-tidy \
+    python3-flake8 python3-pip python3-tqdm \
+    ccache clang-format clang-tidy \
     curl git xsltproc jq \
     gcovr llvm binutils \
     ninja-build \

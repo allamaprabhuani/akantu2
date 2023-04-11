@@ -1,19 +1,8 @@
 /**
- * @file   element_info_per_processor.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Mar 16 2016
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Helper classes to create the distributed synchronizer and distribute
- * a mesh
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -51,8 +39,8 @@ namespace akantu {
 
 class ElementInfoPerProc : protected MeshAccessor {
 public:
-  ElementInfoPerProc(ElementSynchronizer & synchronizer, UInt message_cnt,
-                     UInt root, ElementType type);
+  ElementInfoPerProc(ElementSynchronizer & synchronizer, Int message_cnt,
+                     Int root, ElementType type);
   bool synchronize();
 
 protected:
@@ -63,37 +51,37 @@ protected:
   virtual bool needSynchronize() = 0;
 
 protected:
-  void fillCommunicationScheme(const Array<UInt> & partition);
+  void fillCommunicationScheme(const Array<Int> & partition);
 
   template <class CommunicationBuffer>
   void fillElementGroupsFromBuffer(CommunicationBuffer & buffer);
 
   template <typename T, typename BufferType>
   void fillMeshDataTemplated(BufferType & buffer, const std::string & tag_name,
-                             UInt nb_component);
+                             Int nb_component);
 
   template <typename BufferType>
   void fillMeshData(BufferType & buffer, const std::string & tag_name,
-                    const MeshDataTypeCode & type_code, UInt nb_component);
+                    const MeshDataTypeCode & type_code, Int nb_component);
 
 protected:
   ElementSynchronizer & synchronizer;
 
-  UInt rank{0};
-  UInt nb_proc{1};
+  Int rank{0};
+  Int nb_proc{1};
 
-  UInt root{0};
+  Int root{0};
 
   ElementType type{_not_defined};
 
-  UInt nb_tags{0};
-  UInt nb_nodes_per_element{0};
-  UInt nb_element{0};
+  Int nb_tags{0};
+  Int nb_nodes_per_element{0};
+  Int nb_element{0};
 
-  UInt nb_local_element{0};
-  UInt nb_ghost_element{0};
+  Int nb_local_element{0};
+  Int nb_ghost_element{0};
 
-  UInt message_count{0};
+  Int message_count{0};
   Mesh & mesh;
   const Communicator & comm;
 };
@@ -101,8 +89,8 @@ protected:
 /* -------------------------------------------------------------------------- */
 class MasterElementInfoPerProc : public ElementInfoPerProc {
 public:
-  MasterElementInfoPerProc(ElementSynchronizer & synchronizer, UInt message_cnt,
-                           UInt root, ElementType type,
+  MasterElementInfoPerProc(ElementSynchronizer & synchronizer, Int message_cnt,
+                           Int root, ElementType type,
                            const MeshPartition & partition);
 
 protected:
@@ -122,16 +110,16 @@ protected:
 private:
   const MeshPartition & partition;
 
-  Vector<UInt> all_nb_local_element;
-  Vector<UInt> all_nb_ghost_element;
-  Vector<UInt> all_nb_element_to_send;
+  Vector<Int> all_nb_local_element;
+  Vector<Int> all_nb_ghost_element;
+  Vector<Int> all_nb_element_to_send;
 };
 
 /* -------------------------------------------------------------------------- */
 class SlaveElementInfoPerProc : public ElementInfoPerProc {
 public:
-  SlaveElementInfoPerProc(ElementSynchronizer & synchronizer, UInt message_cnt,
-                          UInt root);
+  SlaveElementInfoPerProc(ElementSynchronizer & synchronizer, Int message_cnt,
+                          Int root);
 
 protected:
   void synchronizeConnectivities() override;
@@ -142,7 +130,7 @@ protected:
   bool needSynchronize() override;
 
 private:
-  UInt nb_element_to_receive{0};
+  Int nb_element_to_receive{0};
 };
 
 } // namespace akantu

@@ -1,19 +1,8 @@
 /**
- * @file   material_cohesive_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Aug 04 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  MaterialCohesive inline implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -37,8 +25,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialCohesive::addFacet(const Element & element) {
-  Array<UInt> & f_filter = facet_filter(element.type, element.ghost_type);
+inline Int MaterialCohesive::addFacet(const Element & element) {
+  auto & f_filter = facet_filter(element.type, element.ghost_type);
   f_filter.push_back(element.element);
   return f_filter.size() - 1;
 }
@@ -50,7 +38,7 @@ void MaterialCohesive::computeNormal(const Array<Real> & /*position*/,
                                      GhostType /*ghost_type*/) {}
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialCohesive::getNbData(const Array<Element> & elements,
+inline Int MaterialCohesive::getNbData(const Array<Element> & elements,
                                         const SynchronizationTag & tag) const {
 
   switch (tag) {

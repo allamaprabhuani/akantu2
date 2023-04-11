@@ -1,18 +1,8 @@
 /**
- * @file   surface_selector.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Sun Jun 30 2019
- * @date last modification: Sun Jun 06 2021
- *
- * @brief  Node selectors for contact detection
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -60,8 +49,8 @@ public:
   ~SurfaceSelector() override = default;
 
 public:
-  virtual Array<UInt> & getMasterList() { AKANTU_TO_IMPLEMENT(); }
-  virtual Array<UInt> & getSlaveList() { AKANTU_TO_IMPLEMENT(); }
+  virtual Array<Idx> & getMasterList() { AKANTU_TO_IMPLEMENT(); }
+  virtual Array<Idx> & getSlaveList() { AKANTU_TO_IMPLEMENT(); }
 
 protected:
   Mesh & mesh;
@@ -76,8 +65,8 @@ public:
   PhysicalSurfaceSelector(Mesh & mesh);
 
 public:
-  Array<UInt> & getMasterList() override;
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getMasterList() override;
+  Array<Idx> & getSlaveList() override;
 
 protected:
   std::string master;
@@ -97,19 +86,19 @@ protected:
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
 
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
 
 public:
-  Array<UInt> & getMasterList() override;
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getMasterList() override;
+  Array<Idx> & getSlaveList() override;
 
-  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
-  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<Idx> &);
+  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<Idx> &);
 
 protected:
   Mesh & mesh_facets;
-  Array<UInt> new_nodes_list;
+  Array<Idx> new_nodes_list;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -125,22 +114,22 @@ protected:
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
 
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Int> & nodes_list,
                     const NewNodesEvent & event) override;
 
 public:
-  Array<UInt> & getMasterList() override;
+  Array<Idx> & getMasterList() override;
 
-  Array<UInt> & getSlaveList() override;
+  Array<Idx> & getSlaveList() override;
 
-  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
-  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<Idx> &);
+  AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<Idx> &);
 
 protected:
   std::string master;
   std::string slave;
   Mesh & mesh_facets;
-  Array<UInt> new_nodes_list;
+  Array<Idx> new_nodes_list;
 };
 
 #endif

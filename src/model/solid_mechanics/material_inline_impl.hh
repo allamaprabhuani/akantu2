@@ -1,24 +1,8 @@
 /**
- * @file   material_inline_impl.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Enrico Milanese <enrico.milanese@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Tue Jul 27 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of the inline functions of the class material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -32,156 +16,168 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
+#include "integration_point.hh"
+#include "material.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MATERIAL_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_INLINE_IMPL_HH_
+// #ifndef __AKANTU_MATERIAL_INLINE_IMPL_CC__
+// #define __AKANTU_MATERIAL_INLINE_IMPL_CC__
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) {
-  return (dim * (dim - 1) / 2 + dim);
+template <Int dim, typename D1, typename D2>
+constexpr inline void Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u,
+                                         Eigen::MatrixBase<D2> & F) {
+  assert(F.size() >= grad_u.size() && grad_u.size() == dim * dim &&
+         "The dimension of the tensor F should be greater or "
+         "equal to the dimension of the tensor grad_u.");
+
+  F.setIdentity();
+  F.template block<dim, dim>(0, 0) += grad_u;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getCauchyStressMatrixSize(UInt dim) {
-  return (dim * dim);
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void Material::gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F) {
-  AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim * dim,
-                      "The dimension of the tensor F should be greater or "
-                      "equal to the dimension of the tensor grad_u.");
-  F.eye();
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      F(i, j) += grad_u(i, j);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline decltype(auto) Material::gradUToF(const Matrix<Real> & grad_u) {
-  Matrix<Real> F(dim, dim);
+template <Int dim, typename D1>
+constexpr inline decltype(auto)
+Material::gradUToF(const Eigen::MatrixBase<D1> & grad_u) {
+  Matrix<Real, dim, dim> F;
   gradUToF<dim>(grad_u, F);
   return F;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void Material::StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
-                                Matrix<Real> & sigma, const Real & C33) const {
-  Real J = F.det() * sqrt(C33);
+template <Int dim, typename D1, typename D2, typename D3>
+constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
+                                          const Eigen::MatrixBase<D2> & S,
+                                          Eigen::MatrixBase<D3> & sigma,
+                                          const Real & C33) {
+  Real J = F.determinant() * std::sqrt(C33);
 
-  Matrix<Real> F_S(dim, dim);
+  Matrix<Real, dim, dim> F_S;
   F_S = F * S;
   Real constant = J ? 1. / J : 0;
-  sigma.mul<false, true>(F_S, F, constant);
+  sigma = constant * F_S * F.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::rightCauchy(const Matrix<Real> & F, Matrix<Real> & C) {
-  C.mul<true, false>(F, F);
+template <Int dim, typename D1, typename D2>
+constexpr inline decltype(auto)
+Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
+                    const Eigen::MatrixBase<D2> & S, const Real & C33) {
+  Matrix<Real, dim, dim> sigma;
+  Material::StoCauchy<dim>(F, S, sigma, C33);
+  return sigma;
+}
+/* -------------------------------------------------------------------------- */
+template <typename D1, typename D2>
+constexpr inline void Material::rightCauchy(const Eigen::MatrixBase<D1> & F,
+                                            Eigen::MatrixBase<D2> & C) {
+  C = F.transpose() * F;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::leftCauchy(const Matrix<Real> & F, Matrix<Real> & B) {
-  B.mul<false, true>(F, F);
+template <Int dim, typename D>
+constexpr inline decltype(auto)
+Material::rightCauchy(const Eigen::MatrixBase<D> & F) {
+  Matrix<Real, dim, dim> C;
+  rightCauchy(F, C);
+  return C;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
-                                     Matrix<Real> & epsilon) {
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      epsilon(i, j) = 0.5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
+template <typename D1, typename D2>
+constexpr inline void Material::leftCauchy(const Eigen::MatrixBase<D1> & F,
+                                           Eigen::MatrixBase<D2> & B) {
+  B = F * F.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline decltype(auto) Material::gradUToEpsilon(const Matrix<Real> & grad_u) {
-  Matrix<Real> epsilon(dim, dim);
-  Material::template gradUToEpsilon<dim>(grad_u, epsilon);
+template <Int dim, typename D>
+constexpr inline decltype(auto)
+Material::leftCauchy(const Eigen::MatrixBase<D> & F) {
+  Matrix<Real, dim, dim> B;
+  rightCauchy(F, B);
+  return B;
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, typename D1, typename D2>
+constexpr inline void
+Material::gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u,
+                         Eigen::MatrixBase<D2> & epsilon) {
+  epsilon = .5 * (grad_u.transpose() + grad_u);
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim, typename D1>
+inline decltype(auto) constexpr Material::gradUToEpsilon(
+    const Eigen::MatrixBase<D1> & grad_u) {
+  Matrix<Real, dim, dim> epsilon;
+  Material::gradUToEpsilon<dim>(grad_u, epsilon);
   return epsilon;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void Material::gradUToE(const Matrix<Real> & grad_u, Matrix<Real> & E) {
-  E.mul<true, false>(grad_u, grad_u, .5);
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      E(i, j) += 0.5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
+template <Int dim, typename D1, typename D2>
+constexpr inline void Material::gradUToE(const Eigen::MatrixBase<D1> & grad_u,
+                                         Eigen::MatrixBase<D2> & E) {
+  E = (grad_u.transpose() * grad_u + grad_u.transpose() + grad_u) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline decltype(auto) Material::gradUToE(const Matrix<Real> & grad_u) {
-  Matrix<Real> E(dim, dim);
+template <Int dim, typename D1>
+constexpr inline decltype(auto)
+Material::gradUToE(const Eigen::MatrixBase<D1> & grad_u) {
+  Matrix<Real, dim, dim> E;
   gradUToE<dim>(grad_u, E);
   return E;
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Material::stressToVonMises(const Matrix<Real> & stress) {
+template <typename D1>
+inline Real Material::stressToVonMises(const Eigen::MatrixBase<D1> & stress) {
   // compute deviatoric stress
-  UInt dim = stress.cols();
-  Matrix<Real> deviatoric_stress =
-      Matrix<Real>::eye(dim, -1. * stress.trace() / 3.);
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      deviatoric_stress(i, j) += stress(i, j);
-    }
-  }
+  auto dim = stress.cols();
+  auto && deviatoric_stress =
+      stress - Matrix<Real>::Identity(dim, dim) * stress.trace() / 3.;
 
   // return Von Mises stress
   return std::sqrt(3. * deviatoric_stress.doubleDot(deviatoric_stress) / 2.);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-inline void Material::setCauchyStressMatrix(const Matrix<Real> & S_t,
-                                            Matrix<Real> & sigma) {
-  AKANTU_DEBUG_IN();
-
+template <Int dim, typename D1, typename D2>
+constexpr inline void
+Material::setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
+                                Eigen::MatrixBase<D2> & sigma) {
   sigma.zero();
 
   /// see Finite ekement formulations for large deformation dynamic analysis,
   /// Bathe et al. IJNME vol 9, 1975, page 364 ^t \f$\tau\f$
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt m = 0; m < dim; ++m) {
-      for (UInt n = 0; n < dim; ++n) {
+  for (Int i = 0; i < dim; ++i) {
+    for (Int m = 0; m < dim; ++m) {
+      for (Int n = 0; n < dim; ++n) {
         sigma(i * dim + m, i * dim + n) = S_t(m, n);
       }
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getNbData(const Array<Element> & elements,
-                                const SynchronizationTag & tag) const {
+inline Int Material::getNbData(const Array<Element> & elements,
+                               const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *
            spatial_dimension * sizeof(Real) *
+           this->getModel().getNbIntegrationPoints(elements);
+  }
+  if (tag == SynchronizationTag::_smm_gradu) {
+    return spatial_dimension * spatial_dimension * sizeof(Real) *
            this->getModel().getNbIntegrationPoints(elements);
   }
   return 0;
@@ -198,6 +194,10 @@ inline void Material::packData(CommunicationBuffer & buffer,
     }
     packInternalFieldHelper(*stress, buffer, elements);
   }
+
+  if (tag == SynchronizationTag::_smm_gradu) {
+    packInternalFieldHelper(*gradu, buffer, elements);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,8 +211,12 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
     }
     unpackInternalFieldHelper(*stress, buffer, elements);
   }
+
+  if (tag == SynchronizationTag::_smm_gradu) {
+    unpackInternalFieldHelper(*gradu, buffer, elements);
+  }
 }
 
 } // namespace akantu
 
-#endif /* AKANTU_MATERIAL_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_MATERIAL_INLINE_IMPL_CC__ */

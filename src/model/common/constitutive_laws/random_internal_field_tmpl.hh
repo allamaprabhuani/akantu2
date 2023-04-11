@@ -1,18 +1,8 @@
 /**
- * @file   random_internal_field_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Mar 26 2021
- *
- * @brief  Random internal material parameter implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +46,7 @@ RandomInternalField<T, BaseField, Generator>::~RandomInternalField() = default;
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
 void RandomInternalField<T, BaseField, Generator>::initialize(
-    UInt nb_component) {
+    Int nb_component) {
   this->internalInitialize(nb_component);
 }
 

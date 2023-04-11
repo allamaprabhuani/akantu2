@@ -1,23 +1,27 @@
 /**
- * @file   material_vreepeerlings_non_local_inline_impl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- *
- * @brief  Specialization of the material class for the non-local Vree-Peerlings
- * material
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 MaterialVreePeerlingsNonLocal<spatial_dimension, MatParent>::
     MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialVreePeerlingsNonLocalParent(model, id),
@@ -34,7 +38,7 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, MatParent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlingsNonLocal<spatial_dimension,
                                    MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
@@ -51,22 +55,22 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 
-// template<UInt spatial_dimension, class WeigthFunction, template <UInt> class
+// template<Int spatial_dimension, class WeigthFunction, template <UInt> class
 // MatParent>
 // void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction,
 // MatParent>::computeStress(ElementType el_type,
 //										     GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
 //
-//  Real * dam = this->damage(el_type, ghost_type).storage();
-//  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-//  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
-//  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
-//  Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
+//  Real * dam = this->damage(el_type, ghost_type).data();
+//  Real * equi_straint = equi_strain(el_type, ghost_type).data();
+//  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).data();
+//  Real * Kapaq = this->Kapa(el_type, ghost_type).data();
+//  Real * crit_strain = this->critical_strain(el_type, ghost_type).data();
 //  Real * crit_strain_rate = this->critical_strain_rate(el_type,
-//  ghost_type).storage();
-//  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).storage();
-//  Real  * nb_damage = this->number_damage(el_type, ghost_type).storage();
+//  ghost_type).data();
+//  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).data();
+//  Real  * nb_damage = this->number_damage(el_type, ghost_type).data();
 //  Real dt = this->model.getTimeStep();
 //
 //  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
@@ -118,27 +122,27 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension,
 //
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class MatParent>
+template <Int spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlingsNonLocal<
     spatial_dimension, MatParent>::computeNonLocalStress(ElementType el_type,
                                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * Kapaq = this->Kapa(el_type, ghost_type).data();
   Real * equi_strain_nl =
-      this->equi_strain_non_local(el_type, ghost_type).storage();
+      this->equi_strain_non_local(el_type, ghost_type).data();
   Real * equi_strain_rate_nl =
-      this->equi_strain_rate_non_local(el_type, ghost_type).storage();
+      this->equi_strain_rate_non_local(el_type, ghost_type).data();
   // Real * equi_strain_rate_nl = this->equi_strain_rate(el_type,
-  // ghost_type).storage();
+  // ghost_type).data();
 
   Real dt = this->model.getTimeStep();
   Real * FullDam_Valstrain =
-      this->Full_dam_value_strain(el_type, ghost_type).storage();
+      this->Full_dam_value_strain(el_type, ghost_type).data();
   Real * FullDam_Valstrain_rate =
-      this->Full_dam_value_strain_rate(el_type, ghost_type).storage();
-  Real * Nb_damage = this->Number_damage(el_type, ghost_type).storage();
+      this->Full_dam_value_strain_rate(el_type, ghost_type).data();
+  Real * Nb_damage = this->Number_damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 

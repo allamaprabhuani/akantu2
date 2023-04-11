@@ -1,18 +1,8 @@
 /**
- * @file   contact_mechanics_model.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Thu Feb 21 2013
- * @date last modification: Wed Jul 28 2021
- *
- * @brief  Contact mechanics model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +35,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::ContactMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id,
+    Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
     : Model(mesh, model_type, dim, id) {
 
@@ -318,7 +307,7 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
   this->internal_force->clear();
   this->normal_force->clear();
   this->tangential_force->clear();
@@ -375,7 +364,7 @@ void ContactMechanicsModel::search() {
   // model to work by default the gap value from detector is negative
   std::for_each((*gaps).begin(), (*gaps).end(), [](Real & gap) { gap *= -1.; });
 
-  if (!contact_elements.empty()) {
+  if (not contact_elements.empty()) {
     this->computeNodalAreas();
   }
 }
@@ -407,7 +396,7 @@ void ContactMechanicsModel::savePreviousState() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
-  UInt nb_nodes = mesh.getNbNodes();
+  auto nb_nodes = mesh.getNbNodes();
 
   nodal_area->resize(nb_nodes);
   nodal_area->zero();
@@ -433,13 +422,13 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
   for (auto && type : group.elementTypes(spatial_dimension - 1, ghost_type)) {
     const auto & element_ids = group.getElements(type, ghost_type);
 
-    UInt nb_quad_points = fem_boundary.getNbIntegrationPoints(type, ghost_type);
-    UInt nb_elements = element_ids.size();
+    auto nb_quad_points = fem_boundary.getNbIntegrationPoints(type, ghost_type);
+    auto nb_elements = element_ids.size();
 
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
     Array<Real> dual_before_integ(nb_elements * nb_quad_points,
-                                  nb_degree_of_freedom, 0.);
+                                  nb_degree_of_freedom);
     Array<Real> quad_coords(nb_elements * nb_quad_points, spatial_dimension);
 
     const auto & normals_on_quad =
@@ -452,40 +441,30 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
     quad_point.type = type;
 
-    Element subelement;
-    subelement.type = type;
-    subelement.ghost_type = ghost_type;
+    Element subelement{type, 0, ghost_type};
     for (auto el : element_ids) {
       subelement.element = el;
-      const auto & element_to_subelement =
-          mesh.getElementToSubelement(type)(el);
 
-      Vector<Real> outside(spatial_dimension);
-      mesh.getBarycenter(subelement, outside);
-
-      Vector<Real> inside(spatial_dimension);
-      if (mesh.isMeshFacets()) {
-        mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
-      } else {
-        mesh.getBarycenter(element_to_subelement[0], inside);
-      }
-
-      Vector<Real> inside_to_outside(spatial_dimension);
-      inside_to_outside = outside - inside;
+      auto inside_to_outside =
+          GeometryUtils::outsideDirection(mesh, subelement);
 
       normals_iter = normals_begin + el * nb_quad_points;
 
       quad_point.element = el;
       for (auto q : arange(nb_quad_points)) {
         quad_point.num_point = q;
-        auto ddot = inside_to_outside.dot(*normals_iter);
-        Vector<Real> normal(*normals_iter);
+
+        auto & normal = *normals_iter;
+        auto ddot = inside_to_outside.dot(normal);
+
         if (ddot < 0) {
           normal *= -1.0;
         }
 
-        (*dual_iter)
-            .mul<false>(Matrix<Real>::eye(spatial_dimension, 1), normal);
+        (*dual_iter) =
+            Matrix<Real>::Identity(spatial_dimension, spatial_dimension) *
+            normal;
+
         ++dual_iter;
         ++quad_coords_iter;
         ++normals_iter;
@@ -513,7 +492,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
        zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
 
     auto & area = std::get<0>(tuple);
-    Vector<Real> force(std::get<1>(tuple));
+    auto & force = std::get<1>(tuple);
     area = force.norm();
   }
 
@@ -626,13 +605,13 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
-                                            const std::string & group_name,
-                                            bool /*padding_flag*/) {
+ContactMechanicsModel::createNodalFieldInt(const std::string & field_name,
+                                           const std::string & group_name,
+                                           bool /*padding_flag*/) {
   std::shared_ptr<dumpers::Field> field;
   if (field_name == "contact_state") {
     auto && func =
-        std::make_unique<dumpers::ComputeUIntFromEnum<ContactState>>();
+        std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
     field = mesh.createNodalField(this->contact_state.get(), group_name);
     field =
         dumpers::FieldComputeProxy::createFieldCompute(field, std::move(func));
@@ -641,66 +620,45 @@ ContactMechanicsModel::createNodalFieldUInt(const std::string & field_name,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(
-    const Array<Element> & elements, const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+Int ContactMechanicsModel::getNbData(const Array<Element> & elements,
+                                     const SynchronizationTag & /*tag*/) const {
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
-  AKANTU_DEBUG_OUT();
-  return size;
+  return size * nb_nodes_per_element;
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
                                      const Array<Element> & /*elements*/,
                                      const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
                                        const Array<Element> & /*elements*/,
-                                       const SynchronizationTag & /*tag*/) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+                                       const SynchronizationTag & /*tag*/) {}
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(
-    const Array<UInt> & dofs, const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
+Int ContactMechanicsModel::getNbData(const Array<Idx> & dofs,
+                                     const SynchronizationTag & /*tag*/) const {
   UInt size = 0;
-
-  AKANTU_DEBUG_OUT();
   return size * dofs.size();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
-                                     const Array<UInt> & /*dofs*/,
+                                     const Array<Idx> & /*dofs*/,
                                      const SynchronizationTag & /*tag*/) const {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
-                                       const Array<UInt> & /*dofs*/,
-                                       const SynchronizationTag & /*tag*/) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+                                       const Array<Idx> & /*dofs*/,
+                                       const SynchronizationTag & /*tag*/) {}
 
 } // namespace akantu

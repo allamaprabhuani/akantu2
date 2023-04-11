@@ -1,18 +1,8 @@
 /**
- * @file   phasefield_exponential.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri Jun 19 2020
- * @date last modification: Wed Jun 23 2021
- *
- * @brief  Phasefield law for approximating discrete crack as an exponential
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -49,11 +38,23 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+public:
+  /// compute the dissiapted energy
+  void computeDissipatedEnergy(ElementType el_type) override;
+
+  void
+  computeDissipatedEnergyByElement(const Element & element,
+                                   Vector<Real> & edis_on_quad_points) override;
+
 protected:
+  void
+  computeDissipatedEnergyByElement(ElementType type, Idx index,
+                                   Vector<Real> & edis_on_quad_points) override;
+
   void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
 
-  void computeDrivingForce(const ElementType & /*el_type*/,
+  void computeDrivingForce(ElementType /*el_type*/,
                            GhostType /*ghost_type*/) override;
 
   inline void computeDrivingForceOnQuad(const Real & /*phi_quad*/,
@@ -63,6 +64,11 @@ protected:
                                                Real & /*dam_energy_quad*/,
                                                const Real & /*g_c_quad*/);
 
+  inline void
+  computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
+                                const Vector<Real> & /*grad_d_quad */,
+                                Real & /*energy*/, Real & /*g_c_quad*/);
+
 public:
   void updateInternalParameters() override;
 };
@@ -71,6 +77,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+
 #include "phasefield_exponential_inline_impl.hh"
 
 #endif

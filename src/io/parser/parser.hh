@@ -1,18 +1,8 @@
 /**
- * @file   parser.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Apr 02 2021
- *
- * @brief  File parser interface
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -137,7 +126,7 @@ public:
   const std::string & getValue() const { return value; }
 
   /// Set info for debug output
-  void setDebugInfo(const std::string & filename, UInt line, UInt column) {
+  void setDebugInfo(const std::string & filename, Int line, Int column) {
     dbg_filename = filename;
     dbg_line = line;
     dbg_column = column;
@@ -145,8 +134,10 @@ public:
 
   template <typename T> inline operator T() const;
 
-  // template <typename T> inline operator Vector<T>() const;
-  // template <typename T> inline operator Matrix<T>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n == 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
+  template <typename T, Int m, Int n, std::enable_if_t<n != 1> * = nullptr>
+  inline operator Matrix<T, m, n>() const;
 
   /// Print parameter info in stream
   void printself(std::ostream & stream,
@@ -170,7 +161,7 @@ private:
   /// File for debug output
   std::string dbg_filename;
   /// Position of parameter in parsed file
-  UInt dbg_line, dbg_column;
+  Int dbg_line, dbg_column;
 };
 
 /* ------------------------------------------------------------------------ */
@@ -360,7 +351,7 @@ public:
   }
 
   /// Get number of subsections of certain type
-  UInt getNbSubSections(ParserType type = ParserType::_not_defined) const {
+  Int getNbSubSections(ParserType type = ParserType::_not_defined) const {
     if (type != ParserType::_not_defined) {
       return this->sub_sections_by_type.count(type);
     }

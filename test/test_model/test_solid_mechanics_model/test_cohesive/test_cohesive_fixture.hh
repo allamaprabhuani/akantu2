@@ -1,18 +1,8 @@
 /**
- * @file   test_cohesive_fixture.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Jan 10 2018
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  Coehsive element test fixture
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -122,6 +111,10 @@ public:
 #define debug_ 0
 
 #if debug_
+    auto size = mesh->getCommunicator().getNbProc();
+    this->model->setBaseName("solid_mechanics_model_cohesive_" +
+                             std::to_string(size));
+    //    this->model->addDumpField("partition");
     this->model->addDumpFieldVector("displacement");
     this->model->addDumpFieldVector("velocity");
     this->model->addDumpFieldVector("internal_force");
@@ -130,7 +123,8 @@ public:
     this->model->addDumpField("stress");
     this->model->addDumpField("strain");
     this->model->assembleInternalForces();
-    this->model->setBaseNameToDumper("cohesive elements", "cohesive_elements");
+    this->model->setBaseNameToDumper(
+        "cohesive elements", "cohesive_elements_" + std::to_string(size));
     this->model->addDumpFieldVectorToDumper("cohesive elements",
                                             "displacement");
     this->model->addDumpFieldToDumper("cohesive elements", "damage");
@@ -221,12 +215,12 @@ public:
 
     Matrix<Real> strain;
     if (dim == 1) {
-      strain = {{1.}};
+      strain = Matrix<Real>{{1.}};
     } else if (dim == 2) {
-      strain = {{-nu, 0.}, {0., 1. - nu}};
+      strain = Matrix<Real>{{-nu, 0.}, {0., 1. - nu}};
       strain *= (1. + nu);
     } else if (dim == 3) {
-      strain = {{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
+      strain = Matrix<Real>{{-nu, 0., 0.}, {0., 1., 0.}, {0., 0., -nu}};
     }
 
     strain *= sigma_c / E;
@@ -271,12 +265,12 @@ public:
 
     Matrix<Real> strain;
     if (dim == 1) {
-      strain = {{1.}};
+      strain = Matrix<Real>{{1.}};
     } else if (dim == 2) {
-      strain = {{0., 1.}, {0., 0.}};
+      strain = Matrix<Real>{{0., 1.}, {0., 0.}};
       strain *= (1. + nu);
     } else if (dim == 3) {
-      strain = {{0., 1., 0.}, {0., 0., 0.}, {0., 0., 0.}};
+      strain = Matrix<Real>{{0., 1., 0.}, {0., 0., 0.}, {0., 0., 0.}};
       strain *= (1. + nu);
     }
     strain *= 2 * beta * beta * sigma_c / E;

@@ -1,18 +1,8 @@
 /**
- * @file   phase_field_model.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Tue Sep 04 2018
- * @date last modification: Wed Jun 23 2021
- *
- * @brief  Implementation of PhaseFieldModel class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,11 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "phase_field_model.hh"
+#include "aka_common.hh"
 #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine_template.hh"
@@ -45,17 +35,21 @@
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
+#include <utility>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
+PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
+                                 std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
     : Model(mesh, model_type, dim, id),
       phasefield_index("phasefield index", id),
       phasefield_local_numbering("phasefield local numbering", id) {
 
   AKANTU_DEBUG_IN();
+
+  this->initDOFManager(std::move(dof_manager));
 
   this->registerFEEngineObject<FEEngineType>("PhaseFieldFEEngine", mesh,
                                              Model::spatial_dimension);
@@ -67,16 +61,14 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, UInt dim, const ID & id,
   phasefield_selector =
       std::make_shared<DefaultPhaseFieldSelector>(phasefield_index);
 
-  this->initDOFManager();
-
   this->registerDataAccessor(*this);
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
+    this->registerSynchronizer(synchronizer,
+                               SynchronizationTag::_phasefield_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_driving);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_history);
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_energy);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
 
   AKANTU_DEBUG_OUT();
@@ -103,7 +95,7 @@ void PhaseFieldModel::initModel() {
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
   phasefield_index.initialize(mesh, _element_kind = _ek_not_defined,
-                              _default_value = UInt(-1),
+                              _default_value = Idx(-1),
                               _with_nb_element = true);
   phasefield_local_numbering.initialize(mesh, _element_kind = _ek_not_defined,
                                         _with_nb_element = true);
@@ -155,7 +147,7 @@ PhaseField & PhaseFieldModel::registerNewPhaseField(const ID & phase_name,
                           << phase_name << "' has already been registered. "
                           << "Please use unique names for phasefields");
 
-  UInt phase_count = phasefields.size();
+  Int phase_count = phasefields.size();
   phasefields_names_to_id[phase_name] = phase_count;
 
   std::stringstream sstr_phase;
@@ -211,20 +203,18 @@ void PhaseFieldModel::initPhaseFields() {
     /// init internals properties
     phasefield->initPhaseField();
   }
-
-  this->synchronize(SynchronizationTag::_smm_init_mat);
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       mesh,
       [&](auto && element) {
-        UInt phase_index = (*phasefield_selector)(element);
+        Int phase_index = (*phasefield_selector)(element);
         AKANTU_DEBUG_ASSERT(
-            phase_index < phasefields.size(),
+            phase_index < Int(phasefields.size()),
             "The phasefield selector returned an index that does not exists");
         phasefield_index(element) = phase_index;
       },
@@ -240,7 +230,7 @@ void PhaseFieldModel::assignPhaseFieldToElements(
       _element_filter = filter, _ghost_type = _not_ghost);
 
   // synchronize the element phasefield arrays
-  this->synchronize(SynchronizationTag::_material_id);
+  this->synchronize(SynchronizationTag::_phasefield_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -291,6 +281,11 @@ FEEngine & PhaseFieldModel::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
+TimeStepSolverType PhaseFieldModel::getDefaultSolverType() const {
+  return TimeStepSolverType::_static;
+}
+
+/* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 PhaseFieldModel::getDefaultSolverID(const AnalysisMethod & method) {
   switch (method) {
@@ -326,7 +321,7 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_linear;
+    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["damage"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["damage"] = IntegrationScheme::_not_defined;
@@ -347,6 +342,51 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
 }
 
 /* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy() {
+  AKANTU_DEBUG_IN();
+
+  Real energy = 0.;
+  for (auto & phasefield : phasefields) {
+    energy += phasefield->getEnergy();
+  }
+
+  /// reduction sum over all processors
+  mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy(ElementType type, Idx index) {
+  AKANTU_DEBUG_IN();
+
+  Idx phase_index = this->phasefield_index(type, _not_ghost)(index);
+  Idx phase_loc_num = this->phasefield_local_numbering(type, _not_ghost)(index);
+  Real energy = this->phasefields[phase_index]->getEnergy(
+      Element{type, phase_loc_num, _not_ghost});
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+Real PhaseFieldModel::getEnergy(const ID & group_id) {
+  auto && group = mesh.getElementGroup(group_id);
+  auto energy = 0.;
+  for (auto && type : group.elementTypes()) {
+    for (auto el : group.getElementsIterable(type)) {
+      energy += getEnergy(el);
+    }
+  }
+
+  /// reduction sum over all processors
+  mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
+
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
 void PhaseFieldModel::beforeSolveStep() {
   for (auto & phasefield : phasefields) {
     phasefield->beforeSolveStep();
@@ -363,7 +403,6 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     auto & dam = std::get<0>(values);
     auto & prev_dam = std::get<1>(values);
 
-    dam -= prev_dam;
     prev_dam = dam;
   }
 }
@@ -397,9 +436,11 @@ void PhaseFieldModel::assembleInternalForces() {
 
   this->internal_force->zero();
 
-  // communicate the driving forces
-  AKANTU_DEBUG_INFO("Send data for residual assembly");
-  this->asynchronousSynchronize(SynchronizationTag::_pfm_driving);
+  this->synchronize(SynchronizationTag::_pfm_damage);
+
+  for (auto & phasefield : phasefields) {
+    phasefield->computeAllDrivingForces(_not_ghost);
+  }
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
@@ -407,12 +448,11 @@ void PhaseFieldModel::assembleInternalForces() {
     phasefield->assembleInternalForces(_not_ghost);
   }
 
-  // finalize communications
-  AKANTU_DEBUG_INFO("Wait distant driving forces");
-  this->waitEndSynchronize(SynchronizationTag::_pfm_driving);
-
-  // assemble the residual due to ghost elements
+  // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
+  for (auto & phasefield : phasefields) {
+    phasefield->assembleInternalForces(_ghost);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -426,30 +466,27 @@ void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
-                                const SynchronizationTag & tag) const {
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
+Int PhaseFieldModel::getNbData(const Array<Element> & elements,
+                               const SynchronizationTag & tag) const {
+  Int size = 0;
+  Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
   switch (tag) {
+  case SynchronizationTag::_phasefield_id: {
+    size += elements.size() * sizeof(Int);
+    break;
+  }
+  case SynchronizationTag::_for_dump: {
+    // damage
+    size += nb_nodes_per_element * sizeof(Real);
+    break;
+  }
   case SynchronizationTag::_pfm_damage: {
-    size += nb_nodes_per_element * sizeof(Real); // damage
-    break;
-  }
-  case SynchronizationTag::_pfm_driving: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
-    break;
-  }
-  case SynchronizationTag::_pfm_history: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
-    break;
-  }
-  case SynchronizationTag::_pfm_energy: {
-    size += getNbIntegrationPoints(elements) * sizeof(Real);
+    size += nb_nodes_per_element * sizeof(Real);
     break;
   }
   default: {
@@ -461,28 +498,79 @@ UInt PhaseFieldModel::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::packData(__attribute__((unused))
-                               CommunicationBuffer & buffer,
-                               __attribute__((unused))
+void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
-                               __attribute__((unused))
-                               const SynchronizationTag & tag) const {}
+                               const SynchronizationTag & tag) const {
+  switch (tag) {
+  case SynchronizationTag::_phasefield_id: {
+    packElementalDataHelper(phasefield_index, buffer, elements, false,
+                            getFEEngine());
+    break;
+  }
+  case SynchronizationTag::_for_dump: {
+    packNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    packNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::unpackData(__attribute__((unused))
-                                 CommunicationBuffer & buffer,
-                                 __attribute__((unused))
+void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
-                                 __attribute__((unused))
-                                 const SynchronizationTag & tag) {}
-
-/* -------------------------------------------------------------------------- */
-UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
-                                const SynchronizationTag & tag) const {
-  UInt size = 0;
-  UInt nb_nodes = indexes.size();
+                                 const SynchronizationTag & tag) {
+  AKANTU_DEBUG_IN();
 
   switch (tag) {
+  case SynchronizationTag::_phasefield_id: {
+    for (auto && element : elements) {
+      Idx recv_phase_index;
+      buffer >> recv_phase_index;
+      Idx & phase_index = phasefield_index(element);
+      if (phase_index != Idx(-1)) {
+        continue;
+      }
+
+      // add ghosts element to the correct phasefield
+      phase_index = recv_phase_index;
+      Idx index = phasefields[phase_index]->addElement(element);
+      phasefield_local_numbering(element) = index;
+    }
+    break;
+  }
+  case SynchronizationTag::_for_dump: {
+    unpackNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    unpackNodalDataHelper(*damage, buffer, elements, mesh);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+Int PhaseFieldModel::getNbData(const Array<Idx> & indexes,
+                               const SynchronizationTag & tag) const {
+  Int size = 0;
+  Int nb_nodes = indexes.size();
+
+  switch (tag) {
+  case SynchronizationTag::_for_dump: {
+    size += nb_nodes * sizeof(Real);
+    break;
+  }
   case SynchronizationTag::_pfm_damage: {
     size += nb_nodes * sizeof(Real);
     break;
@@ -496,35 +584,39 @@ UInt PhaseFieldModel::getNbData(const Array<UInt> & indexes,
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
-                               const Array<UInt> & indexes,
+                               const Array<Idx> & indexes,
                                const SynchronizationTag & tag) const {
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_pfm_damage: {
-      buffer << (*damage)(index);
-      break;
-    }
-    default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
+  switch (tag) {
+  case SynchronizationTag::_for_dump: {
+    packDOFDataHelper(*damage, buffer, indexes);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    packDOFDataHelper(*damage, buffer, indexes);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
-                                 const Array<UInt> & indexes,
+                                 const Array<Idx> & indexes,
                                  const SynchronizationTag & tag) {
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_pfm_damage: {
-      buffer >> (*damage)(index);
-      break;
-    }
-    default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
+  switch (tag) {
+  case SynchronizationTag::_for_dump: {
+    unpackDOFDataHelper(*damage, buffer, indexes);
+    break;
+  }
+  case SynchronizationTag::_pfm_damage: {
+    unpackDOFDataHelper(*damage, buffer, indexes);
+    break;
+  }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
@@ -533,7 +625,6 @@ std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldBool(const std::string & field_name,
                                       const std::string & group_name,
                                       bool /*unused*/) {
-
   std::map<std::string, Array<bool> *> uint_nodal_fields;
   uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
 
@@ -548,7 +639,6 @@ std::shared_ptr<dumpers::Field>
 PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
                                       const std::string & group_name,
                                       bool /*unused*/) {
-
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["damage"] = damage.get();
   real_nodal_fields["external_force"] = external_force.get();
@@ -563,16 +653,68 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, UInt /*unused*/, ElementKind element_kind) {
+    bool /*unused*/, Int /*unused*/, ElementKind element_kind) {
 
   if (field_name == "partitions") {
-    return mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    return mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
   }
 
   std::shared_ptr<dumpers::Field> field;
   return field;
+}
+
+/* -------------------------------------------------------------------------- */
+ElementTypeMapArray<Real> &
+PhaseFieldModel::flattenInternal(const std::string & field_name,
+                                 ElementKind kind, const GhostType ghost_type) {
+  auto key = std::make_pair(field_name, kind);
+
+  ElementTypeMapArray<Real> * internal_flat;
+
+  auto it = this->registered_internals.find(key);
+  if (it == this->registered_internals.end()) {
+    auto internal =
+        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
+
+    internal_flat = internal.get();
+    this->registered_internals[key] = std::move(internal);
+  } else {
+    internal_flat = it->second.get();
+  }
+
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, kind)) {
+    if (internal_flat->exists(type, ghost_type)) {
+      auto & internal = (*internal_flat)(type, ghost_type);
+      internal.resize(0);
+    }
+  }
+
+  for (auto & phasefield : phasefields) {
+    if (phasefield->isInternal<Real>(field_name, kind)) {
+      phasefield->flattenInternal(field_name, *internal_flat, ghost_type, kind);
+    }
+  }
+
+  return *internal_flat;
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseFieldModel::inflateInternal(const std::string & field_name,
+                                      const ElementTypeMapArray<Real> & field,
+                                      ElementKind kind, GhostType ghost_type) {
+
+  for (auto & phasefield : phasefields) {
+    if (phasefield->isInternal<Real>(field_name, kind)) {
+      phasefield->inflateInternal(field_name, field, ghost_type, kind);
+    } else {
+      AKANTU_ERROR("A internal of name \'"
+                   << field_name
+                   << "\' has not been defined in the phasefield");
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

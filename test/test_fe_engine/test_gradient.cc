@@ -1,19 +1,8 @@
 /**
- * @file   test_gradient.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Peter Spijker <peter.spijker@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Mon Feb 19 2018
- *
- * @brief  test of the fem class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  * @section DESCRIPTION
  *
  * This code is computing the gradient of a linear field and check that it gives
@@ -60,7 +48,7 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
     const_.set(0.);
 
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       const_(0) += alpha[0][d] * pos(d);
       const_(1) += alpha[1][d] * pos(d);
     }
@@ -73,7 +61,7 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
   /// check the results
   for (auto && grad : make_view(grad_on_quad, 2, dim)) {
-    for (UInt d = 0; d < dim; ++d) {
+    for (Int d = 0; d < dim; ++d) {
       EXPECT_NEAR(grad(0, d), alpha[0][d], 5e-13);
       EXPECT_NEAR(grad(1, d), alpha[1][d], 5e-13);
     }
@@ -82,8 +70,8 @@ TYPED_TEST(TestFEMFixture, GradientPoly) {
 
 TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->initShapeFunctions();
-  const auto dim = this->dim;
-  const auto type = this->type;
+  const auto dim = TestFixture::dim;
+  const auto type = TestFixture::type;
 
   UInt nb_quadrature_points =
       this->fem->getNbIntegrationPoints(type) * this->nb_element;
@@ -94,10 +82,10 @@ TYPED_TEST(TestFEMFixture, GradientPositions) {
   this->fem->gradientOnIntegrationPoints(position, grad_coord_on_quad, dim,
                                          type);
 
-  auto I = Matrix<Real>::eye(UInt(dim));
+  auto I = Matrix<Real, dim, dim>::Identity();
 
   for (auto && grad : make_view(grad_coord_on_quad, dim, dim)) {
-    auto diff = (I - grad).template norm<L_inf>();
+    auto diff = (I - grad).template lpNorm<Eigen::Infinity>();
 
     EXPECT_NEAR(0., diff, 2e-14);
   }

@@ -1,18 +1,8 @@
 /**
- * @file   communication_request.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jun 14 2010
- * @date last modification: Tue Nov 07 2017
- *
- * @brief  empty class just for inheritance
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,19 +32,19 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class InternalCommunicationRequest {
 public:
-  InternalCommunicationRequest(UInt source, UInt dest);
+  InternalCommunicationRequest(Idx source, Idx dest);
   virtual ~InternalCommunicationRequest();
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  AKANTU_GET_MACRO(Source, source, UInt);
-  AKANTU_GET_MACRO(Destination, destination, UInt);
+  AKANTU_GET_MACRO(Source, source, Idx);
+  AKANTU_GET_MACRO(Destination, destination, Idx);
 
 private:
-  UInt source;
-  UInt destination;
-  UInt id;
-  static UInt counter;
+  Idx source;
+  Idx destination;
+  Idx id;
+  static Int counter;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -73,8 +62,8 @@ public:
     request->printself(stream, indent);
   };
 
-  UInt getSource() const { return request->getSource(); }
-  UInt getDestination() const { return request->getDestination(); }
+  Idx getSource() const { return request->getSource(); }
+  Idx getDestination() const { return request->getDestination(); }
 
   bool isFreed() const { return request == nullptr; }
 
@@ -88,16 +77,16 @@ private:
 class CommunicationStatus {
 public:
   AKANTU_GET_MACRO(Source, source, Int);
-  UInt size() const { return size_; }
+  Int size() const { return size_; }
   AKANTU_GET_MACRO(Tag, tag, Int);
 
   AKANTU_SET_MACRO(Source, source, Int);
-  AKANTU_SET_MACRO(Size, size_, UInt);
+  AKANTU_SET_MACRO(Size, size_, Int);
   AKANTU_SET_MACRO(Tag, tag, Int);
 
 private:
-  Int source{0};
-  UInt size_{0};
+  Idx source{0};
+  Int size_{0};
   Int tag{0};
 };
 

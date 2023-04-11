@@ -31,10 +31,12 @@
 #define IOHELPER_PARAVIEW_HELPER_H_
 /* -------------------------------------------------------------------------- */
 #include "base64.hh"
+#include "field_interface.hh"
+#include "visitor.hh"
+/* -------------------------------------------------------------------------- */
 #include <iomanip>
 #include <map>
-#include "visitor.hh"
-#include "field_interface.hh"
+#include <type_traits>
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
@@ -101,12 +103,10 @@ enum VTKCellType {
   VTK_NUMBER_OF_CELL_TYPES
 };
 
-
 inline std::ostream & operator <<(std::ostream & stream, const VTKCellType & type) {
   stream << UInt(type);
   return stream;
 }
-
 
 class ParaviewHelper : public Visitor {
 
@@ -114,7 +114,7 @@ class ParaviewHelper : public Visitor {
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
 
-  enum Stage{
+  enum Stage {
     _s_writePosition,
     _s_writeFieldProperty,
     _s_writeField,
@@ -127,8 +127,7 @@ class ParaviewHelper : public Visitor {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 
- public:
-
+public:
   ParaviewHelper(File & f, UInt mode);
   ~ParaviewHelper() override;
 
@@ -136,29 +135,27 @@ class ParaviewHelper : public Visitor {
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 
-
   //! write the PVTU file
   template <typename T>
   void writePVTU(T & per_node_data, T & per_elem_data,
-		 const std::vector<std::string> & vtus);
+                 const std::vector<std::string> & vtus);
 
   //! write the PVD file for time description
   static void writeTimePVD(const std::string & filename,
-			   const std::vector< std::pair<Real, std::string> > & pvtus);
+               const std::vector<std::pair<Real, std::string>> & pvtus);
 
   //! write the header of a vtu file
-  void writeHeader(int nb_nodes,int nb_elems);
+  void writeHeader(int nb_nodes, int nb_elems);
   //! write a field
   template <typename T> void writeField(T & data);
   //! write a connectivity field
-  template <typename T>  void writeConnectivity(T & data);
+  template <typename T> void writeConnectivity(T & data);
   //! write an element type field
   template <typename T> void writeElemType(T & data);
   //! write the field properties
   template <typename T> void writeFieldProperty(T & data);
   //! write the connectivities offset
   template <typename T> void writeOffsets(T & data);
-
 
   template <typename T>
   void pushDataFields(T & per_node_data, T & per_elem_data);
@@ -178,20 +175,24 @@ class ParaviewHelper : public Visitor {
   // static std::string getVTUName(const std::string & basename, UInt proc);
 
   //! push a small array of values
-  template <template<typename T> class Cont, typename T>
-  void pushData(const Cont<T> & n);
+  template <class Cont>
+  void pushData(const Cont & n);
 
-  //! push a small array of values of homogeneous values with padding to size dim
-  template <template<typename T> class Cont, typename T>
-  inline void pushData(const Cont<T> & n, UInt dim);
+  //! push a small array of values of homogeneous values with padding to size
+  //! dim
+  template <class Cont, std::enable_if_t<is_vector<Cont>::value> * = nullptr>
+  inline void pushData(const Cont & n, UInt dim);
+
+  template <class Cont, std::enable_if_t<is_matrix<Cont>::value> * = nullptr>
+  inline void pushData(const Cont & n, UInt dim);
 
   //! pushing datum
   template <typename T> void pushDatum(const T & n, UInt size = 3);
 
   //! visitor system
   template <typename T> void visitField(T & visited);
-private:
 
+private:
   void setMode(int mode);
 
   static std::string dataTypeToStr(DataType data_type);
@@ -224,7 +225,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   Base64Writer b64;
   int bflag;
 

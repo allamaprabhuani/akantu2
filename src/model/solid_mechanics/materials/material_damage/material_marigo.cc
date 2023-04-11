@@ -1,20 +1,8 @@
 /**
- * @file   material_marigo.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Specialization of the material class for the marigo material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,21 +16,20 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "material_marigo.hh"
 #include "solid_mechanics_model.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
-                                                  const ID & id)
-    : MaterialDamage<spatial_dimension>(model, id), Yd("Yd", *this),
-      damage_in_y(false), yc_limit(false) {
+template <Int dim>
+MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
+    : MaterialDamage<dim>(model, id), Yd("Yd", *this), damage_in_y(false),
+      yc_limit(false) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sd", Sd, Real(5000.), _pat_parsable | _pat_modifiable);
@@ -59,10 +46,9 @@ MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigo<spatial_dimension>::initMaterial() {
+template <Int dim> void MaterialMarigo<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage<spatial_dimension>::initMaterial();
+  MaterialDamage<dim>::initMaterial();
 
   updateInternalParameters();
 
@@ -70,35 +56,35 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigo<spatial_dimension>::updateInternalParameters() {
-  MaterialDamage<spatial_dimension>::updateInternalParameters();
+template <Int dim> void MaterialMarigo<dim>::updateInternalParameters() {
+  MaterialDamage<dim>::updateInternalParameters();
   Yc = .5 * epsilon_c * this->E * epsilon_c;
   yc_limit = (std::abs(epsilon_c) > std::numeric_limits<Real>::epsilon());
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
-                                                      GhostType ghost_type) {
+template <Int dim>
+void MaterialMarigo<dim>::computeStress(ElementType el_type,
+                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto dam = this->damage(el_type, ghost_type).begin();
-  auto Yd_q = this->Yd(el_type, ghost_type).begin();
+  Y = 0.;
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  auto && arguments = getArguments(el_type, ghost_type);
 
-  Real Y = 0.;
-  computeStressOnQuad(grad_u, sigma, *dam, Y, *Yd_q);
-
-  ++dam;
-  ++Yd_q;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && data : arguments) {
+    computeStressOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
-INSTANTIATE_MATERIAL(marigo, MaterialMarigo);
+/* -------------------------------------------------------------------------- */
+template class MaterialMarigo<1>;
+template class MaterialMarigo<2>;
+template class MaterialMarigo<3>;
+
+static bool material_is_alocated_marigo =
+    instantiateMaterial<MaterialMarigo>("marigo");
 
 } // namespace akantu

@@ -1,19 +1,8 @@
 /**
- * @file   test_material.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date creation: Sat Sep 26 2015
- * @date last modification:  Wed Jan 30 2019
- *
- * @brief  Implementation of test material for the non-local neighborhood base
- * test
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,14 +16,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "test_material.hh"
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 TestMaterial<dim>::TestMaterial(SolidMechanicsModel & model, const ID & id)
     : Parent(model, id), grad_u_nl("grad_u non local", *this) {
   this->is_non_local = true;
@@ -42,7 +30,7 @@ TestMaterial<dim>::TestMaterial(SolidMechanicsModel & model, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void TestMaterial<dim>::registerNonLocalVariables() {
+template <Int dim> void TestMaterial<dim>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(
       this->gradu.getName(), grad_u_nl.getName(), dim * dim);
 
@@ -53,5 +41,11 @@ template <UInt dim> void TestMaterial<dim>::registerNonLocalVariables() {
 
 /* -------------------------------------------------------------------------- */
 // Instantiate the material for the 3 dimensions
-INSTANTIATE_MATERIAL(test_material, TestMaterial);
+template class TestMaterial<1>;
+template class TestMaterial<2>;
+template class TestMaterial<3>;
+
+static bool material_is_allocated_test_material =
+    instantiateMaterial<TestMaterial>("test_material");
+
 /* -------------------------------------------------------------------------- */

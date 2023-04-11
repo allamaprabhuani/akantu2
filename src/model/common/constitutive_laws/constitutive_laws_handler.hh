@@ -54,7 +54,7 @@ class ConstitutiveLawsHandler : public Model_,
   /* ------------------------------------------------------------------------ */
 public:
   ConstitutiveLawsHandler(Mesh & mesh, const ModelType & type,
-                          UInt spatial_dimension, const ID & parent_id)
+                          Int spatial_dimension, const ID & parent_id)
       : Model_(mesh, type, spatial_dimension, parent_id),
         constitutive_law_index("constitutive_law index", parent_id),
         constitutive_law_local_numbering("constitutive_law local numbering",
@@ -64,7 +64,7 @@ public:
             constitutive_law_index);
 
     constitutive_law_index.initialize(mesh, _element_kind = _ek_not_defined,
-                                      _default_value = UInt(-1),
+                                      _default_value = -1,
                                       _with_nb_element = true);
 
     constitutive_law_local_numbering.initialize(
@@ -78,12 +78,11 @@ public:
   class NewConstitutiveLawElementsEvent : public NewElementsEvent {
   public:
     AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawList, constitutive_law,
-                               Array<UInt> &);
-    AKANTU_GET_MACRO(ConstitutiveLawList, constitutive_law,
-                     const Array<UInt> &);
+                               Array<Idx> &);
+    AKANTU_GET_MACRO(ConstitutiveLawList, constitutive_law, const Array<Idx> &);
 
   protected:
-    Array<UInt> constitutive_law;
+    Array<Idx> constitutive_law;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -122,7 +121,7 @@ protected:
   /// set the element_id_by_constitutive_law and add the elements to the good
   /// constitutive_laws
   virtual void assignConstitutiveLawToElements(
-      const ElementTypeMapArray<UInt> * filter = nullptr);
+      const ElementTypeMapArray<Idx> * filter = nullptr);
 
 protected:
   void splitElementByConstitutiveLaw(
@@ -141,7 +140,7 @@ public:
   bool isInternal(const std::string & field_name, ElementKind element_kind);
 
   //! give the amount of data per element
-  virtual ElementTypeMap<UInt>
+  virtual ElementTypeMap<Int>
   getInternalDataPerElem(const std::string & field_name, ElementKind kind);
 
   //! flatten a given constitutive_law internal field
@@ -163,10 +162,10 @@ public:
   inline decltype(auto) getConstitutiveLaws() const;
 
   /// get a particular constitutive_law (by numerical constitutive_law index)
-  inline auto & getConstitutiveLaw(UInt cl_index);
+  inline auto & getConstitutiveLaw(Idx cl_index);
 
   /// get a particular constitutive_law (by numerical constitutive_law index)
-  inline const auto & getConstitutiveLaw(UInt cl_index) const;
+  inline const auto & getConstitutiveLaw(Idx cl_index) const;
 
   /// get a particular constitutive_law (by constitutive_law name)
   inline auto & getConstitutiveLaw(const std::string & name);
@@ -181,10 +180,10 @@ public:
   inline const auto & getConstitutiveLaw(const Element & element) const;
 
   /// get a particular constitutive_law id from is name
-  inline UInt getConstitutiveLawIndex(const std::string & name) const;
+  inline Idx getConstitutiveLawIndex(const std::string & name) const;
 
   /// give the number of constitutive_laws
-  inline UInt getNbConstitutiveLaws() const { return constitutive_laws.size(); }
+  inline Int getNbConstitutiveLaws() const { return constitutive_laws.size(); }
 
   /// give the constitutive_law internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
@@ -193,26 +192,22 @@ public:
   ParserType getConstitutiveLawParserType() const { return this->parser_type; }
 
 protected:
-  AKANTU_GET_MACRO(ConstitutiveLawByElement, constitutive_law_index,
-                   const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO(ConstitutiveLawLocalNumbering,
-                   constitutive_law_local_numbering,
-                   const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_AUTO(ConstitutiveLawByElement, constitutive_law_index);
+  AKANTU_GET_MACRO_AUTO(ConstitutiveLawLocalNumbering,
+                        constitutive_law_local_numbering);
 
-  AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawByElement, constitutive_law_index,
-                             ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawLocalNumbering,
-                             constitutive_law_local_numbering,
-                             ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(ConstitutiveLawByElement,
+                                  constitutive_law_index);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(ConstitutiveLawLocalNumbering,
+                                  constitutive_law_local_numbering);
 
 public:
   /// vectors containing local constitutive_law element index for each global
   /// element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConstitutiveLawByElement,
-                                         constitutive_law_index, UInt);
+                                         constitutive_law_index, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConstitutiveLawLocalNumbering,
-                                         constitutive_law_local_numbering,
-                                         UInt);
+                                         constitutive_law_local_numbering, Idx);
 
   AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawSelector,
                              *constitutive_law_selector,
@@ -222,7 +217,7 @@ public:
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
 
   /// Tells if the constitutive laws are non local
-  bool isNonLocal() const { return static_cast<bool>(non_local_manager); }
+  auto isNonLocal() const { return static_cast<bool>(non_local_manager); }
 
   void setConstitutiveLawSelector(
       std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector) {
@@ -233,8 +228,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -249,7 +244,7 @@ protected:
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
   void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
 
   /* ------------------------------------------------------------------------ */
@@ -279,14 +274,14 @@ protected:
 
 private:
   /// mapping between constitutive_law name and constitutive_law internal id
-  std::map<std::string, UInt> constitutive_laws_names_to_id;
+  std::map<std::string, Idx> constitutive_laws_names_to_id;
 
   /// Arrays containing the constitutive_law index for each element
-  ElementTypeMapArray<UInt> constitutive_law_index;
+  ElementTypeMapArray<Idx> constitutive_law_index;
 
   /// Arrays containing the position in the element filter of the
   /// constitutive_law (constitutive_law's local numbering)
-  ElementTypeMapArray<UInt> constitutive_law_local_numbering;
+  ElementTypeMapArray<Idx> constitutive_law_local_numbering;
 
   /// list of used constitutive_laws
   std::vector<std::unique_ptr<ConstitutiveLawType>> constitutive_laws;

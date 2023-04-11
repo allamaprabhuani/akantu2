@@ -1,19 +1,8 @@
 /**
- * @file   test_cohesive_intrinsic_impl.cc
- *
- * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Sun Dec 30 2018
- *
- * @brief  Test for cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +34,7 @@ int main(int argc, char * argv[]) {
 
   debug::setDebugLevel(dblError);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
@@ -70,7 +58,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & displacement = model.getDisplacement();
   const ElementType type_facet = mesh.getFacetType(type);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int n = 0; n < nb_nodes; ++n) {
 
     if (std::abs(position(n, 1)) < Math::getTolerance()) {
       boundary(n, 1) = true;
@@ -129,8 +117,8 @@ int main(int argc, char * argv[]) {
   solver.set("convergence_type", SolveConvergenceCriteria::_residual);
 
   /// Main loop
-  for (UInt nstep = 0; nstep < max_step; ++nstep) {
-    for (UInt n = 0; n < nb_nodes; ++n) {
+  for (Int nstep = 0; nstep < max_step; ++nstep) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (std::abs(position(n, 1) - 2) < Math::getTolerance()) {
         displacement(n, 1) += increment;
       }
@@ -141,7 +129,7 @@ int main(int argc, char * argv[]) {
     //    model.dump();
 
     Real resid = 0;
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (Int n = 0; n < nb_nodes; ++n) {
       if (std::abs(position(n, 1) - 2.) / 2. < Math::getTolerance()) {
         resid += residual(n, 1);
       }

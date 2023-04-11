@@ -1,18 +1,8 @@
 /**
- * @file   ntn_fricreg_simplified_prakash_clifton.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Fri Jul 19 2019
- *
- * @brief  implementation of simplified prakash clifton with one parameter
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,8 +51,8 @@ void NTNFricRegSimplifiedPrakashClifton::computeFrictionalStrength() {
   SolidMechanicsModel & model = this->contact.getModel();
   Real delta_t = model.getTimeStep();
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     Real alpha = delta_t / this->t_star(n);
     this->frictional_strength(n) += alpha * this->spc_internal(n);
     this->frictional_strength(n) /= 1 + alpha;
@@ -80,8 +69,8 @@ void NTNFricRegSimplifiedPrakashClifton::setToSteadyState() {
   computeFrictionalStrength();
 
   /// set strength without regularisation
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     this->frictional_strength(n) = this->spc_internal(n);
   }
 

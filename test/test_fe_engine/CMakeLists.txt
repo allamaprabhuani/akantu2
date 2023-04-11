@@ -1,21 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Lucas Frerot <lucas.frerot@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Sun Oct 19 2014
-# @date last modification:  Tue Jun 30 2020
-#
-# @brief  configuration for FEM tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -37,7 +25,6 @@
 #===============================================================================
 function(register_fem_test operation type)
   set(_target test_${operation}${type})
-
   register_test(${_target}
     SOURCES test_${operation}.cc
     FILES_TO_COPY ${type}.msh
@@ -48,7 +35,7 @@ endfunction()
 
 #===============================================================================
 macro(register_mesh_types package)
-  package_get_element_types(${package} _types)
+  set(_types ${ARGN})
   foreach(_type ${_types})
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
       list(APPEND _meshes ${_type}.msh)
@@ -66,12 +53,27 @@ endmacro(register_mesh_types)
 
 set(_meshes)
 set(_csvs)
+set(_regular_types
+  _hexahedron_8
+  _hexahedron_20
+  _pentahedron_6
+  _pentahedron_15
+  _quadrangle_4
+  _quadrangle_8
+  _segment_2
+  _segment_3
+  _tetrahedron_4
+  _tetrahedron_10
+  _triangle_3
+  _triangle_6
+  )
 
-register_mesh_types(core)
+
+register_mesh_types(core ${_regular_types})
 
 package_is_activated(structural_mechanics has_structural_mechanics)
 if(has_structural_mechanics)
-  register_mesh_types(structural_mechanics)
+  register_mesh_types(structural_mechanics _bernoulli_beam_2;_bernoulli_beam_3;_discrete_kirchhoff_triangle_18)
 endif()
 
 # Tests for class MeshData

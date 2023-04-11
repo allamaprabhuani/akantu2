@@ -1,20 +1,8 @@
 /**
- * @file   element_class_hexahedron_8_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Peter Spijker <peter.spijker@epfl.ch>
- *
- * @date creation: Mon Mar 14 2011
- * @date last modification: Fri Feb 07 2020
- *
- * @brief  Specialization of the element_class class for the type _hexahedron_8
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**
@@ -122,9 +109,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_8, _gt_hexahedron_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &N) {
   /// Natural coordinates
   N(0) = .125 * (1 - c(0)) * (1 - c(1)) * (1 - c(2)); /// N1(q_0)
   N(1) = .125 * (1 + c(0)) * (1 - c(1)) * (1 - c(2)); /// N2(q_0)
@@ -137,9 +125,9 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Eigen::MatrixBase<D1> &c, Eigen::MatrixBase<D2> &dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -177,76 +165,48 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
   dnds(0, 2) = .125 * (1 + c(1)) * (1 - c(2));
   dnds(0, 3) = -.125 * (1 + c(1)) * (1 - c(2));
   dnds(0, 4) = -.125 * (1 - c(1)) * (1 + c(2));
-  ;
   dnds(0, 5) = .125 * (1 - c(1)) * (1 + c(2));
-  ;
   dnds(0, 6) = .125 * (1 + c(1)) * (1 + c(2));
-  ;
   dnds(0, 7) = -.125 * (1 + c(1)) * (1 + c(2));
-  ;
 
   dnds(1, 0) = -.125 * (1 - c(0)) * (1 - c(2));
-  ;
   dnds(1, 1) = -.125 * (1 + c(0)) * (1 - c(2));
-  ;
   dnds(1, 2) = .125 * (1 + c(0)) * (1 - c(2));
-  ;
   dnds(1, 3) = .125 * (1 - c(0)) * (1 - c(2));
-  ;
   dnds(1, 4) = -.125 * (1 - c(0)) * (1 + c(2));
-  ;
   dnds(1, 5) = -.125 * (1 + c(0)) * (1 + c(2));
-  ;
   dnds(1, 6) = .125 * (1 + c(0)) * (1 + c(2));
-  ;
   dnds(1, 7) = .125 * (1 - c(0)) * (1 + c(2));
-  ;
 
   dnds(2, 0) = -.125 * (1 - c(0)) * (1 - c(1));
-  ;
   dnds(2, 1) = -.125 * (1 + c(0)) * (1 - c(1));
-  ;
   dnds(2, 2) = -.125 * (1 + c(0)) * (1 + c(1));
-  ;
   dnds(2, 3) = -.125 * (1 - c(0)) * (1 + c(1));
-  ;
   dnds(2, 4) = .125 * (1 - c(0)) * (1 - c(1));
-  ;
   dnds(2, 5) = .125 * (1 + c(0)) * (1 - c(1));
-  ;
   dnds(2, 6) = .125 * (1 + c(0)) * (1 + c(1));
-  ;
   dnds(2, 7) = .125 * (1 - c(0)) * (1 + c(1));
-  ;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_hexahedron_8>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
-  Vector<Real> u6 = coord(6);
-  Vector<Real> u7 = coord(7);
+template <class D>
+inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
+    const Eigen::MatrixBase<D> &X) {
+  auto &&a = (X(0) - X(1)).norm();
+  auto &&b = (X(1) - X(2)).norm();
+  auto &&c = (X(2) - X(3)).norm();
+  auto &&d = (X(3) - X(0)).norm();
+  auto &&e = (X(0) - X(4)).norm();
+  auto &&f = (X(1) - X(5)).norm();
+  auto &&g = (X(2) - X(6)).norm();
+  auto &&h = (X(3) - X(7)).norm();
+  auto &&i = (X(4) - X(5)).norm();
+  auto &&j = (X(5) - X(6)).norm();
+  auto &&k = (X(6) - X(7)).norm();
+  auto &&l = (X(7) - X(4)).norm();
 
-  Real a = u0.distance(u1);
-  Real b = u1.distance(u2);
-  Real c = u2.distance(u3);
-  Real d = u3.distance(u0);
-  Real e = u0.distance(u4);
-  Real f = u1.distance(u5);
-  Real g = u2.distance(u6);
-  Real h = u3.distance(u7);
-  Real i = u4.distance(u5);
-  Real j = u5.distance(u6);
-  Real k = u6.distance(u7);
-  Real l = u7.distance(u4);
-
-  Real p = std::min({a, b, c, d, e, f, g, h, i, j, k, l});
+  auto p = std::min({a, b, c, d, e, f, g, h, i, j, k, l});
 
   return p;
 }

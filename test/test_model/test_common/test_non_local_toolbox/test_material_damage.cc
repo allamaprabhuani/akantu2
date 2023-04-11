@@ -1,19 +1,8 @@
 /**
- * @file   test_material_damage.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sat Sep 26 2015
- * @date last modification:  Wed Jan 30 2019
- *
- * @brief  Implementation of test material damage
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,7 +23,7 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 TestMaterialDamage<dim>::TestMaterialDamage(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), grad_u_nl("grad_u non local", *this) {
@@ -44,7 +32,7 @@ TestMaterialDamage<dim>::TestMaterialDamage(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
+template <Int dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(
       this->gradu.getName(), grad_u_nl.getName(), dim * dim);
 
@@ -55,5 +43,11 @@ template <UInt dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
 
 /* -------------------------------------------------------------------------- */
 // Instantiate the material for the 3 dimensions
-INSTANTIATE_MATERIAL(test_material, TestMaterialDamage);
+template class TestMaterialDamage<1>;
+template class TestMaterialDamage<2>;
+template class TestMaterialDamage<3>;
+
+static bool material_is_allocated_test_material =
+    instantiateMaterial<TestMaterialDamage>("test_material");
+
 /* -------------------------------------------------------------------------- */

@@ -1,19 +1,8 @@
 /**
- * @file   test_material_mazars.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- *
- * @date creation: Thu Oct 08 2015
- * @date last modification:  Wed Jun 05 2019
- *
- * @brief  test for material mazars, dissymmetric
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,7 +32,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(akantu::dblWarning);
 
   akantu::initialize("material_mazars.dat", argc, argv);
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   //  ElementType type = _quadrangle_4;
   ElementType type = _hexahedron_8;
@@ -139,7 +127,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & velo = model.getVelocity();
   Array<bool> & boun = model.getBlockedDOFs();
 
-  for (UInt i = 0; i < nb_dof; ++i) {
+  for (Int i = 0; i < nb_dof; ++i) {
     boun(i, 0) = true;
   }
 
@@ -182,7 +170,7 @@ int main(int argc, char * argv[]) {
   UInt nb_steps = 7e5 / 150;
 
   Real adisp = 0;
-  for (UInt s = 0; s < nb_steps; ++s) {
+  for (Int s = 0; s < nb_steps; ++s) {
     if (s == 0) {
       max_disp = 0.003;
       adisp = -(max_disp * 8. / nb_steps) / 2.;
@@ -233,7 +221,7 @@ int main(int argc, char * argv[]) {
       std::cout << "Step " << s << " discharge" << std::endl;
     }
 
-    for (UInt i = 0; i < nb_dof; ++i) {
+    for (Int i = 0; i < nb_dof; ++i) {
       if (std::abs(nodes(i, 0) - width) <
           std::numeric_limits<Real>::epsilon()) {
         disp(i, 0) += adisp;

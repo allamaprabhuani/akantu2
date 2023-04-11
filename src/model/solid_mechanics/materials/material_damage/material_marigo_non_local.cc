@@ -1,19 +1,8 @@
 /**
- * @file   material_marigo_non_local.cc
- *
- * @author Marion Estelle Chambart <mchambart@stucky.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Marigo non-local inline function implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,11 +26,10 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialMarigoNonLocal<spatial_dimension>::MaterialMarigoNonLocal(
-    SolidMechanicsModel & model, const ID & id)
-    : MaterialMarigoNonLocalParent(model, id), Y("Y", *this),
-      Ynl("Y non local", *this) {
+template <Int dim>
+MaterialMarigoNonLocal<dim>::MaterialMarigoNonLocal(SolidMechanicsModel & model,
+                                                    const ID & id)
+    : parent(model, id), Y("Y", *this), Ynl("Y non local", *this) {
   AKANTU_DEBUG_IN();
   this->is_non_local = true;
   this->Y.initialize(1);
@@ -51,8 +38,8 @@ MaterialMarigoNonLocal<spatial_dimension>::MaterialMarigoNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigoNonLocal<spatial_dimension>::registerNonLocalVariables() {
+template <Int dim>
+void MaterialMarigoNonLocal<dim>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(this->Y.getName(),
                                                             Ynl.getName(), 1);
   this->model.getNonLocalManager()
@@ -61,47 +48,41 @@ void MaterialMarigoNonLocal<spatial_dimension>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigoNonLocal<spatial_dimension>::computeStress(
-    ElementType el_type, GhostType ghost_type) {
+template <Int dim>
+void MaterialMarigoNonLocal<dim>::computeStress(ElementType el_type,
+                                                GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Yt = this->Y(el_type, ghost_type).storage();
-  Real * Ydq = this->Yd(el_type, ghost_type).storage();
+  auto && arguments = getArguments(el_type, ghost_type);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  MaterialMarigo<spatial_dimension>::computeStressOnQuad(grad_u, sigma, *dam,
-                                                         *Yt, *Ydq);
-  ++dam;
-  ++Yt;
-  ++Ydq;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && data : arguments) {
+    MaterialMarigo<dim>::computeStressOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(
-    ElementType type, GhostType ghost_type) {
+template <Int dim>
+void MaterialMarigoNonLocal<dim>::computeNonLocalStress(ElementType el_type,
+                                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(type, ghost_type).storage();
-  Real * Ydq = this->Yd(type, ghost_type).storage();
-  Real * Ynlt = this->Ynl(type, ghost_type).storage();
+  auto && arguments = getArgumentsNonLocal(el_type, ghost_type);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(type, ghost_type);
-  this->computeDamageAndStressOnQuad(sigma, *dam, *Ynlt, *Ydq);
-
-  ++dam;
-  ++Ynlt;
-  ++Ydq;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && data : arguments) {
+    this->computeDamageAndStressOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
-INSTANTIATE_MATERIAL(marigo_non_local, MaterialMarigoNonLocal);
+/* -------------------------------------------------------------------------- */
+template class MaterialMarigoNonLocal<1>;
+template class MaterialMarigoNonLocal<2>;
+template class MaterialMarigoNonLocal<3>;
+
+static bool material_is_alocated_marigo_non_local =
+    instantiateMaterial<MaterialMarigo>("marigo_non_local");
 
 } // namespace akantu

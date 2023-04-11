@@ -1,19 +1,8 @@
 /**
- * @file   test_fe_engine_precomputation_bernoulli_2.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu Jan 25 2018
- *
- * @brief  test of the fem class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -76,8 +64,7 @@ bool testBending(const Array<Real> & shape_functions, UInt shape_line_index,
     auto Nt = N.transpose();
     Vector<Real> N_bending = Nt(shape_line_index);
     auto bending_reference = reference(xq);
-    if (!Math::are_vector_equal(6, N_bending.storage(),
-                                bending_reference.storage()))
+    if (!Math::are_vector_equal(6, N_bending.data(), bending_reference.data()))
       return false;
     xq *= -1;
   }
@@ -91,7 +78,7 @@ int main(int argc, char * argv[]) {
   // debug::setDebugLevel(dblTest);
 
   constexpr ElementType type = _bernoulli_beam_2;
-  UInt dim = ElementClass<type>::getSpatialDimension();
+  Int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
   // creating nodes
@@ -133,7 +120,7 @@ int main(int argc, char * argv[]) {
     auto theta = std::get<1>(tuple);
     auto reference = globalToLocalRotation(theta);
 
-    if (!Math::are_vector_equal(9, reference.storage(), rotation.storage()))
+    if (!Math::are_vector_equal(9, reference.data(), rotation.data()))
       return 1;
   }
 

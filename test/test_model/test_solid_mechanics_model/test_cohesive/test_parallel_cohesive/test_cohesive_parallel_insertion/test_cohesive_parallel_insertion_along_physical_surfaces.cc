@@ -1,19 +1,8 @@
 /**
- * @file   test_cohesive_parallel_insertion_along_physical_surfaces.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- *
- * @date creation: Fri Oct 13 2017
- * @date last modification:  Wed Nov 08 2017
- *
- * @brief  Test parallel intrinsic insertion of cohesive elements along physical
- * surfaces
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +41,7 @@ int main(int argc, char * argv[]) {
 
   Math::setTolerance(1e-15);
 
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
 
   Mesh mesh(spatial_dimension);
 
@@ -98,11 +86,11 @@ int main(int argc, char * argv[]) {
       Array<UInt> & material_id = mesh.getMeshFacets().getData<UInt>(
           "physical_names")(mesh.getFacetType(*it), *gt);
 
-      for (UInt i = 0; i < nb_surf; ++i) {
+      for (Int i = 0; i < nb_surf; ++i) {
 
         UInt expected_insertion = 0;
 
-        for (UInt m = 0; m < material_id.getSize(); ++m) {
+        for (Int m = 0; m < material_id.getSize(); ++m) {
           if (material_id(m) ==
               model.SolidMechanicsModel::getMaterialIndex(surfaces_name[i]))
             ++expected_insertion;

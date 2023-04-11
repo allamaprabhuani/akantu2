@@ -1,27 +1,21 @@
 /**
- * @file   test_volume_computation.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief  test the volume computation for the different sub-materials
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +48,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +61,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -120,7 +114,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & pos = mesh.getNodes();
   Array<bool> & boun = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (std::abs(pos(n, 1) - bottom) < eps) {
       boun(n, 1) = true;
       disp(n, 1) = 0.;
@@ -211,7 +205,7 @@ int main(int argc, char * argv[]) {
   const Array<UInt> & sub_mat =
       igfem_material.getInternal<UInt>("sub_material")(igfem_type, _not_ghost);
   Array<Real> sub_mat_to_real(sub_mat.getSize(), 1, 1.);
-  for (UInt i = 0; i < sub_mat.getSize(); ++i)
+  for (Int i = 0; i < sub_mat.getSize(); ++i)
     sub_mat_to_real(i) = Real(sub_mat(i));
 
   Real volume_outside = model.getFEEngine("IGFEMFEEngine")

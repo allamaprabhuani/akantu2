@@ -1,19 +1,8 @@
 /**
- * @file   dumper_elemental_field.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  description of elemental fields
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef AKANTU_DUMPER_ELEMENTAL_FIELD_HH_
@@ -42,40 +30,34 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
-  template <typename T, template <class> class ret = Vector,
+  template <typename T, class ret = Vector<T>,
             bool filtered = false>
   class ElementalField
       : public GenericElementalField<SingleType<T, ret, filtered>,
                                      elemental_field_iterator> {
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Typedefs */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     using types = SingleType<T, ret, filtered>;
     using field_type = typename types::field_type;
     using iterator = elemental_field_iterator<types>;
     using support_type = Element;
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
     /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
   public:
     ElementalField(const field_type & field,
-                   UInt spatial_dimension = _all_dimensions,
+                   Int spatial_dimension = _all_dimensions,
                    GhostType ghost_type = _not_ghost,
                    ElementKind element_kind = _ek_not_defined)
         : GenericElementalField<types, elemental_field_iterator>(
               field, spatial_dimension, ghost_type, element_kind) {}
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
 } // namespace dumpers
 } // namespace akantu

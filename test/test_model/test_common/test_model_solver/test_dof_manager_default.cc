@@ -1,18 +1,8 @@
 /**
- * @file   test_dof_manager_default.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Feb 26 2016
- * @date last modification:  Wed Jan 30 2019
- *
- * @brief  Test default dof manager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,7 +33,7 @@ using namespace akantu;
  */
 class MySolverCallback : public SolverCallback {
 public:
-  MySolverCallback(Real F, DOFManagerDefault & dof_manager, UInt nb_dofs = 3)
+  MySolverCallback(Real F, DOFManagerDefault & dof_manager, Int nb_dofs = 3)
       : dof_manager(dof_manager), dispacement(nb_dofs, 1, "disp"),
         blocked(nb_dofs, 1), forces(nb_dofs, 1), nb_dofs(nb_dofs) {
     dof_manager.registerDOFs("disp", dispacement, _dst_generic);
@@ -65,9 +54,9 @@ public:
     auto & K = dynamic_cast<SparseMatrixAIJ &>(dof_manager.getMatrix("K"));
     K.zero();
 
-    for (UInt i = 1; i < nb_dofs - 1; ++i)
+    for (Int i = 1; i < nb_dofs - 1; ++i)
       K.add(i, i, 2.);
-    for (UInt i = 0; i < nb_dofs - 1; ++i)
+    for (Int i = 0; i < nb_dofs - 1; ++i)
       K.add(i, i + 1, -1.);
 
     K.add(0, 0, 1);
@@ -96,7 +85,7 @@ public:
   Array<bool> blocked;
   Array<Real> forces;
 
-  UInt nb_dofs;
+  Int nb_dofs;
 };
 
 int main(int argc, char * argv[]) {

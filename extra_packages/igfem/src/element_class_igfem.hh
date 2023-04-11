@@ -1,17 +1,23 @@
 /**
- * @file   element_class_igfem.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- *
- * @brief  Specialization for interface-enriched finite elements
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
@@ -134,7 +140,7 @@ namespace akantu {
     static const ElementType sub_element_type_1{sub_el_type_1};                \
     static const ElementType sub_element_type_2{sub_el_type_2};                \
     static const ElementKind element_kind{elem_kind};                          \
-    static const UInt spatial_dimension{sp};                                   \
+    static const Int spatial_dimension{sp};                                    \
     static const UInt minimal_integration_order{min_int_order};                \
   }
 
@@ -179,7 +185,7 @@ public:
       break;
     }
 
-    for (UInt i = 0; i < nb_nodes_sub_el; ++i) {
+    for (Int i = 0; i < nb_nodes_sub_el; ++i) {
       UInt lc = InterpolationElement<
           ElementClassProperty<element_type>::interpolation_type>::
           sub_element_connectivity[sub_element][i];
@@ -194,7 +200,7 @@ public:
         ElementClassProperty<element_type>::parent_element_type;
     UInt nb_nodes_parent_el =
         ElementClass<parent_type>::getNbNodesPerInterpolationElement();
-    for (UInt i = 0; i < nb_nodes_parent_el; ++i) {
+    for (Int i = 0; i < nb_nodes_parent_el; ++i) {
       Vector<Real> parent_c(parent_coords(i));
       parent_c = element_coords(i);
     }

@@ -1,19 +1,8 @@
 /**
- * @file   custom_non_local_test_material.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sun Mar 01 2015
- * @date last modification:  Mon Sep 11 2017
- *
- * @brief  Custom material to test the non local implementation
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +25,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
     SolidMechanicsModel & model, const ID & id)
     : MyNonLocalParent(model, id), local_damage("local_damage", *this),
@@ -48,7 +36,7 @@ CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
   /// register the non-local variable in the manager
   this->model.getNonLocalManager().registerNonLocalVariable(
@@ -60,19 +48,19 @@ void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void CustomNonLocalTestMaterial<dim>::initMaterial() {
+template <Int dim> void CustomNonLocalTestMaterial<dim>::initMaterial() {
   MyNonLocalParent::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeStress(ElementType el_type,
                                                     GhostType ghost_type) {
   MyNonLocalParent::computeStress(el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
   Array<Real>::const_scalar_iterator dam =
@@ -90,7 +78,12 @@ void CustomNonLocalTestMaterial<dim>::computeNonLocalStress(
 
 /* -------------------------------------------------------------------------- */
 // Instantiate the material for the 3 dimensions
-INSTANTIATE_MATERIAL(custom_non_local_test_material,
-                     CustomNonLocalTestMaterial);
+template class CustomNonLocalTestMaterial<1>;
+template class CustomNonLocalTestMaterial<2>;
+template class CustomNonLocalTestMaterial<3>;
+
+static bool material_is_allocated_custom_non_local_test_material =
+    instantiateMaterial<CustomNonLocalTestMaterial>(
+        "custom_non_local_test_material");
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

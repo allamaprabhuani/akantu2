@@ -1,18 +1,8 @@
 /**
- * @file   py_material_selector.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed May 26 2021
- * @date last modification: Wed May 26 2021
- *
- * @brief  Material selector python binding
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -58,9 +47,9 @@ namespace {
 
     ~PyMaterialSelector() override = default;
 
-    UInt operator()(const Element & element) override {
+    Idx operator()(const Element & element) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_NAME(UInt, MaterialSelector, "__call__", operator(),
+      PYBIND11_OVERRIDE_NAME(Idx, MaterialSelector, "__call__", operator(),
                              element);
     }
   };
@@ -90,7 +79,7 @@ void register_material_selector(py::module & mod) {
 
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
-      .def(py::init<const ElementTypeMapArray<UInt> &>());
+      .def(py::init<const ElementTypeMapArray<Int> &>());
 
   register_material_selectors<MeshDataMaterialSelector<std::string>>(
       mod, "MeshDataMaterialSelectorString")

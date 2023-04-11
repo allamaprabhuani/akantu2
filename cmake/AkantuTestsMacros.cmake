@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   AkantuTestsMacros.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Fri Sep 03 2010
-# @date last modification: Tue Jun 30 2020
-#
-# @brief  macros for tests
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -355,7 +345,7 @@ function(register_gtest_test test_name)
 
   set(_argn ${test_name}_gtest)
 
-  set(_link_libraries GTest::GTest GTest::Main)
+  set(_link_libraries gtest_main)
 
   list(FIND _gtest_PACKAGE python_interface _pos)
   package_is_activated(python_interface _python_interface_act)
@@ -578,13 +568,13 @@ function(register_test test_name)
 
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
     list(APPEND _arguments -r "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
-  endif()
+    endif()
 
   if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
     list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
-  string(REPLACE ";" " " _command "${_arguments}")
+  #string(REPLACE ";" " " _command "${_arguments}")
 
   # register them test
   if(_procs)
@@ -597,7 +587,6 @@ function(register_test test_name)
     set_property(TEST ${test_name} PROPERTY PROCESSORS 1)
   endif()
 endfunction()
-
 
 function(register_test_files_to_package)
   cmake_parse_arguments(_register_test

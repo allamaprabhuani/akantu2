@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Tue Jan 30 2018
-# @date last modification:  Tue Jan 30 2018
-#
-# @brief  CMakeLists patch test data
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -61,11 +51,25 @@ add_mesh(bar_pentahedron_15 bar_pentahedron.geo
 set(_patch_tests_meshes)
 set(_patch_tests_bar_meshes)
 package_get_variable(ET_ELEMENT_TYPES core _element_list)
+
+set(_element_list
+  _hexahedron_8
+  _hexahedron_20
+  _pentahedron_6
+  _pentahedron_15
+  _quadrangle_4
+  _quadrangle_8
+  _segment_2
+  _segment_3
+  _tetrahedron_4
+  _tetrahedron_10
+  _triangle_3
+  _triangle_6
+  )
+
 foreach(_et ${_element_list})
-  if(NOT _et STREQUAL _point_1)
-    list(APPEND _patch_tests_meshes ${CMAKE_CURRENT_SOURCE_DIR}/${_et}.msh)
-    list(APPEND _patch_tests_bar_meshes bar${_et})
-  endif()
+  list(APPEND _patch_tests_meshes ${CMAKE_CURRENT_SOURCE_DIR}/${_et}.msh)
+  list(APPEND _patch_tests_bar_meshes bar${_et})
 endforeach()
 
 set(PATCH_TEST_MESHES ${_patch_tests_meshes}

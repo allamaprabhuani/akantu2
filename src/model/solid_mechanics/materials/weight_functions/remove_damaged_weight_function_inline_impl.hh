@@ -1,20 +1,8 @@
 /**
- * @file   remove_damaged_weight_function_inline_impl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Mon Aug 24 2015
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of inline function of remove damaged weight function
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "remove_damaged_weight_function.hh"
+//#include "remove_damaged_weight_function.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_INLINE_IMPL_HH_
@@ -67,7 +54,7 @@ inline void RemoveDamagedWeightFunction::init() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt
+inline Int
 RemoveDamagedWeightFunction::getNbData(const Array<Element> & elements,
                                        const SynchronizationTag & tag) const {
 

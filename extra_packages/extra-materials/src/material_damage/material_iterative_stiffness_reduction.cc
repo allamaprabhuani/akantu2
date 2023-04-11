@@ -1,27 +1,21 @@
 /**
- * @file   material_iterative_stiffness_reduction.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Feb 18 16:03:56 2016
- *
- * @brief  Implementation of material iterative stiffness reduction
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +27,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialIterativeStiffnessReduction<spatial_dimension>::
     MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                         const ID & id)
@@ -56,7 +50,7 @@ MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamageIterative<spatial_dimension>::initMaterial();
@@ -84,7 +78,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -116,8 +110,8 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         (*Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -128,7 +122,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIterativeStiffnessReduction<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
 

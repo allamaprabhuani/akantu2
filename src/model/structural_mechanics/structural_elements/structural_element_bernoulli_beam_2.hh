@@ -1,21 +1,8 @@
 /**
- * @file   structural_element_bernoulli_beam_2.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Oct 11 2017
- * @date last modification: Fri Feb 05 2021
- *
- * @brief  Specific functions for bernoulli beam 2d
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +45,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_2>(
     auto E = materials[mat].E;
     auto A = materials[mat].A;
     auto I = materials[mat].I;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_it) {
+    for (Int q = 0; q < nb_quadrature_points; ++q, ++D_it) {
       auto & D = *D_it;
       D(0, 0) = E * A;
       D(1, 1) = E * I;

@@ -1,19 +1,8 @@
 /**
- * @file   material_selector_tmpl.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Implementation of the template MaterialSelector
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +29,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
+inline Int
 ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
   try {
     std::string material_name = this->elementData(element);
@@ -53,8 +41,8 @@ ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline UInt
-ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
+inline Int
+ElementDataMaterialSelector<Int>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -66,7 +54,7 @@ ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
 template <typename T>
 MeshDataMaterialSelector<T>::MeshDataMaterialSelector(
     const std::string & name, const SolidMechanicsModel & model,
-    UInt first_index)
+    Int first_index)
     : ElementDataMaterialSelector<T>(model.getMesh().getData<T>(name), model,
                                      first_index) {}
 

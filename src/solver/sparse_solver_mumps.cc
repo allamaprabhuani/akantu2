@@ -1,19 +1,8 @@
 /**
- * @file   sparse_solver_mumps.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Dec 13 2010
- * @date last modification: Wed Sep 02 2020
- *
- * @brief  implem of SparseSolverMumps class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -166,7 +154,7 @@ void SparseSolverMumps::initMumpsData() {
   // automatic choice for analysis
   icntl(28) = 0;
 
-  UInt size = A.size();
+  auto size = A.size();
 
   if (prank == 0) {
     this->master_rhs_solution.resize(size);
@@ -180,8 +168,8 @@ void SparseSolverMumps::initMumpsData() {
     icntl(18) = 3; // fully distributed
 
     this->mumps_data.nz_loc = A.getNbNonZero();
-    this->mumps_data.irn_loc = A.getIRN().storage();
-    this->mumps_data.jcn_loc = A.getJCN().storage();
+    this->mumps_data.irn_loc = A.getIRN().data();
+    this->mumps_data.jcn_loc = A.getJCN().data();
 
     break;
   case _not_parallel:
@@ -190,8 +178,8 @@ void SparseSolverMumps::initMumpsData() {
 
     if (prank == 0) {
       this->mumps_data.nz = A.getNbNonZero();
-      this->mumps_data.irn = A.getIRN().storage();
-      this->mumps_data.jcn = A.getJCN().storage();
+      this->mumps_data.irn = A.getIRN().data();
+      this->mumps_data.jcn = A.getJCN().data();
     } else {
       this->mumps_data.nz = 0;
       this->mumps_data.irn = nullptr;
@@ -265,10 +253,10 @@ void SparseSolverMumps::factorize() {
   auto & A = dof_manager.getMatrix(matrix_id);
 
   if (parallel_method == _fully_distributed) {
-    this->mumps_data.a_loc = A.getA().storage();
+    this->mumps_data.a_loc = A.getA().data();
   } else {
     if (prank == 0) {
-      this->mumps_data.a = A.getA().storage();
+      this->mumps_data.a = A.getA().data();
     }
   }
 
@@ -339,7 +327,7 @@ void SparseSolverMumps::solveInternal() {
   }
 
   if (prank == 0) {
-    this->mumps_data.rhs = this->master_rhs_solution.storage();
+    this->mumps_data.rhs = this->master_rhs_solution.data();
   }
 
   this->mumps_data.job = _smj_solve; // solve

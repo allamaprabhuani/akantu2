@@ -1,20 +1,8 @@
 /**
- * @file   model.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Interface of a model
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,7 +49,7 @@ class Model : public ModelSolver,
   /* ------------------------------------------------------------------------ */
 public:
   /// Normal constructor where the DOFManager is created internally
-  Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
+  Model(Mesh & mesh, const ModelType & type, Int dim = _all_dimensions,
         const ID & id = "model");
 
   ~Model() override;
@@ -185,7 +172,7 @@ public:
 
 protected:
   template <typename T>
-  void allocNodalField(std::unique_ptr<Array<T>> & array, UInt nb_component,
+  void allocNodalField(std::unique_ptr<Array<T>> & array, Int nb_component,
                        const ID & name) const;
 
   /* ------------------------------------------------------------------------ */
@@ -212,7 +199,7 @@ public:
   /// register a fem object associated with name
   template <typename FEEngineClass>
   inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                     UInt spatial_dimension);
+                                     Int spatial_dimension);
   /// unregister a fem object associated with name
   inline void unRegisterFEEngineObject(const std::string & name);
 
@@ -231,14 +218,14 @@ public:
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
 
   /// return the dimension of the system space
-  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, Int);
 
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack hexlper functions */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbIntegrationPoints(const Array<Element> & elements,
-                                     const ID & fem_id = ID()) const;
+  inline Int getNbIntegrationPoints(const Array<Element> & elements,
+                                    const ID & fem_id = ID()) const;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -281,7 +268,7 @@ public:
   virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
                                          const std::string & field_id,
                                          const std::string & group_name,
-                                         UInt spatial_dimension,
+                                         Int spatial_dimension,
                                          ElementKind element_kind,
                                          bool padding_flag);
 
@@ -306,9 +293,9 @@ public:
   }
 
   virtual std::shared_ptr<dumpers::Field>
-  createNodalFieldUInt(const std::string & /*field_name*/,
-                       const std::string & /*group_name*/,
-                       bool /*padding_flag*/) {
+  createNodalFieldInt(const std::string & /*field_name*/,
+                      const std::string & /*group_name*/,
+                      bool /*padding_flag*/) {
     return nullptr;
   }
 
@@ -321,7 +308,7 @@ public:
 
   virtual std::shared_ptr<dumpers::Field> createElementalField(
       const std::string & /*field_name*/, const std::string & /*group_name*/,
-      bool /*padding_flag*/, UInt /*spatial_dimension*/, ElementKind /*kind*/) {
+      bool /*padding_flag*/, Int /*spatial_dimension*/, ElementKind /*kind*/) {
     return nullptr;
   }
 
@@ -331,12 +318,12 @@ public:
 
   /* ------------------------------------------------------------------------ */
   virtual void dump(const std::string & dumper_name);
-  virtual void dump(const std::string & dumper_name, UInt step);
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  virtual void dump(const std::string & dumper_name, Int step);
+  virtual void dump(const std::string & dumper_name, Real time, Int step);
   /* ------------------------------------------------------------------------ */
   virtual void dump();
-  virtual void dump(UInt step);
-  virtual void dump(Real time, UInt step);
+  virtual void dump(Int step);
+  virtual void dump(Real time, Int step);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -354,7 +341,7 @@ protected:
   Mesh & mesh;
 
   /// Spatial dimension of the problem
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// the main fem object present in all  models
   FEEngineMap fems;

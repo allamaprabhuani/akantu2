@@ -1,18 +1,8 @@
 /**
- * @file   test_explicit_dynamic.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri Dec 11 2020
- * @date last modification: Sun Jun 06 2021
- *
- * @brief  Test for dynamic explicit contact
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +45,7 @@ int main(int argc, char * argv[]) {
   std::string mesh_file = "flat_on_flat.msh";
   std::string material_file = "material.dat";
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   initialize(material_file, argc, argv);
 
@@ -113,7 +102,7 @@ int main(int argc, char * argv[]) {
                                    (10 - 15 * p + 6 * pow(p, 2));
                  });
 
-  for (UInt s : arange(max_steps)) {
+  for (Int s : arange(max_steps)) {
 
     solid.applyBC(BC::Dirichlet::FixedValue(-displacements[s], _y), "loading");
     solid.applyBC(BC::Dirichlet::FixedValue(displacements[s], _y), "fixed");

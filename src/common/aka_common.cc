@@ -1,19 +1,8 @@
 /**
- * @file   aka_common.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jun 14 2010
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  Initialization of global variables
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -75,7 +63,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
       std::string("Akantu's overall debug level") +
           std::string(" (0: error, 1: exceptions, 4: warnings, 5: info, ..., "
                       "100: dump") +
-          std::string(" more info on levels can be foind in aka_error.hh)"),
+          std::string(" more info on levels can be found in aka_error.hh)"),
       1, cppargparse::_integer, (long int)(dblWarning));
 
   static_argparser.addArgument(
@@ -110,10 +98,15 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   }
 
   seed *= (comm.whoAmI() + 1);
-  RandomGenerator<UInt>::seed(seed);
+  RandomGenerator<Idx>::seed(seed);
 
   long int dbl_level = static_argparser["aka_debug_level"];
   debug::setDebugLevel(DebugLevel(dbl_level));
+
+  char * env_debug_level = std::getenv("AKA_DEBUG_LEVEL");
+  if (env_debug_level != nullptr) {
+    debug::setDebugLevel(DebugLevel(std::atoi(env_debug_level)));
+  }
 
   AKANTU_DEBUG_INFO("Random seed set to " << seed);
 

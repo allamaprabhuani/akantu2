@@ -1,19 +1,8 @@
 /**
- * @file   sparse_matrix_petsc.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Interface for PETSc matrices
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -36,6 +24,7 @@
 #define AKANTU_PETSC_MATRIX_HH_
 
 /* -------------------------------------------------------------------------- */
+#include "aka_types.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 #include <petscmat.h>
@@ -71,13 +60,13 @@ public:
   void clearProfile() override;
 
   /// add a non-zero element to the profile
-  UInt add(UInt i, UInt j) override;
+  Idx add(Idx i, Idx j) override;
 
   /// assemble a local matrix in the sparse one
-  void add(UInt i, UInt j, Real value) override;
+  void add(Idx i, Idx j, Real value) override;
 
-  void addLocal(UInt i, UInt j);
-  void addLocal(UInt i, UInt j, Real val);
+  void addLocal(Idx i, Idx j);
+  void addLocal(Idx i, Idx j, Real val);
 
   void addLocal(const Vector<Int> & rows, const Vector<Int> & cols,
                 const Matrix<Real> & values);
@@ -112,6 +101,8 @@ public:
 
   void resize();
 
+  Real min() override { AKANTU_TO_IMPLEMENT(); }
+
 protected:
   void addMeTo(SparseMatrix & B, Real alpha) const override;
 
@@ -126,15 +117,15 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the values at potition i, j
-  inline Real operator()(UInt /*i*/, UInt /*j*/) const override {
+  inline Real operator()(Idx /*i*/, Idx /*j*/) const override {
     AKANTU_TO_IMPLEMENT();
   }
   /// return the values at potition i, j
-  inline Real & operator()(UInt /*i*/, UInt /*j*/) override {
+  inline Real & operator()(Idx /*i*/, Idx /*j*/) override {
     AKANTU_TO_IMPLEMENT();
   }
 
-  UInt getRelease() const override { return release; };
+  Int getRelease() const override { return release; };
 
   operator Mat &() { return mat; }
   operator const Mat &() const { return mat; }
@@ -152,7 +143,7 @@ protected:
   Mat mat;
 
   /// matrix release
-  UInt release{0};
+  Int release{0};
 };
 
 } // namespace akantu

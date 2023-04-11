@@ -1,18 +1,8 @@
 /**
- * @file   aka_enum_macros.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Nov 05 2018
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Macros to help declare enums
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,12 +16,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
+#include <cstdlib> // std::size_t
 #include <string>
+
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_ENUM_MACROS_HH_
 #define AKANTU_AKA_ENUM_MACROS_HH_
@@ -48,7 +39,7 @@
   namespace std {                                                              \
   template <> struct hash<::akantu::type_name> {                               \
     using argument_type = ::akantu::type_name;                                 \
-    size_t operator()(const argument_type & e) const noexcept {                \
+    auto operator()(const argument_type &e) const noexcept {                   \
       auto ue = underlying_type_t<argument_type>(e);                           \
       return uh(ue);                                                           \
     }                                                                          \
@@ -79,7 +70,7 @@
   }                                                                            \
   AKANTU_ENUM_HASH(type_name)                                                  \
   namespace std {                                                              \
-  inline string to_string(const ::akantu::type_name & type) {                  \
+  inline auto to_string(const ::akantu::type_name &type) -> string {           \
     using namespace akantu;                                                    \
     static unordered_map<::akantu::type_name, string> convert{                 \
         BOOST_PP_SEQ_FOR_EACH_I(                                               \
@@ -87,17 +78,17 @@
             BOOST_PP_SEQ_TRANSFORM(AKANTU_PP_TYPE_TO_STR, prefix, list))};     \
     return convert.at(type);                                                   \
   }                                                                            \
-  }                                                                            \
+  } /* namespace std */                                                        \
   namespace akantu {                                                           \
-  inline std::ostream & operator<<(std::ostream & stream,                      \
-                                   const type_name & type) {                   \
+  inline auto operator<<(std::ostream &stream, const type_name &type)          \
+      -> std::ostream & {                                                      \
     stream << std::to_string(type);                                            \
     return stream;                                                             \
   }
 
 #define AKANTU_ENUM_INPUT_STREAM_(type_name, list, prefix)                     \
-  inline std::istream & operator>>(std::istream & stream,                      \
-                                   type_name & type) { /* NOLINT */            \
+  inline auto operator>>(std::istream &stream, type_name &type)                \
+      ->std::istream & {                                                       \
     std::string str;                                                           \
     stream >> str; /* NOLINT */                                                \
     static std::unordered_map<std::string, type_name> convert{                 \
@@ -108,7 +99,7 @@
       type = convert.at(str);                                                  \
     } catch (std::out_of_range &) {                                            \
       std::ostringstream values;                                               \
-      std::for_each(convert.begin(), convert.end(), [&values](auto && pair) {  \
+      std::for_each(convert.begin(), convert.end(), [&values](auto &&pair) {   \
         static bool first = true;                                              \
         if (not first)                                                         \
           values << ", ";                                                      \

@@ -1,18 +1,8 @@
 /**
- * @file   test_embedded_element_matrix.cc
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Wed Mar 25 2015
- * @date last modification:  Wed Sep 12 2018
- *
- * @brief  test of the class EmbeddedInterfaceModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +30,7 @@ int main(int argc, char * argv[]) {
   debug::setDebugLevel(dblWarning);
   initialize("embedded_element.dat", argc, argv);
 
-  constexpr UInt dim = 2;
+  constexpr Int dim = 2;
   constexpr ElementType type = _segment_2;
   const Real height = 0.4;
 
@@ -55,7 +44,7 @@ int main(int argc, char * argv[]) {
 
   reinforcement_mesh.addConnectivityType(type);
   auto & connectivity = reinforcement_mesh.getConnectivity(type);
-  connectivity.push_back(Vector<UInt>({0, 1}));
+  connectivity.push_back(Vector<Idx>({0, 1}));
 
   Array<std::string> names_vec(1, 1, "reinforcement", "reinforcement_names");
   reinforcement_mesh.getElementalData<std::string>("physical_names")

@@ -1,19 +1,8 @@
 /**
- * @file   material_mazars_non_local.hh
- *
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Mazars non-local description
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,17 +34,14 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension>
+template <Int dim, template <Int> class Parent = MaterialElastic>
 class MaterialMazarsNonLocal
-    : public MaterialDamageNonLocal<spatial_dimension,
-                                    MaterialMazars<spatial_dimension>> {
+    : public MaterialDamageNonLocal<dim, MaterialMazars<dim, Parent>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using MaterialNonLocalParent =
-      MaterialDamageNonLocal<spatial_dimension,
-                             MaterialMazars<spatial_dimension>>;
+  using parent = MaterialDamageNonLocal<dim, MaterialMazars<dim, Parent>>;
 
   MaterialMazarsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
@@ -77,6 +62,11 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
+    return zip_replace(parent::getArguments(el_type, ghost_type),
+                       "Ehat"_n = make_view(this->Ehat(el_type, ghost_type)));
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -88,5 +78,7 @@ private:
 };
 
 } // namespace akantu
+
+#include "material_mazars_non_local_tmpl.hh"
 
 #endif /* AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH_ */

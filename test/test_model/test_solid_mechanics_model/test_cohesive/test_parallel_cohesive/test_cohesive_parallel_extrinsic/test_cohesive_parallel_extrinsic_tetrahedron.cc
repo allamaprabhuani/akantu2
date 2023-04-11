@@ -1,18 +1,8 @@
 /**
- * @file   test_cohesive_parallel_extrinsic_tetrahedron.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Tue May 08 2012
- * @date last modification: Thu Mar 22 2018
- *
- * @brief  3D extrinsic cohesive elements test
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -47,7 +36,7 @@ int main(int argc, char * argv[]) {
 
   // const UInt max_steps = 1000;
   // Real increment = 0.005;
-  const UInt spatial_dimension = 3;
+  const Int spatial_dimension = 3;
   Math::setTolerance(1.e-12);
 
   ElementType type = _tetrahedron_10;
@@ -209,12 +198,12 @@ int main(int argc, char * argv[]) {
 
       Real first_tangent_contrib = 0;
 
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         first_tangent_contrib += normal_stress(dim) * (*quad_tangents)(dim);
 
       Real second_tangent_contrib = 0;
 
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         second_tangent_contrib +=
             normal_stress(dim) * (*quad_tangents)(dim + spatial_dimension);
 

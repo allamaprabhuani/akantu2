@@ -1,20 +1,25 @@
 /**
- * @file   material_brittle_inline_impl.hh
- *
- * @author Aranda Ruiz Josue <josue.arandaruiz@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- *
- *
- * @brief  Implementation of the inline functions of the material brittle
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & grad_v, Matrix<Real> & sigma,
     Real & dam, Real & sigma_equivalent, Real & fracture_stress) {
@@ -27,8 +32,8 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
     equiv_strain_rate += 2. / 3. * pow(volume_change_rate / 3., 2.);
   }
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+  for (Int i = 0; i < spatial_dimension; ++i)
+    for (Int j = 0; j < spatial_dimension; ++j)
       equiv_strain_rate += 2. / 3. *
                            pow(0.5 * (grad_v(i, j) + grad_v(j, i)) -
                                    (i == j) * volume_change_rate / 3.,
@@ -43,7 +48,7 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
   Vector<Real> principal_stress(spatial_dimension);
   sigma.eig(principal_stress);
   sigma_equivalent = principal_stress(0);
-  for (UInt i = 1; i < spatial_dimension; ++i)
+  for (Int i = 1; i < spatial_dimension; ++i)
     sigma_equivalent = std::max(sigma_equivalent, principal_stress(i));
 
   if (!this->is_non_local) {
@@ -52,7 +57,7 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam, Real & sigma_c, Real & fracture_stress) {
   if (sigma_c > fracture_stress)
@@ -64,7 +69,7 @@ inline void MaterialBrittle<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline UInt MaterialBrittle<spatial_dimension>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
@@ -76,7 +81,7 @@ inline UInt MaterialBrittle<spatial_dimension>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
@@ -88,7 +93,7 @@ inline void MaterialBrittle<spatial_dimension>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialBrittle<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
                                                const Array<Element> & elements,

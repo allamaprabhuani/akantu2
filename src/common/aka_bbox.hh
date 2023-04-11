@@ -1,19 +1,8 @@
 /**
- * @file   aka_bbox.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Feb 14 2018
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  A simple bounding box class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,15 +16,16 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
+#include "aka_math.hh"
 #include "aka_types.hh"
 #include "communicator.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
+#include <vector>
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_AKA_BBOX_HH_
@@ -47,10 +37,12 @@ class BBox {
 public:
   BBox() = default;
 
-  BBox(UInt spatial_dimension)
-      : dim(spatial_dimension),
-        lower_bounds(spatial_dimension, std::numeric_limits<Real>::max()),
-        upper_bounds(spatial_dimension, std::numeric_limits<Real>::lowest()) {}
+  BBox(Int spatial_dimension)
+      : dim(spatial_dimension), lower_bounds(spatial_dimension),
+        upper_bounds(spatial_dimension) {
+    lower_bounds.fill(std::numeric_limits<Real>::max());
+    upper_bounds.fill(-std::numeric_limits<Real>::max());
+  }
 
   BBox(const BBox & other)
       : dim(other.dim), empty{false}, lower_bounds(other.lower_bounds),
@@ -157,7 +149,8 @@ public:
 
   /* ------------------------------------------------------------------------ */
   inline bool contains(const Vector<Real> & point) const {
-    return (point >= lower_bounds) and (point <= upper_bounds);
+    return (point.array() >= lower_bounds.array()).all() and
+           (point.array() <= upper_bounds.array()).all();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -169,17 +162,23 @@ public:
   /* --------------------------------------------------------------------------
    */
   inline void getCenter(Vector<Real> & center) {
-    center = upper_bounds;
-    center += lower_bounds;
-    center /= 2.;
+    center = (upper_bounds + lower_bounds) / 2.;
   }
 
   /* ------------------------------------------------------------------------ */
   const Vector<Real> & getLowerBounds() const { return lower_bounds; }
   const Vector<Real> & getUpperBounds() const { return upper_bounds; }
 
-  Vector<Real> & getLowerBounds() { return lower_bounds; }
-  Vector<Real> & getUpperBounds() { return upper_bounds; }
+  template <typename D>
+  void setLowerBounds(const Eigen::MatrixBase<D> & lower_bounds) {
+    this->lower_bounds = lower_bounds;
+    this->empty = false;
+  }
+  template <typename D>
+  void setUpperBounds(const Eigen::MatrixBase<D> & upper_bounds) {
+    this->upper_bounds = upper_bounds;
+    this->empty = false;
+  }
 
   /* ------------------------------------------------------------------------ */
   inline Real size(const SpatialDirection & direction) const {
@@ -200,14 +199,14 @@ public:
   BBox allSum(const Communicator & communicator) const {
     Matrix<Real> reduce_bounds(dim, 2);
 
-    Vector<Real>(reduce_bounds(0)) = lower_bounds;
-    Vector<Real>(reduce_bounds(1)) = Real(-1.) * upper_bounds;
+    reduce_bounds(0) = lower_bounds;
+    reduce_bounds(1) = Real(-1.) * upper_bounds;
 
     communicator.allReduce(reduce_bounds, SynchronizerOperation::_min);
 
     BBox global(dim);
-    global.lower_bounds = Vector<Real>(reduce_bounds(0));
-    global.upper_bounds = Real(-1.) * Vector<Real>(reduce_bounds(1));
+    global.lower_bounds = reduce_bounds(0);
+    global.upper_bounds = Real(-1.) * reduce_bounds(1);
     global.empty = false;
     return global;
   }
@@ -217,9 +216,10 @@ public:
     auto nb_proc = communicator.getNbProc();
     Array<Real> bboxes_data(nb_proc, dim * 2 + 1);
 
-    auto * base = bboxes_data.storage() + prank * (2 * dim + 1);
-    Vector<Real>(base + dim * 0, dim) = lower_bounds;
-    Vector<Real>(base + dim * 1, dim) = upper_bounds;
+    auto * base = bboxes_data.data() + prank * (2 * dim + 1);
+    MatrixProxy<Real> bounds(base, dim, 2);
+    bounds(0) = lower_bounds;
+    bounds(1) = upper_bounds;
     base[dim * 2] = empty ? 1. : 0.; // ugly trick
 
     communicator.allGather(bboxes_data);
@@ -231,20 +231,21 @@ public:
       bboxes.emplace_back(dim);
       auto & bbox = bboxes.back();
 
-      auto * base = bboxes_data.storage() + p * (2 * dim + 1);
-      bbox.lower_bounds = Vector<Real>(base + dim * 0, dim);
-      bbox.upper_bounds = Vector<Real>(base + dim * 1, dim);
+      auto * base = bboxes_data.data() + p * (2 * dim + 1);
+      MatrixProxy<Real> bounds(base, dim, 2);
+      bbox.lower_bounds = bounds(0);
+      bbox.upper_bounds = bounds(1);
       bbox.empty = (base[dim * 2] == 1.);
     }
 
     return bboxes;
   }
 
-  std::map<UInt, BBox> intersection(const BBox & other,
-                                    const Communicator & communicator) const {
+  std::map<Int, BBox> intersection(const BBox & other,
+                                   const Communicator & communicator) const {
     // todo: change for a custom reduction algorithm
     auto other_bboxes = other.allGather(communicator);
-    std::map<UInt, BBox> intersections;
+    std::map<Int, BBox> intersections;
     for (const auto & bbox : enumerate(other_bboxes)) {
       auto && tmp = this->intersection(std::get<1>(bbox));
       if (tmp) {
@@ -263,7 +264,7 @@ public:
   }
 
 protected:
-  UInt dim{0};
+  Int dim{0};
   bool empty{true};
   Vector<Real> lower_bounds;
   Vector<Real> upper_bounds;

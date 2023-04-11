@@ -1,19 +1,8 @@
 /**
- * @file   mesh_partition.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  tools to partitionate a mesh
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +33,7 @@ class MeshPartition {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshPartition(Mesh & mesh, UInt spatial_dimension,
+  MeshPartition(Mesh & mesh, Int spatial_dimension,
                 const ID & id = "MeshPartitioner");
 
   virtual ~MeshPartition();
@@ -56,7 +44,7 @@ public:
 public:
   /// define a partition of the mesh
   virtual void partitionate(
-      UInt nb_part,
+      Int nb_part,
       const std::function<Int(const Element &, const Element &)> &
           edge_load_func =
               [](auto && /*unused*/, auto && /*unused*/) { return 1; },
@@ -93,18 +81,17 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   bool hasPartitions(ElementType type, GhostType ghost_type);
-  AKANTU_GET_MACRO(Partitions, partitions, const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
+  AKANTU_GET_MACRO_AUTO(Partitions, partitions);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, Idx);
 
-  AKANTU_GET_MACRO(GhostPartitionCSR, ghost_partitions_csr,
-                   const ElementTypeMap<CSR<UInt>> &);
+  AKANTU_GET_MACRO_AUTO(GhostPartitionCSR, ghost_partitions_csr);
 
-  AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
-  AKANTU_SET_MACRO(NbPartition, nb_partitions, UInt);
+  AKANTU_GET_MACRO_AUTO(NbPartition, nb_partitions);
+  AKANTU_SET_MACRO(NbPartition, nb_partitions, Int);
 
 protected:
-  UInt linearized(const Element & element);
-  Element unlinearized(UInt lin_element);
+  Idx linearized(const Element & element);
+  Element unlinearized(Idx lin_element);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -116,24 +103,24 @@ protected:
   Mesh & mesh;
 
   /// dimension of the elements to consider in the mesh
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// number of partitions
-  UInt nb_partitions;
+  Int nb_partitions;
 
   /// partition numbers
-  ElementTypeMapArray<UInt> partitions;
+  ElementTypeMapArray<Idx> partitions;
 
-  ElementTypeMap<CSR<UInt>> ghost_partitions_csr;
-  ElementTypeMapArray<UInt> ghost_partitions;
-  ElementTypeMapArray<UInt> ghost_partitions_offset;
+  ElementTypeMap<CSR<Idx>> ghost_partitions_csr;
+  ElementTypeMapArray<Idx> ghost_partitions;
+  ElementTypeMapArray<Idx> ghost_partitions_offset;
 
-  Array<UInt> * permutation;
+  Array<Int> * permutation;
 
-  ElementTypeMapArray<UInt> saved_connectivity;
+  ElementTypeMapArray<Idx> saved_connectivity;
 
   // vector of pair to ensure the iteration order
-  std::vector<std::pair<ElementType, UInt>> linearized_offsets;
+  std::vector<std::pair<ElementType, Idx>> linearized_offsets;
 };
 
 /// standard output stream operator

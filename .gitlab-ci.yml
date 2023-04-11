@@ -51,27 +51,35 @@ version_determination:
 configure:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
+    - .build_release
     - .configure
   needs:
     - version_determination
 
-build:debian_bullseye_gcc:
+build_libs:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
-    - .build_all
+    - .build_release
+    - .build_libs
   needs:
     - job: configure:debian_bullseye_gcc
+
+build_tests:debian_bullseye_gcc:
+  extends:
+    - .debian_bullseye_gcc
+    - .build_release
+    - .build_tests
+  needs:
+    - job: build_libs:debian_bullseye_gcc
 
 test:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_coverage
+    - .build_release
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_bullseye_gcc
+    - job: build_tests:debian_bullseye_gcc
 
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with Clang
@@ -79,27 +87,35 @@ test:debian_bullseye_gcc:
 configure:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
+    - .build_release
     - .configure
   needs:
     - version_determination
 
-build:debian_bullseye_clang:
+build_libs:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
-    - .build_all
+    - .build_release
+    - .build_libs
   needs:
     - job: configure:debian_bullseye_clang
+
+build_tests:debian_bullseye_clang:
+  extends:
+    - .debian_bullseye_clang
+    - .build_release
+    - .build_tests
+  needs:
+    - job: build_libs:debian_bullseye_clang
 
 test:debian_bullseye_clang:
   extends:
     - .debian_bullseye_clang
-    - .build_coverage
+    - .build_release
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
-    - job: build:debian_bullseye_clang
+    - job: build_tests:debian_bullseye_clang
 
 # ------------------------------------------------------------------------------
 # Ubuntu LTS compiled with GCC
@@ -112,13 +128,21 @@ configure:ubuntu_lts_gcc:
   needs:
     - version_determination
 
-build:ubuntu_lts_gcc:
+build_libs:ubuntu_lts_gcc:
   extends:
     - .ubuntu_lts_gcc
     - .build_release
-    - .build_all
+    - .build_libs
   needs:
     - job: configure:ubuntu_lts_gcc
+
+build_tests:ubuntu_lts_gcc:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_release
+    - .build_tests
+  needs:
+    - job: build_libs:ubuntu_lts_gcc
 
 test:ubuntu_lts_gcc:
   extends:
@@ -126,7 +150,7 @@ test:ubuntu_lts_gcc:
     - .build_release
     - .tests
   needs:
-    - job: build:ubuntu_lts_gcc
+    - job: build_tests:ubuntu_lts_gcc
 
 # ------------------------------------------------------------------------------
 # Debian bullseye compiled with GCC tested with valgrind
@@ -139,13 +163,21 @@ configure:ubuntu_lts_gcc_valgrind:
   needs:
     - version_determination
 
-build:ubuntu_lts_gcc_valgrind:
+build_libs:ubuntu_lts_gcc_valgrind:
   extends:
     - .ubuntu_lts_gcc
     - .build_valgrind
-    - .build_all
+    - .build_libs
   needs:
     - job: configure:ubuntu_lts_gcc_valgrind
+
+build_tests:ubuntu_lts_gcc_valgrind:
+  extends:
+    - .ubuntu_lts_gcc
+    - .build_valgrind
+    - .build_tests
+  needs:
+    - job: build_libs:ubuntu_lts_gcc_valgrind
 
 test:ubuntu_lts_gcc_valgrind:
   extends:
@@ -153,7 +185,7 @@ test:ubuntu_lts_gcc_valgrind:
     - .build_valgrind
     - .tests
   needs:
-    - job: build:ubuntu_lts_gcc_valgrind
+    - job: build_tests:ubuntu_lts_gcc_valgrind
 
 # ------------------------------------------------------------------------------
 # Manylinux to build python packages
@@ -163,6 +195,18 @@ configure:python_package:
   extends:
     - .manylinux_2014_x64_gcc
     - .build_release
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
+    - key: ${output}-${BUILD_TYPE}-ccache
+      paths:
+        - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      paths:
+        - build/
   script:
     # create the build folder
     - cmake -E make_directory build
@@ -192,7 +236,6 @@ configure:python_package:
   artifacts:
     when: on_success
     paths:
-      - build/
       - VERSION
     expire_in: 10h
 
@@ -218,6 +261,18 @@ build_pip:python_package:
   extends:
     - .build_release
     - .manylinux_2014_x64_gcc
+  cache:
+    - key: ${CI_COMMIT_REF_SLUG}-third-party
+      paths:
+        - third-party/eigen3
+        - third-party/pybind11
+        - third-party/google-test
+    - key: ${output}-${BUILD_TYPE}-ccache
+      paths:
+        - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      paths:
+        - build/
   script:
     - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
     - export CMAKE_PREFIX_PATH=/softs/view:${CI_AKANTU_INSTALL_PREFIX}
@@ -279,7 +334,7 @@ cq:code_quality:
   extends:
     - .code_quality_gitlab_template
   needs:
-    - job: build:debian_bullseye_clang
+    - job: build_libs:debian_bullseye_clang
   artifacts:
     paths:
       - gl-code-quality-report.json
@@ -296,9 +351,9 @@ cq:clang_tidy:
       -x build
       ${FILE_LIST_ARG}
       clang-tidy
-      -p ${CI_PROJECT_DIR}/build > gl-clang-tidy-report.json
+      -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
   needs:
-    - job: build:debian_bullseye_clang
+    - job: configure:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-tidy-report.json
@@ -312,9 +367,9 @@ cq:clang_format:
       -x extra-packages
       -x build
       clang-format
-      -p ${CI_PROJECT_DIR}/build > gl-clang-format-report.json
+      -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
   needs:
-    - job: build:debian_bullseye_clang
+    - job: configure:debian_bullseye_clang
   artifacts:
     paths:
       - gl-clang-format-report.json
@@ -323,7 +378,7 @@ cq:compilation_warnings:
   stage: code_quality
   image: python:latest
   script:
-    - pip install warning-parser termcolor Click
+    - pip install warning-parser termcolor Click tqdm
     - ls build-*-err.log
     - test/ci/scripts/cq
       -x third-party
@@ -332,9 +387,9 @@ cq:compilation_warnings:
       warnings
       build-*-err.log > gl-warnings-report.json
   needs:
-    - job: build:debian_bullseye_clang
-    - job: build:debian_bullseye_gcc
-    - job: build:ubuntu_lts_gcc
+    - job: build_libs:debian_bullseye_clang
+    - job: build_libs:debian_bullseye_gcc
+    - job: build_libs:ubuntu_lts_gcc
   artifacts:
     paths:
       - gl-warnings-report.json
@@ -353,23 +408,5 @@ cq:merge_code_quality:
   artifacts:
     reports:
       codequality: [gl-codequality.json]
-
-# ------------------------------------------------------------------------------
-# Deploy pages
-# ------------------------------------------------------------------------------
-pages:
-  stage: deploy
-  extends:
-    - .debian_bullseye_gcc
-  script:
-    - cd build
-    - cmake -DAKANTU_DOCUMENTATION=ON ..
-    - cmake --build . -t sphinx-doc
-    - mv doc/dev-doc/html ../public
-  needs:
-    - job: build:debian_bullseye_gcc
-  artifacts:
     paths:
-      - public
-  only:
-    - master
+      - gl-codequality.json

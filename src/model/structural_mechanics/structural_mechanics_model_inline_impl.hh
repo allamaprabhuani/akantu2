@@ -1,22 +1,8 @@
 /**
- * @file   structural_mechanics_model_inline_impl.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Damien Spielmann <damien.spielmann@epfl.ch>
- *
- * @date creation: Fri Jul 15 2011
- * @date last modification: Mon Mar 15 2021
- *
- * @brief  Implementation of inline functions of StructuralMechanicsModel
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -30,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -124,8 +109,6 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   const auto & b = getFEEngine().getShapesDerivatives(type);
 
-  Matrix<Real> BtD(bt_d_b_size, tangent_size);
-
   for (auto && tuple :
        zip(make_view(b, tangent_size, bt_d_b_size),
            make_view(*tangent_moduli, tangent_size, tangent_size),
@@ -133,8 +116,8 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
     auto & B = std::get<0>(tuple);
     auto & D = std::get<1>(tuple);
     auto & BtDB = std::get<2>(tuple);
-    BtD.mul<true, false>(B, D);
-    BtDB.template mul<false, false>(BtD, B);
+
+    BtDB = B.transpose() * D * B;
   }
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
@@ -161,6 +144,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   auto nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
   auto tangent_size = ElementClass<type>::getNbStressComponents();
+  auto d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
 
   auto tangent_moduli = std::make_unique<Array<Real>>(
       nb_element * nb_quadrature_points, tangent_size * tangent_size,
@@ -168,39 +152,24 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   computeTangentModuli<type>(*tangent_moduli);
 
-  /// compute DB
-  auto d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
-
-  auto d_b = std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
-                                           d_b_size * tangent_size, "D*B");
-
-  const auto & b = getFEEngine().getShapesDerivatives(type);
-
-  auto B = b.begin(tangent_size, d_b_size);
-  auto D = tangent_moduli->begin(tangent_size, tangent_size);
-  auto D_B = d_b->begin(tangent_size, d_b_size);
-
-  for (UInt e = 0; e < nb_element; ++e) {
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++B, ++D, ++D_B) {
-      D_B->template mul<false, false>(*D, *B);
-    }
-  }
-
-  /// compute DBu
-  D_B = d_b->begin(tangent_size, d_b_size);
-  auto DBu = sigma.begin(tangent_size);
-
   Array<Real> u_el(0, d_b_size);
   FEEngine::extractNodalToElementField(mesh, *displacement_rotation, u_el,
                                        type);
 
-  auto ug = u_el.begin(d_b_size);
+  const auto & b = getFEEngine().getShapesDerivatives(type);
 
-  // No need to rotate because B is post-multiplied
-  for (UInt e = 0; e < nb_element; ++e, ++ug) {
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_B, ++DBu) {
-      DBu->template mul<false>(*D_B, *ug);
-    }
+  for (auto && data :
+       zip(make_view(*tangent_moduli, tangent_size, tangent_size),
+           make_view(b, tangent_size, d_b_size),
+           repeat_n(make_view(u_el, d_b_size), nb_quadrature_points),
+           make_view(sigma, tangent_size))) {
+    auto && D = std::get<0>(data);
+    auto && B = std::get<1>(data);
+    auto && u = std::get<2>(data);
+
+    auto && DBu = std::get<3>(data);
+
+    DBu = D * B * u;
   }
 
   AKANTU_DEBUG_OUT();
@@ -253,12 +222,12 @@ inline void StructuralMechanicsModel::computeForcesFromFunction(
             getFEEngine().getMesh().getNodes(), quad_coords, spatial_dimension,
             _not_ghost, empty_filter, true, 0, 2, 2);
   lin_load.resize(nb_element * nb_quad);
-  Real * imposed_val = lin_load.storage();
+  Real * imposed_val = lin_load.data();
 
   /// sigma/load on each quadrature points
-  Real * qcoord = quad_coords.storage();
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt q = 0; q < nb_quad; ++q) {
+  Real * qcoord = quad_coords.data();
+  for (Int el = 0; el < nb_element; ++el) {
+    for (Int q = 0; q < nb_quad; ++q) {
       myf(qcoord, imposed_val, NULL, 0);
       imposed_val += offset;
       qcoord += spatial_dimension;

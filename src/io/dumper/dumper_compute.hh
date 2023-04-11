@@ -1,19 +1,8 @@
 /**
- * @file   dumper_compute.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 02 2014
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Field that map a function to another field
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef AKANTU_DUMPER_COMPUTE_HH_
@@ -52,8 +40,8 @@ namespace dumpers {
   public:
     virtual ~ComputeFunctorInterface() = default;
 
-    virtual UInt getDim() = 0;
-    virtual UInt getNbComponent(UInt old_nb_comp) = 0;
+    virtual Int getDim() = 0;
+    virtual Int getNbComponent(Int old_nb_comp) = 0;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -83,13 +71,13 @@ namespace dumpers {
 
   /* ------------------------------------------------------------------------ */
   template <class EnumType>
-  class ComputeUIntFromEnum
-      : public ComputeFunctor<Vector<EnumType>, Vector<UInt>> {
+  class ComputeIntFromEnum
+      : public ComputeFunctor<Vector<EnumType>, Vector<Int>> {
   public:
-    ComputeUIntFromEnum() = default;
+    ComputeIntFromEnum() = default;
 
-    inline Vector<UInt> func(const Vector<EnumType> & in) override {
-      Vector<UInt> out(in.size());
+    inline Vector<Int> func(const Vector<EnumType> & in) override {
+      Vector<Int> out(in.size());
       for (auto && data : zip(in, out)) {
         std::get<1>(data) =
             static_cast<std::underlying_type_t<EnumType>>(std::get<0>(data));
@@ -98,8 +86,8 @@ namespace dumpers {
       return out;
     }
 
-    UInt getDim() override { return 1; };
-    UInt getNbComponent(UInt old_nb_comp) override { return old_nb_comp; };
+    Int getDim() override { return 1; };
+    Int getNbComponent(Int old_nb_comp) override { return old_nb_comp; };
   };
 
   /* ------------------------------------------------------------------------ */
@@ -137,7 +125,7 @@ namespace dumpers {
       return_type operator*() { return func.func(*it); }
 
       /// Do to IOHelper the needs it...
-      UInt element_type() { return this->it.element_type(); }
+      Int element_type() { return this->it.element_type(); }
 
     protected:
       sub_iterator it;
@@ -167,9 +155,9 @@ namespace dumpers {
     iterator begin() { return iterator(sub_field->begin(), *func); }
     iterator end() { return iterator(sub_field->end(), *func); }
 
-    UInt getDim() { return func->getDim(); }
+    Int getDim() { return func->getDim(); }
 
-    UInt size() {
+    Int size() {
       throw;
       // return Functor::size();
       return 0;
@@ -227,13 +215,13 @@ namespace dumpers {
         return *this;
       }
 
-      UInt currentGlobalIndex() { return this->it.currentGlobalIndex(); }
+      Idx currentGlobalIndex() { return this->it.currentGlobalIndex(); }
 
       return_type operator*() { return func.func(*it, it.getCurrentElement()); }
 
       Element getCurrentElement() { return this->it.getCurrentElement(); }
 
-      UInt element_type() { return this->it.element_type(); }
+      Int element_type() { return this->it.element_type(); }
 
     protected:
       sub_iterator it;
@@ -265,9 +253,9 @@ namespace dumpers {
     iterator begin() { return iterator(sub_field->begin(), *func); }
     iterator end() { return iterator(sub_field->end(), *func); }
 
-    UInt getDim() { return func->getDim(); }
+    Int getDim() { return func->getDim(); }
 
-    UInt size() {
+    Int size() {
       throw;
       // return Functor::size();
       return 0;
@@ -278,7 +266,7 @@ namespace dumpers {
     template <class T1 = data_type,
               std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
-      return iohelper::getDataType<UInt>();
+      return iohelper::getDataType<Int>();
     }
 
     template <class T1 = data_type,
@@ -288,16 +276,16 @@ namespace dumpers {
     }
 
     /// get the number of components of the hosted field
-    ElementTypeMap<UInt>
-    getNbComponents(UInt dim = _all_dimensions,
+    ElementTypeMap<Int>
+    getNbComponents(Int dim = _all_dimensions,
                     GhostType ghost_type = _not_ghost,
                     ElementKind kind = _ek_not_defined) override {
-      ElementTypeMap<UInt> nb_components;
+      ElementTypeMap<Int> nb_components;
       const auto & old_nb_components =
           this->sub_field->getNbComponents(dim, ghost_type, kind);
 
       for (auto type : old_nb_components.elementTypes(dim, ghost_type, kind)) {
-        UInt nb_comp = old_nb_components(type, ghost_type);
+        auto nb_comp = old_nb_components(type, ghost_type);
         nb_components(type, ghost_type) = func->getNbComponent(nb_comp);
       }
       return nb_components;
@@ -339,12 +327,12 @@ namespace dumpers {
         return this->connectToFunctor<Vector<Real>>(ptr);
       }
 
-      if (aka::is_of_type<ComputeFunctorOutput<Vector<UInt>>>(func)) {
-        return this->connectToFunctor<Vector<UInt>>(ptr);
+      if (aka::is_of_type<ComputeFunctorOutput<Vector<Int>>>(func)) {
+        return this->connectToFunctor<Vector<Int>>(ptr);
       }
 
-      if (aka::is_of_type<ComputeFunctorOutput<Matrix<UInt>>>(func)) {
-        return this->connectToFunctor<Matrix<UInt>>(ptr);
+      if (aka::is_of_type<ComputeFunctorOutput<Matrix<Int>>>(func)) {
+        return this->connectToFunctor<Matrix<Int>>(ptr);
       }
 
       if (aka::is_of_type<ComputeFunctorOutput<Matrix<Real>>>(func)) {

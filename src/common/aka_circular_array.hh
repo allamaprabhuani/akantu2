@@ -1,18 +1,8 @@
 /**
- * @file   aka_circular_array.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  class of circular array
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +41,7 @@ public:
   typedef typename Array<T>::const_reference const_reference;
 
   /// Allocation of a new array with a default value
-  CircularArray(UInt size, UInt nb_component = 1,
+  CircularArray(Int size, Int nb_component = 1,
                 const_reference value = value_type(), const ID & id = "")
       : Array<T>(size, nb_component, value, id), start_position(0),
         end_position(size - 1) {
@@ -85,24 +74,24 @@ private:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline reference operator()(UInt i, UInt j = 0);
-  inline const_reference operator()(UInt i, UInt j = 0) const;
+  inline reference operator()(Idx i, Idx j = 0);
+  inline const_reference operator()(Idx i, Idx j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt size() const { return this->size_; };
+  Int size() const { return this->size_; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// indice of first element in this circular array
-  UInt start_position;
+  Idx start_position;
 
   /// indice of last element in this circular array
-  UInt end_position;
+  Idx end_position;
 };
 
 /* -------------------------------------------------------------------------- */

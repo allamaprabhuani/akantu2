@@ -1,20 +1,8 @@
 /**
- * @file   mesh_segment_intersector.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Apr 29 2015
- * @date last modification: Wed Jan 31 2018
- *
- * @brief  Computation of mesh intersection with segments
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +32,7 @@
 
 namespace akantu {
 
-template <UInt dim, ElementType type>
+template <Int dim, ElementType type>
 class MeshSegmentIntersector
     : public MeshGeomIntersector<dim, type, Triangle<cgal::Cartesian>,
                                  cgal::Cartesian::Segment_3, cgal::Cartesian> {
@@ -60,7 +47,7 @@ class MeshSegmentIntersector
                                       K::Segment_3>::intersection_type;
 
   /// Pair of segments and element id
-  using pair_type = std::pair<K::Segment_3, UInt>;
+  using pair_type = std::pair<K::Segment_3, Idx>;
 
 public:
   /// Construct from mesh
@@ -79,7 +66,7 @@ public:
 
   /// Compute intersection points between the mesh and a query
   void computeMeshQueryIntersectionPoint(const K::Segment_3 & query,
-                                         UInt nb_old_nodes) override;
+                                         Int nb_old_nodes) override;
 
   /// Compute the embedded mesh
   void

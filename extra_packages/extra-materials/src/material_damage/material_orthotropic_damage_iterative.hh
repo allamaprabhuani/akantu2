@@ -1,19 +1,21 @@
 /**
- * @file   material_orthtropic_damage_iterative.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- * @date   Sun Mar  8 12:54:30 2015
- *
- * @brief Specialization of the class material orthotropic damage to
- * damage only one gauss point at a time and propagate damage in a
- * linear way. Max principal stress criterion is used as a failure
- * criterion.
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +35,7 @@ namespace akantu {
  * parameters in the material files :
  *   - Sc
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialOrthotropicDamageIterative
     : public MaterialOrthotropicDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

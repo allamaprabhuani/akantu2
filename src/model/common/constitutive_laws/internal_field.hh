@@ -1,19 +1,8 @@
 /**
- * @file   internal_field.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Mar 26 2021
- *
- * @brief  Constitutive law internal properties
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -65,7 +53,7 @@ public:
 
   /// remove the quadrature points corresponding to suppressed elements
   virtual void
-  removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering) = 0;
+  removeIntegrationPoints(const ElementTypeMapArray<Idx> & new_numbering) = 0;
 
   virtual bool hasHistory() const = 0;
 
@@ -93,13 +81,13 @@ public:
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law,
                 const ID & fem_id,
-                const ElementTypeMapArray<UInt> & element_filter);
+                const ElementTypeMapArray<Idx> & element_filter);
 
   /// More general constructor
   InternalField(const ID & id,
-                ConstitutiveLawInternalHandler & constitutive_law, UInt dim,
+                ConstitutiveLawInternalHandler & constitutive_law, Int dim,
                 const ID & fem_id,
-                const ElementTypeMapArray<UInt> & element_filter);
+                const ElementTypeMapArray<Idx> & element_filter);
 
   InternalField(const ID & id, const InternalField<T> & other);
 
@@ -116,7 +104,7 @@ public:
   virtual void setElementKind(ElementKind element_kind);
 
   /// initialize the field to a given number of component
-  virtual void initialize(UInt nb_component);
+  virtual void initialize(Int nb_component);
 
   /// activate the history of this field
   void initializeHistory() override;
@@ -138,7 +126,7 @@ public:
 
   /// remove the quadrature points corresponding to suppressed elements
   void removeIntegrationPoints(
-      const ElementTypeMapArray<UInt> & new_numbering) override;
+      const ElementTypeMapArray<Idx> & new_numbering) override;
 
   /// print the content
   void printself(std::ostream & stream, int /*indent*/ = 0) const override;
@@ -146,13 +134,13 @@ public:
   /// get the default value
   inline operator T() const;
 
-  virtual FEEngine & getFEEngine() { return fem; }
+  virtual auto getFEEngine() -> FEEngine & { return fem; }
 
-  virtual const FEEngine & getFEEngine() const { return fem; }
+  virtual auto getFEEngine() const -> const FEEngine & { return fem; }
 
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
-  void internalInitialize(UInt nb_component);
+  void internalInitialize(Int nb_component);
 
   /// set the values for new internals
   virtual void setArrayValues(T * begin, T * end);
@@ -176,32 +164,34 @@ public:
   }
 
   /// get the array for a given type of the element_filter
-  const Array<UInt> & getFilter(ElementType type,
-                                GhostType ghost_type = _not_ghost) const {
-    return this->element_filter(type, ghost_type);
+  decltype(auto) getFilter(ElementType type,
+                           GhostType ghost_type = _not_ghost) const {
+    return (this->element_filter(type, ghost_type));
   }
 
   /// get the Array corresponding to the type en ghost_type specified
-  virtual Array<T> & operator()(ElementType type,
-                                GhostType ghost_type = _not_ghost) {
+  virtual auto operator()(ElementType type, GhostType ghost_type = _not_ghost)
+      -> Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual const Array<T> & operator()(ElementType type,
-                                      GhostType ghost_type = _not_ghost) const {
+  virtual auto operator()(ElementType type,
+                          GhostType ghost_type = _not_ghost) const
+      -> const Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual Array<T> & previous(ElementType type,
-                              GhostType ghost_type = _not_ghost) {
+  virtual auto previous(ElementType type, GhostType ghost_type = _not_ghost)
+      -> Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual const Array<T> & previous(ElementType type,
-                                    GhostType ghost_type = _not_ghost) const {
+  virtual auto previous(ElementType type,
+                        GhostType ghost_type = _not_ghost) const
+      -> const Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -223,17 +213,17 @@ public:
   }
 
   /// check if the history is used or not
-  bool hasHistory() const override { return (previous_values != nullptr); }
+  auto hasHistory() const -> bool { return (previous_values != nullptr); }
 
-  /// get the kind treated by the internal
-  ElementKind getElementKind() const { return element_kind; }
+  /// get the kind treated by  the internal
+  AKANTU_GET_MACRO_AUTO(ElementKind, element_kind);
 
   /// return the number of components
-  UInt getNbComponent() const { return nb_component; }
+  AKANTU_GET_MACRO_AUTO(NbComponent, nb_component);
 
   /// return the spatial dimension corresponding to the internal element type
   /// loop filter
-  UInt getSpatialDimension() const { return this->spatial_dimension; }
+  AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -246,19 +236,19 @@ protected:
   FEEngine & fem;
 
   /// Element filter if needed
-  const ElementTypeMapArray<UInt> & element_filter;
+  const ElementTypeMapArray<Int> & element_filter;
 
   /// default value
   T default_value{};
 
   /// spatial dimension of the element to consider
-  UInt spatial_dimension{0};
+  Int spatial_dimension{0};
 
   /// ElementKind of the element to consider
   ElementKind element_kind{_ek_regular};
 
   /// Number of component of the internal field
-  UInt nb_component{0};
+  Int nb_component{0};
 
   /// Is the field initialized
   bool is_init{false};

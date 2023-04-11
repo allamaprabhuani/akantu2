@@ -1,27 +1,21 @@
 /**
- * @file   test_material_damage_iterative.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief  test the material damage iterative
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +35,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
   const auto & comm = Communicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -104,7 +98,7 @@ int main(int argc, char * argv[]) {
       material.getInternal<Real>("equivalent_stress")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator eq_stress_it = eq_stress.begin();
   UInt nb_elements = mesh.getNbElement(element_type, _not_ghost);
-  for (UInt e = 0; e < nb_elements; ++e, ++eq_stress_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++eq_stress_it) {
     if (!Math::are_float_equal(*eq_stress_it, 0.1)) {
       std::cout << "Error in the equivalent normalized stress" << std::endl;
       finalize();
@@ -157,7 +151,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & damage =
       material.getInternal<Real>("damage")(element_type, _not_ghost);
   Array<Real>::const_scalar_iterator damage_it = damage.begin();
-  for (UInt e = 0; e < nb_elements; ++e, ++damage_it) {
+  for (Int e = 0; e < nb_elements; ++e, ++damage_it) {
     if (e == 1 || e == 5)
       dam_diff += std::abs(0.1 - *damage_it);
     else

@@ -1,28 +1,21 @@
 /**
- * @file   material_orthotropic_damage_tmpl.hh
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Sun Mar  8 12:54:30 2015
- *
- * @brief Specialization of the material class for the orthotropic
- * damage material
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -32,7 +25,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 MaterialOrthotropicDamage<spatial_dimension, Parent>::MaterialOrthotropicDamage(
     SolidMechanicsModel & model, const ID & id)
     : Parent<spatial_dimension>(model, id), damage("damage", *this),
@@ -60,7 +53,7 @@ MaterialOrthotropicDamage<spatial_dimension, Parent>::MaterialOrthotropicDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent<spatial_dimension>::initMaterial();
@@ -74,7 +67,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::initMaterial() {
  * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega -
  * \frac{1}{2}\sigma:\epsilon@f$
  */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
     ElementType el_type) {
   Parent<spatial_dimension>::updateEnergies(el_type);
@@ -114,7 +107,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -158,7 +151,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::
     computeTangentModuliOnQuad(Matrix<Real> & tangent, const Matrix<Real> C,
                                const Matrix<Real> & dam,
@@ -228,7 +221,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 inline void MaterialOrthotropicDamage<spatial_dimension, Parent>::
     computeDamageAndStressOnQuad(Matrix<Real> & sigma,
                                  Matrix<Real> & one_minus_D,
@@ -261,7 +254,7 @@ inline void MaterialOrthotropicDamage<spatial_dimension, Parent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 inline void MaterialOrthotropicDamage<spatial_dimension, Parent>::
     rotateIntoComputationFrame(const Matrix<Real> & to_rotate,
                                Matrix<Real> & rotated,
@@ -272,7 +265,7 @@ inline void MaterialOrthotropicDamage<spatial_dimension, Parent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 inline void
 MaterialOrthotropicDamage<spatial_dimension, Parent>::rotateIntoNewFrame(
     const Matrix<Real> & to_rotate, Matrix<Real> & rotated,
@@ -282,7 +275,7 @@ MaterialOrthotropicDamage<spatial_dimension, Parent>::rotateIntoNewFrame(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 inline void
 MaterialOrthotropicDamage<spatial_dimension, Parent>::computeOneMinusD(
     Matrix<Real> & one_minus_D, const Matrix<Real> & damage) {
@@ -292,7 +285,7 @@ MaterialOrthotropicDamage<spatial_dimension, Parent>::computeOneMinusD(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
+template <Int spatial_dimension, template <UInt> class Parent>
 inline void
 MaterialOrthotropicDamage<spatial_dimension, Parent>::computeSqrtOneMinusD(
     const Matrix<Real> & one_minus_D, Matrix<Real> & sqrt_one_minus_D) {
@@ -300,8 +293,8 @@ MaterialOrthotropicDamage<spatial_dimension, Parent>::computeSqrtOneMinusD(
 /// To compute (1-D)^1/2 we need to check that we are in the
 /// principal coordinate system of the damage
 #ifndef AKANTU_NDEBUG
-  for (UInt i = 0; i < this->spatial_dimension; ++i) {
-    for (UInt j = 0; j < this->spatial_dimension; ++j) {
+  for (Int i = 0; i < this->spatial_dimension; ++i) {
+    for (Int j = 0; j < this->spatial_dimension; ++j) {
       if (i != j)
         AKANTU_DEBUG_ASSERT(Math::are_float_equal(one_minus_D(i, j), 0),
                             "The damage tensor has off-diagonal parts");
@@ -311,7 +304,7 @@ MaterialOrthotropicDamage<spatial_dimension, Parent>::computeSqrtOneMinusD(
 
   /// compute (1-D)^1/2
   sqrt_one_minus_D.copy(one_minus_D);
-  for (UInt i = 0; i < this->spatial_dimension; ++i)
+  for (Int i = 0; i < this->spatial_dimension; ++i)
     sqrt_one_minus_D(i, i) = std::sqrt(sqrt_one_minus_D(i, i));
 }
 

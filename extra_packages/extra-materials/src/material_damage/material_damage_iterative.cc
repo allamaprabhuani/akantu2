@@ -1,17 +1,21 @@
 /**
- * @file   material_damage_iterative.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  Specialization of the class material damage to damage only one gauss
- * point at a time and propagate damage in a linear way. Max principal stress
- * criterion is used as a failure criterion.
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -24,7 +28,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(
     SolidMechanicsModel & model, const ID & id)
     : MaterialDamage<spatial_dimension>(model, id), Sc("Sc", *this),
@@ -56,7 +60,7 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -72,7 +76,7 @@ void MaterialDamageIterative<spatial_dimension>::
       grad_u.begin(spatial_dimension, spatial_dimension);
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
   Matrix<Real> sigma(spatial_dimension, spatial_dimension);
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
     sigma.zero();
@@ -84,8 +88,8 @@ void MaterialDamageIterative<spatial_dimension>::
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         *(Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -95,7 +99,7 @@ void MaterialDamageIterative<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::computeAllStresses(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -116,7 +120,7 @@ void MaterialDamageIterative<spatial_dimension>::computeAllStresses(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::
     findMaxNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
@@ -154,14 +158,14 @@ void MaterialDamageIterative<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -179,7 +183,7 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
@@ -233,7 +237,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   return nb_damaged_elements;
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::updateEnergiesAfterDamage(
     ElementType el_type) {
   MaterialDamage<spatial_dimension>::updateEnergies(el_type);

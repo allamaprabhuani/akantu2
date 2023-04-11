@@ -1,18 +1,8 @@
 /**
- * @file   fragment_manager.hh
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Thu Jan 23 2014
- * @date last modification: Mon Mar 29 2021
- *
- * @brief  Group manager to handle fragments
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -100,13 +89,13 @@ public:
   AKANTU_GET_MACRO(NbFragment, global_nb_fragment, UInt);
 
   /// get fragments' mass
-  AKANTU_GET_MACRO(Mass, mass, const Array<Real> &);
+  AKANTU_GET_MACRO(Mass, masses, const Array<Real> &);
 
   /// get fragments' center of mass
-  AKANTU_GET_MACRO(CenterOfMass, mass_center, const Array<Real> &);
+  AKANTU_GET_MACRO(CenterOfMass, mass_centers, const Array<Real> &);
 
   /// get fragments' velocity
-  AKANTU_GET_MACRO(Velocity, velocity, const Array<Real> &);
+  AKANTU_GET_MACRO(Velocity, velocities, const Array<Real> &);
 
   /// get fragments' principal moments of inertia
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
@@ -124,7 +113,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// local_fragment index
-  Array<UInt> fragment_index;
+  Array<UInt> fragment_indexes;
 
   /// global number of fragments (parallel simulations)
   UInt global_nb_fragment;
@@ -136,13 +125,13 @@ private:
   SolidMechanicsModelCohesive & model;
 
   /// fragments' center of mass
-  Array<Real> mass_center;
+  Array<Real> mass_centers;
 
   /// fragments' mass
-  Array<Real> mass;
+  Array<Real> masses;
 
   /// fragments' velocity
-  Array<Real> velocity;
+  Array<Real> velocities;
 
   /// fragments' principal moments of inertia with respect to the
   /// center of mass
@@ -155,7 +144,7 @@ private:
   ElementTypeMapArray<Real> quad_coordinates;
 
   /// mass density per quadrature point
-  ElementTypeMapArray<Real> mass_density;
+  ElementTypeMapArray<Real> mass_densities;
 
   /// fragment filter
   Array<UInt> nb_elements_per_fragment;

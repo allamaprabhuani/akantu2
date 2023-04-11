@@ -1,35 +1,47 @@
 #!/usr/bin/env python3
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
+__copyright__ = (
+    "Copyright (©) 2022-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
 
 import numpy as np
 import akantu as aka
 
 spatial_dimension = 2
 
-# ------------------------------------------------------------------------------
+
 class LinearCohesive(aka.MaterialCohesive):
     """Material Cohesive Linear."""
 
     def __init__(self, model, _id):
+        """Construct the material and register the parameters to the parser."""
         super().__init__(model, _id)
         super().registerParamReal(
             "G_c", aka._pat_readable | aka._pat_parsable, "Fracture energy"
         )
-        super().registerParamReal("beta", aka._pat_readable | aka._pat_parsable, "beta")
+        super().registerParamReal(
+            "beta", aka._pat_readable | aka._pat_parsable, ""
+        )
         self.registerInternalReal("delta_max", 1)
-        self.beta = 0
-        self.sigma_c = 0
-        self.delta_c = 0
+        self.beta = 0.
+        self.sigma_c = 0.
+        self.delta_c = 0.
+        self.G_c = 0.
 
     def initMaterial(self):
+        """Initialize the parameters for the material."""
         super().initMaterial()
         self.sigma_c = self.getReal("sigma_c")
         self.G_c = self.getReal("G_c")
         self.beta = self.getReal("beta")
         self.delta_c = 2 * self.G_c / self.sigma_c
 
-    def checkInsertion(self, check_only):
+    def checkInsertion(self, _check_only):
+        """Check if need to insert a cohesive element."""
         model = self.getModel()
         facets = self.getFacetFilter()
         inserter = model.getElementInserter()
@@ -86,7 +98,9 @@ class LinearCohesive(aka.MaterialCohesive):
                     insertion[facet] = True
 
     # constitutive law
-    def computeTraction(self, normals, el_type, ghost_type):
+    def computeTraction(self, el_type, ghost_type):
+        """Compute the traction for a given opening."""
+        normals = self.getNormals(el_type, ghost_type)
         openings = self.getOpening(el_type, ghost_type)
         tractions = self.getTraction(el_type, ghost_type)
 
@@ -99,11 +113,10 @@ class LinearCohesive(aka.MaterialCohesive):
             delta_n = opening.dot(normal) * normal
             delta_s = opening - delta_n
 
-            delta = (
-                self.beta * np.linalg.norm(delta_s) ** 2 + np.linalg.norm(delta_n) ** 2
-            )
+            delta = self.beta * np.linalg.norm(delta_s) ** 2 + \
+                np.linalg.norm(delta_n) ** 2
 
-            delta_max[el] = max(delta_max[el], delta)
+            delta_max[el] = max(delta, delta_max[el])
 
             tractions[el, :] = (
                 (delta * delta_s + delta_n)
@@ -113,8 +126,8 @@ class LinearCohesive(aka.MaterialCohesive):
             )
 
 
-# register material to the MaterialFactory
-def allocator(_dim, unused, model, _id):
+def allocator(_dim, _unused, model, _id):  # NOQA
+    """Register the material to the material factory."""
     return LinearCohesive(model, _id)
 
 

@@ -1,19 +1,8 @@
 /**
- * @file   material_drucker_prager.hh
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Apr 06 2021
- *
- * @brief  Specialization of the material class for isotropic
- * plasticity with Drucker-Pruger yield criterion
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,17 +33,18 @@ namespace akantu {
  * Material plastic with a Drucker-pruger yield criterion
  */
 
-template <UInt spatial_dimension>
-class MaterialDruckerPrager : public MaterialPlastic<spatial_dimension> {
+template <Int dim> class MaterialDruckerPrager : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialPlastic<dim>;
+
 public:
   MaterialDruckerPrager(SolidMechanicsModel & model, const ID & id = "",
                         const ID & fe_engine_id = "");
 
 protected:
-  using voigt_h = VoigtHelper<spatial_dimension>;
+  using voigt_h = VoigtHelper<dim>;
 
   void initialize();
 
@@ -67,39 +56,15 @@ public:
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
 
-  /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost) override;
-
 protected:
-  /// Infinitesimal deformations
-  inline void
-  computeStressOnQuad(const Matrix<Real> & grad_u,
-                      const Matrix<Real> & previous_grad_u,
-                      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-                      Matrix<Real> & inelastic_strain,
-                      const Matrix<Real> & previous_inelastic_strain,
-                      const Real & sigma_th, const Real & previous_sigma_th);
-
-  /// Finite deformations
-  inline void computeStressOnQuad(
-      const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain, const Real & sigma_th,
-      const Real & previous_sigma_th, const Matrix<Real> & F_tensor);
-
+  template <class Args> inline void computeStressOnQuad(Args && args);
   inline void computeTangentModuliOnQuad(
       Matrix<Real> & tangent, const Matrix<Real> & grad_u,
       const Matrix<Real> & previous_grad_u, const Matrix<Real> & sigma_tensor,
       const Matrix<Real> & previous_sigma_tensor) const;
 
   inline Real computeYieldFunction(const Matrix<Real> & sigma);
-
   inline Real computeYieldStress(const Matrix<Real> & sigma);
-
-  inline void computeDeviatoricStress(const Matrix<Real> & sigma,
-                                      Matrix<Real> & sigma_dev);
 
   /// rcompute the alpha and k parameters
   void updateInternalParameters() override;
@@ -107,10 +72,13 @@ protected:
 public:
   // closet point projection method to compute stress state on the
   // yield surface
+  template <typename D1, typename D2, typename D3,
+            aka::enable_if_t<aka::are_vectors_v<D2, D3>> * = nullptr>
   inline void computeGradientAndPlasticMultplier(
-      const Matrix<Real> & sigma_tr, Real & plastic_multiplier_guess,
-      Vector<Real> & gradient_f, Vector<Real> & delta_inelastic_strain,
-      UInt max_iterations = 100, Real tolerance = 1e-10);
+      const Eigen::MatrixBase<D1> & sigma_trial,
+      Real & plastic_multiplier_guess, Eigen::MatrixBase<D2> & gradient_f,
+      Eigen::MatrixBase<D3> & delta_inelastic_strain, Int max_iterations = 100,
+      Real tolerance = 1e-10);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -1,19 +1,8 @@
 /**
- * @file   test_structural_mechanics_model_discrete_kirchhoff_triangle_18.cc
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Thu Feb 25 2021
- *
- * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -61,7 +49,7 @@ public:
   void setDirichletBCs() override {
     this->model->getBlockedDOFs().set(true);
     auto center_node = this->model->getBlockedDOFs().end(parent::ndof) - 1;
-    *center_node = {false, false, false, false, false, true};
+    *center_node << false, false, false, false, false, true;
 
     this->model->getDisplacement().zero();
     auto disp = ++this->model->getDisplacement().begin(parent::ndof);
@@ -73,9 +61,9 @@ public:
     // clang-format off
 
     // This displacement field tests membrane and bending modes
-    *disp = {40, 20, -800 , -20, 40, 0}; ++disp;
-    *disp = {50, 40, -1400, -40, 50, 0}; ++disp;
-    *disp = {10, 20, -200 , -20, 10, 0}; ++disp;
+    *disp << 40, 20, -800 , -20, 40, 0; ++disp;
+    *disp << 50, 40, -1400, -40, 50, 0; ++disp;
+    *disp << 10, 20, -200 , -20, 10, 0; ++disp;
 
     // This displacement tests the bending mode
     // *disp = {0, 0, -800 , -20, 40, 0}; ++disp;
@@ -101,7 +89,7 @@ protected:
 // Batoz Vol 2. patch test, ISBN 2-86601-259-3
 TEST_F(TestStructDKT18, TestDisplacements) {
   model->solveStep();
-  Vector<Real> solution = {22.5, 22.5, -337.5, -22.5, 22.5, 0};
+  Vector<Real> solution = Vector<Real>{22.5, 22.5, -337.5, -22.5, 22.5, 0};
   auto nb_nodes = this->model->getDisplacement().size();
 
   Vector<Real> center_node_disp =
@@ -109,5 +97,5 @@ TEST_F(TestStructDKT18, TestDisplacements) {
 
   auto error = solution - center_node_disp;
 
-  EXPECT_NEAR(error.norm<L_2>(), 0., 1e-12);
+  EXPECT_NEAR(error.norm(), 0., 1e-12);
 }

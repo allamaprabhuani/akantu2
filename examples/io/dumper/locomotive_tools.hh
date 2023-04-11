@@ -1,18 +1,8 @@
 /**
- * @file   locomotive_tools.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Apr 13 2012
- * @date last modification: Mon Aug 24 2015
- *
- * @brief  Header for the locomotive helper for the dumpers
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,15 +16,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-void applyRotation(const ::akantu::Vector<::akantu::Real> & center,
+void applyRotation(const ::akantu::Vector<::akantu::Real> &center,
                    ::akantu::Real angle,
-                   const ::akantu::Array<::akantu::Real> & nodes,
-                   ::akantu::Array<::akantu::Real> & displacement,
-                   const ::akantu::Array<::akantu::UInt> & node_group);
+                   const ::akantu::Array<::akantu::Real> &nodes,
+                   ::akantu::Array<::akantu::Real> &displacement,
+                   const ::akantu::Array<::akantu::Idx> &node_group);
 
-void fillColour(const ::akantu::Mesh & mesh,
-                ::akantu::ElementTypeMapArray<::akantu::UInt> & colour);
+void fillColour(const ::akantu::Mesh &mesh,
+                ::akantu::ElementTypeMapArray<::akantu::Int> &colour);

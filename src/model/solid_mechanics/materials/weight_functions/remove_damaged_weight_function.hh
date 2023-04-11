@@ -1,20 +1,8 @@
 /**
- * @file   remove_damaged_weight_function.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- *
- * @date creation: Mon Aug 24 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Removed damaged weight function for non local materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "base_weight_function.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
 #define AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
@@ -69,8 +57,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,

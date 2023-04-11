@@ -1,19 +1,8 @@
 /**
- * @file   constitutive_law_non_local_tmpl.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Jul 06 2017
- * @date last modification: Fri Mar 26 2021
- *
- * @brief  Implementation of constitutive_law non-local
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,11 +16,9 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "constitutive_law.hh"
 #include "constitutive_law_non_local_interface.hh"
 #include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
@@ -39,16 +26,20 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
-ConstitutiveLawNonLocal<dim,ConstitutiveLawNonLocalInterface,ConstitutiveLawParent>::ConstitutiveLawNonLocal(
-    typename ConstitutiveLawParent::ConstitutiveLawsHandler & handler,
-    const ID & id)
-    : ConstitutiveLawParent(handler, id) {
-}
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                        ConstitutiveLawParent>::
+    ConstitutiveLawNonLocal(
+        typename ConstitutiveLawParent::ConstitutiveLawsHandler & handler,
+        const ID & id)
+    : ConstitutiveLawParent(handler, id) {}
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::
     insertIntegrationPointsInNeighborhoods(
         GhostType ghost_type,
         const ElementTypeMapReal & quadrature_points_coordinates) {
@@ -59,44 +50,47 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, Constitutive
   auto & neighborhood = this->model.getNonLocalManager().getNeighborhood(
       this->getNeighborhoodName());
 
-  for (auto & type :
+  for (auto && type :
        this->element_filter.elementTypes(dim, ghost_type, _ek_regular)) {
     q.type = type;
     const auto & elem_filter = this->element_filter(type, ghost_type);
-    UInt nb_element = elem_filter.size();
+    auto nb_element = elem_filter.size();
 
-    if (nb_element != 0U) {
-      UInt nb_quad =
-          this->getFEEngine().getNbIntegrationPoints(type, ghost_type);
+    if (nb_element == 0) {
+      continue;
+    }
 
-      const auto & quads = quadrature_points_coordinates(type, ghost_type);
+    auto nb_quad = this->getFEEngine().getNbIntegrationPoints(type, ghost_type);
 
-      auto nb_total_element =
-          this->model.getMesh().getNbElement(type, ghost_type);
-      auto quads_it = quads.begin_reinterpret(dim, nb_quad, nb_total_element);
-      for (auto & elem : elem_filter) {
-        Matrix<Real> quads = quads_it[elem];
-        q.element = elem;
-        for (UInt nq = 0; nq < nb_quad; ++nq) {
-          q.num_point = nq;
-          q.global_num = q.element * nb_quad + nq;
-          neighborhood.insertIntegrationPoint(q, quads(nq));
-        }
+    auto && quads_it =
+        make_view(quadrature_points_coordinates(type, ghost_type), dim, nb_quad)
+            .begin();
+    for (auto & elem : elem_filter) {
+      auto && quads = quads_it[elem];
+      q.element = elem;
+      for (auto && data : enumerate(quads)) {
+        auto nq = std::get<0>(data);
+        q.num_point = nq;
+        q.global_num = q.element * nb_quad + nq;
+        neighborhood.insertIntegrationPoint(q, std::get<1>(data));
       }
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::updateNonLocalInternals(
-    ElementTypeMapReal & non_local_flattened, const ID & field_id,
-    GhostType ghost_type, ElementKind kind) {
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::
+    updateNonLocalInternals(ElementTypeMapReal & non_local_flattened,
+                            const ID & field_id, GhostType ghost_type,
+                            ElementKind kind) {
 
-  /// loop over all types in the constitutive_law
-  for (auto & el_type :
+  /// loop over all types in the material
+  for (auto && el_type :
        this->element_filter.elementTypes(dim, ghost_type, kind)) {
-    Array<Real> & internal =
+    auto & internal =
         this->template getInternal<Real>(field_id)(el_type, ghost_type);
 
     auto & internal_flat = non_local_flattened(el_type, ghost_type);
@@ -107,11 +101,11 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, Constitutive
 
     /// loop all elements for the given type
     const auto & filter = this->element_filter(el_type, ghost_type);
-    UInt nb_quads =
+    Int nb_quads =
         this->getFEEngine().getNbIntegrationPoints(el_type, ghost_type);
     for (auto & elem : filter) {
-      for (UInt q = 0; q < nb_quads; ++q, ++internal_it) {
-        UInt global_quad = elem * nb_quads + q;
+      for (Int q = 0; q < nb_quads; ++q, ++internal_it) {
+        auto global_quad = elem * nb_quads + q;
         *internal_it = internal_flat_it[global_quad];
       }
     }
@@ -119,8 +113,10 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, Constitutive
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::registerNeighborhood() {
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::registerNeighborhood() {
   ID name = this->getNeighborhoodName();
   this->handler.getNonLocalManager().registerNeighborhood(name, name);
 }

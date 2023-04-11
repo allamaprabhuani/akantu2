@@ -1,19 +1,8 @@
 /**
- * @file   sparse_solver_mumps.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri May 19 2017
- *
- * @brief  Solver class implementation for the mumps solver
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -103,10 +91,10 @@ private:
   /* ------------------------------------------------------------------------ */
 private:
   /// access the control variable
-  inline Int & icntl(UInt i) { return mumps_data.icntl[i - 1]; }
+  inline Int & icntl(Int i) { return mumps_data.icntl[i - 1]; }
 
   /// access the results info
-  inline Int & info(UInt i) { return mumps_data.info[i - 1]; }
+  inline Int & info(Int i) { return mumps_data.info[i - 1]; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -122,13 +110,13 @@ private:
   DMUMPS_STRUC_C mumps_data;
 
   /// Rank of the current process
-  UInt prank;
+  Int prank;
 
   /// matrix release at last solve
-  UInt last_profile_release{UInt(-1)};
+  Int last_profile_release{-1};
 
   /// matrix release at last solve
-  UInt last_value_release{UInt(-1)};
+  Int last_value_release{-1};
 
   /// check if the solver data are initialized
   bool is_initialized{false};

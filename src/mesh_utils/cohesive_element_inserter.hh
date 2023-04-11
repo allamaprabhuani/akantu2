@@ -1,20 +1,8 @@
 /**
- * @file   cohesive_element_inserter.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Dec 04 2013
- * @date last modification: Tue Jul 21 2020
- *
- * @brief  Cohesive element inserter
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -68,7 +55,7 @@ public:
   void setLimit(SpatialDirection axis, Real first_limit, Real second_limit);
 
   /// insert intrinsic cohesive elements in a predefined range
-  auto insertIntrinsicElements() -> UInt;
+  Int insertIntrinsicElements();
 
   /// insert extrinsic cohesive elements (returns the number of new
   /// cohesive elements)
@@ -94,7 +81,7 @@ protected:
   void updateInsertionFacets();
 
   /// functions for parallel communications
-  inline UInt getNbData(const Array<Element> & elements,
+  inline Int getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
@@ -167,11 +154,11 @@ public:
   CohesiveNewNodesEvent(const std::string & origin) : NewNodesEvent(origin) {}
   ~CohesiveNewNodesEvent() override = default;
 
-  AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<UInt> &);
-  AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<Idx> &);
+  AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<Idx> &);
 
 private:
-  Array<UInt> old_nodes;
+  Array<Idx> old_nodes;
 };
 
 } // namespace akantu

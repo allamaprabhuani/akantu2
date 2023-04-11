@@ -1,23 +1,8 @@
 /**
- * @file   material_damage_tmpl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Marion Estelle Chambart <mchambart@stucky.ch>
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Specialization of the material class for the damage material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,10 +25,10 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-MaterialDamage<spatial_dimension, Parent>::MaterialDamage(
-    SolidMechanicsModel & model, const ID & id)
-    : Parent<spatial_dimension>(model, id), damage("damage", *this),
+template <Int dim, template <Int> class Parent>
+MaterialDamage<dim, Parent>::MaterialDamage(SolidMechanicsModel & model,
+                                            const ID & id)
+    : Parent<dim>(model, id), damage("damage", *this),
       dissipated_energy("damage dissipated energy", *this),
       int_sigma("integral of sigma", *this) {
   AKANTU_DEBUG_IN();
@@ -61,10 +45,10 @@ MaterialDamage<spatial_dimension, Parent>::MaterialDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
+template <Int dim, template <Int> class Parent>
+void MaterialDamage<dim, Parent>::initMaterial() {
   AKANTU_DEBUG_IN();
-  Parent<spatial_dimension>::initMaterial();
+  Parent<dim>::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
@@ -75,17 +59,14 @@ void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
  * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega -
  * \frac{1}{2}\sigma:\epsilon@f$
  */
-template <UInt spatial_dimension, template <UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::updateEnergies(
-    ElementType el_type) {
-  Parent<spatial_dimension>::updateEnergies(el_type);
+template <Int dim, template <Int> class Parent>
+void MaterialDamage<dim, Parent>::updateEnergies(ElementType el_type) {
+  Parent<dim>::updateEnergies(el_type);
 
   this->computePotentialEnergy(el_type);
 
-  auto epsilon_p =
-      this->gradu.previous(el_type).begin(spatial_dimension, spatial_dimension);
-  auto sigma_p = this->stress.previous(el_type).begin(spatial_dimension,
-                                                      spatial_dimension);
+  auto epsilon_p = this->gradu.previous(el_type).begin(dim, dim);
+  auto sigma_p = this->stress.previous(el_type).begin(dim, dim);
 
   auto epot = this->potential_energy(el_type).begin();
   auto ints = this->int_sigma(el_type).begin();
@@ -114,43 +95,40 @@ void MaterialDamage<spatial_dimension, Parent>::updateEnergies(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(
+template <Int dim, template <Int> class Parent>
+void MaterialDamage<dim, Parent>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+  constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
 
-  Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix,
-                                                  ghost_type);
-
-  Real * dam = this->damage(el_type, ghost_type).storage();
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  computeTangentModuliOnQuad(tangent, *dam);
-
-  ++dam;
-
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+  for (auto && data :
+       zip_append(getArguments(el_type, ghost_type),
+                  "tangent_moduli"_n =
+                      make_view<tangent_size, tangent_size>(tangent_matrix))) {
+    Parent<dim>::computeTangentModuliOnQuad(data);
+    computeTangentModuliOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, Real & dam) {
-  tangent *= (1 - dam);
+template <Int dim, template <Int> class Parent>
+template <class Args>
+void MaterialDamage<dim, Parent>::computeTangentModuliOnQuad(
+    Args && arguments) {
+  arguments["tangent_moduli"_n].array() *= (1 - arguments["damage"_n]);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
+template <Int dim, template <Int> class Parent>
+auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
   AKANTU_DEBUG_IN();
 
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto & type :
-       this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
     de += this->getFEEngine().integrate(dissipated_energy(type, _not_ghost),
                                         type, _not_ghost,
                                         this->element_filter(type, _not_ghost));
@@ -161,13 +139,13 @@ Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class Parent>
-Real MaterialDamage<spatial_dimension, Parent>::getEnergy(
-    const std::string & type) {
+template <Int dim, template <Int> class Parent>
+Real MaterialDamage<dim, Parent>::getEnergy(const std::string & type) {
   if (type == "dissipated") {
     return getDissipatedEnergy();
   }
-  return Parent<spatial_dimension>::getEnergy(type);
+
+  return Parent<dim>::getEnergy(type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,15 +1,21 @@
 /**
- * @file   shape_igfem.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  shape functions for interface-enriched generalized FEM
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +75,7 @@ public:
   void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
   template <ElementType type>
@@ -82,7 +88,7 @@ public:
   void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>

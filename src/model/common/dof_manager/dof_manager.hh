@@ -1,18 +1,8 @@
 /**
- * @file   dof_manager.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Aug 18 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Class handling the different types of dofs
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +58,7 @@ public:
 public:
   /// register an array of degree of freedom
   virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                            const DOFSupportType & support_type);
+                            DOFSupportType support_type);
 
   /// the dof as an implied type of _dst_nodal and is defined only on a subset
   /// of nodes
@@ -85,7 +74,7 @@ public:
                                      Array<Real> & dofs_array);
 
   /// register an array of derivatives for a particular dof array
-  virtual void registerDOFsDerivative(const ID & dof_id, UInt order,
+  virtual void registerDOFsDerivative(const ID & dof_id, Int order,
                                       Array<Real> & dofs_derivative);
 
   /// register array representing the blocked degree of freedoms
@@ -112,7 +101,7 @@ public:
   virtual void assembleElementalArrayLocalArray(
       const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
       ElementType type, GhostType ghost_type, Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -122,7 +111,7 @@ public:
   virtual void assembleElementalArrayToResidual(
       const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
       GhostType ghost_type, Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to a global array corresponding to a lumped
@@ -132,7 +121,7 @@ public:
       const ID & dof_id, const Array<Real> & elementary_vect,
       const ID & lumped_mtx, ElementType type, GhostType ghost_type,
       Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -144,7 +133,7 @@ public:
       const Array<Real> & elementary_mat, ElementType type,
       GhostType ghost_type = _not_ghost,
       const MatrixType & elemental_matrix_type = _symmetric,
-      const Array<UInt> & filter_elements = empty_filter) = 0;
+      const Array<Int> & filter_elements = empty_filter) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
   virtual void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
@@ -199,7 +188,7 @@ private:
 protected:
   /// common function to help registering dofs the return values are the add new
   /// numbers of local dofs, pure local dofs, and system size
-  virtual std::tuple<UInt, UInt, UInt>
+  virtual std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array);
 
   /// minimum functionality to implement per derived version of the DOFManager
@@ -210,8 +199,8 @@ protected:
   /// fill a Vector with the equation numbers corresponding to the given
   /// connectivity
   static inline void extractElementEquationNumber(
-      const Array<Int> & equation_numbers, const Vector<UInt> & connectivity,
-      UInt nb_degree_of_freedom, Vector<Int> & element_equation_number);
+      const Array<Int> & equation_numbers, const Vector<Idx> & connectivity,
+      Int nb_degree_of_freedom, Vector<Idx> & local_equation_number);
 
   /// Assemble a array to a global one
   void assembleMatMulVectToGlobalArray(const ID & dof_id, const ID & A_id,
@@ -230,7 +219,7 @@ protected:
                                      const Array<Real> & elementary_mat,
                                      ElementType type, GhostType ghost_type,
                                      const MatrixType & elemental_matrix_type,
-                                     const Array<UInt> & filter_elements);
+                                     const Array<Idx> & filter_elements);
 
   template <typename Vec>
   void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
@@ -242,25 +231,25 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// Get the location type of a given dof
-  inline bool isLocalOrMasterDOF(UInt local_dof_num);
+  inline bool isLocalOrMasterDOF(Idx local_dof_num);
 
   /// Answer to the question is a dof a slave dof ?
-  inline bool isSlaveDOF(UInt local_dof_num);
+  inline bool isSlaveDOF(Idx local_dof_num);
 
   /// Answer to the question is a dof a slave dof ?
-  inline bool isPureGhostDOF(UInt local_dof_num);
+  inline bool isPureGhostDOF(Idx local_dof_num);
 
   /// tells if the dof manager knows about a global dof
-  bool hasGlobalEquationNumber(Int global) const;
+  bool hasGlobalEquationNumber(Idx global) const;
 
   /// return the local index of the global equation number
-  inline Int globalToLocalEquationNumber(Int global) const;
+  inline Idx globalToLocalEquationNumber(Idx global) const;
 
   /// converts local equation numbers to global equation numbers;
-  inline Int localToGlobalEquationNumber(Int local) const;
+  inline Idx localToGlobalEquationNumber(Idx local) const;
 
   /// get the array of dof types (use only if you know what you do...)
-  inline NodeFlag getDOFFlag(Int local_id) const;
+  inline NodeFlag getDOFFlag(Idx local_id) const;
 
   /// defines if the boundary changed
   bool hasBlockedDOFsChanged() const {
@@ -269,13 +258,13 @@ public:
   }
 
   /// Global number of dofs
-  AKANTU_GET_MACRO(SystemSize, this->system_size, UInt);
+  AKANTU_GET_MACRO_AUTO(SystemSize, this->system_size);
 
   /// Local number of dofs
-  AKANTU_GET_MACRO(LocalSystemSize, this->local_system_size, UInt);
+  AKANTU_GET_MACRO_AUTO(LocalSystemSize, this->local_system_size);
 
   /// Pure local number of dofs
-  AKANTU_GET_MACRO(PureLocalSystemSize, this->pure_local_system_size, UInt);
+  AKANTU_GET_MACRO_AUTO(PureLocalSystemSize, this->pure_local_system_size);
 
   /// Retrieve all the registered DOFs
   std::vector<ID> getDOFIDs() const;
@@ -293,10 +282,10 @@ public:
   inline bool hasDOFs(const ID & dof_id) const;
 
   /// Get a reference to the registered dof derivatives array for a given id
-  inline Array<Real> & getDOFsDerivatives(const ID & dofs_id, UInt order);
+  inline Array<Real> & getDOFsDerivatives(const ID & dofs_id, Int order);
 
   /// Does the dof has derivatives
-  inline bool hasDOFsDerivatives(const ID & dofs_id, UInt order) const;
+  inline bool hasDOFsDerivatives(const ID & dofs_id, Int order) const;
 
   /// Get a reference to the blocked dofs array registered for the given id
   inline const Array<bool> & getBlockedDOFs(const ID & dofs_id) const;
@@ -327,10 +316,10 @@ public:
   inline Array<Real> & getSolution(const ID & dofs_id);
 
   /// Get the blocked dofs array
-  AKANTU_GET_MACRO(GlobalBlockedDOFs, global_blocked_dofs, const Array<Int> &);
+  AKANTU_GET_MACRO_AUTO(GlobalBlockedDOFs, global_blocked_dofs);
   /// Get the blocked dofs array
-  AKANTU_GET_MACRO(PreviousGlobalBlockedDOFs, previous_global_blocked_dofs,
-                   const Array<Int> &);
+  AKANTU_GET_MACRO_AUTO(PreviousGlobalBlockedDOFs,
+                        previous_global_blocked_dofs);
 
   /* ------------------------------------------------------------------------ */
   /* Matrices accessors                                                       */
@@ -346,11 +335,11 @@ public:
 
   /// Get the equation numbers corresponding to a dof_id. This might be used to
   /// access the matrix.
-  inline const Array<Int> & getLocalEquationsNumbers(const ID & dof_id) const;
+  inline decltype(auto) getLocalEquationsNumbers(const ID & dof_id) const;
 
 protected:
   /// get the array of dof types (use only if you know what you do...)
-  inline const Array<UInt> & getDOFsAssociatedNodes(const ID & dof_id) const;
+  inline decltype(auto) getDOFsAssociatedNodes(const ID & dof_id) const;
 
 protected:
   /* ------------------------------------------------------------------------ */
@@ -488,15 +477,15 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  AKANTU_GET_MACRO(Communicator, communicator, const auto &);
-  AKANTU_GET_MACRO_NOT_CONST(Communicator, communicator, auto &);
+  AKANTU_GET_MACRO_AUTO(Communicator, communicator);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Communicator, communicator);
 
   /* ------------------------------------------------------------------------ */
-  AKANTU_GET_MACRO(Solution, *(solution.get()), const auto &);
-  AKANTU_GET_MACRO_NOT_CONST(Solution, *(solution.get()), auto &);
+  AKANTU_GET_MACRO_DEREF_PTR(Solution, solution);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Solution, solution);
 
-  AKANTU_GET_MACRO(Residual, *(residual.get()), const auto &);
-  AKANTU_GET_MACRO_NOT_CONST(Residual, *(residual.get()), auto &);
+  AKANTU_GET_MACRO_DEREF_PTR(Residual, residual);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Residual, residual);
 
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler interface                                               */
@@ -504,21 +493,21 @@ public:
 protected:
   friend class GlobalDOFInfoDataAccessor;
   /// helper function for the DOFManager::onNodesAdded method
-  virtual std::pair<UInt, UInt> updateNodalDOFs(const ID & dof_id,
-                                                const Array<UInt> & nodes_list);
+  virtual std::pair<Int, Int> updateNodalDOFs(const ID & dof_id,
+                                              const Array<Idx> & nodes_list);
 
   template <typename Func>
-  auto countDOFsForNodes(const DOFData & dof_data, UInt nb_nodes,
+  auto countDOFsForNodes(const DOFData & dof_data, Int nb_nodes,
                          Func && getNode);
 
-  void updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local, UInt nb_nodes,
-                      const std::function<UInt(UInt)> & getNode);
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local, Int nb_nodes,
+                      const std::function<Idx(Idx)> & getNode);
 
-  void updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local);
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local);
 
-  auto computeFirstDOFIDs(UInt nb_new_local_dofs, UInt nb_new_pure_local);
+  auto computeFirstDOFIDs(Int nb_new_local_dofs, Int nb_new_pure_local);
 
   /// resize all the global information and takes the needed measure like
   /// cleaning matrices profiles
@@ -526,29 +515,27 @@ protected:
 
 public:
   /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
   /// function to implement to react on  akantu::RemovedNodesEvent
-  void onNodesRemoved(const Array<UInt> & nodes_list,
-                      const Array<UInt> & new_numbering,
+  void onNodesRemoved(const Array<Idx> & nodes_list,
+                      const Array<Idx> & new_numbering,
                       const RemovedNodesEvent & event) override;
   /// function to implement to react on  akantu::NewElementsEvent
   void onElementsAdded(const Array<Element> & elements_list,
                        const NewElementsEvent & event) override;
   /// function to implement to react on  akantu::RemovedElementsEvent
   void onElementsRemoved(const Array<Element> & elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
   /// function to implement to react on  akantu::ChangedElementsEvent
   void onElementsChanged(const Array<Element> & old_elements_list,
                          const Array<Element> & new_elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const ChangedElementsEvent & event) override;
 
   /// function to implement to react on  akantu::MeshIsDistributedEvent
-  void
-  onMeshIsDistributed(const Mesh& mesh,
-  		      const MeshIsDistributedEvent & event) override;
+  void onMeshIsDistributed(const MeshIsDistributedEvent & event) override;
 
 protected:
   inline DOFData & getDOFData(const ID & dof_id);
@@ -599,21 +586,21 @@ protected:
 
     /* ---------------------------------------------------------------------- */
     /// number of dofs to consider locally for this dof id
-    UInt local_nb_dofs{0};
+    Int local_nb_dofs{0};
 
     /// Number of purely local dofs
-    UInt pure_local_nb_dofs{0};
+    Int pure_local_nb_dofs{0};
 
     /// number of ghost dofs
-    UInt ghosts_nb_dofs{0};
+    Int ghosts_nb_dofs{0};
 
     /// local numbering equation numbers
-    Array<Int> local_equation_number;
+    Array<Idx> local_equation_number;
 
     /// associated node for _dst_nodal dofs only
-    Array<UInt> associated_nodes;
+    Array<Idx> associated_nodes;
 
-    virtual Array<Int> & getLocalEquationsNumbers() {
+    virtual Array<Idx> & getLocalEquationsNumbers() {
       return local_equation_number;
     }
   };
@@ -654,13 +641,13 @@ protected:
   Mesh * mesh{nullptr};
 
   /// Total number of degrees of freedom (size with the ghosts)
-  UInt local_system_size{0};
+  Int local_system_size{0};
 
   /// Number of purely local dofs (size without the ghosts)
-  UInt pure_local_system_size{0};
+  Int pure_local_system_size{0};
 
   /// Total number of degrees of freedom
-  UInt system_size{0};
+  Int system_size{0};
 
   /// rhs to the system of equation corresponding to the residual linked to the
   /// different dofs
@@ -688,22 +675,22 @@ protected:
   Communicator & communicator;
 
   /// accumulator to know what would be the next global id to use
-  UInt first_global_dof_id{0};
+  Int first_global_dof_id{0};
 
   /// Release at last apply boundary on jacobian
-  UInt jacobian_release{0};
+  Int jacobian_release{0};
 
   /// blocked degree of freedom in the system equation corresponding to the
   /// different dofs
   Array<Int> global_blocked_dofs;
 
-  UInt global_blocked_dofs_release{0};
+  Int global_blocked_dofs_release{0};
 
   /// blocked degree of freedom in the system equation corresponding to the
   /// different dofs
   Array<Int> previous_global_blocked_dofs;
 
-  UInt previous_global_blocked_dofs_release{0};
+  Int previous_global_blocked_dofs_release{0};
 
 private:
   /// This is for unit testing

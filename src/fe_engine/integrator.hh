@@ -1,19 +1,8 @@
 /**
- * @file   integrator.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  interface for integrator classes
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef AKANTU_INTEGRATOR_HH_
@@ -43,7 +31,7 @@ class Integrator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Integrator(const Mesh & mesh, UInt spatial_dimension,
+  Integrator(const Mesh & mesh, Int spatial_dimension,
              const ID & id = "integrator")
       : mesh(mesh), _spatial_dimension(spatial_dimension),
         jacobians("jacobians", id) {
@@ -60,21 +48,17 @@ public:
 public:
   /// empty method
   template <ElementType type>
-  inline void precomputeJacobiansOnQuadraturePoints(__attribute__((unused))
-                                                    GhostType ghost_type) {}
+  inline void precomputeJacobiansOnQuadraturePoints(GhostType /*ghost_type*/) {}
 
   /// empty method
   void integrateOnElement(const Array<Real> & /*f*/, Real * /*intf*/,
-                          UInt /*nb_degree_of_freedom*/,
+                          Int /*nb_degree_of_freedom*/,
                           const Element & /*elem*/,
                           GhostType /*ghost_type*/) const {};
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-      ;
-    }
+    std::string space(indent, AKANTU_INDENT);
     stream << space << "Integrator [" << std::endl;
     jacobians.printself(stream, indent + 1);
     stream << space << "]" << std::endl;
@@ -84,8 +68,8 @@ public:
 public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/) {}
   virtual void
-  onElementsRemoved(const Array<Element> & /*unused*/,
-                    const ElementTypeMapArray<UInt> & new_numbering) {
+  onElementsRemoved(const Array<Element> & /*removed_elements*/,
+                    const ElementTypeMapArray<Idx> & new_numbering) {
     jacobians.onElementsRemoved(new_numbering);
   }
   /* ------------------------------------------------------------------------ */
@@ -114,7 +98,7 @@ protected:
   const Mesh & mesh;
 
   // spatial dimension of the elements to consider
-  UInt _spatial_dimension;
+  Int _spatial_dimension;
 
   /// jacobians for all elements
   ElementTypeMapArray<Real> jacobians;

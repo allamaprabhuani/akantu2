@@ -1,24 +1,8 @@
 /**
- * @file   material_linear_isotropic_hardening.hh
- *
- * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Benjamin Paccaud <benjamin.paccaud@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Specialization of the material class for isotropic finite deformation
- * linear hardening plasticity
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -32,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -49,16 +32,15 @@ namespace akantu {
 /**
  * Material plastic with a linear evolution of the yielding stress
  */
-template <UInt spatial_dimension>
-class MaterialLinearIsotropicHardening
-    : public MaterialPlastic<spatial_dimension> {
+template <Int dim>
+class MaterialLinearIsotropicHardening : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+  using Parent = MaterialPlastic<dim>;
+
 public:
-  MaterialLinearIsotropicHardening(SolidMechanicsModel & model,
-                                   const ID & id = "",
-                                   const ID & fe_engine_id = "");
+  using Parent::Parent;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -74,37 +56,18 @@ public:
 
 protected:
   /// Infinitesimal deformations
-  inline void
-  computeStressOnQuad(const Matrix<Real> & grad_u,
-                      const Matrix<Real> & previous_grad_u,
-                      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-                      Matrix<Real> & inelastic_strain,
-                      const Matrix<Real> & previous_inelastic_strain,
-                      Real & iso_hardening, const Real & previous_iso_hardening,
-                      const Real & sigma_th, const Real & previous_sigma_th);
+  template <class Args,
+            std::enable_if_t<not named_tuple_t<Args>::has("F"_n)> * = nullptr>
+  inline void computeStressOnQuad(Args && arguments);
+
   /// Finite deformations
-  inline void computeStressOnQuad(
-      const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain, Real & iso_hardening,
-      const Real & previous_iso_hardening, const Real & sigma_th,
-      const Real & previous_sigma_th, const Matrix<Real> & F_tensor);
+  template <class Args,
+            std::enable_if_t<named_tuple_t<Args>::has("F"_n)> * = nullptr>
+  inline void computeStressOnQuad(Args && arguments);
 
-  inline void computeTangentModuliOnQuad(
-      Matrix<Real> & tangent, const Matrix<Real> & grad_u,
-      const Matrix<Real> & previous_grad_u, const Matrix<Real> & sigma_tensor,
-      const Matrix<Real> & previous_sigma_tensor,
-      const Real & iso_hardening) const;
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
+  template <class Args>
+  inline void computeTangentModuliOnQuad(Args && arguments) const;
 };
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
 
 } // namespace akantu
 

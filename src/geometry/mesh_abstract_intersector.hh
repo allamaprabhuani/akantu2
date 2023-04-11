@@ -1,20 +1,8 @@
 /**
- * @file   mesh_abstract_intersector.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Clement Roux <clement.roux@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Apr 29 2015
- * @date last modification: Sat Apr 02 2016
- *
- * @brief  Abstract class for intersection computations
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -62,12 +49,12 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the new_node_per_elem array
-  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<UInt> &);
+  AKANTU_GET_MACRO(NewNodePerElem, *new_node_per_elem, const Array<Int> &);
   /// get the intersection_points array
-  AKANTU_GET_MACRO(IntersectionPoints, intersection_points,
-                   const Array<Real> *);
+  AKANTU_GET_MACRO(IntersectionPoints, *intersection_points,
+                   const Array<Real> &);
   /// get the nb_seg_by_el UInt
-  AKANTU_GET_MACRO(NbSegByEl, nb_seg_by_el, UInt);
+  AKANTU_GET_MACRO(NbSegByEl, nb_seg_by_el, Int);
 
   /**
    * @brief Compute the intersection with a query object
@@ -85,7 +72,7 @@ public:
   /// same primitives are not considered. A maximum intersection node per
   /// element is set : 2 in 2D and 4 in 3D
   virtual void computeMeshQueryIntersectionPoint(const Query & query,
-                                                 UInt nb_old_nodes) = 0;
+                                                 Int nb_old_nodes) = 0;
 
   /// Compute intersection between the mesh and a list of queries
   virtual void
@@ -94,7 +81,7 @@ public:
   /// Compute intersection points between the mesh and a list of queries
   virtual void
   computeMeshQueryListIntersectionPoint(const std::list<Query> & query_list,
-                                        UInt nb_old_nodes);
+                                        Int nb_old_nodes);
 
   /// Compute whatever result is needed from the user (should be move to the
   /// appropriate specific classe for genericity)
@@ -104,15 +91,15 @@ public:
 protected:
   /// new node per element (column 0: number of new nodes, then odd is the
   /// intersection node number and even the ID of the intersected segment)
-  Array<UInt> * new_node_per_elem{nullptr};
+  std::unique_ptr<Array<Int>> new_node_per_elem;
 
   /// intersection output: new intersection points
   /// (computeMeshQueryListIntersectionPoint)
-  Array<Real> * intersection_points{nullptr};
+  std::unique_ptr<Array<Real>> intersection_points;
 
   /// number of segment in a considered element of the templated type of element
   /// specialized intersector
-  const UInt nb_seg_by_el{0};
+  const Int nb_seg_by_el{0};
 };
 
 } // namespace akantu

@@ -1,19 +1,8 @@
 /**
- * @file   aka_error.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jun 14 2010
- * @date last modification: Tue Feb 09 2021
- *
- * @brief  error management and internal exceptions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -361,10 +349,11 @@ namespace debug {
 
 #define AKANTU_DEBUG_ASSERT(test, info)                                        \
   do {                                                                         \
-    if (not(test))                                                             \
+    if AKANTU_UNLIKELY (not(test)) {                                           \
       AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::AssertException(),         \
                                    "assert [" << #test << "] "                 \
                                               << info); /* NOLINT */           \
+    }                                                                          \
   } while (false)
 
 #define AKANTU_ERROR(info)                                                     \

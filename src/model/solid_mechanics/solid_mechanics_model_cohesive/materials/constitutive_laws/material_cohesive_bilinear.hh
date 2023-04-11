@@ -1,18 +1,8 @@
 /**
- * @file   material_cohesive_bilinear.hh
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Bilinear cohesive constitutive law
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +41,7 @@ namespace akantu {
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveBilinear
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
@@ -74,14 +63,15 @@ public:
 
 protected:
   /// constitutive law
-  void computeTraction(const Array<Real> & normal, ElementType el_type,
+  void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
   /**
    * Scale traction sigma_c according to the volume of the
    * two elements surrounding an element
    */
-  void scaleTraction(const Element & el, Vector<Real> & sigma_c_vec);
+  template <typename D1>
+  void scaleTraction(const Element & el, Eigen::MatrixBase<D1> & sigma_c_vec);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

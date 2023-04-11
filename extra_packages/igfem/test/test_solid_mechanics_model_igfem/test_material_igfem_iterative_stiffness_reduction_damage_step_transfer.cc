@@ -1,29 +1,21 @@
 /**
- * @file
- * test_material_igfem_iterative_stiffness_reduction_damage_step_transfer.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief test the damage step transfer for the material iterative
- * stiffness reduction
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +48,7 @@ public:
 
 protected:
   SolidMechanicsModelIGFEM & model;
-  UInt spatial_dimension;
+  Int spatial_dimension;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +61,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_stiffness_reduction_2.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -122,7 +114,7 @@ int main(int argc, char * argv[]) {
   const Array<Real> & pos = mesh.getNodes();
   Array<bool> & boun = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
-  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  for (Int n = 0; n < mesh.getNbNodes(); ++n) {
     if (std::abs(pos(n, 1) - bottom) < eps) {
       boun(n, 1) = true;
       disp(n, 1) = 0.;
@@ -187,7 +179,7 @@ int main(int argc, char * argv[]) {
   /// solve the system
   // counter for the damage steps
   UInt regular_steps = 15;
-  for (UInt s = 0; s < regular_steps; ++s) {
+  for (Int s = 0; s < regular_steps; ++s) {
     converged =
         model.solveStep<_scm_newton_raphson_tangent_modified,
                         SolveConvergenceCriteria::_increment>(1e-12, error, 2);
@@ -239,8 +231,8 @@ int main(int argc, char * argv[]) {
   const Array<UInt> & sub_material = igfem_material.getInternal<UInt>(
       "sub_material")(_igfem_triangle_5, _not_ghost);
   Array<UInt>::const_scalar_iterator sub_it = sub_material.begin();
-  for (UInt e = 0; e < nb_igfem_elements; ++e) {
-    for (UInt q = 0; q < nb_quads; ++q, ++sub_it, ++step_it) {
+  for (Int e = 0; e < nb_igfem_elements; ++e) {
+    for (Int q = 0; q < nb_quads; ++q, ++sub_it, ++step_it) {
       if (!*sub_it) {
         if (!Math::are_float_equal(*step_it, 0.)) {
           std::cout
@@ -278,7 +270,7 @@ int main(int argc, char * argv[]) {
       igfem_material.getInternal<Real>("damage")(_igfem_triangle_5, _not_ghost);
   Array<Real> old_damage(dam_igfem);
 
-  for (UInt s = 0; s < 1; ++s) {
+  for (Int s = 0; s < 1; ++s) {
     converged =
         model.solveStep<_scm_newton_raphson_tangent_modified,
                         SolveConvergenceCriteria::_increment>(1e-12, error, 2);
@@ -315,8 +307,8 @@ int main(int argc, char * argv[]) {
   step_it = reduction_step_igfem.begin();
   UInt reduction_constant = material.getParam<Real>("reduction_constant");
 
-  for (UInt e = 0; e < nb_igfem_elements; ++e) {
-    for (UInt q = 0; q < nb_quads;
+  for (Int e = 0; e < nb_igfem_elements; ++e) {
+    for (Int q = 0; q < nb_quads;
          ++q, ++sub_it, ++step_it, ++new_dam_it, ++old_dam_it) {
       if (!*sub_it) {
         if (!Math::are_float_equal(*step_it, 0.) ||

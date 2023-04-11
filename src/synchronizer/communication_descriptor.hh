@@ -1,18 +1,8 @@
 /**
- * @file   communication_descriptor.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Dec 02 2016
- * @date last modification: Thu Jan 25 2018
- *
- * @brief  Implementation of the helper classes for the synchronizer
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -66,13 +55,13 @@ public:
   Communication(const Communication &) = delete;
   Communication & operator=(const Communication &) = delete;
 
-  void resize(UInt size) {
+  void resize(Int size) {
     this->_size = size;
     this->_buffer.resize(size);
   }
 
   inline const CommunicationSendRecv & type() const { return this->_type; }
-  inline const UInt & size() const { return this->_size; }
+  inline Int size() const { return this->_size; }
 
   inline const CommunicationRequest & request() const { return this->_request; }
   inline CommunicationRequest & request() { return this->_request; }
@@ -81,7 +70,7 @@ public:
   inline CommunicationBuffer & buffer() { return this->_buffer; }
 
 private:
-  UInt _size{0};
+  Int _size{0};
   CommunicationBuffer _buffer;
   CommunicationRequest _request;
   CommunicationSendRecv _type;
@@ -94,7 +83,7 @@ template <class Entity> class CommunicationDescriptor {
 public:
   CommunicationDescriptor(Communication & communication, Array<Entity> & scheme,
                           Communications<Entity> & communications,
-                          const SynchronizationTag & tag, UInt proc);
+                          const SynchronizationTag & tag, Idx proc);
 
   CommunicationDescriptor(const CommunicationDescriptor &) = default;
 
@@ -102,9 +91,9 @@ public:
   operator=(const CommunicationDescriptor &) = default;
 
   /// get the quantity of data in the buffer
-  UInt getNbData() { return communication.size(); }
+  Int getNbData() { return communication.size(); }
   /// set the quantity of data in the buffer
-  void setNbData(UInt size) { communication.resize(size); }
+  void setNbData(Int size) { communication.resize(size); }
 
   /// get the corresponding tag
   const SynchronizationTag & getTag() const { return tag; }
@@ -135,16 +124,16 @@ public:
   /// free the request
   void freeRequest();
 
-  UInt getProc() { return proc; }
+  Idx getProc() { return proc; }
 
 protected:
   Communication & communication;
   const Array<Entity> & scheme;
   Communications<Entity> & communications;
   const SynchronizationTag & tag;
-  UInt proc;
-  UInt rank;
-  UInt counter;
+  Idx proc;
+  Idx rank;
+  Int counter;
 };
 
 /* -------------------------------------------------------------------------- */

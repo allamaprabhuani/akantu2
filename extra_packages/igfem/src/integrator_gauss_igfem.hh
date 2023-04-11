@@ -1,15 +1,21 @@
 /**
- * @file   integrator_gauss_igfem.hh
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  Gauss integration facilities for IGFEM
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +59,7 @@ public:
   template <ElementType type>
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
                  UInt nb_degree_of_freedom, GhostType ghost_type,
-                 const Array<UInt> & filter_elements) const;
+                 const Array<Int> & filter_elements) const;
 
   /// integrate one element scalar value on all elements of type "type"
   template <ElementType type>
@@ -63,7 +69,7 @@ public:
   /// integrate scalar field in_f
   template <ElementType type>
   Real integrate(const Array<Real> & in_f, GhostType ghost_type,
-                 const Array<UInt> & filter_elements) const;
+                 const Array<Int> & filter_elements) const;
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
@@ -71,7 +77,7 @@ public:
   void
   integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
                                UInt nb_degree_of_freedom, GhostType ghost_type,
-                               const Array<UInt> & filter_elements) const;
+                               const Array<Int> & filter_elements) const;
   /// return a vector with quadrature points natural coordinates
   template <ElementType type>
   const Matrix<Real> & getIntegrationPoints(GhostType ghost_type) const;

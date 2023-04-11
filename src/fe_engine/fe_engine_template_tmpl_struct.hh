@@ -1,21 +1,8 @@
 /**
- * @file   fe_engine_template_tmpl_struct.hh
- *
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Jul 07 2014
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Template implementation of FEEngineTemplate for Structural Element
- * Kinds
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -47,7 +33,7 @@ struct AssembleFieldMatrixStructHelper<
   template <template <ElementKind, class> class I,
             template <ElementKind> class S, ElementKind k, class IOF>
   static void call(const FEEngineTemplate<I, S, k, IOF> & fem,
-                   const Array<Real> & field_1, UInt nb_degree_of_freedom,
+                   const Array<Real> & field_1, Int nb_degree_of_freedom,
                    SparseMatrix & M, Array<Real> * n,
                    ElementTypeMapArray<Real> & rotation_mat, ElementType type,
                    GhostType ghost_type) {
@@ -60,43 +46,14 @@ struct AssembleFieldMatrixStructHelper<
   }
 };
 
-// template <template <ElementKind, class> class I, template <ElementKind> class
-// S,
-//           ElementKind kind, class IntegrationOrderFunctor>
-// inline void
-// FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
-//     const Array<Real> & field_1, UInt nb_degree_of_freedom, SparseMatrix & M,
-//     Array<Real> * n, ElementTypeMapArray<Real> & rotation_mat,
-//     ElementType type, GhostType ghost_type) const {
-//   AKANTU_DEBUG_IN();
-
-//   AssembleFieldMatrixStructHelper<kind>::template call(
-//       *this, field_1, nb_degree_of_freedom, M, n, rotation_mat, type,
-//       ghost_type);
-
-//   AKANTU_DEBUG_OUT();
-// }
-// /* --------------------------------------------------------------------------
-// */ template <template <ElementKind, class> class I, template <ElementKind>
-// class S,
-//           ElementKind kind, class IntegrationOrderFunctor>
-// inline void
-// FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapesMatrix(
-//     ElementType, UInt, UInt, Array<Real> *, UInt, UInt, UInt,
-//     const bool, GhostType) const {
-
-//   AKANTU_TO_IMPLEMENT();
-// }
-
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
-    const Array<Real> & /*unused*/, UInt /*unused*/, SparseMatrix & /*unused*/,
-    Array<Real> * /*unused*/, ElementTypeMapArray<Real> & /*unused*/,
-    GhostType /*unused*/) const {
+    const Array<Real> &, Int, SparseMatrix &, Array<Real> *,
+    ElementTypeMapArray<Real> &, GhostType) const {
   AKANTU_TO_IMPLEMENT();
 }
 

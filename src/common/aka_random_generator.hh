@@ -1,18 +1,8 @@
 /**
- * @file   aka_random_generator.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Feb 21 2013
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  generic random generator
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -167,7 +156,7 @@ public:
   RandomDistribution &
   operator=(RandomDistribution && other) noexcept = default;
 
-  virtual T operator()(RandomGenerator<UInt> & gen) = 0;
+  virtual T operator()(RandomGenerator<Idx> & gen) = 0;
   virtual std::unique_ptr<RandomDistribution<T>> make_unique() const = 0;
   virtual void printself(std::ostream & stream, int = 0) const = 0;
 };
@@ -178,7 +167,7 @@ public:
   explicit RandomDistributionProxy(Distribution dist)
       : distribution(std::move(dist)) {}
 
-  T operator()(RandomGenerator<UInt> & gen) override {
+  T operator()(RandomGenerator<Idx> & gen) override {
     return distribution(gen);
   }
 
@@ -241,7 +230,7 @@ public:
 
   template <template <typename> class Generator, class iterator>
   void setValues(iterator it, iterator end) {
-    RandomGenerator<UInt> gen;
+    RandomGenerator<Idx> gen;
     for (; it != end; ++it) {
       *it = this->base_value + (*distribution_proxy)(gen);
     }

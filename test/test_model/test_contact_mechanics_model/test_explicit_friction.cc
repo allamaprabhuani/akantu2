@@ -1,18 +1,8 @@
 /**
- * @file   test_explicit_friction.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Sun Jun 06 2021
- * @date last modification: Sun Jun 06 2021
- *
- * @brief  Test contact mechanics with friction
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -49,8 +38,8 @@ template <typename T> std::vector<T> arrange(T start, T stop, T step = 1) {
 
 int main(int argc, char * argv[]) {
 
-  UInt max_normal_steps = 2500;
-  UInt max_shear_steps = 7500;
+  Int max_normal_steps = 2500;
+  Int max_shear_steps = 7500;
   Real max_shear_displacement = 1e-1;
   Real max_normal_displacement = 2e-2;
   Real damping_ratio = 0.99;
@@ -58,7 +47,7 @@ int main(int argc, char * argv[]) {
   std::string mesh_file = "sliding-block-2D.msh";
   std::string material_file = "material-friction.dat";
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   initialize(material_file, argc, argv);
 
@@ -132,7 +121,7 @@ int main(int argc, char * argv[]) {
   auto & contact_nodes = surface_selector->getSlaveList();
   auto & tangential_traction = contact.getTangentialTractions();
 
-  for (UInt s : arange(max_steps)) {
+  for (Int s : arange(max_steps)) {
 
     if (s < max_normal_steps) {
       solid.applyBC(BC::Dirichlet::FixedValue(-normal_displacements[s], _y),

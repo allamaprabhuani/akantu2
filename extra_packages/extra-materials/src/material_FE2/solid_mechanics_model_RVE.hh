@@ -1,27 +1,21 @@
 /**
- * @file   solid_mechanics_model_RVE.hh
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Wed Jan 13 14:54:18 2016
- *
- * @brief  SMM for RVE computations in FE2 simulations
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,7 +39,7 @@ class SolidMechanicsModelRVE : public SolidMechanicsModel {
 public:
   SolidMechanicsModelRVE(Mesh & mesh, bool use_RVE_mat_selector = true,
                          UInt nb_gel_pockets = 400,
-                         UInt spatial_dimension = _all_dimensions,
+                         Int spatial_dimension = _all_dimensions,
                          const ID & id = "solid_mechanics_model");
 
   virtual ~SolidMechanicsModelRVE();
@@ -84,15 +78,14 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<UInt> & index,
+  inline void unpackData(CommunicationBuffer & buffer, const Array<Idx> & index,
                          const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<Idx> &);
   AKANTU_GET_MACRO(Volume, volume, Real);
 
 private:
@@ -114,7 +107,7 @@ private:
   Real volume;
 
   /// corner nodes 1, 2, 3, 4 (see Leonardo's thesis, page 98)
-  Array<UInt> corner_nodes;
+  Array<Idx> corner_nodes;
 
   /// bottom nodes
   std::unordered_set<UInt> bottom_nodes;
@@ -133,7 +126,7 @@ private:
 };
 
 inline void SolidMechanicsModelRVE::unpackData(CommunicationBuffer & buffer,
-                                               const Array<UInt> & index,
+                                               const Array<Idx> & index,
                                                const SynchronizationTag & tag) {
   SolidMechanicsModel::unpackData(buffer, index, tag);
 
@@ -170,7 +163,7 @@ public:
         nb_gel_pockets(nb_gel_pockets), nb_placed_gel_pockets(0),
         box_size(box_size) {
     Mesh & mesh = this->model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Element el{_triangle_3, 0, _not_ghost};
     UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
     Array<Real> barycenter(nb_element, spatial_dimension);

@@ -1,20 +1,8 @@
 /**
- * @file   material_plastic.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  Common interface for plastic materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +33,7 @@ namespace akantu {
  *   - h : Hardening parameter (default: 0)
  *   - sigmay : Yield stress
  */
-template <UInt dim> class MaterialPlastic : public MaterialElastic<dim> {
+template <Int dim> class MaterialPlastic : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -76,21 +63,47 @@ public:
 
 protected:
   /// compute the stress and inelastic strain for the quadrature point
-  inline void computeStressAndInelasticStrainOnQuad(
-      const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-      Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain,
-      const Matrix<Real> & delta_inelastic_strain) const;
+  template <class Args, std::enable_if_t<named_tuple_t<Args>::has(
+                            "delta_grad_u"_n)> * = nullptr>
+  inline void computeStressAndInelasticStrainOnQuad(Args && args) const {
+    Matrix<Real, dim, dim> delta_grad_u_elastic =
+        args["delta_grad_u"_n] - args["delta_inelastic_strain"_n];
 
-  inline void computeStressAndInelasticStrainOnQuad(
-      const Matrix<Real> & delta_grad_u, Matrix<Real> & sigma,
-      const Matrix<Real> & previous_sigma, Matrix<Real> & inelastic_strain,
-      const Matrix<Real> & previous_inelastic_strain,
-      const Matrix<Real> & delta_inelastic_strain) const;
+    Matrix<Real, dim, dim> sigma_elastic;
+    MaterialElastic<dim>::computeStressOnQuad(tuple::make_named_tuple(
+        "grad_u"_n = delta_grad_u_elastic, "sigma"_n = sigma_elastic));
+
+    args["sigma"_n] = args["previous_sigma"_n] + sigma_elastic;
+
+    args["inelastic_strain"_n] =
+        args["previous_inelastic_strain"_n] + args["delta_inelastic_strain"_n];
+  }
+
+  template <class Args, std::enable_if_t<not named_tuple_t<Args>::has(
+                            "delta_grad_u"_n)> * = nullptr>
+  inline void computeStressAndInelasticStrainOnQuad(Args && args) const {
+    Matrix<Real, dim, dim> delta_grad_u =
+        args["grad_u"_n] - args["previous_grad_u"_n];
+
+    computeStressAndInelasticStrainOnQuad(
+        tuple::append(args, "delta_grad_u"_n = delta_grad_u));
+  }
 
   /// Get the integrated plastic energy for the time step
   Real getPlasticEnergy();
+
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        MaterialElastic<dim>::getArguments(el_type, ghost_type),
+        "iso_hardening"_n = make_view(this->iso_hardening(el_type, ghost_type)),
+        "previous_iso_hardening"_n =
+            make_view(this->iso_hardening.previous(el_type, ghost_type)),
+        "inelastic_strain"_n =
+            make_view<dim, dim>(this->inelastic_strain(el_type, ghost_type)),
+        "previous_inelastic_strain"_n = make_view<dim, dim>(
+            this->inelastic_strain.previous(el_type, ghost_type)));
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -129,5 +142,4 @@ protected:
 
 } // namespace akantu
 
-#include "material_plastic_inline_impl.hh"
 #endif /* AKANTU_MATERIAL_PLASTIC_HH_ */

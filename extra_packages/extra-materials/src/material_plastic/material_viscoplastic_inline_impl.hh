@@ -1,15 +1,21 @@
 /**
- * @file   material_viscoplastic_inline_impl.hh
- *
- * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
- *
- *
- * @brief  Implementation of the inline functions of the material viscoplastic
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "material_viscoplastic.hh"
@@ -18,7 +24,7 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialViscoPlastic<dim>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
@@ -64,7 +70,7 @@ inline void MaterialViscoPlastic<dim>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialViscoPlastic<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, const Matrix<Real> & /*grad_u*/,
     const Matrix<Real> & /*previous_grad_u*/,
@@ -74,11 +80,11 @@ inline void MaterialViscoPlastic<dim>::computeTangentModuliOnQuad(
   UInt cols = tangent.cols();
   UInt rows = tangent.rows();
 
-  for (UInt m = 0; m < rows; ++m) {
+  for (Int m = 0; m < rows; ++m) {
     UInt i = VoigtHelper<dim>::vec[m][0];
     UInt j = VoigtHelper<dim>::vec[m][1];
 
-    for (UInt n = 0; n < cols; ++n) {
+    for (Int n = 0; n < cols; ++n) {
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
       tangent(m, n) = (i == k) * (j == l) * 2. * this->mu +

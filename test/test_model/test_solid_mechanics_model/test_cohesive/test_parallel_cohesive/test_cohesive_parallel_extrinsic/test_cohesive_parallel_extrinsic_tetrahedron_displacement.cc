@@ -1,18 +1,8 @@
 /**
- * @file   test_cohesive_parallel_extrinsic_tetrahedron_displacement.cc
- *
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Oct 13 2017
- * @date last modification:  Wed Nov 08 2017
- *
- * @brief  Displacement test for 3D cohesive elements
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -51,7 +40,7 @@ int main(int argc, char * argv[]) {
   const UInt max_steps = 500;
   Math::setTolerance(1.e-12);
 
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
   ElementType type = _tetrahedron_10;
 
   Mesh mesh(spatial_dimension);
@@ -122,13 +111,13 @@ int main(int argc, char * argv[]) {
   /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (position(n, 0) > 0.99 || position(n, 0) < -0.99) {
-      for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+      for (Int dim = 0; dim < spatial_dimension; ++dim) {
         boundary(n, dim) = true;
       }
     }
 
     if (position(n, 0) > 0.99 || position(n, 0) < -0.99) {
-      for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+      for (Int dim = 0; dim < spatial_dimension; ++dim) {
         boundary(n, dim) = true;
       }
     }
@@ -225,7 +214,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
                        bool barycenters) {
 
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  Int spatial_dimension = mesh.getSpatialDimension();
   const Array<UInt> & connectivity = mesh.getConnectivity(type);
   const Array<Real> & displacement = model.getDisplacement();
   UInt nb_element = mesh.getNbElement(type);
@@ -246,7 +235,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
       for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
         UInt node = connectivity(el, n);
 
-        for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+        for (Int dim = 0; dim < spatial_dimension; ++dim) {
           displacement_output << std::setprecision(15)
                               << displacement(node, dim) << " ";
         }
@@ -269,7 +258,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
         element.element = el;
         mesh.getBarycenter(element, bary);
 
-        for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+        for (Int dim = 0; dim < spatial_dimension; ++dim) {
           barycenter_output << std::setprecision(15) << bary(dim) << " ";
         }
         barycenter_output << std::endl;
@@ -307,7 +296,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
     Array<Real> barycenter_serial(0, spatial_dimension);
 
     while (barycenter_input.good()) {
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         barycenter_input >> disp_tmp(dim);
 
       barycenter_serial.push_back(disp_tmp);
@@ -329,7 +318,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
     Array<Real> error;
 
     /// compute error
-    for (UInt el = 0; el < nb_element; ++el) {
+    for (Int el = 0; el < nb_element; ++el) {
       element.element = el;
       mesh.getBarycenter(element, bary);
 
@@ -355,7 +344,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
       disp_serial_it = displacement_serial.begin(spatial_dimension) +
                        matched_el * nb_nodes_per_elem;
 
-      for (UInt n = 0; n < nb_nodes_per_elem; ++n, ++disp_serial_it) {
+      for (Int n = 0; n < nb_nodes_per_elem; ++n, ++disp_serial_it) {
         UInt node = connectivity(el, n);
         if (!mesh.isLocalOrMasterNode(node))
           continue;

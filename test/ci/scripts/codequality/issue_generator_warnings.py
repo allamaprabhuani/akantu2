@@ -1,29 +1,20 @@
 #!/usr/bin/env python3
-"""clang-tidy2code-quality.py: Conversion of clang-tidy output 2
-code-quality"""
-
-__author__ = "Nicolas Richart"
-__credits__ = [
-    "Nicolas Richart <nicolas.richart@epfl.ch>",
-]
 __copyright__ = (
-    "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale"
-    " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation"
-    " en Mécanique des Solides)"
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
 )
 __license__ = "LGPLv3"
 
-from . import print_debug, print_info
+
+from . import print_info
 from .issue_generator import IssueGenerator
 import re
-import sys
 import warning_parser as warn
 
 
 class WarningsIssueGenerator(IssueGenerator):
-    """
-    Main class to run and convert the results of clang-tidy to the code-quality
-    format
+    """Main class to run and convert the results of clang-tidy to the
+    code-quality format.
     """
 
     CLASSIFICATIONS = {
@@ -41,7 +32,7 @@ class WarningsIssueGenerator(IssueGenerator):
         files = kwargs.pop("files")
 
         self._input_files = {}
-        compiler_re = re.compile(".*build.*(gcc|clang)-err\.log")
+        compiler_re = re.compile(r".*build.*(gcc|clang)-err\.log")
 
         for _file in files:
             match = compiler_re.search(_file)

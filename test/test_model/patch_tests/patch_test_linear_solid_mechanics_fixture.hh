@@ -1,18 +1,8 @@
 /**
- * @file   patch_test_linear_solid_mechanics_fixture.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Jan 30 2018
- * @date last modification:  Wed Nov 18 2020
- *
- * @brief  SolidMechanics patch tests fixture
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -80,17 +69,21 @@ public:
 
     for (auto && f : make_view(internal_forces, dim)) {
       total_force += f;
-      force_norm_inf = std::max(force_norm_inf, f.template norm<L_inf>());
+      force_norm_inf =
+          std::max(force_norm_inf, f.template lpNorm<Eigen::Infinity>());
     }
 
-    EXPECT_NEAR(0, total_force.template norm<L_inf>() / force_norm_inf, 1e-9);
+    EXPECT_NEAR(0,
+                total_force.template lpNorm<Eigen::Infinity>() / force_norm_inf,
+                1e-9);
 
     for (auto && tuple : zip(make_view(internal_forces, dim),
                              make_view(external_forces, dim))) {
       auto && f_int = std::get<0>(tuple);
       auto && f_ext = std::get<1>(tuple);
       auto f = f_int + f_ext;
-      EXPECT_NEAR(0, f.template norm<L_inf>() / force_norm_inf, 1e-9);
+      EXPECT_NEAR(0, f.template lpNorm<Eigen::Infinity>() / force_norm_inf,
+                  1e-9);
     }
   }
 
@@ -105,7 +98,8 @@ public:
           Real nu = this->model->getMaterial(0).get("nu");
           Real E = this->model->getMaterial(0).get("E");
 
-          auto strain = (pstrain + pstrain.transpose()) / 2.;
+          Matrix<Real, parent::dim, parent::dim> strain =
+              (pstrain + pstrain.transpose()) / 2.;
           auto trace = strain.trace();
 
           auto lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
@@ -115,15 +109,14 @@ public:
             lambda = nu * E / (1 - nu * nu);
           }
 
-          decltype(strain) stress(this->dim, this->dim);
+          Matrix<Real, parent::dim, parent::dim> stress;
 
-          if (this->dim == 1) {
-            stress(0, 0) = E * strain(0, 0);
+          if (parent::dim == 1) {
+            stress = E * strain;
           } else {
-            for (UInt i = 0; i < this->dim; ++i)
-              for (UInt j = 0; j < this->dim; ++j)
-                stress(i, j) =
-                    (i == j) * lambda * trace + 2 * mu * strain(i, j);
+            stress = Matrix<Real, parent::dim, parent::dim>::Identity() *
+                         lambda * trace +
+                     2 * mu * strain;
           }
 
           return stress;

@@ -1,18 +1,8 @@
 /**
- * @file   node_synchronizer.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Dec 02 2016
- * @date last modification: Wed Mar 04 2020
- *
- * @brief  Synchronizer for nodal information
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,12 +16,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_events.hh"
-#include "synchronizer_impl.hh"
+#include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <unordered_map>
 /* -------------------------------------------------------------------------- */
@@ -42,7 +31,7 @@
 namespace akantu {
 
 class NodeSynchronizer : public MeshEventHandler,
-                         public SynchronizerImpl<UInt> {
+                         public SynchronizerImpl<Idx> {
 public:
   NodeSynchronizer(Mesh & mesh, const ID & id = "element_synchronizer",
                    bool register_to_event_manager = true,
@@ -50,37 +39,34 @@ public:
 
   ~NodeSynchronizer() override;
 
-  UInt sanityCheckDataSize(const Array<UInt> & nodes,
+  Int sanityCheckDataSize(const Array<Idx> & nodes,
                            const SynchronizationTag & tag,
                            bool from_comm_desc) const override;
   void packSanityCheckData(CommunicationBuffer & buffer,
-                           const Array<UInt> & nodes,
+                           const Array<Idx> & nodes,
                            const SynchronizationTag & /*tag*/) const override;
   void unpackSanityCheckData(CommunicationBuffer & buffer,
-                             const Array<UInt> & nodes,
-                             const SynchronizationTag & tag, UInt proc,
-                             UInt rank) const override;
+                             const Array<Idx> & nodes,
+                             const SynchronizationTag & tag, Int proc,
+                             Int rank) const override;
 
   /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<UInt> & /*unused*/,
-                    const NewNodesEvent & /*unused*/) override;
+  void onNodesAdded(const Array<Idx> &, const NewNodesEvent &) override;
 
   /// function to implement to react on  akantu::RemovedNodesEvent
-  void onNodesRemoved(const Array<UInt> & /*unused*/,
-                      const Array<UInt> & /*unused*/,
-                      const RemovedNodesEvent & /*unused*/) override {}
+  void onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
+                      const RemovedNodesEvent &) override {}
   /// function to implement to react on  akantu::NewElementsEvent
   void onElementsAdded(const Array<Element> & /*unused*/,
                        const NewElementsEvent & /*unused*/) override {}
   /// function to implement to react on  akantu::RemovedElementsEvent
-  void onElementsRemoved(const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const RemovedElementsEvent & /*unused*/) override {}
+  void onElementsRemoved(const Array<Element> &,
+                         const ElementTypeMapArray<Idx> &,
+                         const RemovedElementsEvent &) override {}
   /// function to implement to react on  akantu::ChangedElementsEvent
-  void onElementsChanged(const Array<Element> & /*unused*/,
-                         const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const ChangedElementsEvent & /*unused*/) override {}
+  void onElementsChanged(const Array<Element> &, const Array<Element> &,
+                         const ElementTypeMapArray<Idx> &,
+                         const ChangedElementsEvent &) override {}
 
   /* ------------------------------------------------------------------------ */
   NodeSynchronizer & operator=(const NodeSynchronizer & other) {
@@ -91,18 +77,18 @@ public:
   friend class NodeInfoPerProc;
 
 protected:
-  void fillEntityToSend(Array<UInt> & nodes_to_send) override;
+  void fillEntityToSend(Array<Idx> & entities_to_send) override;
 
 public:
   AKANTU_GET_MACRO(Mesh, mesh, Mesh &);
 
-  inline UInt canScatterSize() override;
-  inline UInt gatheredSize() override;
+  inline Int canScatterSize() override;
+  inline Int gatheredSize() override;
 
-  inline UInt localToGlobalEntity(const UInt & local) override;
-
+  inline Idx localToGlobalEntity(const Idx & local) override;
+  
 protected:
-  Int getRank(const UInt & node) const final;
+  Int getRank(const Idx & node) const final;
 
 protected:
   Mesh & mesh;

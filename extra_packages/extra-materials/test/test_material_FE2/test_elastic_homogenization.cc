@@ -1,27 +1,21 @@
 /**
- * @file   test_elastic_homogenization.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Mon Jan 25 18:32:09 2016
- *
- * @brief  Test elastic homogenization of stiffness tensor
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -35,7 +29,7 @@ int main(int argc, char * argv[]) {
 
   akantu::initialize("material_orthotropic.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   const ElementType element_type = _triangle_3;
   const GhostType ghost_type = _not_ghost;
   Mesh mesh(spatial_dimension);
@@ -71,8 +65,8 @@ int main(int argc, char * argv[]) {
   /// homogenize
   Matrix<Real> C(voigt_size, voigt_size);
   model.homogenizeStiffness(C);
-  for (UInt i = 0; i < voigt_size; ++i) {
-    for (UInt j = 0; j < voigt_size; ++j) {
+  for (Int i = 0; i < voigt_size; ++i) {
+    for (Int j = 0; j < voigt_size; ++j) {
       std::cout << "exact: " << voigt_stiffness(i, j)
                 << " approximated: " << C(i, j) << std::endl;
       if (std::abs(voigt_stiffness(i, j) - C(i, j)) > 1.e-10) {

@@ -1,18 +1,8 @@
 /**
- * @file   ntrf_contact.cc
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Tue May 21 2019
- *
- * @brief  contact for node to rigid flat interface
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -55,8 +44,8 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
   coord[1] = y;
   coord[2] = z;
 
-  UInt dim = this->model.getSpatialDimension();
-  for (UInt d = 0; d < dim; ++d) {
+  Int dim = this->model.getSpatialDimension();
+  for (Int d = 0; d < dim; ++d) {
     this->reference_point(d) = coord[d];
   }
 
@@ -67,14 +56,14 @@ void NTRFContact::setReferencePoint(Real x, Real y, Real z) {
 void NTRFContact::setNormal(Real x, Real y, Real z) {
   AKANTU_DEBUG_IN();
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
   Real coord[3];
   coord[0] = x;
   coord[1] = y;
   coord[2] = z;
 
-  for (UInt d = 0; d < dim; ++d) {
+  for (Int d = 0; d < dim; ++d) {
     this->normal(d) = coord[d];
   }
 
@@ -149,15 +138,15 @@ void NTRFContact::updateNormals() {
 void NTRFContact::updateImpedance() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_contact_nodes = getNbContactNodes();
+  auto nb_contact_nodes = getNbContactNodes();
   Real delta_t = this->model.getTimeStep();
   AKANTU_DEBUG_ASSERT(delta_t != NAN,
                       "Time step is NAN. Have you set it already?");
 
   const Array<Real> & mass = this->model.getMass();
 
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
-    UInt slave = this->slaves(n);
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = this->slaves(n);
 
     Real imp = this->lumped_boundary_slaves(n) / mass(slave);
     imp = 2 / delta_t / imp;
@@ -175,28 +164,24 @@ void NTRFContact::computeRelativeTangentialField(
   // resize arrays to zero
   rel_tang_field.resize(0);
 
-  UInt dim = this->model.getSpatialDimension();
+  auto dim = this->model.getSpatialDimension();
 
-  Array<Real>::const_iterator<Vector<Real>> it_field = field.begin(dim);
-  Array<Real>::const_iterator<Vector<Real>> it_normal =
-      this->normals.getArray().begin(dim);
+  auto it_field = field.begin(dim);
+  auto it_normal = this->normals.getArray().begin(dim);
 
   Vector<Real> rfv(dim);
   Vector<Real> np_rfv(dim);
 
-  UInt nb_contact_nodes = this->slaves.size();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->slaves.size();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // nodes
-    UInt node = this->slaves(n);
+    auto node = this->slaves(n);
 
     // relative field vector
     rfv = it_field[node];
-    ;
 
     // normal projection of relative field
-    const Vector<Real> & normal_v = it_normal[n];
-    np_rfv = normal_v;
-    np_rfv *= rfv.dot(normal_v);
+    np_rfv = it_normal[n] * rfv.dot(it_normal[n]);
 
     // subtract normal projection from relative field to get the tangential
     // projection
@@ -213,27 +198,23 @@ void NTRFContact::computeNormalGap(Array<Real> & gap) const {
 
   gap.resize(0);
 
-  UInt dim = this->model.getSpatialDimension();
+  Int dim = this->model.getSpatialDimension();
 
-  Array<Real>::const_iterator<Vector<Real>> it_cur_pos =
-      this->model.getCurrentPosition().begin(dim);
-  Array<Real>::const_iterator<Vector<Real>> it_normal =
-      this->normals.getArray().begin(dim);
+  auto it_cur_pos = this->model.getCurrentPosition().begin(dim);
+  auto it_normal = this->normals.getArray().begin(dim);
 
   Vector<Real> gap_v(dim);
 
-  UInt nb_contact_nodes = this->getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  Int nb_contact_nodes = this->getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // nodes
-    UInt node = this->slaves(n);
+    auto node = this->slaves(n);
 
     // gap vector
-    gap_v = it_cur_pos[node];
-    gap_v -= this->reference_point;
+    gap_v = it_cur_pos[node] - this->reference_point;
 
     // length of normal projection of gap vector
-    const Vector<Real> & normal_v = it_normal[n];
-    gap.push_back(gap_v.dot(normal_v));
+    gap.push_back(gap_v.dot(it_normal[n]));
   }
 
   AKANTU_DEBUG_OUT();
@@ -242,81 +223,36 @@ void NTRFContact::computeNormalGap(Array<Real> & gap) const {
 /* -------------------------------------------------------------------------- */
 void NTRFContact::computeRelativeNormalField(
     const Array<Real> & field, Array<Real> & rel_normal_field) const {
-  AKANTU_DEBUG_IN();
-
   // resize arrays to zero
   rel_normal_field.resize(0);
 
-  UInt dim = this->model.getSpatialDimension();
+  auto dim = this->model.getSpatialDimension();
 
-  Array<Real>::const_iterator<Vector<Real>> it_field = field.begin(dim);
-  Array<Real>::const_iterator<Vector<Real>> it_normal =
-      this->normals.getArray().begin(dim);
+  auto it_field = field.begin(dim);
+  auto it_normal = this->normals.getArray().begin(dim);
 
-  UInt nb_contact_nodes = this->getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     // nodes
-    UInt node = this->slaves(n);
+    auto node = this->slaves(n);
 
-    const Vector<Real> & field_v = it_field[node];
-    const Vector<Real> & normal_v = it_normal[n];
-
-    rel_normal_field.push_back(field_v.dot(normal_v));
+    rel_normal_field.push_back(it_field[node].dot(it_normal[n]));
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTRFContact::printself(std::ostream & stream, int indent) const {
-  AKANTU_DEBUG_IN();
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
+  std::string space(AKANTU_INDENT, indent);
 
   stream << space << "NTRFContact [" << std::endl;
   NTNBaseContact::printself(stream, indent);
   stream << space << "]" << std::endl;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void NTRFContact::addDumpFieldToDumper(const std::string & dumper_name,
                                        const std::string & field_id) {
-  AKANTU_DEBUG_IN();
-
-  /*
-  const Array<UInt> & nodal_filter = this->slaves.getArray();
-
-#define ADD_FIELD(field_id, field, type)				\
-  internalAddDumpFieldToDumper(dumper_name,				\
-                   field_id,				\
-                   new DumperIOHelper::NodalField< type, true, \
-                                   Array<type>, \
-                                   Array<UInt> >(field, 0, 0, &nodal_filter))
-  */
-
-  /*
-  if(field_id == "displacement") {
-    ADD_FIELD(field_id, this->model.getDisplacement(), Real);
-  }
-  else if(field_id == "contact_pressure") {
-    internalAddDumpFieldToDumper(dumper_name,
-                 field_id,
-                 new
-  DumperIOHelper::NodalField<Real>(this->contact_pressure.getArray()));
-  }
-  else {*/
   NTNBaseContact::addDumpFieldToDumper(dumper_name, field_id);
-  //}
-
-  /*
-#undef ADD_FIELD
-  */
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

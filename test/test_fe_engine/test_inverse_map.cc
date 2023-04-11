@@ -1,18 +1,8 @@
 /**
- * @file   test_inverse_map.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- *
- * @date creation: Sun Oct 19 2014
- * @date last modification:  Tue Mar 13 2018
- *
- * @brief  test of the fem class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +41,7 @@ TYPED_TEST(TestFEMFixture, InverseMap) {
 
   Vector<Real> natural_coords(this->dim);
 
-  auto length = (this->upper - this->lower).template norm<L_inf>();
+  auto length = (this->upper - this->lower).template lpNorm<Eigen::Infinity>();
 
   for (auto && enum_ :
        enumerate(make_view(coord_on_quad, this->dim, quad.cols()))) {

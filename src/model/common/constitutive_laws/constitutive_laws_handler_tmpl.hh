@@ -62,7 +62,7 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaws()
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawType, class Model_>
-inline UInt
+inline Idx
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLawIndex(
     const std::string & name) const {
   auto it = constitutive_laws_names_to_id.find(name);
@@ -78,8 +78,8 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLawIndex(
 template <class ConstitutiveLawType, class Model_>
 inline auto &
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
-    UInt cl_index) {
-  AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
+    Idx cl_index) {
+  AKANTU_DEBUG_ASSERT(cl_index < Idx(constitutive_laws.size()),
                       "The model " << this->id
                                    << " has no constitutive law number "
                                    << cl_index);
@@ -90,8 +90,8 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
 template <class ConstitutiveLawType, class Model_>
 inline const auto &
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
-    UInt cl_index) const {
-  AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
+    Idx cl_index) const {
+  AKANTU_DEBUG_ASSERT(cl_index < Idx(constitutive_laws.size()),
                       "The model " << this->id
                                    << " has no constitutive law number "
                                    << cl_index);
@@ -103,8 +103,7 @@ template <class ConstitutiveLawType, class Model_>
 inline auto &
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
     const std::string & name) {
-  std::map<std::string, UInt>::const_iterator it =
-      constitutive_laws_names_to_id.find(name);
+  auto it = constitutive_laws_names_to_id.find(name);
   if (it == constitutive_laws_names_to_id.end()) {
     AKANTU_SILENT_EXCEPTION(
         "The model " << this->id << " has no constitutive_law named " << name);
@@ -254,13 +253,13 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawType, class Model_>
 void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
-    assignConstitutiveLawToElements(const ElementTypeMapArray<UInt> * filter) {
+    assignConstitutiveLawToElements(const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       this->mesh,
       [&](auto && element) {
-        UInt cl_index = (*constitutive_law_selector)(element);
-        AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
+        Idx cl_index = (*constitutive_law_selector)(element);
+        AKANTU_DEBUG_ASSERT(cl_index < Idx(constitutive_laws.size()),
                             "The constitutive_law selector returned an index "
                             "that does not exists");
         constitutive_law_index(element) = cl_index;
@@ -458,12 +457,12 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawType, class Model_>
-UInt ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getNbData(
+Int ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
-  UInt size{0};
+  Int size{0};
 
   if (tag == SynchronizationTag::_constitutive_law_id) {
-    size += elements.size() * sizeof(UInt);
+    size += elements.size() * sizeof(Idx);
   }
 
   if (tag != SynchronizationTag::_constitutive_law_id) {
@@ -498,16 +497,16 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::unpackData(
     const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_constitutive_law_id) {
     for (auto && element : elements) {
-      UInt recv_cl_index;
+      Idx recv_cl_index;
       buffer >> recv_cl_index;
-      UInt & cl_index = constitutive_law_index(element);
-      if (cl_index != UInt(-1)) {
+      Idx & cl_index = constitutive_law_index(element);
+      if (cl_index != -1) {
         continue;
       }
 
       // add ghosts element to the correct constitutive_law
       cl_index = recv_cl_index;
-      UInt index = constitutive_laws[cl_index]->addElement(element);
+      auto index = constitutive_laws[cl_index]->addElement(element);
       constitutive_law_local_numbering(element) = index;
     }
   }
@@ -525,12 +524,12 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
   this->constitutive_law_index.initialize(
       this->mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
-      _default_value = UInt(-1));
+      _default_value = -1);
   this->constitutive_law_local_numbering.initialize(
       this->mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
-      _default_value = UInt(-1));
+      _default_value = -1);
 
-  ElementTypeMapArray<UInt> filter("new_element_filter", this->id);
+  ElementTypeMapArray<Idx> filter("new_element_filter", this->id);
 
   for (const auto & elem : element_list) {
     if (this->mesh.getSpatialDimension(elem.type) != this->spatial_dimension) {
@@ -556,7 +555,7 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::onElementsAdded(
 template <class ConstitutiveLawType, class Model_>
 void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
+    const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & event) {
   for (auto & constitutive_law : constitutive_laws) {
     constitutive_law->onElementsRemoved(element_list, new_numbering, event);
@@ -569,7 +568,7 @@ bool ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::isInternal(
     const std::string & field_name, ElementKind element_kind) {
   /// check if at least one constitutive_law contains field_id as an internal
   for (auto & constitutive_law : constitutive_laws) {
-    bool is_internal =
+    auto is_internal =
         constitutive_law->template isInternal<Real>(field_name, element_kind);
     if (is_internal) {
       return true;
@@ -581,7 +580,7 @@ bool ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::isInternal(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawType, class Model_>
-ElementTypeMap<UInt>
+ElementTypeMap<Int>
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getInternalDataPerElem(
     const std::string & field_name, ElementKind element_kind) {
 
@@ -596,7 +595,7 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getInternalDataPerElem(
     }
   }
 
-  return ElementTypeMap<UInt>();
+  return ElementTypeMap<Int>();
 }
 
 /* -------------------------------------------------------------------------- */

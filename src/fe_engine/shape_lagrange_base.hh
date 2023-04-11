@@ -1,18 +1,8 @@
 /**
- * @file   shape_lagrange_base.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Aug 09 2017
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Base class for the shape lagrange
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -43,7 +32,7 @@ class ShapeLagrangeBase : public ShapeFunctions {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ShapeLagrangeBase(const Mesh & mesh, UInt spatial_dimension, ElementKind kind,
+  ShapeLagrangeBase(const Mesh & mesh, Int spatial_dimension, ElementKind kind,
                     const ID & id = "shape_lagrange");
   ~ShapeLagrangeBase() override;
 
@@ -53,30 +42,30 @@ public:
 public:
   /// computes the shape functions for given interpolation points
   virtual void computeShapesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shapes, ElementType type, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// computes the shape functions derivatives for given interpolation points
   virtual void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const = 0;
+      const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
   template <ElementType type>
   void computeShapesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> integration_points,
       Array<Real> & shapes, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
 public:
   void onElementsAdded(const Array<Element> & elements) override;
   void
   onElementsRemoved(const Array<Element> & elements,
-                    const ElementTypeMapArray<UInt> & new_numbering) override;
+                    const ElementTypeMapArray<Idx> & new_numbering) override;
 
 protected:
   /// The kind to consider

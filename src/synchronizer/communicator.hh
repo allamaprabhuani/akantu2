@@ -1,18 +1,8 @@
 /**
- * @file   communicator.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  Class handling the parallel communications
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -112,7 +101,7 @@ public:
   template <typename T>
   inline void receive(Array<T> & values, Int sender, Int tag) const {
     return this->receiveImpl(
-        values.storage(), values.size() * values.getNbComponent(), sender, tag);
+        values.data(), values.size() * values.getNbComponent(), sender, tag);
   }
 
   template <typename T>
@@ -125,12 +114,12 @@ public:
   receive(Tensor & values, Int sender, Int tag,
           std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
               nullptr) const {
-    return this->receiveImpl(values.storage(), values.size(), sender, tag);
+    return this->receiveImpl(values.data(), values.size(), sender, tag);
   }
 
   inline void receive(CommunicationBufferTemplated<true> & values, Int sender,
                       Int tag) const {
-    return this->receiveImpl(values.storage(), values.size(), sender, tag);
+    return this->receiveImpl(values.data(), values.size(), sender, tag);
   }
 
   inline void receive(CommunicationBufferTemplated<false> & values, Int sender,
@@ -138,7 +127,7 @@ public:
     CommunicationStatus status;
     this->probe<char>(sender, tag, status);
     values.reserve(status.size());
-    return this->receiveImpl(values.storage(), values.size(), sender, tag);
+    return this->receiveImpl(values.data(), values.size(), sender, tag);
   }
 
   template <typename T>
@@ -153,7 +142,7 @@ public:
   inline void
   send(const Array<T> & values, Int receiver, Int tag,
        const CommunicationMode & mode = CommunicationMode::_auto) const {
-    return this->sendImpl(values.storage(),
+    return this->sendImpl(values.data(),
                           values.size() * values.getNbComponent(), receiver,
                           tag, mode);
   }
@@ -165,13 +154,12 @@ public:
     return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
-  template <typename Tensor>
+  template <typename Tensor,
+            std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr>
   inline void
   send(const Tensor & values, Int receiver, Int tag,
-       const CommunicationMode & mode = CommunicationMode::_auto,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-           nullptr) const {
-    return this->sendImpl(values.storage(), values.size(), receiver, tag, mode);
+       const CommunicationMode & mode = CommunicationMode::_auto) const {
+    return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
   template <bool is_static>
@@ -179,7 +167,7 @@ public:
   send(const CommunicationBufferTemplated<is_static> & values, Int receiver,
        Int tag,
        const CommunicationMode & mode = CommunicationMode::_auto) const {
-    return this->sendImpl(values.storage(), values.size(), receiver, tag, mode);
+    return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
   template <typename T>
   inline void send(const T & values, Int receiver, Int tag,
@@ -194,7 +182,7 @@ public:
   inline CommunicationRequest
   asyncSend(const Array<T> & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto) const {
-    return this->asyncSendImpl(values.storage(),
+    return this->asyncSendImpl(values.data(),
                                values.size() * values.getNbComponent(),
                                receiver, tag, mode);
   }
@@ -207,12 +195,11 @@ public:
   }
 
   template <typename Tensor>
-  inline CommunicationRequest
-  asyncSend(const Tensor & values, Int receiver, Int tag,
-            const CommunicationMode & mode = CommunicationMode::_auto,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                nullptr) const {
-    return this->asyncSendImpl(values.storage(), values.size(), receiver, tag,
+  inline CommunicationRequest asyncSend(
+      const Tensor & values, Int receiver, Int tag,
+      const CommunicationMode & mode = CommunicationMode::_auto,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
+    return this->asyncSendImpl(values.data(), values.size(), receiver, tag,
                                mode);
   }
   template <bool is_static>
@@ -220,7 +207,7 @@ public:
   asyncSend(const CommunicationBufferTemplated<is_static> & values,
             Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto) const {
-    return this->asyncSendImpl(values.storage(), values.size(), receiver, tag,
+    return this->asyncSendImpl(values.data(), values.size(), receiver, tag,
                                mode);
   }
   template <typename T>
@@ -237,7 +224,7 @@ public:
   inline CommunicationRequest asyncReceive(Array<T> & values, Int sender,
                                            Int tag) const {
     return this->asyncReceiveImpl(
-        values.storage(), values.size() * values.getNbComponent(), sender, tag);
+        values.data(), values.size() * values.getNbComponent(), sender, tag);
   }
   template <typename T>
   inline CommunicationRequest asyncReceive(std::vector<T> & values, Int sender,
@@ -246,16 +233,16 @@ public:
   }
 
   template <typename Tensor,
-            typename = std::enable_if_t<aka::is_tensor<Tensor>::value>>
+            typename = std::enable_if_t<aka::is_tensor_v<Tensor>>>
   inline CommunicationRequest asyncReceive(Tensor & values, Int sender,
                                            Int tag) const {
-    return this->asyncReceiveImpl(values.storage(), values.size(), sender, tag);
+    return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
   }
   template <bool is_static>
   inline CommunicationRequest
   asyncReceive(CommunicationBufferTemplated<is_static> & values, Int sender,
                Int tag) const {
-    return this->asyncReceiveImpl(values.storage(), values.size(), sender, tag);
+    return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -265,17 +252,15 @@ public:
   inline void
   allReduce(Array<T> & values,
             SynchronizerOperation op = SynchronizerOperation::_sum) const {
-    this->allReduceImpl(values.storage(),
-                        values.size() * values.getNbComponent(), op);
+    this->allReduceImpl(values.data(), values.size() * values.getNbComponent(),
+                        op);
   }
 
-  template <typename Tensor>
+  template <typename Derived>
   inline void
-  allReduce(Tensor & values,
-            SynchronizerOperation op = SynchronizerOperation::_sum,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                nullptr) const {
-    this->allReduceImpl(values.storage(), values.size(), op);
+  allReduce(Eigen::MatrixBase<Derived> & values,
+            SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    this->allReduceImpl(values.derived().data(), values.size(), op);
   }
 
   template <typename T>
@@ -290,16 +275,14 @@ public:
   inline void
   scan(Array<T> & values,
        SynchronizerOperation op = SynchronizerOperation::_sum) const {
-    this->scanImpl(values.storage(), values.storage(),
-                   values.size() * values.getNbComponent(), op);
+    this->scanImpl(values.data(), values.size() * values.getNbComponent(), op);
   }
 
   template <typename Tensor>
-  inline void
-  scan(Tensor & values, SynchronizerOperation op,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-           nullptr) const {
-    this->scanImpl(values.storage(), values.storage(), values.size(), op);
+  inline void scan(
+      Tensor & values, SynchronizerOperation op,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
+    this->scanImpl(values.data(), values.data(), values.size(), op);
   }
 
   template <typename T>
@@ -314,7 +297,7 @@ public:
   inline void
   exclusiveScan(Array<T> & values,
                 SynchronizerOperation op = SynchronizerOperation::_sum) const {
-    this->exclusiveScanImpl(values.storage(), values.storage(),
+    this->exclusiveScanImpl(values.data(), values.data(),
                             values.size() * values.getNbComponent(), op);
   }
 
@@ -322,10 +305,8 @@ public:
   inline void
   exclusiveScan(Tensor & values,
                 SynchronizerOperation op = SynchronizerOperation::_sum,
-                std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                    nullptr) const {
-    this->exclusiveScanImpl(values.storage(), values.storage(), values.size(),
-                            op);
+                std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr) const {
+    this->exclusiveScanImpl(values.data(), values.size(), op);
   }
 
   template <typename T>
@@ -348,40 +329,39 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename T> inline void allGather(Array<T> & values) const {
-    AKANTU_DEBUG_ASSERT(UInt(getNbProc()) == values.size(),
+    AKANTU_DEBUG_ASSERT(getNbProc() == values.size(),
                         "The array size is not correct");
-    this->allGatherImpl(values.storage(), values.getNbComponent());
+    this->allGatherImpl(values.data(), values.getNbComponent());
   }
 
   template <typename Tensor,
-            typename = std::enable_if_t<aka::is_tensor<Tensor>::value>>
+            typename = std::enable_if_t<aka::is_tensor_v<Tensor>>>
   inline void allGather(Tensor & values) const {
     AKANTU_DEBUG_ASSERT(values.size() / getNbProc() > 0,
                         "The vector size is not correct");
-    this->allGatherImpl(values.storage(), values.size() / getNbProc());
+    this->allGatherImpl(values.data(), values.size() / getNbProc());
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void allGatherV(Array<T> & values, const Array<Int> & sizes) const {
-    this->allGatherVImpl(values.storage(), sizes.storage());
+    this->allGatherVImpl(values.data(), sizes.data());
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void reduce(Array<T> & values, SynchronizerOperation op,
                      int root = 0) const {
-    this->reduceImpl(values.storage(), values.size() * values.getNbComponent(),
-                     op, root);
+    this->reduceImpl(values.data(), values.size() * values.getNbComponent(), op,
+                     root);
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename Tensor>
-  inline void
-  gather(Tensor & values, int root = 0,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-             nullptr) const {
-    this->gatherImpl(values.storage(), values.getNbComponent(), root);
+  inline void gather(
+      Tensor & values, int root = 0,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
+    this->gatherImpl(values.data(), values.getNbComponent(), root);
   }
   template <typename T>
   inline void
@@ -392,14 +372,13 @@ public:
   }
   /* ------------------------------------------------------------------------ */
   template <typename Tensor, typename T>
-  inline void
-  gather(Tensor & values, Array<T> & gathered,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-             nullptr) const {
+  inline void gather(
+      Tensor & values, Array<T> & gathered,
+      std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
     AKANTU_DEBUG_ASSERT(values.size() == gathered.getNbComponent(),
                         "The array size is not correct");
     gathered.resize(getNbProc());
-    this->gatherImpl(values.data(), values.size(), gathered.storage(),
+    this->gatherImpl(values.data(), values.size(), gathered.data(),
                      gathered.getNbComponent());
   }
 
@@ -408,21 +387,21 @@ public:
   gather(T values, Array<T> & gathered,
          std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
              nullptr) const {
-    this->gatherImpl(&values, 1, gathered.storage(), 1);
+    this->gatherImpl(&values, 1, gathered.data(), 1);
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void gatherV(Array<T> & values, const Array<Int> & sizes,
                       int root = 0) const {
-    this->gatherVImpl(values.storage(), sizes.storage(), root);
+    this->gatherVImpl(values.data(), sizes.data(), root);
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void broadcast(Array<T> & values, int root = 0) const {
-    this->broadcastImpl(values.storage(),
-                        values.size() * values.getNbComponent(), root);
+    this->broadcastImpl(values.data(), values.size() * values.getNbComponent(),
+                        root);
   }
 
   template <typename T>
@@ -432,12 +411,12 @@ public:
 
   inline void broadcast(CommunicationBufferTemplated<true> & buffer,
                         int root = 0) const {
-    this->broadcastImpl(buffer.storage(), buffer.size(), root);
+    this->broadcastImpl(buffer.data(), buffer.size(), root);
   }
 
   inline void broadcast(CommunicationBufferTemplated<false> & buffer,
                         int root = 0) const {
-    UInt buffer_size = buffer.size();
+    auto buffer_size = buffer.size();
     this->broadcastImpl(&buffer_size, 1, root);
     if (whoAmI() != root) {
       buffer.reserve(buffer_size);
@@ -446,7 +425,7 @@ public:
     if (buffer_size == 0) {
       return;
     }
-    this->broadcastImpl(buffer.storage(), buffer.size(), root);
+    this->broadcastImpl(buffer.data(), buffer.size(), root);
   }
 
   template <typename T> inline void broadcast(T & values, int root = 0) const {
@@ -464,7 +443,7 @@ public:
   static bool testAll(std::vector<CommunicationRequest> & request);
   static void wait(CommunicationRequest & request);
   static void waitAll(std::vector<CommunicationRequest> & requests);
-  static UInt waitAny(std::vector<CommunicationRequest> & requests);
+  static Int waitAny(std::vector<CommunicationRequest> & requests);
   static inline void freeCommunicationRequest(CommunicationRequest & request);
   static inline void
   freeCommunicationRequest(std::vector<CommunicationRequest> & requests);

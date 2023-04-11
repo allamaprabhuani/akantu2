@@ -1,15 +1,21 @@
 /**
- * @file   test_eigenstrain.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- *
- *
- * @brief  test to that eigenstrain is only applied on one sub-material
- *
- *
- * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -32,7 +38,7 @@ public:
       return this->fallback_value_igfem;
 
     const Mesh & mesh = model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
+    Int spatial_dimension = model.getSpatialDimension();
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(elem, barycenter);
     if (model.isInside(barycenter))
@@ -55,7 +61,7 @@ int main(int argc, char * argv[]) {
   Int prank = comm.whoAmI();
 
   /// problem dimension
-  UInt spatial_dimension = 2;
+  Int spatial_dimension = 2;
 
   /// mesh creation and partioning
   Mesh mesh(spatial_dimension);
@@ -119,7 +125,7 @@ int main(int argc, char * argv[]) {
 
   ///  apply eigenstrain the eigenstrain in the inclusions
   Matrix<Real> prestrain(spatial_dimension, spatial_dimension, 0.);
-  for (UInt i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i)
     prestrain(i, i) = 0.07;
 
   model.applyEigenGradU(prestrain, "mat_1", _not_ghost);
@@ -155,7 +161,7 @@ int main(int argc, char * argv[]) {
       mat_3.getArray<Real>("eigen_grad_u", _igfem_triangle_5, _not_ghost);
   UInt * sub_mat_ptr =
       mat_3.getArray<UInt>("sub_material", _igfem_triangle_5, _not_ghost)
-          .storage();
+          .data();
   eigen_it = eigen_grad_u_3.begin(spatial_dimension, spatial_dimension);
   eigen_end = eigen_grad_u_3.end(spatial_dimension, spatial_dimension);
   for (; eigen_it != eigen_end; ++eigen_it, ++sub_mat_ptr) {

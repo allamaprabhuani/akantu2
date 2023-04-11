@@ -1,27 +1,21 @@
 /**
- * @file   solid_mechanics_model_RVE.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Wed Jan 13 15:32:35 2016
- *
- * @brief  Implementation of SolidMechanicsModelRVE
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,7 +36,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
                                                bool use_RVE_mat_selector,
-                                               UInt nb_gel_pockets, UInt dim,
+                                               UInt nb_gel_pockets, Int dim,
                                                const ID & id)
     : SolidMechanicsModel(mesh, dim, id), volume(0.),
       use_RVE_mat_selector(use_RVE_mat_selector),
@@ -189,11 +183,11 @@ void SolidMechanicsModelRVE::applyHomogeneousTemperature(
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+    const ElementTypeMapArray<Idx> & filter_map = mat.getElementFilter();
 
     // Loop over all element types
     for (auto && type : filter_map.elementTypes(spatial_dimension)) {
-      const Array<UInt> & filter = filter_map(type);
+      const Array<Idx> & filter = filter_map(type);
       if (filter.size() == 0)
         continue;
 
@@ -400,7 +394,7 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   AKANTU_DEBUG_IN();
-  const UInt dim = 2;
+  const Int dim = 2;
   AKANTU_DEBUG_ASSERT(this->spatial_dimension == dim,
                       "Is only implemented for 2D!!!");
 

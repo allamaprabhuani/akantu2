@@ -1,21 +1,8 @@
 /**
- * @file   cohesive_element.hh
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Sep 29 2020
- *
- * @brief  Generates the cohesive element structres (defined in
- * element_class.hh)
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -41,6 +27,10 @@
 
 namespace akantu {
 
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2,
+                                     _itp_lagrange_point_1, _ek_cohesive, 1,
+                                     _git_point, 1);
+
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_4, _gt_cohesive_2d_4,
                                      _itp_lagrange_segment_2, _ek_cohesive, 2,
                                      _git_segment, 2);
@@ -48,10 +38,6 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_4, _gt_cohesive_2d_4,
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_6, _gt_cohesive_2d_6,
                                      _itp_lagrange_segment_3, _ek_cohesive, 2,
                                      _git_segment, 3);
-
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2,
-                                     _itp_lagrange_point_1, _ek_cohesive, 1,
-                                     _git_point, 1);
 
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_3d_6, _gt_cohesive_3d_6,
                                      _itp_lagrange_triangle_3, _ek_cohesive, 3,

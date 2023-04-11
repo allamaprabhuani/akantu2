@@ -1,21 +1,8 @@
 /**
- * @file   global_ids_updater.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Oct 02 2015
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Class that updates the global ids of new nodes that are
- * inserted in the mesh. The functions in this class must be called
- * after updating the node types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -47,18 +33,18 @@ namespace akantu {
 
 class GlobalIdsUpdater : public DataAccessor<Element> {
 public:
-  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer & synchronizer)
+  GlobalIdsUpdater(Mesh & mesh, ElementSynchronizer * synchronizer)
       : mesh(mesh), synchronizer(synchronizer) {}
 
   /// function to update and synchronize the global connectivity of
   /// new inserted nodes. It must be called after updating the node
   /// types. (It calls in sequence the functions
   /// updateGlobalIDsLocally and synchronizeGlobalIDs)
-  UInt updateGlobalIDs(UInt local_nb_new_nodes);
+  Int updateGlobalIDs(Int local_nb_new_nodes);
 
   /// function to update the global connectivity (only locally) of new
   /// inserted nodes. It must be called after updating the node types.
-  UInt updateGlobalIDsLocally(UInt local_nb_new_nodes);
+  Int updateGlobalIDsLocally(Int local_nb_new_nodes);
 
   /// function to synchronize the global connectivity of new inserted
   /// nodes among the processors. It must be called after updating the
@@ -69,8 +55,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -93,12 +79,12 @@ private:
   Mesh & mesh;
 
   /// distributed synchronizer to communicate the connectivity
-  ElementSynchronizer & synchronizer;
+  ElementSynchronizer * synchronizer;
 
   /// Tells if a reduction is taking place or not
   bool reduce{false};
 
-  std::unordered_map<UInt, std::vector<std::pair<UInt, NodeFlag>>> nodes_flags;
+  std::unordered_map<Idx, std::vector<std::pair<Idx, NodeFlag>>> nodes_flags;
 };
 
 } // namespace akantu

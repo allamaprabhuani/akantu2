@@ -1,27 +1,21 @@
 /**
- * @file   test_material_damage_iterative_non_local_parallel.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Nov 26 12:20:15 2015
- *
- * @brief  test the material damage iterative non local in parallel
- *
- *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,7 +38,7 @@ int main(int argc, char * argv[]) {
 
   initialize("two_materials.dat", argc, argv);
 
-  const UInt spatial_dimension = 2;
+  const Int spatial_dimension = 2;
   StaticCommunicator & comm =
       akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -182,8 +176,8 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
                        bool barycenters) {
 
   Mesh & mesh = model.getMesh();
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  const Array<UInt> & connectivity = mesh.getConnectivity(type);
+  Int spatial_dimension = mesh.getSpatialDimension();
+  const Array<Idx> & connectivity = mesh.getConnectivity(type);
   const Array<Real> & displacement = model.getDisplacement();
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(type);
@@ -203,7 +197,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
       for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
         UInt node = connectivity(el, n);
 
-        for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+        for (Int dim = 0; dim < spatial_dimension; ++dim) {
           displacement_output << std::setprecision(15)
                               << displacement(node, dim) << " ";
         }
@@ -226,7 +220,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
         element.element = el;
         mesh.getBarycenter(element, bary);
 
-        for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+        for (Int dim = 0; dim < spatial_dimension; ++dim) {
           barycenter_output << std::setprecision(15) << bary(dim) << " ";
         }
         barycenter_output << std::endl;
@@ -264,7 +258,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
     Array<Real> barycenter_serial(0, spatial_dimension);
 
     while (barycenter_input.good()) {
-      for (UInt dim = 0; dim < spatial_dimension; ++dim)
+      for (Int dim = 0; dim < spatial_dimension; ++dim)
         barycenter_input >> disp_tmp(dim);
 
       barycenter_serial.push_back(disp_tmp);
@@ -286,7 +280,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
     Array<Real> error;
 
     /// compute error
-    for (UInt el = 0; el < nb_element; ++el) {
+    for (Int el = 0; el < nb_element; ++el) {
       element.element = el;
       mesh.getBarycenter(element, bary);
 
@@ -312,7 +306,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
       disp_serial_it = displacement_serial.begin(spatial_dimension) +
                        matched_el * nb_nodes_per_elem;
 
-      for (UInt n = 0; n < nb_nodes_per_elem; ++n, ++disp_serial_it) {
+      for (Int n = 0; n < nb_nodes_per_elem; ++n, ++disp_serial_it) {
         UInt node = connectivity(el, n);
         if (!mesh.isLocalOrMasterNode(node))
           continue;

@@ -1,19 +1,8 @@
 /**
- * @file   aka_error.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Mon Sep 06 2010
- * @date last modification: Wed Feb 24 2021
- *
- * @brief  handling of errors
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -65,7 +53,6 @@
 
 namespace akantu {
 namespace debug {
-
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char * symbol) {
     int status;
@@ -251,7 +238,7 @@ namespace debug {
       }
 
       if (debugger.printBacktrace()) {
-        std::cerr << "Random generator seed: " << RandomGenerator<UInt>::seed()
+        std::cerr << "Random generator seed: " << RandomGenerator<Int>::seed()
                   << std::endl;
         printBacktrace();
       }
@@ -313,7 +300,7 @@ namespace debug {
                               const DebugLevel & level,
                               const std::string & info,
                               const std::string & module) const {
-    if (testLevel(level, module)) {
+    if AKANTU_UNLIKELY (testLevel(level, module)) {
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())
@@ -349,7 +336,7 @@ namespace debug {
   /* ------------------------------------------------------------------------ */
   void Debugger::setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    UInt pad = std::ceil(std::log10(size));
+    Int pad = std::ceil(std::log10(size));
     sstr << "<" << getpid() << ">[R" << std::setfill(' ') << std::right
          << std::setw(pad) << rank << "|S" << size << "] ";
     parallel_context = sstr.str();

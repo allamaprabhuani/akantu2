@@ -1,18 +1,8 @@
 /**
- * @file   cohesive_element_inserter_helper.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 08 2020
- * @date last modification: Wed Nov 11 2020
- *
- * @brief  An helper class to handle cohesive element insertion
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -45,41 +34,41 @@ public:
   CohesiveElementInserterHelper(
       Mesh & mesh, const ElementTypeMapArray<bool> & facet_insertion);
 
-  UInt insertCohesiveElement();
-  UInt insertFacetsOnly();
+  Int insertCohesiveElement();
+  Int insertFacetsOnly();
 
 private:
-  template <UInt dim> UInt insertFacetsOnlyImpl();
-  template <UInt dim> void doubleFacets();
-  template <UInt dim> void findSubfacetToDouble();
+  template <Int dim> Int insertFacetsOnlyImpl();
+  template <Int dim> void doubleFacets();
+  template <Int dim> void findSubfacetToDouble();
 
-  void doubleNodes(const std::vector<UInt> & old_nodes);
+  void doubleNodes(const std::vector<Idx> & old_nodes);
 
   bool findElementsAroundSubfacet(
       const Element & starting_element, const Element & end_facet,
-      const Vector<UInt> & subfacet_connectivity,
+      const Vector<Idx> & subfacet_connectivity,
       std::vector<Element> & element_list, std::vector<Element> & facet_list,
       std::vector<Element> * subfacet_list = nullptr);
 
-  static inline bool hasElement(const Vector<UInt> & nodes_element,
-                                const Vector<UInt> & nodes);
+  static inline bool hasElement(const Vector<Idx> & nodes_element,
+                                const Vector<Idx> & nodes);
   static inline bool
   removeElementsInVector(const std::vector<Element> & elem_to_remove,
                          std::vector<Element> & elem_list);
 
   void updateElementalConnectivity(
-      Mesh & mesh, UInt old_node, UInt new_node,
+      Mesh & mesh, Idx old_node, Idx new_node,
       const std::vector<Element> & element_list,
       const std::vector<Element> * facet_list = nullptr);
 
   // update functions
-  void updateElementToSubelement(UInt dim, bool facet_mode);
-  void updateSubelementToElement(UInt dim, bool facet_mode);
-  void updateQuadraticSegments(UInt dim);
+  void updateElementToSubelement(Int dim, bool facet_mode);
+  void updateSubelementToElement(Int dim, bool facet_mode);
+  void updateQuadraticSegments(Int dim);
 
   void updateCohesiveData();
   void doublePointFacet();
-  template <UInt spatial_dimension> void doubleSubfacet();
+  template <Int spatial_dimension> void doubleSubfacet();
 
   decltype(auto) elementsOfDimToElementsOfDim(Int dim1, Int dim2) {
     AKANTU_DEBUG_ASSERT(dim1 >= 0 and dim1 <= 3,
@@ -104,13 +93,13 @@ private:
   std::array<std::array<std::unique_ptr<Array<std::vector<Element>>>, 2>, 4>
       dimelements_to_dimelements;
 
-  Array<UInt> doubled_nodes;
+  Array<Idx> doubled_nodes;
   Array<Element> new_elements;
 
   Mesh & mesh;
   Mesh & mesh_facets;
 
-  ElementTypeMap<UInt> nb_new_facets;
+  ElementTypeMap<Int> nb_new_facets;
 };
 
 } // namespace akantu

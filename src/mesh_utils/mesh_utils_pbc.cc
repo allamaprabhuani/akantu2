@@ -1,19 +1,8 @@
 /**
- * @file   mesh_utils_pbc.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Wed Feb 09 2011
- * @date last modification: Wed Mar 04 2020
- *
- * @brief  periodic boundary condition connectivity tweak
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,14 +32,14 @@ namespace akantu {
 /// class that sorts a set of nodes of same coordinates in 'dir' direction
 class CoordinatesComparison {
 public:
-  CoordinatesComparison(const UInt dimension, const UInt dir_1,
-                        const UInt dir_2, Real normalization, Real tolerance,
+  CoordinatesComparison(const Int dimension, const Int dir_1, const Int dir_2,
+                        Real normalization, Real tolerance,
                         const Array<Real> & coords)
       : dim(dimension), dir_1(dir_1), dir_2(dir_2),
         normalization(normalization), tolerance(tolerance),
         coords_it(coords.begin(dim)) {}
   // answers the question whether n2 is larger or equal to n1
-  bool operator()(const UInt n1, const UInt n2) {
+  bool operator()(const Idx n1, const Idx n2) {
     Vector<Real> coords_n1 = coords_it[n1];
     Vector<Real> coords_n2 = coords_it[n2];
     return this->operator()(coords_n1, coords_n2);
@@ -72,36 +60,35 @@ public:
   }
 
 private:
-  UInt dim;
-  UInt dir_1;
-  UInt dir_2;
+  Int dim;
+  Int dir_1;
+  Int dir_2;
   Real normalization;
   Real tolerance;
-  const Array<Real>::const_vector_iterator coords_it;
+  Array<Real>::const_vector_iterator coords_it;
 };
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::computePBCMap(const Mesh & mesh, const UInt dir,
-                              std::map<UInt, UInt> & pbc_pair) {
-  Array<UInt> selected_left;
-  Array<UInt> selected_right;
+void MeshUtils::computePBCMap(const Mesh & mesh, const Int dir,
+                              std::map<Idx, Idx> & pbc_pair) {
+  Array<Idx> selected_left;
+  Array<Idx> selected_right;
 
-  const UInt dim = mesh.getSpatialDimension();
-  auto it = mesh.getNodes().begin(dim);
-  auto end = mesh.getNodes().end(dim);
-
+  const auto dim = mesh.getSpatialDimension();
   if (dim <= dir) {
     return;
   }
 
-  const Vector<Real> & lower_bounds = mesh.getLowerBounds();
-  const Vector<Real> & upper_bounds = mesh.getUpperBounds();
+  const auto & lower_bounds = mesh.getLowerBounds();
+  const auto & upper_bounds = mesh.getUpperBounds();
 
   AKANTU_DEBUG_INFO("min " << lower_bounds(dir));
   AKANTU_DEBUG_INFO("max " << upper_bounds(dir));
 
-  for (UInt node = 0; it != end; ++it, ++node) {
-    const Vector<Real> & coords = *it;
+  for (auto && data : enumerate(make_view(mesh.getNodes(), dim))) {
+    auto node = std::get<0>(data);
+    auto && coords = std::get<1>(data);
+
     AKANTU_DEBUG_TRACE("treating " << coords(dir));
     if (Math::are_float_equal(coords(dir), lower_bounds(dir))) {
       AKANTU_DEBUG_TRACE("pushing node " << node << " on the left side");
@@ -123,14 +110,14 @@ void MeshUtils::computePBCMap(const Mesh & mesh, const UInt dir,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::computePBCMap(const Mesh & mesh,
                               const std::pair<ID, ID> & surface_pair,
-                              std::map<UInt, UInt> & pbc_pair) {
+                              std::map<Idx, Idx> & pbc_pair) {
 
-  Array<UInt> selected_first;
-  Array<UInt> selected_second;
+  Array<Idx> selected_first;
+  Array<Idx> selected_second;
 
   // find nodes on surfaces
-  const ElementGroup & first_surf = mesh.getElementGroup(surface_pair.first);
-  const ElementGroup & second_surf = mesh.getElementGroup(surface_pair.second);
+  const auto & first_surf = mesh.getElementGroup(surface_pair.first);
+  const auto & second_surf = mesh.getElementGroup(surface_pair.second);
 
   // if this surface pair is not on this proc
   if (first_surf.getNbNodes() == 0 || second_surf.getNbNodes() == 0) {
@@ -144,15 +131,13 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
   selected_second.copy(second_surf.getNodeGroup().getNodes());
 
   // coordinates
-  const Array<Real> & coords = mesh.getNodes();
-  const UInt dim = mesh.getSpatialDimension();
+  const auto & coords = mesh.getNodes();
+  const auto dim = mesh.getSpatialDimension();
 
   // variables to find min and max of surfaces
-  Real first_max[3];
-  Real first_min[3];
-  Real second_max[3];
-  Real second_min[3];
-  for (UInt i = 0; i < dim; ++i) {
+  Real first_max[3], first_min[3];
+  Real second_max[3], second_min[3];
+  for (Int i = 0; i < dim; ++i) {
     first_min[i] = std::numeric_limits<Real>::max();
     second_min[i] = std::numeric_limits<Real>::max();
     first_max[i] = -std::numeric_limits<Real>::max();
@@ -161,7 +146,7 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
 
   // find min and max of surface nodes
   for (auto it = selected_first.begin(); it != selected_first.end(); ++it) {
-    for (UInt i = 0; i < dim; ++i) {
+    for (Int i = 0; i < dim; ++i) {
       if (first_min[i] > coords(*it, i)) {
         first_min[i] = coords(*it, i);
       }
@@ -171,7 +156,7 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
     }
   }
   for (auto it = selected_second.begin(); it != selected_second.end(); ++it) {
-    for (UInt i = 0; i < dim; ++i) {
+    for (Int i = 0; i < dim; ++i) {
       if (second_min[i] > coords(*it, i)) {
         second_min[i] = coords(*it, i);
       }
@@ -186,7 +171,7 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
 #ifndef AKANTU_NDEBUG
   Int second_dir = -2;
 #endif
-  for (UInt i = 0; i < dim; ++i) {
+  for (Int i = 0; i < dim; ++i) {
     if (Math::are_float_equal(first_min[i], first_max[i])) {
       first_dir = i;
     }
@@ -202,7 +187,7 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
                           << surface_pair.first << " dir=" << first_dir
                           << " ; Surface " << surface_pair.second
                           << " dir=" << second_dir);
-  UInt dir = first_dir;
+  auto dir = first_dir;
 
   // match pairs
   if (first_min[dir] < second_min[dir]) {
@@ -215,23 +200,22 @@ void MeshUtils::computePBCMap(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::matchPBCPairs(const Mesh & mesh, const UInt dir,
-                              Array<UInt> & selected_left,
-                              Array<UInt> & selected_right,
-                              std::map<UInt, UInt> & pbc_pair) {
+void MeshUtils::matchPBCPairs(const Mesh & mesh, const Int dir,
+                              Array<Idx> & selected_left,
+                              Array<Idx> & selected_right,
+                              std::map<Idx, Idx> & pbc_pair) {
 
   // tolerance is that large because most meshers generate points coordinates
   // with single precision only (it is the case of GMSH for instance)
   Real tolerance = 1e-7;
-  const UInt dim = mesh.getSpatialDimension();
-  Real normalization = mesh.getUpperBounds()(dir) - mesh.getLowerBounds()(dir);
+  const auto dim = mesh.getSpatialDimension();
+  auto normalization = mesh.getUpperBounds()(dir) - mesh.getLowerBounds()(dir);
 
   AKANTU_DEBUG_ASSERT(std::abs(normalization) > Math::getTolerance(),
                       "In matchPBCPairs: The normalization is zero. "
                           << "Did you compute the bounding box of the mesh?");
 
-  auto odir_1 = UInt(-1);
-  auto odir_2 = UInt(-1);
+  auto odir_1 = Int(-1), odir_2 = Int(-1);
 
   if (dim == 3) {
     if (dir == _x) {
@@ -267,11 +251,11 @@ void MeshUtils::matchPBCPairs(const Mesh & mesh, const UInt dir,
   auto nit = mesh.getNodes().begin(dim);
 
   while ((it_left != end_left) && (it_right != end_right)) {
-    UInt i1 = *it_left;
-    UInt i2 = *it_right;
+    auto i1 = *it_left;
+    auto i2 = *it_right;
 
-    Vector<Real> coords1 = nit[i1];
-    Vector<Real> coords2 = nit[i2];
+    auto coords1 = nit[i1];
+    auto coords2 = nit[i2];
 
     AKANTU_DEBUG_TRACE("do I pair? " << i1 << "(" << coords1 << ") with" << i2
                                      << "(" << coords2 << ") in direction "

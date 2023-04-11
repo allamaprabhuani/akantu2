@@ -1,18 +1,8 @@
 /**
- * @file   ntn_friclaw_linear_slip_weakening_no_healing_tmpl.hh
- *
- * @author David Simon Kammer <david.kammer@epfl.ch>
- *
- * @date creation: Fri Mar 16 2018
- * @date last modification: Wed Oct 17 2018
- *
- * @brief  implementation of linear slip weakening
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,8 +42,8 @@ void NTNFricLawLinearSlipWeakeningNoHealing<
   // get arrays
   const SynchronizedArray<Real> & slip = this->internalGetCumulativeSlip();
 
-  UInt nb_contact_nodes = this->contact.getNbContactNodes();
-  for (UInt n = 0; n < nb_contact_nodes; ++n) {
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
     if (slip(n) >= this->d_c(n)) {
       this->mu(n) = this->mu_k(n);
     } else {

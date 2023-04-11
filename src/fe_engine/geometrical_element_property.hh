@@ -1,20 +1,8 @@
 /**
- * @file   geometrical_element_property.hh
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Thomas Menouillard <tmenouillard@stucky.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 29 2017
- * @date last modification: Thu Feb 20 2020
- *
- * @brief  Specialization of the geometrical types
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_class.hh"
+//#include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 #include <array>
 /* -------------------------------------------------------------------------- */
@@ -51,64 +38,64 @@ namespace detail {
 
 #if !defined(DOXYGEN)
 template <> struct GeometricalElementProperty<_gt_not_defined> {
-  static constexpr UInt spatial_dimension{0};
-  static constexpr UInt nb_nodes_per_element{0};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{0}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{0}};
-  static constexpr std::array<UInt, 1> facet_connectivity_vect{{0}};
+  static constexpr Int spatial_dimension{0};
+  static constexpr Int nb_nodes_per_element{0};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{0}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{0}};
+  static constexpr std::array<Int, 1> facet_connectivity_vect{{0}};
 };
 
 template <> struct GeometricalElementProperty<_gt_point> {
-  static constexpr UInt spatial_dimension{0};
-  static constexpr UInt nb_nodes_per_element{1};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{1}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{1}};
-  static constexpr std::array<UInt, 1> facet_connectivity_vect{{0}};
+  static constexpr Int spatial_dimension{0};
+  static constexpr Int nb_nodes_per_element{1};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{1}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{1}};
+  static constexpr std::array<Int, 1> facet_connectivity_vect{{0}};
 };
 
 template <> struct GeometricalElementProperty<_gt_segment_2> {
-  static constexpr UInt spatial_dimension{1};
-  static constexpr UInt nb_nodes_per_element{2};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{1}};
-  static constexpr std::array<UInt, 2> facet_connectivity_vect{{0, 1}};
+  static constexpr Int spatial_dimension{1};
+  static constexpr Int nb_nodes_per_element{2};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{1}};
+  static constexpr std::array<Int, 2> facet_connectivity_vect{{0, 1}};
 };
 
 template <> struct GeometricalElementProperty<_gt_segment_3> {
-  static constexpr UInt spatial_dimension{1};
-  static constexpr UInt nb_nodes_per_element{3};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{1}};
+  static constexpr Int spatial_dimension{1};
+  static constexpr Int nb_nodes_per_element{3};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{1}};
   // clang-format off
-  static constexpr std::array<UInt, 2> facet_connectivity_vect{{0, 1}};
+  static constexpr std::array<Int, 2> facet_connectivity_vect{{0, 1}};
   // clang-format on
 };
 
 template <> struct GeometricalElementProperty<_gt_triangle_3> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{3};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{3}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{2}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{3};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{3}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{2}};
   // clang-format off
-    static constexpr std::array<UInt, 6> facet_connectivity_vect{{
+    static constexpr std::array<Int, 6> facet_connectivity_vect{{
         0, 1, 2,
         1, 2, 0}};
   // clang-format on
 };
 
 template <> struct GeometricalElementProperty<_gt_triangle_6> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{6};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{3}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{3}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3}};
   // clang-format off
-    static constexpr std::array<UInt, 9> facet_connectivity_vect{{
+    static constexpr std::array<Int, 9> facet_connectivity_vect{{
         0, 1, 2,
         1, 2, 0,
         3, 4, 5}};
@@ -116,13 +103,13 @@ template <> struct GeometricalElementProperty<_gt_triangle_6> {
 };
 
 template <> struct GeometricalElementProperty<_gt_tetrahedron_4> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{4};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{4}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{4};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{4}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3}};
   // clang-format off
-    static constexpr std::array<UInt, 12> facet_connectivity_vect{{
+    static constexpr std::array<Int, 12> facet_connectivity_vect{{
         0, 1, 2, 0,
         2, 2, 0, 1,
         1, 3, 3, 3}};
@@ -130,13 +117,13 @@ template <> struct GeometricalElementProperty<_gt_tetrahedron_4> {
 };
 
 template <> struct GeometricalElementProperty<_gt_tetrahedron_10> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{10};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{4}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{6}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{10};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{4}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{6}};
   // clang-format off
-  static constexpr std::array<UInt, 6*4> facet_connectivity_vect{{
+  static constexpr std::array<Int, 6*4> facet_connectivity_vect{{
       0, 1, 2, 0,
       2, 2, 0, 1,
       1, 3, 3, 3,
@@ -147,26 +134,26 @@ template <> struct GeometricalElementProperty<_gt_tetrahedron_10> {
 };
 
 template <> struct GeometricalElementProperty<_gt_quadrangle_4> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{4};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{4}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{2}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{4};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{4}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{2}};
   // clang-format off
-  static constexpr std::array<UInt, 2*4> facet_connectivity_vect{{
+  static constexpr std::array<Int, 2*4> facet_connectivity_vect{{
       0, 1, 2, 3,
       1, 2, 3, 0}};
   // clang-format on
 };
 
 template <> struct GeometricalElementProperty<_gt_quadrangle_8> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{8};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{4}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{8};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{4}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3}};
   // clang-format off
-  static constexpr std::array<UInt, 4*3> facet_connectivity_vect{{
+  static constexpr std::array<Int, 4*3> facet_connectivity_vect{{
       0, 1, 2, 3,
       1, 2, 3, 0,
       4, 5, 6, 7}};
@@ -174,13 +161,13 @@ template <> struct GeometricalElementProperty<_gt_quadrangle_8> {
 };
 
 template <> struct GeometricalElementProperty<_gt_hexahedron_8> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{8};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{6}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{4}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{8};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{6}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{4}};
   // clang-format off
-  static constexpr std::array<UInt, 4*6> facet_connectivity_vect{{
+  static constexpr std::array<Int, 4*6> facet_connectivity_vect{{
       0, 0, 1, 2, 3, 4,
       3, 1, 2, 3, 0, 5,
       2, 5, 6, 7, 4, 6,
@@ -189,13 +176,13 @@ template <> struct GeometricalElementProperty<_gt_hexahedron_8> {
 };
 
 template <> struct GeometricalElementProperty<_gt_hexahedron_20> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{20};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{6}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{8}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{20};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{6}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{8}};
   // clang-format off
-  static constexpr std::array<UInt, 8*6> facet_connectivity_vect{{
+  static constexpr std::array<Int, 8*6> facet_connectivity_vect{{
       0,  1,  2,  3,  0,  4,
       1,  2,  3,  0,  3,  5,
       5,  6,  7,  4,  2,  6,
@@ -208,13 +195,13 @@ template <> struct GeometricalElementProperty<_gt_hexahedron_20> {
 };
 
 template <> struct GeometricalElementProperty<_gt_pentahedron_6> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{6};
-  static constexpr UInt nb_facet_types{2};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2, 3}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3, 4}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int nb_facet_types{2};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2, 3}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3, 4}};
   // clang-format off
-  static constexpr std::array<UInt, 3*2 + 4*3> facet_connectivity_vect{{
+  static constexpr std::array<Int, 3*2 + 4*3> facet_connectivity_vect{{
       // first type
       0, 3,
       2, 4,
@@ -228,13 +215,13 @@ template <> struct GeometricalElementProperty<_gt_pentahedron_6> {
 };
 
 template <> struct GeometricalElementProperty<_gt_pentahedron_15> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{15};
-  static constexpr UInt nb_facet_types{2};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2, 3}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{6, 8}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{15};
+  static constexpr Int nb_facet_types{2};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2, 3}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{6, 8}};
   // clang-format off
-  static constexpr std::array<UInt, 6*2 + 8*3> facet_connectivity_vect{{
+  static constexpr std::array<Int, 6*2 + 8*3> facet_connectivity_vect{{
       // first type
       0, 3,
       2, 4,
@@ -257,13 +244,13 @@ template <> struct GeometricalElementProperty<_gt_pentahedron_15> {
 #if defined(AKANTU_COHESIVE_ELEMENT)
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_2d_4> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{4};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{2}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{4};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{2}};
   // clang-format off
-  static constexpr std::array<UInt, 2 * 2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 2 * 2> facet_connectivity_vect{{
       0, 2,
       1, 3}};
   // clang-format on
@@ -271,13 +258,13 @@ template <> struct GeometricalElementProperty<_gt_cohesive_2d_4> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_2d_6> {
-  static constexpr UInt spatial_dimension{2};
-  static constexpr UInt nb_nodes_per_element{6};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3}};
+  static constexpr Int spatial_dimension{2};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3}};
   // clang-format off
-  static constexpr std::array<UInt, 3*2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 3*2> facet_connectivity_vect{{
       0, 3,
       1, 4,
       2, 5}};
@@ -286,25 +273,25 @@ template <> struct GeometricalElementProperty<_gt_cohesive_2d_6> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_1d_2> {
-  static constexpr UInt spatial_dimension{1};
-  static constexpr UInt nb_nodes_per_element{2};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{1}};
+  static constexpr Int spatial_dimension{1};
+  static constexpr Int nb_nodes_per_element{2};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{1}};
   // clang-format off
-  static constexpr std::array<UInt, 2> facet_connectivity_vect{{0, 1}};
+  static constexpr std::array<Int, 2> facet_connectivity_vect{{0, 1}};
   // clang-format on
 };
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_3d_6> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{6};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{3}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{6};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{3}};
   // clang-format off
-  static constexpr std::array<UInt, 3*2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 3*2> facet_connectivity_vect{{
       0, 3,
       1, 4,
       2, 5}};
@@ -313,13 +300,13 @@ template <> struct GeometricalElementProperty<_gt_cohesive_3d_6> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_3d_12> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{12};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{6}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{12};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{6}};
   // clang-format off
-  static constexpr std::array<UInt, 6*2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 6*2> facet_connectivity_vect{{
       0, 6,
       1, 7,
       2, 8,
@@ -331,13 +318,13 @@ template <> struct GeometricalElementProperty<_gt_cohesive_3d_12> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_3d_8> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{8};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{4}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{8};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{4}};
   // clang-format off
-  static constexpr std::array<UInt, 4*2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 4*2> facet_connectivity_vect{{
       0, 4,
       1, 5,
       2, 6,
@@ -347,13 +334,13 @@ template <> struct GeometricalElementProperty<_gt_cohesive_3d_8> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct GeometricalElementProperty<_gt_cohesive_3d_16> {
-  static constexpr UInt spatial_dimension{3};
-  static constexpr UInt nb_nodes_per_element{16};
-  static constexpr UInt nb_facet_types{1};
-  static constexpr std::array<UInt, nb_facet_types> nb_facets{{2}};
-  static constexpr std::array<UInt, nb_facet_types> nb_nodes_per_facet{{8}};
+  static constexpr Int spatial_dimension{3};
+  static constexpr Int nb_nodes_per_element{16};
+  static constexpr Int nb_facet_types{1};
+  static constexpr std::array<Int, nb_facet_types> nb_facets{{2}};
+  static constexpr std::array<Int, nb_facet_types> nb_nodes_per_facet{{8}};
   // clang-format off
-  static constexpr std::array<UInt, 8*2> facet_connectivity_vect{{
+  static constexpr std::array<Int, 8*2> facet_connectivity_vect{{
       0, 8,
       1, 9,
       2, 10,

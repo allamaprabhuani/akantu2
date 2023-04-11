@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
+__copyright__ = (
+    "Copyright (©) 2022-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
+
 import os
 import re
+import sys
 import subprocess
 
 
 def run_git_command(args):
-    git_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
+    """Run git commands and capture outputs."""
+    git_dir = os.path.realpath(
+        os.path.join(os.path.dirname(__file__),
+                     os.pardir))
 
     cmd = ["git"] + args
     p = subprocess.Popen(
@@ -42,26 +53,34 @@ def _split_git_describe(describe):
     return None
 
 
+def _eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 semver_re = re.compile(
     r"^(?P<major>0|[1-9]\d*)"
     r"(\.(?P<minor>0|[1-9]\d*))?"
     r"(\.(?P<patch>0|[1-9]\d*))?"
-    r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+    r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
     r"(?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
 )
 
 
 def _parse_semver(version):
-    pieces = {}
     semver_mo = semver_re.search(version)
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
+    if not semver_mo:
+        return {}
+
+    pieces = {}
+    for p in ["major", "minor", "patch", "prerelease", "build"]:
+        if semver_mo.group(p):
+            pieces[p] = semver_mo.group(p)
     return pieces
 
 
 def get_git_version():
+    """Get the version from the git repository."""
     out, rc = run_git_command(["rev-parse", "--git-dir"])
     if rc != 0:
         return None
@@ -70,7 +89,8 @@ def get_git_version():
         ["describe", "--tags", "--dirty", "--always", "--match", "v*"]
     )
 
-    if '-g' in git_describe:
+    _eprint(f"git describe {git_describe}")
+    if "-g" in git_describe:
         # TAG-DISTANCE-gHEX
         pieces = _split_git_describe(git_describe)
     else:
@@ -82,15 +102,18 @@ def get_git_version():
         return None
 
     semver_mo = semver_re.search(pieces["tag"][1:])
-    if semver_mo:
-        for p in ["major", "minor", "patch", "prerelease", "build"]:
-            if semver_mo.group(p):
-                pieces[p] = semver_mo.group(p)
+    if not semver_mo:
+        return pieces
+
+    for p in ["major", "minor", "patch", "prerelease", "build"]:
+        if semver_mo.group(p):
+            pieces[p] = semver_mo.group(p)
 
     return pieces
 
 
 def get_git_attributes_version():
+    """Get the version from the attributes set a `git archive`."""
     file_dir = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
     attributes = None
     pieces = None
@@ -110,12 +133,14 @@ def get_git_attributes_version():
 
 
 def get_ci_version():
+    """Get extra information from CI context."""
     pieces = None
     if "CI_AKANTU_INSTALL_PREFIX" not in os.environ:
         return None
 
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    akantu_dir = os.path.join(ci_akantu_install_prefix,
+                              "lib", "cmake", "Akantu")
     cmake_config = os.path.join(akantu_dir, "AkantuConfig.cmake")
 
     if not os.path.exists(cmake_config):
@@ -138,9 +163,11 @@ def get_ci_version():
 
 
 def get_version_file():
+    """Get the version directly from the VERSION file."""
     version_path = os.path.join(
         os.path.realpath(
-            os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+            os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         os.path.pardir))
         ),
         "VERSION",
     )
@@ -160,19 +187,24 @@ def get_version_file():
 
 
 def get_version():
+    """Combine all the version determination functions."""
     pieces = None
 
     if not pieces:
         pieces = get_ci_version()
+        _eprint(f"pieces from ci_version: {pieces}")
 
     if not pieces:
         pieces = get_git_version()
+        _eprint(f"pieces from git_version: {pieces}")
 
     if not pieces:
         pieces = get_git_attributes_version()
+        _eprint(f"pieces from git attributes: {pieces}")
 
     if not pieces:
         pieces = get_version_file()
+        _eprint(f"pieces from version file: {pieces}")
 
     if not pieces:
         raise Exception("No version could be determined")

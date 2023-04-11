@@ -1,23 +1,8 @@
 /**
- * @file   group_manager.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Dana Christen <dana.christen@gmail.com>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Stores information relevent to the notion of element and nodes
- * groups.
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -153,7 +137,7 @@ public:
 
   /// create an element group and the associated node group
   ElementGroup & createElementGroup(const std::string & group_name,
-                                    UInt dimension = _all_dimensions,
+                                    Int dimension = _all_dimensions,
                                     bool replace_group = false);
 
   /* ------------------------------------------------------------------------ */
@@ -180,7 +164,7 @@ public:
   /// create an element group from another element group but filtered
   template <typename T>
   ElementGroup &
-  createFilteredElementGroup(const std::string & group_name, UInt dimension,
+  createFilteredElementGroup(const std::string & group_name, Int dimension,
                              const NodeGroup & node_group, T & filter);
 
   /// destroy a node group
@@ -195,36 +179,36 @@ public:
 
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name,
-                                    UInt dimension, NodeGroup & node_group);
+                                    Int dimension, NodeGroup & node_group);
 
   /// create groups based on values stored in a given mesh data
   template <typename T>
   void createGroupsFromMeshData(const std::string & dataset_name);
 
   /// create boundaries group by a clustering algorithm \todo extend to parallel
-  UInt createBoundaryGroupFromGeometry();
+  Int createBoundaryGroupFromGeometry();
 
   /// create element clusters for a given dimension
-  UInt createClusters(UInt element_dimension, Mesh & mesh_facets,
-                      const std::string & cluster_name_prefix = "cluster",
-                      const ClusteringFilter & filter = ClusteringFilter());
+  Int createClusters(Int element_dimension, Mesh & mesh_facets,
+                     std::string cluster_name_prefix = "cluster",
+                     const ClusteringFilter & filter = ClusteringFilter());
 
   /// create element clusters for a given dimension
-  UInt createClusters(UInt element_dimension,
-                      const std::string & cluster_name_prefix = "cluster",
-                      const ClusteringFilter & filter = ClusteringFilter());
+  Int createClusters(Int element_dimension,
+                     std::string cluster_name_prefix = "cluster",
+                     const ClusteringFilter & filter = ClusteringFilter());
 
 private:
   /// create element clusters for a given dimension
-  UInt createClusters(UInt element_dimension,
-                      const std::string & cluster_name_prefix,
-                      const ClusteringFilter & filter, Mesh & mesh_facets);
+  Int createClusters(Int element_dimension,
+                     const std::string & cluster_name_prefix,
+                     const ClusteringFilter & filter, Mesh & mesh_facets);
 
 public:
   /// Create an ElementGroup based on a NodeGroup
   void createElementGroupFromNodeGroup(const std::string & name,
                                        const std::string & node_group,
-                                       UInt dimension = _all_dimensions);
+                                       Int dimension = _all_dimensions);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -237,17 +221,17 @@ public:
   template <typename T, template <bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, ElementKind kind,
-      ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+      Int spatial_dimension, ElementKind kind,
+      ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
   /// ElementalField)
-  template <typename T, template <class> class ret_type,
-            template <class, template <class> class, bool> class dump_type>
+  template <typename T, class ret_type,
+            template <class, class, bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, ElementKind kind,
-      ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+      Int spatial_dimension, ElementKind kind,
+      ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
   /// MaterialInternalField)
@@ -256,21 +240,21 @@ public:
             template <typename, bool filtered> class dump_type>
   std::shared_ptr<dumpers::Field>
   createElementalField(const ElementTypeMapArray<T> & field,
-                       const std::string & group_name, UInt spatial_dimension,
-                       ElementKind kind, ElementTypeMap<UInt> nb_data_per_elem);
+                       const std::string & group_name, Int spatial_dimension,
+                       ElementKind kind, ElementTypeMap<Int> nb_data_per_elem);
 
   template <typename type, bool flag, template <class, bool> class ftype>
   std::shared_ptr<dumpers::Field>
   createNodalField(const ftype<type, flag> * field,
-                   const std::string & group_name, UInt padding_size = 0);
+                   const std::string & group_name, Int padding_size = 0);
 
   template <typename type, bool flag, template <class, bool> class ftype>
   std::shared_ptr<dumpers::Field>
   createStridedNodalField(const ftype<type, flag> * field,
-                          const std::string & group_name, UInt size,
-                          UInt stride, UInt padding_size);
+                          const std::string & group_name, Int size, Int stride,
+                          Int padding_size);
 
-  void onNodesAdded(const Array<UInt> & new_nodes, const NewNodesEvent & event);
+  void onNodesAdded(const Array<Idx> & new_nodes, const NewNodesEvent & event);
 
 protected:
   /// fill a buffer with all the group names
@@ -284,16 +268,16 @@ protected:
   template <class dump_type, typename field_type>
   inline std::shared_ptr<dumpers::Field>
   createElementalField(const field_type & field, const std::string & group_name,
-                       UInt spatial_dimension, ElementKind kind,
-                       const ElementTypeMap<UInt> & nb_data_per_elem);
+                       Int spatial_dimension, ElementKind kind,
+                       const ElementTypeMap<Int> & nb_data_per_elem);
 
   /// register an elemental field to the given group name
   template <class dump_type, typename field_type>
   inline std::shared_ptr<dumpers::Field>
   createElementalFilteredField(const field_type & field,
                                const std::string & group_name,
-                               UInt spatial_dimension, ElementKind kind,
-                               ElementTypeMap<UInt> nb_data_per_elem);
+                               Int spatial_dimension, ElementKind kind,
+                               ElementTypeMap<Int> nb_data_per_elem);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
@@ -301,20 +285,21 @@ protected:
 public:
   // AKANTU_GET_MACRO(ElementGroups, element_groups, const ElementGroups &);
 
-  const ElementGroup & getElementGroup(const std::string & name) const;
-  const NodeGroup & getNodeGroup(const std::string & name) const;
+  [[nodiscard]] const ElementGroup &
+  getElementGroup(const std::string & name) const;
+  [[nodiscard]] const NodeGroup & getNodeGroup(const std::string & name) const;
 
   ElementGroup & getElementGroup(const std::string & name);
   NodeGroup & getNodeGroup(const std::string & name);
 
-  UInt getNbElementGroups(UInt dimension = _all_dimensions) const;
-  UInt getNbNodeGroups() { return node_groups.size(); };
+  [[nodiscard]] Int getNbElementGroups(Int dimension = _all_dimensions) const;
+  Int getNbNodeGroups() { return node_groups.size(); };
 
-  bool elementGroupExists(const std::string & name) {
+  [[nodiscard]] bool elementGroupExists(const std::string & name) const {
     return element_groups.find(name) != element_groups.end();
   }
 
-  bool nodeGroupExists(const std::string & name) {
+  [[nodiscard]] bool nodeGroupExists(const std::string & name) const {
     return node_groups.find(name) != node_groups.end();
   }
 

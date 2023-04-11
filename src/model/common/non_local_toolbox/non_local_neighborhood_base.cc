@@ -1,19 +1,8 @@
 /**
- * @file   non_local_neighborhood_base.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sat Sep 26 2015
- * @date last modification: Fri Jul 10 2020
- *
- * @brief  Implementation of non-local neighborhood base
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -44,12 +32,8 @@ NonLocalNeighborhoodBase::NonLocalNeighborhoodBase(
     Model & model, const ElementTypeMapReal & quad_coordinates, const ID & id)
     : NeighborhoodBase(model, quad_coordinates, id),
       Parsable(ParserType::_non_local, id) {
-  AKANTU_DEBUG_IN();
-
   this->registerParam("radius", neighborhood_radius, 100.,
                       _pat_parsable | _pat_readable, "Non local radius");
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -81,7 +65,6 @@ void NonLocalNeighborhoodBase::synchronize(
 /* -------------------------------------------------------------------------- */
 void NonLocalNeighborhoodBase::getRelevantGhostElements(
     std::set<Element> & relevant_ghost_elements) {
-
   for (auto && ghost_type : ghost_type_t{}) {
     auto & pair_list = this->pair_list.at(ghost_type);
     for (auto && pair : pair_list) {
@@ -106,7 +89,7 @@ void NonLocalNeighborhoodBase::cleanupExtraGhostElements(
   for (const auto & type : mesh.elementTypes(
            _spatial_dimension = spatial_dimension, _ghost_type = _ghost)) {
     auto nb_ghost_elem = mesh.getNbElement(type, _ghost);
-    for (UInt g = 0; g < nb_ghost_elem; ++g) {
+    for (auto g : arange(nb_ghost_elem)) {
       Element element{type, g, _ghost};
       if (relevant_ghost_elements.find(element) == end) {
         ghosts_to_erase.push_back(element);

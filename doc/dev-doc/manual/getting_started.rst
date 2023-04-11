@@ -13,7 +13,7 @@ In addition some libraries are required:
  - CMake (>= 3.5.1)
  - Boost (preprocessor and Spirit)
  - zlib
- - blas/lapack
+ - Eigen3 (if not present the build system will try to download it)
 
 For the python interface:
 
@@ -146,7 +146,7 @@ dimension, it can be filled by reading a mesh input file. The method
 <akantu::Mesh>` infers the mesh type from the file extension. If a non-standard
 file extension is used, the mesh type has to be specified. ::
 
-    UInt spatial_dimension = 2;
+    Int spatial_dimension = 2;
     Mesh mesh(spatial_dimension);
 
     // Reading Gmsh files
@@ -154,10 +154,10 @@ file extension is used, the mesh type has to be specified. ::
     mesh.read("my_gmsh_mesh", _miot_gmsh);
 
 The Gmsh reader adds the geometrical and physical tags as mesh data. The
-physical values are stored as a :cpp:type:`UInt <akantu::UInt>` data called
+physical values are stored as a :cpp:type:`Int <akantu::Int>` data called
 ``tag_0``, if a string name is provided it is stored as a ``std::string`` data
-named ``physical_names``. The geometrical tag is stored as a :cpp:type:`UInt
-<akantu::UInt>` data named ``tag_1``.
+named ``physical_names``. The geometrical tag is stored as a :cpp:type:`Int
+<akantu::Int>` data named ``tag_1``.
 
 Using Arrays
 ------------
@@ -184,7 +184,7 @@ number of components per tuple must be specified at the :cpp:class:`Array
 values) of ten nodes, the appropriate code is the following::
 
   UInt nb_nodes = 10;
-  UInt spatial_dimension = 3;
+  Int spatial_dimension = 3;
 
   Array<Real> position(nb_nodes, spatial_dimension);
 

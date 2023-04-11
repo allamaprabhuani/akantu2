@@ -1,19 +1,8 @@
 /**
- * @file   mesh_geom_factory.hh
- *
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Fri Feb 27 2015
- * @date last modification: Tue Sep 08 2020
- *
- * @brief  Class for constructing the CGAL primitives of a mesh
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +41,7 @@ namespace akantu {
  * This class constructs a CGAL AABB tree of one type of element in a mesh
  * for fast intersection computations.
  */
-template <UInt dim, ElementType el_type, class Primitive, class Kernel>
+template <Int dim, ElementType el_type, class Primitive, class Kernel>
 class MeshGeomFactory : public MeshGeomAbstract {
 public:
   /// Construct from mesh
@@ -80,9 +68,9 @@ public:
    * @param list the primitive list (not used inside MeshGeomFactory)
    */
   inline void addPrimitive(const Matrix<Real> & /*node_coordinates*/,
-                           UInt /*id*/, ContainerType & /*list*/);
+                           Idx /*id*/, ContainerType & /*list*/);
 
-  inline void addPrimitive(const Matrix<Real> & node_coordinates, UInt id);
+  inline void addPrimitive(const Matrix<Real> & node_coordinates, Idx id);
 
   /// Getter for the AABB tree
   auto getTree() const -> const TreeType & { return *data_tree; }
@@ -94,7 +82,7 @@ public:
 
 protected:
   /// AABB data tree
-  TreeType * data_tree{nullptr};
+  std::unique_ptr<TreeType> data_tree;
 
   /// Primitive list
   ContainerType primitive_list;

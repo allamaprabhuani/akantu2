@@ -1,18 +1,8 @@
 /**
- * @file   dof_manager_petsc.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Aug 18 2015
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  PETSc implementation of the dof manager
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -103,8 +92,9 @@ public:
   void assembleElementalMatricesToMatrix(
       const ID & /*matrix_id*/, const ID & /*dof_id*/,
       const Array<Real> & /*elementary_mat*/, ElementType /*type*/,
-      GhostType /*ghost_type*/, const MatrixType & /*elemental_matrix_type*/,
-      const Array<UInt> & /*filter_elements*/) override;
+      GhostType /*ghost_type*/,
+      const MatrixType & /*elemental_matrix_type*/,
+      const Array<Idx> & /*filter_elements*/) override;
 
   void assembleMatMulVectToArray(const ID & /*dof_id*/, const ID & /*A_id*/,
                                  const Array<Real> & /*x*/,
@@ -134,12 +124,12 @@ protected:
 
   std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) override;
 
-  std::tuple<UInt, UInt, UInt>
+  std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) override;
 
-  void updateDOFsData(DOFDataPETSc & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local, UInt nb_node,
-                      const std::function<UInt(UInt)> & getNode);
+  void updateDOFsData(DOFDataPETSc & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local, Int nb_node,
+                      const std::function<Idx(Idx)> & getNode);
 
 protected:
   void getLumpedMatrixPerDOFs(const ID & /*dof_id*/, const ID & /*lumped_mtx*/,

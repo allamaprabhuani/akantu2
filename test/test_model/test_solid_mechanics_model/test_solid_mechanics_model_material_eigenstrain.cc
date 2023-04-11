@@ -1,19 +1,8 @@
 /**
- * @file   test_solid_mechanics_model_material_eigenstrain.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Sat Apr 16 2011
- * @date last modification: Sat Dec 19 2020
- *
- * @brief  test the internal field prestrain
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2011-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -38,26 +26,23 @@
 
 using namespace akantu;
 
-Real alpha[3][4] = {{0.01, 0.02, 0.03, 0.04},
-                    {0.05, 0.06, 0.07, 0.08},
-                    {0.09, 0.10, 0.11, 0.12}};
+Matrix<Real, 3, 4> alpha{{0.01, 0.02, 0.03, 0.04},
+                         {0.05, 0.06, 0.07, 0.08},
+                         {0.09, 0.10, 0.11, 0.12}};
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type> static Matrix<Real> prescribed_strain() {
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> strain(spatial_dimension, spatial_dimension);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      strain(i, j) = alpha[i][j + 1];
-    }
-  }
+  strain = alpha.block(0, 1, spatial_dimension, spatial_dimension);
+
   return strain;
 }
 
 template <ElementType type>
 static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
-  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  Int spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
   // plane strain in 2d
@@ -69,25 +54,21 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
   Real trace = 0;
 
   /// symetric part of the strain tensor
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      strain(i, j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
+  strain = (pstrain + pstrain.transpose()) / 2.;
 
   // elastic strain is equal to elastic strain minus the eigenstrain
   strain -= prescribed_eigengradu;
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    trace += strain(i, i);
+  trace = strain.trace();
 
   Real lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
   Real mu = E / (2 * (1 + nu));
 
   if (spatial_dimension == 1) {
-    stress(0, 0) = E * strain(0, 0);
+    stress = E * strain;
   } else {
-    for (UInt i = 0; i < spatial_dimension; ++i)
-      for (UInt j = 0; j < spatial_dimension; ++j) {
-        stress(i, j) = (i == j) * lambda * trace + 2 * mu * strain(i, j);
-      }
+    auto I = Matrix<Real>::Identity(spatial_dimension, spatial_dimension);
+
+    stress = I * trace * lambda + 2. * mu * strain;
   }
 
   return stress;
@@ -99,7 +80,7 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
 int main(int argc, char * argv[]) {
   initialize("material_elastic_plane_strain.dat", argc, argv);
 
-  UInt dim = 3;
+  Int dim = 3;
   const ElementType element_type = _tetrahedron_4;
 
   Matrix<Real> prescribed_eigengradu(dim, dim);
@@ -132,10 +113,10 @@ int main(int argc, char * argv[]) {
   for (auto & group : mesh.iterateElementGroups()) {
     for (const auto & n : group.getNodeGroup()) {
       std::cout << "Node " << n << std::endl;
-      for (UInt i = 0; i < dim; ++i) {
-        displacement(n, i) = alpha[i][0];
-        for (UInt j = 0; j < dim; ++j) {
-          displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+      for (Int i = 0; i < dim; ++i) {
+        displacement(n, i) = alpha(i, 0);
+        for (Int j = 0; j < dim; ++j) {
+          displacement(n, i) += alpha(i, j + 1) * coordinates(n, j);
         }
         boundary(n, i) = true;
       }
@@ -182,7 +163,8 @@ int main(int argc, char * argv[]) {
 
     diff = stress;
     diff -= presc_stress;
-    Real stress_error = diff.norm<L_inf>() / stress.norm<L_inf>();
+    Real stress_error =
+        diff.lpNorm<Eigen::Infinity>() / stress.lpNorm<Eigen::Infinity>();
 
     if (stress_error > stress_tolerance) {
       std::cerr << "stress error: " << stress_error << " > " << stress_tolerance

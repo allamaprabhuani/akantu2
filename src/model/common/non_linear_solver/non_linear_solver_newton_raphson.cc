@@ -1,18 +1,8 @@
 /**
- * @file   non_linear_solver_newton_raphson.cc
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Tue Sep 15 2015
- * @date last modification: Tue Mar 30 2021
- *
- * @brief  Implementation of the default NonLinearSolver
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -181,13 +170,13 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
   const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
 
   const Array<Real> & array(solver_vector);
-  UInt nb_degree_of_freedoms = array.size();
+  Int nb_degree_of_freedoms = array.size();
 
   auto arr_it = array.begin();
   auto bld_it = blocked_dofs.begin();
 
   Real norm = 0.;
-  for (UInt n = 0; n < nb_degree_of_freedoms; ++n, ++arr_it, ++bld_it) {
+  for (Int n = 0; n < nb_degree_of_freedoms; ++n, ++arr_it, ++bld_it) {
     bool is_local_node = this->dof_manager.isLocalOrMasterDOF(n);
     if ((!*bld_it) && is_local_node) {
       norm += *arr_it * *arr_it;

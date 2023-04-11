@@ -1,18 +1,8 @@
 /**
- * @file   synchronizer_impl_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Fri Dec 02 2016
- * @date last modification: Wed Dec 09 2020
- *
- * @brief  Implementation of the SynchronizerImpl
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +56,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
   std::tie(send_dir, recv_dir) = send_recv_schemes;
 
   using CommunicationRequests = std::vector<CommunicationRequest>;
-  using CommunicationBuffers = std::map<UInt, CommunicationBuffer>;
+  using CommunicationBuffers = std::map<Int, CommunicationBuffer>;
 
   CommunicationRequests send_requests;
   CommunicationRequests recv_requests;
@@ -100,7 +89,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
       if (sr == recv_dir) {
         requests.push_back(communicator.asyncReceive(
             buffer, proc,
-            Tag::genTag(this->rank, UInt(tag), comm_tag, this->hash_id)));
+            Tag::genTag(this->rank, Int(tag), comm_tag, this->hash_id)));
       } else {
 #ifndef AKANTU_NDEBUG
         this->packSanityCheckData(buffer, scheme, tag);
@@ -118,7 +107,7 @@ void SynchronizerImpl<Entity>::communicateOnce(
 
         send_requests.push_back(communicator.asyncSend(
             buffer, proc,
-            Tag::genTag(proc, UInt(tag), comm_tag, this->hash_id)));
+            Tag::genTag(proc, Int(tag), comm_tag, this->hash_id)));
       }
     }
   };
@@ -130,8 +119,8 @@ void SynchronizerImpl<Entity>::communicateOnce(
   postComm(send_dir, send_buffers, send_requests);
 
   // treat the receive requests
-  UInt request_ready;
-  while ((request_ready = Communicator::waitAny(recv_requests)) != UInt(-1)) {
+  Idx request_ready{-1};
+  while ((request_ready = Communicator::waitAny(recv_requests)) != -1) {
     auto & req = recv_requests[request_ready];
     auto proc = req.getSource();
 
@@ -281,10 +270,8 @@ void SynchronizerImpl<Entity>::computeBufferSizeImpl(
   }
 
   for (auto sr : iterate_send_recv) {
-    for (auto && pair : this->communications.iterateSchemes(sr)) {
-      auto proc = pair.first;
-      const auto & scheme = pair.second;
-      UInt size = 0;
+    for (auto && [proc, scheme] : this->communications.iterateSchemes(sr)) {
+      Int size{0};
 #ifndef AKANTU_NDEBUG
       size += this->sanityCheckDataSize(scheme, tag);
 #endif
@@ -365,7 +352,7 @@ template <typename Entity>
 template <typename Pred>
 void SynchronizerImpl<Entity>::filterScheme(Pred && pred) {
   std::vector<CommunicationRequest> requests;
-  std::unordered_map<UInt, Array<UInt>> keep_entities;
+  std::unordered_map<Idx, Array<Idx>> keep_entities;
 
   auto filter_list = [](const auto & keep, auto & list) {
     Array<Entity> new_list;
@@ -408,9 +395,9 @@ void SynchronizerImpl<Entity>::filterScheme(Pred && pred) {
                       << proc << " (communication tag : " << tag << ")");
 
     CommunicationStatus status;
-    communicator.probe<UInt>(proc, tag, status);
+    communicator.probe<Int>(proc, tag, status);
 
-    Array<UInt> keep_entity(status.size(), 1, "keep_element");
+    Array<Int> keep_entity(status.size(), 1, "keep_element");
     AKANTU_DEBUG_INFO("I have "
                       << keep_entity.size()
                       << " elements to keep in my send list to processor "
@@ -456,17 +443,17 @@ SynchronizerImpl<Entity>::operator=(const SynchronizerImpl & other) {
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
-UInt SynchronizerImpl<Entity>::sanityCheckDataSize(
+Int SynchronizerImpl<Entity>::sanityCheckDataSize(
     const Array<Entity> & /*unused*/, const SynchronizationTag & /*unused*/,
     bool is_comm_desc) const {
   if (not is_comm_desc) {
     return 0;
   }
 
-  UInt size = 0;
+  Int size = 0;
   size += sizeof(SynchronizationTag); // tag
-  size += sizeof(UInt);               // comm_desc.getNbData();
-  size += sizeof(UInt);               // comm_desc.getProc();
+  size += sizeof(Int);                // comm_desc.getNbData();
+  size += sizeof(Int);                // comm_desc.getProc();
   size += sizeof(this->rank);         // mesh.getCommunicator().whoAmI();
 
   return size;
@@ -503,7 +490,7 @@ void SynchronizerImpl<Entity>::unpackSanityCheckData(
   decltype(proc) recv_proc;
   decltype(rank) recv_rank;
 
-  SynchronizationTag t;
+  SynchronizationTag t{0};
   buffer >> t;
   buffer >> recv_nb_data;
   buffer >> recv_proc;
@@ -516,10 +503,10 @@ void SynchronizerImpl<Entity>::unpackSanityCheckData(
       nb_data == recv_nb_data,
       "The nb_data received does not correspond to the nb_data expected");
 
-  AKANTU_DEBUG_ASSERT(UInt(recv_rank) == proc,
+  AKANTU_DEBUG_ASSERT(recv_rank == proc,
                       "The rank received does not correspond to the proc");
 
-  AKANTU_DEBUG_ASSERT(recv_proc == UInt(rank),
+  AKANTU_DEBUG_ASSERT(recv_proc == rank,
                       "The proc received does not correspond to the rank");
 
   auto & recv_element = comm_desc.getScheme();
@@ -546,31 +533,28 @@ void SynchronizerImpl<Entity>::initScatterGatherCommunicationScheme() {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
-  AKANTU_DEBUG_IN();
-
+inline void SynchronizerImpl<Idx>::initScatterGatherCommunicationScheme() {
   if (this->nb_proc == 1) {
     entities_changed = false;
-    AKANTU_DEBUG_OUT();
     return;
   }
 
   this->entities_from_root.clear();
   this->master_receive_entities.clear();
 
-  Array<UInt> entities_to_send;
+  Array<Idx> entities_to_send;
   fillEntityToSend(entities_to_send);
 
   std::vector<CommunicationRequest> requests;
 
-  if (this->rank == UInt(this->root)) {
+  if (this->rank == Int(this->root)) {
     master_receive_entities[this->root].copy(entities_to_send);
 
-    Array<UInt> nb_entities_per_proc(this->nb_proc);
+    Array<Idx> nb_entities_per_proc(this->nb_proc);
     communicator.gather(entities_to_send.size(), nb_entities_per_proc);
 
-    for (UInt p = 0; p < nb_proc; ++p) {
-      if (p == UInt(this->root)) {
+    for (Int p = 0; p < nb_proc; ++p) {
+      if (p == Int(this->root)) {
         continue;
       }
 
@@ -600,8 +584,6 @@ inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
   entities_changed = false;
   Communicator::waitAll(requests);
   Communicator::freeCommunicationRequest(requests);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -613,7 +595,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
     initScatterGatherCommunicationScheme();
   }
 
-  AKANTU_DEBUG_ASSERT(this->rank == UInt(this->root),
+  AKANTU_DEBUG_ASSERT(this->rank == this->root,
                       "This function cannot be called on a slave processor");
   AKANTU_DEBUG_ASSERT(to_gather.size() == this->canScatterSize(),
                       "The array to gather does not have the correct size");
@@ -627,10 +609,10 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
     return;
   }
 
-  std::map<UInt, CommunicationBuffer> buffers;
+  std::map<Int, CommunicationBuffer> buffers;
   std::vector<CommunicationRequest> requests;
-  for (UInt p = 0; p < this->nb_proc; ++p) {
-    if (p == UInt(this->root)) {
+  for (Int p = 0; p < this->nb_proc; ++p) {
+    if (p == this->root) {
       continue;
     }
 
@@ -643,7 +625,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
       continue;
     }
 
-    CommunicationBuffer & buffer = buffers[p];
+    auto & buffer = buffers[p];
 
     buffer.resize(receive_entities.size() * to_gather.getNbComponent() *
                   sizeof(T));
@@ -662,16 +644,16 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
   { // copy master data
     auto data_to_gather_it = to_gather.begin(to_gather.getNbComponent());
     for (auto local_entity : entities_from_root) {
-      UInt global_entity = localToGlobalEntity(local_entity);
+      auto global_entity = localToGlobalEntity(local_entity);
 
-      Vector<T> entity_data_gathered = data_gathered_it[global_entity];
-      Vector<T> entity_data_to_gather = data_to_gather_it[local_entity];
+      auto && entity_data_gathered = data_gathered_it[global_entity];
+      auto && entity_data_to_gather = data_to_gather_it[local_entity];
       entity_data_gathered = entity_data_to_gather;
     }
   }
 
-  auto rr = UInt(-1);
-  while ((rr = Communicator::waitAny(requests)) != UInt(-1)) {
+  auto rr = -1;
+  while ((rr = Communicator::waitAny(requests)) != -1) {
     auto & request = requests[rr];
     auto sender = request.getSource();
 
@@ -685,7 +667,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
     auto & buffer = buffers[sender];
 
     for (auto global_entity : receive_entities) {
-      Vector<T> entity_data = data_gathered_it[global_entity];
+      auto && entity_data = data_gathered_it[global_entity];
       buffer >> entity_data;
     }
 
@@ -703,7 +685,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather) {
     initScatterGatherCommunicationScheme();
   }
 
-  AKANTU_DEBUG_ASSERT(this->rank != UInt(this->root),
+  AKANTU_DEBUG_ASSERT(this->rank != this->root,
                       "This function cannot be called on the root processor");
   AKANTU_DEBUG_ASSERT(to_gather.size() == this->canScatterSize(),
                       "The array to gather does not have the correct size");
@@ -717,7 +699,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather) {
 
   auto data_it = to_gather.begin(to_gather.getNbComponent());
   for (auto entity : this->entities_from_root) {
-    Vector<T> data = data_it[entity];
+    auto && data = data_it[entity];
     buffer << data;
   }
 
@@ -743,7 +725,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered,
     initScatterGatherCommunicationScheme();
   }
 
-  AKANTU_DEBUG_ASSERT(this->rank == UInt(this->root),
+  AKANTU_DEBUG_ASSERT(this->rank == this->root,
                       "This function cannot be called on a slave processor");
   AKANTU_DEBUG_ASSERT(scattered.size() == this->canScatterSize(),
                       "The scattered array does not have the correct size");
@@ -756,10 +738,10 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered,
     return;
   }
 
-  std::map<UInt, CommunicationBuffer> buffers;
+  std::map<Idx, CommunicationBuffer> buffers;
   std::vector<CommunicationRequest> requests;
 
-  for (UInt p = 0; p < nb_proc; ++p) {
+  for (Int p = 0; p < nb_proc; ++p) {
     auto data_to_scatter_it = to_scatter.begin(to_scatter.getNbComponent());
 
     if (p == this->rank) {
@@ -768,10 +750,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered,
       // copy the data for the local processor
       for (auto local_entity : entities_from_root) {
         auto global_entity = localToGlobalEntity(local_entity);
-
-        Vector<T> entity_data_to_scatter = data_to_scatter_it[global_entity];
-        Vector<T> entity_data_scattered = data_scattered_it[local_entity];
-        entity_data_scattered = entity_data_to_scatter;
+        data_scattered_it[local_entity] = data_to_scatter_it[global_entity];
       }
 
       continue;
@@ -781,13 +760,13 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered,
         this->master_receive_entities.find(p)->second;
 
     // prepare the send buffer
-    CommunicationBuffer & buffer = buffers[p];
+    auto & buffer = buffers[p];
     buffer.resize(receive_entities.size() * scattered.getNbComponent() *
                   sizeof(T));
 
     // pack the data
     for (auto global_entity : receive_entities) {
-      Vector<T> entity_data_to_scatter = data_to_scatter_it[global_entity];
+      auto && entity_data_to_scatter = data_to_scatter_it[global_entity];
       buffer << entity_data_to_scatter;
     }
 
@@ -816,7 +795,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered) {
     this->initScatterGatherCommunicationScheme();
   }
 
-  AKANTU_DEBUG_ASSERT(this->rank != UInt(this->root),
+  AKANTU_DEBUG_ASSERT(this->rank != this->root,
                       "This function cannot be called on the root processor");
   AKANTU_DEBUG_ASSERT(scattered.size() == this->canScatterSize(),
                       "The scattered array does not have the correct size");
@@ -833,7 +812,7 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered) {
 
   // unpack the data
   for (auto local_entity : entities_from_root) {
-    Vector<T> data_scattered(data_scattered_it[local_entity]);
+    auto && data_scattered = data_scattered_it[local_entity];
     buffer >> data_scattered;
   }
 
@@ -847,9 +826,9 @@ void SynchronizerImpl<Entity>::scatter(Array<T> & scattered) {
 template <class Entity>
 template <typename T>
 void SynchronizerImpl<Entity>::synchronizeArray(Array<T> & array) const {
-  static_assert(std::is_same<Entity, UInt>::value,
-                "Not implemented for other type than UInt");
-  SimpleUIntDataAccessor<T> data_accessor(array, SynchronizationTag::_whatever);
+  static_assert(std::is_same<Entity, Idx>::value,
+                "Not implemented for other type than Idx");
+  SimpleIdxDataAccessor<T> data_accessor(array, SynchronizationTag::_whatever);
   this->synchronizeOnce(data_accessor, SynchronizationTag::_whatever);
 }
 
@@ -857,10 +836,10 @@ void SynchronizerImpl<Entity>::synchronizeArray(Array<T> & array) const {
 template <class Entity>
 template <template <class> class Op, typename T>
 void SynchronizerImpl<Entity>::reduceSynchronizeArray(Array<T> & array) const {
-  static_assert(std::is_same<Entity, UInt>::value,
-                "Not implemented for other type than UInt");
-  ReduceDataAccessor<UInt, Op, T> data_accessor(array,
-                                                SynchronizationTag::_whatever);
+  static_assert(std::is_same<Entity, Idx>::value,
+                "Not implemented for other type than Idx");
+  ReduceDataAccessor<Idx, Op, T> data_accessor(array,
+                                               SynchronizationTag::_whatever);
   this->slaveReductionOnceImpl(data_accessor, SynchronizationTag::_whatever);
   this->synchronizeArray(array);
 }

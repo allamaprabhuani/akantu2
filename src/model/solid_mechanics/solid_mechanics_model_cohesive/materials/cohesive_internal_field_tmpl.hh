@@ -1,19 +1,8 @@
 /**
- * @file   cohesive_internal_field_tmpl.hh
- *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Wed Nov 13 2013
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  implementation of the cohesive internal field
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2013-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,8 +30,7 @@ template <typename T>
 CohesiveInternalField<T>::CohesiveInternalField(
     const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
     : InternalField<T>(
-          id, constitutive_law,
-          "CohesiveFEEngine",
+          id, constitutive_law, "CohesiveFEEngine",
           aka::as_type<MaterialCohesive>(constitutive_law).getElementFilter()) {
   this->element_kind = _ek_cohesive;
 }
@@ -52,7 +39,7 @@ template <typename T>
 CohesiveInternalField<T>::~CohesiveInternalField() = default;
 
 template <typename T>
-void CohesiveInternalField<T>::initialize(UInt nb_component) {
+void CohesiveInternalField<T>::initialize(Int nb_component) {
   this->internalInitialize(nb_component);
 }
 
@@ -69,8 +56,7 @@ FacetInternalField<T>::FacetInternalField(
 
 template <typename T> FacetInternalField<T>::~FacetInternalField() = default;
 
-template <typename T>
-void FacetInternalField<T>::initialize(UInt nb_component) {
+template <typename T> void FacetInternalField<T>::initialize(Int nb_component) {
   this->internalInitialize(nb_component);
 }
 
