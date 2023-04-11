@@ -170,7 +170,6 @@ void InternalField<T>::internalInitialize(UInt nb_component) {
         _nb_component = nb_component, _with_nb_element = true,
         _do_not_default = true);
 
-    this->constitutive_law.registerInternal(this->shared_from_this());
     this->is_init = true;
   }
 

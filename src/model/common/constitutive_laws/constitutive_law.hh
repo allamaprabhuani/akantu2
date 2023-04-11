@@ -46,13 +46,18 @@ namespace akantu {
 
 class ConstitutiveLawInternalHandler {
 public:
-  ConstitutiveLawInternalHandler(const ID & id, UInt dim)
+  ConstitutiveLawInternalHandler(const ID & id, UInt dim,
+                                 const ID & fe_engine_id)
       : id(id), spatial_dimension(dim) {}
 
   template <typename T = Real,
-            template <typename T> InternalFieldType = InternalField>
+            template <typename Type> class InternalFieldType = InternalField>
   inline std::shared_ptr<InternalFieldType<T>>
-  registerInternal<T>(const ID & id, UInt nb_component);
+  registerInternal(const ID & id, UInt nb_component);
+
+  template <typename T, template <typename Type> class InternalFieldType>
+  inline std::shared_ptr<InternalFieldType<T>>
+  registerInternal(const ID & id, UInt nb_component, const ID & fe_engine_id);
 
   inline void unregisterInternal(const ID & id);
 
@@ -108,6 +113,9 @@ protected:
 
   /// list of element handled by the constitutive law
   ElementTypeMapArray<UInt> element_filter;
+
+  /// ID of the FEEngine containing the interpolation points that are the
+  /// support of the internal fields
   ID default_fe_engine_id;
 };
 

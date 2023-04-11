@@ -40,10 +40,7 @@ template <UInt spatial_dimension>
 MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
                                                     const ID & id,
                                                     const ID & fe_engine_id)
-    : Material(model, id, fe_engine_id),
-      delta_T("delta_T", *this, fe_engine_id, this->element_filter),
-      sigma_th("sigma_th", *this, fe_engine_id, this->element_filter),
-      use_previous_stress_thermal(false) {
+    : Material(model, id, fe_engine_id), use_previous_stress_thermal(false) {
   this->initialize();
 }
 
@@ -58,15 +55,15 @@ template <UInt dim> void MaterialThermal<dim>::initialize() {
   this->registerParam("delta_T", delta_T, _pat_parsable | _pat_modifiable,
                       "Uniform temperature field");
 
-  delta_T.initialize(1);
+  delta_T = registerInternalField<T>("delta_T", 1);
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt dim> void MaterialThermal<dim>::initMaterial() {
-  sigma_th.initialize(1);
+  sigma_th = registerInternalField<T>("sigma_th", 1);
 
   if (use_previous_stress_thermal) {
-    sigma_th.initializeHistory();
+    sigma_th->initializeHistory();
   }
 
   Material::initMaterial();
@@ -76,8 +73,8 @@ template <UInt dim> void MaterialThermal<dim>::initMaterial() {
 template <UInt dim>
 void MaterialThermal<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
-  for (auto && tuple : zip(this->delta_T(el_type, ghost_type),
-                           this->sigma_th(el_type, ghost_type))) {
+  for (auto && tuple :
+       zip((*delta_T)(el_type, ghost_type), (*sigma_th)(el_type, ghost_type))) {
     computeStressOnQuad(std::get<1>(tuple), std::get<0>(tuple));
   }
 }

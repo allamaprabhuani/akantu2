@@ -43,13 +43,21 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <typename T = Real,
-          template <typename T> InternalFieldType = InternalField>
+template <typename T, template <typename Type> class InternalFieldType>
 inline std::shared_ptr<InternalFieldType<T>>
-ConstitutiveLawInternalHandler::registerInternal<T>(const ID & id,
-                                                    UInt nb_component) {
+ConstitutiveLawInternalHandler::registerInternal(const ID & id,
+                                                 UInt nb_component) {
+  return this->registerInternal<T, InternalFieldType>(
+      id, nb_component, this->default_fe_engine_id);
+}
+
+template <typename T, template <typename Type> class InternalFieldType>
+inline std::shared_ptr<InternalFieldType<T>>
+ConstitutiveLawInternalHandler::registerInternal(const ID & id,
+                                                 UInt nb_component,
+                                                 const ID & fe_engine_id) {
   auto && internal = std::make_shared<InternalFieldType<T>>(
-      id, *this, dim, this->fe_engine_id, this->element_filter);
+      id, *this, this->spatial_dimension, fe_engine_id, this->element_filter);
   internal->initialize(nb_component);
   internal_vectors[internal->getRegisterID()] = internal;
   return internal;
@@ -187,15 +195,14 @@ template <class ConstitutiveLawsHandler_>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
     ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
     ElementKind element_kind, const ID & fe_engine_id)
-    : ConstitutiveLawInternalHandler(id, spatial_dimension),
-      Parsable(handler.getConstitutiveLawParserType(), id), handler(handler),
-      element_filter("element_filter", id), default_fe_engine_id(fe_engine_id) {
+    : ConstitutiveLawInternalHandler(id, spatial_dimension, fe_engine_id),
+      Parsable(handler.getConstitutiveLawParserType(), id), handler(handler) {
 
   /// for each connectivity types allocate the element filer array of the
   /// constitutive law
-  element_filter.initialize(handler.getMesh(),
-                            _spatial_dimension = handler.getSpatialDimension(),
-                            _element_kind = element_kind);
+  this->element_filter.initialize(
+      handler.getMesh(), _spatial_dimension = handler.getSpatialDimension(),
+      _element_kind = element_kind);
 
   this->initialize();
 }

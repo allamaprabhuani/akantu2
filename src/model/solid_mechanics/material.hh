@@ -359,12 +359,12 @@ public:
   virtual Real getEnergy(const std::string & energy_id, ElementType type,
                          UInt index);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy,
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, (*gradu), Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, (*stress), Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, (*potential_energy),
                                          Real);
-  AKANTU_GET_MACRO(GradU, gradu, const ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR(GradU, gradu);
+  AKANTU_GET_MACRO_DEREF_PTR(Stress, stress);
 
   bool isNonLocal() const { return is_non_local; }
 
@@ -426,23 +426,23 @@ protected:
   UInt spatial_dimension;
 
   /// stresses arrays ordered by element types
-  InternalField<Real> stress;
+  std::shared_ptr<InternalField<Real>> stress;
 
   /// eigengrad_u arrays ordered by element types
-  InternalField<Real> eigengradu;
+  std::shared_ptr<InternalField<Real>> eigengradu;
 
   /// grad_u arrays ordered by element types
-  InternalField<Real> gradu;
+  std::shared_ptr<InternalField<Real>> gradu;
 
   /// Green Lagrange strain (Finite deformation)
-  InternalField<Real> green_strain;
+  std::shared_ptr<InternalField<Real>> green_strain;
 
   /// Second Piola-Kirchhoff stress tensor arrays ordered by element types
   /// (Finite deformation)
-  InternalField<Real> piola_kirchhoff_2;
+  std::shared_ptr<InternalField<Real>> piola_kirchhoff_2;
 
   /// potential energy by element
-  InternalField<Real> potential_energy;
+  std::shared_ptr<InternalField<Real>> potential_energy;
 
   /// tell if using in non local mode or not
   bool is_non_local{false};

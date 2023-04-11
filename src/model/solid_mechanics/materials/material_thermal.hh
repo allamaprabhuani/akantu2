@@ -80,10 +80,10 @@ protected:
   Real alpha;
 
   /// Temperature field
-  InternalField<Real> delta_T;
+  std::shared_ptr<InternalField<Real>> delta_T;
 
   /// Current thermal stress
-  InternalField<Real> sigma_th;
+  std::shared_ptr<InternalField<Real>> sigma_th;
 
   /// Tell if we need to use the previous thermal stress
   bool use_previous_stress_thermal;
