@@ -77,9 +77,9 @@ public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent_damage::getArguments(el_type, ghost_type),
-        "K0"_n = make_view(this->K0(el_type, ghost_type)),
+        "K0"_n = make_view((*this->K0)(el_type, ghost_type)),
         "Ehat"_n =
-            broadcast(this->Ehat, this->damage(el_type, ghost_type).size()));
+            broadcast(this->Ehat, (*this->damage)(el_type, ghost_type).size()));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -87,7 +87,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage threshold
-  RandomInternalField<Real> K0;
+  std::shared_ptr<RandomInternalField<Real>> K0;
   /// parameter damage traction 1
   Real At;
   /// parameter damage traction 2
@@ -101,7 +101,7 @@ protected:
 
   /// specify the variable to average false = ehat, true = damage (only valid
   /// for non local version)
-  bool damage_in_compute_stress;
+  bool damage_in_compute_stress{true};
 
   Real Ehat{0};
 };

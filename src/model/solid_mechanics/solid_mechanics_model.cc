@@ -473,28 +473,22 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
   for (auto type :
        mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
     elem.type = type;
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-    UInt nb_element = mesh.getNbElement(type);
+    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-    auto mat_indexes =
-        this->getConstitutiveLawByElement(type, ghost_type).begin();
-    auto mat_loc_num =
-        this->getConstitutiveLawLocalNumbering(type, ghost_type).begin();
+    auto mat_indexes = this->getConstitutiveLawByElement(type, ghost_type);
+    auto mat_loc_num = this->getConstitutiveLawLocalNumbering(type, ghost_type);
 
     Array<Real> X(0, nb_nodes_per_element * Model::spatial_dimension);
     FEEngine::extractNodalToElementField(mesh, *current_position, X, type,
                                          _not_ghost);
-
-    for (auto && data :
+    const auto & fem = this->getFEEngine();
+    for (auto && [X_el, mat_idx, el] :
          zip(make_view(X, spatial_dimension, nb_nodes_per_element),
-             make_view(material_index(type, ghost_type)),
-             make_view(material_local_numbering(type, ghost_type)))) {
-      auto && X_el = std::get<0>(data);
-      auto && mat_idx = std::get<1>(data);
-      elem.element = std::get<2>(data);
+             make_view(mat_indexes), make_view(mat_loc_num))) {
+      elem.element = el;
 
-      auto el_h = getFEEngine().getElementInradius(X_el, type);
-      auto el_c = this->materials[mat_idx]->getCelerity(elem);
+      auto el_h = fem.getElementInradius(X_el, type);
+      auto el_c = this->getMaterial(mat_idx).getCelerity(elem);
       auto el_dt = el_h / el_c;
 
       min_dt = std::min(min_dt, el_dt);
@@ -573,7 +567,7 @@ Real SolidMechanicsModel::getKineticEnergy(const Element & element) {
       *velocity, vel_on_quad, Model::spatial_dimension, element.type,
       _not_ghost, filter_element);
   Vector<Real> rho_v2(nb_quadrature_points);
-  Real rho = getConstitutiveLaw(Element{type, index, _not_ghost}).getRho();
+  Real rho = getConstitutiveLaw(element).getRho();
 
   for (auto && data : enumerate(make_view(vel_on_quad, spatial_dimension))) {
     auto && vel = std::get<1>(data);
@@ -668,10 +662,11 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
     return getKineticEnergy(element);
   }
 
-  Element el{type, index, _not_ghost};
-  UInt mat_loc_num = this->getConstitutiveLawLocalNumbering()(el);
-  Real energy = this->getConstitutiveLaw(el).getEnergy(
-      energy_id, {element.type, mat_loc_num, element.ghost_type});
+  auto mat_element = element;
+  mat_element.element = this->getConstitutiveLawLocalNumbering()(element);
+
+  Real energy =
+      this->getConstitutiveLaw(element).getEnergy(energy_id, mat_element);
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -694,7 +689,7 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
+void SolidMechanicsModel::onNodesAdded(const Array<Idx> & nodes_list,
                                        const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
   auto nb_nodes = mesh.getNbNodes();
@@ -831,8 +826,8 @@ FEEngine & SolidMechanicsModel::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
-                                    const SynchronizationTag & tag) const {
+Int SolidMechanicsModel::getNbData(const Array<Element> & elements,
+                                   const SynchronizationTag & tag) const {
 
   Int size = 0;
   Int nb_nodes_per_element = 0;

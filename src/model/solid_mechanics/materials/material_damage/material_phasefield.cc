@@ -29,10 +29,9 @@ namespace akantu {
 template <Int dim>
 MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
                                             const ID & id)
-    : Parent(model, id), effective_damage("effective_damage", *this) {
+    : Parent(model, id) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
-  this->damage.initialize(0);
-  this->effective_damage.initialize(1);
+  this->effective_damage = this->registerInternal("effective_damage", 1);
 }
 
 template <Int dim>

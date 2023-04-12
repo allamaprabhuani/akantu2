@@ -58,9 +58,9 @@ namespace {
 
     ~PyConstitutiveLawSelector() override = default;
 
-    UInt operator()(const Element & element) override {
+    Idx operator()(const Element & element) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_NAME(UInt, ConstitutiveLawSelector,
+      PYBIND11_OVERRIDE_NAME(Idx, ConstitutiveLawSelector,
                              "__call__", operator(), element);
     }
   };
@@ -91,11 +91,11 @@ void register_constitutive_law_selector(py::module & mod) {
 
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
-      .def(py::init<const ElementTypeMapArray<UInt> &>());
+      .def(py::init<const ElementTypeMapArray<Idx> &>());
 
   register_material_selectors<MeshDataMaterialSelector<std::string>>(
       mod, "MeshDataMaterialSelectorString")
-      .def(py::init<const std::string &, const SolidMechanicsModel &, UInt>(),
+      .def(py::init<const std::string &, const SolidMechanicsModel &, Int>(),
            py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
 
 #if defined(AKANTU_COHESIVE_ELEMENT)

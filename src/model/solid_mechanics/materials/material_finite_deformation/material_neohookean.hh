@@ -85,23 +85,6 @@ public:
 
   MatrixType getTangentType() override { return _symmetric; }
 
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type = _not_ghost) {
-    return zip_append(
-        Material::getArguments<dim>(el_type, ghost_type),
-        "C33"_n =
-            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
-  }
-
-  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
-                                     ElementType el_type,
-                                     GhostType ghost_type = _not_ghost) {
-    return zip_append(
-        Material::getArgumentsTangent<dim>(tangent_matrix, el_type, ghost_type),
-        "C33"_n =
-            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
-  }
-
 protected:
   /// constitutive law for a given quadrature point
   inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
@@ -129,8 +112,8 @@ protected:
   //                              Matrix<Real> & cauchy_sigma);
 
   /// compute the potential energy for a quadrature point
-  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                           Real & epot);
+  template <class Args>
+  inline void computePotentialEnergyOnQuad(Args && grad_u, Real & epot);
 
   /// compute the tangent stiffness matrix for an element
   template <class Args> void computeTangentModuliOnQuad(Args && args);
@@ -160,8 +143,6 @@ protected:
 
   /// Bulk modulus
   Real kpa;
-
-  Real C33{1.};
 };
 
 } // namespace akantu

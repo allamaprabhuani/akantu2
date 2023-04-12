@@ -146,19 +146,16 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
 
   // needs to be implemented
   // MaterialThermal<dim>::computePotentialEnergy(el_type);
-
-  auto epot = this->potential_energy(el_type, _not_ghost).begin();
-
   auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
   if (not this->finite_deformation) {
     for (auto && [args, epot] :
-         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+         zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
       this->computePotentialEnergyOnQuad(args, epot);
     }
   } else {
     for (auto && [args, epot] :
-         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+         zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
       auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
       this->computePotentialEnergyOnQuad(tuple::replace(args, "grad_u"_n = E),
                                          epot);
@@ -173,11 +170,11 @@ template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
     const Element & element, Vector<Real> & epot_on_quad_points) {
   auto type = element.type;
-  auto gradu_view = make_view<dim, dim>(this->gradu(type));
-  auto stress_view = make_view<dim, dim>(this->stress(type));
+  auto gradu_view = make_view<dim, dim>((*this->gradu)(type));
+  auto stress_view = make_view<dim, dim>((*this->stress)(type));
 
   if (this->finite_deformation) {
-    stress_view = make_view<dim, dim>(this->piola_kirchhoff_2(type));
+    stress_view = make_view<dim, dim>((*this->piola_kirchhoff_2)(type));
   }
 
   auto nb_quadrature_points = this->getFEEngine().getNbIntegrationPoints(type);
@@ -188,8 +185,6 @@ void MaterialElastic<dim>::computePotentialEnergyByElement(
   auto stress_end = stress_it + nb_quadrature_points;
 
   auto epot_quad = epot_on_quad_points.begin();
-
-  Matrix<Real> grad_u(dim, dim);
 
   if (this->finite_deformation) {
     for (auto && data : zip("grad_u"_n = range(gradu_it, gradu_end),

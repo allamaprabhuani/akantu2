@@ -139,19 +139,16 @@ template <Int dim, template <Int> class EquivalentStrain,
           template <Int> class DamageThreshold, template <Int> class Parent>
 MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
     MaterialAnisotropicDamage(SolidMechanicsModel & model, const ID & id)
-    : Parent<dim>(model, id), damage("damage_tensor", *this),
-      elastic_stress("elastic_stress", *this),
-      equivalent_strain("equivalent_strain", *this),
-      trace_damage("trace_damage", *this), equivalent_strain_function(*this),
+    : Parent<dim>(model, id), equivalent_strain_function(*this),
       damage_threshold_function(*this) {
   this->registerParam("Dc", Dc, _pat_parsable, "Critical damage");
 
-  this->damage.initialize(dim * dim);
-  this->elastic_stress.initialize(dim * dim);
-  this->equivalent_strain.initialize(1);
+  this->damage = this->registerInternal("damage", dim * dim);
+  this->elastic_stress = this->registerInternal("elastic_stress", dim * dim);
+  this->equivalent_strain = this->registerInternal("equivalent_strain", 1);
 
-  this->trace_damage.initialize(1);
-  this->trace_damage.initializeHistory();
+  this->trace_damage = this->registerInternal("trace_damage", 1);
+  this->trace_damage->initializeHistory();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -169,10 +166,7 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
   Matrix<Real, dim, dim> one_D = Matrix<Real, dim, dim>::Identity() - D;
   auto sqrt_one_D = tensorSqrt<dim>(one_D);
 
-  Real Tr_sigma_plus;
-  Real Tr_sigma_minus;
-  std::tie(Tr_sigma_plus, Tr_sigma_minus) = tensorPlusTrace<dim>(sigma_el);
-
+  auto && [Tr_sigma_plus, Tr_sigma_minus] = tensorPlusTrace<dim>(sigma_el);
   auto I = Matrix<Real, dim, dim>::Identity();
 
   sigma = sqrt_one_D * sigma_el * sqrt_one_D -

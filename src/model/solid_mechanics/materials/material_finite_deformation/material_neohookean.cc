@@ -29,8 +29,6 @@ template <Int spatial_dimension>
 MaterialNeohookean<spatial_dimension>::MaterialNeohookean(
     SolidMechanicsModel & model, const ID & id)
     : Parent(model, id) {
-  AKANTU_DEBUG_IN();
-
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
@@ -41,9 +39,6 @@ MaterialNeohookean<spatial_dimension>::MaterialNeohookean(
   this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
 
   this->finite_deformation = true;
-  this->initialize_third_axis_deformation = true;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -60,10 +55,6 @@ void MaterialNeohookean<spatial_dimension>::initMaterial() {
 template <> void MaterialNeohookean<2>::initMaterial() {
   PlaneStressToolbox<2>::initMaterial();
   this->updateInternalParameters();
-
-  if (this->plane_stress) {
-    this->third_axis_deformation.setDefaultValue(1.);
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,62 +70,29 @@ void MaterialNeohookean<spatial_dimension>::updateInternalParameters() {
 template <Int dim>
 void MaterialNeohookean<dim>::computeCauchyStressPlaneStress(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
   PlaneStressToolbox<dim>::computeCauchyStressPlaneStress(el_type, ghost_type);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 void MaterialNeohookean<2>::computeCauchyStressPlaneStress(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  auto gradu_it = this->gradu(el_type, ghost_type).begin(2, 2);
-  auto gradu_end = this->gradu(el_type, ghost_type).end(2, 2);
-  auto piola_it = this->piola_kirchhoff_2(el_type, ghost_type).begin(2, 2);
-  auto stress_it = this->stress(el_type, ghost_type).begin(2, 2);
-  auto c33_it = this->third_axis_deformation(el_type, ghost_type).begin();
-
-  for (; gradu_it != gradu_end; ++gradu_it, ++piola_it, ++stress_it, ++c33_it) {
-    auto && grad_u = *gradu_it;
-    auto && piola = *piola_it;
-    auto && sigma = *stress_it;
-
-    StoCauchy<2>(gradUToF<2>(grad_u), piola, sigma, *c33_it);
+  for (auto && [grad_u, piola, sigma, c33] :
+       zip(make_view<2, 2>((*this->gradu)(el_type, ghost_type)),
+           make_view<2, 2>((*this->piola_kirchhoff_2)(el_type, ghost_type)),
+           make_view<2, 2>((*this->stress)(el_type, ghost_type)),
+           make_view((*this->third_axis_deformation)(el_type, ghost_type)))) {
+    StoCauchy<2>(gradUToF<2>(grad_u), piola, sigma, c33);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialNeohookean<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
+  PlaneStressToolbox<dim>::computeStress(el_type, ghost_type);
   for (auto && args : this->getArguments(el_type, ghost_type)) {
     computeStressOnQuad(args);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-void MaterialNeohookean<2>::computeStress(ElementType el_type,
-                                          GhostType ghost_type) {
-  auto && arguments = getArguments(el_type, ghost_type);
-  if (this->plane_stress) {
-    PlaneStressToolbox<2>::computeStress(el_type, ghost_type);
-
-    for (auto && args : zip_replace(
-             std::forward<decltype(arguments)>(arguments),
-             "C33"_n = this->third_axis_deformation(el_type, ghost_type))) {
-      computeStressOnQuad(args);
-    }
-  } else {
-    for (auto && args : arguments) {
-      computeStressOnQuad(args);
-    }
   }
 }
 
@@ -151,38 +109,31 @@ void MaterialNeohookean<2>::computeThirdAxisDeformation(ElementType el_type,
                                           "can only be computed for 2D "
                                           "problems in Plane Stress!!");
 
-  for (auto && args : zip_replace(
-           getArguments(el_type, ghost_type),
-           "C33"_n = this->third_axis_deformation(el_type, ghost_type))) {
+  for (auto && args : getArguments(el_type, ghost_type)) {
     computeThirdAxisDeformationOnQuad(args);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(
-    ElementType el_type) {
-  AKANTU_DEBUG_IN();
+template <Int dim>
+void MaterialNeohookean<dim>::computePotentialEnergy(ElementType el_type) {
+  Parent::computePotentialEnergy(el_type);
+  auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
-  Material::computePotentialEnergy(el_type);
-
-  Array<Real>::scalar_iterator epot = this->potential_energy(el_type).begin();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  computePotentialEnergyOnQuad(grad_u, *epot);
-  ++epot;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+  for (auto && [args, epot] :
+       zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
+    this->computePotentialEnergyOnQuad(args, epot);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialNeohookean<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
-  auto && arguments = getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+template <Int dim>
+void MaterialNeohookean<dim>::computeTangentModuli(ElementType el_type,
+                                                   Array<Real> & tangent_matrix,
+                                                   GhostType ghost_type) {
+  auto && arguments =
+      Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+  Parent::computeStress(el_type, ghost_type);
 
   for (auto && args : arguments) {
     computeTangentModuliOnQuad(args);
@@ -190,38 +141,17 @@ void MaterialNeohookean<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
-void MaterialNeohookean<2>::computeTangentModuli(ElementType el_type,
-                                                 Array<Real> & tangent_matrix,
-                                                 GhostType ghost_type) {
-  if (this->plane_stress) {
-    PlaneStressToolbox<2>::computeStress(el_type, ghost_type);
-
-    for (auto && args : zip_replace(
-             getArgumentsTangent(tangent_matrix, el_type, ghost_type),
-             "C33"_n = this->third_axis_deformation(el_type, ghost_type))) {
-      computeTangentModuliOnQuad(args);
-    }
-  } else {
-    for (auto && args :
-         getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
-      computeTangentModuliOnQuad(args);
-    }
-  }
+template <Int dim>
+Real MaterialNeohookean<dim>::getPushWaveSpeed(
+    const Element & /*element*/) const {
+  return std::sqrt((this->lambda + 2 * this->mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-Real MaterialNeohookean<spatial_dimension>::getPushWaveSpeed(
+template <Int dim>
+Real MaterialNeohookean<dim>::getShearWaveSpeed(
     const Element & /*element*/) const {
-  return sqrt((this->lambda + 2 * this->mu) / this->rho);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-Real MaterialNeohookean<spatial_dimension>::getShearWaveSpeed(
-    const Element & /*element*/) const {
-  return sqrt(this->mu / this->rho);
+  return std::sqrt(this->mu / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */

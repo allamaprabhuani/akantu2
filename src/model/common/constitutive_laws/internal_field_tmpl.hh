@@ -64,7 +64,6 @@ InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
       element_kind(other.element_kind), nb_component(other.nb_component) {
-
   AKANTU_DEBUG_ASSERT(other.is_init,
                       "Cannot create a copy of a non initialized field");
   this->internalInitialize(this->nb_component);

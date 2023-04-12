@@ -28,9 +28,9 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
-    : MaterialDamage<dim>(model, id), Yd("Yd", *this), damage_in_y(false),
-      yc_limit(false) {
-  AKANTU_DEBUG_IN();
+    : MaterialDamage<dim>(model, id) {
+  this->Yd =
+      this->template registerInternal<Real, RandomInternalField>("Yd", 1);
 
   this->registerParam("Sd", Sd, Real(5000.), _pat_parsable | _pat_modifiable);
   this->registerParam("epsilon_c", epsilon_c, Real(0.), _pat_parsable,
@@ -39,26 +39,19 @@ MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
                       "As the material a critical Y");
   this->registerParam("damage_in_y", damage_in_y, false, _pat_parsable,
                       "Use threshold (1-D)Y");
-  this->registerParam("Yd", Yd, _pat_parsable, "Damaging energy threshold");
-
-  this->Yd.initialize(1);
-  AKANTU_DEBUG_OUT();
+  this->registerParam("Yd", *Yd, _pat_parsable, "Damaging energy threshold");
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialMarigo<dim>::initMaterial() {
-  AKANTU_DEBUG_IN();
   MaterialDamage<dim>::initMaterial();
-
   updateInternalParameters();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialMarigo<dim>::updateInternalParameters() {
   MaterialDamage<dim>::updateInternalParameters();
-  Yc = .5 * epsilon_c * this->E * epsilon_c;
+  Yc = epsilon_c * this->E * epsilon_c / 2.;
   yc_limit = (std::abs(epsilon_c) > std::numeric_limits<Real>::epsilon());
 }
 
@@ -66,17 +59,9 @@ template <Int dim> void MaterialMarigo<dim>::updateInternalParameters() {
 template <Int dim>
 void MaterialMarigo<dim>::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Y = 0.;
-
-  auto && arguments = getArguments(el_type, ghost_type);
-
-  for (auto && data : arguments) {
+  for (auto && data : getArguments(el_type, ghost_type)) {
     computeStressOnQuad(data);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

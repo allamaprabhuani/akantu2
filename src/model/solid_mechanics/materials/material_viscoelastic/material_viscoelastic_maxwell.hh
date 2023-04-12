@@ -67,6 +67,7 @@ namespace akantu {
 
 template <Int dim>
 class MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
+  using Parent = MaterialElastic<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -134,11 +135,7 @@ protected:
                                const Real & pot_energy);
 
   /// compute stresses on a quadrature point
-  template <typename D1, typename D2, typename D3>
-  void computeStressOnQuad(const Eigen::MatrixBase<D1> & grad_u,
-                           const Eigen::MatrixBase<D2> & previous_grad_u,
-                           Eigen::MatrixBase<D3> & sigma,
-                           Tensor3Proxy<Real> & sigma_v, const Real & sigma_th);
+  template <class Args> void computeStressOnQuad(Args && args);
 
   /// compute tangent moduli on a quadrature point
   template <typename D1>
@@ -151,6 +148,13 @@ protected:
                 ? (!(this->previous_dt == dt)) * (this->was_stiffness_assembled)
                 : (!(this->previous_dt == dt)));
     //  return (!(this->previous_dt == dt));
+  }
+
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(MaterialElastic<dim>::getArguments(el_type, ghost_type),
+                      "sigma_v"_n = make_view((*sigma_v)(el_type, ghost_type),
+                                              dim, dim, Ev.size()));
   }
 
   MatrixType getTangentType() override { return _symmetric; }
@@ -191,21 +195,21 @@ protected:
   Real previous_dt;
 
   /// Stiffness matrix template
-  Matrix<Real> C;
+  Matrix<Real, voigt_h::size, voigt_h::size> C;
   /// Compliance matrix template
-  Matrix<Real> D;
+  Matrix<Real, voigt_h::size, voigt_h::size> D;
 
   /// Internal variable: viscous_stress
-  InternalField<Real> sigma_v;
+  std::shared_ptr<InternalField<Real>> sigma_v;
 
   /// Internal variable: spring strain in Maxwell element
-  InternalField<Real> epsilon_v;
+  std::shared_ptr<InternalField<Real>> epsilon_v;
 
   /// Dissipated energy
-  InternalField<Real> dissipated_energy;
+  std::shared_ptr<InternalField<Real>> dissipated_energy;
 
   /// Mechanical work
-  InternalField<Real> mechanical_work;
+  std::shared_ptr<InternalField<Real>> mechanical_work;
 
   /// Update internal variable after solve step or not
   bool update_variable_flag;

@@ -67,13 +67,12 @@ namespace {
             },
             py::return_value_policy::reference);
   }
-
 } // namespace
 
 /* -------------------------------------------------------------------------- */
 void register_constitutive_law(py::module & mod) {
   register_internal_field<Real>(mod, "Real");
-  register_internal_field<UInt>(mod, "UInt");
+  register_internal_field<Int>(mod, "Int");
 }
 
 } // namespace akantu

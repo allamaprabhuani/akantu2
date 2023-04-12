@@ -200,12 +200,13 @@ public:
   Real getEnergy(const std::string & energy_id);
 
   /// compute the energy for an element
-  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+  [[deprecated("Use the interface with an Element")]] Real
+  getEnergy(const std::string & energy_id, ElementType type, Idx index) {
+    return getEnergy(energy_id, Element{type, index, _not_ghost});
+  };
 
   /// compute the energy for an element
-  Real getEnergy(const std::string & energy_id, const Element & element) {
-    return getEnergy(energy_id, element.type, element.element);
-  }
+  Real getEnergy(const std::string & energy_id, const Element & element);
 
   /// compute the energy for an element group
   Real getEnergy(const ID & energy_id, const ID & group_id);

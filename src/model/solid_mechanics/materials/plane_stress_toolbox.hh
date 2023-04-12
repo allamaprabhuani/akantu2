@@ -41,8 +41,6 @@ public:
                      const ID & fe_engine_id = "")
       : ParentMaterial(model, id, fe_engine_id) {}
 
-  ~PlaneStressToolbox() override = default;
-
 protected:
   void initialize();
 
@@ -65,8 +63,24 @@ public:
   virtual void computeThirdAxisDeformation(ElementType /*unused*/,
                                            GhostType /*unused*/) {}
 
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        ParentMaterial::template getArguments<dim>(el_type, ghost_type),
+        "C33"_n = broadcast(C33, (*this->stress)(el_type, ghost_type).size()));
+  }
+
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        ParentMaterial::template getArgumentsTangent<dim>(tangent_matrix,
+                                                          el_type, ghost_type),
+        "C33"_n = broadcast(C33, (*this->stress)(el_type, ghost_type).size()));
+  }
+
 protected:
-  bool initialize_third_axis_deformation{false};
+  Real C33{1.};
 };
 
 #define AKANTU_PLANE_STRESS_TOOL_SPEC(dim)                                     \

@@ -26,21 +26,12 @@ public:
                       initConstitutiveLaw, );
   }
 
-  template <typename T>
-  void registerPyInternal(const std::string & name, UInt nb_component) {
-    auto && internal = std::make_shared<InternalField<T>>(name, *this);
-    AKANTU_DEBUG_INFO("alloc internal " << name << " " << internal);
-
-    internal->initialize(nb_component);
-    this->registerInternal(internal);
-  }
-
   // methods need to be defined to be able to do the python interface
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override {
+  Int getNbData(const Array<Element> & /*elements*/,
+                const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
-  void packData(CommunicationBuffer & buffer,
+  void packData(CommunicationBuffer & /*buffer*/,
                 const Array<Element> & /*element*/,
                 const SynchronizationTag & /*tag*/) const override {}
   void unpackData(CommunicationBuffer & /*buffer*/,
@@ -56,20 +47,22 @@ void register_constitutive_law(py::module & mod, const std::string & name) {
              PyConstitutiveLaw<ConstitutiveLawHandler>>(
       mod, name.c_str(), py::multiple_inheritance())
       .def(py::init<ConstitutiveLawHandler &, const ID &>())
-      .def("registerInternalReal",
-           [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
-              const std::string & name, UInt nb_component) {
-             return dynamic_cast<PyConstitutiveLaw<ConstitutiveLawHandler> &>(
-                        self)
-                 .template registerPyInternal<Real>(name, nb_component);
-           })
-      .def("registerInternalUInt",
-           [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
-              const std::string & name, UInt nb_component) {
-             return dynamic_cast<PyConstitutiveLaw<ConstitutiveLawHandler> &>(
-                        self)
-                 .template registerPyInternal<UInt>(name, nb_component);
-           })
+      .def(
+          "registerInternalReal",
+          [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
+             const std::string & name, Int nb_component) -> decltype(auto) {
+            return self.registerInternal(name, nb_component);
+          },
+          py::return_value_policy::reference)
+      .def(
+          "registerInternalInt",
+          [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
+             const std::string & name, UInt nb_component) -> decltype(auto) {
+            return dynamic_cast<PyConstitutiveLaw<ConstitutiveLawHandler> &>(
+                       self)
+                .template registerInternal<Int>(name, nb_component);
+          },
+          py::return_value_policy::reference)
       .def(
           "getInternalReal",
           [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & id)

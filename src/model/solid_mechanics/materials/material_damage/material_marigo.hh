@@ -87,8 +87,9 @@ public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent::getArguments(el_type, ghost_type),
-        "Yd"_n = make_view(this->Yd(el_type, ghost_type)),
-        "Y"_n = broadcast(this->Y, this->damage(el_type, ghost_type).size()));
+        "Yd"_n = make_view((*this->Yd)(el_type, ghost_type)),
+        "Y"_n =
+            broadcast(this->Y, (*this->damage)(el_type, ghost_type).size()));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -96,7 +97,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// resistance to damage
-  RandomInternalField<Real> Yd;
+  std::shared_ptr<RandomInternalField<Real>> Yd;
 
   /// damage threshold
   Real Sd{5000};

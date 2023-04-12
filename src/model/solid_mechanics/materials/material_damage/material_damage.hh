@@ -70,7 +70,7 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(Parent<dim>::getArguments(el_type, ghost_type),
                       "damage"_n =
-                          make_view(this->damage(el_type, ghost_type)));
+                          make_view((*this->damage)(el_type, ghost_type)));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
@@ -78,28 +78,28 @@ public:
                                      GhostType ghost_type) {
     return zip_append(
         Parent<dim>::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
-        "damage"_n = make_view(this->damage(el_type, ghost_type)));
+        "damage"_n = make_view((*this->damage)(el_type, ghost_type)));
   }
 
   Real getEnergy(const std::string & type) override;
 
-  AKANTU_GET_MACRO_AUTO_NOT_CONST(Damage, damage);
-  AKANTU_GET_MACRO_AUTO(Damage, damage);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real)
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Damage, (*damage));
+  AKANTU_GET_MACRO_AUTO(Damage, (*damage));
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, (*damage), Real)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage internal variable
-  InternalField<Real> damage;
+  std::shared_ptr<InternalField<Real>> damage;
 
   /// dissipated energy
-  InternalField<Real> dissipated_energy;
+  std::shared_ptr<InternalField<Real>> dissipated_energy;
 
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega
   /// @f$ the dissipated energy
-  InternalField<Real> int_sigma;
+  std::shared_ptr<InternalField<Real>> int_sigma;
 };
 
 } // namespace akantu

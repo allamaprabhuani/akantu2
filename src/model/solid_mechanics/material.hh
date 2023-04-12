@@ -551,17 +551,11 @@ protected:
   /// tell if using in non local mode or not
   bool is_non_local{false};
 
-  /// tell if the material need the previous stress state
-  bool use_previous_stress{false};
-
-  /// tell if the material need the previous strain state
-  bool use_previous_gradu{false};
-
   /// elemental field interpolation coordinates
-  InternalField<Real> interpolation_inverse_coordinates;
+  std::shared_ptr<InternalField<Real>> interpolation_inverse_coordinates;
 
   /// elemental field interpolation points
-  InternalField<Real> interpolation_points_matrices;
+  std::shared_ptr<InternalField<Real>> interpolation_points_matrices;
 
 private:
   /// eigen_grad_u for the parser
@@ -587,15 +581,15 @@ inline std::ostream & operator<<(std::ostream & stream,
 /// provides two tensors (matrices) sigma and grad_u
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type)       \
   auto && grad_u_view =                                                        \
-      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
+      make_view((*this->gradu)(el_type, ghost_type), this->spatial_dimension,  \
                 this->spatial_dimension);                                      \
                                                                                \
   auto stress_view =                                                           \
-      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
+      make_view((*this->stress)(el_type, ghost_type), this->spatial_dimension, \
                 this->spatial_dimension);                                      \
                                                                                \
   if (this->isFiniteDeformation()) {                                           \
-    stress_view = make_view(this->piola_kirchhoff_2(el_type, ghost_type),      \
+    stress_view = make_view((*this->piola_kirchhoff_2)(el_type, ghost_type),   \
                             this->spatial_dimension, this->spatial_dimension); \
   }                                                                            \
                                                                                \

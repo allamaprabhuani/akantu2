@@ -25,14 +25,10 @@
 namespace akantu {
 
 template <Int dim>
-MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
-    SolidMechanicsModel & model, const ID & id, const ID & fe_engine_id)
-    : MaterialPlastic<spatial_dimension>(model, id, fe_engine_id) {
-  this->initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialDruckerPrager<dim>::initialize() {
+MaterialDruckerPrager<dim>::MaterialDruckerPrager(SolidMechanicsModel & model,
+                                                  const ID & id,
+                                                  const ID & fe_engine_id)
+    : MaterialPlastic<dim>(model, id, fe_engine_id) {
   this->registerParam("phi", phi, Real(0.), _pat_parsable | _pat_modifiable,
                       "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,

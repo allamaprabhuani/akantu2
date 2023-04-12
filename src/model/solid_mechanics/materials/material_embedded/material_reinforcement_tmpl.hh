@@ -30,24 +30,7 @@ namespace akantu {
 template <class Mat, Int dim>
 MaterialReinforcement<Mat, dim>::MaterialReinforcement(
     EmbeddedInterfaceModel & model, const ID & id)
-    : Mat(model, id, "EmbeddedInterfaceFEEngine"), emodel(model),
-      gradu_embedded("gradu_embedded", *this, "EmbeddedInterfaceFEEngine",
-                     this->element_filter),
-      directing_cosines("directing_cosines", *this, "EmbeddedInterfaceFEEngine",
-                        this->element_filter),
-      pre_stress("pre_stress", *this, "EmbeddedInterfaceFEEngine",
-                 this->element_filter),
-      area(1.0) {
-  AKANTU_DEBUG_IN();
-  this->initialize();
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Mat, Int dim>
-void MaterialReinforcement<Mat, dim>::initialize() {
-  AKANTU_DEBUG_IN();
-
+    : Mat(model, id, "EmbeddedInterfaceFEEngine"), emodel(model), area(1.0) {
   this->registerParam("area", area, _pat_parsable | _pat_modifiable,
                       "Reinforcement cross-sectional area");
   this->registerParam("pre_stress", pre_stress, _pat_parsable | _pat_modifiable,
@@ -56,16 +39,6 @@ void MaterialReinforcement<Mat, dim>::initialize() {
   // Reallocate the element filter
   this->element_filter.initialize(this->emodel.getInterfaceMesh(),
                                   _spatial_dimension = 1);
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-template <class Mat, Int dim>
-MaterialReinforcement<Mat, dim>::~MaterialReinforcement() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,8 +47,10 @@ template <class Mat, Int dim>
 void MaterialReinforcement<Mat, dim>::initMaterial() {
   Mat::initMaterial();
 
-  gradu_embedded.initialize(dim * dim);
-  pre_stress.initialize(1);
+  gradu_embedded = this->registerInternal("gradu_embedded", dim * dim,
+                                          "EmbeddedInterfaceFEEngine");
+  pre_stress =
+      this->registerInternal("pre_stress", 1, "EmbeddedInterfaceFEEngine");
 
   /// We initialise the stuff that is not going to change during the simulation
   this->initFilters();
@@ -274,12 +249,12 @@ void MaterialReinforcement<Mat, dim>::initDirectingCosines() {
 
   Mesh & mesh = emodel.getInterfaceMesh();
 
-  const UInt voigt_size = VoigtHelper<dim>::size;
-  directing_cosines.initialize(voigt_size);
+  const auto voigt_size = VoigtHelper<dim>::size;
+  directing_cosines = this->registerInternal("directing_cosines", voigt_size,
+                                             "EmbeddedInterfaceFEEngine");
 
   for (auto && type : mesh.elementTypes(1, _not_ghost)) {
     computeDirectingCosines(type, _not_ghost);
-    // computeDirectingCosines(*type_it, _ghost);
   }
 
   AKANTU_DEBUG_OUT();

@@ -36,7 +36,6 @@ template <Int dim> class MaterialPhaseField : public MaterialDamage<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialPhaseField(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialPhaseField() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -55,7 +54,7 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(Parent::getArguments(el_type, ghost_type),
                       "effective_damage"_n = make_view(
-                          this->effective_damage(el_type, ghost_type)));
+                          (*this->effective_damage)(el_type, ghost_type)));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
@@ -64,7 +63,7 @@ public:
     return zip_append(
         Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
         "effective_damage"_n =
-            make_view(this->effective_damage(el_type, ghost_type)));
+            make_view((*this->effective_damage)(el_type, ghost_type)));
   }
 
 protected:
@@ -87,7 +86,7 @@ protected:
   Real eta;
 
   // effective damage to conserve stiffness in compression
-  InternalField<Real> effective_damage;
+  std::shared_ptr<InternalField<Real>> effective_damage;
 };
 
 } // namespace akantu

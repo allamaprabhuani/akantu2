@@ -52,20 +52,22 @@ public:
   template <class Args> inline void computeStressOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
+  template <Int dim_ = dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_append(
-        Material::getArguments<dim>(el_type, ghost_type),
-        "delta_T"_n = make_view(this->delta_T(el_type, ghost_type)),
-        "sigma_th"_n = make_view(this->sigma_th(el_type, ghost_type)),
-        "previous_sigma_th"_n =
-            make_view(this->sigma_th.previous(el_type, ghost_type)));
+    return zip_append(Material::getArguments<dim_>(el_type, ghost_type),
+                      "delta_T"_n = make_view((*delta_T)(el_type, ghost_type)),
+                      "sigma_th"_n =
+                          make_view((*sigma_th)(el_type, ghost_type)),
+                      "previous_sigma_th"_n =
+                          make_view(sigma_th->previous(el_type, ghost_type)));
   }
 
+  template <Int dim_ = dim>
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrices,
                                      ElementType el_type,
                                      GhostType ghost_type) {
-    return Material::getArgumentsTangent<dim>(tangent_matrices, el_type,
-                                              ghost_type);
+    return Material::getArgumentsTangent<dim_>(tangent_matrices, el_type,
+                                               ghost_type);
   }
 
   /* ------------------------------------------------------------------------ */

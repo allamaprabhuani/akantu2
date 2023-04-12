@@ -425,7 +425,7 @@ inline Element ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(
                       "the wrong constitutive law "
                           << this->name << std::endl);
 #endif
-  UInt le = handler.getConstitutiveLawLocalNumbering(
+  auto le = handler.getConstitutiveLawLocalNumbering(
       global_element.type, global_element.ghost_type)(ge);
 
   Element tmp_quad{global_element.type, le, global_element.ghost_type};

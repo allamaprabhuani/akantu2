@@ -130,8 +130,7 @@ namespace {
   template <typename _Material>
   void register_material_cohesive_classes(py::module & mod,
                                           const std::string & name) {
-    py::class_<_Material, MaterialCohesive,
-               PyMaterialCohesiveDaughters<_Material>>(
+    py::class_<_Material, MaterialCohesive, PyMaterialCohesive<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModelCohesive &, const ID &>());
   }

@@ -78,16 +78,13 @@ template <Int dim>
 inline auto MaterialMarigo<dim>::getNbData(const Array<Element> & elements,
                                            const SynchronizationTag & tag) const
     -> Int {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
+  Int size = 0;
   if (tag == SynchronizationTag::_clh_init_cl) {
     size += sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
   }
 
   size += MaterialDamage<dim>::getNbData(elements, tag);
 
-  AKANTU_DEBUG_OUT();
   return size;
 }
 
@@ -97,15 +94,11 @@ inline void
 MaterialMarigo<dim>::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
                               const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
   if (tag == SynchronizationTag::_clh_init_cl) {
-    this->packInternalFieldHelper(Yd, buffer, elements);
+    this->packInternalFieldHelper(*Yd, buffer, elements);
   }
 
   MaterialDamage<dim>::packData(buffer, elements, tag);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -113,15 +106,11 @@ template <Int dim>
 inline void MaterialMarigo<dim>::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
-  AKANTU_DEBUG_IN();
-
   if (tag == SynchronizationTag::_clh_init_cl) {
-    this->unpackInternalFieldHelper(Yd, buffer, elements);
+    this->unpackInternalFieldHelper(*Yd, buffer, elements);
   }
 
   MaterialDamage<dim>::unpackData(buffer, elements, tag);
-
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

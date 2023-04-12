@@ -34,22 +34,22 @@ MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialThermal<dim>::initialize() {
+  delta_T = this->registerInternal("delta_T", 1);
+  sigma_th = this->registerInternal("sigma_th", 1);
+  sigma_th->initializeHistory();
+
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
                       "Poisson's ratio");
   this->registerParam("alpha", alpha, Real(0.), _pat_parsable | _pat_modifiable,
                       "Thermal expansion coefficient");
-  this->registerParam("delta_T", delta_T, _pat_parsable | _pat_modifiable,
+  this->registerParam("delta_T", (*delta_T), _pat_parsable | _pat_modifiable,
                       "Uniform temperature field");
-
-  delta_T = registerInternalField<T>("delta_T", 1);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initMaterial() {
-  sigma_th = registerInternalField<T>("sigma_th", 1);
-  sigma_th->initializeHistory();
+template <Int dim> void MaterialThermal<dim>::initMaterial() {
 
   Material::initMaterial();
 }

@@ -198,7 +198,7 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
   auto && arguments = Material::getArguments<dim>(el_type, _not_ghost);
 
   for (auto && args :
-       zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+       zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
     this->computePotentialEnergyOnQuad(std::get<0>(args), std::get<1>(args));
   }
 }
@@ -207,11 +207,12 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
 template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyByElement(
     ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
+  const auto & fem = this->getFEEngine();
 
-  auto gradu_view = make_view<dim, dim>(this->gradu(type));
-  auto stress_view = make_view<dim, dim>(this->stress(type));
+  auto gradu_view = make_view<dim, dim>((*this->gradu)(type));
+  auto stress_view = make_view<dim, dim>((*this->stress)(type));
 
-  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
 
   auto gradu_it = gradu_view.begin() + index * nb_quadrature_points;
   auto gradu_end = gradu_it + nb_quadrature_points;

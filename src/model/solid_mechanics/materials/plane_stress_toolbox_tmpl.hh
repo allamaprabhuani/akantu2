@@ -36,29 +36,36 @@ public:
   PlaneStressToolbox(SolidMechanicsModel & model, const ID & id = "",
                      const ID & fe_engine_id = "");
 
-  ~PlaneStressToolbox() override = default;
-
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ThirdAxisDeformation,
-                                         third_axis_deformation, Real);
+                                         (*third_axis_deformation), Real);
 
 protected:
   void initialize() {
     this->registerParam("Plane_Stress", plane_stress, false, _pat_parsmod,
                         "Is plane stress");
+    this->third_axis_deformation =
+        this->registerInternal("third_axis_deformation", 1);
+    this->third_axis_deformation->setDefaultValue(1.);
   }
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /* ------------------------------------------------------------------------ */
-  void initMaterial() override {
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        ParentMaterial::template getArguments<2>(el_type, ghost_type),
+        "C33"_n = (*this->third_axis_deformation)(el_type, ghost_type));
+  }
 
-    ParentMaterial::initMaterial();
-    if (this->plane_stress && this->initialize_third_axis_deformation) {
-      this->third_axis_deformation.initialize(1);
-      this->third_axis_deformation.resize();
-    }
+  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
+                                     ElementType el_type,
+                                     GhostType ghost_type = _not_ghost) {
+    return zip_append(
+        ParentMaterial::template getArgumentsTangent<2>(tangent_matrix, el_type,
+                                                        ghost_type),
+        "C33"_n = (*this->third_axis_deformation)(el_type, ghost_type));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -82,7 +89,7 @@ public:
                           "The Cauchy stress can only be computed if you are "
                           "working in finite deformation.");
 
-      for (auto & type : this->elementTypes(2, ghost_type)) {
+      for (auto && type : this->elementTypes(2, ghost_type)) {
         this->computeCauchyStressPlaneStress(type, ghost_type);
       }
     } else {
@@ -93,9 +100,8 @@ public:
   }
 
   virtual void
-  computeCauchyStressPlaneStress(__attribute__((unused)) ElementType el_type,
-                                 __attribute__((unused))
-                                 GhostType ghost_type = _not_ghost){};
+      computeCauchyStressPlaneStress(ElementType /*el_type*/,
+                                     GhostType /*ghost_type*/ = _not_ghost){};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -106,22 +112,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// third axis strain measure value
-  InternalField<Real> third_axis_deformation;
+  std::shared_ptr<InternalField<Real>> third_axis_deformation;
 
   /// Plane stress or plane strain
-  bool plane_stress;
-
-  /// For non linear materials, the \f[\epsilon_{zz}\f] might be required
-  bool initialize_third_axis_deformation;
+  bool plane_stress{false};
 };
 
 template <class ParentMaterial>
 inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
     SolidMechanicsModel & model, const ID & id, const ID & fe_engine_id)
-    : ParentMaterial(model, id, fe_engine_id),
-      third_axis_deformation("third_axis_deformation", *this, fe_engine_id,
-                             this->element_filter),
-      plane_stress(false), initialize_third_axis_deformation(false) {
+    : ParentMaterial(model, id, fe_engine_id) {
   this->initialize();
 }
 

@@ -28,14 +28,7 @@ namespace akantu {
 template <Int dim>
 MaterialViscoelasticMaxwell<dim>::MaterialViscoelasticMaxwell(
     SolidMechanicsModel & model, const ID & id)
-    : MaterialElastic<dim>(model, id), C(voigt_h::size, voigt_h::size),
-      D(voigt_h::size, voigt_h::size), sigma_v("sigma_v", *this),
-      epsilon_v("epsilon_v", *this),
-      dissipated_energy("dissipated_energy", *this),
-      mechanical_work("mechanical_work", *this) {
-
-  AKANTU_DEBUG_IN();
-
+    : MaterialElastic<dim>(model, id) {
   this->registerParam("Einf", Einf, Real(1.), _pat_parsable | _pat_modifiable,
                       "Stiffness of the elastic element");
   this->registerParam("previous_dt", previous_dt, Real(0.), _pat_readable,
@@ -45,13 +38,9 @@ MaterialViscoelasticMaxwell<dim>::MaterialViscoelasticMaxwell(
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
                       "Stiffness of a Maxwell element");
   this->update_variable_flag = true;
-  this->use_previous_stress = true;
-  this->use_previous_gradu = true;
 
-  this->dissipated_energy.initialize(1);
-  this->mechanical_work.initialize(1);
-
-  AKANTU_DEBUG_OUT();
+  this->dissipated_energy = this->registerInternal("dissipated_energy", 1);
+  this->mechanical_work = this->registerInternal("mechanical_work", 1);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,18 +48,21 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   this->E = Einf + Ev.lpNorm<1>();
-  //  this->E = std::min(this->Einf, this->Ev(0));
+
   MaterialElastic<dim>::initMaterial();
 
   AKANTU_DEBUG_ASSERT(this->Eta.size() == this->Ev.size(),
                       "Eta and Ev have different dimensions! Please correct.");
+
   AKANTU_DEBUG_ASSERT(
       !this->finite_deformation,
       "Current material works only in infinitesimal deformations.");
 
-  UInt stress_size = dim * dim;
-  this->sigma_v.initialize(stress_size * this->Ev.size());
-  this->epsilon_v.initialize(stress_size * this->Ev.size());
+  auto stress_size = dim * dim;
+  this->sigma_v =
+      this->registerInternal("sigma_v", stress_size * this->Ev.size());
+  this->epsilon_v =
+      this->registerInternal("epsilon_v", stress_size * this->Ev.size());
 
   AKANTU_DEBUG_OUT();
 }
@@ -136,53 +128,26 @@ void MaterialViscoelasticMaxwell<dim>::updateInternalParameters() {
 template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::computeStress(ElementType el_type,
                                                      GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
   // NOLINTNEXTLINE(bugprone-parent-virtual-call)
-  MaterialThermal<dim>::computeStress(el_type, ghost_type);
+  Parent::computeStress(el_type, ghost_type);
 
-  auto sigma_th_it = this->sigma_th(el_type, ghost_type).begin();
-
-  auto previous_gradu_it =
-      make_view<dim, dim>(this->gradu.previous(el_type, ghost_type)).begin();
-
-  auto previous_stress_it =
-      make_view<dim, dim>(this->stress.previous(el_type, ghost_type)).begin();
-
-  auto sigma_v_it =
-      make_view(this->sigma_v(el_type, ghost_type), dim, dim, this->Eta.size())
-          .begin();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  computeStressOnQuad(grad_u, *previous_gradu_it, sigma, *sigma_v_it,
-                      *sigma_th_it);
-
-  ++sigma_th_it;
-  ++previous_gradu_it;
-  ++sigma_v_it;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    computeStressOnQuad(args);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-template <typename D1, typename D2, typename D3>
-void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
-    const Eigen::MatrixBase<D1> & grad_u,
-    const Eigen::MatrixBase<D2> & previous_grad_u,
-    Eigen::MatrixBase<D3> & sigma, Tensor3Proxy<Real> & sigma_v,
-    const Real & sigma_th) {
+template <class Args>
+void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(Args && args) {
   Real dt = this->model.getTimeStep();
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
-  auto voigt_current_strain =
-      Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_u));
+  auto voigt_current_strain = Material::strainToVoigt<dim>(
+      Material::gradUToEpsilon<dim>(args["grad_u"_n]));
   auto voigt_previous_strain = Material::strainToVoigt<dim>(
-      Material::gradUToEpsilon<dim>(previous_grad_u));
+      Material::gradUToEpsilon<dim>(args["previous_grad_u"_n]));
 
   Vector<Real, voigt_h::size> voigt_stress =
       this->Einf * this->C * voigt_current_strain;
@@ -190,7 +155,7 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
   Vector<Real, voigt_h::size> stress =
       this->C * (voigt_current_strain - voigt_previous_strain);
 
-  for (auto && [Eta, Ev, sigma] : zip(this->Eta, this->Ev, sigma_v)) {
+  for (auto && [Eta, Ev, sigma] : zip(this->Eta, this->Ev, args["sigma_v"_n])) {
     auto lambda = Eta / Ev;
     auto exp_dt_lambda = exp(-dt / lambda);
     Real E_additional;
@@ -205,12 +170,11 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
                     exp_dt_lambda * Material::stressToVoigt<dim>(sigma);
   }
 
+  auto && sigma = args["sigma"_n];
   for (Int I = 0; I < voigt_h::size; ++I) {
-    auto i = voigt_h::vec[I][0];
-    auto j = voigt_h::vec[I][1];
-
+    auto && [i, j] = voigt_h::vec[I];
     sigma(i, j) = sigma(j, i) =
-        voigt_stress(I) + Math::kronecker(i, j) * sigma_th;
+        voigt_stress(I) + Math::kronecker(i, j) * args["sigma_th"_n];
   }
 }
 
@@ -218,24 +182,12 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(
 template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::computePotentialEnergy(
     ElementType el_type) {
-  AKANTU_DEBUG_IN();
-
-  auto epot = this->potential_energy(el_type).begin();
-  auto sigma_v_it = this->sigma_v(el_type).begin(dim, dim, this->Eta.size());
-  auto epsilon_v_it =
-      this->epsilon_v(el_type).begin(dim, dim, this->Eta.size());
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  this->computePotentialEnergyOnQuad(grad_u, *epot, *sigma_v_it, *epsilon_v_it);
-
-  ++epot;
-  ++sigma_v_it;
-  ++epsilon_v_it;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+  for (auto && [args, epot, epsilon_v] :
+       zip(getArguments(el_type), (*this->potential_energy)(el_type),
+           make_view((*this->epsilon_v)(el_type), dim, dim, Eta.size()))) {
+    this->computePotentialEnergyOnQuad(args["grad_u"_n], epot,
+                                       args["sigma_v"_n], epsilon_v);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -244,7 +196,6 @@ template <typename D1>
 void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
     const Eigen::MatrixBase<D1> & grad_u, Real & epot,
     Tensor3Proxy<Real> & sigma_v, Tensor3Proxy<Real> & epsilon_v) {
-
   auto voigt_strain =
       Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_u));
   Vector<Real, voigt_h::size> voigt_stress =
@@ -253,9 +204,7 @@ void MaterialViscoelasticMaxwell<dim>::computePotentialEnergyOnQuad(
   epot = 0.5 * voigt_stress.dot(voigt_strain);
 
   for (Int k = 0; k < this->Eta.size(); ++k) {
-    Matrix<Real> stress_v = sigma_v(k);
-    Matrix<Real> strain_v = epsilon_v(k);
-    epot += 0.5 * stress_v.doubleDot(strain_v);
+    epot += sigma_v(k).doubleDot(epsilon_v(k)) / 2.;
   }
 }
 
@@ -268,29 +217,12 @@ void MaterialViscoelasticMaxwell<dim>::afterSolveStep(bool converged) {
     return;
   }
 
+  if (this->update_variable_flag) {
+    updateIntVariables();
+  }
+
   for (const auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
-    if (this->update_variable_flag) {
-      auto previous_gradu_it =
-          this->gradu.previous(el_type, _not_ghost).begin(dim, dim);
-
-      auto sigma_v_it =
-          this->sigma_v(el_type, _not_ghost).begin(dim, dim, this->Eta.size());
-
-      auto epsilon_v_it = this->epsilon_v(el_type, _not_ghost)
-                              .begin(dim, dim, this->Eta.size());
-
-      MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-      updateIntVarOnQuad(grad_u, *previous_gradu_it, *sigma_v_it,
-                         *epsilon_v_it);
-
-      ++previous_gradu_it;
-      ++sigma_v_it;
-      ++epsilon_v_it;
-
-      MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-    }
     this->updateDissipatedEnergy(el_type);
   }
 }
@@ -301,7 +233,6 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
     const Eigen::MatrixBase<D1> & grad_u,
     const Eigen::MatrixBase<D2> & previous_grad_u, Tensor3Proxy<Real> & sigma_v,
     Tensor3Proxy<Real> & epsilon_v) {
-
   Matrix<Real, dim, dim> grad_delta_u = grad_u - previous_grad_u;
 
   Real dt = this->model.getTimeStep();
@@ -327,8 +258,7 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
     voigt_epsilon_v = 1 / Ev(k) * this->D * voigt_sigma_v;
 
     for (Int I = 0; I < voigt_h::size; ++I) {
-      auto i = voigt_h::vec[I][0];
-      auto j = voigt_h::vec[I][1];
+      auto && [i, j] = voigt_h::vec[I];
 
       sigma_v(i, j, k) = sigma_v(j, i, k) = voigt_sigma_v(I);
       epsilon_v(i, j, k) = epsilon_v(j, i, k) = voigt_epsilon_v(I);
@@ -338,7 +268,8 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
+    ElementType /*el_type*/, Array<Real> & tangent_matrix,
+    GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   Real dt = this->model.getTimeStep();
@@ -356,9 +287,11 @@ void MaterialViscoelasticMaxwell<dim>::computeTangentModuli(
 
   this->previous_dt = dt;
 
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  this->computeTangentModuliOnQuad(tangent);
-  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+  const auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
+  for (auto && tangent :
+       make_view<tangent_size, tangent_size>(tangent_matrix)) {
+    this->computeTangentModuliOnQuad(tangent);
+  }
 
   tangent_matrix *= E_ef;
 
@@ -381,25 +314,13 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::updateIntVariables() {
 
   for (const auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
+    for (auto && [args, epsilon_v] :
+         zip(getArguments(el_type),
+             make_view((*this->epsilon_v)(el_type), dim, dim, Eta.size()))) {
 
-    auto previous_gradu_it =
-        this->gradu.previous(el_type, _not_ghost).begin(dim, dim);
-
-    auto sigma_v_it =
-        this->sigma_v(el_type, _not_ghost).begin(dim, dim, this->Eta.size());
-
-    auto epsilon_v_it =
-        this->epsilon_v(el_type, _not_ghost).begin(dim, dim, this->Eta.size());
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-    updateIntVarOnQuad(grad_u, *previous_gradu_it, *sigma_v_it, *epsilon_v_it);
-
-    ++previous_gradu_it;
-    ++sigma_v_it;
-    ++epsilon_v_it;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+      updateIntVarOnQuad(args["grad_u"_n], args["previous_grad_u"_n],
+                         args["sigma_v"_n], epsilon_v);
+    }
   }
 }
 
@@ -407,34 +328,16 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::updateIntVariables() {
 template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::updateDissipatedEnergy(
     ElementType el_type) {
-  AKANTU_DEBUG_IN();
-
   this->computePotentialEnergy(el_type);
 
-  auto epot = this->potential_energy(el_type).begin();
-  auto dis_energy = this->dissipated_energy(el_type).begin();
-  auto mech_work = this->mechanical_work(el_type).begin();
-  auto sigma_v_it = this->sigma_v(el_type).begin(dim, dim, this->Eta.size());
-  auto epsilon_v_it =
-      this->epsilon_v(el_type).begin(dim, dim, this->Eta.size());
-  auto previous_gradu_it = this->gradu.previous(el_type).begin(dim, dim);
-  auto previous_sigma_it = this->stress.previous(el_type).begin(dim, dim);
-
-  /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  updateDissipatedEnergyOnQuad(grad_u, *previous_gradu_it, sigma,
-                               *previous_sigma_it, *dis_energy, *mech_work,
-                               *epot);
-  ++previous_gradu_it;
-  ++previous_sigma_it;
-  ++dis_energy;
-  ++mech_work;
-  ++epot;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
+  for (auto && [args, epot, edis, work] :
+       zip(getArguments(el_type), (*this->potential_energy)(el_type),
+           (*this->dissipated_energy)(el_type),
+           (*this->mechanical_work)(el_type))) {
+    updateDissipatedEnergyOnQuad(args["grad_u"_n], args["previous_grad_u"_n],
+                                 args["sigma"_n], args["previous_sigma"_n],
+                                 edis, work, epot);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -446,16 +349,10 @@ void MaterialViscoelasticMaxwell<dim>::updateDissipatedEnergyOnQuad(
     const Eigen::MatrixBase<D3> & sigma,
     const Eigen::MatrixBase<D4> & previous_sigma, Real & dis_energy,
     Real & mech_work, const Real & pot_energy) {
-
   Real dt = this->model.getTimeStep();
 
-  Matrix<Real> strain_rate = grad_u;
-  strain_rate -= previous_grad_u;
-  strain_rate /= dt;
-
-  Matrix<Real> av_stress = sigma;
-  av_stress += previous_sigma;
-  av_stress /= 2;
+  auto && strain_rate = (grad_u - previous_grad_u) / dt;
+  auto && av_stress = (sigma + previous_sigma) / 2.;
 
   mech_work += av_stress.doubleDot(strain_rate) * dt;
 
@@ -472,7 +369,7 @@ Real MaterialViscoelasticMaxwell<dim>::getDissipatedEnergy() const {
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de += fem.integrate(this->dissipated_energy(type, _not_ghost), type,
+    de += fem.integrate((*this->dissipated_energy)(type, _not_ghost), type,
                         _not_ghost, this->element_filter(type, _not_ghost));
   }
 
@@ -484,33 +381,29 @@ Real MaterialViscoelasticMaxwell<dim>::getDissipatedEnergy() const {
 template <Int dim>
 Real MaterialViscoelasticMaxwell<dim>::getDissipatedEnergy(
     const Element & element) const {
-  AKANTU_DEBUG_IN();
-
   auto & fem = this->getFEEngine();
-  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
   auto it =
-      this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
-  auto gindex = (this->element_filter(type, _not_ghost))(index);
+      make_view((*this->dissipated_energy)(element.type), nb_quadrature_points)
+          .begin();
+  auto mat_element = element;
+  mat_element.element = this->element_filter(element);
 
-  AKANTU_DEBUG_OUT();
-  return fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[element.element], mat_element);
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 Real MaterialViscoelasticMaxwell<dim>::getMechanicalWork() const {
-  AKANTU_DEBUG_IN();
-
   auto & fem = this->getFEEngine();
   Real mw = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    mw += fem.integrate(this->mechanical_work(type, _not_ghost), type,
-                        _not_ghost, this->element_filter(type, _not_ghost));
+  for (auto && type : this->element_filter.elementTypes(dim)) {
+    mw += fem.integrate((*this->mechanical_work)(type), type, _not_ghost,
+                        this->element_filter(type, _not_ghost));
   }
 
-  AKANTU_DEBUG_OUT();
   return mw;
 }
 
@@ -518,15 +411,16 @@ Real MaterialViscoelasticMaxwell<dim>::getMechanicalWork() const {
 template <Int dim>
 Real MaterialViscoelasticMaxwell<dim>::getMechanicalWork(
     const Element & element) const {
-  AKANTU_DEBUG_IN();
-
   auto & fem = this->getFEEngine();
-  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
-  auto it = this->mechanical_work(type, _not_ghost).begin(nb_quadrature_points);
-  auto gindex = (this->element_filter(type, _not_ghost))(index);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
+  auto it =
+      make_view((*this->mechanical_work)(element.type), nb_quadrature_points)
+          .begin();
 
-  AKANTU_DEBUG_OUT();
-  return fem.integrate(it[index], type, gindex);
+  auto mat_element = element;
+  mat_element.element = this->element_filter(element);
+
+  return fem.integrate(it[element.element], mat_element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -538,8 +432,8 @@ Real MaterialViscoelasticMaxwell<dim>::getPotentialEnergy() const {
   Real epot = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    epot += fem.integrate(this->potential_energy(type, _not_ghost), type,
+  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
+    epot += fem.integrate((*this->potential_energy)(type, _not_ghost), type,
                           _not_ghost, this->element_filter(type, _not_ghost));
   }
 
@@ -554,13 +448,15 @@ Real MaterialViscoelasticMaxwell<dim>::getPotentialEnergy(
   AKANTU_DEBUG_IN();
 
   auto & fem = this->getFEEngine();
-  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
   auto it =
-      this->potential_energy(type, _not_ghost).begin(nb_quadrature_points);
-  auto gindex = (this->element_filter(type, _not_ghost))(index);
+      make_view((*this->potential_energy)(element.type), nb_quadrature_points)
+          .begin();
+  auto mat_element = element;
+  mat_element.element = this->element_filter(element);
 
   AKANTU_DEBUG_OUT();
-  return fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[element.element], mat_element);
 }
 
 /* -------------------------------------------------------------------------- */

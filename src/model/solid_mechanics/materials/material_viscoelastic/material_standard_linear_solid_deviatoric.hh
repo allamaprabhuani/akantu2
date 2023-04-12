@@ -62,7 +62,6 @@ class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<dim> {
 public:
   MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                         const ID & id = "");
-  ~MaterialStandardLinearSolidDeviatoric() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -86,9 +85,9 @@ public:
                                      GhostType ghost_type = _not_ghost) {
     return zip_append(
         Parent::getArguments(el_type, ghost_type),
-        "sigma_dev"_n = make_view<dim, dim>(stress_dev(el_type, ghost_type)),
+        "sigma_dev"_n = make_view<dim, dim>((*stress_dev)(el_type, ghost_type)),
         "history"_n =
-            make_view<dim, dim>(history_integral(el_type, ghost_type)));
+            make_view<dim, dim>((*history_integral)(el_type, ghost_type)));
   }
 
 protected:
@@ -118,13 +117,13 @@ private:
   Vector<Real> etas;
 
   /// history of deviatoric stress
-  InternalField<Real> stress_dev;
+  std::shared_ptr<InternalField<Real>> stress_dev;
 
   /// Internal variable: history integral
-  InternalField<Real> history_integral;
+  std::shared_ptr<InternalField<Real>> history_integral;
 
   /// Dissipated energy
-  InternalField<Real> dissipated_energy;
+  std::shared_ptr<InternalField<Real>> dissipated_energy;
 };
 
 } // namespace akantu

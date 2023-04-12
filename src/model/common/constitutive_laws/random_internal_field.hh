@@ -40,10 +40,7 @@ class RandomInternalField : public BaseField<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  RandomInternalField(const ID & id,
-                      ConstitutiveLawInternalHandler & constitutive_law);
-
-  ~RandomInternalField() override;
+  using BaseField<T>::BaseField;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -80,7 +77,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// random parameter containing the distribution and base value
-  RandomParameter<T> random_parameter;
+  RandomParameter<T> random_parameter{T()};
 };
 
 /// standard output stream operator

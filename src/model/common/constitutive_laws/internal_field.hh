@@ -75,19 +75,18 @@ class InternalField : public InternalFieldBase, public ElementTypeMapArray<T> {
 public:
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law);
-  ~InternalField() override;
-
   /// This constructor is only here to let cohesive elements compile
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law,
                 const ID & fem_id,
                 const ElementTypeMapArray<Idx> & element_filter);
-
   /// More general constructor
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law, Int dim,
                 const ID & fem_id,
                 const ElementTypeMapArray<Idx> & element_filter);
+
+  ~InternalField() override;
 
   InternalField(const ID & id, const InternalField<T> & other);
 

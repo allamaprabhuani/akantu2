@@ -30,8 +30,9 @@ namespace akantu {
 Material::Material(SolidMechanicsModel & model, const ID & id,
                    const ID & fe_engine_id)
     : Parent(model, id, model.getSpatialDimension(), _ek_regular, fe_engine_id),
-      model(model), eigen_grad_u(model.getSpatialDimension(),
-                                 model.getSpatialDimension(), 0.) {
+      model(model),
+      eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension()) {
+  eigen_grad_u.setZero();
   this->initialize();
 }
 
@@ -56,9 +57,9 @@ void Material::initialize() {
       this->registerInternal("grad_u", spatial_dimension * spatial_dimension);
   potential_energy = this->registerInternal("potential_energy", 1);
   interpolation_inverse_coordinates =
-      this->registerInternal("interpolation inverse coordinates");
+      this->registerInternal("interpolation inverse coordinates", 1);
   interpolation_points_matrices =
-      this->registerInternal("interpolation points matrices");
+      this->registerInternal("interpolation points matrices", 1);
 
   this->model.registerEventHandler(*this);
 }
@@ -85,7 +86,7 @@ void Material::updateInternalParameters() {
   auto dim = model.getSpatialDimension();
   for (const auto & type :
        element_filter.elementTypes(_element_kind = _ek_regular)) {
-    for (auto eigen_gradu : make_view(eigengradu(type), dim, dim)) {
+    for (auto eigen_gradu : make_view((*eigengradu)(type), dim, dim)) {
       eigen_gradu = eigen_grad_u;
     }
   }
@@ -105,7 +106,6 @@ void Material::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Int spatial_dimension = model.getSpatialDimension();
-  auto & fem = getFEEngine();
 
   tuple_dispatch<AllSpatialDimensions>(
       [&](auto && _) {
@@ -144,14 +144,14 @@ void Material::computeAllStresses(GhostType ghost_type) {
     if (elem_filter.empty()) {
       continue;
     }
-    auto & gradu_vect = gradu(type, ghost_type);
+    auto & gradu_vect = (*gradu)(type, ghost_type);
 
     /// compute @f$\nabla u@f$
     fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect,
                                     spatial_dimension, type, ghost_type,
                                     elem_filter);
 
-    gradu_vect -= eigengradu(type, ghost_type);
+    gradu_vect -= (*eigengradu)(type, ghost_type);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(type, ghost_type);
@@ -185,14 +185,10 @@ template <Int dim>
 void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && data :
-       zip(make_view<dim, dim>(this->gradu(el_type, ghost_type)),
-           make_view<dim, dim>(this->piola_kirchhoff_2(el_type, ghost_type)),
-           make_view<dim, dim>(this->stress(el_type, ghost_type)))) {
-    auto && grad_u = std::get<0>(data);
-    auto && piola = std::get<1>(data);
-    auto && sigma = std::get<2>(data);
-
+  for (auto && [grad_u, piola, sigma] :
+       zip(make_view<dim, dim>((*this->gradu)(el_type, ghost_type)),
+           make_view<dim, dim>((*this->piola_kirchhoff_2)(el_type, ghost_type)),
+           make_view<dim, dim>((*this->stress)(el_type, ghost_type)))) {
     Matrix<Real, dim, dim> F = gradUToF<dim>(grad_u);
     this->StoCauchy<dim>(F, piola, sigma);
   }
@@ -212,7 +208,7 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
     auto & elem_filter = element_filter(type, ghost_type);
-    auto & gradu_vect = gradu(type, ghost_type);
+    auto & gradu_vect = (*gradu)(type, ghost_type);
 
     /// compute @f$\nabla u@f$
     fem.gradientOnIntegrationPoints(displacement, gradu_vect, spatial_dimension,
@@ -278,7 +274,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   }
 
   auto & fem = getFEEngine();
-  auto & gradu_vect = gradu(type, ghost_type);
+  auto & gradu_vect = (*gradu)(type, ghost_type);
 
   auto nb_element = elem_filter.size();
   auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
@@ -365,15 +361,11 @@ void Material::assembleStiffnessMatrixNL(GhostType ghost_type) {
   Matrix<Real, piola_matrix_size, bt_s_b_size> B;
   Matrix<Real, piola_matrix_size, piola_matrix_size> S;
 
-  for (auto && data :
+  for (auto && [Bt_S_B, Piola_kirchhoff_matrix, shapes_derivatives] :
        zip(make_view<bt_s_b_size, bt_s_b_size>(*bt_s_b),
-           make_view<dim, dim>(piola_kirchhoff_2(type, ghost_type)),
+           make_view<dim, dim>((*piola_kirchhoff_2)(type, ghost_type)),
            make_view<dim, nb_nodes_per_element>(
                *shapes_derivatives_filtered))) {
-    auto && Bt_S_B = std::get<0>(data);
-    auto && Piola_kirchhoff_matrix = std::get<1>(data);
-    auto && shapes_derivatives = std::get<2>(data);
-
     setCauchyStressMatrix<dim>(Piola_kirchhoff_matrix, S);
     VoigtHelper<dim>::transferBMatrixToBNL(shapes_derivatives, B,
                                            nb_nodes_per_element);
@@ -402,7 +394,7 @@ void Material::assembleStiffnessMatrixL2(GhostType ghost_type) {
   const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
   auto & elem_filter = element_filter(type, ghost_type);
-  auto & gradu_vect = gradu(type, ghost_type);
+  auto & gradu_vect = (*gradu)(type, ghost_type);
 
   auto nb_element = elem_filter.size();
   constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -438,19 +430,12 @@ void Material::assembleStiffnessMatrixL2(GhostType ghost_type) {
   Matrix<Real, tangent_size, bt_d_b_size> B;
   Matrix<Real, tangent_size, bt_d_b_size> B2;
 
-  for (auto && data :
+  for (auto && [Bt_D_B, grad_u, D, shapes_derivative] :
        zip(make_view<bt_d_b_size, bt_d_b_size>(*bt_d_b),
            make_view<dim, dim>(gradu_vect),
            make_view<tangent_size, tangent_size>(*tangent_stiffness_matrix),
            make_view<dim, nb_nodes_per_element>(
                *shapes_derivatives_filtered))) {
-    auto && Bt_D_B = std::get<0>(data);
-    auto && grad_u = std::get<1>(data);
-    auto && D = std::get<2>(data);
-    auto && shapes_derivative = std::get<3>(data);
-
-    // transferBMatrixToBL1<dim > (*shapes_derivatives_filtered_it, B,
-    // nb_nodes_per_element);
     VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(shapes_derivative, B,
                                                        nb_nodes_per_element);
     VoigtHelper<dim>::transferBMatrixToBL2(shapes_derivative, grad_u, B2,
@@ -496,8 +481,8 @@ void Material::assembleInternalForces(GhostType ghost_type) {
     return;
   }
 
-  const Array<Real> & shapes_derivatives =
-      fem.getShapesDerivatives(type, ghost_type);
+  auto && fem = this->getFEEngine();
+  const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
   UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
@@ -509,7 +494,7 @@ void Material::assembleInternalForces(GhostType ghost_type) {
       new Array<Real>(nb_element * nb_quadrature_points,
                       size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
-  fem.computeBtD(stress(type, ghost_type), *sigma_dphi_dx, type, ghost_type,
+  fem.computeBtD((*stress)(type, ghost_type), *sigma_dphi_dx, type, ghost_type,
                  elem_filter);
 
   /**
@@ -578,16 +563,11 @@ void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
   Matrix<Real, stress_size, bt_s_size> B_tensor;
   Matrix<Real, stress_size, bt_s_size> B2_tensor;
 
-  for (auto && data :
-       zip(make_view<dim, dim>(this->gradu(type, ghost_type)),
-           make_view<dim, dim>(this->piola_kirchhoff_2(type, ghost_type)),
+  for (auto && [grad_u, S, r, shapes_derivative] :
+       zip(make_view<dim, dim>((*this->gradu)(type, ghost_type)),
+           make_view<dim, dim>((*this->piola_kirchhoff_2)(type, ghost_type)),
            make_view<bt_s_size>(*bt_s),
            make_view<dim, nb_nodes_per_element>(*shapesd_filtered))) {
-    auto && grad_u = std::get<0>(data);
-    auto && S = std::get<1>(data);
-    auto && r = std::get<2>(data);
-    auto && shapes_derivative = std::get<3>(data);
-
     VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
         shapes_derivative, B_tensor, nb_nodes_per_element);
 
@@ -632,8 +612,8 @@ Real Material::getPotentialEnergy() {
 
   /// integrate the potential energy for each type of elements
   for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    epot += fem.integrate(potential_energy(type, _not_ghost), type, _not_ghost,
-                          element_filter(type, _not_ghost));
+    epot += fem.integrate((*potential_energy)(type, _not_ghost), type,
+                          _not_ghost, element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -649,7 +629,7 @@ Real Material::getPotentialEnergy(ElementType type, Int index) {
 Real Material::getPotentialEnergy(const Element & element) {
   AKANTU_DEBUG_IN();
   auto & fem = getFEEngine();
-  Vector<Real> epot_on_quad_points(fem.getNbIntegrationPoints(type));
+  Vector<Real> epot_on_quad_points(fem.getNbIntegrationPoints(element.type));
 
   auto epot = fem.integrate(epot_on_quad_points,
                             {element.type,
@@ -687,8 +667,8 @@ void Material::initElementalFieldInterpolation(
   AKANTU_DEBUG_IN();
   auto & fem = getFEEngine();
   fem.initElementalFieldInterpolationFromIntegrationPoints(
-      interpolation_points_coordinates, this->interpolation_points_matrices,
-      this->interpolation_inverse_coordinates, &(this->element_filter));
+      interpolation_points_coordinates, (*this->interpolation_points_matrices),
+      (*this->interpolation_inverse_coordinates), &(this->element_filter));
 
   AKANTU_DEBUG_OUT();
 }
@@ -698,8 +678,8 @@ void Material::interpolateStress(ElementTypeMapArray<Real> & result,
                                  const GhostType ghost_type) {
   auto & fem = getFEEngine();
   fem.interpolateElementalFieldFromIntegrationPoints(
-      this->stress, this->interpolation_points_matrices,
-      this->interpolation_inverse_coordinates, result, ghost_type,
+      (*this->stress), (*this->interpolation_points_matrices),
+      (*this->interpolation_inverse_coordinates), result, ghost_type,
       &(this->element_filter));
 }
 
@@ -709,7 +689,7 @@ void Material::interpolateStressOnFacets(
     ElementTypeMapArray<Real> & by_elem_result, const GhostType ghost_type) {
   interpolateStress(by_elem_result, ghost_type);
 
-  auto stress_size = this->stress.getNbComponent();
+  auto stress_size = this->stress->getNbComponent();
 
   const auto & mesh = this->model.getMesh();
   const auto & mesh_facets = mesh.getMeshFacets();
@@ -847,7 +827,7 @@ void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
       continue;
     }
 
-    for (auto & eigengradu : make_view(this->eigengradu(type, ghost_type),
+    for (auto & eigengradu : make_view((*this->eigengradu)(type, ghost_type),
                                        spatial_dimension, spatial_dimension)) {
       eigengradu = prescribed_eigen_grad_u;
     }
