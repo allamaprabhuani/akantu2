@@ -213,6 +213,8 @@ void register_mesh(py::module & mod) {
             return self.getMeshFacets();
           },
           py::return_value_policy::reference)
+      .def("getUpperBounds", &Mesh::getUpperBounds)
+      .def("getLowerBounds", &Mesh::getLowerBounds)
       .def("initMeshFacets", &Mesh::initMeshFacets,
            py::arg("id") = "mesh_facets", py::return_value_policy::reference);
 

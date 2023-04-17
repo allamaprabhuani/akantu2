@@ -44,8 +44,7 @@ namespace detail {
     void deallocate() final {}
 
     // allocate the memory
-    void allocate(Int /*size*/, Int /*nb_component*/)
-    final {}
+    void allocate(Int /*size*/, Int /*nb_component*/) final {}
 
     // allocate and initialize the memory
     void allocate(Int /*size*/, Int /*nb_component*/,
@@ -79,8 +78,9 @@ namespace detail {
       }
     }
 
-    void reserve(Int /*size*/, Int /*new_size*/)
-    final { AKANTU_EXCEPTION("cannot resize a temporary array"); }
+    void reserve(Int /*size*/, Int /*new_size*/) final {
+      AKANTU_EXCEPTION("cannot resize a temporary array");
+    }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -103,29 +103,7 @@ namespace detail {
         array_t<typename T::value_type, array::c_style | array::forcecast>;
   };
 
-  // template <typename T> struct AkaArrayType<_aka::Vector<T>> {
-  //   using type = array_t<T, array::f_style | array::forcecast>;
-  // };
-  // template <typename T> struct AkaArrayType<_aka::Matrix<T>> {
-  //   using type = array_t<T, array::f_style | array::forcecast>;
-  // };
-
   template <typename U> using array_type_t = typename AkaArrayType<U>::type;
-
-  /* ------------------------------------------------------------------------ */
-  // template <typename T>
-  // decltype(auto) create_proxy(array_type_t<_aka::Vector<T>> & ref,
-  //                             const _aka::Vector<T> * /*unused*/) {
-  //   return std::make_unique<_aka::detail::ProxyType_t<_aka::Vector<T>>>(
-  //       ref.mutable_data(), ref.shape(0));
-  // }
-
-  // template <typename T>
-  // decltype(auto) create_proxy(array_type_t<_aka::Matrix<T>> & ref,
-  //                             const _aka::Matrix<T> * /*unused*/) {
-  //   return std::make_unique<_aka::detail::ProxyType_t<_aka::Matrix<T>>>(
-  //       ref.mutable_data(), ref.shape(0), ref.shape(1));
-  // }
 
   template <typename T>
   decltype(auto) create_proxy(array_type_t<_aka::Array<T>> & ref,
@@ -148,35 +126,6 @@ namespace detail {
 
     return a.release();
   }
-
-  // template <typename T>
-  // py::handle aka_array_cast(const _aka::Vector<T> & src,
-  //                           py::handle base = handle(), bool writeable =
-  //                           true) {
-  //   array a;
-  //   a = array_type_t<_aka::Vector<T>>({src.size()}, src.data(), base);
-
-  //   if (not writeable) {
-  //     array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
-  //   }
-
-  //   return a.release();
-  // }
-
-  // template <typename T>
-  // py::handle aka_array_cast(const _aka::Matrix<T> & src,
-  //                           py::handle base = handle(), bool writeable =
-  //                           true) {
-  //   array a;
-  //   a = array_type_t<_aka::Matrix<T>>({src.size(0), src.size(1)}, src.data(),
-  //                                     base);
-
-  //   if (not writeable) {
-  //     array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
-  //   }
-
-  //   return a.release();
-  // }
 
   /* ------------------------------------------------------------------------ */
   template <typename AkaArrayType>
