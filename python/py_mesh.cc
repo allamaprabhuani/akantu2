@@ -176,14 +176,14 @@ void register_mesh(py::module & mod) {
              ElementKind kind) {
             return self.getNbElement(spatial_dimension, ghost_type, kind);
           },
-          py::arg("spatial_dimension") = _all_dimensions,
+          py::kw_only(), py::arg("spatial_dimension") = _all_dimensions,
           py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_not_defined)
       .def(
           "getNbElement",
           [](Mesh & self, ElementType type, GhostType ghost_type) {
             return self.getNbElement(type, ghost_type);
           },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost)
+          py::kw_only(), py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def_static(
           "getSpatialDimension",
           [](ElementType & type) { return Mesh::getSpatialDimension(type); })
