@@ -113,7 +113,7 @@ if (_cmake_build_type_lower MATCHES "valgrind")
   find_program(VALGRIND_EXECUTABLE valgrind)
 endif()
 
-option(AKANTU_USE_CCACHE "Use ccache if available to build akantu" ON)
+option(AKANTU_USE_CCACHE "Use ccache if available to build akantu" OFF)
 
 if (AKANTU_USE_CCACHE)
   find_program(CCACHE_EXECUTABLE ccache)
