@@ -390,7 +390,7 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline decltype(auto) getSubelementToElementNC(const Element & element) const;
+  inline decltype(auto) getSubelementToElementNC(const Element & element);
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);

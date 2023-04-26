@@ -976,7 +976,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     const auto & connectivity = mesh.getConnectivity(type, _not_ghost);
     element.type = type;
 
-    Int * tag[2] = {nullptr, nullptr};
+    const Int * tag[2] = {nullptr, nullptr};
     if (mesh.hasData<Int>("tag_0", type, _not_ghost)) {
       const auto & data_tag_0 = mesh.getData<Int>("tag_0", type, _not_ghost);
       tag[0] = data_tag_0.data();

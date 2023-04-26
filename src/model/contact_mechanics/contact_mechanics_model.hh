@@ -233,7 +233,7 @@ public:
   }
 
   /// get the ContactMechanics::blocked_dofs vector
-  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
+  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
 
   /// get the ContactMechanics::gaps (contact gaps)
   AKANTU_GET_MACRO(Gaps, *gaps, Array<Real> &);
@@ -307,7 +307,7 @@ private:
   std::unique_ptr<Array<Real>> previous_tangential_tractions;
 
   /// boundary vector
-  std::unique_ptr<Array<Real>> blocked_dofs;
+  std::unique_ptr<Array<bool>> blocked_dofs;
 
   /// array to store gap between slave and master
   std::unique_ptr<Array<Real>> gaps;

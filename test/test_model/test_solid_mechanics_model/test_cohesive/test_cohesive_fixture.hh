@@ -40,8 +40,9 @@ public:
   StrainIncrement(const Matrix<Real> & strain, BC::Axis dir)
       : strain_inc(strain), dir(dir) {}
 
-  void operator()(UInt /*node*/, Vector<bool> & flags, Vector<Real> & primal,
-                  const Vector<Real> & coord) const {
+  void operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                  VectorProxy<Real> & primal,
+                  const VectorProxy<const Real> & coord) {
     if (std::abs(coord(dir)) < 1e-8) {
       return;
     }

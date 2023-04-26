@@ -168,8 +168,8 @@ void SparseSolverMumps::initMumpsData() {
     icntl(18) = 3; // fully distributed
 
     this->mumps_data.nz_loc = A.getNbNonZero();
-    this->mumps_data.irn_loc = A.getIRN().data();
-    this->mumps_data.jcn_loc = A.getJCN().data();
+    this->mumps_data.irn_loc = A.irn.data();
+    this->mumps_data.jcn_loc = A.jcn.data();
 
     break;
   case _not_parallel:
@@ -178,8 +178,8 @@ void SparseSolverMumps::initMumpsData() {
 
     if (prank == 0) {
       this->mumps_data.nz = A.getNbNonZero();
-      this->mumps_data.irn = A.getIRN().data();
-      this->mumps_data.jcn = A.getJCN().data();
+      this->mumps_data.irn = A.irn.data();
+      this->mumps_data.jcn = A.jcn.data();
     } else {
       this->mumps_data.nz = 0;
       this->mumps_data.irn = nullptr;
@@ -253,10 +253,10 @@ void SparseSolverMumps::factorize() {
   auto & A = dof_manager.getMatrix(matrix_id);
 
   if (parallel_method == _fully_distributed) {
-    this->mumps_data.a_loc = A.getA().data();
+    this->mumps_data.a_loc = A.a.data();
   } else {
     if (prank == 0) {
-      this->mumps_data.a = A.getA().data();
+      this->mumps_data.a = A.a.data();
     }
   }
 

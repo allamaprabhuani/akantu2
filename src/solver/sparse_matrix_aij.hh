@@ -180,6 +180,9 @@ private:
 
   /// map for (i, j) ->  k correspondence
   coordinate_list_map irn_jcn_k;
+
+  // need access to irn and jcn and a has not const
+  friend class SparseSolverMumps;
 };
 
 } // namespace akantu

@@ -45,9 +45,9 @@ public:
   Sinusoidal(MyModel & model, Real amplitude, Real pulse_width, Real t)
       : model(model), A(amplitude), k(2 * M_PI / pulse_width),
         t(t), v{std::sqrt(model.E / model.rho)} {}
-
+  using DirichletFunctor::operator();
   void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> & disp,
-                  const Vector<Real> & coord) const {
+                  const Vector<Real> & coord) override {
     auto x = coord(_x);
     model.velocity(n, _x) = k * v * A * sin(k * (x - v * t));
     disp(_x) = A * cos(k * (x - v * t));

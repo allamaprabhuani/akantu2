@@ -68,7 +68,8 @@ namespace detail {
   public:
     static constexpr Int dim =
         Derived::IsVectorAtCompileTime and m != 1 ? 1 : 2;
-    using pointer = T *;
+    using pointer =
+        std::conditional_t<std::is_const_v<Derived>, const T *, T *>;
     using proxy = Eigen::Map<Derived>;
     using const_proxy = Eigen::Map<const Derived>;
   };
