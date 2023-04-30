@@ -49,6 +49,26 @@ follow the usual way::
   > make
   > make install
 
+Dependencies, configuration and compilation Mac OS X
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Install all dependencies using homebrew. MUMPS needs special configuration::
+
+  > brew tap brewsci/num
+  > brew install brewsci-mumps --without-brewsci-parmetis
+
+If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command::
+
+  > brew edit brewsci/num
+
+Now you can set the following options in cmake::
+
+ > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake .. -DAKANTU_PARALLEL=ON
+ > cmake .. -DMUMPS_INCLUDE_DIR=/opt/homebrew/opt/brewsci-mumps/include -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib -DMUMPS_LIBRARY_DMUMPS=/opt/homebrew/opt/brewsci-mumps/lib/libdmumps.dylib -DMUMPS_LIBRARY_PORD=/opt/homebrew/opt/brewsci-mumps/lib/libpord.dylib 
+ > cmake . -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
+
+If compilation does not work change the path of the faling libraries to brew downloads in /opt/homebrew/. 
+
 Using the python interface
 --------------------------
 
