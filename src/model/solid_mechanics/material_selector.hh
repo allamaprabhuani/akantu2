@@ -39,7 +39,7 @@ class SolidMechanicsModel;
  */
 class MaterialSelector {
 public:
-  MaterialSelector() = default;
+  MaterialSelector(Int fallback_value = 0) : fallback_value(fallback_value){};
   virtual ~MaterialSelector() = default;
   virtual inline Int operator()(const Element & element) {
     if (fallback_selector) {

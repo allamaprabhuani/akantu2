@@ -44,7 +44,7 @@ namespace BC {
   namespace Dirichlet {
     inline void
     FlagOnly::operator()(Idx /*node*/, VectorProxy<bool> & flags,
-                         VectorProxy<Real> & /*primal*/,
+                         [[maybe_unused]] VectorProxy<Real> & primal,
                          const VectorProxy<const Real> & /*coord*/) {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;

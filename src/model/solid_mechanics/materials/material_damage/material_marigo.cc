@@ -28,8 +28,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
-    : MaterialDamage<dim>(model, id), Yd("Yd", *this), damage_in_y(false),
-      yc_limit(false) {
+    : MaterialDamage<dim>(model, id), Y("Y", *this), Yd("Yd", *this),
+      damage_in_y(false), yc_limit(false) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sd", Sd, Real(5000.), _pat_parsable | _pat_modifiable);
@@ -42,6 +42,8 @@ MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
   this->registerParam("Yd", Yd, _pat_parsable, "Damaging energy threshold");
 
   this->Yd.initialize(1);
+  this->Y.initialize(1);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -67,8 +69,6 @@ template <Int dim>
 void MaterialMarigo<dim>::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  Y = 0.;
 
   auto && arguments = getArguments(el_type, ghost_type);
 

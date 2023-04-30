@@ -65,25 +65,16 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-  decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_replace(parent::getArguments(el_type, ghost_type),
-                       "Y"_n = make_view(this->Y(el_type, ghost_type)));
-  }
-
   decltype(auto) getArgumentsNonLocal(ElementType el_type,
                                       GhostType ghost_type) {
     return zip_replace(parent::getArguments(el_type, ghost_type),
-                       "Y"_n = make_view(this->Ynl(el_type, ghost_type)));
+                       "Y"_n = this->Ynl(el_type, ghost_type));
   }
-
-public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Y, Y, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  InternalField<Real> Y;
   InternalField<Real> Ynl;
 };
 
