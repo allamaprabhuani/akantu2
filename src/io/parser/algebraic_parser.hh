@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_random_generator.hh"
 /* -------------------------------------------------------------------------- */
 // Boost
 #include <boost/config/warning_disable.hpp>
@@ -421,12 +422,13 @@ namespace parser {
   struct ParsableRandomGenerator {
     ParsableRandomGenerator(
         Real base = Real(),
-        const RandomDistributionType & type = _rdt_not_defined,
+        const RandomDistributionType & type =
+            RandomDistributionType::_not_defined,
         const parsable_vector & parameters = parsable_vector())
         : base(base), type(type), parameters(parameters) {}
 
-    Real base;
-    RandomDistributionType type;
+    Real base{0.};
+    RandomDistributionType type{RandomDistributionType::_not_defined};
     parsable_vector parameters;
   };
 
@@ -461,15 +463,20 @@ namespace parser {
            *(',' > number[phx::bind(&cont_add<parsable_vector, Real>, lbs::_a,
                                     lbs::_1)]))[lbs::_val = lbs::_a];
 
-#define AKANTU_RANDOM_DISTRIBUTION_TYPE_ADD(r, data, elem)                     \
-  (BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem)),                        \
-                      AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(                 \
-                          BOOST_PP_TUPLE_ELEM(2, 0, elem)))
-
-      generator_type.add BOOST_PP_SEQ_FOR_EACH(
-          AKANTU_RANDOM_DISTRIBUTION_TYPE_ADD, _,
-          AKANTU_RANDOM_DISTRIBUTION_TYPES);
-#undef AKANTU_RANDOM_DISTRIBUTION_TYPE_ADD
+      /* clang-format off */
+      generator_type.add
+          ("uniform"      , RandomDistributionType::_uniform      )
+          ("exponential"  , RandomDistributionType::_exponential  )
+          ("gamma"        , RandomDistributionType::_gamma        )
+          ("weibull"      , RandomDistributionType::_weibull      )
+          ("extreme_value", RandomDistributionType::_extreme_value)
+          ("normal"       , RandomDistributionType::_normal       )
+          ("lognormal"    , RandomDistributionType::_lognormal    )
+          ("chi_squared"  , RandomDistributionType::_chi_squared  )
+          ("cauchy"       , RandomDistributionType::_cauchy       )
+          ("fisher_f"     , RandomDistributionType::_fisher_f     )
+          ("student_t"    , RandomDistributionType::_student_t    );
+      /* clang-format on */
 
 #if !defined(AKANTU_NDEBUG)
       phx::function<algebraic_error_handler_> const error_handler =
