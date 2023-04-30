@@ -65,13 +65,13 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     const auto & coords = model.getMesh().getNodes();
     Int dim = model.getMesh().getSpatialDimension();
 
-    auto it = zip(make_view(primal, dim), make_view(boundary_flags, dim),
+    auto it = zip(make_view(primal, primal.getNbComponent()),
+                  make_view(boundary_flags, boundary_flags.getNbComponent()),
                   make_const_view(coords, dim))
                   .begin();
     for (auto && n : group.getNodeGroup()) {
       auto && [primal_, flags_, coords_] = it[n];
       // The copy it to avoid the user to template is functor
-      //
       auto && primal = primal_;
       auto && flags = flags_;
       auto && coords = coords_;
