@@ -69,15 +69,19 @@ Define compiler::
 
  > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake .. 
 
-Define ``Scotch`` library path (e.g.)::
+Define ``Scotch`` library path::
 
  > cmake .. -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
 
-Specify path to all ``MUMPS`` libraries (e.g.)::
+Specify path to all ``MUMPS`` libraries::
+
+ > cmake .. -DMUMPS_DIR=/opt/homebrew/opt/brewsci-mumps
+
+In case the above does not work, specify the ``MUMPS`` path manually using (e.g.)::
 
  > cmake .. -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib 
 
-If compilation does not work change the path of the faling libraries to brew downloads in /opt/homebrew/. 
+If compilation does not work change the path of the failing libraries to brew downloads in /opt/homebrew/. 
 
 Using the python interface
 --------------------------
