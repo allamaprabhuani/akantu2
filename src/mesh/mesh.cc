@@ -101,6 +101,53 @@ Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
 Mesh::~Mesh() = default;
 
 /* -------------------------------------------------------------------------- */
+template <>
+void Mesh::sendEvent<MeshIsDistributedEvent>(MeshIsDistributedEvent & event) {
+  //    if(event.getList().size() != 0)
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+}
+
+/* -------------------------------------------------------------------------- */
+template <> void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
+  this->computeBoundingBox();
+  this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
+
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
+    // nodes might have changed in the connectivity
+    const auto & mesh_to_mesh_facet =
+        this->getData<Element>("mesh_to_mesh_facet");
+
+    for (auto ghost_type : ghost_types) {
+      for (auto type : connectivities.elementTypes(_spatial_dimension =
+                                                       spatial_dimension - 1,
+                       _ghost_type = ghost_type)) {
+        auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+        if (not mesh_to_mesh_facet.exists(type, ghost_type)) {
+          continue;
+        }
+
+        const auto & mesh_to_mesh_facet_type =
+            mesh_to_mesh_facet(type, ghost_type);
+        auto && mesh_facet_conn_it =
+            make_view(mesh_facets->connectivities(type, ghost_type),
+                      nb_nodes_per_element)
+                .begin();
+
+        for (auto && [el, conn] : enumerate(make_view(
+                 connectivities(type, ghost_type), nb_nodes_per_element))) {
+          conn = mesh_facet_conn_it[mesh_to_mesh_facet_type(el).element];
+        }
+      }
+    }
+  }
+#endif
+
+  GroupManager::onNodesAdded(event.getList(), event);
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+}
+
+/* -------------------------------------------------------------------------- */
 void Mesh::getBarycenters(Array<Real> & barycenter, ElementType type,
                           GhostType ghost_type) const {
   barycenter.resize(getNbElement(type, ghost_type));
@@ -658,46 +705,6 @@ void Mesh::eraseElements(const Array<Element> & elements) {
 
   this->ghosts_counters.onElementsRemoved(new_numbering);
   this->sendEvent(event);
-}
-
-/* -------------------------------------------------------------------------- */
-template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
-  this->computeBoundingBox();
-  this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
-
-#if defined(AKANTU_COHESIVE_ELEMENT)
-  if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
-    // nodes might have changed in the connectivity
-    const auto & mesh_to_mesh_facet =
-        this->getData<Element>("mesh_to_mesh_facet");
-
-    for (auto ghost_type : ghost_types) {
-      for (auto type : connectivities.elementTypes(_spatial_dimension =
-                                                       spatial_dimension - 1,
-                       _ghost_type = ghost_type)) {
-        auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-        if (not mesh_to_mesh_facet.exists(type, ghost_type)) {
-          continue;
-        }
-
-        const auto & mesh_to_mesh_facet_type =
-            mesh_to_mesh_facet(type, ghost_type);
-        auto && mesh_facet_conn_it =
-            make_view(mesh_facets->connectivities(type, ghost_type),
-                      nb_nodes_per_element)
-                .begin();
-
-        for (auto && [el, conn] : enumerate(make_view(
-                 connectivities(type, ghost_type), nb_nodes_per_element))) {
-          conn = mesh_facet_conn_it[mesh_to_mesh_facet_type(el).element];
-        }
-      }
-    }
-  }
-#endif
-
-  GroupManager::onNodesAdded(event.getList(), event);
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
 } // namespace akantu

@@ -227,10 +227,7 @@ public:
                                   GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
-  template <class Event> inline void sendEvent(Event & event) {
-    //    if(event.getList().size() != 0)
-    EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
-  }
+  template <class Event> void sendEvent(Event & event);
 
   /// prepare the  event to remove the elements listed
   void eraseElements(const Array<Element> & elements);
