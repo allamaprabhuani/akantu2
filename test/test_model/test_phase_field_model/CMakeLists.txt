@@ -34,7 +34,7 @@ register_test(test_phase_solid_coupling
 
 register_test(test_phase_field_anisotropic
   SOURCES test_phase_field_anisotropic.cc
-  FILES_TO_COPY material_coupling.dat test_one_element.msh
+  FILES_TO_COPY material_hybrid.dat test_one_element.msh
   PACKAGE phase_field
   )
 
