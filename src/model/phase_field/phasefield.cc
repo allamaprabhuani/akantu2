@@ -96,6 +96,8 @@ void PhaseField::initialize() {
                 "critical local fracture energy density");
   registerParam("E", E, _pat_parsable | _pat_readable, "Young's modulus");
   registerParam("nu", nu, _pat_parsable | _pat_readable, "Poisson ratio");
+  registerParam("isotropic", isotropic, true, _pat_parsable | _pat_readable,
+                "Use isotropic formulation");
 
   damage_on_qpoints.initialize(1);
 

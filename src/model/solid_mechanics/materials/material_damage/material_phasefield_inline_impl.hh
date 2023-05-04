@@ -29,7 +29,7 @@ template <class Args>
 inline void MaterialPhaseField<dim>::computeStressOnQuad(Args && args) {
   MaterialElastic<dim>::computeStressOnQuad(args);
 
-  auto && dam = args["effective_damage"_n];
+  auto && dam = args["damage"_n];
   args["sigma"_n] *= (1 - dam) * (1 - dam) + eta;
 }
 
@@ -39,7 +39,7 @@ template <class Args>
 void MaterialPhaseField<dim>::computeTangentModuliOnQuad(Args && args) {
   MaterialElastic<dim>::computeTangentModuliOnQuad(args);
 
-  auto dam = args["effective_damage"_n];
+  auto dam = args["damage"_n];
   args["tangent_moduli"_n] *= (1 - dam) * (1 - dam) + eta;
 }
 

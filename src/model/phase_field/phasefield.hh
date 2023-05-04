@@ -288,6 +288,9 @@ protected:
   /// Poisson ratio
   Real nu;
 
+  /// Isotropic formulation
+  bool isotropic{true};
+
   /// Lame's first parameter
   Real lambda;
 

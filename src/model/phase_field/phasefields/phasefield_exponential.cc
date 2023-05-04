@@ -50,13 +50,33 @@ void PhaseFieldExponential::updateInternalParameters() {
 /* -------------------------------------------------------------------------- */
 void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
                                                 GhostType ghost_type) {
+
+  if (this->isotropic) {
+    for (auto && tuple : zip(this->phi(el_type, ghost_type),
+                             this->phi.previous(el_type, ghost_type),
+                             make_view(this->strain(el_type, ghost_type),
+                                       spatial_dimension, spatial_dimension))) {
+      auto & phi_quad = std::get<0>(tuple);
+      auto & phi_hist_quad = std::get<1>(tuple);
+      auto & strain = std::get<2>(tuple);
+      computePhiIsotropicOnQuad(strain, phi_quad, phi_hist_quad);
+    }
+  } else {
+    for (auto && tuple : zip(this->phi(el_type, ghost_type),
+                             this->phi.previous(el_type, ghost_type),
+                             make_view(this->strain(el_type, ghost_type),
+                                       spatial_dimension, spatial_dimension))) {
+      auto & phi_quad = std::get<0>(tuple);
+      auto & phi_hist_quad = std::get<1>(tuple);
+      auto & strain = std::get<2>(tuple);
+      computePhiOnQuad(strain, phi_quad, phi_hist_quad);
+    }
+  }
+
   for (auto && tuple :
        zip(this->phi(el_type, ghost_type),
-           this->phi.previous(el_type, ghost_type),
            this->driving_force(el_type, ghost_type),
            this->damage_energy_density(el_type, ghost_type),
-           make_view(this->strain(el_type, ghost_type), spatial_dimension,
-                     spatial_dimension),
            this->damage_on_qpoints(el_type, _not_ghost),
            make_view(this->driving_energy(el_type, ghost_type),
                      spatial_dimension),
@@ -64,19 +84,15 @@ void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
                      spatial_dimension, spatial_dimension),
            make_view(this->gradd(el_type, ghost_type), spatial_dimension),
            this->g_c(el_type, ghost_type))) {
-
     auto & phi_quad = std::get<0>(tuple);
-    auto & phi_hist_quad = std::get<1>(tuple);
-    auto & driving_force_quad = std::get<2>(tuple);
-    auto & dam_energy_density_quad = std::get<3>(tuple);
-    auto & strain = std::get<4>(tuple);
-    auto & dam_on_quad = std::get<5>(tuple);
-    auto & driving_energy_quad = std::get<6>(tuple);
-    auto & damage_energy_quad = std::get<7>(tuple);
-    auto & gradd_quad = std::get<8>(tuple);
-    auto & g_c_quad = std::get<9>(tuple);
+    auto & driving_force_quad = std::get<1>(tuple);
+    auto & dam_energy_density_quad = std::get<2>(tuple);
+    auto & dam_on_quad = std::get<3>(tuple);
+    auto & driving_energy_quad = std::get<4>(tuple);
+    auto & damage_energy_quad = std::get<5>(tuple);
+    auto & gradd_quad = std::get<6>(tuple);
+    auto & g_c_quad = std::get<7>(tuple);
 
-    computePhiOnQuad(strain, phi_quad, phi_hist_quad);
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
                                      g_c_quad);
 

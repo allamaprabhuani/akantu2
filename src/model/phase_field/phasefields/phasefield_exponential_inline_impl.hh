@@ -84,4 +84,18 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
   }
 }
 
+/* -------------------------------------------------------------------------- */
+inline void PhaseFieldExponential::computePhiIsotropicOnQuad(
+    const Matrix<Real> & strain_quad, Real & phi_quad, Real & phi_hist_quad) {
+
+  Real trace = strain_quad.trace();
+
+  phi_quad = 0.5 * this->lambda * trace * trace +
+             this->mu * strain_quad.doubleDot(strain_quad);
+
+  if (phi_quad < phi_hist_quad) {
+    phi_quad = phi_hist_quad;
+  }
+}
+
 } // namespace akantu
