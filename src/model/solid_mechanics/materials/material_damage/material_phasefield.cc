@@ -32,8 +32,7 @@ MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
     : Parent(model, id), effective_damage("effective_damage", *this) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
   this->registerParam("is_hybrid", is_hybrid, false,
-                      _pat_parsable | _pat_readable,
-                      "Use hybrid formulation");
+                      _pat_parsable | _pat_readable, "Use hybrid formulation");
   this->damage.initialize(0);
   this->effective_damage.initialize(1);
 }
@@ -79,7 +78,6 @@ void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
     }
   }
 }
-
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>

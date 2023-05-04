@@ -101,7 +101,6 @@ void PhaseFieldExponential::computeDrivingForce(ElementType el_type,
   }
 }
 
-
 /* -------------------------------------------------------------------------- */
 void PhaseFieldExponential::computeDissipatedEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
