@@ -28,10 +28,10 @@
 
 namespace akantu {
 
-Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
-                           const private_member & /*unused*/) {}
+inline Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
+                                  const private_member & /*unused*/) {}
 
-Communicator::Communicator(const private_member & /*unused*/) {}
+inline Communicator::Communicator(const private_member & /*unused*/) {}
 
 template <typename T>
 void Communicator::sendImpl(const T * /*unused*/, Int /*unused*/,
@@ -67,18 +67,23 @@ bool Communicator::asyncProbe(Int /*unused*/, Int /*unused*/,
   return true;
 }
 
-bool Communicator::test(CommunicationRequest & /*unused*/) { return true; }
-bool Communicator::testAll(std::vector<CommunicationRequest> & /*unused*/) {
+inline bool Communicator::test(CommunicationRequest & /*unused*/) {
   return true;
 }
-void Communicator::wait(CommunicationRequest & /*unused*/) {}
-void Communicator::waitAll(std::vector<CommunicationRequest> & /*unused*/) {}
-Int Communicator::waitAny(std::vector<CommunicationRequest> & /*unused*/) {
+inline bool
+Communicator::testAll(std::vector<CommunicationRequest> & /*unused*/) {
+  return true;
+}
+inline void Communicator::wait(CommunicationRequest & /*unused*/) {}
+inline void
+Communicator::waitAll(std::vector<CommunicationRequest> & /*unused*/) {}
+inline Int
+Communicator::waitAny(std::vector<CommunicationRequest> & /*unused*/) {
   return -1;
 }
 
-void Communicator::barrier() const {}
-CommunicationRequest Communicator::asyncBarrier() const {
+inline void Communicator::barrier() const {}
+inline CommunicationRequest Communicator::asyncBarrier() const {
   return std::shared_ptr<InternalCommunicationRequest>(
       new InternalCommunicationRequest(0, 0));
 }
@@ -112,7 +117,7 @@ template <typename T>
 inline void Communicator::allGatherImpl(T * /*unused*/, int /*unused*/) const {}
 template <typename T>
 inline void Communicator::allGatherVImpl(T * /*unused*/,
-                                         int * /*unused*/) const {}
+                                         const int * /*unused*/) const {}
 
 template <typename T>
 inline void Communicator::gatherImpl(T * /*unused*/, int /*unused*/,
@@ -132,10 +137,12 @@ template <typename T>
 inline void Communicator::broadcastImpl(T * /*unused*/, int /*unused*/,
                                         int /*unused*/) const {}
 
-int Communicator::getMaxTag() const { return std::numeric_limits<int>::max(); }
-int Communicator::getMinTag() const { return 0; }
+inline int Communicator::getMaxTag() const {
+  return std::numeric_limits<int>::max();
+}
+inline int Communicator::getMinTag() const { return 0; }
 
-Int Communicator::getNbProc() const { return 1; }
-Int Communicator::whoAmI() const { return 0; }
+inline Int Communicator::getNbProc() const { return 1; }
+inline Int Communicator::whoAmI() const { return 0; }
 
 } // namespace akantu
