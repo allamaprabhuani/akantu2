@@ -49,6 +49,7 @@ MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
   this->effective_damage.initialize(1);
 }
 
+/* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialPhaseField<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
@@ -95,10 +96,8 @@ template <Int dim>
 void MaterialPhaseField<dim>::computeEffectiveDamage(ElementType el_type,
                                                      GhostType ghost_type) {
 
-  if (not is_hybrid) {
-    for (auto && args : getArguments(el_type, ghost_type)) {
-      computeEffectiveDamageOnQuad(args);
-    }
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    computeEffectiveDamageOnQuad(args);
   }
 }
 
