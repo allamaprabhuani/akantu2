@@ -291,9 +291,9 @@ TYPED_TEST(ArrayFixture, ConstViewVector) {
     auto it = view.begin();
     EXPECT_EQ(10, it->size());
     EXPECT_PRED_FORMAT2(AssertType, typeid(*it),
-                        typeid(VectorProxy<typename TestFixture::type>));
+                        typeid(VectorProxy<const typename TestFixture::type>));
     EXPECT_PRED_FORMAT2(AssertType, typeid(it[0]),
-                        typeid(VectorProxy<typename TestFixture::type>));
+                        typeid(VectorProxy<const typename TestFixture::type>));
   }
 }
 

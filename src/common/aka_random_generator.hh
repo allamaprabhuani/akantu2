@@ -32,30 +32,16 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /* List of available distributions                                            */
 /* -------------------------------------------------------------------------- */
-// clang-format off
-#define AKANTU_RANDOM_DISTRIBUTION_TYPES                \
-  ((uniform      , std::uniform_real_distribution ))    \
-  ((exponential  , std::exponential_distribution  ))    \
-  ((gamma        , std::gamma_distribution        ))    \
-  ((weibull      , std::weibull_distribution      ))    \
-  ((extreme_value, std::extreme_value_distribution))    \
-  ((normal       , std::normal_distribution       ))    \
-  ((lognormal    , std::lognormal_distribution    ))    \
-  ((chi_squared  , std::chi_squared_distribution  ))    \
-  ((cauchy       , std::cauchy_distribution       ))    \
-  ((fisher_f     , std::fisher_f_distribution     ))    \
-  ((student_t    , std::student_t_distribution    ))
-// clang-format on
+#define AKANTU_RANDOM_DISTRIBUTION_TYPES                                       \
+  (uniform)(exponential)(                                                      \
+      gamma)(weibull)(extreme_value)(normal)(lognormal)(chi_squared)(cauchy)(fisher_f)(student_t)(not_defined)
 
-#define AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(elem) BOOST_PP_CAT(_rdt_, elem)
-#define AKANTU_RANDOM_DISTRIBUTION_PREFIX(s, data, elem)                       \
-  AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(BOOST_PP_TUPLE_ELEM(2, 0, elem))
-
-enum RandomDistributionType {
-  BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_TRANSFORM(AKANTU_RANDOM_DISTRIBUTION_PREFIX, _,
-                                           AKANTU_RANDOM_DISTRIBUTION_TYPES)),
-  _rdt_not_defined
-};
+AKANTU_CLASS_ENUM_DECLARE(RandomDistributionType,
+                          AKANTU_RANDOM_DISTRIBUTION_TYPES)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(RandomDistributionType,
+                                AKANTU_RANDOM_DISTRIBUTION_TYPES)
+AKANTU_CLASS_ENUM_INPUT_STREAM(RandomDistributionType,
+                               AKANTU_RANDOM_DISTRIBUTION_TYPES)
 
 /* -------------------------------------------------------------------------- */
 /* Generator                                                                  */
@@ -92,57 +78,71 @@ template <typename T> std::default_random_engine RandomGenerator<T>::generator;
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-#undef AKANTU_RANDOM_DISTRIBUTION_PREFIX
-
-#define AKANTU_RANDOM_DISTRIBUTION_TYPE_PRINT_CASE(r, data, elem)              \
-  case AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(                                \
-      BOOST_PP_TUPLE_ELEM(2, 0, elem)): {                                      \
-    stream << BOOST_PP_STRINGIZE(AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(      \
-        BOOST_PP_TUPLE_ELEM(2, 0, elem)));                                     \
-    break;                                                                     \
-  }
-
-inline std::ostream & operator<<(std::ostream & stream,
-                                 RandomDistributionType type) {
-  switch (type) {
-    BOOST_PP_SEQ_FOR_EACH(AKANTU_RANDOM_DISTRIBUTION_TYPE_PRINT_CASE, _,
-                          AKANTU_RANDOM_DISTRIBUTION_TYPES)
-  default:
-    stream << UInt(type) << " not a RandomDistributionType";
-    break;
-  }
-  return stream;
-}
-#undef AKANTU_RANDOM_DISTRIBUTION_TYPE_PRINT_CASE
-
-/* -------------------------------------------------------------------------- */
 /* Some Helper                                                                */
 /* -------------------------------------------------------------------------- */
-template <typename T, class Distribution> class RandomDistributionTypeHelper {
-  enum { value = _rdt_not_defined };
+template <typename T, class Distribution> struct RandomDistributionTypeHelper {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_not_defined;
 };
 
-/* -------------------------------------------------------------------------- */
-#define AKANTU_RANDOM_DISTRIBUTION_TYPE_GET_TYPE(r, data, elem)                \
-  template <typename T>                                                        \
-      struct RandomDistributionTypeHelper<T, BOOST_PP_TUPLE_ELEM(2, 1, elem) < \
-                                                 T> > {                        \
-    enum {                                                                     \
-      value = AKANTU_RANDOM_DISTRIBUTION_TYPES_PREFIX(                         \
-          BOOST_PP_TUPLE_ELEM(2, 0, elem))                                     \
-    };                                                                         \
-                                                                               \
-    static void printself(std::ostream & stream) {                             \
-      stream << BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem));           \
-    }                                                                          \
-  };
+template <>
+struct RandomDistributionTypeHelper<Real,
+                                    std::uniform_real_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_uniform;
+};
 
-BOOST_PP_SEQ_FOR_EACH(AKANTU_RANDOM_DISTRIBUTION_TYPE_GET_TYPE, _,
-                      AKANTU_RANDOM_DISTRIBUTION_TYPES)
-
-#undef AKANTU_RANDOM_DISTRIBUTION_TYPE_GET_TYPE
+template <>
+struct RandomDistributionTypeHelper<Real, std::exponential_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_exponential;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::gamma_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_gamma;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::weibull_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_weibull;
+};
+template <>
+struct RandomDistributionTypeHelper<Real,
+                                    std::extreme_value_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_extreme_value;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::normal_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_normal;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::lognormal_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_lognormal;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::chi_squared_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_chi_squared;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::cauchy_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_cauchy;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::fisher_f_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_fisher_f;
+};
+template <>
+struct RandomDistributionTypeHelper<Real, std::student_t_distribution<Real>> {
+  static constexpr RandomDistributionType value =
+      RandomDistributionType::_student_t;
+};
 
 /* -------------------------------------------------------------------------- */
 template <class T> class RandomDistribution {
@@ -177,7 +177,8 @@ public:
   }
 
   void printself(std::ostream & stream, int /* indent */ = 0) const override {
-    RandomDistributionTypeHelper<T, Distribution>::printself(stream);
+    stream << std::to_string(
+        RandomDistributionTypeHelper<T, Distribution>::value);
     stream << " [ " << distribution << " ]";
   }
 
@@ -267,6 +268,41 @@ inline std::ostream & operator<<(std::ostream & stream,
                                  RandomParameter<T> & _this) {
   _this.printself(stream);
   return stream;
+}
+
+template <typename T>
+auto make_random_parameter(
+    T base,
+    RandomDistributionType distribution = RandomDistributionType::_uniform,
+    T a = T(), T b = T()) {
+  switch (distribution) {
+  case RandomDistributionType::_not_defined:
+    return RandomParameter<T>(base, std::uniform_real_distribution<T>(0., 0.));
+  case RandomDistributionType::_uniform:
+    return RandomParameter<T>(base, std::uniform_real_distribution<T>(a, b));
+  case RandomDistributionType::_exponential:
+    return RandomParameter<T>(base, std::exponential_distribution<T>(a));
+  case RandomDistributionType::_gamma:
+    return RandomParameter<T>(base, std::gamma_distribution<T>(a, b));
+  case RandomDistributionType::_weibull:
+    return RandomParameter<T>(base, std::weibull_distribution<T>(b, a));
+  case RandomDistributionType::_extreme_value:
+    return RandomParameter<T>(base, std::extreme_value_distribution<T>(a, b));
+  case RandomDistributionType::_normal:
+    return RandomParameter<T>(base, std::normal_distribution<T>(a, b));
+  case RandomDistributionType::_lognormal:
+    return RandomParameter<T>(base, std::lognormal_distribution<T>(a, b));
+  case RandomDistributionType::_chi_squared:
+    return RandomParameter<T>(base, std::chi_squared_distribution<T>(a));
+  case RandomDistributionType::_cauchy:
+    return RandomParameter<T>(base, std::cauchy_distribution<T>(a, b));
+  case RandomDistributionType::_fisher_f:
+    return RandomParameter<T>(base, std::fisher_f_distribution<T>(a, b));
+  case RandomDistributionType::_student_t:
+    return RandomParameter<T>(base, std::student_t_distribution<T>(a));
+  }
+
+  return RandomParameter<T>(base, std::uniform_real_distribution<T>(0., 0.));
 }
 
 } // namespace akantu

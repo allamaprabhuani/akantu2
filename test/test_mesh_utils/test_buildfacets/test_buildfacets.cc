@@ -150,32 +150,35 @@ TYPED_TEST(TestBuildFacetFixture, Buildfacets) {
   std::cout << std::endl;
   const auto & subel_to_el1 = mesh_facets.getSubelementToElement(this->type1);
   this->print_connection("SubelementToElement1", this->type1,
-                         MatrixProxy<Element>(subel_to_el1.data(),
-                                              subel_to_el1.getNbComponent(),
-                                              subel_to_el1.size()));
+                         MatrixProxy<const Element>(
+                             subel_to_el1.data(), subel_to_el1.getNbComponent(),
+                             subel_to_el1.size()));
 
   if (this->type2 != _not_defined) {
     const auto & subel_to_el1 = mesh_facets.getSubelementToElement(this->type2);
-    this->print_connection("SubelementToElement1", this->type2,
-                           MatrixProxy<Element>(subel_to_el1.data(),
-                                                subel_to_el1.getNbComponent(),
-                                                subel_to_el1.size()));
+    this->print_connection(
+        "SubelementToElement1", this->type2,
+        MatrixProxy<const Element>(subel_to_el1.data(),
+                                   subel_to_el1.getNbComponent(),
+                                   subel_to_el1.size()));
   }
 
   for (auto type_facet : types_facet) {
     auto && subel_to_el2 = mesh_facets.getSubelementToElement(type_facet);
-    this->print_connection("SubelementToElement2", type_facet,
-                           MatrixProxy<Element>(subel_to_el2.data(),
-                                                subel_to_el2.getNbComponent(),
-                                                subel_to_el2.size()));
+    this->print_connection(
+        "SubelementToElement2", type_facet,
+        MatrixProxy<const Element>(subel_to_el2.data(),
+                                   subel_to_el2.getNbComponent(),
+                                   subel_to_el2.size()));
   }
 
   if (this->dim == 3) {
     const auto & subel_to_el3 =
         mesh_facets.getSubelementToElement(type_subfacet);
-    this->print_connection("SubelementToElement3", type_subfacet,
-                           MatrixProxy<Element>(subel_to_el3.data(),
-                                                subel_to_el3.getNbComponent(),
-                                                subel_to_el3.size()));
+    this->print_connection(
+        "SubelementToElement3", type_subfacet,
+        MatrixProxy<const Element>(subel_to_el3.data(),
+                                   subel_to_el3.getNbComponent(),
+                                   subel_to_el3.size()));
   }
 }

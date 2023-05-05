@@ -42,17 +42,19 @@ namespace akantu {
 namespace BC {
   /* ---------------------------------------------------------------------- */
   namespace Dirichlet {
-    inline void FlagOnly::operator()(Idx /*node*/, Vector<bool> & flags,
-                                     [[gnu::unused]] Vector<Real> & primal,
-                                     const Vector<Real> & /*coord*/) const {
+    inline void
+    FlagOnly::operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                         [[maybe_unused]] VectorProxy<Real> & primal,
+                         const VectorProxy<const Real> & /*coord*/) {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void FixedValue::operator()(Idx /*node*/, Vector<bool> & flags,
-                                       [[gnu::unused]] Vector<Real> & primal,
-                                       const Vector<Real> & /*coord*/) const {
+    inline void
+    FixedValue::operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                           VectorProxy<Real> & primal,
+                           const VectorProxy<const Real> & /*coord*/) {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
       primal(this->axis) = value;
@@ -60,18 +62,19 @@ namespace BC {
 
     /* ---------------------------------------------------------------------- */
     inline void
-    IncrementValue::operator()(Idx /*node*/, Vector<bool> & flags,
-                               [[gnu::unused]] Vector<Real> & primal,
-                               const Vector<Real> & /*coord*/) const {
+    IncrementValue::operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                               VectorProxy<Real> & primal,
+                               const VectorProxy<const Real> & /*coord*/) {
       DIRICHLET_SANITY_CHECK;
       flags(this->axis) = true;
       primal(this->axis) += value;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void Increment::operator()(Int /*node*/, Vector<bool> & flags,
-                                      Vector<Real> & primal,
-                                      const Vector<Real> & /*coord*/) const {
+    inline void
+    Increment::operator()(Int /*node*/, VectorProxy<bool> & flags,
+                          VectorProxy<Real> & primal,
+                          const VectorProxy<const Real> & /*coord*/) {
       DIRICHLET_SANITY_CHECK;
       flags.set(true);
       primal += value;
@@ -84,26 +87,28 @@ namespace BC {
   namespace Neumann {
     inline void
     FreeBoundary::operator()(const IntegrationPoint & /*quad_point*/,
-                             Vector<Real> & dual,
-                             const Vector<Real> & /*coord*/,
-                             const Vector<Real> & /*normals*/) const {
+                             VectorProxy<Real> & dual,
+                             const VectorProxy<const Real> & /*coord*/,
+                             const VectorProxy<const Real> & /*normals*/) {
       for (Idx i(0); i < dual.size(); ++i) {
         dual(i) = 0.0;
       }
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void FromHigherDim::operator()(
-        const IntegrationPoint & /*quad_point*/, Vector<Real> & dual,
-        const Vector<Real> & /*coord*/, const Vector<Real> & normals) const {
+    inline void
+    FromHigherDim::operator()(const IntegrationPoint & /*quad_point*/,
+                              VectorProxy<Real> & dual,
+                              const VectorProxy<const Real> & /*coord*/,
+                              const VectorProxy<const Real> & normals) {
       dual = this->bc_data * normals;
     }
 
     /* ---------------------------------------------------------------------- */
     inline void
-    FromSameDim::operator()(const IntegrationPoint &, Vector<Real> & dual,
-                            const Vector<Real> & /* coord */,
-                            const Vector<Real> & /* normals */) const {
+    FromSameDim::operator()(const IntegrationPoint &, VectorProxy<Real> & dual,
+                            const VectorProxy<const Real> & /* coord */,
+                            const VectorProxy<const Real> & /* normals */) {
       dual = this->bc_data;
     }
   } // namespace Neumann

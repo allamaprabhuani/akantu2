@@ -227,10 +227,7 @@ public:
                                   GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
-  template <class Event> inline void sendEvent(Event & event) {
-    //    if(event.getList().size() != 0)
-    EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
-  }
+  template <class Event> void sendEvent(Event & event);
 
   /// prepare the  event to remove the elements listed
   void eraseElements(const Array<Element> & elements);
@@ -390,7 +387,7 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline decltype(auto) getSubelementToElementNC(const Element & element) const;
+  inline decltype(auto) getSubelementToElementNC(const Element & element);
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);

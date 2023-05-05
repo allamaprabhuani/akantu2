@@ -154,10 +154,11 @@ public:
 public:
   static constexpr auto dim = ElementClass<_type>::getSpatialDimension();
 
-  inline void operator()(Int node, Vector<bool> & flags, Vector<Real> & primal,
-                         const Vector<Real> & coord) const {
+  inline void operator()(Int node, VectorProxy<bool> & flags,
+                         VectorProxy<Real> & primal,
+                         const VectorProxy<const Real> & coord) {
     flags(0) = true;
-    const auto & vel = model.getVelocity();
+    auto & vel = model.getVelocity();
     auto it = vel.begin(model.getSpatialDimension());
     auto v = it[node];
 

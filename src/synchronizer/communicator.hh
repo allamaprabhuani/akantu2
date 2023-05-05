@@ -483,7 +483,8 @@ protected:
                          SynchronizerOperation op) const;
 
   template <typename T> void allGatherImpl(T * values, int nb_values) const;
-  template <typename T> void allGatherVImpl(T * values, int * nb_values) const;
+  template <typename T>
+  void allGatherVImpl(T * values, const int * nb_values) const;
 
   template <typename T>
   void reduceImpl(T * values, int nb_values, SynchronizerOperation op,

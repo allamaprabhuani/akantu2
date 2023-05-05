@@ -48,9 +48,23 @@ namespace BC {
       DirichletFunctor() = default;
       explicit DirichletFunctor(Axis ax) : axis(ax) {}
 
+      virtual void operator()(Idx node, VectorProxy<bool> & flags,
+                              VectorProxy<Real> & primal,
+                              const VectorProxy<const Real> & coord) {
+        // Implementation with copies for backward compatibility
+        Vector<bool> flags_ = flags;
+        Vector<Real> primal_ = primal;
+        Vector<Real> coord_ = coord;
+
+        (*this)(node, flags_, primal_, coord_);
+
+        flags = flags_;
+        primal = primal_;
+      }
+
       virtual void operator()(Idx /*node*/, Vector<bool> & /*flags*/,
                               Vector<Real> & /*primal*/,
-                              const Vector<Real> & /*coord*/) const {
+                              const Vector<Real> & /*coord*/) {
         AKANTU_TO_IMPLEMENT();
       }
 
@@ -67,9 +81,9 @@ namespace BC {
       explicit FlagOnly(Axis ax = _x) : DirichletFunctor(ax) {}
 
     public:
-      inline void operator()(Idx node, Vector<bool> & flags,
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const override;
+      inline void operator()(Idx node, VectorProxy<bool> & flags,
+                             VectorProxy<Real> & primal,
+                             const VectorProxy<const Real> & coord) override;
     };
 
     /* ---------------------------------------------------------------------- */
@@ -78,9 +92,9 @@ namespace BC {
       FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(Idx node, Vector<bool> & flags,
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const override;
+      inline void operator()(Idx node, VectorProxy<bool> & flags,
+                             VectorProxy<Real> & primal,
+                             const VectorProxy<const Real> & coord) override;
 
     protected:
       Real value;
@@ -93,9 +107,9 @@ namespace BC {
           : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(Idx node, Vector<bool> & flags,
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const override;
+      inline void operator()(Idx node, VectorProxy<bool> & flags,
+                             VectorProxy<Real> & primal,
+                             const VectorProxy<const Real> & coord) override;
 
       inline void setIncrement(Real val) { this->value = val; }
 
@@ -110,9 +124,9 @@ namespace BC {
           : DirichletFunctor(_x), value(val) {}
 
     public:
-      inline void operator()(Idx node, Vector<bool> & flags,
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const override;
+      inline void operator()(Idx node, VectorProxy<bool> & flags,
+                             VectorProxy<Real> & primal,
+                             const VectorProxy<const Real> & coord) override;
 
       inline void setIncrement(const Vector<Real> & val) { this->value = val; }
 
@@ -133,8 +147,9 @@ namespace BC {
 
     public:
       virtual void operator()(const IntegrationPoint & quad_point,
-                              Vector<Real> & dual, const Vector<Real> & coord,
-                              const Vector<Real> & normals) const = 0;
+                              VectorProxy<Real> & dual,
+                              const VectorProxy<const Real> & coord,
+                              const VectorProxy<const Real> & normals) = 0;
 
       ~NeumannFunctor() override = default;
 
@@ -150,8 +165,9 @@ namespace BC {
 
     public:
       inline void operator()(const IntegrationPoint & quad_point,
-                             Vector<Real> & dual, const Vector<Real> & coord,
-                             const Vector<Real> & normals) const override;
+                             VectorProxy<Real> & dual,
+                             const VectorProxy<const Real> & coord,
+                             const VectorProxy<const Real> & normals) override;
 
     protected:
       Matrix<Real> bc_data;
@@ -165,8 +181,9 @@ namespace BC {
 
     public:
       inline void operator()(const IntegrationPoint & quad_point,
-                             Vector<Real> & dual, const Vector<Real> & coord,
-                             const Vector<Real> & normals) const override;
+                             VectorProxy<Real> & dual,
+                             const VectorProxy<const Real> & coord,
+                             const VectorProxy<const Real> & normals) override;
 
     protected:
       Vector<Real> bc_data;
@@ -176,8 +193,9 @@ namespace BC {
     class FreeBoundary : public NeumannFunctor {
     public:
       inline void operator()(const IntegrationPoint & quad_point,
-                             Vector<Real> & dual, const Vector<Real> & coord,
-                             const Vector<Real> & normals) const override;
+                             VectorProxy<Real> & dual,
+                             const VectorProxy<const Real> & coord,
+                             const VectorProxy<const Real> & normals) override;
     };
   } // namespace Neumann
 } // namespace BC

@@ -60,3 +60,8 @@ package_is_activated(gbenchmark _has_gbenchmark)
 if (_has_gbenchmark)
   add_subdirectory(benchmark)
 endif()
+
+option(AKANTU_BENCHMARK OFF)
+if(AKANTU_BENCHMARK)
+  add_subdirectory(benchmark)
+endif()

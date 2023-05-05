@@ -103,9 +103,9 @@ int main(int argc, char * argv[]) {
 
   dof_manager.getMatrix("K").saveMatrix("K_dof_manager_default.mtx");
 
-  Array<Real>::const_scalar_iterator disp_it = callback.dispacement.begin();
-  Array<Real>::const_scalar_iterator force_it = callback.forces.begin();
-  Array<bool>::const_scalar_iterator blocked_it = callback.blocked.begin();
+  auto disp_it = callback.dispacement.begin();
+  auto force_it = callback.forces.begin();
+  auto blocked_it = callback.blocked.begin();
   std::cout << std::setw(8) << "disp"
             << " " << std::setw(8) << "force"
             << " " << std::setw(8) << "blocked" << std::endl;

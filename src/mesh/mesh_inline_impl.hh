@@ -79,14 +79,6 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
-  this->computeBoundingBox();
-  this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
-  GroupManager::onNodesAdded(event.getList(), event);
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
-}
-
-/* -------------------------------------------------------------------------- */
 template <>
 inline void
 Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
@@ -334,9 +326,8 @@ Mesh::getSubelementToElement(const Element & element) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline decltype(auto)
-Mesh::getSubelementToElementNC(const Element & element) const {
-  return this->getSubelementToElement().get(element);
+inline decltype(auto) Mesh::getSubelementToElementNC(const Element & element) {
+  return this->getSubelementToElementNC().get(element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -706,7 +697,7 @@ inline decltype(auto) Mesh::getPeriodicSlaves(Idx master) const {
 /* -------------------------------------------------------------------------- */
 inline decltype(auto)
 Mesh::getConnectivityWithPeriodicity(const Element & element) const {
-  auto conn = getConnectivity(element);
+  Vector<Idx> conn = connectivities.get(element);
   if (not isPeriodic()) {
     return conn;
   }

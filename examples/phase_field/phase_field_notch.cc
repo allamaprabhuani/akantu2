@@ -104,8 +104,6 @@ int main(int argc, char * argv[]) {
       coupler.solve();
     }
 
-    auto energy = phase.getEnergy();
-
     if (s % 100 == 0) {
       model.dump();
     }

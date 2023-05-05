@@ -188,7 +188,8 @@ public:
     return values;
   };
 
-  T * data() const { return values; };
+  const T * data() const { return values; };
+  T * data() { return values; };
 
 protected:
   /// allocation type agnostic  data access
@@ -247,7 +248,7 @@ public:
   /// iterator for Array of nb_component = 1
   using scalar_iterator = view_iterator<T>;
   /// const_iterator for Array of nb_component = 1
-  using const_scalar_iterator = const_view_iterator<T>;
+  using const_scalar_iterator = const_view_iterator<const T>;
 
   /// iterator returning Vectors of size n  on entries of Array with
   /// nb_component = n
@@ -262,13 +263,6 @@ public:
   /// const iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
   using const_matrix_iterator = const_view_iterator<MatrixProxy<const T>>;
-
-  /// iterator returning Tensor3 of size (m, n, k) on entries of Array with
-  /// nb_component = m*n*k
-  using tensor3_iterator = view_iterator<Tensor3Proxy<T>>;
-  /// const iterator returning Tensor3 of size (m, n, k) on entries of Array
-  /// with nb_component = m*n*k
-  using const_tensor3_iterator = const_view_iterator<Tensor3Proxy<T>>;
 
   /* ------------------------------------------------------------------------ */
   template <typename... Ns> inline auto begin(Ns &&... n);

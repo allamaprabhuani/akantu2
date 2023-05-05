@@ -431,7 +431,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
                                   nb_degree_of_freedom);
     Array<Real> quad_coords(nb_elements * nb_quad_points, spatial_dimension);
 
-    const auto & normals_on_quad =
+    auto & normals_on_quad =
         fem_boundary.getNormalsOnIntegrationPoints(type, ghost_type);
 
     auto normals_begin = normals_on_quad.begin(spatial_dimension);
@@ -457,13 +457,13 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
         auto & normal = *normals_iter;
         auto ddot = inside_to_outside.dot(normal);
 
-        if (ddot < 0) {
-          normal *= -1.0;
-        }
-
         (*dual_iter) =
             Matrix<Real>::Identity(spatial_dimension, spatial_dimension) *
             normal;
+
+        if (ddot < 0) {
+          *dual_iter *= -1.0;
+        }
 
         ++dual_iter;
         ++quad_coords_iter;
@@ -570,10 +570,16 @@ void ContactMechanicsModel::afterSolveStep(bool converged) {
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldBool(const std::string & /*unused*/,
-                                            const std::string & /*unused*/,
-                                            bool /*unused*/) {
-  return nullptr;
+ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
+                                            const std::string & group_name,
+                                            bool /*padding_flag*/) {
+
+  std::map<std::string, Array<bool> *> bool_nodal_fields;
+  bool_nodal_fields["blocked_dofs"] = blocked_dofs.get();
+
+  std::shared_ptr<dumpers::Field> field;
+  field = mesh.createNodalField(bool_nodal_fields[field_name], group_name);
+  return field;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -585,7 +591,6 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["contact_force"] = this->internal_force.get();
   real_nodal_fields["normal_force"] = this->normal_force.get();
   real_nodal_fields["tangential_force"] = this->tangential_force.get();
-  real_nodal_fields["blocked_dofs"] = this->blocked_dofs.get();
   real_nodal_fields["normals"] = this->normals.get();
   real_nodal_fields["tangents"] = this->tangents.get();
   real_nodal_fields["gaps"] = this->gaps.get();

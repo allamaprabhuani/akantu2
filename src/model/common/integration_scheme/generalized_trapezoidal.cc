@@ -48,7 +48,7 @@ void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> & u,
 
   Real * u_val = u.data();
   Real * u_dot_val = u_dot.data();
-  bool * blocked_dofs_val = blocked_dofs.data();
+  const bool * blocked_dofs_val = blocked_dofs.data();
 
   for (Int d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
@@ -131,8 +131,8 @@ void GeneralizedTrapezoidal::allCorrector(Real delta_t, Array<Real> & u,
 
   Real * u_val = u.data();
   Real * u_dot_val = u_dot.data();
-  Real * delta_val = delta.data();
-  bool * blocked_dofs_val = blocked_dofs.data();
+  const Real * delta_val = delta.data();
+  const bool * blocked_dofs_val = blocked_dofs.data();
 
   for (Int dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {

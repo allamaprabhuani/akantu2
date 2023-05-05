@@ -83,21 +83,18 @@ public:
   }
 #endif
 
-  template <typename FunctorType>
-  inline void applyBC(const FunctorType & func) {
-    solid->applyBC(func);
+  template <typename FunctorType> inline void applyBC(FunctorType && func) {
+    solid->applyBC(std::forward<decltype(func)>(func));
   }
 
   template <class FunctorType>
-  inline void applyBC(const FunctorType & func,
-                      const std::string & group_name) {
-    solid->applyBC(func, group_name);
+  inline void applyBC(FunctorType && func, const std::string & group_name) {
+    solid->applyBC(std::forward<decltype(func)>(func), group_name);
   }
 
   template <class FunctorType>
-  inline void applyBC(const FunctorType & func,
-                      const ElementGroup & element_group) {
-    solid->applyBC(func, element_group);
+  inline void applyBC(FunctorType && func, const ElementGroup & element_group) {
+    solid->applyBC(std::forward<decltype(func)>(func), element_group);
   }
 
 protected:

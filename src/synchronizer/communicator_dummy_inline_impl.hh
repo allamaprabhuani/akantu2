@@ -28,6 +28,8 @@
 
 namespace akantu {
 
+// NOLINTBEGIN(misc-definitions-in-headers)
+
 Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
                            const private_member & /*unused*/) {}
 
@@ -109,14 +111,14 @@ void Communicator::exclusiveScanImpl(T * /*values*/, T * result, int n,
 }
 
 template <typename T>
-inline void Communicator::allGatherImpl(T * /*unused*/, int /*unused*/) const {}
+void Communicator::allGatherImpl(T * /*unused*/, int /*unused*/) const {}
 template <typename T>
-inline void Communicator::allGatherVImpl(T * /*unused*/,
-                                         int * /*unused*/) const {}
+void Communicator::allGatherVImpl(T * /*unused*/,
+                                  const int * /*unused*/) const {}
 
 template <typename T>
-inline void Communicator::gatherImpl(T * /*unused*/, int /*unused*/,
-                                     int /*unused*/) const {}
+void Communicator::gatherImpl(T * /*unused*/, int /*unused*/,
+                              int /*unused*/) const {}
 template <typename T>
 void Communicator::gatherImpl(T * values, int nb_values, T * gathered,
                               int /*unused*/) const {
@@ -126,16 +128,18 @@ void Communicator::gatherImpl(T * values, int nb_values, T * gathered,
 }
 
 template <typename T>
-inline void Communicator::gatherVImpl(T * /*unused*/, int * /*unused*/,
-                                      int /*unused*/) const {}
+void Communicator::gatherVImpl(T * /*unused*/, int * /*unused*/,
+                               int /*unused*/) const {}
 template <typename T>
-inline void Communicator::broadcastImpl(T * /*unused*/, int /*unused*/,
-                                        int /*unused*/) const {}
+void Communicator::broadcastImpl(T * /*unused*/, int /*unused*/,
+                                 int /*unused*/) const {}
 
 int Communicator::getMaxTag() const { return std::numeric_limits<int>::max(); }
 int Communicator::getMinTag() const { return 0; }
 
 Int Communicator::getNbProc() const { return 1; }
 Int Communicator::whoAmI() const { return 0; }
+
+// NOLINTEND(misc-definitions-in-headers)
 
 } // namespace akantu

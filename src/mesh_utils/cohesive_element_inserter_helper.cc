@@ -142,7 +142,7 @@ CohesiveElementInserterHelper::CohesiveElementInserterHelper(
     auto & element_to_update = elements_to_facet[1];
     auto el = element_to_update.element;
 
-    const auto & facets_to_elements = mesh_facets.getSubelementToElement(
+    auto & facets_to_elements = mesh_accessor.getSubelementToElement(
         element_to_update.type, element_to_update.ghost_type);
     auto facets_to_element =
         make_view(facets_to_elements, facets_to_elements.getNbComponent())
@@ -219,12 +219,13 @@ void CohesiveElementInserterHelper::updateElementalConnectivity(
     const std::vector<Element> * facet_list) {
   AKANTU_DEBUG_IN();
 
+  MeshAccessor mesh_accessor(mesh);
   for (const auto & element : element_list) {
     if (element.type == _not_defined) {
       continue;
     }
 
-    auto && connectivity = mesh.getConnectivity(element);
+    auto && connectivity = mesh_accessor.getConnectivity(element);
 
     if (element.kind() == _ek_cohesive) {
       AKANTU_DEBUG_ASSERT(
@@ -274,13 +275,14 @@ void CohesiveElementInserterHelper::updateSubelementToElement(Int dim,
   auto & facets_to_subfacets = elementsOfDimToElementsOfDim(
       dim + static_cast<decltype(dim)>(facet_mode), dim);
 
+  MeshAccessor mesh_accessor(mesh_facets);
+
   for (auto && data :
        zip(make_view(facets_to_double, 2), facets_to_subfacets)) {
     const auto & old_subfacet = std::get<0>(data)[0];
     const auto & new_subfacet = std::get<0>(data)[1];
     auto & facet_to_subfacets = std::get<1>(data);
 
-    MeshAccessor mesh_accessor(mesh_facets);
     for (auto & facet : facet_to_subfacets) {
       auto && subfacets = mesh_accessor.getSubelementToElement(facet);
 
@@ -801,14 +803,15 @@ void CohesiveElementInserterHelper::doublePointFacet() {
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
   const auto & element_to_facet = mesh_facets.getElementToSubelement();
   auto & position = mesh.getNodes();
-  MeshAccessor mesh_accessor(mesh_facets);
+  MeshAccessor mesh_facets_accessor(mesh_facets);
+  MeshAccessor mesh_accessor(mesh);
 
   for (auto ghost_type : ghost_types) {
     for (auto facet_type : nb_new_facets.elementTypes(
              spatial_dimension - 1, ghost_type, _ek_regular)) {
       auto nb_new_element = nb_new_facets(facet_type, ghost_type);
       auto & connectivities =
-          mesh_accessor.getConnectivity(facet_type, ghost_type);
+          mesh_facets_accessor.getConnectivity(facet_type, ghost_type);
       connectivities.resize(nb_new_element);
     }
   }
@@ -819,8 +822,8 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     auto & new_facet = facet_to_double[1];
 
     auto element = element_to_facet(new_facet)[0];
-    auto & facet_connectivities =
-        mesh_accessor.getConnectivity(old_facet.type, old_facet.ghost_type);
+    auto & facet_connectivities = mesh_facets_accessor.getConnectivity(
+        old_facet.type, old_facet.ghost_type);
     auto old_node = facet_connectivities(old_facet.element);
     auto new_node = position.size();
 
@@ -828,7 +831,7 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     position.push_back(position(old_node));
     facet_connectivities(new_facet.element) = new_node;
 
-    auto && segment_conectivity = mesh.getConnectivity(element);
+    auto && segment_conectivity = mesh_accessor.getConnectivity(element);
 
     /// update facet connectivity
     auto it = std::find(segment_conectivity.begin(), segment_conectivity.end(),
