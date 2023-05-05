@@ -1,18 +1,8 @@
 /**
- * @file   phase_field_model_inline_impl.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Mon Dec 13 2010
- * @date last modification: Fri Jun 19 2020
- *
- * @brief  Phase field implementation of inline functions
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +42,7 @@ inline decltype(auto) PhaseFieldModel::getPhaseFields() const {
 
 /* -------------------------------------------------------------------------- */
 inline PhaseField & PhaseFieldModel::getPhaseField(Idx mat_index) {
-  AKANTU_DEBUG_ASSERT(mat_index < phasefields.size(),
+  AKANTU_DEBUG_ASSERT(mat_index < Idx(phasefields.size()),
                       "The model " << id << " has no phasefield no "
                                    << mat_index);
   return *phasefields[mat_index];
@@ -61,7 +50,7 @@ inline PhaseField & PhaseFieldModel::getPhaseField(Idx mat_index) {
 
 /* -------------------------------------------------------------------------- */
 inline const PhaseField & PhaseFieldModel::getPhaseField(Idx mat_index) const {
-  AKANTU_DEBUG_ASSERT(mat_index < phasefields.size(),
+  AKANTU_DEBUG_ASSERT(mat_index < Idx(phasefields.size()),
                       "The model " << id << " has no phasefield no "
                                    << mat_index);
   return *phasefields[mat_index];

@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__copyright__ = (
+    "Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
+    "Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
+)
+__license__ = "LGPLv3"
+
+
 import sys
 import os.path
 import pybind11 as py11
 import configparser
 from setuptools import find_packages
-from packaging.version import LegacyVersion
+from packaging.version import Version
 from skbuild.exceptions import SKBuildError
 from skbuild.cmaker import get_cmake_version
 
@@ -70,7 +77,7 @@ except ImportError:
 # version
 setup_requires = []
 try:
-    if LegacyVersion(get_cmake_version()) < LegacyVersion("3.4"):
+    if Version(get_cmake_version()) < Version("3.4"):
         setup_requires.append("cmake")
 except SKBuildError:
     setup_requires.append("cmake")

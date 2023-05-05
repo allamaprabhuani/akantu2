@@ -1,19 +1,8 @@
 /**
- * @file   test_cohesive_friction.cc
- *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- *
- * @date creation: Thu Jan 14 2016
- * @date last modification:  Sun Dec 30 2018
- *
- * @brief  testing the correct behavior of the friction law included in
- * the cohesive linear law, in implicit
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */

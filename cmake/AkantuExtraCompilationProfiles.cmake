@@ -1,19 +1,9 @@
 #===============================================================================
-# @file   AkantuExtraCompilationProfiles.cmake
-#
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Fri Dec 02 2016
-# @date last modification: Wed Feb 03 2021
-#
-# @brief  Compilation profiles
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2016-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -28,6 +18,7 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
 mark_as_advanced(FORCE_COLORED_OUTPUT)

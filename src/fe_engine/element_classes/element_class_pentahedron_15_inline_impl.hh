@@ -1,23 +1,8 @@
 /**
- * @file   element_class_pentahedron_15_inline_impl.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Sacha Laffely <sacha.laffely@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Damien Scantamburlo <damien.scantamburlo@epfl.ch>
- *
- * @date creation: Tue Mar 31 2015
- * @date last modification: Fri Feb 07 2020
- *
- * @brief  Specialization of the element_class class for the type
- * _pentahedron_15
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /**

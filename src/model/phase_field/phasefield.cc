@@ -1,18 +1,8 @@
 /**
- * @file   phasefield.cc
- *
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- *
- * @date creation: Fri Jun 19 2020
- * @date last modification: Fri May 14 2021
- *
- * @brief  Implementation of the common part of the phasefield class
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2020-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -113,7 +102,7 @@ void PhaseField::initialize() {
                 _pat_parsable | _pat_readable, "Is plane stress");
   registerParam("finite_deformation", finite_deformation, false,
                 _pat_parsable | _pat_readable, "Is finite deformation");
-  registerParam("isotropic", isotropic, false, _pat_parsable | _pat_readable,
+  registerParam("isotropic", isotropic, true, _pat_parsable | _pat_readable,
                 "Use isotropic formulation");
 
   damage_on_qpoints.initialize(1);
@@ -454,7 +443,7 @@ void PhaseField::savePreviousState() {
   //     pair.second->saveCurrentValues();
   //   }
   // }
-  
+
   if (this->phi.hasHistory()) {
     this->phi.saveCurrentValues();
   }
@@ -464,7 +453,7 @@ void PhaseField::savePreviousState() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseField::savePreviousDamage() {
-  if (this->damage_on_qpoints.hasHistory()){
+  if (this->damage_on_qpoints.hasHistory()) {
     this->damage_on_qpoints.saveCurrentValues();
   }
 }

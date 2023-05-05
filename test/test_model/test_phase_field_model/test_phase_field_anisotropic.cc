@@ -1,3 +1,22 @@
+/**
+ * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
+ *
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "aka_common.hh"
 #include "coupler_solid_phasefield.hh"
@@ -24,7 +43,7 @@ int main(int argc, char * argv[]) {
   std::ofstream os("data.csv");
   os << "#strain stress damage analytical_sigma analytical_damage" << std::endl;
 
-  initialize("material_coupling.dat", argc, argv);
+  initialize("material_hybrid.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_one_element.msh");
@@ -106,11 +125,13 @@ int main(int argc, char * argv[]) {
                          (1 - analytical_damage);
     }
 
-    error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
+    error_stress =
+        std::abs(analytical_sigma - stress(0, 3)) / std::abs(analytical_sigma);
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if (error_damage > 1e-5 or error_stress > 1e-5) {
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+        std::abs(axial_strain) > 1e-13) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;

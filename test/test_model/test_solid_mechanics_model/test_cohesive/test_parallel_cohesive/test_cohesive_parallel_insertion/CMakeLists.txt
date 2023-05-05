@@ -1,21 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Fabian Barras <fabian.barras@epfl.ch>
-# @author Mauro Corrado <mauro.corrado@epfl.ch>
-# @author Marco Vocialta <marco.vocialta@epfl.ch>
-#
-# @date creation: Fri Oct 13 2017
-# @date last modification:  Fri Oct 13 2017
-#
-# @brief  Tests parallel insertion of cohesive elements
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any

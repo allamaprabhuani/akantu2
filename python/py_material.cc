@@ -1,20 +1,8 @@
 /**
- * @file   py_material.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Thu Jun 20 2019
- * @date last modification: Fri Apr 09 2021
- *
- * @brief  pybind11 interface to Material
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -39,6 +26,7 @@
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_cohesive_linear.hh>
+#include <material_cohesive_linear_friction.hh>
 #include <solid_mechanics_model_cohesive.hh>
 #endif
 #include <material_elastic.hh>
@@ -111,23 +99,27 @@ namespace {
   void register_material_classes(py::module & mod, const std::string & name) {
     py::class_<_Material, Material, Parsable, PyMaterial<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
-        .def(py::init<SolidMechanicsModel &, const ID &>());
+        .def(py::init<SolidMechanicsModel &, const ID &>())
+        .def("registerInternalReal",
+             [](Material & self, const std::string & name, Int nb_component) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template registerInternal<Real>(name, nb_component);
+             })
+        .def("registerInternalUInt",
+             [](Material & self, const std::string & name, Int nb_component) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template registerInternal<UInt>(name, nb_component);
+             });
   }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-  template <typename _Material> class PyMaterialCohesive : public _Material {
+  // trampoline for the cohesive materials
+  template <typename _Material>
+  class PyMaterialCohesive : public PyMaterial<_Material> {
+    using Parent = PyMaterial<_Material>;
+
   public:
-    /* Inherit the constructors */
-    using _Material::_Material;
-
-    ~PyMaterialCohesive() override = default;
-    void initMaterial() override {
-      // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE(void, _Material, initMaterial, );
-    };
-
-    void computeStress(ElementType /*el_type*/,
-                       GhostType /*ghost_type*/ = _not_ghost) final {}
+    using Parent::Parent;
 
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
@@ -141,10 +133,6 @@ namespace {
                              ghost_type);
     }
 
-    void computeTangentModuli(ElementType /*el_type*/,
-                              Array<Real> & /*tangent_matrix*/,
-                              GhostType /*ghost_type*/ = _not_ghost) final {}
-
     void computeTangentTraction(ElementType el_type,
                                 Array<Real> & tangent_matrix,
                                 GhostType ghost_type = _not_ghost) override {
@@ -152,6 +140,13 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
                         tangent_matrix, ghost_type);
     }
+
+    void computeStress(ElementType /*el_type*/,
+                       GhostType /*ghost_type*/ = _not_ghost) final {}
+
+    void computeTangentModuli(ElementType /*el_type*/,
+                              Array<Real> & /*tangent_matrix*/,
+                              GhostType /*ghost_type*/ = _not_ghost) final {}
 
     template <typename T>
     void registerInternal(const std::string & name, Int nb_component) {
@@ -163,17 +158,43 @@ namespace {
       internal->initialize(nb_component);
       this->internals[name] = internal;
     }
+  };
 
-  protected:
-    std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
+  // trampoline for the cohesive material inheritance where computeTraction is
+  // not pure virtual
+  template <typename _Material>
+  class PyMaterialCohesiveDaughters : public PyMaterialCohesive<_Material> {
+    using Parent = PyMaterialCohesive<_Material>;
+
+  public:
+    using Parent::Parent;
+
+    void computeTraction(ElementType el_type,
+                         GhostType ghost_type = _not_ghost) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, computeTraction, el_type, ghost_type);
+    }
   };
 
   template <typename _Material>
   void register_material_cohesive_classes(py::module & mod,
                                           const std::string & name) {
-    py::class_<_Material, Material, Parsable, PyMaterialCohesive<_Material>>(
+    py::class_<_Material, MaterialCohesive,
+               PyMaterialCohesiveDaughters<_Material>>(
         mod, name.c_str(), py::multiple_inheritance())
-        .def(py::init<SolidMechanicsModelCohesive &, const ID &>());
+        .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
+        .def("registerInternalReal",
+             [](MaterialCohesive & self, const std::string & name,
+                UInt nb_component) {
+               auto & ref = dynamic_cast<PyMaterialCohesive<_Material> &>(self);
+               return ref.template registerInternal<Real>(name, nb_component);
+             })
+        .def("registerInternalUInt",
+             [](MaterialCohesive & self, const std::string & name,
+                UInt nb_component) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template registerInternal<UInt>(name, nb_component);
+             });
   }
 
 #endif
@@ -326,15 +347,15 @@ void register_material(py::module & mod) {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   /* ------------------------------------------------------------------------ */
-  py::class_<MaterialCohesive, Material, Parsable,
-             PyMaterialCohesive<MaterialCohesive>>(mod, "MaterialCohesive",
-                                                   py::multiple_inheritance())
+  py::class_<MaterialCohesive, Material, PyMaterialCohesive<MaterialCohesive>>(
+      mod, "MaterialCohesive", py::multiple_inheritance())
       .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
       .def("registerInternalReal",
            [](MaterialCohesive & self, const std::string & name,
               UInt nb_component) {
-             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
-                 .registerInternal<Real>(name, nb_component);
+             auto & ref =
+                 dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self);
+             return ref.registerInternal<Real>(name, nb_component);
            })
       .def("registerInternalUInt",
            [](MaterialCohesive & self, const std::string & name,
@@ -373,6 +394,10 @@ void register_material(py::module & mod) {
       mod, "MaterialCohesiveLinear2D");
   register_material_cohesive_classes<MaterialCohesiveLinear<3>>(
       mod, "MaterialCohesiveLinear3D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<2>>(
+      mod, "MaterialCohesiveLinearFriction2D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(
+      mod, "MaterialCohesiveLinearFriction3D");
 #endif
 }
 

@@ -1,33 +1,24 @@
 #===============================================================================
-# @file   CMakeLists.txt
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Mon Jun 14 2010
-# @date last modification: Tue Feb 13 2018
-#
-# @brief  CMake file for the library
-#
-# @section LICENSE
-#
-# Copyright (©) 2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
+# 
 # Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 
 #===============================================================================
 # Package Management
@@ -56,28 +47,6 @@ mark_as_advanced(AKANTU_EXTRA_CXX_FLAGS)
 foreach(src_ ${AKANTU_SPIRIT_SOURCES})
   set_property(SOURCE ${src_} PROPERTY COMPILE_FLAGS "-g0 -Werror")
 endforeach()
-
-#===========================================================================
-# header for blas/lapack (any other fortran libraries)
-#===========================================================================
-package_is_activated(BLAS _blas_activated)
-package_is_activated(LAPACK _lapack_activated)
-
-if(_blas_activated OR _lapack_activated)
-  if(CMAKE_Fortran_COMPILER)
-    # ugly hack
-    set(CMAKE_Fortran_COMPILER_LOADED TRUE)
-  endif()
-
-  include(FortranCInterface)
-  FortranCInterface_HEADER(
-    "${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh"
-    MACRO_NAMESPACE "AKA_FC_")
-  mark_as_advanced(CDEFS)
-  list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
-    "${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh"
-    )
-endif()
 
 list(APPEND AKANTU_LIBRARY_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
 set(AKANTU_INCLUDE_DIRS
@@ -177,10 +146,11 @@ target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
 target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
 
-set_target_properties(akantu
-  PROPERTIES
-    ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
-)
+if(AKANTU_LIBRARY_PROPERTIES)
+  set_target_properties(akantu
+    PROPERTIES ${AKANTU_LIBRARY_PROPERTIES} # this contains the version
+    )
+endif()
 
 if(NOT AKANTU_SHARED)
   set_property(TARGET akantu PROPERTY
@@ -195,7 +165,7 @@ if(AKANTU_LIBRARY_PRIVATE_HDRS)
   set_property(TARGET akantu PROPERTY PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS})
 endif()
 
-target_compile_features(akantu PUBLIC cxx_std_17)
+target_compile_features(akantu PUBLIC cxx_std_${AKANTU_CXX_STANDARD})
 set_target_properties(akantu
   PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
 

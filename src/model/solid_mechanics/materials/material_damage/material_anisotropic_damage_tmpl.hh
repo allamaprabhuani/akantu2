@@ -1,19 +1,8 @@
 /**
- * @file   material_anisotropic_damage_tmpl.hh
- *
- * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Jul 03 2019
- * @date last modification: Fri Jul 24 2020
- *
- * @brief  Base class for anisotropic damage materials
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -102,7 +90,7 @@ namespace {
       trace_minus += std::min(eig, 0.);
     });
 
-    return std::make_pair(trace_plus, trace_minus);
+    return std::pair(trace_plus, trace_minus);
   }
 
   template <Int dim, class Op, class D1, class D2>
@@ -302,8 +290,7 @@ public:
 
   template <class D, class... Other>
   Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
-    Real epsilon_hat = 0.;
-    std::tie(epsilon_hat, std::ignore) = tensorPlusTrace<dim>(epsilon);
+    auto && [epsilon_hat, _] = tensorPlusTrace<dim>(epsilon);
     return std::sqrt(epsilon_hat);
   }
 };

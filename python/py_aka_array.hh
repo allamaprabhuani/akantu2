@@ -1,19 +1,8 @@
 /**
- * @file   py_aka_array.hh
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Oct 31 2018
- * @date last modification: Fri Nov 13 2020
- *
- * @brief  pybind11 interface to akantu Arrays
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -56,8 +44,7 @@ namespace detail {
     void deallocate() final {}
 
     // allocate the memory
-    void allocate(Int /*size*/, Int /*nb_component*/)
-    final {}
+    void allocate(Int /*size*/, Int /*nb_component*/) final {}
 
     // allocate and initialize the memory
     void allocate(Int /*size*/, Int /*nb_component*/,
@@ -91,8 +78,9 @@ namespace detail {
       }
     }
 
-    void reserve(Int /*size*/, Int /*new_size*/)
-    final { AKANTU_EXCEPTION("cannot resize a temporary array"); }
+    void reserve(Int /*size*/, Int /*new_size*/) final {
+      AKANTU_EXCEPTION("cannot resize a temporary array");
+    }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -115,29 +103,7 @@ namespace detail {
         array_t<typename T::value_type, array::c_style | array::forcecast>;
   };
 
-  // template <typename T> struct AkaArrayType<_aka::Vector<T>> {
-  //   using type = array_t<T, array::f_style | array::forcecast>;
-  // };
-  // template <typename T> struct AkaArrayType<_aka::Matrix<T>> {
-  //   using type = array_t<T, array::f_style | array::forcecast>;
-  // };
-
   template <typename U> using array_type_t = typename AkaArrayType<U>::type;
-
-  /* ------------------------------------------------------------------------ */
-  // template <typename T>
-  // decltype(auto) create_proxy(array_type_t<_aka::Vector<T>> & ref,
-  //                             const _aka::Vector<T> * /*unused*/) {
-  //   return std::make_unique<_aka::detail::ProxyType_t<_aka::Vector<T>>>(
-  //       ref.mutable_data(), ref.shape(0));
-  // }
-
-  // template <typename T>
-  // decltype(auto) create_proxy(array_type_t<_aka::Matrix<T>> & ref,
-  //                             const _aka::Matrix<T> * /*unused*/) {
-  //   return std::make_unique<_aka::detail::ProxyType_t<_aka::Matrix<T>>>(
-  //       ref.mutable_data(), ref.shape(0), ref.shape(1));
-  // }
 
   template <typename T>
   decltype(auto) create_proxy(array_type_t<_aka::Array<T>> & ref,
@@ -160,35 +126,6 @@ namespace detail {
 
     return a.release();
   }
-
-  // template <typename T>
-  // py::handle aka_array_cast(const _aka::Vector<T> & src,
-  //                           py::handle base = handle(), bool writeable =
-  //                           true) {
-  //   array a;
-  //   a = array_type_t<_aka::Vector<T>>({src.size()}, src.data(), base);
-
-  //   if (not writeable) {
-  //     array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
-  //   }
-
-  //   return a.release();
-  // }
-
-  // template <typename T>
-  // py::handle aka_array_cast(const _aka::Matrix<T> & src,
-  //                           py::handle base = handle(), bool writeable =
-  //                           true) {
-  //   array a;
-  //   a = array_type_t<_aka::Matrix<T>>({src.size(0), src.size(1)}, src.data(),
-  //                                     base);
-
-  //   if (not writeable) {
-  //     array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
-  //   }
-
-  //   return a.release();
-  // }
 
   /* ------------------------------------------------------------------------ */
   template <typename AkaArrayType>

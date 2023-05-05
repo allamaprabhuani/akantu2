@@ -1,19 +1,8 @@
 /**
- * @file   py_fe_engine.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Nov 27 2019
- * @date last modification: Sat Dec 12 2020
- *
- * @brief  pybind11 interface to FEEngine
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,6 +30,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 /* -------------------------------------------------------------------------- */
+#include <memory>
+/* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
 
@@ -49,12 +39,11 @@ namespace akantu {
 
 void register_fe_engine(py::module & mod) {
   py::class_<Element>(mod, "Element")
-      .def(py::init([](ElementType type, Int id) {
-        return new Element{type, id, _not_ghost};
-      }))
       .def(py::init([](ElementType type, Int id, GhostType ghost_type) {
-        return new Element{type, id, ghost_type};
-      }))
+             return std::make_unique<Element>(Element{type, id, ghost_type});
+           }),
+           py::arg("type"), py::arg("ghost_type"),
+           py::arg("ghost_type") = _not_ghost)
       .def("__lt__",
            [](Element & self, const Element & other) { return (self < other); })
       .def("__repr__", [](Element & self) { return std::to_string(self); });
@@ -68,6 +57,8 @@ void register_fe_engine(py::module & mod) {
             return fem.getNbIntegrationPoints(type, ghost_type);
           },
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def("initShapeFunctions", &FEEngine::initShapeFunctions,
+           py::arg("ghost_type") = _not_ghost)
       .def(
           "gradientOnIntegrationPoints",
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,

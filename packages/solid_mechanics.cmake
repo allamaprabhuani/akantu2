@@ -1,20 +1,9 @@
 #===============================================================================
-# @file   solid_mechanics.cmake
-#
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-#
-# @date creation: Mon Dec 04 2017
-# @date last modification: Fri Mar 26 2021
-#
-# @brief  package description for core
-#
-#
-# @section LICENSE
-#
-# Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2017-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
+# This file is part of Akantu
+# 
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
@@ -33,7 +22,7 @@
 
 package_declare(solid_mechanics DEFAULT ON
   DESCRIPTION "Solid mechanics model"
-  DEPENDS core lapack
+  DEPENDS core
   )
 
 package_declare_sources(solid_mechanics

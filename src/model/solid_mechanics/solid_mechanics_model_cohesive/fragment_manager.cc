@@ -1,19 +1,8 @@
 /**
- * @file   fragment_manager.cc
- *
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- *
- * @date creation: Thu Jan 23 2014
- * @date last modification: Mon Mar 29 2021
- *
- * @brief  Group manager to handle fragments
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2014-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +16,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -427,9 +415,6 @@ void FragmentManager::integrateFieldOnFragments(
 
       /// integrate the field over the fragment
       Array<Real> integrated_array(elements.size(), nb_component);
-      std::cout << "integrated_array 1: " << std::get<0>(data).getName()
-                << " - " << integrated_array.size() << " - " << fragment_index
-                << " - " << type << std::endl;
       model.getFEEngine().integrate(integration_array, integrated_array,
                                     nb_component, type, _not_ghost, elements);
 

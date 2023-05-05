@@ -1,21 +1,8 @@
 /**
- * @file   py_akantu.cc
- *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Philip Mueller <philip.paul.mueller@bluemail.ch>
- * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date creation: Wed Oct 31 2018
- * @date last modification: Mon Mar 29 2021
- *
- * @brief  pybind11 interface to akantu main's file
- *
- *
- * @section LICENSE
- *
- * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2018-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * This file is part of Akantu
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -29,11 +16,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
+// for NLSNotConvergedException
+#include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include "py_aka_common.hh"
 #include "py_aka_error.hh"
@@ -145,11 +133,16 @@ PYBIND11_MODULE(py11_akantu, mod) {
   static py::exception<akantu::debug::Exception> akantu_exception(mod,
                                                                   "Exception");
 
+  static py::exception<akantu::debug::NLSNotConvergedException>
+      akantu_exception_nls_not_converged(mod, "NLSNotConvergedException");
+
   py::register_exception_translator([](std::exception_ptr ptr) {
     try {
       if (ptr) {
         std::rethrow_exception(ptr);
       }
+    } catch (akantu::debug::NLSNotConvergedException & e) {
+      akantu_exception_nls_not_converged(e.info().c_str());
     } catch (akantu::debug::Exception & e) {
       if (akantu::debug::debugger.printBacktrace()) {
         akantu::debug::printBacktrace();
@@ -165,7 +158,7 @@ PYBIND11_MODULE(py11_akantu, mod) {
 #if defined(AKANTU_USE_MPI)
             return true;
 #else
-    return false;
+            return false;
 #endif
           })
       .def("getVersion", &akantu::getVersion);
