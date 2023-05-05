@@ -1,3 +1,13 @@
+## Version 5.0.1 (05-05-2023)
+
+### Changed
+
+- Bug fixes:
+  - bad constcorectness in arrays
+  - applyBC broken
+
+- Extending python API
+
 ## Version 5.0 (03-28-2023)
 
 ### Changed 
