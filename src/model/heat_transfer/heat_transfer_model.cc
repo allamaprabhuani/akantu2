@@ -77,8 +77,9 @@ namespace heat_transfer {
 
 /* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
+                                     ModelType model_type,
                                      std::shared_ptr<DOFManager> dof_manager)
-    : Model(mesh, ModelType::_heat_transfer_model, dof_manager, dim, id),
+    : Model(mesh, model_type, dof_manager, dim, id),
       temperature_gradient("temperature_gradient", id),
       temperature_on_qpoints("temperature_on_qpoints", id),
       temperature_rate_on_qpoints("temperature_rate_on_qpoints", id),
@@ -327,7 +328,8 @@ void HeatTransferModel::assembleConductivityMatrix() {
 
   auto & fem = this->getFEEngine();
 
-  for (auto && type : mesh.elementTypes(spatial_dimension)) {
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
     auto nb_element = mesh.getNbElement(type);
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
@@ -885,146 +887,6 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
   }
 
   return field;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,
-                                         const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes = indexes.size();
-
-  switch (tag) {
-  case SynchronizationTag::_htm_temperature: {
-    size += nb_nodes * sizeof(Real);
-    break;
-  }
-  default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-  }
-  }
-
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
-                                        const Array<UInt> & indexes,
-                                        const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_htm_temperature: {
-      buffer << (*temperature)(index);
-      break;
-    }
-    default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
-  }
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
-                                          const Array<UInt> & indexes,
-                                          const SynchronizationTag & tag) {
-  AKANTU_DEBUG_IN();
-
-  for (auto index : indexes) {
-    switch (tag) {
-    case SynchronizationTag::_htm_temperature: {
-      buffer >> (*temperature)(index);
-      break;
-    }
-    default: {
-      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-    }
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbData(const Array<Element> & elements,
-                                         const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  }
-
-  switch (tag) {
-  case SynchronizationTag::_htm_temperature: {
-    size += nb_nodes_per_element * sizeof(Real); // temperature
-    break;
-  }
-  case SynchronizationTag::_htm_gradient_temperature: {
-    // temperature gradient
-    size += getNbIntegrationPoints(elements) * spatial_dimension * sizeof(Real);
-    size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
-    break;
-  }
-  default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-  }
-  }
-
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
-                                        const Array<Element> & elements,
-                                        const SynchronizationTag & tag) const {
-  switch (tag) {
-  case SynchronizationTag::_htm_temperature: {
-    packNodalDataHelper(*temperature, buffer, elements, mesh);
-    break;
-  }
-  case SynchronizationTag::_htm_gradient_temperature: {
-    packElementalDataHelper(temperature_gradient, buffer, elements, true,
-                            getFEEngine());
-    packNodalDataHelper(*temperature, buffer, elements, mesh);
-    break;
-  }
-  default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-  }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
-                                          const Array<Element> & elements,
-                                          const SynchronizationTag & tag) {
-  switch (tag) {
-  case SynchronizationTag::_htm_temperature: {
-    unpackNodalDataHelper(*temperature, buffer, elements, mesh);
-    break;
-  }
-  case SynchronizationTag::_htm_gradient_temperature: {
-    unpackElementalDataHelper(temperature_gradient, buffer, elements, true,
-                              getFEEngine());
-    unpackNodalDataHelper(*temperature, buffer, elements, mesh);
-
-    break;
-  }
-  default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
-  }
-  }
 }
 
 /* -------------------------------------------------------------------------- */

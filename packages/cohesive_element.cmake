@@ -108,6 +108,7 @@ package_declare_elements(cohesive_element
   interpolate_on_integration_points
   inverse_map
   lagrange_base
+  assemble_fields
   )
 
 package_declare_material_infos(cohesive_element

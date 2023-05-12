@@ -66,6 +66,7 @@ public:
 
   HeatTransferModel(Mesh & mesh, UInt dim = _all_dimensions,
                     const ID & id = "heat_transfer_model",
+                    ModelType model_type = ModelType::_heat_transfer_model,
                     std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   ~HeatTransferModel() override;
@@ -78,7 +79,7 @@ protected:
   void initFullImpl(const ModelOptions & options) override;
 
   /// read one material file to instantiate all the materials
-  void readMaterials();
+  virtual void readMaterials();
 
   /// allocate all vectors
   void initSolver(TimeStepSolverType time_step_solver_type,
@@ -111,7 +112,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute and get the stable time step
-  Real getStableTimeStep();
+  virtual Real getStableTimeStep();
 
   /// set the stable timestep
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
@@ -121,14 +122,14 @@ public:
   void assembleCapacityLumped();
 
   /// compute the internal heat flux \todo Need code review
-  void assembleInternalHeatRate();
+  virtual void assembleInternalHeatRate();
 
 public:
   /// assemble the conductivity matrix
-  void assembleConductivityMatrix();
+  virtual void assembleConductivityMatrix();
 
   /// assemble the conductivity matrix
-  void assembleCapacity();
+  virtual void assembleCapacity();
 
   /// compute the capacity on quadrature points
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
@@ -147,10 +148,6 @@ public:
                                      Matrix<Real> cond_matrix);
 
 private:
-  /// calculate the lumped capacity vector for heat transfer problem (w
-  /// ghost type)
-  void assembleCapacityLumped(GhostType ghost_type);
-
   /// compute the conductivity tensor for each quadrature point in an array
   void computeConductivityOnQuadPoints(GhostType ghost_type);
 
@@ -160,6 +157,10 @@ private:
   /// compute the thermal energy
   Real computeThermalEnergyByNode();
 
+protected:
+  /// calculate the lumped capacity vector for heat transfer problem (w
+  /// ghost type)
+  virtual void assembleCapacityLumped(GhostType ghost_type);
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
@@ -269,7 +270,7 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// temperatures array
   std::unique_ptr<Array<Real>> temperature;
 

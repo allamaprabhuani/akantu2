@@ -102,6 +102,10 @@ public:
       this->initFullImpl(HeatTransferModelOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
+    case ModelType::_heat_transfer_interface_model:
+      this->initFullImpl(HeatTransferModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
 #endif
 #ifdef AKANTU_FLUID_DIFFUSION
     case ModelType::_fluid_diffusion_model:
@@ -378,9 +382,6 @@ protected:
 
   /// parser to the pointer to use
   Parser & parser;
-
-  /// default ElementKind for dumper
-  ElementKind dumper_default_element_kind{_ek_regular};
 };
 
 /// standard output stream operator
