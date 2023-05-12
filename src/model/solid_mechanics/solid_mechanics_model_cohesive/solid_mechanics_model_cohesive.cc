@@ -36,6 +36,7 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "aka_iterators.hh"
 #include "cohesive_element_inserter.hh"
+#include "element_class.hh"
 #include "element_synchronizer.hh"
 #include "facet_synchronizer.hh"
 #include "fe_engine_template.hh"
@@ -46,6 +47,7 @@
 #include "mesh_global_data_updater.hh"
 #include "parser.hh"
 #include "shape_cohesive.hh"
+
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
