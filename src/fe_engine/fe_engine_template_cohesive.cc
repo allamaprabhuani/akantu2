@@ -34,6 +34,7 @@
 #include "fe_engine_template.hh"
 #include "integrator_gauss.hh"
 #include "shape_cohesive.hh"
+
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -122,12 +123,47 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    gradientOnIntegrationPoints(
-        const Array<Real> & /* u */, Array<Real> & /*  nablauq */,
-        UInt /* nb_degree_of_freedom */, ElementType /* type  */,
-        GhostType /*  ghost_type */,
-        const Array<UInt> & /*  filter_elements */) const {
-  AKANTU_TO_IMPLEMENT();
+    gradientOnIntegrationPoints(const Array<Real> & u, Array<Real> & nablauq,
+                                const UInt nb_degree_of_freedom,
+                                ElementType type, GhostType ghost_type,
+                                const Array<UInt> & filter_elements) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  if (filter_elements != empty_filter) {
+    nb_element = filter_elements.size();
+  }
+  UInt nb_points =
+      shape_functions.getIntegrationPoints(type, ghost_type).cols();
+
+#ifndef AKANTU_NDEBUG
+
+  UInt natural_dimension = mesh.getSpatialDimension(type) - 1;
+
+  AKANTU_DEBUG_ASSERT(u.size() == mesh.getNbNodes(),
+                      "The vector u(" << u.getID()
+                                      << ") has not the good size.");
+  AKANTU_DEBUG_ASSERT(u.getNbComponent() == nb_degree_of_freedom,
+                      "The vector u("
+                          << u.getID()
+                          << ") has not the good number of component.");
+
+  AKANTU_DEBUG_ASSERT(
+      nablauq.getNbComponent() == nb_degree_of_freedom * natural_dimension,
+      "The vector nablauq(" << nablauq.getID()
+                            << ") has not the good number of component.");
+
+// AKANTU_DEBUG_ASSERT(nablauq.size() == nb_element * nb_points,
+//                  "The vector nablauq(" << nablauq.getID()
+//                  << ") has not the good size.");
+#endif
+
+  nablauq.resize(nb_element * nb_points);
+
+  fe_engine::details::GradientOnIntegrationPointsHelper<_ek_cohesive>::call(
+      shape_functions, mesh, u, nablauq, nb_degree_of_freedom, type, ghost_type,
+      filter_elements);
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

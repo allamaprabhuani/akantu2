@@ -404,6 +404,60 @@ namespace fe_engine {
         return shapes_voigt;
       }
     };
+#if defined(AKANTU_COHESIVE_ELEMENT)
+    template <> struct ShapesForMassHelper<_ek_cohesive> {
+      template <ElementType type, class ShapeFunctions>
+      static auto getShapes(ShapeFunctions & shape_functions,
+                            const Matrix<Real> & integration_points,
+                            const Array<Real> & nodes,
+                            UInt & nb_degree_of_freedom, UInt nb_element,
+                            GhostType ghost_type) {
+
+        UInt shapes_size = ElementClass<type>::getShapeSize();
+        Array<Real> shapes(0, shapes_size);
+
+        shape_functions.template computeShapesOnIntegrationPoints<type>(
+            nodes, integration_points, shapes, ghost_type);
+
+        UInt nb_integration_points = integration_points.cols();
+        UInt vect_size = nb_integration_points * nb_element;
+        auto nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement();
+        UInt lmat_size = nb_degree_of_freedom * nb_nodes_per_element;
+        // extend reduced cohesive shape functions to the full format by
+        // multiplying with an averaging operator
+        Matrix<Real> A(shapes_size, nb_nodes_per_element);
+
+        for (UInt i = 0; i < shapes_size; ++i) {
+          A(i, i) = 0.5;
+          A(i, i + shapes_size) = 0.5;
+        }
+
+        // Extending the shape functions
+        /// \todo move this in the shape functions as Voigt format shapes to
+        /// have the code in common with the structural elements
+        auto shapes_voigt = std::make_unique<Array<Real>>(
+            vect_size, lmat_size * nb_degree_of_freedom, 0.);
+        auto shapes_averaged =
+            std::make_unique<Array<Real>>(vect_size, nb_nodes_per_element);
+        auto mshapes_it = shapes_voigt->begin(nb_degree_of_freedom, lmat_size);
+        auto avshapes_it = shapes_averaged->begin(nb_nodes_per_element);
+        auto shapes_it = shapes.begin(shapes_size);
+
+        for (UInt q = 0; q < vect_size;
+             ++q, ++mshapes_it, ++avshapes_it, ++shapes_it) {
+          avshapes_it->template mul<true>(A, *shapes_it);
+          for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+            for (UInt s = 0; s < nb_nodes_per_element; ++s) {
+              (*mshapes_it)(d, s * nb_degree_of_freedom + d) =
+                  (*avshapes_it)(s);
+            }
+          }
+        }
+
+        return shapes_voigt;
+      }
+    };
+#endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
     template <> struct ShapesForMassHelper<_ek_structural> {

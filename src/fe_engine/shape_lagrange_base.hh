@@ -72,6 +72,13 @@ public:
       Array<Real> & shapes, GhostType ghost_type,
       const Array<UInt> & filter_elements = empty_filter) const;
 
+  /// compute the shape derivatives on integration points for a given element
+  template <ElementType type>
+  inline void
+  computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
+                                            const Matrix<Real> & natural_coords,
+                                            Tensor3<Real> & shapesd) const;
+
 public:
   void onElementsAdded(const Array<Element> & elements) override;
   void

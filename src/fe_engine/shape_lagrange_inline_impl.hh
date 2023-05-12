@@ -64,29 +64,6 @@ inline void ShapeLagrange<kind>::initShapeFunctions(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
-    const Matrix<Real> & node_coords, const Matrix<Real> & natural_coords,
-    Tensor3<Real> & shapesd) const {
-  AKANTU_DEBUG_IN();
-
-  // compute dnds
-  Tensor3<Real> dnds(node_coords.rows(), node_coords.cols(),
-                     natural_coords.cols());
-  ElementClass<type>::computeDNDS(natural_coords, dnds);
-  // compute jacobian
-  Tensor3<Real> J(node_coords.rows(), natural_coords.rows(),
-                  natural_coords.cols());
-  ElementClass<type>::computeJMat(dnds, node_coords, J);
-
-  // compute dndx
-  ElementClass<type>::computeShapeDerivatives(J, dnds, shapesd);
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <ElementKind kind>
-template <ElementType type>
 void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
                                      UInt elem, Vector<Real> & natural_coords,
                                      GhostType ghost_type) const {

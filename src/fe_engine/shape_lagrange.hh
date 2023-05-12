@@ -163,14 +163,6 @@ public:
   void computeShapeDerivatives(const Matrix<Real> & real_coords, UInt elem,
                                Tensor3<Real> & shapes,
                                GhostType ghost_type) const;
-
-protected:
-  /// compute the shape derivatives on integration points for a given element
-  template <ElementType type>
-  inline void
-  computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
-                                            const Matrix<Real> & natural_coords,
-                                            Tensor3<Real> & shapesd) const;
 };
 
 } // namespace akantu

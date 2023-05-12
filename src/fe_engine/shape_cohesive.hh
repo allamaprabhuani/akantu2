@@ -87,7 +87,7 @@ public:
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type, GhostType ghost_type,
+      Array<Real> & shape_derivative, ElementType type, GhostType ghost_type,
       const Array<UInt> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
@@ -101,6 +101,12 @@ public:
   template <ElementType type>
   void precomputeShapeDerivativesOnIntegrationPoints(const Array<Real> & nodes,
                                                      GhostType ghost_type);
+
+  template <ElementType type>
+  void computeShapeDerivativesOnIntegrationPointsLowerDimension(
+      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      Array<Real> & shape_derivatives, const GhostType & ghost_type,
+      const Array<UInt> & filter_elements = empty_filter) const;
 
   /// interpolate nodal values on the integration points
   template <ElementType type, class ReduceFunction>
@@ -125,9 +131,18 @@ public:
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
       const Array<UInt> & filter_elements = empty_filter) const {
-    variationOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
+    // variationOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
+    //     u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
+    gradientOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
         u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
+
+  /// compute gradient on the facet element placed in the base of dim - 1
+  template <ElementType type, class ReduceFunction>
+  void gradientOnIntegrationPoints(
+      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      GhostType ghost_type = _not_ghost,
+      const Array<UInt> & filter_elements = empty_filter) const;
 
   /* ------------------------------------------------------------------------ */
   template <ElementType type>
@@ -138,11 +153,9 @@ public:
   }
 
   template <ElementType type>
-  void computeBtDB(const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/,
-                   UInt /*order_d*/, GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
-    AKANTU_TO_IMPLEMENT();
-  }
+  void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
+                   GhostType ghost_type,
+                   const Array<UInt> & filter_elements) const;
 
   /// multiply a field by shape functions
   template <ElementType type>
@@ -173,6 +186,12 @@ public:
   void computeNormalsOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & normals_u,
       GhostType ghost_type = _not_ghost,
+      const Array<UInt> & filter_elements = empty_filter) const;
+
+  /// computes bases alligned with cohesive elements
+  template <ElementType type, class ReduceFunction>
+  void computeAllignedBasisOnIntegrationPoints(
+      const Array<Real> & u, Array<Real> & basis_u, GhostType ghost_type,
       const Array<UInt> & filter_elements = empty_filter) const;
 };
 
