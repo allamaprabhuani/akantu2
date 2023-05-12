@@ -120,6 +120,10 @@ public:
   /// direct access to the iohelper::Dumper object
   AKANTU_GET_MACRO(Dumper, *dumper, iohelper::Dumper &)
 
+  /// get the dumper default element kind
+  AKANTU_GET_MACRO(DefaultElementKind, dumper_default_element_kind,
+                   const ElementKind &)
+
   /// set the timestep of the iohelper::Dumper
   void setTimeStep(Real time_step);
 
@@ -155,6 +159,9 @@ protected:
 
   /// is time tracking activated in the dumper
   bool time_activated{false};
+
+  /// default element kind
+  ElementKind dumper_default_element_kind{_ek_regular};
 };
 
 } // namespace akantu

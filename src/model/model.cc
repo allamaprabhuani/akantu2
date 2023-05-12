@@ -200,6 +200,9 @@ void Model::setBaseNameToDumper(const std::string & dumper_name,
 
 void Model::addDumpFieldToDumper(const std::string & dumper_name,
                                  const std::string & field_id) {
+  auto dumper_default_element_kind =
+      mesh.getDumper(dumper_name).getDefaultElementKind();
+
   this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
                                   dumper_default_element_kind, false);
 }
@@ -208,6 +211,9 @@ void Model::addDumpFieldToDumper(const std::string & dumper_name,
 void Model::addDumpGroupField(const std::string & field_id,
                               const std::string & group_name) {
   ElementGroup & group = mesh.getElementGroup(group_name);
+  auto dumper_default_element_kind =
+      mesh.getGroupDumper(group.getDefaultDumperName(), group_name)
+          .getDefaultElementKind();
   this->addDumpGroupFieldToDumper(group.getDefaultDumperName(), field_id,
                                   group_name, dumper_default_element_kind,
                                   false);
@@ -232,6 +238,8 @@ void Model::removeDumpGroupFieldFromDumper(const std::string & dumper_name,
 /* -------------------------------------------------------------------------- */
 void Model::addDumpFieldVectorToDumper(const std::string & dumper_name,
                                        const std::string & field_id) {
+  auto dumper_default_element_kind =
+      mesh.getDumper(dumper_name).getDefaultElementKind();
   this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
                                   dumper_default_element_kind, true);
 }
@@ -248,6 +256,8 @@ void Model::addDumpGroupFieldVector(const std::string & field_id,
 void Model::addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
                                             const std::string & field_id,
                                             const std::string & group_name) {
+  auto dumper_default_element_kind =
+      mesh.getGroupDumper(dumper_name, group_name).getDefaultElementKind();
   this->addDumpGroupFieldToDumper(dumper_name, field_id, group_name,
                                   dumper_default_element_kind, true);
 }
@@ -255,6 +265,8 @@ void Model::addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
 
 void Model::addDumpFieldTensorToDumper(const std::string & dumper_name,
                                        const std::string & field_id) {
+  auto dumper_default_element_kind =
+      mesh.getDumper(dumper_name).getDefaultElementKind();
   this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
                                   dumper_default_element_kind, true);
 }

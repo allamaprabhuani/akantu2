@@ -113,6 +113,7 @@ void DumperIOHelper::dump(Real current_time, UInt step) {
 void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
                                   GhostType ghost_type,
                                   ElementKind element_kind) {
+  this->dumper_default_element_kind = element_kind;
 
 #if defined(AKANTU_IGFEM)
   if (element_kind == _ek_igfem) {
