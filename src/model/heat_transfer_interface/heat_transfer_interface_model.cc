@@ -826,6 +826,21 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
                                                  ElementKind element_kind) {
   std::shared_ptr<dumpers::Field> field;
 
+  auto getNbDataPerElem = [&](auto & field) {
+    const auto & fe_engine = getFEEngine("InterfacesFEEngine");
+    ElementTypeMap<UInt> res;
+    for (auto ghost_type : ghost_types) {
+      for (auto & type : field.elementTypes(ghost_type)) {
+        auto nb_quadrature_points =
+            fe_engine.getNbIntegrationPoints(type, ghost_type);
+        res(type, ghost_type) =
+            field(type, ghost_type).getNbComponent() * nb_quadrature_points;
+      }
+    }
+
+    return res;
+  };
+
   if (element_kind == _ek_regular) {
     field = Parent::createElementalField(field_name, group_name, padding_flag,
                                          spatial_dimension, element_kind);
@@ -835,31 +850,21 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
           mesh.getConnectivities(), group_name, this->spatial_dimension,
           element_kind);
     } else if (field_name == "opening_on_qpoints") {
-      ElementTypeMap<UInt> nb_data_per_elem =
-          this->mesh.getNbDataPerElem(opening_on_qpoints);
-
+      auto nb_data_per_elem = getNbDataPerElem(opening_on_qpoints);
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           opening_on_qpoints, group_name, this->spatial_dimension, element_kind,
           nb_data_per_elem);
     } else if (field_name == "temperature_gradient_on_surface") {
-      ElementTypeMap<UInt> nb_data_per_elem =
-          this->mesh.getNbDataPerElem(temperature_gradient_on_surface);
+      auto nb_data_per_elem = getNbDataPerElem(temperature_gradient_on_surface);
 
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           temperature_gradient_on_surface, group_name, this->spatial_dimension,
           element_kind, nb_data_per_elem);
     } else if (field_name == "temperature_jump") {
-      ElementTypeMap<UInt> nb_data_per_elem =
-          this->mesh.getNbDataPerElem(temperature_jump);
-      if (!field) {
-        std::cout << "toto" << std::endl;
-      }
+      auto nb_data_per_elem = getNbDataPerElem(temperature_jump);
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           temperature_jump, group_name, this->spatial_dimension, element_kind,
           nb_data_per_elem);
-      if (!field) {
-        std::cout << "toto" << std::endl;
-      }
     }
   }
   return field;
