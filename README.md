@@ -17,7 +17,7 @@ In order to compile `Akantu`  any compiler supporting fully C++14 should work.
 In addition some libraries are required:
 
  - CMake (>= 3.5.1)
- - Boost (preprocessor and Spirit)
+ - Boost (pre-processor and Spirit)
  - zlib
  - Eigen3 (if not present the build system will try to download it)
 
@@ -44,11 +44,36 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
-# For parallel
-> sudo apt install mpi-default-dev libmumps-dev libscotch-dev
-# For sequential
-> sudo apt install libmumps-seq-dev 
+ > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
+ # For parallel
+ > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
+ # For sequential
+ > sudo apt install libmumps-seq-dev 
+```
+
+### Using `conda`
+
+This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support
+
+``` sh
+ > conda create -n akantu
+ > conda activate akantu
+ > conda install boost cmake
+ > conda install -c conda-forge mumps
+```
+
+### Using `homebrew`
+
+``` sh
+ > brew install gcc
+ > brew install boost@1.76
+ > brew tap brewsci/num
+ > brew install brewsci-mumps --without-brewsci-parmetis
+```
+
+If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command:
+``` sh
+  > brew edit brewsci/num
 ```
 
 ## Configuring and compilation
@@ -67,10 +92,36 @@ To compile the tests and examples:
 
 ```
 
+### On Mac OS X with `homebrew`
+
+You will need to specify the compiler explicitly:
+
+``` sh
+ > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
+```
+
+Considering the homebrew is installed in `/opt/homebrew`
+Define the location of the ``Scotch`` library path:
+``` sh
+ > cmake .. -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
+```
+
+Specify path to all ``MUMPS`` libraries:
+``` sh
+ > cmake .. -DMUMPS_DIR=/opt/homebrew/opt/brewsci-mumps
+```
+
+In case the above does not work, specify the ``MUMPS`` path manually using (e.g.):
+``` sh
+ > cmake .. -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib 
+```
+
+If compilation does not work change the path of the failing libraries to brew downloads in `/opt/homebrew/`. 
+
 ## Using the python interface
 
 
-You can install ``Akantu`` using pip, this will install a pre-compiled version:
+You can install ``Akantu`` using pip, this will install a pre-compiled version, this works only on Linux machines for now:
 
 ``` sh
   > pip install akantu
