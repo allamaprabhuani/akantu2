@@ -140,11 +140,7 @@ request or post an issue on [GitLab](https://gitlab.com/akantu/akantu/-/issues).
 # Tutorials with the python interface
 
 To help getting started, multiple tutorials using the python interface are
-available as notebooks with pre-installed version of `Akantu` on Binder. The
-following tutorials are currently available:
+available as notebooks with pre-installed version of `Akantu` on Renku. The tutorials can be tested at this here: 
 
-[Plate whith a hole loaded](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=plate-hole/plate-hole.ipynb)
+[![renku](https://user-content.gitlab-static.net/52a4794df1236b248c8fc870bd74e9d787c0e2cb/68747470733a2f2f72656e6b756c61622e696f2f72656e6b752d62616467652e737667)](https://renkulab.io/projects/guillaume.anciaux/akantu-tutorials/sessions/new?autostart=1)
 
-[Loaded cohesive crack](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=cohesive-fracture/cohesive-fracture.ipynb)
-
-[Making your constitutive law in python](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=constitutive-laws/python_constitutive_law.ipynb)

@@ -38,7 +38,7 @@ To compile the tests and examples:
 On ``.deb`` based Linux systems
 """""""""""""""""""""""""""""""
 
-::
+.. code-block:: bash
  > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
  # For parallel
  > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
@@ -48,8 +48,9 @@ On ``.deb`` based Linux systems
 Using ``conda``
 """""""""""""""
 
-This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support::
+This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support:
 
+.. code-block:: bash
  > conda create -n akantu
  > conda activate akantu
  > conda install boost cmake
@@ -57,21 +58,24 @@ This works only for sequential computation since `mumps` from conda-forge is com
 
 Using ``homebrew``
 """"""""""""""""""
-::
+
+.. code-block:: bash
  > brew install gcc
  > brew install boost@1.76
  > brew tap brewsci/num
  > brew install brewsci-mumps --without-brewsci-parmetis
 
-If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command::
+If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command:
 
+.. code-block:: bash
  > brew edit brewsci/num
 
 Configuring and compilation
 ```````````````````````````
 
-`Akantu` is a [CMake](https://cmake.org/) project, so to configure it, you can follow the usual way::
+`Akantu` is a [CMake](https://cmake.org/) project, so to configure it, you can follow the usual way:
 
+ .. code-block:: bash
   > cd akantu
   > mkdir build
   > cd build
@@ -84,20 +88,23 @@ On Mac OS X with ``homebrew``
 """""""""""""""""""""""""""""
 You will need to specify the compiler explicitly::
 
-``` sh
-> CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
-```
+.. code-block:: bash
+  > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
 
-Considering the homebrew is installed in ``/opt/homebrew``
-Define the locaction of the ``Scotch`` library path::
+Considering that ``homebrew` is installed in ``/opt/homebrew``
+Define the location of the ``Scotch`` library path:
 
+.. code-block:: bash
  > cmake .. -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
 
-Specify path to all ``MUMPS`` libraries::
+Specify path to all ``MUMPS`` libraries:
 
+.. code-block:: bash
  > cmake .. -DMUMPS_DIR=/opt/homebrew/opt/brewsci-mumps
 
-In case the above does not work, specify the ``MUMPS`` path manually using (e.g.)::
+In case the above does not work, specify the ``MUMPS`` path manually using (e.g.):
+
+.. code-block:: bash
  > cmake .. -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib
 
 If compilation does not work change the path of the failing libraries to brew downloads in `/opt/homebrew/`.
@@ -119,15 +126,11 @@ Tutorials with the python interface
 ```````````````````````````````````    
 
 To help getting started, several tutorials using the python interface
-are available as notebooks with pre-installed version of ``Akantu`` on Binder.
-The following tutorials are currently available:
+are available as notebooks with pre-installed version of ``Akantu`` on Renku.
+The tutorials are currently available:
 
-`Plate whith a hole loaded <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=plate-hole/plate-hole.ipynb>`_
-
-`Loaded cohesive crack <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=cohesive-fracture/cohesive-fracture.ipynb>`_
-
-`Making your constitutive law in python <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=constitutive-laws/python_constitutive_law.ipynb>`_
-
+.. |renku| image:: https://user-content.gitlab-static.net/52a4794df1236b248c8fc870bd74e9d787c0e2cb/68747470733a2f2f72656e6b756c61622e696f2f72656e6b752d62616467652e737667
+   :target: https://renkulab.io/projects/guillaume.anciaux/akantu-tutorials/sessions/new?autostart=1
 
 Writing a ``main`` function
 ---------------------------
