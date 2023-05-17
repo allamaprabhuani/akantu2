@@ -39,6 +39,7 @@ On ``.deb`` based Linux systems
 """""""""""""""""""""""""""""""
 
 .. code-block:: bash
+
  > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
  # For parallel
  > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
@@ -51,6 +52,7 @@ Using ``conda``
 This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support:
 
 .. code-block:: bash
+
  > conda create -n akantu
  > conda activate akantu
  > conda install boost cmake
@@ -60,6 +62,7 @@ Using ``homebrew``
 """"""""""""""""""
 
 .. code-block:: bash
+
  > brew install gcc
  > brew install boost@1.76
  > brew tap brewsci/num
@@ -68,6 +71,7 @@ Using ``homebrew``
 If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command:
 
 .. code-block:: bash
+
  > brew edit brewsci/num
 
 Configuring and compilation
@@ -76,6 +80,7 @@ Configuring and compilation
 `Akantu` is a [CMake](https://cmake.org/) project, so to configure it, you can follow the usual way:
 
  .. code-block:: bash
+
   > cd akantu
   > mkdir build
   > cd build
@@ -89,22 +94,26 @@ On Mac OS X with ``homebrew``
 You will need to specify the compiler explicitly::
 
 .. code-block:: bash
-  > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
+
+ > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
 
 Considering that ``homebrew` is installed in ``/opt/homebrew``
 Define the location of the ``Scotch`` library path:
 
 .. code-block:: bash
+
  > cmake .. -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
 
 Specify path to all ``MUMPS`` libraries:
 
 .. code-block:: bash
+
  > cmake .. -DMUMPS_DIR=/opt/homebrew/opt/brewsci-mumps
 
 In case the above does not work, specify the ``MUMPS`` path manually using (e.g.):
 
 .. code-block:: bash
+
  > cmake .. -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib
 
 If compilation does not work change the path of the failing libraries to brew downloads in `/opt/homebrew/`.
