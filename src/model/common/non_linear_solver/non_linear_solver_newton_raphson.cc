@@ -110,8 +110,10 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
       return;
     }
 
+    auto local_norm =
+        this->normLocalAndMasterDOFs(this->dof_manager.getResidual());
     this->convergence_criteria_normalized =
-        this->error * this->convergence_criteria;
+        local_norm * this->convergence_criteria;
   }
 
   do {
@@ -201,10 +203,36 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
                       "Something went wrong in the solve phase");
 
   this->error = norm;
-
+  AKANTU_DEBUG_OUT();
   return (error < this->convergence_criteria_normalized);
 }
+/* -------------------------------------------------------------------------- */
+Real NonLinearSolverNewtonRaphson::normLocalAndMasterDOFs(
+    const SolverVector & solver_vector) {
+  AKANTU_DEBUG_IN();
 
+  const Array<Real> & array(solver_vector);
+  UInt nb_degree_of_freedoms = array.size();
+
+  auto arr_it = array.begin();
+
+  Real norm = 0.;
+  for (UInt n = 0; n < nb_degree_of_freedoms; ++n, ++arr_it) {
+    bool is_local_node = this->dof_manager.isLocalOrMasterDOF(n);
+    if (is_local_node) {
+      norm += *arr_it * *arr_it;
+    }
+  }
+
+  dof_manager.getCommunicator().allReduce(norm, SynchronizerOperation::_sum);
+
+  norm = std::sqrt(norm);
+
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm),
+                      "Something went wrong in the solve phase");
+  AKANTU_DEBUG_OUT();
+  return norm;
+}
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu

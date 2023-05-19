@@ -71,7 +71,8 @@ public:
 protected:
   /// test the convergence compare norm of array to convergence_criteria
   bool testConvergence(const SolverVector & solver_vector);
-
+  /// assemble the norm of a vector including blocked dofs
+  Real normLocalAndMasterDOFs(const SolverVector & solver_vector);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
