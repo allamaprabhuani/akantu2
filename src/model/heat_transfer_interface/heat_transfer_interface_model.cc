@@ -131,14 +131,11 @@ void HeatTransferInterfaceModel::initModel() {
 /* -------------------------------------------------------------------------- */
 HeatTransferInterfaceModel::~HeatTransferInterfaceModel() = default;
 /* -------------------------------------------------------------------------- */
-void HeatTransferInterfaceModel::initFullImpl(const ModelOptions & options) {
-  Model::initFullImpl(options);
-
-  readMaterials();
-}
-/* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::predictor() {
   Parent::predictor();
+  /// to force HeatTransferModel recompute conductivity matrix
+  ++this->conductivity_release[_not_ghost];
+  /// same for HeatTransferInterfaceModel
   ++opening_release;
 }
 
@@ -471,6 +468,7 @@ void HeatTransferInterfaceModel::assembleInternalHeatRate() {
 
   Parent::assembleInternalHeatRate();
 
+  // auto ghost_type = _not_ghost;
   for (auto ghost_type : ghost_types) {
     computeKLongGradT(ghost_type);
     computeKTransDeltaT(ghost_type);
@@ -480,7 +478,6 @@ void HeatTransferInterfaceModel::assembleInternalHeatRate() {
 
     computeInertialHeatRate(ghost_type);
   }
-
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

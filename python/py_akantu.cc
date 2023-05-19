@@ -55,6 +55,7 @@
 #endif
 
 #if defined(AKANTU_HEAT_TRANSFER)
+#include "py_heat_transfer_interface_model.hh"
 #include "py_heat_transfer_model.hh"
 #endif
 
@@ -112,6 +113,7 @@ void register_all(pybind11::module & mod) {
   register_model(mod);
 #if defined(AKANTU_HEAT_TRANSFER)
   register_heat_transfer_model(mod);
+  register_heat_transfer_interface_model(mod);
 #endif
 #if defined(AKANTU_FLUID_DIFFUSION)
   register_fluid_diffusion_model(mod);

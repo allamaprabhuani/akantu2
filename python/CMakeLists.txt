@@ -81,7 +81,8 @@ package_is_activated(heat_transfer _is_activated)
 if (_is_activated)
   list(APPEND PYAKANTU_SRCS
     py_heat_transfer_model.cc
-    )
+    py_heat_transfer_interface_model.cc
+        )
 endif()
 
 package_is_activated(fluid_diffusion _is_activated)

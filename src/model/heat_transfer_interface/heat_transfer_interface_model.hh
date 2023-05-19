@@ -61,9 +61,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// generic function to initialize everything ready for explicit dynamics
-  void initFullImpl(const ModelOptions & options) override;
-
   /// read one material file to instantiate all the materials
   void readMaterials() override;
 
@@ -178,11 +175,15 @@ public:
   AKANTU_GET_MACRO(LongitudinalConductivity, longitudinal_conductivity, Real);
   AKANTU_GET_MACRO(CapacityInCrack, capacity_in_crack, Real);
   AKANTU_GET_MACRO(DensityInCrack, density_in_crack, Real);
+  AKANTU_GET_MACRO(DefaultOpening, default_opening, Real);
   /// get the conductivity on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TransversalConductivityOnQpoints,
                                          k_perp_over_w, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(LongitudinalConductivityOnQpoints,
+                                         k_long_w, Real);
   /// get the aperture on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening_on_qpoints, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Opening, opening_on_qpoints, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
