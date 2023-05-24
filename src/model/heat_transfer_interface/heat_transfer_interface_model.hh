@@ -158,6 +158,18 @@ protected:
     AKANTU_TO_IMPLEMENT();
   };
   /* ------------------------------------------------------------------------ */
+  /* Data Accessor inherited members                                          */
+  /* ------------------------------------------------------------------------ */
+public:
+  inline UInt getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const override;
+  inline void packData(CommunicationBuffer & buffer,
+                       const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
+  inline void unpackData(CommunicationBuffer & buffer,
+                         const Array<Element> & elements,
+                         const SynchronizationTag & tag) override;
+  /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
@@ -184,9 +196,6 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening_on_qpoints, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Opening, opening_on_qpoints, Real);
 
-public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -226,28 +235,11 @@ protected:
   /// cohesive elements synchronizer
   std::unique_ptr<ElementSynchronizer> cohesive_synchronizer;
 };
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-inline UInt
-HeatTransferInterfaceModel::getNbData(const Array<Element> & elements,
-                                      const SynchronizationTag & tag) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    if (el.kind() == _ek_cohesive)
-      std::cout << "Cohesive syncronized" << std::endl;
-    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  }
-
-  size += Parent::getNbData(elements, tag);
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-} // namespace akantu
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+#include "heat_transfer_interface_model_inline_impl.hh"
 
 #endif /* AKANTU_HEAT_TRANSFER_INTERFACE_MODEL_HH_ */

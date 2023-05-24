@@ -101,7 +101,29 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
 
     this->registerSynchronizer(*cohesive_synchronizer,
                                SynchronizationTag::_htm_gradient_temperature);
+
+    auto & mesh_facets = this->mesh.getMeshFacets();
+    auto & facet_synchronizer = mesh_facets.getElementSynchronizer();
+    const auto & cfacet_synchronizer = facet_synchronizer;
+    // update the cohesive element synchronizer
+    cohesive_synchronizer->updateSchemes([&](auto && scheme, auto && proc,
+                                             auto && direction) {
+      auto & facet_scheme =
+          cfacet_synchronizer.getCommunications().getScheme(proc, direction);
+
+      for (auto && facet : facet_scheme) {
+        const auto & cohesive_element = const_cast<const Mesh &>(mesh_facets)
+                                            .getElementToSubelement(facet)[1];
+
+        if (cohesive_element == ElementNull or
+            cohesive_element.kind() != _ek_cohesive) {
+          continue;
+        }
+        scheme.push_back(cohesive_element);
+      }
+    });
   }
+
   this->registerParam("longitudinal_conductivity", longitudinal_conductivity,
                       _pat_parsmod);
   this->registerParam("transversal_conductivity", transversal_conductivity,
@@ -467,15 +489,10 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
       const auto & k_w = std::get<0>(values);
       const auto & full_gradT = std::get<1>(values);
       Vector<Real> surf_gradT(spatial_dimension - 1);
-      bool zero_grad = true;
       for (auto i : arange(spatial_dimension - 1)) {
         surf_gradT(i) = full_gradT(i);
-        if (full_gradT(i) != 0)
-          zero_grad = false;
       }
-      if (zero_grad and ghost_type == _ghost) {
-        std::cout << "zero grad" << std::endl;
-      }
+
       auto & k_w_gradT = std::get<2>(values);
       k_w_gradT.mul<false>(k_w, surf_gradT);
       /// compute @f$B_a t_i@f$
