@@ -192,7 +192,13 @@ public:
     ElementTypesIteratorHelper &
     operator=(ElementTypesIteratorHelper &&) noexcept = default;
 
+    template <typename SupportType_ = SupportType,
+              std::enable_if_t<
+                  std::is_same<SupportType_, ElementType>::value> * = nullptr>
     iterator begin();
+    template <typename SupportType_ = SupportType,
+              std::enable_if_t<
+                  std::is_same<SupportType_, ElementType>::value> * = nullptr>
     iterator end();
 
   private:

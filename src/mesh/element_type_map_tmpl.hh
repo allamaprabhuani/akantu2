@@ -173,12 +173,11 @@ template <typename T, typename SupportType>
 void ElementTypeMapArray<T, SupportType>::copy(
     const ElementTypeMapArray & other) {
   for (auto ghost_type : ghost_types) {
-    for (auto type :
-         this->elementTypes(_all_dimensions, ghost_type, _ek_not_defined)) {
-      const auto & array_to_copy = other(type, ghost_type);
+    const DataMap & data = other.getData(ghost_type);
+    for (auto && [type, array_to_copy] : data) {
       auto & array =
-          this->alloc(0, array_to_copy.getNbComponent(), type, ghost_type);
-      array.copy(array_to_copy);
+          this->alloc(0, array_to_copy->getNbComponent(), type, ghost_type);
+      array.copy(*array_to_copy);
     }
   }
 }
@@ -488,6 +487,8 @@ inline bool ElementTypeMap<Stored, SupportType>::type_iterator::operator!=(
 
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
+template <typename SupportType_,
+          std::enable_if_t<std::is_same<SupportType_, ElementType>::value> *>
 auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::begin()
     -> iterator {
   auto b = container.get().getData(ghost_type).begin();
@@ -505,6 +506,8 @@ auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::begin()
 }
 
 template <class Stored, typename SupportType>
+template <typename SupportType_,
+          std::enable_if_t<std::is_same<SupportType_, ElementType>::value> *>
 auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::end()
     -> iterator {
   auto e = container.get().getData(ghost_type).end();
