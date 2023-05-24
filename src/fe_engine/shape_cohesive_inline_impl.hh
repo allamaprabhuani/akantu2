@@ -121,7 +121,6 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnIntegrationPoints(
   Matrix<Real> & natural_coords = integration_points(type, ghost_type);
   UInt size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
   UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt natural_dimension = ElementClass<type>::getNaturalSpaceDimension();
 
   Array<Real> & shapes_derivatives_tmp =
       shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
@@ -234,19 +233,57 @@ void ShapeLagrange<_ek_cohesive>::
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeLagrange<_ek_cohesive>::computeBtDB(
-    const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/, UInt /*order_d*/,
-    GhostType /*ghost_type*/, const Array<UInt> & /*filter_elements*/) const {
-  AKANTU_TO_IMPLEMENT();
+void ShapeLagrange<_ek_cohesive>::computeBtD(
+    const Array<Real> & Ds, Array<Real> & BtDs, GhostType ghost_type,
+    const Array<UInt> & filter_elements) const {
+  this->computeExtendedBtD<type>(Ds, BtDs, ghost_type, filter_elements);
 }
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void ShapeLagrange<_ek_cohesive>::computeExtendedBtD(
+    const Array<Real> & Ds, Array<Real> & AtBtDs, GhostType ghost_type,
+    const Array<UInt> & filter_elements) const {
+  auto itp_type = ElementClassProperty<type>::interpolation_type;
+  const auto & shapes_derivatives =
+      this->shapes_derivatives(itp_type, ghost_type);
 
-template <>
-inline void ShapeLagrange<_ek_cohesive>::computeBtDB<_point_1>(
-    const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/, UInt /*order_d*/,
-    GhostType /*ghost_type*/, const Array<UInt> & /*filter_elements*/) const {
-  AKANTU_TO_IMPLEMENT();
+  auto natural_dimension = ElementClass<type>::getNaturalSpaceDimension();
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+  Array<Real> shapes_derivatives_filtered(0,
+                                          shapes_derivatives.getNbComponent());
+  auto && view = make_view(shapes_derivatives, natural_dimension,
+                           nb_nodes_per_element / 2);
+  auto B_it = view.begin();
+  auto B_end = view.end();
+
+  if (filter_elements != empty_filter) {
+    FEEngine::filterElementalData(this->mesh, shapes_derivatives,
+                                  shapes_derivatives_filtered, type, ghost_type,
+                                  filter_elements);
+    auto && view = make_view(shapes_derivatives_filtered, natural_dimension,
+                             nb_nodes_per_element / 2);
+    B_it = view.begin();
+    B_end = view.end();
+  }
+
+  auto A = ExtendingOperators::getAveragingOperator(type);
+  Matrix<Real> B_A(natural_dimension, nb_nodes_per_element);
+
+  for (auto && values :
+       zip(range(B_it, B_end),
+           make_view(Ds, Ds.getNbComponent() / natural_dimension,
+                     natural_dimension),
+           make_view(AtBtDs, AtBtDs.getNbComponent() / nb_nodes_per_element,
+                     nb_nodes_per_element))) {
+    const auto & B = std::get<0>(values);
+    const auto & D = std::get<1>(values);
+    B_A.mul<false, false>(B, A);
+    auto & At_Bt_D = std::get<2>(values);
+    // transposed due to the storage layout of B
+    At_Bt_D.template mul<false, false>(D, B_A);
+  }
 }
-
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(

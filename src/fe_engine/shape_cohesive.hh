@@ -47,25 +47,73 @@ struct CohesiveReduceFunctionMean {
   }
 };
 
-struct CohesiveReduceFunctionOpening {
+struct CohesiveReduceFunctionDifference {
   inline Real operator()(Real u_plus, Real u_minus) {
     return (u_plus - u_minus);
   }
 };
 
+struct ExtendingOperators {
+  static Matrix<Real>
+  getAveragingOperator(const ElementType & type,
+                       const UInt & nb_degree_of_freedom = 1) {
+    AKANTU_DEBUG_IN();
+    auto kind = Mesh::getKind(type);
+    AKANTU_DEBUG_ASSERT(kind == _ek_cohesive,
+                        "Extending operators work only for cohesive elements");
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    // averaging operator
+    Matrix<Real> A(nb_degree_of_freedom * nb_nodes_per_element / 2,
+                   nb_degree_of_freedom * nb_nodes_per_element);
+
+    for (UInt i = 0; i < nb_degree_of_freedom * nb_nodes_per_element / 2; ++i) {
+      A(i, i) = 0.5;
+      A(i, i + nb_degree_of_freedom * nb_nodes_per_element / 2) = 0.5;
+    }
+    AKANTU_DEBUG_OUT();
+    return A;
+  };
+
+  static Matrix<Real>
+  getDifferencingOperator(const ElementType & type,
+                          const UInt & nb_degree_of_freedom = 1) {
+    AKANTU_DEBUG_IN();
+    auto kind = Mesh::getKind(type);
+    AKANTU_DEBUG_ASSERT(kind == _ek_cohesive,
+                        "Extending operators work only for cohesive elements");
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    // averaging operator
+    Matrix<Real> A(nb_degree_of_freedom * nb_nodes_per_element / 2,
+                   nb_degree_of_freedom * nb_nodes_per_element);
+
+    for (UInt i = 0; i < nb_degree_of_freedom * nb_nodes_per_element / 2; ++i) {
+      A(i, i) = 1;
+      A(i, i + nb_degree_of_freedom * nb_nodes_per_element / 2) = -1;
+    }
+    AKANTU_DEBUG_OUT();
+    return A;
+  }
+};
+
 template <> class ShapeLagrange<_ek_cohesive> : public ShapeLagrangeBase {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Constructors/Destructors */
+  /* ------------------------------------------------------------------------
+   */
 public:
   ShapeLagrange(const Mesh & mesh, UInt spatial_dimension,
                 const ID & id = "shape_cohesive");
 
   ~ShapeLagrange() override = default;
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Methods */
+  /* ------------------------------------------------------------------------
+   */
 public:
   inline void initShapeFunctions(const Array<Real> & nodes,
                                  const Matrix<Real> & integration_points,
@@ -131,8 +179,6 @@ public:
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
       const Array<UInt> & filter_elements = empty_filter) const {
-    // variationOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
-    //     u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
     gradientOnIntegrationPoints<type, CohesiveReduceFunctionMean>(
         u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
@@ -144,18 +190,25 @@ public:
       GhostType ghost_type = _not_ghost,
       const Array<UInt> & filter_elements = empty_filter) const;
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   template <ElementType type>
-  void computeBtD(const Array<Real> & /*Ds*/, Array<Real> & /*BtDs*/,
-                  GhostType /*ghost_type*/,
-                  const Array<UInt> & /*filter_elements*/) const {
-    AKANTU_TO_IMPLEMENT();
-  }
+  void computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
+                  GhostType ghost_type = _not_ghost,
+                  const Array<UInt> & filter_elements = empty_filter) const;
+
+  template <ElementType type>
+  void
+  computeExtendedBtD(const Array<Real> & Ds, Array<Real> & AtBtDs,
+                     GhostType ghost_type = _not_ghost,
+                     const Array<UInt> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
                    GhostType ghost_type,
-                   const Array<UInt> & filter_elements) const;
+                   const Array<UInt> & filter_elements) const {
+    AKANTU_TO_IMPLEMENT();
+  };
 
   /// multiply a field by shape functions
   template <ElementType type>
@@ -173,7 +226,8 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   /// compute the gradient of u on the integration points
   template <ElementType type, class ReduceFunction>
   void variationOnIntegrationPoints(

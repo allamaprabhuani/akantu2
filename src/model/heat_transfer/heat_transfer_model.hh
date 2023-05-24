@@ -124,6 +124,8 @@ public:
   /// compute the internal heat flux \todo Need code review
   virtual void assembleInternalHeatRate();
 
+  void assembleInternalHeatRate(GhostType ghost_type);
+
 public:
   /// assemble the conductivity matrix
   virtual void assembleConductivityMatrix();
@@ -153,6 +155,8 @@ private:
 
   /// compute vector \f[k \grad T\f] for each quadrature point
   void computeKgradT(GhostType ghost_type);
+
+  void computeGradT(GhostType ghost_type);
 
   /// compute the thermal energy
   Real computeThermalEnergyByNode();

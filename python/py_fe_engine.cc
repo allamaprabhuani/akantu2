@@ -37,6 +37,7 @@
 #include <element.hh>
 #include <fe_engine.hh>
 #include <integration_point.hh>
+#include <shape_cohesive_inline_impl.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
@@ -231,6 +232,8 @@ void register_fe_engine(py::module & mod) {
           py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
           py::arg("filter_elements") = nullptr)
+      // .def("getShapeFunctions", &FEEngine::getShapeFunctionsInterface,
+      //      py::return_value_policy::reference)
       .def("getShapes", &FEEngine::getShapes, py::arg("type"),
            py::arg("ghost_type") = _not_ghost, py::arg("id") = 0,
            py::return_value_policy::reference)
@@ -264,6 +267,25 @@ void register_fe_engine(py::module & mod) {
           py::arg("filter_elements") = nullptr)
       .def("getCohesiveElementType", &FEEngine::getCohesiveElementType);
 
+  py::class_<ShapeFunctions>(mod, "ShapeFunctions");
+  py::class_<ShapeLagrangeBase, ShapeFunctions>(mod, "ShapeLagrangeBase");
+  py::class_<ShapeLagrange<_ek_cohesive>, ShapeLagrangeBase>(
+      mod, "ShapeLagrangeCohesive");
+  //       .def(
+  //           "interpolateOnIntegrationPointsReduceFunctionDifference",
+  //           [](ShapeLagrange<_ek_cohesive> & self, const Array<Real> & field,
+  //              Array<Real> & field_difference, UInt nb_degree_of_freedom,
+  //              ElementType type, GhostType ghost_type) {
+
+  // #define COMPUTE_DIFFERENCE(type)                                               \
+//   self.interpolateOnIntegrationPoints<type, CohesiveReduceFunctionDifference>( \
+//       field, field_difference, nb_degree_of_freedom, ghost_type);
+  //             AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_DIFFERENCE);
+  // #undef COMPUTE_OPENING
+  //           },
+  //           py::arg("field"), py::arg("field_difference"),
+  //           py::arg("nb_degree_of_freedom"), py::arg("type"),
+  //           py::arg("ghost_type") = _not_ghost);
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
 } // namespace akantu

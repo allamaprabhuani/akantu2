@@ -413,9 +413,6 @@ void HeatTransferModel::computeKgradT(GhostType ghost_type) {
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & gradient = temperature_gradient(type, ghost_type);
-    this->getFEEngine().gradientOnIntegrationPoints(*temperature, gradient, 1,
-                                                    type, ghost_type);
-
     for (auto && values :
          zip(make_view(conductivity_on_qpoints(type, ghost_type),
                        spatial_dimension, spatial_dimension),
@@ -432,6 +429,17 @@ void HeatTransferModel::computeKgradT(GhostType ghost_type) {
 
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::computeGradT(GhostType ghost_type) {
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
+    auto & gradient = temperature_gradient(type, ghost_type);
+    this->getFEEngine().gradientOnIntegrationPoints(*temperature, gradient, 1,
+                                                    type, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::assembleInternalHeatRate() {
@@ -439,36 +447,47 @@ void HeatTransferModel::assembleInternalHeatRate() {
 
   this->internal_heat_rate->zero();
 
-  this->synchronize(SynchronizationTag::_htm_temperature);
-  auto & fem = this->getFEEngine();
+  computeGradT(_not_ghost);
 
-  for (auto ghost_type : ghost_types) {
-    // compute k \grad T
-    computeKgradT(ghost_type);
+  // communicate the stresses
+  AKANTU_DEBUG_INFO("Send data for residual assembly");
+  this->asynchronousSynchronize(SynchronizationTag::_htm_gradient_temperature);
 
-    for (auto type :
-         mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  assembleInternalHeatRate(_not_ghost);
 
-      auto & k_gradt_on_qpoints_vect = k_gradt_on_qpoints(type, ghost_type);
+  // finalize communications
+  AKANTU_DEBUG_INFO("Wait distant stresses");
+  this->waitEndSynchronize(SynchronizationTag::_htm_gradient_temperature);
 
-      UInt nb_quad_points = k_gradt_on_qpoints_vect.size();
-      Array<Real> bt_k_gT(nb_quad_points, nb_nodes_per_element);
-      fem.computeBtD(k_gradt_on_qpoints_vect, bt_k_gT, type, ghost_type);
+  assembleInternalHeatRate(_ghost);
 
-      UInt nb_elements = mesh.getNbElement(type, ghost_type);
-      Array<Real> int_bt_k_gT(nb_elements, nb_nodes_per_element);
-
-      fem.integrate(bt_k_gT, int_bt_k_gT, nb_nodes_per_element, type,
-                    ghost_type);
-
-      this->getDOFManager().assembleElementalArrayLocalArray(
-          int_bt_k_gT, *this->internal_heat_rate, type, ghost_type, 1);
-    }
-  }
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::assembleInternalHeatRate(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  auto & fem = this->getFEEngine();
+  computeKgradT(ghost_type);
 
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    auto & k_gradt_on_qpoints_vect = k_gradt_on_qpoints(type, ghost_type);
+
+    UInt nb_quad_points = k_gradt_on_qpoints_vect.size();
+    Array<Real> bt_k_gT(nb_quad_points, nb_nodes_per_element);
+    fem.computeBtD(k_gradt_on_qpoints_vect, bt_k_gT, type, ghost_type);
+
+    UInt nb_elements = mesh.getNbElement(type, ghost_type);
+    Array<Real> int_bt_k_gT(nb_elements, nb_nodes_per_element);
+
+    fem.integrate(bt_k_gT, int_bt_k_gT, nb_nodes_per_element, type, ghost_type);
+
+    this->getDOFManager().assembleElementalArrayLocalArray(
+        int_bt_k_gT, *this->internal_heat_rate, type, ghost_type, 1);
+  }
+}
 /* -------------------------------------------------------------------------- */
 Real HeatTransferModel::getStableTimeStep() {
   AKANTU_DEBUG_IN();

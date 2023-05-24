@@ -210,6 +210,12 @@ void register_mesh(py::module & mod) {
       .def_static(
           "getSpatialDimension",
           [](ElementType & type) { return Mesh::getSpatialDimension(type); })
+      .def_static("getNaturalSpaceDimension",
+                  [](ElementType & type) {
+                    return Mesh::getNaturalSpaceDimension(type);
+                  })
+      .def_static("getKind",
+                  [](ElementType & type) { return Mesh::getKind(type); })
       .def_static(
           "getNbNodesPerElement",
           [](ElementType & type) { return Mesh::getNbNodesPerElement(type); })

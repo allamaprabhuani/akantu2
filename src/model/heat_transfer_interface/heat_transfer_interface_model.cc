@@ -77,10 +77,6 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
     std::shared_ptr<DOFManager> dof_manager)
     : HeatTransferModel(mesh, dim, id,
                         ModelType::_heat_transfer_interface_model, dof_manager),
-      k_long_w_gradT_on_qpoints("k_long_w_gradT_on_qpoints", id),
-      k_perp_deltaT_over_w_on_qpoints("k_perp_deltaT_over_w_on_qpoints", id),
-      temperature_gradient_on_surface("temperature_gradient_on_surface", id),
-      temperature_jump("temperature_jump", id),
       opening_on_qpoints("opening_on_qpoints", id),
       opening_rate("opening_rate", id), k_long_w("k_long_w", id),
       k_perp_over_w("k_perp_over_w", id) {
@@ -92,6 +88,20 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
   this->mesh.registerDumper<DumperParaview>("heat_interfaces", id);
   this->mesh.addDumpMeshToDumper("heat_interfaces", mesh, spatial_dimension,
                                  _not_ghost, _ek_cohesive);
+
+  if (this->mesh.isDistributed()) {
+    /// create the distributed synchronizer for cohesive elements
+    this->cohesive_synchronizer = std::make_unique<ElementSynchronizer>(
+        mesh, "cohesive_distributed_synchronizer");
+
+    auto & synchronizer = mesh.getElementSynchronizer();
+    this->cohesive_synchronizer->split(synchronizer, [](auto && el) {
+      return Mesh::getKind(el.type) == _ek_cohesive;
+    });
+
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_htm_gradient_temperature);
+  }
   this->registerParam("longitudinal_conductivity", longitudinal_conductivity,
                       _pat_parsmod);
   this->registerParam("transversal_conductivity", transversal_conductivity,
@@ -113,15 +123,10 @@ void HeatTransferInterfaceModel::initModel() {
   fem.initShapeFunctions(_not_ghost);
   fem.initShapeFunctions(_ghost);
 
-  this->temperature_gradient_on_surface.initialize(
-      fem, _nb_component = spatial_dimension - 1);
-  this->temperature_jump.initialize(fem, _nb_component = 1);
+  this->temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
   this->k_long_w.initialize(fem, _nb_component = (spatial_dimension - 1) *
                                                  (spatial_dimension - 1));
   this->k_perp_over_w.initialize(fem, _nb_component = 1);
-  this->k_long_w_gradT_on_qpoints.initialize(fem, _nb_component =
-                                                      spatial_dimension - 1);
-  this->k_perp_deltaT_over_w_on_qpoints.initialize(fem, _nb_component = 1);
   this->opening_on_qpoints.initialize(fem, _nb_component = 1);
   if (use_opening_rate) {
     opening_rate.initialize(fem, _nb_component = 1);
@@ -228,8 +233,8 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
     auto && shape_derivatives = fem_interface.getShapesDerivatives(type);
     auto && shapes = fem_interface.getShapes(type);
 
-    auto A = getAveragingOperator(type);
-    auto C = getDifferencingOperator(type);
+    auto A = ExtendingOperators::getAveragingOperator(type);
+    auto C = ExtendingOperators::getDifferencingOperator(type);
 
     // tangent_conductivity_matrix.zero();
     auto && long_cond = this->k_long_w(type);
@@ -297,54 +302,47 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
 
   AKANTU_DEBUG_OUT();
 }
+/* --------------------------------------------------------------------------
+ */
+void HeatTransferInterfaceModel::computeGradAndDeltaT(GhostType ghost_type) {
+  auto & fem_interface =
+      this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
+    auto nb_quadrature_points = fem_interface.getNbIntegrationPoints(type);
+    auto nb_element = mesh.getNbElement(type, ghost_type);
+    auto & gradient = temperature_gradient(type, ghost_type);
+    auto surface_gradient = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, spatial_dimension - 1,
+        "surface_gradient");
+    auto jump = std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
+                                              1, "temperature_jump");
 
-/* -------------------------------------------------------------------------- */
-// void HeatTransferInterfaceModel::computeNormal(const Array<Real> & position,
-//                                                Array<Real> & normal,
-//                                                ElementType type,
-//                                                GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
+    this->getFEEngine("InterfacesFEEngine")
+        .gradientOnIntegrationPoints(*temperature, *surface_gradient, 1, type,
+                                     ghost_type);
 
-//   auto & fem_interface =
-//       this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
+#define COMPUTE_JUMP(type)                                                     \
+  fem_interface.getShapeFunctions()                                            \
+      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionDifference>( \
+          *temperature, *jump, 1, ghost_type);
 
-//   normal.zero();
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_JUMP);
+#undef COMPUTE_JUMP
 
-// #define COMPUTE_NORMAL(type)                                                   \
-//   fem_interface.getShapeFunctions()                                            \
-//       .computeNormalsOnIntegrationPoints<type, CohesiveReduceFunctionMean>(    \
-//           position, normal, ghost_type);
-
-//   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
-// #undef COMPUTE_NORMAL
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-/* -------------------------------------------------------------------------- */
-// void HeatTransferInterfaceModel::computeBasis(const Array<Real> & position,
-//                                               Array<Real> & basis,
-//                                               ElementType type,
-//                                               GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
-
-//   auto & fem_interface =
-//       this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
-
-//   basis.zero();
-
-// #define COMPUTE_BASIS(type)                                                    \
-//   fem_interface.getShapeFunctions()                                            \
-//       .computeAllignedBasisOnIntegrationPoints<type,                           \
-//                                                CohesiveReduceFunctionMean>(    \
-//           position, basis, ghost_type);
-
-//   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_BASIS);
-// #undef COMPUTE_BASIS
-
-//   AKANTU_DEBUG_OUT();
-// }
-
+    for (auto && data :
+         zip(make_view(gradient, spatial_dimension),
+             make_view(*surface_gradient, spatial_dimension - 1), *jump)) {
+      auto & grad = std::get<0>(data);
+      auto & surf_grad = std::get<1>(data);
+      auto & delta = std::get<2>(data);
+      for (auto i : arange(spatial_dimension - 1)) {
+        grad(i) = surf_grad(i);
+      }
+      grad(spatial_dimension - 1) = delta;
+    }
+  }
+}
 /* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     GhostType ghost_type) {
@@ -405,85 +403,35 @@ void HeatTransferInterfaceModel::computeKTransOnQuadPoints(
 
 /* --------------------------------------------------------------------------
  */
-void HeatTransferInterfaceModel::computeKLongGradT(GhostType ghost_type) {
-
-  computeKLongOnQuadPoints(ghost_type);
-  for (auto && type :
-       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
-    UInt dim = spatial_dimension - 1;
-    auto & gradient = temperature_gradient_on_surface(type, ghost_type);
-    auto & opening = opening_on_qpoints(type, ghost_type);
-
-    this->getFEEngine("InterfacesFEEngine")
-        .gradientOnIntegrationPoints(*temperature, gradient, 1, type,
-                                     ghost_type);
-    for (auto && values :
-         zip(make_view(k_long_w(type, ghost_type), dim, dim),
-             make_view(gradient, dim),
-             make_view(k_long_w_gradT_on_qpoints(type, ghost_type), dim))) {
-      const auto & k_w = std::get<0>(values);
-      const auto & gradT = std::get<1>(values);
-      auto & k_w_gradT = std::get<2>(values);
-
-      k_w_gradT.mul<false>(k_w, gradT);
-    }
-  }
-  AKANTU_DEBUG_OUT();
-}
-
-/* --------------------------------------------------------------------------
- */
-void HeatTransferInterfaceModel::computeKTransDeltaT(GhostType ghost_type) {
-
-  computeKTransOnQuadPoints(ghost_type);
-
-  auto & fem_interface =
-      this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
-
-  for (auto && type :
-       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
-    auto & jump = temperature_jump(type, ghost_type);
-
-#define COMPUTE_JUMP(type)                                                     \
-  fem_interface.getShapeFunctions()                                            \
-      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionOpening>(    \
-          *temperature, jump, 1, ghost_type);
-
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_JUMP);
-#undef COMPUTE_JUMP
-
-    for (auto && values : zip(k_perp_deltaT_over_w_on_qpoints(type, ghost_type),
-                              k_perp_over_w(type, ghost_type), jump)) {
-      auto & k_perp_deltaT_over_w = std::get<0>(values);
-      auto & k_perp_over_w = std::get<1>(values);
-      const auto & deltaT = std::get<2>(values);
-      k_perp_deltaT_over_w = k_perp_over_w * deltaT;
-    }
-  }
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::assembleInternalHeatRate() {
   AKANTU_DEBUG_IN();
 
   Parent::assembleInternalHeatRate();
 
-  // auto ghost_type = _not_ghost;
-  for (auto ghost_type : ghost_types) {
-    computeKLongGradT(ghost_type);
-    computeKTransDeltaT(ghost_type);
+  computeGradAndDeltaT(_not_ghost);
+  // communicate the stresses
+  AKANTU_DEBUG_INFO("Send data for residual assembly");
+  this->asynchronousSynchronize(SynchronizationTag::_htm_gradient_temperature);
 
-    computeLongHeatRate(ghost_type);
-    computeTransHeatRate(ghost_type);
+  computeLongHeatRate(_not_ghost);
+  computeTransHeatRate(_not_ghost);
+  computeInertialHeatRate(_not_ghost);
 
-    computeInertialHeatRate(ghost_type);
-  }
+  // finalize communications
+  AKANTU_DEBUG_INFO("Wait distant stresses");
+  this->waitEndSynchronize(SynchronizationTag::_htm_gradient_temperature);
+
+  computeLongHeatRate(_ghost);
+  computeTransHeatRate(_ghost);
+  computeInertialHeatRate(_ghost);
+
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
+  computeKLongOnQuadPoints(ghost_type);
   auto & internal_rate = const_cast<Array<Real> &>(this->getInternalHeatRate());
 
   auto & fem = this->getFEEngine("InterfacesFEEngine");
@@ -493,44 +441,59 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
     const auto & shapes_derivatives =
         fem.getShapesDerivatives(type, ghost_type);
 
-    auto & k_w_gradT = k_long_w_gradT_on_qpoints(type, ghost_type);
+    auto & gradient = temperature_gradient(type, ghost_type);
 
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
     auto nb_element = mesh.getNbElement(type, ghost_type);
-    auto natural_dimension = spatial_dimension - 1;
 
-    auto A = getAveragingOperator(type);
-    Matrix<Real> B_A(natural_dimension, nb_nodes_per_element);
+    auto A = ExtendingOperators::getAveragingOperator(type);
+    Matrix<Real> B_A(spatial_dimension - 1, nb_nodes_per_element);
+    auto k_long_w_gradT =
+        std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
+                                      spatial_dimension - 1, "k_long_grad_T");
 
-    /// compute @f$B_a t_i@f$
-    auto * bt_k_w_gradT = new Array<Real>(nb_element * nb_quadrature_points,
-                                          nb_nodes_per_element);
+    auto bt_k_w_gradT = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, nb_nodes_per_element);
 
-    for (auto && values : zip(make_view(shapes_derivatives, natural_dimension,
-                                        nb_nodes_per_element / 2),
-                              make_view(k_w_gradT, natural_dimension),
-                              make_view(*bt_k_w_gradT, nb_nodes_per_element))) {
-      const auto & B = std::get<0>(values);
-      const auto & vector = std::get<1>(values);
-      auto & At_Bt_vector = std::get<2>(values);
+    for (auto && values :
+         zip(make_view(k_long_w(type, ghost_type), spatial_dimension - 1,
+                       spatial_dimension - 1),
+             make_view(gradient, spatial_dimension),
+             make_view(*k_long_w_gradT, spatial_dimension - 1),
+             make_view(shapes_derivatives, spatial_dimension - 1,
+                       nb_nodes_per_element / 2),
+             make_view(*bt_k_w_gradT, nb_nodes_per_element))) {
+      const auto & k_w = std::get<0>(values);
+      const auto & full_gradT = std::get<1>(values);
+      Vector<Real> surf_gradT(spatial_dimension - 1);
+      bool zero_grad = true;
+      for (auto i : arange(spatial_dimension - 1)) {
+        surf_gradT(i) = full_gradT(i);
+        if (full_gradT(i) != 0)
+          zero_grad = false;
+      }
+      if (zero_grad and ghost_type == _ghost) {
+        std::cout << "zero grad" << std::endl;
+      }
+      auto & k_w_gradT = std::get<2>(values);
+      k_w_gradT.mul<false>(k_w, surf_gradT);
+      /// compute @f$B_a t_i@f$
+      const auto & B = std::get<3>(values);
+      auto & At_Bt_vector = std::get<4>(values);
       B_A.mul<false, false>(B, A);
-      At_Bt_vector.template mul<true>(B_A, vector);
+      At_Bt_vector.template mul<true>(B_A, k_w_gradT);
     }
 
-    auto * long_heat_rate =
-        new Array<Real>(nb_element, nb_nodes_per_element, "long_heat_rate");
+    auto long_heat_rate = std::make_unique<Array<Real>>(
+        nb_element, nb_nodes_per_element, "long_heat_rate");
 
     fem.integrate(*bt_k_w_gradT, *long_heat_rate, nb_nodes_per_element, type,
                   ghost_type);
 
-    delete bt_k_w_gradT;
-
     /// assemble
     this->getDOFManager().assembleElementalArrayLocalArray(
         *long_heat_rate, internal_rate, type, ghost_type, 1);
-
-    delete long_heat_rate;
   }
 
   AKANTU_DEBUG_OUT();
@@ -539,6 +502,8 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
  */
 void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  computeKTransOnQuadPoints(ghost_type);
 
   auto & internal_rate = const_cast<Array<Real> &>(this->getInternalHeatRate());
 
@@ -549,7 +514,7 @@ void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
     const auto & shapes = fem.getShapes(type, ghost_type);
     auto size_of_shapes = shapes.getNbComponent();
 
-    auto & k_perp_deltaT = k_perp_deltaT_over_w_on_qpoints(type, ghost_type);
+    auto & gradient = temperature_gradient(type, ghost_type);
 
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
@@ -557,33 +522,39 @@ void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
     auto natural_dimension = spatial_dimension - 1;
 
     // difference computing operator
-    auto C = getDifferencingOperator(type);
+    auto C = ExtendingOperators::getDifferencingOperator(type);
 
-    auto * nt_k_deltaT = new Array<Real>(nb_element * nb_quadrature_points,
-                                         nb_nodes_per_element);
+    auto nt_k_deltaT = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, nb_nodes_per_element);
+    auto k_perp_deltaT_over_w = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, 1, "k_perp_deltaT");
 
     for (auto && values :
-         zip(make_view(shapes, size_of_shapes),
-             make_view(*nt_k_deltaT, nb_nodes_per_element), k_perp_deltaT)) {
-      const auto & N = std::get<0>(values);
-      auto & Nt_k_deltaT = std::get<1>(values);
-      auto & k_deltaT = std::get<2>(values);
-      Nt_k_deltaT.mul<true>(C, N, k_deltaT);
+         zip(*k_perp_deltaT_over_w, k_perp_over_w(type, ghost_type),
+             make_view(gradient, spatial_dimension),
+             make_view(shapes, size_of_shapes),
+             make_view(*nt_k_deltaT, nb_nodes_per_element))) {
+      auto & _k_perp_deltaT_over_w = std::get<0>(values);
+      auto & _k_perp_over_w = std::get<1>(values);
+      const auto & full_gradT = std::get<2>(values);
+      const auto & N = std::get<3>(values);
+      auto & Nt_k_deltaT = std::get<4>(values);
+
+      _k_perp_deltaT_over_w =
+          _k_perp_over_w * full_gradT(spatial_dimension - 1);
+
+      Nt_k_deltaT.mul<true>(C, N, _k_perp_deltaT_over_w);
     }
 
-    auto * perp_heat_rate =
-        new Array<Real>(nb_element, nb_nodes_per_element, "perp_heat_rate");
+    auto perp_heat_rate = std::make_unique<Array<Real>>(
+        nb_element, nb_nodes_per_element, "perp_heat_rate");
 
     fem.integrate(*nt_k_deltaT, *perp_heat_rate, nb_nodes_per_element, type,
                   ghost_type);
 
-    delete nt_k_deltaT;
-
     /// assemble
     this->getDOFManager().assembleElementalArrayLocalArray(
         *perp_heat_rate, internal_rate, type, ghost_type, 1);
-
-    delete perp_heat_rate;
   }
 
   AKANTU_DEBUG_OUT();
@@ -613,7 +584,7 @@ void HeatTransferInterfaceModel::computeInertialHeatRate(GhostType ghost_type) {
     auto natural_dimension = spatial_dimension - 1;
 
     // averaging operator
-    auto A = getAveragingOperator(type);
+    auto A = ExtendingOperators::getAveragingOperator(type);
 
     auto && opening_rates = this->opening_rate(type, ghost_type);
     auto * nt_opening_rate = new Array<Real>(nb_element * nb_quadrature_points,
@@ -642,47 +613,12 @@ void HeatTransferInterfaceModel::computeInertialHeatRate(GhostType ghost_type) {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* --------------------------------------------------------------------------*/
-Matrix<Real> HeatTransferInterfaceModel::getAveragingOperator(
-    const ElementType & type, const UInt & nb_degree_of_freedom) {
-  AKANTU_DEBUG_IN();
-  auto kind = Mesh::getKind(type);
-  AKANTU_DEBUG_ASSERT(kind == _ek_cohesive,
-                      "Extending operators work only for cohesive elements");
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-  // averaging operator
-  Matrix<Real> A(nb_degree_of_freedom * nb_nodes_per_element / 2,
-                 nb_degree_of_freedom * nb_nodes_per_element);
-
-  for (UInt i = 0; i < nb_degree_of_freedom * nb_nodes_per_element / 2; ++i) {
-    A(i, i) = 0.5;
-    A(i, i + nb_degree_of_freedom * nb_nodes_per_element / 2) = 0.5;
-  }
-  AKANTU_DEBUG_OUT();
-  return A;
-}
-
-/* --------------------------------------------------------------------------*/
-Matrix<Real> HeatTransferInterfaceModel::getDifferencingOperator(
-    const ElementType & type, const UInt & nb_degree_of_freedom) {
-  AKANTU_DEBUG_IN();
-  auto kind = Mesh::getKind(type);
-  AKANTU_DEBUG_ASSERT(kind == _ek_cohesive,
-                      "Extending operators work only for cohesive elements");
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-  // averaging operator
-  Matrix<Real> A(nb_degree_of_freedom * nb_nodes_per_element / 2,
-                 nb_degree_of_freedom * nb_nodes_per_element);
-
-  for (UInt i = 0; i < nb_degree_of_freedom * nb_nodes_per_element / 2; ++i) {
-    A(i, i) = 1;
-    A(i, i + nb_degree_of_freedom * nb_nodes_per_element / 2) = -1;
-  }
-  AKANTU_DEBUG_OUT();
-  return A;
+/* --------------------------------------------------------------------------
+ */
+const ShapeLagrange<_ek_cohesive> &
+HeatTransferInterfaceModel::getShapeFunctionsCohesive() {
+  return this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine")
+      .getShapeFunctions();
 }
 /* --------------------------------------------------------------------------
  */
@@ -744,7 +680,8 @@ void HeatTransferInterfaceModel::setTimeStep(Real time_step,
   this->mesh.getDumper("heat_interfaces").setTimeStep(time_step);
 }
 
-// /* --------------------------------------------------------------------------
+// /*
+// --------------------------------------------------------------------------
 // */ void HeatTransferInterfaceModel::assignPropertyToPhysicalGroup(
 //     const std::string & property_name, const std::string & group_name,
 //     Real value) {
@@ -779,13 +716,14 @@ void HeatTransferInterfaceModel::setTimeStep(Real time_step,
 //     }
 //   }
 // }
-// /* --------------------------------------------------------------------------
+// /*
+// --------------------------------------------------------------------------
 // */ void HeatTransferInterfaceModel::assignPropertyToPhysicalGroup(
 //     const std::string & property_name, const std::string & group_name,
 //     Matrix<Real> cond_matrix) {
 //   AKANTU_DEBUG_ASSERT(property_name == "conductivity",
-//                       "When updating material parameters, only conductivity "
-//                       "accepts matrix as an input");
+//                       "When updating material parameters, only conductivity
+//                       " "accepts matrix as an input");
 //   auto && el_group = mesh.getElementGroup(group_name);
 //   auto & fem = this->getFEEngine();
 //   auto dim = this->getMesh().getSpatialDimension();
@@ -806,7 +744,8 @@ void HeatTransferInterfaceModel::setTimeStep(Real time_step,
 //       for (auto && el : elements) {
 //         for (auto && qpoint : arange(nb_quadrature_points)) {
 //           init_cond_it[el * nb_quadrature_points + qpoint] = cond_matrix;
-//           cond_on_quad_it[el * nb_quadrature_points + qpoint] = cond_matrix;
+//           cond_on_quad_it[el * nb_quadrature_points + qpoint] =
+//           cond_matrix;
 //         }
 //       }
 //     }
@@ -851,20 +790,16 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           opening_on_qpoints, group_name, this->spatial_dimension, element_kind,
           nb_data_per_elem);
-    } else if (field_name == "temperature_gradient_on_surface") {
-      auto nb_data_per_elem = getNbDataPerElem(temperature_gradient_on_surface);
+    } else if (field_name == "temperature_gradient") {
+      auto nb_data_per_elem = getNbDataPerElem(temperature_gradient);
 
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-          temperature_gradient_on_surface, group_name, this->spatial_dimension,
+          temperature_gradient, group_name, this->spatial_dimension,
           element_kind, nb_data_per_elem);
-    } else if (field_name == "temperature_jump") {
-      auto nb_data_per_elem = getNbDataPerElem(temperature_jump);
-      field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-          temperature_jump, group_name, this->spatial_dimension, element_kind,
-          nb_data_per_elem);
     }
   }
   return field;
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 } // namespace akantu

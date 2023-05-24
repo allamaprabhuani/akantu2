@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 #include <heat_transfer_interface_model.hh>
 #include <non_linear_solver.hh>
+#include <shape_cohesive_inline_impl.hh>
 /* -------------------------------------------------------------------------- */
 // #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -84,6 +85,8 @@ void register_heat_transfer_interface_model(py::module & mod) {
           py::arg("_analysis_method"))
       .def("setTimeStep", &HeatTransferInterfaceModel::setTimeStep,
            py::arg("time_step"), py::arg("solver_id") = "")
+      .def("getShapeFunctionsCohesive",
+           &HeatTransferInterfaceModel::getShapeFunctionsCohesive)
       .def("getTransversalConductivityOnQpoints",
            &HeatTransferInterfaceModel::getTransversalConductivityOnQpoints,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,

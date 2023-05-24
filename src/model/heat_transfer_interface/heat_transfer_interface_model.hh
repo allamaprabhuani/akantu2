@@ -103,6 +103,9 @@ public:
   /// compute the capacity on quadrature points
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
+  /// get FEEngine for cohesive elements
+  const ShapeLagrange<_ek_cohesive> & getShapeFunctionsCohesive();
+
 public:
   // /// asign material properties to physical groups
   // void assignPropertyToPhysicalGroup(const std::string & property_name,
@@ -114,18 +117,14 @@ public:
   //                                    Matrix<Real> cond_matrix);
 
 private:
-  /// compute the integrated longitudinal conductivity matrix (or scalar in 2D)
-  /// for each quadrature point
+  /// compute the integrated longitudinal conductivity matrix (or scalar in
+  /// 2D) for each quadrature point
   void computeKLongOnQuadPoints(GhostType ghost_type);
 
   /// compute the transversal conductivity scalar devided by opening
   void computeKTransOnQuadPoints(GhostType ghost_type);
 
-  /// compute vector (or scalar) \f[k \grad T\f] for each quadrature point
-  void computeKLongGradT(GhostType ghost_type);
-
-  /// compute scalar \f[k_{\perp} [[T]]\f] for each quadrature point
-  void computeKTransDeltaT(GhostType ghost_type);
+  void computeGradAndDeltaT(GhostType ghost_type);
 
   /// compute internal heat rate along the crack and assemble it into internal
   /// forces
@@ -185,6 +184,9 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening_on_qpoints, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Opening, opening_on_qpoints, Real);
 
+public:
+  inline UInt getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -194,12 +196,6 @@ protected:
   Real default_opening;
   Real capacity_in_crack;
   Real density_in_crack;
-
-  /// temperature variation along interfaces
-  ElementTypeMapArray<Real> temperature_gradient_on_surface;
-
-  /// temperature jump across interfaces
-  ElementTypeMapArray<Real> temperature_jump;
 
   /// crack opening interpolated on quadrature points
   ElementTypeMapArray<Real> opening_on_qpoints;
@@ -214,12 +210,6 @@ protected:
   /// transversal conductivity scalar devided by opening on quadrature points
   ElementTypeMapArray<Real> k_perp_over_w;
 
-  /// vector \f[w k \grad T\f] on quad points
-  ElementTypeMapArray<Real> k_long_w_gradT_on_qpoints;
-
-  /// vector \f[ k/w \Delta T\f] on quad points
-  ElementTypeMapArray<Real> k_perp_deltaT_over_w_on_qpoints;
-
   /// @brief boolean enabling opening-rate term into internal heat rate
   bool use_opening_rate{false};
 
@@ -232,8 +222,32 @@ protected:
   UInt crack_conductivity_matrix_release{UInt(-1)};
 
   UInt opening_release{0};
+
+  /// cohesive elements synchronizer
+  std::unique_ptr<ElementSynchronizer> cohesive_synchronizer;
 };
 
+/* -------------------------------------------------------------------------- */
+inline UInt
+HeatTransferInterfaceModel::getNbData(const Array<Element> & elements,
+                                      const SynchronizationTag & tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes_per_element = 0;
+  Array<Element>::const_iterator<Element> it = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if (el.kind() == _ek_cohesive)
+      std::cout << "Cohesive syncronized" << std::endl;
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
+
+  size += Parent::getNbData(elements, tag);
+  AKANTU_DEBUG_OUT();
+  return size;
+}
 } // namespace akantu
 
 #endif /* AKANTU_HEAT_TRANSFER_INTERFACE_MODEL_HH_ */
