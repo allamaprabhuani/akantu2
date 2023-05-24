@@ -43,6 +43,11 @@ template <class InType, class OutType> OutType convertType(InType /*unused*/) {
 }
 
 template <>
+inline ElementType convertType<ElementType, ElementType>(ElementType type) {
+  return type;
+}
+
+template <>
 inline InterpolationType
 convertType<ElementType, InterpolationType>(ElementType type) {
   InterpolationType itp_type = _itp_not_defined;
