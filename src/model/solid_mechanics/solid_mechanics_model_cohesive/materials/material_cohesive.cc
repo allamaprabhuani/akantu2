@@ -422,7 +422,7 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
 
 #define COMPUTE_OPENING(type)                                                  \
   fem_cohesive.getShapeFunctions()                                             \
-      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionOpening>(    \
+      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionDifference>( \
           displacement, opening, spatial_dimension, ghost_type,                \
           element_filter(type, ghost_type));
 
