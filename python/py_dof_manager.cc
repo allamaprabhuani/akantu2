@@ -240,7 +240,14 @@ void register_dof_manager(py::module & mod) {
       .def("getConvergenceStatus",
            [](NonLinearSolver & self) -> bool { return self.get("converged"); })
       .def("getError",
-           [](NonLinearSolver & self) -> Real { return self.get("error"); });
+           [](NonLinearSolver & self) -> Real { return self.get("error"); })
+      .def("getMaxIterations",
+           [](NonLinearSolver & self) -> Int {
+             return self.get("max_iterations");
+           })
+      .def("getThreshold", [](NonLinearSolver & self) -> Real {
+        return self.get("threshold");
+      });
 
   py::class_<TimeStepSolver>(mod, "TimeStepSolver")
       .def(

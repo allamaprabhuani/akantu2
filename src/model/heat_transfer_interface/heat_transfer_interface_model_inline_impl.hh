@@ -64,7 +64,11 @@ HeatTransferInterfaceModel::getNbData(const Array<Element> & elements,
       // temperature gradient
       size += getNbIntegrationPoints(elements, "InterfacesFEEngine") *
               spatial_dimension * sizeof(Real);
-      size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
+      // normal openings
+      size +=
+          getNbIntegrationPoints(elements, "InterfacesFEEngine") * sizeof(Real);
+      // nodal temperatures
+      size += nb_nodes_per_element * sizeof(Real);
       break;
     }
     default: {
@@ -96,6 +100,8 @@ HeatTransferInterfaceModel::packData(CommunicationBuffer & buffer,
     case SynchronizationTag::_htm_gradient_temperature: {
       packElementalDataHelper(temperature_gradient, buffer, elements, true,
                               getFEEngine("InterfacesFEEngine"));
+      packElementalDataHelper(opening_on_qpoints, buffer, elements, true,
+                              getFEEngine("InterfacesFEEngine"));
       packNodalDataHelper(*temperature, buffer, elements, mesh);
       break;
     }
@@ -125,6 +131,8 @@ HeatTransferInterfaceModel::unpackData(CommunicationBuffer & buffer,
     }
     case SynchronizationTag::_htm_gradient_temperature: {
       unpackElementalDataHelper(temperature_gradient, buffer, elements, true,
+                                getFEEngine("InterfacesFEEngine"));
+      unpackElementalDataHelper(opening_on_qpoints, buffer, elements, true,
                                 getFEEngine("InterfacesFEEngine"));
       unpackNodalDataHelper(*temperature, buffer, elements, mesh);
       break;

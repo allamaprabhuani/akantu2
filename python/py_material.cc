@@ -39,6 +39,7 @@
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_cohesive.hh>
+#include <material_cohesive_bilinear.hh>
 #include <material_cohesive_linear.hh>
 #include <material_cohesive_linear_friction.hh>
 #include <solid_mechanics_model_cohesive.hh>
@@ -463,6 +464,10 @@ void register_material(py::module & mod) {
       mod, "MaterialCohesiveLinear2D");
   register_material_cohesive_classes<MaterialCohesiveLinear<3>>(
       mod, "MaterialCohesiveLinear3D");
+  register_material_cohesive_classes<MaterialCohesiveBilinear<2>>(
+      mod, "MaterialCohesiveBilinear2D");
+  register_material_cohesive_classes<MaterialCohesiveBilinear<3>>(
+      mod, "MaterialCohesiveBilinear3D");
   register_material_cohesive_classes<MaterialCohesiveLinearFriction<2>>(
       mod, "MaterialCohesiveLinearFriction2D");
   register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(

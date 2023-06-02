@@ -234,6 +234,29 @@ void register_fe_engine(py::module & mod) {
           py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
           py::arg("filter_elements") = nullptr)
+      .def(
+          "computeNtb",
+          [](FEEngine & fem, const Array<Real> & bs, Array<Real> & Ntbs,
+             ElementType type, GhostType ghost_type) {
+            fem.computeNtb(bs, Ntbs, type, ghost_type);
+          },
+          py::arg("bs"), py::arg("Ntbs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeNtb",
+          [](FEEngine & fem, const Array<Real> & bs, Array<Real> & Ntbs,
+             ElementType type, GhostType ghost_type,
+             const Array<UInt> * filter_elements) {
+            if (filter_elements == nullptr) {
+              // This is due to the ArrayProxy that looses the
+              // empty_filter information
+              filter_elements = &empty_filter;
+            }
+            fem.computeBtD(bs, Ntbs, type, ghost_type, *filter_elements);
+          },
+          py::arg("bs"), py::arg("Ntbs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = nullptr)
       .def("getShapeFunctions", &FEEngine::getShapeFunctionsInterface,
            py::return_value_policy::reference)
       .def("getShapes", &FEEngine::getShapes, py::arg("type"),
@@ -269,7 +292,10 @@ void register_fe_engine(py::module & mod) {
           py::arg("filter_elements") = nullptr)
       .def("getCohesiveElementType", &FEEngine::getCohesiveElementType);
 
-  py::class_<ShapeFunctions>(mod, "ShapeFunctions");
+  py::class_<ShapeFunctions>(mod, "ShapeFunctions")
+      .def_static("getShapeSize", &ShapeFunctions::getShapeSize)
+      .def_static("getShapeDerivativeSize",
+                  &ShapeFunctions::getShapeDerivativesSize);
   py::class_<ShapeLagrangeBase, ShapeFunctions>(mod, "ShapeLagrangeBase");
 
 #ifdef AKANTU_COHESIVE_ELEMENT
@@ -286,13 +312,27 @@ void register_fe_engine(py::module & mod) {
       field, field_difference, nb_degree_of_freedom, ghost_type);
             AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_DIFFERENCE);
 
-#undef COMPUTE_OPENING
+#undef COMPUTE_DIFFERENCE
           },
           py::arg("field"), py::arg("field_difference"),
           py::arg("nb_degree_of_freedom"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost)
+
+      .def(
+          "computeNormalsOnIntegrationPoints",
+          [](ShapeLagrange<_ek_cohesive> & self, const Array<Real> & u,
+             Array<Real> & normals_u, ElementType type, GhostType ghost_type) {
+
+#define COMPUTE_NORMAL(type)                                                   \
+  self.computeNormalsOnIntegrationPoints<type, CohesiveReduceFunctionMean>(    \
+      u, normals_u, ghost_type);
+            AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
+#undef COMPUTE_NORMAL
+          },
+          py::arg("u"), py::arg("normals_u"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost);
 #endif
-  
+
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
 } // namespace akantu

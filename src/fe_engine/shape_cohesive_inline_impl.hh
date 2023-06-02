@@ -243,6 +243,7 @@ template <ElementType type>
 void ShapeLagrange<_ek_cohesive>::computeExtendedBtD(
     const Array<Real> & Ds, Array<Real> & AtBtDs, GhostType ghost_type,
     const Array<UInt> & filter_elements) const {
+  AKANTU_DEBUG_IN();
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
@@ -283,6 +284,56 @@ void ShapeLagrange<_ek_cohesive>::computeExtendedBtD(
     // transposed due to the storage layout of B
     At_Bt_D.template mul<false, false>(D, B_A);
   }
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void ShapeLagrange<_ek_cohesive>::computeNtb(
+    const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
+    const Array<UInt> & filter_elements) const {
+  this->computeExtendedNtb<type>(bs, Ntbs, ghost_type, filter_elements);
+}
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void ShapeLagrange<_ek_cohesive>::computeExtendedNtb(
+    const Array<Real> & bs, Array<Real> & CtNtbs, GhostType ghost_type,
+    const Array<UInt> & filter_elements) const {
+  AKANTU_DEBUG_IN();
+  CtNtbs.resize(bs.size());
+
+  auto itp_type = ElementClassProperty<type>::interpolation_type;
+  auto size_of_shapes = shapes(itp_type, ghost_type).getNbComponent();
+  auto nb_degree_of_freedom = bs.getNbComponent();
+  auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+  Array<Real> shapes_filtered(0, size_of_shapes);
+  auto && view = make_view(shapes(itp_type, ghost_type), 1, size_of_shapes);
+  auto N_it = view.begin();
+  auto N_end = view.end();
+
+  if (filter_elements != empty_filter) {
+    FEEngine::filterElementalData(this->mesh, shapes(itp_type, ghost_type),
+                                  shapes_filtered, type, ghost_type,
+                                  filter_elements);
+    auto && view = make_view(shapes_filtered, 1, size_of_shapes);
+    N_it = view.begin();
+    N_end = view.end();
+  }
+
+  auto C = ExtendingOperators::getAveragingOperator(type);
+  Matrix<Real> N_C(nb_degree_of_freedom, nb_nodes_per_element);
+
+  for (auto && values :
+       zip(make_view(bs, nb_degree_of_freedom, 1), range(N_it, N_end),
+           make_view(CtNtbs, nb_degree_of_freedom, nb_nodes_per_element))) {
+    const auto & b = std::get<0>(values);
+    const auto & N = std::get<1>(values);
+    N_C.mul<false, false>(N, C);
+    auto & CtNtb = std::get<2>(values);
+
+    CtNtb.template mul<false, false>(b, N_C);
+  }
+  AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>

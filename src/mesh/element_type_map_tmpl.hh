@@ -174,7 +174,9 @@ void ElementTypeMapArray<T, SupportType>::copy(
     const ElementTypeMapArray & other) {
   for (auto ghost_type : ghost_types) {
     const DataMap & data = other.getData(ghost_type);
-    for (auto && [type, array_to_copy] : data) {
+    for (auto && values : data) {
+      auto & type = std::get<0>(values);
+      auto & array_to_copy = std::get<1>(values);
       auto & array =
           this->alloc(0, array_to_copy->getNbComponent(), type, ghost_type);
       array.copy(*array_to_copy);

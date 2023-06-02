@@ -212,12 +212,16 @@ public:
 
   /// multiply a field by shape functions
   template <ElementType type>
+  void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
+                  GhostType ghost_type = _not_ghost,
+                  const Array<UInt> & filter_elements = empty_filter) const;
+
+  /// extend shape functions to the number of nodes in cohesive element
+  template <ElementType type>
   void
-  computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-             GhostType /*ghost_type*/,
-             const Array<UInt> & /*filter_elements*/ = empty_filter) const {
-    AKANTU_TO_IMPLEMENT();
-  }
+  computeExtendedNtb(const Array<Real> & bs, Array<Real> & Ntbs,
+                     GhostType ghost_type = _not_ghost,
+                     const Array<UInt> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeNtbN(const Array<Real> & /*bs*/, Array<Real> & /*NtbNs*/,
