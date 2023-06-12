@@ -153,7 +153,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
           pos(direction) = info.direction_position;
 
           auto flag = (*nodes_flags)(info.node) & NodeFlag::_periodic_mask;
-          auto gnode = getNodeGlobalId(info.node);
+          Idx gnode = getNodeGlobalId(info.node);
           buffer << gnode;
           buffer << pos;
           buffer << flag;
@@ -169,13 +169,13 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
           // if is master sends list of slaves
           if (flag == NodeFlag::_periodic_master) {
-            auto nb_slaves = periodic_master_slave.count(info.node);
+            Int nb_slaves = periodic_master_slave.count(info.node);
             buffer << nb_slaves;
 
             // std::cout << " master of " << nb_slaves << " nodes : [";
             auto slaves = periodic_master_slave.equal_range(info.node);
             for (auto it = slaves.first; it != slaves.second; ++it) {
-              auto gslave = getNodeGlobalId(it->second);
+              Idx gslave = getNodeGlobalId(it->second);
               // std::cout << (it == slaves.first ? "" : ", ") << gslave;
               buffer << gslave;
             }
