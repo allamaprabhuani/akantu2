@@ -136,7 +136,20 @@ You can then import the package in a python script as:
 The python API is similar to the C++ one. If you
 encounter any problem with the python interface, you are welcome to do a merge
 request or post an issue on [GitLab](https://gitlab.com/akantu/akantu/-/issues).
-  
+
+# Contributing
+
+## Contributing new features, bug fixes
+Any contribution is welcome, we are trying to follow a gitflow workflow, so for people that are `developers` on the project you can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
+For external developers you can [Fork](https://gitlab.com/akantu/akantu/-/forks/new) the project.
+In both cases the modifications have to be submitted in the form of a [Merge Request](https://gitlab.com/akantu/akantu/-/merge_requests/new).
+
+## Asking for help, reporting issues
+
+If you want to ask for help on compilation or usage of akantu, if you want to contribute and don't know where to start, if you encounter an problem with the code do not hesitate to open en [Issue](https://gitlab.com/akantu/akantu/-/issues/new) on gitlab.
+
+
+
 # Tutorials with the python interface
 
 To help getting started, multiple tutorials using the python interface are

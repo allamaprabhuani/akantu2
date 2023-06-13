@@ -1,6 +1,75 @@
 Getting Started
 ===============
 
+Contributing
+------------
+
+Contributing new features, bug fixes
+````````````````````````````````````
+
+Any contribution is welcome, we are trying to follow a gitflow workflow, so for people that are `developers` on the project you can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
+For external developers you can [Fork](https://gitlab.com/akantu/akantu/-/forks/new) the project.
+In both cases the modifications have to be submitted in the form of a [Merge Request](https://gitlab.com/akantu/akantu/-/merge_requests/new).
+
+Asking for help, reporting issues
+`````````````````````````````````
+
+If you want to ask for help on compilation or usage of akantu, if you want to contribute and don't know where to start, if you encounter an problem with the code do not hesitate to open en [Issue](https://gitlab.com/akantu/akantu/-/issues/new) on gitlab.
+
+
+Building ``Akantu``
+--------------------
+
+Dependencies
+````````````
+
+In order to compile ``Akantu``  any compiler supporting fully C++14 should work.
+In addition some libraries are required:
+
+ - CMake (>= 3.5.1)
+ - Boost (pre-processor and Spirit)
+ - zlib
+ - Eigen3 (if not present the build system will try to download it)
+
+For the python interface:
+
+ - Python (>=3 is recommended)
+ - pybind11 (if not present the build system will try to download it)
+
+To run parallel simulations:
+
+ - MPI
+ - Scotch
+
+To use the static or implicit dynamic solvers at least one of the following libraries is needed:
+
+ - MUMPS (since this is usually compiled in static you also need MUMPS dependencies)
+ - PETSc
+
+To compile the tests and examples:
+
+ - Gmsh
+ - google-test (if not present the build system will try to download it)
+
+On ``.deb`` based Linux systems
+"""""""""""""""""""""""""""""""
+
+.. code-block:: bash
+
+ > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
+ # For parallel
+ > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
+ # For sequential
+ > sudo apt install libmumps-seq-dev
+
+Using ``conda``
+"""""""""""""""
+
+This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support:
+
+.. code-block:: bash
+
+
 Building ``Akantu``
 --------------------
 
