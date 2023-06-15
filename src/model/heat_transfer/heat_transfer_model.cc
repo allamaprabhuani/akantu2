@@ -317,9 +317,9 @@ void HeatTransferModel::assembleConductivityMatrix() {
 
   this->computeConductivityOnQuadPoints(_not_ghost);
 
-  if (conductivity_release[_not_ghost] == conductivity_matrix_release) {
-    return;
-  }
+  // if (conductivity_release[_not_ghost] == conductivity_matrix_release) {
+  //   return;
+  // }
 
   AKANTU_DEBUG_ASSERT(this->getDOFManager().hasMatrix("K"),
                       "The K matrix has not been initialized yet.");
@@ -361,10 +361,10 @@ void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
   // if already computed once check if need to compute
   if (not initial_conductivity[ghost_type]) {
     // if temperature did not change, conductivity will not vary
-    if (temperature_release == conductivity_release[ghost_type]) {
-      return;
-    }
-    // if conductivity_variation is 0 no need to recompute
+    // if (temperature_release == conductivity_release[ghost_type]) {
+    //   return;
+    // }
+    // // if conductivity_variation is 0 no need to recompute
     if (conductivity_variation == 0.) {
       return;
     }

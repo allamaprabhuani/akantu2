@@ -73,6 +73,7 @@ public:
   virtual Real dot(const SolverVector & y) const = 0;
   /// computes l2 norm of a vector
   virtual Real norm() const = 0;
+  virtual Real normFreeDOFs() const = 0;
 
   UInt & release() { return release_; }
   UInt release() const { return release_; }

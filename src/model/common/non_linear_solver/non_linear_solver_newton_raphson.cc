@@ -57,6 +57,9 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
 
   this->registerParam("threshold", convergence_criteria, 1e-10, _pat_parsmod,
                       "Threshold to consider results as converged");
+  this->registerParam("threshold_normalized", convergence_criteria_normalized,
+                      _pat_parsmod,
+                      "Threshold to consider results as converged");
   this->registerParam("convergence_type", convergence_criteria_type,
                       SolveConvergenceCriteria::_solution, _pat_parsmod,
                       "Type of convergence criteria");
@@ -112,6 +115,8 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
 
     auto local_norm =
         this->normLocalAndMasterDOFs(this->dof_manager.getResidual());
+
+    local_norm = std::max(local_norm, 1.);
     this->convergence_criteria_normalized =
         local_norm * this->convergence_criteria;
   }

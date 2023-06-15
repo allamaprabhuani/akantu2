@@ -126,6 +126,21 @@ template <class Array_> Real SolverVectorArrayTmpl<Array_>::norm() const {
 }
 
 /* -------------------------------------------------------------------------- */
+template <class Array_>
+Real SolverVectorArrayTmpl<Array_>::normFreeDOFs() const {
+  const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
+
+  Real sum = 0.;
+  for (auto [d, c, a] : enumerate(blocked_dofs, this->vector)) {
+    bool is_local_node = this->dof_manager.isLocalOrMasterDOF(d);
+    bool is_blocked_dof = c;
+    if ((!is_blocked_dof) && is_local_node) {
+      sum += a * a;
+    }
+  }
+  return std::sqrt(sum);
+}
+/* -------------------------------------------------------------------------- */
 template <class Array_> inline Int SolverVectorArrayTmpl<Array_>::size() const {
   return this->dof_manager.getSystemSize();
 }

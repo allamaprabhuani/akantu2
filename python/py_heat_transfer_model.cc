@@ -94,6 +94,7 @@ void register_heat_transfer_model(py::module & mod) {
       .def_function(getCapacity)
       .def_function(getDensity)
       .def_function(assembleInternalHeatRate)
+      .def_function(assembleCapacity)
       .def_function_nocopy(getTemperature)
       .def_function_nocopy(getTemperatureRate)
       .def_function_nocopy(getBlockedDOFs)

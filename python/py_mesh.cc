@@ -145,6 +145,8 @@ void register_mesh(py::module & mod) {
           [](Mesh & self) -> decltype(auto) { return self.getNodes(); },
           py::return_value_policy::reference)
       .def("getNbNodes", &Mesh::getNbNodes)
+      .def("getLowerBounds", &Mesh::getLowerBounds)
+      .def("getUpperBounds", &Mesh::getUpperBounds)
       .def(
           "getNodesFlags",
           [](const Mesh & self) -> decltype(auto) {

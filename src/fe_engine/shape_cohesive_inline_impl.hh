@@ -188,7 +188,7 @@ void ShapeLagrange<_ek_cohesive>::
       x_eq(0, 1) = a;
       auto yc =
           sqrt((a + b - c) * (a - b + c) * (-a + b + c) * (a + b + c)) / 2 / a;
-      auto xc = sqrt(c * c - yc * yc);
+      auto xc = sqrt(std::max(c * c - yc * yc, 0.));
       x_eq(0, 2) = xc;
       x_eq(1, 2) = yc;
     }

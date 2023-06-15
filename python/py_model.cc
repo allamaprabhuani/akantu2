@@ -90,6 +90,7 @@ void register_model(py::module & mod) {
       .def("addDumpFieldVector", &Model::addDumpFieldVector)
       .def("addDumpField", &Model::addDumpField)
       .def("setBaseNameToDumper", &Model::setBaseNameToDumper)
+      .def("setDirectoryToDumper", &Model::setDirectoryToDumper)
       .def("addDumpFieldVectorToDumper", &Model::addDumpFieldVectorToDumper)
       .def("addDumpFieldToDumper", &Model::addDumpFieldToDumper)
       .def("dump", [](Model & self) { self.dump(); })

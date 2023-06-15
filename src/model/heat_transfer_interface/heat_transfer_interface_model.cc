@@ -59,10 +59,12 @@ namespace heat_transfer_interface {
           : model(model){};
 
       void operator()(Matrix<Real> & rho, const Element & el) {
-        auto opening_it = model.getOpening(el.type, el.ghost_type).begin();
+        // auto opening_it = model.getOpening(el.type, el.ghost_type).begin();
 
+        // rho.set(model.getCapacityInCrack() * model.getDensityInCrack() *
+        //         opening_it[el.element]);
         rho.set(model.getCapacityInCrack() * model.getDensityInCrack() *
-                opening_it[el.element]);
+                model.getDefaultOpening());
       }
 
     private:
@@ -77,9 +79,11 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
     std::shared_ptr<DOFManager> dof_manager)
     : HeatTransferModel(mesh, dim, id,
                         ModelType::_heat_transfer_interface_model, dof_manager),
+      temperature_on_qpoints("opening_on_qpoints", id),
       opening_on_qpoints("opening_on_qpoints", id),
-      opening_rate("opening_rate", id), k_long_w("k_long_w", id),
-      k_perp_over_w("k_perp_over_w", id) {
+      opening_rate("opening_rate", id), k_long_w("k_long_w", id) /*,
+       k_perp_over_w("k_perp_over_w", id)*/
+{
   AKANTU_DEBUG_IN();
 
   registerFEEngineObject<MyFEEngineCohesiveType>("InterfacesFEEngine", mesh,
@@ -148,7 +152,7 @@ void HeatTransferInterfaceModel::initModel() {
   this->temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
   this->k_long_w.initialize(fem, _nb_component = (spatial_dimension - 1) *
                                                  (spatial_dimension - 1));
-  this->k_perp_over_w.initialize(fem, _nb_component = 1);
+  this->temperature_on_qpoints.initialize(fem, _nb_component = 1);
   this->opening_on_qpoints.initialize(fem, _nb_component = 1);
   if (use_opening_rate) {
     opening_rate.initialize(fem, _nb_component = 1);
@@ -234,14 +238,14 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
   Parent::assembleConductivityMatrix();
 
   this->computeKLongOnQuadPoints(_not_ghost);
-  this->computeKTransOnQuadPoints(_not_ghost);
+  // this->computeKTransOnQuadPoints(_not_ghost);
 
-  if ((long_conductivity_release[_not_ghost] ==
-       this->crack_conductivity_matrix_release) and
-      (perp_conductivity_release[_not_ghost] ==
-       this->crack_conductivity_matrix_release)) {
-    return;
-  }
+  // if ((long_conductivity_release[_not_ghost] ==
+  //      this->crack_conductivity_matrix_release) and
+  //     (perp_conductivity_release[_not_ghost] ==
+  //      this->crack_conductivity_matrix_release)) {
+  //   return;
+  // }
 
   auto & fem_interface = this->getFEEngine("InterfacesFEEngine");
 
@@ -260,10 +264,10 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
 
     // tangent_conductivity_matrix.zero();
     auto && long_cond = this->k_long_w(type);
-    auto && perp_cond = this->k_perp_over_w(type);
-    Array<Real> at_bt_k_long_b_a(nb_element * nb_quadrature_points,
-                                 nb_nodes_per_element * nb_nodes_per_element,
-                                 "A^t*B^t*k_long*B*A");
+    // auto && perp_cond = this->k_perp_over_w(type);
+    Array<Real> at_bt_k_long_w_b_a(nb_element * nb_quadrature_points,
+                                   nb_nodes_per_element * nb_nodes_per_element,
+                                   "A^t*B^t*k_long*B*A");
     Array<Real> ct_nt_k_perp_n_c(nb_element * nb_quadrature_points,
                                  nb_nodes_per_element * nb_nodes_per_element,
                                  "C^t*N^t*k_perp*N*C");
@@ -272,7 +276,7 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
         nb_nodes_per_element * nb_nodes_per_element, "tangent_conductivity");
 
     Matrix<Real> B_A(spatial_dimension - 1, nb_nodes_per_element);
-    Matrix<Real> k_long_B_A(spatial_dimension - 1, nb_nodes_per_element);
+    Matrix<Real> k_long_w_B_A(spatial_dimension - 1, nb_nodes_per_element);
     // Matrix<Real> N(spatial_dimension, nb_nodes_per_element);
     Matrix<Real> N_C(1, nb_nodes_per_element);
 
@@ -280,33 +284,35 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
          zip(make_view(long_cond, spatial_dimension - 1, spatial_dimension - 1),
              make_view(shape_derivatives, spatial_dimension - 1,
                        nb_nodes_per_element / 2),
-             make_view(at_bt_k_long_b_a, nb_nodes_per_element,
+             make_view(at_bt_k_long_w_b_a, nb_nodes_per_element,
                        nb_nodes_per_element),
-             perp_cond, make_view(shapes, 1, nb_nodes_per_element / 2),
+             /*perp_cond,*/ make_view(shapes, 1, nb_nodes_per_element / 2),
              make_view(ct_nt_k_perp_n_c, nb_nodes_per_element,
                        nb_nodes_per_element),
              make_view(tangent_conductivity, nb_nodes_per_element,
                        nb_nodes_per_element))) {
       // assemble conductivity contribution along crack
-      const auto & k_long = std::get<0>(data);
+      const auto & _k_long_w = std::get<0>(data);
       const auto & B = std::get<1>(data);
-      auto & At_Bt_k_long_B_A = std::get<2>(data);
+      auto & At_Bt_k_long_w_B_A = std::get<2>(data);
 
       B_A.mul<false, false>(B, A);
-      k_long_B_A.mul<false, false>(k_long, B_A);
-      At_Bt_k_long_B_A.mul<true, false>(k_long_B_A, B_A);
+      k_long_w_B_A.mul<false, false>(_k_long_w, B_A);
+      At_Bt_k_long_w_B_A.mul<true, false>(k_long_w_B_A, B_A);
 
       // assemble conductivity contribution perpendicular to the crack
-      const auto & k_perp = std::get<3>(data);
-      const auto & N = std::get<4>(data);
-      auto & Ct_Nt_k_perp_N_C = std::get<5>(data);
-      auto & tangent = std::get<6>(data);
+      // const auto & k_perp = std::get<3>(data);
+      const auto & N = std::get<3>(data);
+      auto & Ct_Nt_k_perp_N_C = std::get<4>(data);
+      auto & tangent = std::get<5>(data);
 
       N_C.mul<false, false>(N, C);
-      Ct_Nt_k_perp_N_C.mul<true, false>(N_C, N_C, k_perp);
+      // Ct_Nt_k_perp_N_C.mul<true, false>(N_C, N_C, k_perp);
+      Ct_Nt_k_perp_N_C.mul<true, false>(N_C, N_C,
+                                        this->transversal_conductivity);
 
       // summing two contributions of tangent operator
-      tangent = At_Bt_k_long_B_A + Ct_Nt_k_perp_N_C;
+      tangent = At_Bt_k_long_w_B_A + Ct_Nt_k_perp_N_C;
     }
 
     auto K_e = std::make_unique<Array<Real>>(
@@ -351,7 +357,6 @@ void HeatTransferInterfaceModel::computeGradAndDeltaT(GhostType ghost_type) {
 
     AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_JUMP);
 #undef COMPUTE_JUMP
-
     for (auto && data :
          zip(make_view(gradient, spatial_dimension),
              make_view(*surface_gradient, spatial_dimension - 1), *jump)) {
@@ -365,14 +370,74 @@ void HeatTransferInterfaceModel::computeGradAndDeltaT(GhostType ghost_type) {
     }
   }
 }
+/* --------------------------------------------------------------------------
+ */
+void HeatTransferInterfaceModel::computeTempOnQpoints(GhostType ghost_type) {
+  auto & fem_interface =
+      this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
+    auto & t_on_qpoints = temperature_on_qpoints(type, ghost_type);
+
+#define COMPUTE_T(type)                                                        \
+  fem_interface.getShapeFunctions()                                            \
+      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionMean>(       \
+          *temperature, t_on_qpoints, 1, ghost_type);
+
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_T);
+#undef COMPUTE_JUMP
+  }
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferInterfaceModel::updateNormalOpeningAtQuadraturePoints(
+    Array<Real> positions, GhostType ghost_type) {
+  auto & fem_interface =
+      this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
+    auto nb_quadrature_points = fem_interface.getNbIntegrationPoints(type);
+    auto nb_element = mesh.getNbElement(type, ghost_type);
+
+    auto & normal_openings = opening_on_qpoints(type, ghost_type);
+    auto opening_vectors =
+        std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
+                                      spatial_dimension, "opening_vectors");
+    auto normal_vectors = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, spatial_dimension, "normal_vectors");
+
+#define COMPUTE_JUMP(type)                                                     \
+  fem_interface.getShapeFunctions()                                            \
+      .interpolateOnIntegrationPoints<type, CohesiveReduceFunctionDifference>( \
+          positions, *opening_vectors, spatial_dimension, ghost_type);
+
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_JUMP);
+#undef COMPUTE_JUMP
+#define COMPUTE_NORMALS(type)                                                  \
+  fem_interface.getShapeFunctions()                                            \
+      .computeNormalsOnIntegrationPoints<type, CohesiveReduceFunctionMean>(    \
+          mesh.getNodes(), *normal_vectors, ghost_type);
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMALS);
+#undef COMPUTE_NORMALS
+
+    for (auto && data :
+         zip(make_view(*opening_vectors, spatial_dimension),
+             make_view(*normal_vectors, spatial_dimension), normal_openings)) {
+      auto & opening = std::get<0>(data);
+      auto & normal = std::get<1>(data);
+      auto & normal_opening = std::get<2>(data);
+      normal_opening = opening.dot(normal);
+    }
+  }
+  // ++opening_release;
+}
 /* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     GhostType ghost_type) {
 
   // if opening did not change, longitudinal conductivity will neither
-  if (opening_release == long_conductivity_release[ghost_type]) {
-    return;
-  }
+  // if (opening_release == long_conductivity_release[ghost_type]) {
+  //   return;
+  // }
 
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
@@ -387,8 +452,11 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
 
     for (auto && tuple : zip(make_view(long_cond_w, dim, dim), opening)) {
       auto & k = std::get<0>(tuple);
-      auto & w = std::get<1>(tuple);
-
+      auto w = std::get<1>(tuple);
+      // limiting the lower limit of w to avoid numeric instability
+      if (w < this->default_opening) {
+        w = this->default_opening;
+      }
       k = long_cond_vect * w;
     }
   }
@@ -398,30 +466,34 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-void HeatTransferInterfaceModel::computeKTransOnQuadPoints(
-    GhostType ghost_type) {
+// void HeatTransferInterfaceModel::computeKTransOnQuadPoints(
+//     GhostType ghost_type) {
 
-  // if opening did not change, longitudinal conductivity will neither
-  if (opening_release == perp_conductivity_release[ghost_type]) {
-    return;
-  }
+//   // if opening did not change, longitudinal conductivity will neither
+//   // if (opening_release == perp_conductivity_release[ghost_type]) {
+//   //   return;
+//   // }
 
-  for (auto && type :
-       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
-    auto & opening = opening_on_qpoints(type, ghost_type);
-    auto & trans_cond_over_w = k_perp_over_w(type, ghost_type);
+//   for (auto && type :
+//        mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
+//     auto & opening = opening_on_qpoints(type, ghost_type);
+//     auto & trans_cond_over_w = k_perp_over_w(type, ghost_type);
 
-    for (auto && tuple : zip(trans_cond_over_w, opening)) {
-      auto & k_perp = std::get<0>(tuple);
-      auto & w = std::get<1>(tuple);
+//     for (auto && tuple : zip(trans_cond_over_w, opening)) {
+//       auto & k_perp = std::get<0>(tuple);
+//       auto w = std::get<1>(tuple);
+//       // limiting the lower limit of w to avoid numeric instability
+//       if (w < this->default_opening) {
+//         w = this->default_opening;
+//       }
 
-      k_perp = transversal_conductivity / w;
-    }
-  }
-  perp_conductivity_release[ghost_type] = opening_release;
+//       k_perp = transversal_conductivity / w;
+//     }
+//   }
+//   perp_conductivity_release[ghost_type] = opening_release;
 
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
 /* --------------------------------------------------------------------------
  */
@@ -471,21 +543,24 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
 
     auto A = ExtendingOperators::getAveragingOperator(type);
     Matrix<Real> B_A(spatial_dimension - 1, nb_nodes_per_element);
-    auto k_long_w_gradT =
-        std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
-                                      spatial_dimension - 1, "k_long_grad_T");
-
-    auto bt_k_w_gradT = std::make_unique<Array<Real>>(
-        nb_element * nb_quadrature_points, nb_nodes_per_element);
-
+    // auto k_long_w_gradT =
+    //     std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
+    //                                   spatial_dimension - 1,
+    //                                   "k_long_grad_T");
+    Array<Real> k_long_w_gradT(nb_element * nb_quadrature_points,
+                               spatial_dimension - 1);
+    // auto bt_k_w_gradT = std::make_unique<Array<Real>>(
+    //     nb_element * nb_quadrature_points, nb_nodes_per_element);
+    Array<Real> bt_k_w_gradT(nb_element * nb_quadrature_points,
+                             nb_nodes_per_element);
     for (auto && values :
          zip(make_view(k_long_w(type, ghost_type), spatial_dimension - 1,
                        spatial_dimension - 1),
              make_view(gradient, spatial_dimension),
-             make_view(*k_long_w_gradT, spatial_dimension - 1),
+             make_view(k_long_w_gradT, spatial_dimension - 1),
              make_view(shapes_derivatives, spatial_dimension - 1,
                        nb_nodes_per_element / 2),
-             make_view(*bt_k_w_gradT, nb_nodes_per_element))) {
+             make_view(bt_k_w_gradT, nb_nodes_per_element))) {
       const auto & k_w = std::get<0>(values);
       const auto & full_gradT = std::get<1>(values);
       Vector<Real> surf_gradT(spatial_dimension - 1);
@@ -502,15 +577,16 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
       At_Bt_vector.template mul<true>(B_A, k_w_gradT);
     }
 
-    auto long_heat_rate = std::make_unique<Array<Real>>(
-        nb_element, nb_nodes_per_element, "long_heat_rate");
+    // auto long_heat_rate = std::make_unique<Array<Real>>(
+    //     nb_element, nb_nodes_per_element, "long_heat_rate");
+    Array<Real> long_heat_rate(nb_element, nb_nodes_per_element);
 
-    fem.integrate(*bt_k_w_gradT, *long_heat_rate, nb_nodes_per_element, type,
+    fem.integrate(bt_k_w_gradT, long_heat_rate, nb_nodes_per_element, type,
                   ghost_type);
 
     /// assemble
     this->getDOFManager().assembleElementalArrayLocalArray(
-        *long_heat_rate, internal_rate, type, ghost_type, 1);
+        long_heat_rate, internal_rate, type, ghost_type, 1);
   }
 
   AKANTU_DEBUG_OUT();
@@ -520,7 +596,7 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
 void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  computeKTransOnQuadPoints(ghost_type);
+  // computeKTransOnQuadPoints(ghost_type);
 
   auto & internal_rate = const_cast<Array<Real> &>(this->getInternalHeatRate());
 
@@ -543,24 +619,26 @@ void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
 
     auto nt_k_deltaT = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, nb_nodes_per_element);
-    auto k_perp_deltaT_over_w = std::make_unique<Array<Real>>(
+    auto k_perp_deltaT = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, 1, "k_perp_deltaT");
 
     for (auto && values :
-         zip(*k_perp_deltaT_over_w, k_perp_over_w(type, ghost_type),
+         zip(*k_perp_deltaT, /*k_perp_over_w(type, ghost_type),*/
              make_view(gradient, spatial_dimension),
              make_view(shapes, size_of_shapes),
              make_view(*nt_k_deltaT, nb_nodes_per_element))) {
-      auto & _k_perp_deltaT_over_w = std::get<0>(values);
-      auto & _k_perp_over_w = std::get<1>(values);
-      const auto & full_gradT = std::get<2>(values);
-      const auto & N = std::get<3>(values);
-      auto & Nt_k_deltaT = std::get<4>(values);
+      auto & _k_perp_deltaT = std::get<0>(values);
+      // auto & _k_perp_over_w = std::get<1>(values);
+      const auto & full_gradT = std::get<1>(values);
+      const auto & N = std::get<2>(values);
+      auto & Nt_k_deltaT = std::get<3>(values);
 
-      _k_perp_deltaT_over_w =
-          _k_perp_over_w * full_gradT(spatial_dimension - 1);
+      // _k_perp_deltaT_over_w =
+      //     _k_perp_over_w * full_gradT(spatial_dimension - 1);
+      _k_perp_deltaT =
+          this->transversal_conductivity * full_gradT(spatial_dimension - 1);
 
-      Nt_k_deltaT.mul<true>(C, N, _k_perp_deltaT_over_w);
+      Nt_k_deltaT.mul<true>(C, N, _k_perp_deltaT);
     }
 
     auto perp_heat_rate = std::make_unique<Array<Real>>(
@@ -626,16 +704,11 @@ void HeatTransferInterfaceModel::computeInertialHeatRate(GhostType ghost_type) {
     /// assemble
     this->getDOFManager().assembleElementalArrayLocalArray(
         *inertial_heat_rate, internal_rate, type, ghost_type, 1);
+
+    delete inertial_heat_rate;
   }
 
   AKANTU_DEBUG_OUT();
-}
-/* --------------------------------------------------------------------------
- */
-const ShapeLagrange<_ek_cohesive> &
-HeatTransferInterfaceModel::getShapeFunctionsCohesive() {
-  return this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine")
-      .getShapeFunctions();
 }
 /* --------------------------------------------------------------------------
  */
@@ -807,6 +880,11 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           opening_on_qpoints, group_name, this->spatial_dimension, element_kind,
           nb_data_per_elem);
+    } else if (field_name == "temperature_on_qpoints") {
+      auto nb_data_per_elem = getNbDataPerElem(temperature_on_qpoints);
+      field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+          temperature_on_qpoints, group_name, this->spatial_dimension,
+          element_kind, nb_data_per_elem);
     } else if (field_name == "temperature_gradient") {
       auto nb_data_per_elem = getNbDataPerElem(temperature_gradient);
 

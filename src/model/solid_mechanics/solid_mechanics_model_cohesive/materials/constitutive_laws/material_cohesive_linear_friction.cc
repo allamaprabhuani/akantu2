@@ -84,8 +84,6 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTraction(
   auto traction_end =
       this->tractions(el_type, ghost_type).end(spatial_dimension);
   auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
-  auto previous_opening_it =
-      this->opening.previous(el_type, ghost_type).begin(spatial_dimension);
   auto contact_traction_it =
       this->contact_tractions(el_type, ghost_type).begin(spatial_dimension);
   auto contact_opening_it =
@@ -118,7 +116,7 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTraction(
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
        ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
        ++contact_opening_it, ++delta_max_prev_it, ++res_sliding_it,
-       ++res_sliding_prev_it, ++friction_force_it, ++previous_opening_it) {
+       ++res_sliding_prev_it, ++friction_force_it) {
 
     Real normal_opening_norm;
     Real tangential_opening_norm;

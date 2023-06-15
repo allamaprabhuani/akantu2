@@ -127,6 +127,7 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
 
   /// update maximum displacement and damage
   delta_max = std::max(delta_max, delta);
+  delta_max = std::min(delta_max, delta_c);
   damage = std::min(delta_max / delta_c, Real(1.));
 
   /**

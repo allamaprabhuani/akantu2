@@ -103,9 +103,6 @@ public:
   /// compute the capacity on quadrature points
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
-  /// get FEEngine for cohesive elements
-  const ShapeLagrange<_ek_cohesive> & getShapeFunctionsCohesive();
-
 public:
   // /// asign material properties to physical groups
   // void assignPropertyToPhysicalGroup(const std::string & property_name,
@@ -116,14 +113,23 @@ public:
   //                                    const std::string & group_name,
   //                                    Matrix<Real> cond_matrix);
 
+  /// given nodal positions, this function computes and updates normal openings
+  /// at quads of cohesives
+  void updateNormalOpeningAtQuadraturePoints(Array<Real> positions,
+                                             GhostType ghost_type);
+
+  /// compute temperature on ip for output
+  void computeTempOnQpoints(GhostType ghost_type);
+
 private:
   /// compute the integrated longitudinal conductivity matrix (or scalar in
   /// 2D) for each quadrature point
   void computeKLongOnQuadPoints(GhostType ghost_type);
 
   /// compute the transversal conductivity scalar devided by opening
-  void computeKTransOnQuadPoints(GhostType ghost_type);
-
+  // void computeKTransOnQuadPoints(GhostType ghost_type);
+  /// compute temperature gradient along surface and temperature jump on
+  /// cohesive elements
   void computeGradAndDeltaT(GhostType ghost_type);
 
   /// compute internal heat rate along the crack and assemble it into internal
@@ -188,8 +194,8 @@ public:
   AKANTU_GET_MACRO(DensityInCrack, density_in_crack, Real);
   AKANTU_GET_MACRO(DefaultOpening, default_opening, Real);
   /// get the conductivity on q points
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TransversalConductivityOnQpoints,
-                                         k_perp_over_w, Real);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TransversalConductivityOnQpoints,
+  //                                        k_perp_over_w, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(LongitudinalConductivityOnQpoints,
                                          k_long_w, Real);
   /// get the aperture on q points
@@ -212,21 +218,24 @@ protected:
   /// opening rate at quadrature points
   ElementTypeMapArray<Real> opening_rate;
 
+  /// opening rate at quadrature points
+  ElementTypeMapArray<Real> temperature_on_qpoints;
+
   /// longitudinal conductivity tensor (or a scalar in 2D) multiplied by opening
   /// on quadrature points
   ElementTypeMapArray<Real> k_long_w;
 
   /// transversal conductivity scalar devided by opening on quadrature points
-  ElementTypeMapArray<Real> k_perp_over_w;
+  // ElementTypeMapArray<Real> k_perp_over_w;
 
   /// @brief boolean enabling opening-rate term into internal heat rate
   bool use_opening_rate{false};
 
-  std::unordered_map<GhostType, UInt> long_conductivity_release{{_not_ghost, 0},
-                                                                {_ghost, 0}};
+  std::unordered_map<GhostType, UInt> long_conductivity_release{
+      {_not_ghost, UInt(-1)}, {_ghost, UInt(-1)}};
 
-  std::unordered_map<GhostType, UInt> perp_conductivity_release{{_not_ghost, 0},
-                                                                {_ghost, 0}};
+  // std::unordered_map<GhostType, UInt> perp_conductivity_release{
+  //     {_not_ghost, UInt(-1)}, {_ghost, UInt(-1)}};
 
   UInt crack_conductivity_matrix_release{UInt(-1)};
 

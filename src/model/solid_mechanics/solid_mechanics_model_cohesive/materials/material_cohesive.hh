@@ -89,6 +89,10 @@ public:
   // add the facet to be handled by the material
   UInt addFacet(const Element & element);
 
+  /// compute the normal
+  void computeNormal(const Array<Real> & position, Array<Real> & normal,
+                     ElementType type, GhostType ghost_type);
+
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
                                       Array<Real> & /*tangent_matrix*/,
@@ -96,10 +100,6 @@ protected:
                                       GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
-
-  /// compute the normal
-  void computeNormal(const Array<Real> & position, Array<Real> & normal,
-                     ElementType type, GhostType ghost_type);
 
   /// compute the opening
   void computeOpening(const Array<Real> & displacement, Array<Real> & opening,

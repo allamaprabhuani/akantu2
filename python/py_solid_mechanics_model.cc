@@ -117,7 +117,19 @@ void register_solid_mechanics_model(py::module & mod) {
             return self.getEnergy(energy_id, group_id);
           },
           py::arg("energy_id"), py::arg("group_id"))
-
+      .def("getDisplacementRelease",
+           [](SolidMechanicsModel & self) {
+             return self.getDisplacementRelease();
+           })
+      .def("setDisplacementRelease",
+           [](SolidMechanicsModel & self, UInt value) {
+             return self.setDisplacementRelease(value);
+           })
+      .def("increaseDisplacementRelease",
+           [](SolidMechanicsModel & self) {
+             UInt release = self.getDisplacementRelease();
+             return self.setDisplacementRelease(release + 1);
+           })
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
       .def_function(assembleMass)

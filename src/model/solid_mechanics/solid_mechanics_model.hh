@@ -494,6 +494,10 @@ public:
   /// get the FEEngine object to integrate or interpolate on the boundary
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
+  AKANTU_GET_MACRO(DisplacementRelease, displacement_release, UInt);
+
+  AKANTU_SET_MACRO(DisplacementRelease, displacement_release, UInt);
+
 protected:
   /// compute the stable time step
   Real getStableTimeStep(GhostType ghost_type);

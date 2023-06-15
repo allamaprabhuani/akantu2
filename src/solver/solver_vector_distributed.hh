@@ -53,6 +53,8 @@ public:
 
   Real dot(const SolverVector & y) const override;
 
+  Real normFreeDOFs() const override;
+
   virtual bool isDistributed() const override { return true; }
 
 protected:

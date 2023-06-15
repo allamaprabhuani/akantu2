@@ -246,7 +246,7 @@ void register_dof_manager(py::module & mod) {
              return self.get("max_iterations");
            })
       .def("getThreshold", [](NonLinearSolver & self) -> Real {
-        return self.get("threshold");
+        return self.get("threshold_normalized");
       });
 
   py::class_<TimeStepSolver>(mod, "TimeStepSolver")
@@ -258,6 +258,7 @@ void register_dof_manager(py::module & mod) {
           py::arg("residual_part"))
       .def("assembleResidual",
            [](TimeStepSolver & self) { self.assembleResidual(); })
+      .def("assembleMatrix", &TimeStepSolver::assembleMatrix)
       .def(
           "assembleResidual",
           [](TimeStepSolver & self, SolverCallback & solver_callback,

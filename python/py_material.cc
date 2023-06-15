@@ -79,7 +79,6 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTangentModuli, el_type,
                         tangent_matrix, ghost_type);
     }
-
     void computePotentialEnergy(ElementType el_type) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, computePotentialEnergy, el_type);
@@ -207,6 +206,15 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTraction, normal, el_type,
                         ghost_type);
     }
+
+    void computeTangentTraction(ElementType el_type,
+                                Array<Real> & tangent_matrix,
+                                const Array<Real> & normal,
+                                GhostType ghost_type = _not_ghost) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
+                        tangent_matrix, normal, ghost_type);
+    }
   };
 
   template <typename _Material>
@@ -236,10 +244,20 @@ namespace {
                return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
                    .template setDefaultValueToInternal<UInt>(int_id, value);
              })
-        .def("computeTraction", [](_Material & self, const Array<Real> & normal,
-                                   ElementType el_type, GhostType ghost_type) {
+        .def("computeTraction",
+             [](_Material & self, const Array<Real> & normal,
+                ElementType el_type, GhostType ghost_type) {
+               return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(
+                          self)
+                   .computeTraction(normal, el_type, ghost_type);
+             })
+        .def("computeTangentTraction", [](_Material & self, ElementType el_type,
+                                          Array<Real> & tangent_matrix,
+                                          const Array<Real> & normal,
+                                          GhostType ghost_type) {
           return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(self)
-              .computeTraction(normal, el_type, ghost_type);
+              .computeTangentTraction(el_type, tangent_matrix, normal,
+                                      ghost_type);
         });
 
     ;
@@ -341,6 +359,12 @@ void register_material(py::module & mod) {
           "getInternalReal",
           [](Material & self, const ID & id) -> decltype(auto) {
             return self.getInternal<Real>(id);
+          },
+          py::arg("id"), py::return_value_policy::reference)
+      .def(
+          "getInternalRealPrevious",
+          [](Material & self, const ID & id) -> decltype(auto) {
+            return self.getInternal<Real>(id).previous();
           },
           py::arg("id"), py::return_value_policy::reference)
       .def(
@@ -457,6 +481,25 @@ void register_material(py::module & mod) {
                 .computeTraction(normal, el_type, ghost_type);
           },
           py::arg("normal"), py::arg("el_type"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeTangentTraction",
+          [](MaterialCohesive & self, ElementType el_type,
+             Array<Real> & tangent_matrix, const Array<Real> & normal,
+             GhostType ghost_type) {
+            return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                .computeTangentTraction(el_type, tangent_matrix, normal,
+                                        ghost_type);
+          },
+          py::arg("el_type"), py::arg("tangent_matrix"), py::arg("normal"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "computeNormal",
+          [](MaterialCohesive & self, const Array<Real> & position,
+             Array<Real> & normal, ElementType type, GhostType ghost_type) {
+            self.computeNormal(position, normal, type, ghost_type);
+          },
+          py::arg("position"), py::arg("normal"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost)
       .def("getNormalsAtQuads", &MaterialCohesive::getNormalsAtQuads);
 

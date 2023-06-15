@@ -74,7 +74,7 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(
 
   this->registerParam(
       "contact_after_breaking", contact_after_breaking, false,
-      _pat_parsable | _pat_readable,
+      _pat_parsable | _pat_modifiable,
       "Activation of contact when the elements are fully damaged");
 
   this->registerParam("max_quad_stress_insertion", max_quad_stress_insertion,

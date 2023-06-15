@@ -97,6 +97,7 @@ public:
 
   Real dot(const SolverVector & y) const override;
   Real norm() const override;
+  Real normFreeDOFs() const override;
 
   void resize() override {
     static_assert(not std::is_const<std::remove_reference_t<Array_>>::value,

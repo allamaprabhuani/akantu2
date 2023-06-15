@@ -118,7 +118,8 @@ void register_solvers(py::module & mod) {
       .def("set", &SolverVector::set)
       .def("copy", &SolverVector::copy)
       .def("add", &SolverVector::add)
-      .def("norm", &SolverVector::norm);
+      .def("norm", &SolverVector::norm)
+      .def("normFreeDOFs", &SolverVector::normFreeDOFs);
 
   py::class_<TermsToAssemble::TermToAssemble>(mod, "TermToAssemble")
       .def(py::init<Int, Int>())

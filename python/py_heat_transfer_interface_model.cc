@@ -84,10 +84,9 @@ void register_heat_transfer_interface_model(py::module & mod) {
           py::arg("_analysis_method"))
       .def("setTimeStep", &HeatTransferInterfaceModel::setTimeStep,
            py::arg("time_step"), py::arg("solver_id") = "")
-      .def("getTransversalConductivityOnQpoints",
-           &HeatTransferInterfaceModel::getTransversalConductivityOnQpoints,
-           py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference)
+      .def("computeTempOnQpoints",
+           &HeatTransferInterfaceModel::computeTempOnQpoints,
+           py::arg("ghost_type") = _not_ghost)
       .def("getLongitudinalConductivityOnQpoints",
            &HeatTransferInterfaceModel::getLongitudinalConductivityOnQpoints,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
@@ -97,6 +96,9 @@ void register_heat_transfer_interface_model(py::module & mod) {
           [](HeatTransferInterfaceModel & self, ElementType & el_type,
              GhostType & ghost_type) { self.getOpening(el_type, ghost_type); },
           py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference);
+          py::return_value_policy::reference)
+      .def("updateNormalOpeningAtQuadraturePoints",
+           &HeatTransferInterfaceModel::updateNormalOpeningAtQuadraturePoints,
+           py::arg("positions"), py::arg("ghost_type") = _not_ghost);
 }
 } // namespace akantu
