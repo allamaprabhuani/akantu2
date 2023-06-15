@@ -8,13 +8,13 @@ Contributing new features, bug fixes
 ````````````````````````````````````
 
 Any contribution is welcome, we are trying to follow a gitflow workflow, so for people that are `developers` on the project you can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
-For external developers you can [Fork](https://gitlab.com/akantu/akantu/-/forks/new) the project.
-In both cases the modifications have to be submitted in the form of a [Merge Request](https://gitlab.com/akantu/akantu/-/merge_requests/new).
+For external developers you can `Fork <https://gitlab.com/akantu/akantu/-/forks/new>`_ the project.
+In both cases the modifications have to be submitted in the form of a `Merge Request <https://gitlab.com/akantu/akantu/-/merge_requests/new>`_.
 
 Asking for help, reporting issues
 `````````````````````````````````
 
-If you want to ask for help on compilation or usage of akantu, if you want to contribute and don't know where to start, if you encounter an problem with the code do not hesitate to open en [Issue](https://gitlab.com/akantu/akantu/-/issues/new) on gitlab.
+If you want to ask for help on compilation or usage of akantu, if you want to contribute and don't know where to start, if you encounter an problem with the code do not hesitate to open en `Issue <https://gitlab.com/akantu/akantu/-/issues/new>`_ on gitlab.
 
 
 Building ``Akantu``
@@ -146,7 +146,7 @@ If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3
 Configuring and compilation
 ```````````````````````````
 
-`Akantu` is a [CMake](https://cmake.org/) project, so to configure it, you can follow the usual way:
+`Akantu` is a `CMake <https://cmake.org/>`_ project, so to configure it, you can follow the usual way:
 
  .. code-block:: bash
 
