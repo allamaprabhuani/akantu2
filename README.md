@@ -17,7 +17,7 @@ In order to compile `Akantu`  any compiler supporting fully C++14 should work.
 In addition some libraries are required:
 
  - CMake (>= 3.5.1)
- - Boost (preprocessor and Spirit)
+ - Boost (pre-processor and Spirit)
  - zlib
  - Eigen3 (if not present the build system will try to download it)
 
@@ -44,11 +44,36 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
-> sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
-# For parallel
-> sudo apt install mpi-default-dev libmumps-dev libscotch-dev
-# For sequential
-> sudo apt install libmumps-seq-dev 
+ > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
+ # For parallel
+ > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
+ # For sequential
+ > sudo apt install libmumps-seq-dev 
+```
+
+### Using `conda`
+
+This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support
+
+``` sh
+ > conda create -n akantu
+ > conda activate akantu
+ > conda install boost cmake
+ > conda install -c conda-forge mumps
+```
+
+### Using `homebrew`
+
+``` sh
+ > brew install gcc
+ > brew install boost@1.76
+ > brew tap brewsci/num
+ > brew install brewsci-mumps --without-brewsci-parmetis
+```
+
+If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3.5.tar.gz using the command:
+``` sh
+  > brew edit brewsci/num
 ```
 
 ## Configuring and compilation
@@ -67,10 +92,36 @@ To compile the tests and examples:
 
 ```
 
+### On Mac OS X with `homebrew`
+
+You will need to specify the compiler explicitly:
+
+``` sh
+ > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
+```
+
+Considering the homebrew is installed in `/opt/homebrew`
+Define the location of the ``Scotch`` library path:
+``` sh
+ > cmake .. -DSCOTCH_LIBRARY="/opt/homebrew/lib/libscotch.dylib;/opt/homebrew/lib/libscotcherr.dylib;/opt/homebrew/lib/libscotcherrexit.dylib"
+```
+
+Specify path to all ``MUMPS`` libraries:
+``` sh
+ > cmake .. -DMUMPS_DIR=/opt/homebrew/opt/brewsci-mumps
+```
+
+In case the above does not work, specify the ``MUMPS`` path manually using (e.g.):
+``` sh
+ > cmake .. -DMUMPS_LIBRARY_COMMON=/opt/homebrew/opt/brewsci-mumps/lib/libmumps_common.dylib 
+```
+
+If compilation does not work change the path of the failing libraries to brew downloads in `/opt/homebrew/`. 
+
 ## Using the python interface
 
 
-You can install ``Akantu`` using pip, this will install a pre-compiled version:
+You can install ``Akantu`` using pip, this will install a pre-compiled version, this works only on Linux machines for now:
 
 ``` sh
   > pip install akantu
@@ -85,15 +136,24 @@ You can then import the package in a python script as:
 The python API is similar to the C++ one. If you
 encounter any problem with the python interface, you are welcome to do a merge
 request or post an issue on [GitLab](https://gitlab.com/akantu/akantu/-/issues).
-  
+
+# Contributing
+
+## Contributing new features, bug fixes
+
+Any contribution is welcome, we are trying to follow a [gitflow](https://nvie.com/posts/a-successful-git-branching-model/) workflow, so the project `developers` can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
+External fellows can [Fork](https://gitlab.com/akantu/akantu/-/forks/new) the project.
+In both cases the modifications have to be submitted in the form of a [Merge Request](https://gitlab.com/akantu/akantu/-/merge_requests/new).
+
+## Asking for help, reporting issues
+
+If you want to ask for help concerning Akantu's compilation, usage or problem with the code do not hesitate to open an [Issue](https://gitlab.com/akantu/akantu/-/issues/new) on gitlab. If you want to contribute and don't know where to start, you are also invited to open an issue.
+
+
 # Tutorials with the python interface
 
 To help getting started, multiple tutorials using the python interface are
-available as notebooks with pre-installed version of `Akantu` on Binder. The
-following tutorials are currently available:
+available as notebooks with pre-installed version of `Akantu` on Renku. The tutorials can be tested here: 
 
-[Plate whith a hole loaded](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=plate-hole/plate-hole.ipynb)
+[![renku](https://user-content.gitlab-static.net/52a4794df1236b248c8fc870bd74e9d787c0e2cb/68747470733a2f2f72656e6b756c61622e696f2f72656e6b752d62616467652e737667)](https://renkulab.io/projects/guillaume.anciaux/akantu-tutorials/sessions/new?autostart=1)
 
-[Loaded cohesive crack](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=cohesive-fracture/cohesive-fracture.ipynb)
-
-[Making your constitutive law in python](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=constitutive-laws/python_constitutive_law.ipynb)
