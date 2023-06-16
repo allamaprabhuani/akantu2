@@ -7,15 +7,14 @@ Contributing
 Contributing new features, bug fixes
 ````````````````````````````````````
 
-Any contribution is welcome, we are trying to follow a gitflow workflow, so for people that are `developers` on the project you can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
-For external developers you can `Fork <https://gitlab.com/akantu/akantu/-/forks/new>`_ the project.
+Any contribution is welcome, we are trying to follow a `gitflow <https://nvie.com/posts/a-successful-git-branching-model/>`_ workflow, so the project `developers` can create branches named `features/<name of my feature>` or `bugfixes/<name of the fix>` directly in the main `akantu` repository.
+External fellows can `Fork <https://gitlab.com/akantu/akantu/-/forks/new>`_ the project.
 In both cases the modifications have to be submitted in the form of a `Merge Request <https://gitlab.com/akantu/akantu/-/merge_requests/new>`_.
 
 Asking for help, reporting issues
 `````````````````````````````````
 
-If you want to ask for help on compilation or usage of akantu, if you want to contribute and don't know where to start, if you encounter an problem with the code do not hesitate to open en `Issue <https://gitlab.com/akantu/akantu/-/issues/new>`_ on gitlab.
-
+If you want to ask for help concerning Akantu's compilation, usage or problem with the code do not hesitate to open an `Issue <https://gitlab.com/akantu/akantu/-/issues/new>`_ on gitlab. If you want to contribute and don't know where to start, you are also invited to open an issue.
 
 Building ``Akantu``
 --------------------
