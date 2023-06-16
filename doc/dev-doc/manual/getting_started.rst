@@ -16,58 +16,6 @@ Asking for help, reporting issues
 
 If you want to ask for help concerning Akantu's compilation, usage or problem with the code do not hesitate to open an `Issue <https://gitlab.com/akantu/akantu/-/issues/new>`_ on gitlab. If you want to contribute and don't know where to start, you are also invited to open an issue.
 
-Building ``Akantu``
---------------------
-
-Dependencies
-````````````
-
-In order to compile ``Akantu``  any compiler supporting fully C++14 should work.
-In addition some libraries are required:
-
- - CMake (>= 3.5.1)
- - Boost (pre-processor and Spirit)
- - zlib
- - Eigen3 (if not present the build system will try to download it)
-
-For the python interface:
-
- - Python (>=3 is recommended)
- - pybind11 (if not present the build system will try to download it)
-
-To run parallel simulations:
-
- - MPI
- - Scotch
-
-To use the static or implicit dynamic solvers at least one of the following libraries is needed:
-
- - MUMPS (since this is usually compiled in static you also need MUMPS dependencies)
- - PETSc
-
-To compile the tests and examples:
-
- - Gmsh
- - google-test (if not present the build system will try to download it)
-
-On ``.deb`` based Linux systems
-"""""""""""""""""""""""""""""""
-
-.. code-block:: bash
-
- > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
- # For parallel
- > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
- # For sequential
- > sudo apt install libmumps-seq-dev
-
-Using ``conda``
-"""""""""""""""
-
-This works only for sequential computation since `mumps` from conda-forge is compiled without MPI support:
-
-.. code-block:: bash
-
 
 Building ``Akantu``
 --------------------
