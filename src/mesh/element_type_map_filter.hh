@@ -31,7 +31,7 @@ namespace akantu {
 /* ElementTypeMapFilter */
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType = ElementType>
-class ElementTypeMapArrayFilter {
+class DLL_PUBLIC ElementTypeMapArrayFilter {
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */

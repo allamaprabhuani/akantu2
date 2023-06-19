@@ -39,7 +39,7 @@ template <class T> class SpatialGrid;
 // Model element
 template <class ModelPolicy> class ModelElement;
 
-extern const Array<Int> empty_filter;
+__attribute__((visibility("default"))) extern const Array<Int> empty_filter;
 
 class Parser;
 class ParserSection;

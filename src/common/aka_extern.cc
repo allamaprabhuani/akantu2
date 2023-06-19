@@ -53,7 +53,7 @@ namespace debug {
   /// parallel context used in debug messages
   std::string _parallel_context;
 
-  Debugger debugger;
+  DLL_PUBLIC Debugger debugger;
 
 } // namespace debug
 
@@ -67,7 +67,7 @@ Parser static_parser;
 bool Parser::permissive_parser = false;
 
 /* -------------------------------------------------------------------------- */
-Real Math::tolerance = 1e2 * std::numeric_limits<Real>::epsilon();
+DLL_PUBLIC Real Math::tolerance = 1e2 * std::numeric_limits<Real>::epsilon();
 
 /* -------------------------------------------------------------------------- */
 const Int _all_dimensions [[gnu::unused]] = Int(-1);

@@ -83,10 +83,10 @@ namespace {
   });
  @endcode
 */
-class Mesh : public EventHandlerManager<MeshEventHandler>,
-             public GroupManager,
-             public MeshData,
-             public Dumpable {
+class DLL_PUBLIC Mesh : public EventHandlerManager<MeshEventHandler>,
+                        public GroupManager,
+                        public MeshData,
+                        public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

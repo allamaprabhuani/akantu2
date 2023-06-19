@@ -127,9 +127,8 @@ void readInputFile(const std::string & input_file) {
 cppargparse::ArgumentParser & getStaticArgumentParser() {
   return static_argparser;
 }
-
 /* -------------------------------------------------------------------------- */
-Parser & getStaticParser() { return static_parser; }
+DLL_PUBLIC Parser & getStaticParser() { return static_parser; }
 
 /* -------------------------------------------------------------------------- */
 const ParserSection & getUserParser() {

@@ -72,11 +72,13 @@ enum DebugLevel {
 
 /* -------------------------------------------------------------------------- */
 namespace debug {
-  void setDebugLevel(const DebugLevel & level);
+  __attribute__((visibility("default"))) void
+  setDebugLevel(const DebugLevel & level);
   const DebugLevel & getDebugLevel();
 
   void initSignalHandler();
-  std::string demangle(const char * symbol);
+  __attribute__((visibility("default"))) std::string
+  demangle(const char * symbol);
   template <class T> std::string demangle() {
     return demangle(typeid(T).name());
   }
@@ -86,7 +88,8 @@ namespace debug {
   }
 
   auto exec(const std::string & cmd) -> std::string;
-  auto getBacktrace() -> std::vector<std::string>;
+  __attribute__((visibility("default"))) auto getBacktrace()
+      -> std::vector<std::string>;
   void
   printBacktrace(const std::vector<std::string> & backtrace = getBacktrace());
 
@@ -162,7 +165,7 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
-  class Debugger {
+  class __attribute__((visibility("default"))) Debugger {
   public:
     Debugger() noexcept;
     virtual ~Debugger();

@@ -44,7 +44,7 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class SolidMechanicsModel
+class DLL_PUBLIC SolidMechanicsModel
     : public Model,
       public DataAccessor<Element>,
       public DataAccessor<Idx>,

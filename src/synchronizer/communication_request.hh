@@ -30,7 +30,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class InternalCommunicationRequest {
+class DLL_PUBLIC InternalCommunicationRequest {
 public:
   InternalCommunicationRequest(Idx source, Idx dest);
   virtual ~InternalCommunicationRequest();

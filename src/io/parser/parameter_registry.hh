@@ -56,7 +56,7 @@ template <typename T> class ParameterTyped;
 /**
  * Interface for the Parameter
  */
-class Parameter {
+class DLL_PUBLIC Parameter {
 public:
   Parameter();
   Parameter(std::string name, std::string description,

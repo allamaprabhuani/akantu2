@@ -45,7 +45,7 @@ namespace akantu {
  * containing  the
  * shape functions and the integration method
  */
-class FEEngine : public MeshEventHandler {
+class DLL_PUBLIC FEEngine : public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

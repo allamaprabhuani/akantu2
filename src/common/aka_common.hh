@@ -371,7 +371,7 @@ enum class SynchronizationTag {
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
-  _smm_gradu,    ///< synchronization of the gradu to compute the
+  _smm_gradu,     ///< synchronization of the gradu to compute the
                   ///< strain
   _smmc_facets,   ///< synchronization of facet data to setup facet synch
   _smmc_facets_conn,   ///< synchronization of facet global connectivity
@@ -398,8 +398,8 @@ enum class SynchronizationTag {
                              /// temperature
 
   // --- PhaseFieldModel tags ---
-  _pfm_damage,  ///< synchronization of the nodal damage
-  
+  _pfm_damage, ///< synchronization of the nodal damage
+
   // --- CouplerSolidPhaseField tags ---
   _csp_damage, ///< synchronization of the damage from phase
                /// model to solid model
@@ -419,12 +419,12 @@ enum class SynchronizationTag {
   _nh_criterion,
 
   // --- General tags ---
-  _test,        ///< Test tag
-  _user_1,      ///< tag for user simulations
-  _user_2,      ///< tag for user simulations
-  _material_id, ///< synchronization of the material ids
+  _test,          ///< Test tag
+  _user_1,        ///< tag for user simulations
+  _user_2,        ///< tag for user simulations
+  _material_id,   ///< synchronization of the material ids
   _phasefield_id, ///< synchronization of the phasefield ids
-  _for_dump,    ///< everything that needs to be synch before dump
+  _for_dump,      ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---
   _cf_nodal, ///< synchronization of disp, velo, and current position
@@ -696,5 +696,45 @@ private:
 };
 
 } // namespace std
+
+/* -------------------------------------------------------------------------- */
+// akantu visibility macro
+#if defined _WIN32 || defined __CYGWIN__
+#ifdef BUILDING_DLL
+#ifdef __GNUC__
+#define DLL_PUBLIC __attribute__((dllexport))
+#else
+#define DLL_PUBLIC                                                             \
+  __declspec(                                                                  \
+      dllexport) // Note: actually gcc seems to also supports this syntax.
+#endif
+#else
+#ifdef __GNUC__
+#define DLL_PUBLIC __attribute__((dllimport))
+#else
+#define DLL_PUBLIC                                                             \
+  __declspec(                                                                  \
+      dllimport) // Note: actually gcc seems to also supports this syntax.
+#endif
+#endif
+#define DLL_LOCAL
+#else
+#if __GNUC__ >= 4
+#define DLL_PUBLIC __attribute__((visibility("default")))
+#define DLL_LOCAL __attribute__((visibility("hidden")))
+#else
+#define DLL_PUBLIC
+#define DLL_LOCAL
+#endif
+#endif
+
+// class DLL_PUBLIC SomeClass
+// {
+//    int c;
+//    DLL_LOCAL void privateMethod();  // Only for use within this DSO
+// public:
+//    Person(int _c) : c(_c) { }
+//    static void foo(int a);
+// };
 
 #endif // AKANTU_COMMON_HH_

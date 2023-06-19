@@ -99,7 +99,7 @@ enum ParserParameterSearchCxt {
 /* ------------------------------------------------------------------------ */
 /* Parameters Class                                                         */
 /* ------------------------------------------------------------------------ */
-class ParserSection;
+class DLL_PUBLIC ParserSection;
 
 /// @brief The ParserParameter objects represent the end of tree branches as
 /// they
@@ -469,7 +469,7 @@ private:
 /* Parser Class                                                             */
 /* ------------------------------------------------------------------------ */
 /// Root of parsing tree, represents the global ParserSection
-class Parser : public ParserSection {
+class DLL_PUBLIC Parser : public ParserSection {
 public:
   Parser() : ParserSection("global", ParserType::_global) {}
 
