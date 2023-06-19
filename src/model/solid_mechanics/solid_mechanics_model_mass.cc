@@ -54,7 +54,6 @@ void SolidMechanicsModel::assembleMassLumped() {
   }
 
   this->allocNodalField(this->mass, spatial_dimension, "mass");
-  mass->zero();
 
   if (!this->getDOFManager().hasLumpedMatrix("M")) {
     this->getDOFManager().getNewLumpedMatrix("M");
@@ -67,23 +66,6 @@ void SolidMechanicsModel::assembleMassLumped() {
 
   this->getDOFManager().getLumpedMatrixPerDOFs("displacement", "M",
                                                *(this->mass));
-
-/// for not connected nodes put mass to one in order to avoid
-#if !defined(AKANTU_NDEBUG)
-  std::set<Idx> unconnected_nodes;
-  for (auto && data : enumerate(make_view(*mass))) {
-    auto & m = std::get<1>(data);
-    if (std::abs(m) < std::numeric_limits<Real>::epsilon() || Math::isnan(m)) {
-      m = 0.;
-      unconnected_nodes.insert(std::get<0>(data));
-    }
-  }
-
-  if (unconnected_nodes.begin() != unconnected_nodes.end()) {
-    AKANTU_DEBUG_WARNING("There are nodes that seem to not be connected to any "
-                         "elements, beware that they have lumped mass of 0.");
-  }
-#endif
 
   this->synchronize(SynchronizationTag::_smm_mass);
 
