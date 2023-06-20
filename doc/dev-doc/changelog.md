@@ -1,6 +1,8 @@
-## Version 5.0.1 (05-05-2023)
+## Version 5
 
-### Changed
+### Version 5.0.1 (05-05-2023)
+
+#### Changed
 
 - Bug fixes:
   - bad constcorectness in arrays
@@ -8,9 +10,9 @@
 
 - Extending python API
 
-## Version 5.0 (03-28-2023)
+### Version 5.0 (03-28-2023)
 
-### Changed 
+#### Changed 
 
 - C++ standard 17 is now accepted
 - `Vector<T>` and `Matrix<T>` changed from internal types to Eigen::Matrix<T>
@@ -25,7 +27,7 @@
   With the new version the temporary vector `v` will be a deep copy of `v_`
   instead of a shallow copy as in the previous version
   
-### Added
+#### Added
 
 - `make_view` as a static dimension version for vectors and matrices
   `make_view<size>(vectors)` and `make_view<rows, cols>(matrices)`
@@ -39,7 +41,7 @@
   }
   ```
   
-### Deprecated
+#### Deprecated
 
 - `begin_reinterpret` and `end_reinterpret` are error prone and deprecated in favor of `make_view`
 - `storage()` members are deprecated in favor of `data()` in order to be compatible with the STL
@@ -51,21 +53,22 @@
   - the call to `finalize` is not needed
   - `applyDirichketBC` was replaced by `applyBC`
 
-### Deleted
+#### Deleted
 
 - `getForce`, `firstType()`, `lastType()` that where deprecated in version 4.0
 
+## Version 4
 
 ## Version 4.0 (09-21-2021)
 
-### Added
+#### Added
   
 - pybind11 binding
 - contact mechanics model
 - phase field model
 - Added a Changelog
 
-### Changed
+#### Changed
 
 - transferred CI from jenkinsfile to gitlab CI/CD
 - API changes to make container more STL compatible
@@ -73,31 +76,33 @@
   - empty does not empty containers but tells if the container is empty
   - zero replace the old empty and set containers to 0
   
-### Deprecated
+#### Deprecated
 
 - `getForce` in the `SolidMechanicsModel` becomes `getExternalForce`
 - `firstType()`, `lastType()` replaced by `elementTypes()`
 
-## Version 3.2 (not released)
+## Version 3
 
-### Added
+### Version 3.2 (not released)
+
+#### Added
 
 - Activating PETSc solver back with the new solver interface
 
-### Deprecated 
+#### Deprecated 
 
 - deprecating old C++ 03 code
 
 
-## 3.0 (2018-03)
+### 3.0 (2018-03)
 
-### Added
+#### Added
 
 - Parallel cohesive elements
 - Element groups created by default for “physical_names”
 - Named arguments for functions (e.g. model.initFull(_analysis_method = _static))
 
-### Changed
+#### Changed
 
 - Models using new interface for solvers
   - Same configuration for all models
@@ -125,25 +130,28 @@
       }
     }
 
-### Deleted
+#### Deleted
 
 - PETSc interface temporary inactive
 - Periodic boundary condition temporary inactive
 
-## 2.3 (2016-03)
+## Version 2
+### 2.3 (2016-03)
 
-### Added
+#### Added
 
 - swig python interface
 
-## 2.2 (2014-09)
+### 2.2 (2014-09)
 
-### Added
+#### Added
 - Cohesive elements
 
-## 1.0 (2012-06)
+## Version 1
 
-### Added
+### 1.0 (2012-06)
+
+#### Added
 - Continuum damage local and non-local
 - Models: solid mechanics, structural mechanics, heat transfer
 
