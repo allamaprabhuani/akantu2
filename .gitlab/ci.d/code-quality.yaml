@@ -8,10 +8,9 @@
         - third-party/eigen3
         - third-party/pybind11
         - third-party/google-test
-  rules:
-    - if: "$CODE_QUALITY_DISABLED"
-      when: never
-    - if: "$CI_COMMIT_TAG || $CI_COMMIT_BRANCH"
+  only:
+    - tags
+    - branches
 
 .code_quality_gitlab_template:
   extends:
