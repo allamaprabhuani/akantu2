@@ -47,7 +47,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "breathe",
-    "myst-parser",
+    "myst_parser",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
