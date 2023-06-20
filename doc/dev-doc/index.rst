@@ -30,7 +30,7 @@ efficiency while benefiting the open-source visibility.
    :caption: User Manual
 
    ./manual/getting_started.rst
-   ./manual/fe_engine.rst
+   ./manual/basic_types.rst
    ./manual/solidmechanicsmodel.rst
    ./manual/heattransfermodel.rst
    ./manual/contactmechanicsmodel.rst
