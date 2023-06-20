@@ -42,7 +42,7 @@ efficiency while benefiting the open-source visibility.
    :maxdepth: 2
    :caption: Changelog
 
-   ./changelog.rst
+   ./changelog.md
 
 .. toctree::
    :maxdepth: 2
