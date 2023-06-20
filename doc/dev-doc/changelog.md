@@ -1,6 +1,6 @@
 ## Version 5
 
-## Version 5.0.3 (09-06-2023)
+## Version 5.0.3
 
 ### Added
 
@@ -11,13 +11,13 @@
 - Bug fixes in conctact mechanics
 
 
-## Version 5.0.2 (06-30-2023)
+## Version 5.0.2
 
 ### Added
 
 - pypi package for python 3.11 and 3.12
 
-### Version 5.0.1 (05-05-2023)
+### Version 5.0.1
 
 #### Changed
 
@@ -27,7 +27,7 @@
 
 - Extending python API
 
-### Version 5.0 (03-28-2023)
+### Version 5.0.0
 
 #### Changed 
 
@@ -76,7 +76,13 @@
 
 ## Version 4
 
-## Version 4.0 (09-21-2021)
+### Version 4.0.1
+
+#### Changed
+
+- Bug fixes
+
+### Version 4.0.0
 
 #### Added
   
@@ -100,7 +106,7 @@
 
 ## Version 3
 
-### Version 3.2 (not released)
+### Version 3.2.0
 
 #### Added
 
@@ -111,7 +117,7 @@
 - deprecating old C++ 03 code
 
 
-### 3.0 (2018-03)
+### Version 3.0.0
 
 #### Added
 
@@ -153,20 +159,20 @@
 - Periodic boundary condition temporary inactive
 
 ## Version 2
-### 2.3 (2016-03)
+### Version 2.3.0
 
 #### Added
 
 - swig python interface
 
-### 2.2 (2014-09)
+### Version 2.2.0
 
 #### Added
 - Cohesive elements
 
 ## Version 1
 
-### 1.0 (2012-06)
+### Version 1.0.0
 
 #### Added
 - Continuum damage local and non-local
