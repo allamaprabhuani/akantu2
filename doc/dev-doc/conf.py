@@ -83,7 +83,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -197,22 +197,6 @@ html_sidebars = {
 math_eqref_format = "Eq. {number}"
 
 # MathJax configuration
-# if not read_the_docs_build:
-mathjax2_config = {
-    "extensions": ["tex2jax.js", "siunitx.js"],
-    "TeX": {
-        "Macros": {
-            "st": [r"\mathrm{#1}", 1],
-            "mat": [r"\mathbf{#1}", 1],
-            "half": [r"\frac{1}{2}", 0],
-        },
-        "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
-    },
-}
-
-# for old versions
-mathjax_config = mathjax2_config
-
 mathjax3_config = {
     "tex": {
         "macros": {
@@ -224,7 +208,6 @@ mathjax3_config = {
     },
     "loader": {"load": ["[tex]/ams"]},
 }
-
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

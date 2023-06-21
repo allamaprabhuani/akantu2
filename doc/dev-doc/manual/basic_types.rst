@@ -1,7 +1,7 @@
 Basic types
 ===========
 
-Using Arrays
+Array<T>
 ------------
 
 Data in ``Akantu`` can be stored in data containers implemented by the

@@ -66,6 +66,7 @@ set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
 file(GLOB_RECURSE _SPHINX_SRCS
   "*.rst")
 
+set(ENV(RUNNING_IN_CMAKE) "True")
 add_custom_command(
   OUTPUT ${SPHINX_OUTPUT}
   COMMAND ${_sphinx_command}

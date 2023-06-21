@@ -8,7 +8,7 @@ Theory
 ------
 
 The strong form of the dynamic heat equation
-can be expressed as
+can be expressed as:
 
 .. math::
   \rho c_v \dot{T} + \nabla \cdot \vec{\kappa} \nabla T = b
@@ -32,7 +32,7 @@ To simplify, we can define the capacity and the conductivity matrices as
   C_{ij} = \int_\Omega \rho c_v N_j N_i  d\Omega \qquad \textrm{and} \qquad
   K_{ij} = - \int_\Omega \vec{\kappa} \nabla N_j \nabla N_i d\Omega
 
-and the system to solve can be written
+and the system to solve can be written:
 
 .. math::
   \mat{C} \cdot \vec{\dot{T}} = \vec{Q}^{\text{ext}} -\mat{K} \cdot \vec{T}~,
