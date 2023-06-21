@@ -14,6 +14,7 @@ INPUT                  = {{ akantu_source_path }}/src \
 FILE_PATTERNS          = *.c *.cc *.hh *.py
 EXCLUDE                = {{ akantu_source_path }}/src/common/aka_fwd.hh \
                          {{ akantu_source_path }}/src/io/dumper/dumpable_dummy.hh
+                         {{ akantu_source_path }}/src/synchronizer/communicator_dummy.hh
                          {{ akantu_source_path }}/src/common/aka_config.hh.in
 RECURSIVE              = YES
 EXAMPLE_PATH           = {{ akantu_source_path }}/examples
@@ -43,7 +44,8 @@ EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
                          AKANTU_SET_MACRO \
                          AKANTU_GET_MACRO_DEREF_PTR \
                          AKANTU_GET_MACRO_BY_ELEMENT_TYPE \
-                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST
+                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST \
+                         AKANTU_GET_MACRO_AUTO
 COLLABORATION_GRAPH    = NO
 UML_LOOK               = YES
 TEMPLATE_RELATIONS     = YES

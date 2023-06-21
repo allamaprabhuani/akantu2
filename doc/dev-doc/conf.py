@@ -200,23 +200,21 @@ math_eqref_format = "Eq. {number}"
 mathjax3_config = {
     "tex": {
         "macros": {
-            "st": [r"\mathrm{#1}", 1],
-            "mat": [r"\mathbf{#1}", 1],
-            "half": [r"\frac{1}{2}", 0],
+            "st": ["\\mathrm{#1}", 1],
+            "mat": ["\\mathbf{#1}", 1],
+            "half": "\\frac{1}{2}",
         },
-        "packages": ["base", "ams"],
+        "packages": {"[+]": ["ams"]},
     },
     "loader": {"load": ["[tex]/ams"]},
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
-
 # Output file base name for HTML help builder.
 htmlhelp_basename = "Akantudoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
-
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
@@ -321,7 +319,7 @@ subprocess.run(["doxygen", "akantu.dox"], cwd=akantu_path)
 breathe_projects = {"Akantu": os.path.join(akantu_path, "xml")}
 breathe_default_project = "Akantu"
 breathe_default_members = ("members", "undoc-members")
-breathe_implementation_filename_extensions = [".c", ".cc", ".cpp"]
+breathe_implementation_filename_extensions = [".c", ".cc", ".cpp", ".hh"]
 breathe_show_enumvalue_initializer = True
 breathe_debug_trace_directives = True
 

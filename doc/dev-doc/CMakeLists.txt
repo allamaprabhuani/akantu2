@@ -70,7 +70,7 @@ set(ENV(RUNNING_IN_CMAKE) "True")
 add_custom_command(
   OUTPUT ${SPHINX_OUTPUT}
   COMMAND ${_sphinx_command}
-  DEPENDS ${SPHINX_INPUT} ${_SPHINX_SRCS}
+  DEPENDS ${SPHINX_INPUT} ${_SPHINX_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.j2"
   COMMENT "Building HTML documentation with Sphinx in ${SPHINX_HTML_DIR}"
   )
 

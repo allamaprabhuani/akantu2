@@ -383,10 +383,10 @@ Extrinsic cohesive elements are dynamically inserted between two
 standard elements when
 
 .. math::
-   \sigma_\mathrm{eff} > \sigma_\mathrm{c} \quad\text {with} \quad \sigma_\mathrm{eff} = \sqrt{\sigma_\mathrm{n} ^ 2 + \frac{\tau ^ 2} {\beta ^ 2 }}
+   \sigma_\st{eff} > \sigma_\st{c} \quad\text {with} \quad \sigma_\st{eff} = \sqrt{\sigma_\st{n} ^ 2 + \frac{\tau ^ 2} {\beta ^ 2 }}
 
-in which :math:`\sigma_\mathrm { n }
-` is the tensile normal traction and $\tau$ the resulting tangential one(  :numref:`fig-smm-coh-insertion`).
+in which :math:`\sigma_\st{n}` is the tensile normal traction and $\tau$ the
+resulting tangential one (:numref:`fig-smm-coh-insertion`).
 
 Extrinsic approach
 ''''''''''''''''''
@@ -447,7 +447,10 @@ the input file.
     ]
   ]
 
-
+``cohesive_surfaces`` defines are the physical surfaces defined in the mesh
+(``Curves`` in 1D and ``Surfaces`` in 2D) on which the insertion is allowed,
+``cohesive_zones`` are the physical volumes in which the insertion is allowed
+(``Surfaces`` in 2D and ``Volumes`` in 3D).
 
 Static Analysis
 ---------------
@@ -461,7 +464,7 @@ case. In this case, the equation to solve is
      :label: eqn-smm-static
 
 where :math:`\mat{K}` is the global stiffness matrix, :math:`\vec{u}` the
-displacement vector and :math:`\vec{f}_{\st{ext}}` the vector of external
+displacement vector and :math:`\vec{f}_\st{ext}` the vector of external
 forces applied to the system.
 
 To solve such a problem, the static solver of the
@@ -489,7 +492,7 @@ initialized during the ``initFull``. The method ``initFull`` also initializes
 all appropriate vectors to zero. Once the model is created and initialized, the
 boundary conditions can be set as explained in Section :ref:`sect-smm-boundary`.
 Boundary conditions will prescribe the external forces for some free degrees of
-freedom :math:`\vec{f}_{\st{ext}}` and displacements for some others. At this
+freedom :math:`\vec{f}_\st{ext}` and displacements for some others. At this
 point of the analysis, the function
 :cpp:func:`solveStep <akantu::SolidMechanicsModel::solveStep>` can be called
 

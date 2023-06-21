@@ -269,6 +269,7 @@ public:
    * structural materials, that were previously optained by `getMaterial()`.
    *
    * \param  material The new material.
+   * \param  name the name associated to this material
    *
    * \return The ID of the material that was added.
    *
@@ -281,7 +282,7 @@ public:
 
   /**
    * \brief Returns the ith material of *this.
-   * \param i The ith material
+   * \param material_index The index of requested material
    */
   const StructuralMaterial & getMaterial(UInt material_index) const;
 

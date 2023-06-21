@@ -56,72 +56,8 @@ that can be performed on :cpp:class:`Array <akantu::Array>`:
   - :cpp:func:`storage() <akantu::Array::storage>` Return the address of the
     allocated memory of the :cpp:class:`Array <akantu::Array>`.
 
-Array iterators
----------------
-
-It is very common in ``Akantu`` to loop over arrays to perform a specific treatment.
-This ranges from geometric calculation on nodal quantities to tensor algebra (in
-constitutive laws for example). The :cpp:class:`Array <akantu::Array>` object
-has the possibility to request iterators in order to make the writing of loops
-easier and enhance readability. For instance, a loop over the nodal coordinates
-can be performed like::
-
-  // accessing the nodal coordinates Array
-  // with spatial_dimension components
-  const auto & nodes = mesh.getNodes();
-
-  for (const auto & coords : make_view(nodes, spatial_dimension)) {
-    // do what you need ....
-  }
-
-In that example, each ``coords`` is a :cpp:class:`Vector\<Real\> <akantu::Vector>`
-containing geometrical array of size ``spatial_dimension`` and the iteration is
-conveniently performed by the :cpp:class:`Array <akantu::Array>` iterator.
-
-The :cpp:class:`Array <akantu::Array>` object is intensively used to store
-second order tensor values. In that case, it should be specified that the
-returned object type is a matrix when constructing the iterator. This is done
-when calling the :cpp:func:`make_view <akantu::make_view>`. For instance,
-assuming that we have a :cpp:class:`Array <akantu::Array>` storing stresses, we
-can loop over the stored tensors by::
-
-   for (const auto & stress :
-     make_view(stresses, spatial_dimension, spatial_dimension)) {
-     // stress is of type `const Matrix<Real>&`
-   }
-
-In that last example, the :cpp:class:`Matrix\<Real\> <akantu::Matrix>` objects are
-``spatial_dimension`` :math:`\times` ``spatial_dimension`` matrices. The light
-objects :cpp:class:`Matrix\<T\> <akantu::Matrix>` and
-:cpp:class:`Vector\<T\> <akantu::Vector>` can be used and combined to do most
-common linear algebra. If the number of component is 1, it is possible to use
-:cpp:func:`make_view <akantu::make_view>` to this effect.
-
-
-In general, a mesh consists of several kinds of elements. Consequently, the
-amount of data to be stored can differ for each element type. The
-straightforward example is the connectivity array, namely the sequences of nodes
-belonging to each element (linear triangular elements have fewer nodes than,
-say, rectangular quadratic elements etc.). A particular data structure called
-:cpp:class:`ElementTypeMapArray\<T\> <akantu::ElementTypeMapArray>` is provided
-to easily manage this kind of data. It consists of a group of ``Arrays``, each
-associated to an element type. The following code can retrieve the
-:cpp:class:`ElementTypeMapArray\<UInt\> <akantu::ElementTypeMapArray>` which
-stores the connectivity arrays for a mesh::
-
-  const ElementTypeMapArray<UInt> & connectivities =
-    mesh.getConnectivities();
-
-Then, the specific array associated to a given element type can be obtained by::
-
-  const Array<UInt> & connectivity_triangle =
-    connectivities(_triangle_3);
-
-where the first order 3-node triangular element was used in the presented piece
-of code.
-
 Vector & Matrix
-```````````````
+---------------
 
 The :cpp:class:`Array\<T\> <akantu::Array>` iterators as presented in the previous
 section can be shaped as :cpp:class:`Vector\<T\> <akantu::Vector>` or
@@ -131,7 +67,7 @@ more into detail in this here.
 
 
 ``Vector<T>``
-'''''''''''''
+`````````````
 
 - Accessors:
 
@@ -176,7 +112,7 @@ more into detail in this here.
     ``v``
 
 ``Matrix<T>``
-'''''''''''''
+`````````````
 
 - Accessors:
 
@@ -257,6 +193,70 @@ more into detail in this here.
     ``V`` such that :math:`d(i) = \lambda_i` and :math:`V(i) = \vec{v_i}` with
     :math:`\mat{A}\vec{v_i} = \lambda_i\vec{v_i}` and :math:`\lambda_1 > ... >
     \lambda_i > ... > \lambda_N`
+
+Array iterators
+---------------
+
+It is very common in ``Akantu`` to loop over arrays to perform a specific treatment.
+This ranges from geometric calculation on nodal quantities to tensor algebra (in
+constitutive laws for example). The :cpp:class:`Array <akantu::Array>` object
+has the possibility to return iterators in order to make the writing of loops
+easier and enhance readability. For instance, a loop over the nodal coordinates
+can be performed like::
+
+  // accessing the nodal coordinates Array
+  // with spatial_dimension components
+  const auto & nodes = mesh.getNodes();
+
+  for (const auto & coords : make_view(nodes, spatial_dimension)) {
+    // do what you need ....
+  }
+
+In that example, each ``coords`` is a :cpp:class:`Vector\<Real\> <akantu::Vector>`
+containing geometrical array of size ``spatial_dimension`` and the iteration is
+conveniently performed by the :cpp:class:`Array <akantu::Array>` iterator.
+
+The :cpp:class:`Array <akantu::Array>` object is intensively used to store
+second order tensor values. In that case, it should be specified that the
+returned object type is a matrix when constructing the iterator. This is done
+when calling the :cpp:func:`make_view <akantu::make_view>`. For instance,
+assuming that we have a :cpp:class:`Array <akantu::Array>` storing stresses, we
+can loop over the stored tensors by::
+
+   for (const auto & stress :
+     make_view(stresses, spatial_dimension, spatial_dimension)) {
+     // stress is of type `const Matrix<Real>&`
+   }
+
+In that last example, the :cpp:class:`Matrix\<Real\> <akantu::Matrix>` objects are
+``spatial_dimension`` :math:`\times` ``spatial_dimension`` matrices. The light
+objects :cpp:class:`Matrix\<T\> <akantu::Matrix>` and
+:cpp:class:`Vector\<T\> <akantu::Vector>` can be used and combined to do most
+common linear algebra. If the number of component is 1, it is possible to use
+:cpp:func:`make_view <akantu::make_view>` to this effect.
+
+
+In general, a mesh consists of several kinds of elements. Consequently, the
+amount of data to be stored can differ for each element type. The
+straightforward example is the connectivity array, namely the sequences of nodes
+belonging to each element (linear triangular elements have fewer nodes than,
+say, rectangular quadratic elements etc.). A particular data structure called
+:cpp:class:`ElementTypeMapArray\<T\> <akantu::ElementTypeMapArray>` is provided
+to easily manage this kind of data. It consists of a group of ``Arrays``, each
+associated to an element type. The following code can retrieve the
+:cpp:class:`ElementTypeMapArray\<UInt\> <akantu::ElementTypeMapArray>` which
+stores the connectivity arrays for a mesh::
+
+  const ElementTypeMapArray<UInt> & connectivities =
+    mesh.getConnectivities();
+
+Then, the specific array associated to a given element type can be obtained by::
+
+  const Array<UInt> & connectivity_triangle =
+    connectivities(_triangle_3);
+
+where the first order 3-node triangular element was used in the presented piece
+of code.
 
 
 .. _sect-common-groups:
@@ -487,7 +487,7 @@ is not a Lagrangian but a serendipity element.
                ":cpp:enumerator:`_quadrangle_8 <akantu::_quadrangle_8>`", "quadratic", 8, 9
 
 3D
-````
+""""
 
 In ``Akantu``, there are three types of iso-parametric elements defined in 3D.
 These element types are called :cpp:enumerator:`_tetrahedron_4
@@ -543,13 +543,13 @@ Structural Elements
 Bernoulli Beam Elements
 """""""""""""""""""""""
 
-These elements allow to compute the displacements and rotations of
-structures constituted by Bernoulli beams. ``Akantu`` defines them for
-both 2D and 3D problems respectively in the element types
-:cpp:enumerator:`_bernoulli_beam_2 <akantu::_bernoulli_beam_2>` and :cpp:enumerator:`_bernoulli_beam_3 <akantu::_bernoulli_beam_3>`. A
-schematic depiction of a beam element is shown in
-:numref:`fig-elements-bernoulli` and some of its properties are
-listed in :numref:`tab-elements-bernoulli`.
+These elements allow to compute the displacements and rotations of structures
+constituted by Bernoulli beams. ``Akantu`` defines them for both 2D and 3D
+problems respectively in the element types :cpp:enumerator:`_bernoulli_beam_2
+<akantu::_bernoulli_beam_2>` and :cpp:enumerator:`_bernoulli_beam_3
+<akantu::_bernoulli_beam_3>`. A schematic depiction of a beam element is shown
+in :numref:`fig-elements-bernoulli` and some of its properties are listed in
+:numref:`tab-elements-bernoulli`.
 
 .. note::
    Beam elements are of mixed order: the axial displacement is
