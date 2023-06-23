@@ -125,13 +125,13 @@ void FragmentManager::buildFragments(Real damage_limit) {
 
   auto & mesh_facets = mesh.getMeshFacets();
 
-  Int spatial_dimension = model.getSpatialDimension();
+  auto spatial_dimension = model.getSpatialDimension();
   std::string fragment_prefix("fragment");
 
   /// generate fragments
-  global_nb_fragment =
-      createClusters(spatial_dimension, mesh_facets, fragment_prefix,
-                     CohesiveElementFilter(model, damage_limit));
+  global_nb_fragment = createClusters(
+      spatial_dimension, mesh_facets, fragment_prefix,
+      ClusteringStrategy::_facets, CohesiveElementFilter(model, damage_limit));
 
   nb_fragment = getNbElementGroups(spatial_dimension);
   fragment_indexes.resize(nb_fragment);

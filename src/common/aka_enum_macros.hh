@@ -125,4 +125,9 @@
 #define AKANTU_ENUM_INPUT_STREAM(type_name, list)                              \
   AKANTU_ENUM_INPUT_STREAM_(type_name, list, )
 
-#endif /* AKANTU_AKA_ENUM_MACROS_HH_ */
+#define AKANTU_CLASS_ENUM_DECLARE_WITH_IO(type_name, list)              \
+    AKANTU_CLASS_ENUM_DECLARE(type_name, list)                          \
+    AKANTU_CLASS_ENUM_OUTPUT_STREAM(type_name, list)                    \
+    AKANTU_CLASS_ENUM_INPUT_STREAM(type_name, list)
+
+#endif /* __AKANTU_AKA_ENUM_MACROS_HH__ */

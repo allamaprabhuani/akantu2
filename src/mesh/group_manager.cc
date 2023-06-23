@@ -238,16 +238,11 @@ public:
     auto nb_proc = comm.getNbProc();
 
     /// find starting index to renumber local clusters
-    Array<Int> nb_cluster_per_proc(nb_proc);
-    nb_cluster_per_proc(rank) = nb_cluster;
-    comm.allGather(nb_cluster_per_proc);
+    starting_index = nb_cluster;
+    comm.exclusiveScan(starting_index);
 
-    starting_index = std::accumulate(nb_cluster_per_proc.begin(),
-                                     nb_cluster_per_proc.begin() + rank, 0);
-
-    auto global_nb_fragment =
-        std::accumulate(nb_cluster_per_proc.begin() + rank,
-                        nb_cluster_per_proc.end(), starting_index);
+    auto global_nb_fragment = starting_index + nb_cluster;
+    comm.broadcast(global_nb_fragment, nb_proc - 1);
 
     /// create the local to distant cluster pairs with neighbors
     element_synchronizer.synchronizeOnce(*this,
@@ -267,7 +262,6 @@ public:
         std::accumulate(nb_pairs.begin(), nb_pairs.end() + rank, 0);
 
     Array<Int> total_pairs(total_nb_pairs, 2);
-
     for (const auto & ids : distant_ids) {
       total_pairs(local_pair_index, 0) = ids.first;
       total_pairs(local_pair_index, 1) = ids.second;
@@ -300,7 +294,7 @@ public:
       fragment_check_list.push(first_fragment);
       fragment_check_list.push(second_fragment);
 
-      while (!fragment_check_list.empty()) {
+      while (not fragment_check_list.empty()) {
         auto current_fragment = fragment_check_list.front();
         auto * total_pairs_end = total_pairs.data() + total_pairs.size() * 2;
         auto * fragment_found =
@@ -333,7 +327,6 @@ public:
 
     /// reorganize element groups to match global clusters
     for (auto c : arange(global_clusters.size())) {
-
       /// create new element group corresponding to current cluster
       auto & cluster = group_manager.createElementGroup(
           cluster_name_prefix + "_" + std::to_string(c), element_dimension,
@@ -344,7 +337,7 @@ public:
       for (auto gc : global_clusters[c]) {
         Int local_index = gc - starting_index;
 
-        if (local_index < 0 || local_index >= Int(nb_cluster)) {
+        if (local_index < 0 or local_index >= nb_cluster) {
           continue;
         }
 
@@ -366,7 +359,7 @@ private:
   inline Int getNbData(const Array<Element> & elements,
                        const SynchronizationTag & tag) const override {
     if (tag == SynchronizationTag::_gm_clusters) {
-      return elements.size() * sizeof(UInt);
+      return elements.size() * sizeof(Idx);
     }
 
     return 0;
@@ -424,16 +417,127 @@ Int GroupManager::createBoundaryGroupFromGeometry() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+class ClusteringStrategyImplementation {
+public:
+  ClusteringStrategyImplementation(Mesh & mesh,
+                                   ElementTypeMapArray<bool> & seen_elements)
+      : mesh(mesh), seen_elements(seen_elements) {}
+
+  virtual ~ClusteringStrategyImplementation() = default;
+
+  virtual void queueConnectedElements(const Element & element,
+                                      std::queue<Element> & queue) = 0;
+
+protected:
+  void queueElement(const Element & element, std::queue<Element> & queue) {
+    auto & seen = seen_elements(element);
+    if (not seen) {
+      seen = true;
+      queue.push(element);
+    }
+  }
+
+protected:
+  Mesh & mesh;
+
+private:
+  ElementTypeMapArray<bool> & seen_elements;
+};
+
+/* -------------------------------------------------------------------------- */
+class ClusteringStrategyFacets : public ClusteringStrategyImplementation {
+public:
+  ClusteringStrategyFacets(Mesh & mesh,
+                           ElementTypeMapArray<bool> & seen_elements,
+                           Int element_dimension, Mesh * mesh_facets = nullptr)
+      : ClusteringStrategyImplementation(mesh, seen_elements),
+        element_dimension(element_dimension), mesh_facets(mesh_facets) {
+
+    if (not this->mesh_facets and this->element_dimension > 0) {
+      MeshAccessor mesh_accessor(this->mesh);
+      this->mesh_facets = std::make_unique<Mesh>(
+          this->mesh.getSpatialDimension(), mesh_accessor.getNodesSharedPtr(),
+          "mesh_facets_for_clusters");
+
+      this->mesh_facets->defineMeshParent(mesh);
+
+      MeshUtils::buildAllFacets(this->mesh, *this->mesh_facets,
+                                this->element_dimension,
+                                this->element_dimension - 1);
+    }
+  }
+
+public:
+  void queueConnectedElements(const Element & element,
+                              std::queue<Element> & queue) override {
+    auto && element_to_facets =
+        this->mesh_facets->getSubelementToElement().get(element);
+    for (auto && facet : element_to_facets) {
+      if (facet == ElementNull) {
+        continue;
+      }
+
+      const auto & connected_elements =
+          this->mesh_facets->getElementToSubelement(
+              facet.type, facet.ghost_type)(facet.element);
+
+      for (auto && check_el : connected_elements) {
+        // check if this element has to be skipped
+        if (check_el == ElementNull || check_el == element) {
+          continue;
+        }
+
+        this->queueElement(check_el, queue);
+      }
+    }
+  }
+
+private:
+  Int element_dimension;
+  std::unique_ptr<Mesh> mesh_facets;
+};
+
+/* -------------------------------------------------------------------------- */
+class ClusteringStrategyNodes : public ClusteringStrategyImplementation {
+public:
+  ClusteringStrategyNodes(Mesh & mesh,
+                          ElementTypeMapArray<bool> & seen_elements,
+                          Int element_dimension)
+      : ClusteringStrategyImplementation(mesh, seen_elements) {
+    MeshUtils::buildNode2Elements(this->mesh, node_to_elements,
+                                  element_dimension);
+  }
+
+public:
+  void queueConnectedElements(const Element & element,
+                              std::queue<Element> & queue) override {
+    auto conn = this->mesh.getConnectivity(element);
+    for (auto node : conn) {
+      for (auto element : node_to_elements.getRow(node)) {
+        this->queueElement(element, queue);
+      }
+    }
+  }
+
+private:
+  CSR<Element> node_to_elements;
+};
+
+/* -------------------------------------------------------------------------- */
 Int GroupManager::createClusters(
-    Int element_dimension, Mesh & mesh_facets, std::string cluster_name_prefix,
+    Int element_dimension, Mesh & mesh_facets,
+    const std::string & cluster_name_prefix,
+    const ClusteringStrategy & clustering_strategy_type,
     const GroupManager::ClusteringFilter & filter) {
-  return createClusters(element_dimension, cluster_name_prefix, filter,
-                        mesh_facets);
+  return createClusters(element_dimension, cluster_name_prefix,
+                        clustering_strategy_type, filter, mesh_facets);
 }
 
 /* -------------------------------------------------------------------------- */
 Int GroupManager::createClusters(
-    Int element_dimension, std::string cluster_name_prefix,
+    Int element_dimension, const std::string & cluster_name_prefix,
+    const ClusteringStrategy & clustering_strategy_type,
     const GroupManager::ClusteringFilter & filter) {
 
   MeshAccessor mesh_accessor(mesh);
@@ -445,21 +549,21 @@ Int GroupManager::createClusters(
   MeshUtils::buildAllFacets(mesh, *mesh_facets, element_dimension,
                             element_dimension - 1);
 
-  return createClusters(element_dimension, cluster_name_prefix, filter,
-                        *mesh_facets);
+  return createClusters(element_dimension, cluster_name_prefix,
+                        clustering_strategy_type, filter, *mesh_facets);
 }
 
 /* -------------------------------------------------------------------------- */
 //// \todo if needed element list construction can be optimized by
 //// templating the filter class
-Int GroupManager::createClusters(Int element_dimension,
-                                 const std::string & cluster_name_prefix,
-                                 const GroupManager::ClusteringFilter & filter,
-                                 Mesh & mesh_facets) {
+Int GroupManager::createClusters(
+    Int element_dimension, const std::string & cluster_name_prefix,
+    const ClusteringStrategy & clustering_strategy_type,
+    const GroupManager::ClusteringFilter & filter, Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
   auto nb_proc = mesh.getCommunicator().getNbProc();
-  std::string tmp_cluster_name_prefix = cluster_name_prefix;
+  auto tmp_cluster_name_prefix = cluster_name_prefix;
 
   std::unique_ptr<ElementTypeMapArray<Idx>> element_to_fragment;
 
@@ -485,9 +589,25 @@ Int GroupManager::createClusters(Int element_dimension,
       },
       _spatial_dimension = element_dimension);
 
-  Int nb_cluster = 0;
-
   std::vector<std::string> created_groups;
+
+  std::unique_ptr<ClusteringStrategyImplementation> clustering_strategy;
+  switch (clustering_strategy_type) {
+  case ClusteringStrategy::_facets:
+    clustering_strategy = std::make_unique<ClusteringStrategyFacets>(
+        mesh, seen_elements, element_dimension, &mesh_facets);
+    break;
+  case ClusteringStrategy::_nodes:
+    clustering_strategy = std::make_unique<ClusteringStrategyNodes>(
+        mesh, seen_elements, element_dimension);
+
+    break;
+  default:
+    AKANTU_EXCEPTION(clustering_strategy_type
+                     << " is not a recognized clustering strategy");
+  }
+
+  Int nb_cluster = 0;
 
   for (auto ghost_type : ghost_types) {
     Element uns_el;
@@ -543,34 +663,11 @@ Int GroupManager::createClusters(Int element_dimension,
           /// add current element to the cluster
           cluster.add(el, true, false);
 
-          const auto & element_to_facets =
-              mesh_facets.getSubelementToElement().get(el);
-
-          for (auto && facet : element_to_facets) {
-            if (facet == ElementNull) {
-              continue;
-            }
-
-            const auto & connected_elements =
-                const_cast<const Mesh &>(mesh_facets)
-                    .getElementToSubelement(facet);
-
-            for (const auto & check_el : connected_elements) {
-
-              // check if this element has to be skipped
-              if (check_el == ElementNull || check_el == el) {
-                continue;
-              }
-
-              auto & seen_elements_current = seen_elements(check_el);
-
-              if (not seen_elements_current) {
-                seen_elements_current = true;
-                element_to_add.push(check_el);
-              }
-            }
-          }
+          // connected component based on strategy
+          clustering_strategy->queueConnectedElements(el, element_to_add);
         }
+
+        cluster.getNodeGroup().optimize();
       }
     }
   }

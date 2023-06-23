@@ -190,18 +190,23 @@ public:
 
   /// create element clusters for a given dimension
   Int createClusters(Int element_dimension, Mesh & mesh_facets,
-                     std::string cluster_name_prefix = "cluster",
+                     const std::string & cluster_name_prefix = "cluster",
+                     const ClusteringStrategy & clustering_strategy_type =
+                         ClusteringStrategy::_facets,
                      const ClusteringFilter & filter = ClusteringFilter());
 
   /// create element clusters for a given dimension
   Int createClusters(Int element_dimension,
-                     std::string cluster_name_prefix = "cluster",
+                     const std::string & cluster_name_prefix = "cluster",
+                     const ClusteringStrategy & clustering_strategy_type =
+                         ClusteringStrategy::_facets,
                      const ClusteringFilter & filter = ClusteringFilter());
 
 private:
   /// create element clusters for a given dimension
   Int createClusters(Int element_dimension,
                      const std::string & cluster_name_prefix,
+                     const ClusteringStrategy & clustering_strategy_type,
                      const ClusteringFilter & filter, Mesh & mesh_facets);
 
 public:

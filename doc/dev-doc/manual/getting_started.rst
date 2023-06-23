@@ -463,33 +463,17 @@ more into detail in this here.
     ``C``. ``t_A`` and ``t_B`` are boolean defining if ``A`` and ``B`` should be
     transposed or not.
 
-    +----------+----------+--------------+
-    |``t_A``   |``t_B``   |result        |
-    |          |          |              |
-    +----------+----------+--------------+
-    |false     |false     |:math:`\mat{C}|
-    |          |          |= \alpha      |
-    |          |          |\mat{A}       |
-    |          |          |\mat{B}`      |
-    |          |          |              |
-    +----------+----------+--------------+
-    |false     |true      |:math:`\mat{C}|
-    |          |          |= \alpha      |
-    |          |          |\mat{A}       |
-    |          |          |\mat{B}^t`    |
-    |          |          |              |
-    +----------+----------+--------------+
-    |true      |false     |:math:`\mat{C}|
-    |          |          |= \alpha      |
-    |          |          |\mat{A}^t     |
-    |          |          |\mat{B}`      |
-    |          |          |              |
-    +----------+----------+--------------+
-    |true      |true      |:math:`\mat{C}|
-    |          |          |= \alpha      |
-    |          |          |\mat{A}^t     |
-    |          |          |\mat{B}^t`    |
-    +----------+----------+--------------+
+    +----------+----------+---------------------------------------------+
+    |``t_A``   |``t_B``   |result                                       |
+    +----------+----------+---------------------------------------------+
+    |false     |false     |:math:`\mat{C} = \alpha \mat{A} \mat{B}`     |
+    +----------+----------+---------------------------------------------+
+    |false     |true      |:math:`\mat{C} = \alpha \mat{A} \mat{B}^t`   |
+    +----------+----------+---------------------------------------------+
+    |true      |false     |:math:`\mat{C} = \alpha \mat{A}^t \mat{B}`   |
+    +----------+----------+---------------------------------------------+
+    |true      |true      |:math:`\mat{C} = \alpha \mat{A}^t \mat{B}^t` |
+    +----------+----------+---------------------------------------------+
 
   - :cpp:func:`A.eigs(d, V) <akantu::Matrix::eigs>` this method computes the
     eigenvalues and eigenvectors of ``A`` and store the results in ``d`` and
