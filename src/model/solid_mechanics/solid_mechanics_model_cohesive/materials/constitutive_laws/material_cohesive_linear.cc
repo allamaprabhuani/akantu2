@@ -34,9 +34,7 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveLinear<dim>::MaterialCohesiveLinear(SolidMechanicsModel & model,
                                                     const ID & id)
-    : MaterialCohesive(model, id), sigma_c_eff("sigma_c_eff", *this),
-      delta_c_eff("delta_c_eff", *this),
-      insertion_stress("insertion_stress", *this) {
+    : MaterialCohesive(model, id), delta_c_eff("delta_c_eff", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta", beta, Real(0.), _pat_parsable | _pat_readable,
@@ -82,9 +80,7 @@ template <Int dim> void MaterialCohesiveLinear<dim>::initMaterial() {
 
   MaterialCohesive::initMaterial();
 
-  sigma_c_eff.initialize(1);
   delta_c_eff.initialize(1);
-  insertion_stress.initialize(dim);
 
   if (not Math::are_float_equal(delta_c, 0.)) {
     delta_c_eff.setDefaultValue(delta_c);

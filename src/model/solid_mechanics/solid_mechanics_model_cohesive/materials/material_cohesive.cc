@@ -40,6 +40,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       tractions("tractions", *this),
       contact_tractions("contact_tractions", *this),
       contact_opening("contact_opening", *this), delta_max("delta max", *this),
+      sigma_c_eff("sigma_c_eff", *this),
+      insertion_stress("insertion_stress", *this),
       use_previous_delta_max(false), use_previous_opening(false),
       damage("damage", *this), sigma_c("sigma_c", *this),
       normals("normal", *this) {
@@ -83,6 +85,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   if (this->model->getIsExtrinsic()) {
     this->sigma_c.initialize(1);
   }
+
+  sigma_c_eff.initialize(1);
+  insertion_stress.initialize(spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }

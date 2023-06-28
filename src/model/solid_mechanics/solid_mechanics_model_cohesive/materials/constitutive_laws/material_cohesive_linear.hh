@@ -89,10 +89,7 @@ protected:
     using namespace tuple;
     return zip_append(
         MaterialCohesive::getArguments<dim>(element_type, ghost_type),
-        "sigma_c"_n = this->sigma_c_eff(element_type, ghost_type),
-        "delta_c"_n = this->delta_c_eff(element_type, ghost_type),
-        "insertion_stress"_n =
-            make_view<dim>(this->insertion_stress(element_type, ghost_type)));
+        "delta_c"_n = this->delta_c_eff(element_type, ghost_type));
   }
 
   /// compute the traction for a given quadrature point
@@ -144,15 +141,9 @@ protected:
   /// after load_reduction
   bool recompute;
 
-  /// critical effective stress
-  RandomInternalField<Real, CohesiveInternalField> sigma_c_eff;
-
   /// effective critical displacement (each element can have a
   /// different value)
   CohesiveInternalField<Real> delta_c_eff;
-
-  /// stress at insertion
-  CohesiveInternalField<Real> insertion_stress;
 
   /// variable saying if there should be penalty contact also after
   /// breaking the cohesive elements

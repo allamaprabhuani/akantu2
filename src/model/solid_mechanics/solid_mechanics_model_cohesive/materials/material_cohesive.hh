@@ -94,7 +94,10 @@ public:
         "previous_traction"_n =
             make_view<dim>(this->tractions.previous(element_type, ghost_type)),
         "delta_max"_n = this->delta_max(element_type, ghost_type),
-        "damage"_n = this->damage(element_type, ghost_type));
+        "damage"_n = this->damage(element_type, ghost_type),
+        "sigma_c"_n = this->sigma_c_eff(element_type, ghost_type),
+        "insertion_stress"_n =
+            make_view<dim>(this->insertion_stress(element_type, ghost_type)));
   }
 
 protected:
@@ -208,6 +211,12 @@ protected:
 
   /// maximum displacement
   CohesiveInternalField<Real> delta_max;
+
+  /// critical effective stress
+  RandomInternalField<Real, CohesiveInternalField> sigma_c_eff;
+
+  /// stress at insertion
+  CohesiveInternalField<Real> insertion_stress;
 
   /// tell if the previous delta_max state is needed (in iterative schemes)
   bool use_previous_delta_max;
