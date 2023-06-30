@@ -111,7 +111,8 @@ int main(int argc, char * argv[]) {
 
   Real damage_limit = 0.15;
   auto global_nb_clusters = mesh.createClusters(
-      spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
+      spatial_dimension, "crack", ClusteringStrategy::_facets,
+      PhaseFieldElementFilter(phase, damage_limit));
 
   auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
 
