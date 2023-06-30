@@ -17,7 +17,7 @@ function repair_wheel {
 }
 
 # Compile wheels
-for PYBIN in /opt/python/cp31*/bin; do
+for PYBIN in /opt/python/cp3*/bin; do
   ccache --zero-stats
   echo "${PYBIN}/pip" wheel . --no-deps -w dist/
   "${PYBIN}/pip" wheel . --no-deps -w dist/
