@@ -1,3 +1,9 @@
+## Version 5.0.2 (06-30-2023)
+
+### Added
+
+- pypi package for python 3.11 and 3.12
+
 ## Version 5.0.1 (05-05-2023)
 
 ### Changed
