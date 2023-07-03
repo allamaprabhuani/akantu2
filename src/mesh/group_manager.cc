@@ -356,10 +356,11 @@ public:
 
 private:
   /// functions for parallel communications
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override {
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override {
     if (tag == SynchronizationTag::_gm_clusters) {
-      return elements.size() * sizeof(Idx);
+      return elements.size() * Int(sizeof(Idx));
     }
 
     return 0;
@@ -386,7 +387,7 @@ private:
     }
 
     for (const auto & el : elements) {
-      Idx distant_cluster;
+      Idx distant_cluster{0};
       buffer >> distant_cluster;
 
       auto local_cluster = element_to_fragment(el) + starting_index;
@@ -450,23 +451,10 @@ class ClusteringStrategyFacets : public ClusteringStrategyImplementation {
 public:
   ClusteringStrategyFacets(Mesh & mesh,
                            ElementTypeMapArray<bool> & seen_elements,
-                           Int element_dimension, Mesh * mesh_facets = nullptr)
+                           Int /*element_dimension*/,
+                           Mesh * mesh_facets = nullptr)
       : ClusteringStrategyImplementation(mesh, seen_elements),
-        element_dimension(element_dimension), mesh_facets(mesh_facets) {
-
-    if (not this->mesh_facets and this->element_dimension > 0) {
-      MeshAccessor mesh_accessor(this->mesh);
-      this->mesh_facets = std::make_unique<Mesh>(
-          this->mesh.getSpatialDimension(), mesh_accessor.getNodesSharedPtr(),
-          "mesh_facets_for_clusters");
-
-      this->mesh_facets->defineMeshParent(mesh);
-
-      MeshUtils::buildAllFacets(this->mesh, *this->mesh_facets,
-                                this->element_dimension,
-                                this->element_dimension - 1);
-    }
-  }
+        mesh_facets(mesh_facets) {}
 
 public:
   void queueConnectedElements(const Element & element,
@@ -494,8 +482,7 @@ public:
   }
 
 private:
-  Int element_dimension;
-  std::unique_ptr<Mesh> mesh_facets;
+  Mesh * mesh_facets{nullptr};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -567,7 +554,7 @@ Int GroupManager::createClusters(
 
   std::unique_ptr<ElementTypeMapArray<Idx>> element_to_fragment;
 
-  if (nb_proc > 1 && mesh.isDistributed()) {
+  if (nb_proc > 1 and mesh.isDistributed()) {
     element_to_fragment =
         std::make_unique<ElementTypeMapArray<Idx>>("element_to_fragment", id);
 

@@ -172,8 +172,8 @@ public:
                               const SynchronizationTag & tag) const override {
     Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
-      Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
-      size += nb_nodes * sizeof(Idx);
+      auto nb_nodes = Mesh::getNbNodesPerElementList(elements);
+      size += nb_nodes * Int(sizeof(Idx));
     }
     return size;
   }
@@ -208,23 +208,6 @@ public:
 private:
   ElementTypeMapArray<Idx> global_connectivity;
 };
-
-/* -------------------------------------------------------------------------- */
-// const Array<Real> & Mesh::getNormals(ElementType element_type,
-//                                      GhostType ghost_type) {
-//   if (this->hasData<Real>("normals", element_type, ghost_type)) {
-//     return this->getData<Real>("normals", element_type, ghost_type);
-//   }
-
-//   auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
-//                                         spatial_dimension, true);
-//   for (auto && data [[gnu::unused]] :
-//        enumerate(make_view(normals, spatial_dimension))) {
-//     AKANTU_TO_IMPLEMENT();
-//   }
-
-//   AKANTU_TO_IMPLEMENT();
-// }
 
 /* -------------------------------------------------------------------------- */
 Mesh & Mesh::initMeshFacets(const ID & id) {
