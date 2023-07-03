@@ -38,6 +38,12 @@ register_test(test_phase_field_anisotropic
   PACKAGE phase_field
   )
 
+register_test(test_phase_field_deviatoric_split
+  SOURCES test_phase_field_deviatoric_split.cc
+  FILES_TO_COPY material_deviatoric.dat test_one_element.msh
+  PACKAGE phase_field
+  )
+
 register_test(test_phase_solid_explicit
   SOURCES test_phase_solid_explicit.cc
   FILES_TO_COPY material_coupling.dat test_one_element.msh

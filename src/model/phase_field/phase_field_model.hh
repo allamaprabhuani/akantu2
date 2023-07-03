@@ -310,6 +310,9 @@ public:
   /// Save previous damage
   void savePreviousDamage();
 
+  /// Save previous damage
+  void savePreviousState();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

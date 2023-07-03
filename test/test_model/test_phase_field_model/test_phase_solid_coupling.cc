@@ -83,6 +83,7 @@ int main(int argc, char * argv[]) {
 
   Real analytical_damage{0.};
   Real analytical_sigma{0.};
+  Real analytical_energy{0.};
 
   auto & phasefield = phase.getPhaseField(0);
 
@@ -94,8 +95,8 @@ int main(int argc, char * argv[]) {
   const Real l0 = phasefield.getParam("l0");
 
   Real error_stress{0.};
-
   Real error_damage{0.};
+  Real error_energy{0.};
 
   for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
@@ -114,11 +115,15 @@ int main(int argc, char * argv[]) {
     analytical_sigma =
         c22 * axial_strain * (1 - analytical_damage) * (1 - analytical_damage);
 
+    analytical_energy = analytical_damage * analytical_damage * 0.5 / l0;
+
     error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if (error_damage > 1e-8 or error_stress > 1e-8) {
+    error_energy = std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
+
+    if (error_damage > 1e-8 or error_stress > 1e-8 or error_damage > 1e-8) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;
@@ -126,6 +131,8 @@ int main(int argc, char * argv[]) {
                 << "Error damage: " << error_damage << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Error stress: " << error_stress << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error energy: " << error_energy << std::endl;
       return EXIT_FAILURE;
     }
 

@@ -1,23 +1,3 @@
-/**
- * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
- *
- * This file is part of Akantu
- *
- * Akantu is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include "aka_common.hh"
 #include "coupler_solid_phasefield.hh"
 #include "material.hh"
@@ -89,6 +69,9 @@ int main(int argc, char * argv[]) {
   const Real nu = phasefield.getParam("nu");
   Real c22 = E * (1 - nu) / ((1 + nu) * (1 - 2 * nu));
 
+  const Real lambda = nu * E / ((1. + nu) * (1. - 2. * nu));
+  const Real mu = E / (2. + 2. * nu);
+
   const Real gc = phasefield.getParam("gc");
   const Real l0 = phasefield.getParam("l0");
 
@@ -96,7 +79,9 @@ int main(int argc, char * argv[]) {
 
   Real error_damage{0.};
 
-  Real max_strain{0.};
+  Real max_strain_energy{0.};
+  Real strain_energy_plus{0.};
+  Real strain_energy_minus{0.};
 
   for (UInt s = 0; s < nbSteps; ++s) {
     Real axial_strain{0.};
@@ -109,21 +94,30 @@ int main(int argc, char * argv[]) {
     }
     applyDisplacement(model, axial_strain);
 
-    if (axial_strain > max_strain) {
-      max_strain = axial_strain;
+    if (axial_strain > 0) {
+      strain_energy_plus = axial_strain * axial_strain * (0.5 * lambda + mu);
+      strain_energy_minus = 0.;
+    } else {
+      strain_energy_plus = 0.5 * axial_strain * axial_strain * mu;
+      strain_energy_minus = axial_strain * axial_strain * 0.5 * (lambda + mu);
+    }
+
+    if (strain_energy_plus > max_strain_energy) {
+      max_strain_energy = strain_energy_plus;
     }
 
     coupler.solve("static", "static");
-    phase.savePreviousDamage();
     phase.savePreviousState();
 
-    analytical_damage = max_strain * max_strain * c22 /
-                        (gc / l0 + max_strain * max_strain * c22);
+    analytical_damage = 2. * (l0 / gc) * max_strain_energy /
+                        (2. * (l0 / gc) * max_strain_energy + 1.);
     if (axial_strain < 0.) {
-      analytical_sigma = c22 * axial_strain;
+      analytical_sigma = (1. - analytical_damage) * (1. - analytical_damage) *
+                             axial_strain * mu +
+                         axial_strain * (lambda + mu);
     } else {
-      analytical_sigma = c22 * axial_strain * (1 - analytical_damage) *
-                         (1 - analytical_damage);
+      analytical_sigma = (lambda + 2. * mu) * axial_strain *
+                         (1. - analytical_damage) * (1. - analytical_damage);
     }
 
     error_stress =
@@ -131,25 +125,25 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    // if ((error_damage > 1e-8 or error_stress > 1e-8) and
-    //     std::abs(axial_strain) > 1e-13) {
-    //   std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Axial strain: " << axial_strain << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "An. damage: " << analytical_damage << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Damage: " << damage(0) << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Error damage: " << error_damage << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Error stress: " << error_stress << std::endl;
-    //   return EXIT_FAILURE;
-    // }
-
     os << axial_strain << " " << stress(0, 3) << " " << damage(0) << " "
        << analytical_sigma << " " << analytical_damage << " " << error_stress
        << " " << error_damage << std::endl;
+
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+        std::abs(axial_strain) > 1e-13) {
+      std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Axial strain: " << axial_strain << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "An. damage: " << analytical_damage << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Damage: " << damage(0) << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error damage: " << error_damage << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error stress: " << error_stress << std::endl;
+      return EXIT_FAILURE;
+    }
 
     model.dump();
   }

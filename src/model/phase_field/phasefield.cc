@@ -427,7 +427,7 @@ Real PhaseField::getEnergy(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 void PhaseField::beforeSolveStep() {
-  this->savePreviousState();
+  // this->savePreviousState();
   this->computeAllDrivingForces(_not_ghost);
 }
 

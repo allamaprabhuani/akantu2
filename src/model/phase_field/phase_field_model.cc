@@ -732,6 +732,13 @@ void PhaseFieldModel::savePreviousDamage() {
 }
 
 /* -------------------------------------------------------------------------- */
+void PhaseFieldModel::savePreviousState() {
+  for (auto & phasefield : phasefields) {
+    phasefield->savePreviousState();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
