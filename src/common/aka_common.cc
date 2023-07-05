@@ -110,8 +110,6 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
 
   AKANTU_DEBUG_INFO("Random seed set to " << seed);
 
-  std::atexit(finalize);
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -128,7 +126,7 @@ cppargparse::ArgumentParser & getStaticArgumentParser() {
   return static_argparser;
 }
 /* -------------------------------------------------------------------------- */
-DLL_PUBLIC Parser & getStaticParser() { return static_parser; }
+AKANTU_EXPORT Parser & getStaticParser() { return static_parser; }
 
 /* -------------------------------------------------------------------------- */
 const ParserSection & getUserParser() {

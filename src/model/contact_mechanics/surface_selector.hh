@@ -43,7 +43,7 @@ namespace akantu {
 /**
  * main class to assign surfaces for contact detection
  */
-class SurfaceSelector : public MeshEventHandler, public Parsable {
+class AKANTU_EXPORT SurfaceSelector : public MeshEventHandler, public Parsable {
 public:
   SurfaceSelector(Mesh & mesh);
   ~SurfaceSelector() override = default;
@@ -60,7 +60,7 @@ protected:
 /**
  * class that selects contact surface from physical names
  */
-class PhysicalSurfaceSelector : public SurfaceSelector {
+class AKANTU_EXPORT PhysicalSurfaceSelector : public SurfaceSelector {
 public:
   PhysicalSurfaceSelector(Mesh & mesh);
 
@@ -78,7 +78,7 @@ protected:
  * class that selects contact surface from cohesive elements
  */
 #if defined(AKANTU_COHESIVE_ELEMENT)
-class CohesiveSurfaceSelector : public SurfaceSelector {
+class AKANTU_EXPORT CohesiveSurfaceSelector : public SurfaceSelector {
 public:
   CohesiveSurfaceSelector(Mesh & mesh);
 
@@ -106,7 +106,7 @@ protected:
  * class that selects contact surface from both cohesive elements and
  * physical names
  */
-class AllSurfaceSelector : public SurfaceSelector {
+class AKANTU_EXPORT AllSurfaceSelector : public SurfaceSelector {
 public:
   AllSurfaceSelector(Mesh & mesh);
 

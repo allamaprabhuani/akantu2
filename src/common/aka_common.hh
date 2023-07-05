@@ -256,11 +256,11 @@ enum class IntegrationSchemeType {
   (residual_mass_wgh)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(SolveConvergenceCriteria,
-                          AKANTU_SOLVE_CONVERGENCE_CRITERIA)
+                          AKANTU_SOLVE_CONVERGENCE_CRITERIA);
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(SolveConvergenceCriteria,
-                                AKANTU_SOLVE_CONVERGENCE_CRITERIA)
+                                AKANTU_SOLVE_CONVERGENCE_CRITERIA);
 AKANTU_CLASS_ENUM_INPUT_STREAM(SolveConvergenceCriteria,
-                               AKANTU_SOLVE_CONVERGENCE_CRITERIA)
+                               AKANTU_SOLVE_CONVERGENCE_CRITERIA);
 #else
 /// enum SolveConvergenceCriteria different convergence criteria
 enum class SolveConvergenceCriteria {
@@ -272,13 +272,13 @@ enum class SolveConvergenceCriteria {
 #endif
 
 /// enum CohesiveMethod type of insertion of cohesive elements
-enum CohesiveMethod { _intrinsic, _extrinsic };
+enum AKANTU_EXPORT CohesiveMethod { _intrinsic, _extrinsic };
 
 /// @enum MatrixType type of sparse matrix used
-enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
+enum AKANTU_EXPORT MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
 /// @enum Type of contact detection
-enum DetectionType { _explicit, _implicit };
+enum AKANTU_EXPORT DetectionType { _explicit, _implicit };
 
 #if !defined(DOXYGEN)
 // clang-format off
@@ -444,7 +444,7 @@ enum GhostType {
 };
 
 /// Define the flag that can be set to a node
-enum class NodeFlag : std::uint8_t {
+enum class AKANTU_EXPORT NodeFlag : std::uint8_t {
   _normal = 0x00,
   _distributed = 0x01,
   _master = 0x03,
@@ -458,32 +458,34 @@ enum class NodeFlag : std::uint8_t {
   _local_master_mask = 0xCC, // ~(_master & _periodic_mask)
 };
 
-inline NodeFlag operator&(const NodeFlag & a, const NodeFlag & b) {
+AKANTU_EXPORT inline NodeFlag operator&(const NodeFlag & a,
+                                        const NodeFlag & b) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(under(a) & under(b));
 }
 
-inline NodeFlag operator|(const NodeFlag & a, const NodeFlag & b) {
+AKANTU_EXPORT inline NodeFlag operator|(const NodeFlag & a,
+                                        const NodeFlag & b) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(under(a) | under(b));
 }
 
-inline NodeFlag & operator|=(NodeFlag & a, const NodeFlag & b) {
+AKANTU_EXPORT inline NodeFlag & operator|=(NodeFlag & a, const NodeFlag & b) {
   a = a | b;
   return a;
 }
 
-inline NodeFlag & operator&=(NodeFlag & a, const NodeFlag & b) {
+AKANTU_EXPORT inline NodeFlag & operator&=(NodeFlag & a, const NodeFlag & b) {
   a = a & b;
   return a;
 }
 
-inline NodeFlag operator~(const NodeFlag & a) {
+AKANTU_EXPORT inline NodeFlag operator~(const NodeFlag & a) {
   using under = std::underlying_type_t<NodeFlag>;
   return NodeFlag(~under(a));
 }
 
-std::ostream & operator<<(std::ostream & stream, NodeFlag flag);
+AKANTU_EXPORT std::ostream & operator<<(std::ostream & stream, NodeFlag flag);
 
 } // namespace akantu
 
@@ -564,15 +566,16 @@ namespace {
 
 /* -------------------------------------------------------------------------- */
 /// initialize the static part of akantu
-void initialize(int & argc, char **& argv);
+AKANTU_EXPORT void initialize(int & argc, char **& argv);
 /// initialize the static part of akantu and read the global input_file
-void initialize(const std::string & input_file, int & argc, char **& argv);
+AKANTU_EXPORT void initialize(const std::string & input_file, int & argc,
+                              char **& argv);
 /* -------------------------------------------------------------------------- */
-/// finilize correctly akantu and clean the memory
-void finalize();
+/// finalize correctly akantu and clean the memory
+[[deprecated("This function became useless")]] AKANTU_EXPORT void finalize();
 /* -------------------------------------------------------------------------- */
 /// Read an new input file
-void readInputFile(const std::string & input_file);
+AKANTU_EXPORT void readInputFile(const std::string & input_file);
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -653,13 +656,13 @@ template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;
 
 namespace akantu {
 /// get access to the internal argument parser
-cppargparse::ArgumentParser & getStaticArgumentParser();
+AKANTU_EXPORT cppargparse::ArgumentParser & getStaticArgumentParser();
 
 /// get access to the internal input file parser
-Parser & getStaticParser();
+AKANTU_EXPORT Parser & getStaticParser();
 
 /// get access to the user part of the internal input file parser
-const ParserSection & getUserParser();
+AKANTU_EXPORT const ParserSection & getUserParser();
 
 #define AKANTU_CURRENT_FUNCTION                                                \
   (std::string(__func__) + "():" + std::to_string(__LINE__))
@@ -696,45 +699,5 @@ private:
 };
 
 } // namespace std
-
-/* -------------------------------------------------------------------------- */
-// akantu visibility macro
-#if defined _WIN32 || defined __CYGWIN__
-#ifdef BUILDING_DLL
-#ifdef __GNUC__
-#define DLL_PUBLIC __attribute__((dllexport))
-#else
-#define DLL_PUBLIC                                                             \
-  __declspec(                                                                  \
-      dllexport) // Note: actually gcc seems to also supports this syntax.
-#endif
-#else
-#ifdef __GNUC__
-#define DLL_PUBLIC __attribute__((dllimport))
-#else
-#define DLL_PUBLIC                                                             \
-  __declspec(                                                                  \
-      dllimport) // Note: actually gcc seems to also supports this syntax.
-#endif
-#endif
-#define DLL_LOCAL
-#else
-#if __GNUC__ >= 4
-#define DLL_PUBLIC __attribute__((visibility("default")))
-#define DLL_LOCAL __attribute__((visibility("hidden")))
-#else
-#define DLL_PUBLIC
-#define DLL_LOCAL
-#endif
-#endif
-
-// class DLL_PUBLIC SomeClass
-// {
-//    int c;
-//    DLL_LOCAL void privateMethod();  // Only for use within this DSO
-// public:
-//    Person(int _c) : c(_c) { }
-//    static void foo(int a);
-// };
 
 #endif // AKANTU_COMMON_HH_

@@ -37,7 +37,8 @@ namespace akantu {
  *   - Sd  : (default: 5000)
  *   - Ydrandomness  : (default:0)
  */
-template <Int dim> class MaterialMarigo : public MaterialDamage<dim> {
+template <Int dim>
+class AKANTU_EXPORT MaterialMarigo : public MaterialDamage<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

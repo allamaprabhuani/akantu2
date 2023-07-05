@@ -199,76 +199,79 @@ void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> iohelper::ElemType getIOHelperType() {
+template <ElementType type> AKANTU_EXPORT iohelper::ElemType getIOHelperType() {
   AKANTU_TO_IMPLEMENT();
   return iohelper::MAX_ELEM_TYPE;
 }
 
-template <> iohelper::ElemType getIOHelperType<_point_1>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_point_1>() {
   return iohelper::POINT_SET;
 }
-template <> iohelper::ElemType getIOHelperType<_segment_2>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_segment_2>() {
   return iohelper::LINE1;
 }
-template <> iohelper::ElemType getIOHelperType<_segment_3>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_segment_3>() {
   return iohelper::LINE2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_triangle_3>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_triangle_3>() {
   return iohelper::TRIANGLE1;
 }
-template <> iohelper::ElemType getIOHelperType<_triangle_6>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_triangle_6>() {
   return iohelper::TRIANGLE2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_quadrangle_4>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_quadrangle_4>() {
   return iohelper::QUAD1;
 }
-template <> iohelper::ElemType getIOHelperType<_quadrangle_8>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_quadrangle_8>() {
   return iohelper::QUAD2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_tetrahedron_4>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_tetrahedron_4>() {
   return iohelper::TETRA1;
 }
-template <> iohelper::ElemType getIOHelperType<_tetrahedron_10>() {
+template <>
+AKANTU_EXPORT iohelper::ElemType getIOHelperType<_tetrahedron_10>() {
   return iohelper::TETRA2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_hexahedron_8>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_hexahedron_8>() {
   return iohelper::HEX1;
 }
-template <> iohelper::ElemType getIOHelperType<_hexahedron_20>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_hexahedron_20>() {
   return iohelper::HEX2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_pentahedron_6>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_pentahedron_6>() {
   return iohelper::PRISM1;
 }
-template <> iohelper::ElemType getIOHelperType<_pentahedron_15>() {
+template <>
+AKANTU_EXPORT iohelper::ElemType getIOHelperType<_pentahedron_15>() {
   return iohelper::PRISM2;
 }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-template <> iohelper::ElemType getIOHelperType<_cohesive_1d_2>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_1d_2>() {
   return iohelper::COH1D2;
 }
 
-template <> iohelper::ElemType getIOHelperType<_cohesive_2d_4>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_2d_4>() {
   return iohelper::COH2D4;
 }
-template <> iohelper::ElemType getIOHelperType<_cohesive_2d_6>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_2d_6>() {
   return iohelper::COH2D6;
 }
 
-template <> iohelper::ElemType getIOHelperType<_cohesive_3d_6>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_3d_6>() {
   return iohelper::COH3D6;
 }
-template <> iohelper::ElemType getIOHelperType<_cohesive_3d_12>() {
+template <>
+AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_3d_12>() {
   return iohelper::COH3D12;
 }
 
-template <> iohelper::ElemType getIOHelperType<_cohesive_3d_8>() {
+template <> AKANTU_EXPORT iohelper::ElemType getIOHelperType<_cohesive_3d_8>() {
   return iohelper::COH3D8;
 }
 // template <>
@@ -277,16 +280,18 @@ template <> iohelper::ElemType getIOHelperType<_cohesive_3d_8>() {
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
-template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() {
+template <>
+AKANTU_EXPORT iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() {
   return iohelper::BEAM2;
 }
-template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
+template <>
+AKANTU_EXPORT iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
   return iohelper::BEAM3;
 }
 #endif
 /* -------------------------------------------------------------------------- */
 
-Int getIOHelperType(ElementType type) {
+AKANTU_EXPORT Int getIOHelperType(ElementType type) {
   return tuple_dispatch<AllElementTypes>(
       [&](auto && enum_type) {
         constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
@@ -299,7 +304,7 @@ Int getIOHelperType(ElementType type) {
 
 namespace iohelper {
 
-template <> DataType getDataType<akantu::NodeFlag>() {
+template <> AKANTU_EXPORT DataType getDataType<akantu::NodeFlag>() {
   return getDataType<std::underlying_type_t<akantu::NodeFlag>>();
 }
 

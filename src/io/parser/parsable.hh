@@ -33,7 +33,7 @@ namespace akantu {
 /* Parsable Interface                                                         */
 /* -------------------------------------------------------------------------- */
 /// Defines interface for classes to manipulate parsable parameters
-class Parsable : public ParameterRegistry {
+class AKANTU_EXPORT Parsable : public ParameterRegistry {
 public:
   Parsable(const ParserType & section_type, const ID & id = std::string());
   ~Parsable() override;

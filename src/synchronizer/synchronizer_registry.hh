@@ -34,7 +34,7 @@ class Synchronizer;
 
 namespace akantu {
 
-class SynchronizerRegistry {
+class AKANTU_EXPORT SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -53,7 +53,7 @@
 
 namespace akantu {
 
-class DLL_PUBLIC MPICommunicatorData : public CommunicatorInternalData {
+class AKANTU_EXPORT MPICommunicatorData : public CommunicatorInternalData {
 public:
   MPICommunicatorData() {
     MPI_Initialized(&is_externaly_initialized);

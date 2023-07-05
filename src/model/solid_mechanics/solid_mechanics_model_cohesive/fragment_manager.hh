@@ -32,7 +32,7 @@ class SolidMechanicsModelCohesive;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class FragmentManager : public GroupManager {
+class AKANTU_EXPORT FragmentManager : public GroupManager {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

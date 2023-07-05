@@ -35,7 +35,7 @@ namespace akantu {
  * parameters in the material files :
  */
 template <Int dim, template <Int> class Parent = MaterialElastic>
-class MaterialMazarsNonLocal
+class AKANTU_EXPORT MaterialMazarsNonLocal
     : public MaterialDamageNonLocal<dim, MaterialMazars<dim, Parent>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

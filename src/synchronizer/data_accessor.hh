@@ -39,7 +39,8 @@ public:
   virtual ~DataAccessorBase() = default;
 };
 
-template <class T> class DataAccessor : public virtual DataAccessorBase {
+template <class T>
+class AKANTU_EXPORT DataAccessor : public virtual DataAccessorBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -77,7 +78,8 @@ public:
 /* -------------------------------------------------------------------------- */
 /* Specialization                                                             */
 /* -------------------------------------------------------------------------- */
-template <> class DataAccessor<Element> : public virtual DataAccessorBase {
+template <>
+class AKANTU_EXPORT DataAccessor<Element> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
@@ -149,7 +151,8 @@ public:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <> class DataAccessor<Idx> : public virtual DataAccessorBase {
+template <>
+class AKANTU_EXPORT DataAccessor<Idx> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
   ~DataAccessor() override = default;

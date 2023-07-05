@@ -33,7 +33,8 @@ namespace akantu {
  * Material plastic with a linear evolution of the yielding stress
  */
 template <Int dim>
-class MaterialLinearIsotropicHardening : public MaterialPlastic<dim> {
+class AKANTU_EXPORT MaterialLinearIsotropicHardening
+    : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

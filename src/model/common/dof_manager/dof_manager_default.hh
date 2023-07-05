@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "dof_manager.hh"
+#include "dof_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <functional>
 #include <unordered_map>
@@ -32,19 +33,18 @@ namespace akantu {
 class SparseMatrixAIJ;
 class NonLinearSolverDefault;
 class TimeStepSolverDefault;
-class DOFSynchronizer;
 } // namespace akantu
 
 namespace akantu {
 
-class DOFManagerDefault : public DOFManager {
+class AKANTU_EXPORT DOFManagerDefault : public DOFManager {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   DOFManagerDefault(const ID & id = "dof_manager_default");
   DOFManagerDefault(Mesh & mesh, const ID & id = "dof_manager_default");
-  ~DOFManagerDefault() override;
+  ~DOFManagerDefault() override = default;
 
 protected:
   struct DOFDataDefault : public DOFData {
@@ -55,16 +55,6 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  // /// register an array of degree of freedom
-  // void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-  //                   const DOFSupportType & support_type) override;
-
-  // /// the dof as an implied type of _dst_nodal and is defined only on a
-  // subset
-  // /// of nodes
-  // void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-  //                   const ID & group_support) override;
-
   /**
    * Assemble elementary values to the global matrix. The dof number is
    * implicitly considered as conn(el, n) * nb_nodes_per_element + d.

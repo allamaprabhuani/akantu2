@@ -53,7 +53,7 @@ namespace akantu {
  */
 
 template <Int Dim>
-class MaterialElasticOrthotropic
+class AKANTU_EXPORT MaterialElasticOrthotropic
     : public MaterialElasticLinearAnisotropic<Dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

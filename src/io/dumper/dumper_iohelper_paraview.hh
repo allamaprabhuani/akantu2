@@ -28,7 +28,7 @@
 
 namespace akantu {
 
-class DumperParaview : public DumperIOHelper {
+class AKANTU_EXPORT DumperParaview : public DumperIOHelper {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

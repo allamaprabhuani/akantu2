@@ -34,7 +34,7 @@ class SolverVector;
 
 namespace akantu {
 
-class SparseMatrix {
+class AKANTU_EXPORT SparseMatrix {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

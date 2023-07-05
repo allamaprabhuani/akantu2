@@ -43,7 +43,7 @@ namespace akantu {
  *   - beta : Parameter for shear
  */
 template <Int dim, template <Int> class Parent = MaterialElastic>
-class MaterialMazars : public MaterialDamage<dim, Parent> {
+class AKANTU_EXPORT MaterialMazars : public MaterialDamage<dim, Parent> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -34,7 +34,7 @@ class DOFManagerDefault;
 
 namespace akantu {
 
-class DOFSynchronizer : public SynchronizerImpl<Idx> {
+class AKANTU_EXPORT DOFSynchronizer : public SynchronizerImpl<Idx> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

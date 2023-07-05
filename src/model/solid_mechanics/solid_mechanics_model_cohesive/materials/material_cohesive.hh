@@ -35,7 +35,7 @@ class SolidMechanicsModelCohesive;
 
 namespace akantu {
 
-class MaterialCohesive : public Material {
+class AKANTU_EXPORT MaterialCohesive : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

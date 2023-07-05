@@ -29,7 +29,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int dim> class VoigtHelper {
+template <Int dim> class AKANTU_EXPORT VoigtHelper {
   static_assert(dim > 0U, "Cannot be < 1D");
   static_assert(dim < 4U, "Cannot be > 3D");
 

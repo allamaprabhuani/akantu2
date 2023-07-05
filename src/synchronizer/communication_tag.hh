@@ -30,7 +30,7 @@ namespace akantu {
  * tag = |__________20_________|___8____|_4_|
  *       |          proc       | num mes| ct|
  */
-class Tag {
+class AKANTU_EXPORT Tag {
 public:
   Tag() = default;
   Tag(int val) : tag(val) {}

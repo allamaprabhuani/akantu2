@@ -53,7 +53,8 @@ namespace akantu {
  */
 
 template <Int dim>
-class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<dim> {
+class AKANTU_EXPORT MaterialStandardLinearSolidDeviatoric
+    : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -51,7 +51,7 @@ struct StructuralMaterial {
   Real nu{0};
 };
 
-class StructuralMechanicsModel : public Model {
+class AKANTU_EXPORT StructuralMechanicsModel : public Model {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

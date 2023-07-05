@@ -33,7 +33,8 @@ namespace akantu {
  * Material plastic with a Drucker-pruger yield criterion
  */
 
-template <Int dim> class MaterialDruckerPrager : public MaterialPlastic<dim> {
+template <Int dim>
+class AKANTU_EXPORT MaterialDruckerPrager : public MaterialPlastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

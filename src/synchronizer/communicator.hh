@@ -74,7 +74,7 @@ struct CommunicatorInternalData {
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-class DLL_PUBLIC Communicator
+class AKANTU_EXPORT Communicator
     : public EventHandlerManager<CommunicatorEventHandler> {
   struct private_member {};
   /* ------------------------------------------------------------------------ */

@@ -31,7 +31,7 @@
 
 namespace akantu {
 
-class MeshPartitionMeshData : public MeshPartition {
+class AKANTU_EXPORT MeshPartitionMeshData : public MeshPartition {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

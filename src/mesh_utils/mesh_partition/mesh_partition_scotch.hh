@@ -29,7 +29,7 @@
 
 namespace akantu {
 
-class MeshPartitionScotch : public MeshPartition {
+class AKANTU_EXPORT MeshPartitionScotch : public MeshPartition {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

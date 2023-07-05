@@ -56,7 +56,7 @@ template <typename T> class ParameterTyped;
 /**
  * Interface for the Parameter
  */
-class DLL_PUBLIC Parameter {
+class AKANTU_EXPORT Parameter {
 public:
   Parameter();
   Parameter(std::string name, std::string description,
@@ -109,7 +109,7 @@ private:
  * Type parameter transfering a ParserParameter (string: string) to a typed
  * parameter in the memory of the p
  */
-template <typename T> class ParameterTyped : public Parameter {
+template <typename T> class AKANTU_EXPORT ParameterTyped : public Parameter {
 public:
   ParameterTyped(const std::string & name, const std::string & description,
                  ParameterAccessType param_type, T & param);
@@ -135,7 +135,7 @@ private:
 /* Parsable Interface                                                         */
 /* -------------------------------------------------------------------------- */
 /// Defines interface for classes to manipulate parsable parameters
-class ParameterRegistry {
+class AKANTU_EXPORT ParameterRegistry {
 public:
   ParameterRegistry();
   virtual ~ParameterRegistry();

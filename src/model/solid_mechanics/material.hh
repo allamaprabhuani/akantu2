@@ -66,10 +66,10 @@ using MaterialFactory =
  * \endcode
  *
  */
-class Material : public DataAccessor<Element>,
-                 public Parsable,
-                 public MeshEventHandler,
-                 protected SolidMechanicsModelEventHandler {
+class AKANTU_EXPORT Material : public DataAccessor<Element>,
+                               public Parsable,
+                               public MeshEventHandler,
+                               protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

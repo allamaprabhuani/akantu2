@@ -36,9 +36,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
-class CouplerSolidContactTemplate : public Model,
-                                    public DataAccessor<Element>,
-                                    public DataAccessor<Idx> {
+class AKANTU_EXPORT CouplerSolidContactTemplate : public Model,
+                                                  public DataAccessor<Element>,
+                                                  public DataAccessor<Idx> {
   static_assert(
       std::is_base_of<SolidMechanicsModel, SolidMechanicsModelType>::value,
       "SolidMechanicsModelType should be derived from SolidMechanicsModel");

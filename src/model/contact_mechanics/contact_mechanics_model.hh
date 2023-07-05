@@ -40,10 +40,11 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactMechanicsModel : public Model,
-                              public DataAccessor<Element>,
-                              public DataAccessor<Idx>,
-                              public BoundaryCondition<ContactMechanicsModel> {
+class AKANTU_EXPORT ContactMechanicsModel
+    : public Model,
+      public DataAccessor<Element>,
+      public DataAccessor<Idx>,
+      public BoundaryCondition<ContactMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

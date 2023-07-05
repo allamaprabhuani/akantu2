@@ -31,7 +31,8 @@ namespace akantu {
 template <class Shape> class ShapeCohesive;
 class ShapeIGFEM;
 
-template <ElementKind kind> class ShapeLagrange : public ShapeLagrangeBase {
+template <ElementKind kind>
+class AKANTU_EXPORT ShapeLagrange : public ShapeLagrangeBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

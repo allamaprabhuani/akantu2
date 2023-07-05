@@ -27,7 +27,7 @@
 #define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
-template <Int dim> class MaterialThermal : public Material {
+template <Int dim> class AKANTU_EXPORT MaterialThermal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

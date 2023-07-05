@@ -42,7 +42,7 @@ namespace akantu {
  *   - penalty   : stiffness in compression to prevent penetration
  */
 template <Int spatial_dimension>
-class MaterialCohesiveBilinear
+class AKANTU_EXPORT MaterialCohesiveBilinear
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

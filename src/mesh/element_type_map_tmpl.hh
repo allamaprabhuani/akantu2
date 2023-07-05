@@ -529,7 +529,7 @@ operator<<(std::ostream & stream,
 }
 
 /* -------------------------------------------------------------------------- */
-class ElementTypeMapArrayInitializer {
+class AKANTU_EXPORT ElementTypeMapArrayInitializer {
 protected:
   using CompFunc = std::function<Int(ElementType, GhostType)>;
 
@@ -557,7 +557,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-class MeshElementTypeMapArrayInitializer
+class AKANTU_EXPORT MeshElementTypeMapArrayInitializer
     : public ElementTypeMapArrayInitializer {
   using CompFunc = ElementTypeMapArrayInitializer::CompFunc;
 
@@ -628,7 +628,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-class FEEngineElementTypeMapArrayInitializer
+class AKANTU_EXPORT FEEngineElementTypeMapArrayInitializer
     : public MeshElementTypeMapArrayInitializer {
 public:
   FEEngineElementTypeMapArrayInitializer(

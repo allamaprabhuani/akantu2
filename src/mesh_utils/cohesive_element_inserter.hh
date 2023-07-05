@@ -37,7 +37,8 @@ class SolidMechanicsModeslCohesivel;
 
 namespace akantu {
 
-class CohesiveElementInserter : public DataAccessor<Element>, public Parsable {
+class AKANTU_EXPORT CohesiveElementInserter : public DataAccessor<Element>,
+                                              public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -59,7 +60,7 @@ public:
 
   /// insert extrinsic cohesive elements (returns the number of new
   /// cohesive elements)
-  UInt insertElements(bool only_double_facets = false);
+  Int insertElements(bool only_double_facets = false);
 
   /// limit check facets to match given insertion limits
   void limitCheckFacets();
@@ -81,8 +82,9 @@ protected:
   void updateInsertionFacets();
 
   /// functions for parallel communications
-  inline Int getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,

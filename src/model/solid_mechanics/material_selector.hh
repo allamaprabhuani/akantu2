@@ -37,7 +37,7 @@ class SolidMechanicsModel;
  * main class to assign same or different materials for different
  * elements
  */
-class MaterialSelector {
+class AKANTU_EXPORT MaterialSelector {
 public:
   MaterialSelector() = default;
   virtual ~MaterialSelector() = default;
@@ -70,7 +70,7 @@ protected:
 /**
  * class that assigns the first material to regular elements by default
  */
-class DefaultMaterialSelector : public MaterialSelector {
+class AKANTU_EXPORT DefaultMaterialSelector : public MaterialSelector {
 public:
   explicit DefaultMaterialSelector(
       const ElementTypeMapArray<Idx> & material_index)
@@ -101,7 +101,7 @@ private:
  * Use elemental data to assign materials
  */
 template <typename T>
-class ElementDataMaterialSelector : public MaterialSelector {
+class AKANTU_EXPORT ElementDataMaterialSelector : public MaterialSelector {
 public:
   ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
                               const SolidMechanicsModel & model,
@@ -135,7 +135,8 @@ protected:
  * where name is the tag value: tag_0, tag_1
  */
 template <typename T>
-class MeshDataMaterialSelector : public ElementDataMaterialSelector<T> {
+class AKANTU_EXPORT MeshDataMaterialSelector
+    : public ElementDataMaterialSelector<T> {
 public:
   MeshDataMaterialSelector(const std::string & name,
                            const SolidMechanicsModel & model,

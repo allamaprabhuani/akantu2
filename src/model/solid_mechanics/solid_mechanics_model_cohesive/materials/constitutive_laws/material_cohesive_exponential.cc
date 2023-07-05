@@ -20,9 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_cohesive_exponential.hh"
-#include "dof_synchronizer.hh"
-#include "solid_mechanics_model.hh"
-#include "sparse_matrix.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 

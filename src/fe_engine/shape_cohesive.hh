@@ -42,7 +42,8 @@ struct CohesiveReduceFunctionOpening {
   }
 };
 
-template <> class ShapeLagrange<_ek_cohesive> : public ShapeLagrangeBase {
+template <>
+class AKANTU_EXPORT ShapeLagrange<_ek_cohesive> : public ShapeLagrangeBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

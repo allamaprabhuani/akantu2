@@ -49,7 +49,7 @@ namespace akantu {
  */
 
 template <Int spatial_dimension>
-class MaterialCohesiveLinearFatigue
+class AKANTU_EXPORT MaterialCohesiveLinearFatigue
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

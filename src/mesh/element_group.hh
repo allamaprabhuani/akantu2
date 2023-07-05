@@ -39,7 +39,7 @@ class NewNodesEvent;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ElementGroup : public Dumpable {
+class AKANTU_EXPORT ElementGroup : public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

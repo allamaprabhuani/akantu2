@@ -37,9 +37,9 @@ template <ElementKind kind> class ShapeLagrange;
 
 namespace akantu {
 
-class DLL_PUBLIC HeatTransferModel : public Model,
-                                     public DataAccessor<Element>,
-                                     public DataAccessor<Idx> {
+class AKANTU_EXPORT HeatTransferModel : public Model,
+                                        public DataAccessor<Element>,
+                                        public DataAccessor<Idx> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

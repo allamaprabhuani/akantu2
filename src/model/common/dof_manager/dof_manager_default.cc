@@ -74,9 +74,6 @@ DOFManagerDefault::DOFManagerDefault(Mesh & mesh, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-DOFManagerDefault::~DOFManagerDefault() = default;
-
-/* -------------------------------------------------------------------------- */
 void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
                                                      SolverVector & array) {
   auto & dof_data = this->getDOFDataTyped<DOFDataDefault>(dof_id);

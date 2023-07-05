@@ -35,7 +35,8 @@ class NonLinearSolver;
 
 namespace akantu {
 
-class TimeStepSolver : public ParameterRegistry, public SolverCallback {
+class AKANTU_EXPORT TimeStepSolver : public ParameterRegistry,
+                                     public SolverCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

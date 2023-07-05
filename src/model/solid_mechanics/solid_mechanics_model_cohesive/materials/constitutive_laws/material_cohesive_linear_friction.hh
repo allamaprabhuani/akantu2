@@ -38,7 +38,8 @@ namespace akantu {
  *   - penalty_for_friction : Penalty parameter for the friction behavior
  */
 template <Int dim>
-class MaterialCohesiveLinearFriction : public MaterialCohesiveLinear<dim> {
+class AKANTU_EXPORT MaterialCohesiveLinearFriction
+    : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

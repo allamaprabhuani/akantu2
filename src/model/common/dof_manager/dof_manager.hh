@@ -40,7 +40,7 @@ class SolverCallback;
 
 namespace akantu {
 
-class DOFManager : protected MeshEventHandler {
+class AKANTU_EXPORT DOFManager : protected MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

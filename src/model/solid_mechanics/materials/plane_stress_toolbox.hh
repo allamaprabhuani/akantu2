@@ -37,7 +37,7 @@ namespace akantu {
  * This class is only specialized for 2D in the tmpl file
  */
 template <Int dim, class ParentMaterial = Material>
-class PlaneStressToolbox : public ParentMaterial {
+class AKANTU_EXPORT PlaneStressToolbox : public ParentMaterial {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

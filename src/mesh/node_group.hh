@@ -30,7 +30,7 @@
 
 namespace akantu {
 
-class NodeGroup : public Dumpable {
+class AKANTU_EXPORT NodeGroup : public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -89,8 +89,6 @@ public:
 
   /// give the number of nodes in the current group
   [[nodiscard]] inline Idx size() const;
-
-  // UInt * storage() { return node_group.data(); };
 
   friend class GroupManager;
   /* ------------------------------------------------------------------------ */

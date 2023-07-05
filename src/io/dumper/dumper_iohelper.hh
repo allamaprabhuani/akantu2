@@ -65,7 +65,8 @@ namespace dumpers {
 
 class Mesh;
 
-class DumperIOHelper : public std::enable_shared_from_this<DumperIOHelper> {
+class AKANTU_EXPORT DumperIOHelper
+    : public std::enable_shared_from_this<DumperIOHelper> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

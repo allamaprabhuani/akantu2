@@ -66,7 +66,7 @@ namespace akantu {
  */
 
 template <Int dim>
-class MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
+class AKANTU_EXPORT MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

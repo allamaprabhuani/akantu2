@@ -39,7 +39,8 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <Int dim> class MaterialNeohookean : public PlaneStressToolbox<dim> {
+template <Int dim>
+class AKANTU_EXPORT MaterialNeohookean : public PlaneStressToolbox<dim> {
   using Parent = PlaneStressToolbox<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

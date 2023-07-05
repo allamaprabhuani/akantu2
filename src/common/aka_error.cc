@@ -247,14 +247,7 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   /* ------------------------------------------------------------------------ */
-  Debugger::Debugger() noexcept {
-    cout = &std::cerr;
-    level = dblWarning;
-    parallel_context = "";
-    file_open = false;
-    print_backtrace = false;
-
-    // initSignalHandler();
+  Debugger::Debugger() noexcept : cout(&std::cerr) {
     std::set_terminate(terminate_handler);
   }
 

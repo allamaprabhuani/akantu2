@@ -40,7 +40,8 @@ namespace akantu {
  *   - rho  : density (default: 0)
  *   - C_ij  : entry on the stiffness
  */
-template <Int dim> class MaterialElasticLinearAnisotropic : public Material {
+template <Int dim>
+class AKANTU_EXPORT MaterialElasticLinearAnisotropic : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

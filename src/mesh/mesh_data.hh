@@ -64,7 +64,8 @@ private:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshData(const ID & id = "mesh_data", const ID & parent_id = "");
+  AKANTU_EXPORT MeshData(const ID & id = "mesh_data",
+                         const ID & parent_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods and accessors                                                    */

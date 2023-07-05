@@ -31,7 +31,7 @@ class DOFManager;
 
 namespace akantu {
 
-class SolverCallback {
+class AKANTU_EXPORT SolverCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

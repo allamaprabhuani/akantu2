@@ -28,7 +28,7 @@
 
 namespace akantu {
 template <Int dim, template <Int> class Parent = MaterialElastic>
-class MaterialDamage : public Parent<dim> {
+class AKANTU_EXPORT MaterialDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

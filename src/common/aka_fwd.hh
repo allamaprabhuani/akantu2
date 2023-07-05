@@ -39,7 +39,7 @@ template <class T> class SpatialGrid;
 // Model element
 template <class ModelPolicy> class ModelElement;
 
-__attribute__((visibility("default"))) extern const Array<Int> empty_filter;
+AKANTU_EXPORT extern const Array<Int> empty_filter;
 
 class Parser;
 class ParserSection;

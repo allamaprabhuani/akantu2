@@ -145,8 +145,9 @@ target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 
 separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
 target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
-target_compile_options(akantu PRIVATE -fvisibility=hidden)
 
+set_target_properties(Eigen3::Eigen PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+set_target_properties(akantu PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 if(AKANTU_LIBRARY_PROPERTIES)
   set_target_properties(akantu
     PROPERTIES ${AKANTU_LIBRARY_PROPERTIES} # this contains the version

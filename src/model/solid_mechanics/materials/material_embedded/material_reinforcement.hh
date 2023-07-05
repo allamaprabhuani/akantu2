@@ -44,7 +44,8 @@ namespace akantu {
  *  -  the template parameter dim is the dimension of the problem
  */
 
-template <class Mat, Int dim> class MaterialReinforcement : public Mat {
+template <class Mat, Int dim>
+class AKANTU_EXPORT MaterialReinforcement : public Mat {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

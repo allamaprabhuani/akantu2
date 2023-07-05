@@ -27,6 +27,18 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+// akantu visibility macro
+// clang-format off
+#if !defined(AKANTU_EXPORT)
+#  if defined(WIN32) || defined(_WIN32)
+#    define AKANTU_EXPORT __declspec(dllexport)
+#  else
+#    define AKANTU_EXPORT [[gnu::visibility("default")]]
+#  endif
+#endif
+// clang-format on
+
+/* -------------------------------------------------------------------------- */
 #ifndef AKANTU_ERROR_HH_
 #define AKANTU_ERROR_HH_
 
@@ -72,31 +84,28 @@ enum DebugLevel {
 
 /* -------------------------------------------------------------------------- */
 namespace debug {
-  __attribute__((visibility("default"))) void
-  setDebugLevel(const DebugLevel & level);
-  const DebugLevel & getDebugLevel();
+  AKANTU_EXPORT void setDebugLevel(const DebugLevel & level);
+  AKANTU_EXPORT const DebugLevel & getDebugLevel();
 
   void initSignalHandler();
-  __attribute__((visibility("default"))) std::string
-  demangle(const char * symbol);
-  template <class T> std::string demangle() {
+  AKANTU_EXPORT std::string demangle(const char * symbol);
+  template <class T> AKANTU_EXPORT std::string demangle() {
     return demangle(typeid(T).name());
   }
 
-  template <class T> std::string demangle(const T & t) {
+  template <class T> AKANTU_EXPORT std::string demangle(const T & t) {
     return demangle(typeid(t).name());
   }
 
   auto exec(const std::string & cmd) -> std::string;
-  __attribute__((visibility("default"))) auto getBacktrace()
-      -> std::vector<std::string>;
+  AKANTU_EXPORT auto getBacktrace() -> std::vector<std::string>;
   void
   printBacktrace(const std::vector<std::string> & backtrace = getBacktrace());
 
   void exit(int status) __attribute__((noreturn));
   /* ------------------------------------------------------------------------ */
   /// exception class that can be thrown by akantu
-  class Exception : public std::exception {
+  class AKANTU_EXPORT Exception : public std::exception {
     /* ---------------------------------------------------------------------- */
     /* Constructors/Destructors                                               */
     /* ---------------------------------------------------------------------- */
@@ -165,7 +174,7 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
-  class __attribute__((visibility("default"))) Debugger {
+  class AKANTU_EXPORT Debugger {
   public:
     Debugger() noexcept;
     virtual ~Debugger();
@@ -242,13 +251,13 @@ namespace debug {
   private:
     std::string parallel_context;
     std::ostream * cout;
-    bool file_open;
-    DebugLevel level;
-    bool print_backtrace;
+    bool file_open{false};
+    DebugLevel level{dblWarning};
+    bool print_backtrace{false};
     std::set<std::string> modules_to_debug;
   };
 
-  extern Debugger debugger; // NOLINT
+  AKANTU_EXPORT extern Debugger debugger; // NOLINT
 } // namespace debug
 
 /* -------------------------------------------------------------------------- */

@@ -41,10 +41,11 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class PhaseFieldModel : public Model,
-                        public DataAccessor<Element>,
-                        public DataAccessor<Idx>,
-                        public BoundaryCondition<PhaseFieldModel> {
+class AKANTU_EXPORT PhaseFieldModel
+    : public Model,
+      public DataAccessor<Element>,
+      public DataAccessor<Idx>,
+      public BoundaryCondition<PhaseFieldModel> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

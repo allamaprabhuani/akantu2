@@ -99,7 +99,7 @@ enum ParserParameterSearchCxt {
 /* ------------------------------------------------------------------------ */
 /* Parameters Class                                                         */
 /* ------------------------------------------------------------------------ */
-class DLL_PUBLIC ParserSection;
+class AKANTU_EXPORT ParserSection;
 
 /// @brief The ParserParameter objects represent the end of tree branches as
 /// they
@@ -469,7 +469,7 @@ private:
 /* Parser Class                                                             */
 /* ------------------------------------------------------------------------ */
 /// Root of parsing tree, represents the global ParserSection
-class DLL_PUBLIC Parser : public ParserSection {
+class AKANTU_EXPORT Parser : public ParserSection {
 public:
   Parser() : ParserSection("global", ParserType::_global) {}
 

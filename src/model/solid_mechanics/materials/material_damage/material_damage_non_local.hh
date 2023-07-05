@@ -29,7 +29,7 @@
 namespace akantu {
 
 template <Int dim, class MaterialDamageLocal>
-class MaterialDamageNonLocal
+class AKANTU_EXPORT MaterialDamageNonLocal
     : public MaterialNonLocal<dim, MaterialDamageLocal> {
 public:
   using MaterialParent = MaterialNonLocal<dim, MaterialDamageLocal>;

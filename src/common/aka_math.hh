@@ -30,7 +30,7 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 
-namespace Math {
+namespace AKANTU_EXPORT Math {
   /// tolerance for functions that need one
   extern Real tolerance; // NOLINT
 

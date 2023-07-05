@@ -45,7 +45,7 @@ class FEEngine;
 
 namespace akantu {
 
-class NonLocalManager : public MeshEventHandler, public Parsable {
+class AKANTU_EXPORT NonLocalManager : public MeshEventHandler, public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

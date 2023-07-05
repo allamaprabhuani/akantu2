@@ -41,9 +41,9 @@ struct ModelSolverOptions;
 
 namespace akantu {
 
-class ModelSolver : public Parsable,
-                    public SolverCallback,
-                    public SynchronizerRegistry {
+class AKANTU_EXPORT ModelSolver : public Parsable,
+                                  public SolverCallback,
+                                  public SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

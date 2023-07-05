@@ -24,8 +24,6 @@
 #include "integrator_gauss.hh"
 #include "mesh.hh"
 #include "shape_structural.hh"
-#include "sparse_matrix.hh"
-#include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 #include "dumper_elemental_field.hh"

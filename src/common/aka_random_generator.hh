@@ -60,7 +60,7 @@ enum RandomDistributionType {
 /* -------------------------------------------------------------------------- */
 /* Generator                                                                  */
 /* -------------------------------------------------------------------------- */
-template <typename T> class RandomGenerator {
+template <typename T> class AKANTU_EXPORT RandomGenerator {
   /* ------------------------------------------------------------------------ */
 private:
   static long int _seed;                       // NOLINT

@@ -38,7 +38,8 @@ namespace akantu {
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
-template <Int dim> class MaterialCohesiveLinear : public MaterialCohesive {
+template <Int dim>
+class AKANTU_EXPORT MaterialCohesiveLinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -456,6 +456,8 @@ function(register_test test_name)
       target_compile_features(${test_name} PRIVATE ${_features})
     endif()
 
+    set_target_properties(${test_name} PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+
     # add the extra compilation options
     if(_register_test_COMPILE_OPTIONS)
       set_target_properties(${test_name}

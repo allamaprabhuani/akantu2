@@ -38,8 +38,9 @@ class MeshUtils {
 public:
   /// build a CSR<Element> that contains for each node the list of connected
   /// elements of a given spatial dimension
-  static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem,
-                                 Int spatial_dimension = _all_dimensions);
+  AKANTU_EXPORT static void
+  buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem,
+                     Int spatial_dimension = _all_dimensions);
 
   /// build a CSR<UInt> that contains for each node the number of
   /// the connected elements of a given ElementType
@@ -49,17 +50,19 @@ public:
                                    GhostType ghost_type = _not_ghost);
 
   /// build the facets elements on the boundaries of a mesh
-  static void buildFacets(Mesh & mesh);
+  AKANTU_EXPORT static void buildFacets(Mesh & mesh);
 
   /// build all the facets elements: boundary and internals and store them in
   /// the mesh_facets for element of dimension from_dimension to to_dimension
-  static void buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
-                             Int from_dimension, Int to_dimension);
+  AKANTU_EXPORT static void buildAllFacets(const Mesh & mesh,
+                                           Mesh & mesh_facets,
+                                           Int from_dimension,
+                                           Int to_dimension);
 
   /// build all the facets elements: boundary and internals and store them in
   /// the mesh_facets
-  static void buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
-                             Int to_dimension = 0);
+  AKANTU_EXPORT static void
+  buildAllFacets(const Mesh & mesh, Mesh & mesh_facets, Int to_dimension = 0);
 
   /// build facets for a given spatial dimension
   static void buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
@@ -80,7 +83,7 @@ public:
                             std::map<Idx, Idx> & pbc_pair);
 
   /// remove not connected nodes /!\ this functions renumbers the nodes.
-  static void purifyMesh(Mesh & mesh);
+  AKANTU_EXPORT static void purifyMesh(Mesh & mesh);
 
   /// fill the subelement to element and the elements to subelements data
   static void fillElementToSubElementsData(Mesh & mesh);
@@ -99,9 +102,8 @@ private:
                             std::map<Idx, Idx> & pbc_pair);
 
   /// function used by all the renumbering functions
-  static void
-  renumberNodesInConnectivity(Array<Idx> & list_nodes, Int nb_nodes,
-                              std::map<Idx, Idx> & renumbering_map);
+  static void renumberNodesInConnectivity(Array<Idx> & list_nodes, Int nb_nodes,
+                                          std::map<Idx, Idx> & renumbering_map);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

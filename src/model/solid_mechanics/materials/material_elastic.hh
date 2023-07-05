@@ -38,7 +38,8 @@ namespace akantu {
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template <Int dim>
-class MaterialElastic : public PlaneStressToolbox<dim, MaterialThermal<dim>> {
+class AKANTU_EXPORT MaterialElastic
+    : public PlaneStressToolbox<dim, MaterialThermal<dim>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

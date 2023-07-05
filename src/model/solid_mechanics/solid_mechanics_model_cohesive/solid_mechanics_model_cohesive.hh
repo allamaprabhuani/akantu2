@@ -62,8 +62,9 @@ struct FacetsCohesiveIntegrationOrderFunctor {
 /* -------------------------------------------------------------------------- */
 /* Solid Mechanics Model for Cohesive elements                                */
 /* -------------------------------------------------------------------------- */
-class SolidMechanicsModelCohesive : public SolidMechanicsModel,
-                                    public SolidMechanicsModelEventHandler {
+class AKANTU_EXPORT SolidMechanicsModelCohesive
+    : public SolidMechanicsModel,
+      public SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -42,7 +42,7 @@ class DOFManager;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-class Model : public ModelSolver, public MeshEventHandler {
+class AKANTU_EXPORT Model : public ModelSolver, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

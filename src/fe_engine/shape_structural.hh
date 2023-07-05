@@ -27,7 +27,8 @@
 
 namespace akantu {
 
-template <ElementKind kind> class ShapeStructural : public ShapeFunctions {
+template <ElementKind kind>
+class AKANTU_EXPORT ShapeStructural : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

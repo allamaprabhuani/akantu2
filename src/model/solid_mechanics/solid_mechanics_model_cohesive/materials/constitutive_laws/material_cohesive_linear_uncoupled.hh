@@ -19,8 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "material_cohesive_linear.hh"
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH_
@@ -38,7 +38,8 @@ namespace akantu {
  *  - roughness : define the interaction between mode I and mode II (default: 0)
  */
 template <Int dim>
-class MaterialCohesiveLinearUncoupled : public MaterialCohesiveLinear<dim> {
+class AKANTU_EXPORT MaterialCohesiveLinearUncoupled
+    : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

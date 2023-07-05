@@ -36,8 +36,8 @@ class RemovedElementsEvent;
 } // namespace akantu
 
 namespace akantu {
-class NeighborhoodBase : public DataAccessor<Element>,
-                         public SynchronizerRegistry {
+class AKANTU_EXPORT NeighborhoodBase : public DataAccessor<Element>,
+                                       public SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

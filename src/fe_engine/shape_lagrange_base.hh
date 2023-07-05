@@ -27,7 +27,7 @@
 
 namespace akantu {
 
-class ShapeLagrangeBase : public ShapeFunctions {
+class AKANTU_EXPORT ShapeLagrangeBase : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -34,7 +34,7 @@ class SparseMatrixAIJ;
 
 namespace akantu {
 
-class SparseSolverMumps : public SparseSolver {
+class AKANTU_EXPORT SparseSolverMumps : public SparseSolver {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

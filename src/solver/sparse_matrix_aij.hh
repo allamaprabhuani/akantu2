@@ -36,7 +36,7 @@ class TermsToAssemble;
 
 namespace akantu {
 
-class SparseMatrixAIJ : public SparseMatrix {
+class AKANTU_EXPORT SparseMatrixAIJ : public SparseMatrix {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

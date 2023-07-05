@@ -29,7 +29,8 @@
 
 namespace akantu {
 
-template <Int dim> class MaterialPhaseField : public MaterialDamage<dim> {
+template <Int dim>
+class AKANTU_EXPORT MaterialPhaseField : public MaterialDamage<dim> {
   using Parent = MaterialDamage<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

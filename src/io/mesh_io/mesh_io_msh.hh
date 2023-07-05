@@ -29,7 +29,7 @@
 
 namespace akantu {
 
-class MeshIOMSH : public MeshIO {
+class AKANTU_EXPORT MeshIOMSH : public MeshIO {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

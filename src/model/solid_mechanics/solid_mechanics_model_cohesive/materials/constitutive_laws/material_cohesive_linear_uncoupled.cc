@@ -19,12 +19,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "material_cohesive_linear_uncoupled.hh"
+/* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <numeric>
-
 /* -------------------------------------------------------------------------- */
-#include "material_cohesive_linear_uncoupled.hh"
-#include "solid_mechanics_model_cohesive.hh"
 
 namespace akantu {
 
