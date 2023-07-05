@@ -174,12 +174,10 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  finalize();
-
   if (prank == 0)
     std::cout << "OK: test passed!" << std::endl;
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

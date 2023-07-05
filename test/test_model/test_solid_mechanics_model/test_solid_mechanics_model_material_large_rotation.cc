@@ -103,7 +103,5 @@ int main(int argc, char * argv[]) {
   std::cout << "Converged in " << Int(solver.get("nb_iterations")) << " ("
             << Real(solver.get("error")) << ")" << std::endl;
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -38,6 +38,5 @@ int main(int argc, char * argv[]) {
 
   mesh_io.write("./cube.out", mesh);
 
-  akantu::finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

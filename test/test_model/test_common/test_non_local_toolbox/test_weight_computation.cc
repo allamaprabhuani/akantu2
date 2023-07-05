@@ -52,7 +52,6 @@ int main(int argc, char * argv[]) {
     std::cout << current_line << std::endl;
 
   weights.close();
-  finalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }

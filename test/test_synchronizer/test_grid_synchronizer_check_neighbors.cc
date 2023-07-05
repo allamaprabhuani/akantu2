@@ -115,7 +115,5 @@ int main(int argc, char * argv[]) {
       AKANTU_ERROR("Some neighbors of " << it_n->first << " are in excess!");
   }
 
-  akantu::finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

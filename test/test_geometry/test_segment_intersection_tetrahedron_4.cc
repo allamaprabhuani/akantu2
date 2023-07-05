@@ -129,5 +129,5 @@ int main(int argc, char * argv[]) {
   if (!Math::are_vector_equal(3, bary.data(), sixth_bary))
     return EXIT_FAILURE;
 
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -85,5 +85,5 @@ int main(int argc, char * argv[]) {
       !Math::are_float_equal(K(2, 2), 1. - height))
     return EXIT_FAILURE;
 
-  return EXIT_SUCCESS;
+  return 0;
 }

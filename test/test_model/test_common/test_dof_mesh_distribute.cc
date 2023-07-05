@@ -63,6 +63,4 @@ TEST(TestMesh, TestMeshDistribute) {
   mesh2.distribute();
   EXPECT_NO_THROW(
       DOFManagerDefault dof_manager2(mesh2, "test_dof_manager_2__succeeding"));
-
-  finalize();
 }

@@ -131,8 +131,6 @@ int main(int argc, char * argv[]) {
     check(x);
   }
 
-  finalize();
-
   return 0;
 }
 

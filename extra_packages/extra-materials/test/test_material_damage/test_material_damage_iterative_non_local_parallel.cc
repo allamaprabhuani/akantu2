@@ -129,7 +129,6 @@ int main(int argc, char * argv[]) {
   }
 
   if (!checkDisplacement(model, element_type, error_output, 1, false)) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -159,15 +158,12 @@ int main(int argc, char * argv[]) {
   }
 
   if (!checkDisplacement(model, element_type, error_output, 2, false)) {
-    finalize();
     return EXIT_FAILURE;
   }
 
   model.dump();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

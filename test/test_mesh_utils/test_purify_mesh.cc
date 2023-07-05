@@ -45,7 +45,5 @@ int main(int argc, char * argv[]) {
     AKANTU_ERROR(
         "The purified mesh does not contain the good number of element.");
 
-  akantu::finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

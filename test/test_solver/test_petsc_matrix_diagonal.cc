@@ -140,13 +140,10 @@ int main(int argc, char * argv[]) {
 
   if (error > Math::getTolerance()) {
     std::cout << "error in the stiffness matrix!!!" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
   delete communicator;
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

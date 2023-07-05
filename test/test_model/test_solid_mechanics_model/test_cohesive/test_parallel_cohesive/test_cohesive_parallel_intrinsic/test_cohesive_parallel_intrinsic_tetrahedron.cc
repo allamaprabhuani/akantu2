@@ -193,7 +193,6 @@ int main(int argc, char * argv[]) {
         std::cout << "Serial: " << total_nb_nodes
                   << " Parallel: " << total_nb_nodes_parallel << std::endl;
       }
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -224,7 +223,6 @@ int main(int argc, char * argv[]) {
       std::cout << "Serial: " << nb_elements_check_serial
                 << " Parallel: " << nb_elements_check << std::endl;
     }
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -246,7 +244,6 @@ int main(int argc, char * argv[]) {
       std::cout << "Serial: " << nb_nodes_to_check_serial
                 << " Parallel: " << nodes_to_check_global_size << std::endl;
     }
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -313,7 +310,6 @@ int main(int argc, char * argv[]) {
     if (checkTractions(model, opening, traction, rotation) ||
         checkEquilibrium(mesh, residual) ||
         checkResidual(residual, traction, nodes_to_check, rotation)) {
-      finalize();
       return EXIT_FAILURE;
     }
 
@@ -355,14 +351,12 @@ int main(int argc, char * argv[]) {
     if (prank == 0)
       std::cout << "Error: the dissipated energy is incorrect" << std::endl;
 
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
   if (prank == 0)
     std::cout << "OK: Test passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

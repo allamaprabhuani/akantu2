@@ -84,10 +84,8 @@ int main(int argc, char * argv[]) {
   std::cout << Ed << " " << Edt << std::endl;
   if (std::abs(Ed - Edt) > 0.001 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

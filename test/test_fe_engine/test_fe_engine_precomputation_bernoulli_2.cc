@@ -135,7 +135,5 @@ int main(int argc, char * argv[]) {
 
   std::cout.flush();
 
-  finalize();
-
   return 0;
 }

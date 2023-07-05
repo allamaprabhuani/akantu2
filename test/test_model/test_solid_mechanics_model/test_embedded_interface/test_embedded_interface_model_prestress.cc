@@ -214,6 +214,5 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  finalize();
   return 0;
 }

@@ -105,12 +105,10 @@ int main(int argc, char * argv[]) {
 
   if (nb_nodes != nb_element * Mesh::getNbNodesPerElement(type)) {
     std::cout << "Wrong number of nodes" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
   std::cout << "OK: test_cohesive_intrinsic_tetrahedron was passed!"
             << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

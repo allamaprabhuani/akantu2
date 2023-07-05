@@ -87,6 +87,5 @@ int main(int argc, char * argv[]) {
   model.assembleInternalForces();
   model.dump();
 
-  akantu::finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

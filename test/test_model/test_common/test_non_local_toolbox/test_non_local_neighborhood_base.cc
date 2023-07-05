@@ -66,7 +66,5 @@ int main(int argc, char * argv[]) {
   }
   neighborhoods.close();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

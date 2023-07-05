@@ -104,7 +104,7 @@ int main(int argc, char * argv[]) {
       coupler.solve();
     }
 
-    auto energy = phase.getEnergy();
+    auto energy [[maybe_unused]] = phase.getEnergy();
 
     if (s % 100 == 0) {
       model.dump();
@@ -123,6 +123,5 @@ int main(int argc, char * argv[]) {
   std::cout << "Nb clusters: " << global_nb_clusters << std::endl;
   std::cout << "Nb fragments: " << nb_fragment << std::endl;
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

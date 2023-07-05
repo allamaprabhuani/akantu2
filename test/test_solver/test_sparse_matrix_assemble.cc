@@ -69,7 +69,5 @@ int main(int argc, char * argv[]) {
 
   A.saveMatrix("matrix.mtx");
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

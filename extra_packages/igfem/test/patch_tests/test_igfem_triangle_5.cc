@@ -174,7 +174,6 @@ int main(int argc, char * argv[]) {
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -185,13 +184,11 @@ int main(int argc, char * argv[]) {
   Real L2_error = computeL2Error(model);
   std::cout << "Error: " << L2_error << std::endl;
   if (L2_error > 1e-12) {
-    finalize();
     std::cout << "The patch test did not pass!!!!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

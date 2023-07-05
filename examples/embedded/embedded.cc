@@ -83,6 +83,5 @@ int main(int argc, char * argv[]) {
   model.dump();
   model.dump("reinforcement");
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

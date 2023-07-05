@@ -133,7 +133,6 @@ int main(int argc, char * argv[]) {
   comm.allReduce(&int_volume, 1, _so_sum);
   if (prank == 0)
     if (!Math::are_float_equal(int_volume, 4)) {
-      finalize();
       std::cout << "Error in area computation of the 2D mesh" << std::endl;
       return EXIT_FAILURE;
     }
@@ -150,7 +149,6 @@ int main(int argc, char * argv[]) {
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -172,7 +170,6 @@ int main(int argc, char * argv[]) {
   if (prank == 0) {
     std::cout << "Error: " << L2_error << std::endl;
     if (L2_error > 1e-13) {
-      finalize();
       std::cout << "The patch test did not pass!!!!" << std::endl;
       return EXIT_FAILURE;
     }
@@ -198,7 +195,6 @@ int main(int argc, char * argv[]) {
     if ((nb_igfem_triangle_4 != 0) || (nb_igfem_triangle_5 != 8)) {
       std::cout << "something went wrong in the interface creation"
                 << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -206,7 +202,6 @@ int main(int argc, char * argv[]) {
   if ((psize == 0) && (mesh.getNbNodes() - nb_standard_nodes != 8)) {
     std::cout << "something went wrong in the interface node creation"
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -216,7 +211,6 @@ int main(int argc, char * argv[]) {
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -225,7 +219,6 @@ int main(int argc, char * argv[]) {
   if (prank == 0) {
     std::cout << "Error: " << L2_error << std::endl;
     if (L2_error > 1e-13) {
-      finalize();
       std::cout << "The patch test did not pass!!!!" << std::endl;
       return EXIT_FAILURE;
     }
@@ -247,7 +240,6 @@ int main(int argc, char * argv[]) {
     if ((nb_igfem_triangle_4 != 8) || (nb_igfem_triangle_5 != 0)) {
       std::cout << "something went wrong in the interface creation"
                 << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -255,7 +247,6 @@ int main(int argc, char * argv[]) {
   if ((psize == 0) && (mesh.getNbNodes() - nb_standard_nodes != 4)) {
     std::cout << "something went wrong in the interface node creation"
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -265,7 +256,6 @@ int main(int argc, char * argv[]) {
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
   L2_error = computeL2Error(model, error_per_element);
@@ -273,7 +263,6 @@ int main(int argc, char * argv[]) {
   if (prank == 0) {
     std::cout << "Error: " << L2_error << std::endl;
     if (L2_error > 1e-13) {
-      finalize();
       std::cout << "The patch test did not pass!!!!" << std::endl;
       return EXIT_FAILURE;
     }
@@ -283,8 +272,7 @@ int main(int argc, char * argv[]) {
   model.dump();
   model.dump("igfem elements");
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

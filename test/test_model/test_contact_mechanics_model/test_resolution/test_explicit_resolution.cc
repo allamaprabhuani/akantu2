@@ -36,6 +36,5 @@ int main(int argc, char * argv[]) {
 
   std::cout << model;
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

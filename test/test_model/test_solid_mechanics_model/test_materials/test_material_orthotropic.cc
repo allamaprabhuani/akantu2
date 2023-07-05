@@ -85,7 +85,5 @@ int main(int argc, char * argv[]) {
 
   energy.close();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

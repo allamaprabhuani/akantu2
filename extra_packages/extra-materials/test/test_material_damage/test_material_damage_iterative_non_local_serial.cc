@@ -207,7 +207,6 @@ int main(int argc, char * argv[]) {
         std::cout << "the normalized equivalent stress is most likely based on "
                      "the local, not the non-local grad_u!!!!"
                   << std::endl;
-        finalize();
         return EXIT_FAILURE;
       }
       ++counter;
@@ -218,12 +217,10 @@ int main(int argc, char * argv[]) {
 
   if (!Math::are_float_equal(max_eq_stress, 0.1311267235941873)) {
     std::cout << "the maximum equivalent stress is wrong" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
   model.dump();
-  finalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }

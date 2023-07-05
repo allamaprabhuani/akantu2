@@ -227,7 +227,6 @@ int main(int argc, char * argv[]) {
     /// check the current damage state
     if (!checkDamageState(s, model, igfem_analysis)) {
       std::cout << "error in the damage compuation" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
 
@@ -235,9 +234,8 @@ int main(int argc, char * argv[]) {
   } while (nb_damaged_elements);
 
   std::cout << action << " passed!!" << std::endl;
-  finalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

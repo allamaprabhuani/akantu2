@@ -45,8 +45,7 @@ int main(int argc, char * argv[]) {
   AKANTU_DEBUG_INFO("integrating _igfem_triangle_5...");
   interpolate(_igfem_triangle_5);
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

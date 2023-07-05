@@ -188,15 +188,12 @@ int main(int argc, char * argv[]) {
 
   if (!Math::are_float_equal(Ed, theoretical_Ed) || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-
   std::cout << "OK: test_cohesive_intrinsic_tetrahedron was passed!"
             << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

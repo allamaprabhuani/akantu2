@@ -216,14 +216,11 @@ int main(int argc, char * argv[]) {
               effective_norm,
               sigma_c_eff(cohesive_element.element * nb_quad_per_facet + q))) {
         std::cout << "Insertion tractions do not match" << std::endl;
-        finalize();
         return EXIT_FAILURE;
       }
     }
   }
 
-  finalize();
-
   std::cout << "OK: test_cohesive_extrinsic was passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

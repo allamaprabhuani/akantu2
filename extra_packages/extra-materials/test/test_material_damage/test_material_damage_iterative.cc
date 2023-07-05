@@ -101,7 +101,6 @@ int main(int argc, char * argv[]) {
   for (Int e = 0; e < nb_elements; ++e, ++eq_stress_it) {
     if (!Math::are_float_equal(*eq_stress_it, 0.1)) {
       std::cout << "Error in the equivalent normalized stress" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -116,7 +115,6 @@ int main(int argc, char * argv[]) {
   if (nb_damaged_elements) {
     std::cout << "Damage occured even though the normalized stress is below 1"
               << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -142,7 +140,6 @@ int main(int argc, char * argv[]) {
   UInt nb_damaged_elements_per_proc = 2;
   if (nb_damaged_elements != psize * nb_damaged_elements_per_proc) {
     std::cout << "Error in number of damaged elements" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -160,7 +157,6 @@ int main(int argc, char * argv[]) {
 
   if (dam_diff > 1.e-13) {
     std::cout << "Error in damage pattern" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -170,7 +166,5 @@ int main(int argc, char * argv[]) {
 
   model.dump();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -219,5 +219,5 @@ int main(int argc, char * argv[]) {
   }
 
   std::cout << "OK: test_cohesive_buildfragments was passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

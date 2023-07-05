@@ -44,8 +44,7 @@ int main(int argc, char * argv[]) {
   /// precompuation for _igfem_triangle_5
   AKANTU_DEBUG_INFO("precomputation for _igfem_triangle_5...");
   precompute(_igfem_triangle_5);
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

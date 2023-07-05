@@ -106,7 +106,5 @@ int main(int argc, char * argv[]) {
     debug::setDebugLevel(dblWarning);
   }
 
-  finalize();
-
   return 0;
 }

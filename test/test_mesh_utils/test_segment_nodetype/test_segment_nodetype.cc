@@ -81,6 +81,5 @@ int main(int argc, char * argv[]) {
       nb_facets_per_nodetype.find(-2) != nb_facets_per_nodetype.end())
     AKANTU_ERROR("The last processor must not have any master facets");
 
-  finalize();
   return 0;
 }

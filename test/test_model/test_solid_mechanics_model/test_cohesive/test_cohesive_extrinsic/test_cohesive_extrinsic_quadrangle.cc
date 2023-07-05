@@ -110,9 +110,7 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  finalize();
-
   std::cout << "OK: test_cohesive_extrinsic_quadrangle was passed!"
             << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

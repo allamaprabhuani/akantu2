@@ -119,9 +119,8 @@ int main(int argc, char * argv[]) {
   }
 
   os.close();
-  finalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

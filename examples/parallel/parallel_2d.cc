@@ -92,6 +92,5 @@ int main(int argc, char * argv[]) {
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

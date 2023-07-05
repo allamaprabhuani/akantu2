@@ -115,6 +115,5 @@ int main(int argc, char * argv[]) {
   MeshGeomFactory<2, _triangle_3, Line_arc<SK>, SK> Sfactory(mesh);
   Sfactory.constructData();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

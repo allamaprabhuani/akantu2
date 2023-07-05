@@ -307,11 +307,9 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-
   if (prank == 0)
     std::cout << "OK: test_cohesive_buildfragments was passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {

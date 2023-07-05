@@ -89,7 +89,6 @@ int main(int argc, char * argv[]) {
   synch_registry.synchronize(SynchronizationTag::_test);
 
   delete communicator;
-  finalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }

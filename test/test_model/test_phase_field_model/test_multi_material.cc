@@ -86,8 +86,7 @@ int main(int argc, char * argv[]) {
     model.dump();
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

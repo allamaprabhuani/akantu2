@@ -49,7 +49,5 @@ int main(int argc, char * argv[]) {
 
   std::cout << (*dynamic_cast<GroupManager *>(&mesh)) << std::endl;
 
-  akantu::finalize();
-
   return 0;
 }

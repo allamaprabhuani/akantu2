@@ -72,5 +72,5 @@ int main() {
   std::cout << vec << std::endl;
   std::cout << mesh_data.getTypeCode(name) << std::endl;
 
-  return EXIT_SUCCESS;
+  return 0;
 }

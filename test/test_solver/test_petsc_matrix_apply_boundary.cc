@@ -128,12 +128,9 @@ int main(int argc, char * argv[]) {
   }
 
   if (std::abs(test_passed) > Math::getTolerance()) {
-    finalize();
     return EXIT_FAILURE;
   }
   delete communicator;
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

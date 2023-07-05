@@ -223,11 +223,8 @@ int main(int argc, char * argv[]) {
       !Math::are_float_equal(volume_outside, 0.1) ||
       !Math::are_float_equal(volume_inside, (0.15))) {
     std::cout << "the test failed!!!" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

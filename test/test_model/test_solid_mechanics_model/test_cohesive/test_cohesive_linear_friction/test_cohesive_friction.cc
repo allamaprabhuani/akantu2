@@ -219,11 +219,9 @@ int main(int argc, char * argv[]) {
     passed = false;
 
   if (passed)
-    return EXIT_SUCCESS;
+    return 0;
   else
     return EXIT_FAILURE;
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -168,5 +168,5 @@ int main(int argc, char * argv[]) {
   }
 
   std::cout << "OK: Stress interpolation test passed." << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

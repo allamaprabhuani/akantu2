@@ -79,7 +79,6 @@ int main(int argc, char * argv[]) {
     if ((nb_igfem_triangle_4 != 2) || (nb_igfem_triangle_5 != 1)) {
       std::cout << "something went wrong in the interface creation"
                 << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -93,7 +92,6 @@ int main(int argc, char * argv[]) {
   comm.allReduce(&nb_global_nodes, 1, _so_sum);
   if (prank == 0 && nb_global_nodes != 27) {
     std::cout << "something went wrong in the interface creation" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -139,7 +137,6 @@ int main(int argc, char * argv[]) {
     std::cout << "The error is: " << error << std::endl;
     if (error > 1e-14) {
       std::cout << "The test failed!!!!" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -148,6 +145,5 @@ int main(int argc, char * argv[]) {
   model.dump();
   model.dump("igfem elements");
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

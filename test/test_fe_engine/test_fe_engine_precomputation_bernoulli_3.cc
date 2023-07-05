@@ -89,7 +89,5 @@ int main(int argc, char * argv[]) {
 
   /// TODO check shape functions and shape derivatives
 
-  finalize();
-
   return 0;
 }

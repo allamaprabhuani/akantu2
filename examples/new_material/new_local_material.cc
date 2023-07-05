@@ -86,6 +86,5 @@ int main(int argc, char * argv[]) {
       model.dump();
   }
 
-  akantu::finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

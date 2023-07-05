@@ -163,6 +163,5 @@ int main(int argc, char * argv[]) {
 
   coupler.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

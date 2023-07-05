@@ -238,26 +238,22 @@ int main(int argc, char * argv[]) {
           std::cout
               << "the reduction step for an elastic sub-element must be zero!!"
               << std::endl;
-          finalize();
           return EXIT_FAILURE;
         }
       } else {
         if (e == 7) {
           if (!Math::are_float_equal(*step_it, reduction_step_el_27)) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         } else if (e == 5) {
           if (!Math::are_float_equal(*step_it, reduction_step_el_19)) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         } else {
           if (!Math::are_float_equal(*step_it, 0.)) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         }
@@ -316,7 +312,6 @@ int main(int argc, char * argv[]) {
           std::cout << "the reduction step and damagefor an elastic "
                        "sub-element must be zero!!"
                     << std::endl;
-          finalize();
           return EXIT_FAILURE;
         }
       } else {
@@ -326,21 +321,18 @@ int main(int argc, char * argv[]) {
                   *new_dam_it, 1 - (1. / std::pow(reduction_constant,
                                                   reduction_step_el_27 + 1)))) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         } else if (e == 5) {
           if (!Math::are_float_equal(*step_it, reduction_step_el_19) ||
               !Math::are_float_equal(*new_dam_it, *old_dam_it)) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         } else {
           if (!Math::are_float_equal(*step_it, 0.) ||
               !Math::are_float_equal(*new_dam_it, 0.)) {
             std::cout << "error in computation of damage step!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         }
@@ -348,7 +340,5 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

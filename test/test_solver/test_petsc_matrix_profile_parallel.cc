@@ -127,7 +127,5 @@ int main(int argc, char * argv[]) {
 
   delete communicator;
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

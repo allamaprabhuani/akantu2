@@ -188,7 +188,6 @@ int main(int argc, char * argv[]) {
     D_exact = *Sc_it / (ultimate_strain - (*Sc_it / E));
     if (!Math::are_float_equal(*D_it, D_exact)) {
       std::cout << "error in the tangent or ultimate strain" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
   }
@@ -236,7 +235,6 @@ int main(int argc, char * argv[]) {
           std::cout << "the tangent and ultimate strain of a sub-element must "
                        "be zero!!"
                     << std::endl;
-          finalize();
           return EXIT_FAILURE;
         }
       } else {
@@ -244,14 +242,12 @@ int main(int argc, char * argv[]) {
           if (!Math::are_float_equal(*epsu_igfem_it, epsu_el_27) ||
               !Math::are_float_equal(*D_igfem_it, D_el_27)) {
             std::cout << "error in tangent or ultimate strain!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         } else if (e == 5) {
           if (!Math::are_float_equal(*epsu_igfem_it, epsu_el_19) ||
               !Math::are_float_equal(*D_igfem_it, D_el_19)) {
             std::cout << "error in tangent or ultimate strain!!" << std::endl;
-            finalize();
             return EXIT_FAILURE;
           }
         }
@@ -259,7 +255,5 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

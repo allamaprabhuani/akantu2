@@ -158,8 +158,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
   if (prank == 0)
     std::cout << "OK: Test passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

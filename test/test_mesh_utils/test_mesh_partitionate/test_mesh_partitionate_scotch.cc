@@ -54,7 +54,5 @@ int main(int argc, char * argv[]) {
   partition.reorder();
   mesh.write("triangle_reorder.msh");
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

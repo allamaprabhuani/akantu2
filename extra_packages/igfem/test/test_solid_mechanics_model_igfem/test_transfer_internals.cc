@@ -160,7 +160,6 @@ int main(int argc, char * argv[]) {
   UInt counter = 0;
   bool check_passed = checkResults(error, counter, model, diagonal);
   if (!check_passed) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -176,7 +175,6 @@ int main(int argc, char * argv[]) {
         << std::endl;
   }
   if (error > 1e-14 || counter != 156) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -200,7 +198,6 @@ int main(int argc, char * argv[]) {
   counter = 0;
   check_passed = checkResults(error, counter, model, diagonal);
   if (!check_passed) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -217,7 +214,6 @@ int main(int argc, char * argv[]) {
   }
 
   if (error > 1e-14 || counter != 150) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -225,8 +221,7 @@ int main(int argc, char * argv[]) {
   model.dump("igfem elements");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -80,8 +80,7 @@ int main(int argc, char * argv[]) {
 
   printResults(model, global_nb_nodes);
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

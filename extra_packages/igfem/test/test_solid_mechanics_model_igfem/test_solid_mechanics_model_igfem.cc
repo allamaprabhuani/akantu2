@@ -338,6 +338,5 @@ int main(int argc, char * argv[]) {
   /// output the displacement in parallel
   outputArray(mesh, model.getDisplacement());
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

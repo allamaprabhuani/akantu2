@@ -60,6 +60,5 @@ int main(int argc, char * argv[]) {
   RandomParameter<Real> rand3 = p.getParameter("rand3");
   std::cout << rand3 << std::endl;
 
-  finalize();
   return 0;
 }

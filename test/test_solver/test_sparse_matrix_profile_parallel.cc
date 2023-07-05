@@ -95,7 +95,5 @@ int main(int argc, char * argv[]) {
   sstr << "profile_" << prank << ".mtx";
   sparse_matrix.saveProfile(sstr.str());
 
-  akantu::finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

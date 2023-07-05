@@ -75,10 +75,8 @@ int main(int argc, char * argv[]) {
 
   if (macro_strain.norm<L_2>() > 1.e-10) {
     std::cout << "the test failed!!" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

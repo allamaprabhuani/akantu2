@@ -184,7 +184,5 @@ int main(int argc, char * argv[]) {
   model.assembleInternalForces();
   model.dump();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

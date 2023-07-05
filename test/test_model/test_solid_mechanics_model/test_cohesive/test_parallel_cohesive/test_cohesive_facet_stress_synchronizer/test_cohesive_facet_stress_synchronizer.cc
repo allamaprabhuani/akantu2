@@ -186,7 +186,6 @@ int main(int argc, char * argv[]) {
             if (!Math::are_float_equal(stress_to_check(i, j),
                                        current_stress(i, j))) {
               std::cout << "Stress doesn't match" << std::endl;
-              finalize();
               return EXIT_FAILURE;
             }
           }
@@ -195,9 +194,8 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
   if (prank == 0)
     std::cout << "OK: test_cohesive_facet_stress_synchronizer passed!"
               << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

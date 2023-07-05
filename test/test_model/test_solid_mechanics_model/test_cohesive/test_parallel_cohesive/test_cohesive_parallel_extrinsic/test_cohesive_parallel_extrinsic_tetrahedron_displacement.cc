@@ -201,12 +201,10 @@ int main(int argc, char * argv[]) {
   model.dump("cohesive elements");
 
   if (!checkDisplacement(model, type, error_output, max_steps, false)) {
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,

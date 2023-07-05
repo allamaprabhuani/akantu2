@@ -114,12 +114,9 @@ int main(int argc, char * argv[]) {
 
   if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-
   std::cout << "OK: test_cohesive_extrinsic was passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

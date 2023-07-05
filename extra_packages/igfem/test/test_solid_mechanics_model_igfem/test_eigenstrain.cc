@@ -119,7 +119,6 @@ int main(int argc, char * argv[]) {
   model.update("mat_1");
   if (mesh.getNbElement(_igfem_triangle_4, _not_ghost)) {
     /// something went wrong in the interface creation
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -176,7 +175,6 @@ int main(int argc, char * argv[]) {
   std::cout << "The error in the prestrain is: " << error << std::endl;
   if (std::abs(error) > Math::getTolerance()) {
     std::cout << "The test failed!!!" << std::endl;
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -184,6 +182,5 @@ int main(int argc, char * argv[]) {
   model.dump("igfem elements");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

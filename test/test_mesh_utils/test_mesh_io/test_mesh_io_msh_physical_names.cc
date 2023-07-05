@@ -45,6 +45,5 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  akantu::finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -209,15 +209,12 @@ int main(int argc, char * argv[]) {
     /// check the current damage state
     if (!checkDamageState(s, model)) {
       std::cout << "error in the damage compuation" << std::endl;
-      finalize();
       return EXIT_FAILURE;
     }
     s++;
   } while (nb_damaged_elements);
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

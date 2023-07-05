@@ -151,10 +151,8 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-
   if (passed)
-    return EXIT_SUCCESS;
+    return 0;
   else
     return EXIT_FAILURE;
 }

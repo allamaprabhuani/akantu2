@@ -178,8 +178,7 @@ int main(int argc, char * argv[]) {
     time += time_step;
   }
   output_data.close();
-  finalize();
 
   std::cout << "Test successful!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

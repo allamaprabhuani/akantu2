@@ -174,7 +174,5 @@ int main(int argc, char * argv[]) {
     mesh.dump("wheels");
   }
 
-  finalize();
-
   return 0;
 }

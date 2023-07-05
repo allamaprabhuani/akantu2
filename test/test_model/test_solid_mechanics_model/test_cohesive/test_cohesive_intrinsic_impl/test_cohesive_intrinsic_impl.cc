@@ -156,8 +156,6 @@ int main(int argc, char * argv[]) {
 
   fout.close();
 
-  finalize();
-
   std::cout << "Test passed!" << std::endl;
-  return EXIT_SUCCESS;
+  return 0;
 }

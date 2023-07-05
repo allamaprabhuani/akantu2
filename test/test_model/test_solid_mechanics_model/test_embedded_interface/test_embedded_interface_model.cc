@@ -93,6 +93,5 @@ int main(int argc, char * argv[]) {
   if (std::abs(pot_energy - 7.37343e-06) > 1e-5)
     return EXIT_FAILURE;
 
-  finalize();
   return 0;
 }

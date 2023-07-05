@@ -104,5 +104,5 @@ int main() {
   my_file << don << std::endl;
   my_file << doq << std::endl;
 
-  return EXIT_SUCCESS;
+  return 0;
 }

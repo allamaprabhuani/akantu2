@@ -116,7 +116,5 @@ int main(int argc, char * argv[]) {
 
   model.assembleStiffnessMatrix();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

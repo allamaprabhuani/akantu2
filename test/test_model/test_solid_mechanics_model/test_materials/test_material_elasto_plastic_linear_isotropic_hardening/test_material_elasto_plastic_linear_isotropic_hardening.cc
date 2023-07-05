@@ -75,6 +75,5 @@ int main(int argc, char * argv[]) {
     std::cout << strainxx << "," << reaction << std::endl;
   }
 
-  finalize();
   return 0;
 }

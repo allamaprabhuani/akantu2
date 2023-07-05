@@ -81,6 +81,5 @@ int main(int argc, char * argv[]) {
   model.addDumpField("blocked_dofs");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

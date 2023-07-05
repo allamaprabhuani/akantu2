@@ -49,5 +49,5 @@ int main(int argc, char * argv[]) {
   if (chocolate_element != 0 || chewing_gum_element != 1 || candy_element != 2)
     return EXIT_FAILURE;
 
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -27,7 +27,6 @@
 #include "material_viscoelastic_maxwell.hh"
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
-#include "sparse_matrix.hh"
 
 using namespace akantu;
 
@@ -153,5 +152,4 @@ int main(int argc, char * argv[]) {
     time += time_step;
   }
   output_data.close();
-  finalize();
 }

@@ -785,10 +785,9 @@ int main(int argc, char * argv[]) {
   }
 
   // output.close();
-  //  finalize();
-  // PetscFinalize();
+  //    // PetscFinalize();
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

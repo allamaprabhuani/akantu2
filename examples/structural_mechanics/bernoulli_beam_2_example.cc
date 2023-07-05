@@ -126,6 +126,4 @@ int main(int argc, char * argv[]) {
   std::cout << " M2 = " << N_M(2 * (nb_nodes - 2), 1) << std::endl;
 
   model.dump();
-
-  finalize();
 }

@@ -45,7 +45,6 @@ int main(int argc, char * argv[]) {
   AKANTU_DEBUG_INFO("integrating _igfem_triangle_4...");
   test_passed = integrate(_igfem_triangle_4);
   if (!test_passed) {
-    finalize();
     return EXIT_FAILURE;
   }
 
@@ -53,12 +52,10 @@ int main(int argc, char * argv[]) {
   AKANTU_DEBUG_INFO("integrating _igfem_triangle_5...");
   test_passed = integrate(_igfem_triangle_5);
   if (!test_passed) {
-    finalize();
     return EXIT_FAILURE;
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

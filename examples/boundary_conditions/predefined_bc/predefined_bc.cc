@@ -47,6 +47,5 @@ int main(int argc, char * argv[]) {
   model.addDumpField("external_force");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

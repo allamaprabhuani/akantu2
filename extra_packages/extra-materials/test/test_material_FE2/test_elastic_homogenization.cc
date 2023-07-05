@@ -71,12 +71,10 @@ int main(int argc, char * argv[]) {
                 << " approximated: " << C(i, j) << std::endl;
       if (std::abs(voigt_stiffness(i, j) - C(i, j)) > 1.e-10) {
         std::cout << "The material homogenization failed" << std::endl;
-        finalize();
         return EXIT_FAILURE;
       }
     }
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }
