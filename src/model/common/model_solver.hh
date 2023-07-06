@@ -85,9 +85,9 @@ public:
   virtual void solveStep(SolverCallback & callback, const ID & solver_id = "");
 
   /// Initialize a time solver that can be used afterwards with its id
-  void getNewSolver(
-      const ID & solver_id, TimeStepSolverType time_step_solver_type,
-      NonLinearSolverType non_linear_solver_type = NonLinearSolverType::_auto);
+  void getNewSolver(const ID & solver_id,
+                    TimeStepSolverType time_step_solver_type,
+                    NonLinearSolverType non_linear_solver_type = "auto");
 
   /// set an integration scheme for a given dof and a given solver
   void

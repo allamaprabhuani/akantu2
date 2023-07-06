@@ -242,14 +242,14 @@ ModelSolverOptions HeatTransferModel::getDefaultSolverOptions(
 
   switch (type) {
   case TimeStepSolverType::_dynamic_lumped: {
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.non_linear_solver_type = "lumped";
     options.integration_scheme_type["temperature"] =
         IntegrationSchemeType::_forward_euler;
     options.solution_type["temperature"] = IntegrationScheme::_temperature_rate;
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+    options.non_linear_solver_type = "newton_raphson";
     options.integration_scheme_type["temperature"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["temperature"] = IntegrationScheme::_not_defined;
@@ -257,13 +257,13 @@ ModelSolverOptions HeatTransferModel::getDefaultSolverOptions(
   }
   case TimeStepSolverType::_dynamic: {
     if (this->method == _explicit_consistent_mass) {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.non_linear_solver_type = "newton_raphson";
       options.integration_scheme_type["temperature"] =
           IntegrationSchemeType::_forward_euler;
       options.solution_type["temperature"] =
           IntegrationScheme::_temperature_rate;
     } else {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.non_linear_solver_type = "newton_raphson";
       options.integration_scheme_type["temperature"] =
           IntegrationSchemeType::_backward_euler;
       options.solution_type["temperature"] = IntegrationScheme::_temperature;

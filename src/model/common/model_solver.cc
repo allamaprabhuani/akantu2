@@ -289,18 +289,19 @@ void ModelSolver::solveStep(const ID & solver_id) {
 void ModelSolver::getNewSolver(const ID & solver_id,
                                TimeStepSolverType time_step_solver_type,
                                NonLinearSolverType non_linear_solver_type) {
+
   if (this->default_solver_id.empty()) {
     this->default_solver_id = solver_id;
   }
 
-  if (non_linear_solver_type == NonLinearSolverType::_auto) {
+  if (non_linear_solver_type == "auto") {
     switch (time_step_solver_type) {
     case TimeStepSolverType::_dynamic:
     case TimeStepSolverType::_static:
-      non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      non_linear_solver_type = "newton_raphson";
       break;
     case TimeStepSolverType::_dynamic_lumped:
-      non_linear_solver_type = NonLinearSolverType::_lumped;
+      non_linear_solver_type = "lumped";
       break;
     case TimeStepSolverType::_not_defined:
       AKANTU_EXCEPTION(time_step_solver_type
@@ -380,7 +381,7 @@ ModelSolverOptions
 ModelSolver::getDefaultSolverOptions(__attribute__((unused))
                                      const TimeStepSolverType & type) const {
   ModelSolverOptions options;
-  options.non_linear_solver_type = NonLinearSolverType::_auto;
+  options.non_linear_solver_type = "auto";
   return options;
 }
 

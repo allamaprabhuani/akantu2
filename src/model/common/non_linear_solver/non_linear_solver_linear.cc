@@ -34,7 +34,7 @@ NonLinearSolverLinear::NonLinearSolverLinear(
       dof_manager(dof_manager),
       solver(dof_manager, "J", id + ":sparse_solver") {
 
-  this->supported_type.insert(NonLinearSolverType::_linear);
+  this->supported_type.insert("linear");
   this->checkIfTypeIsSupported();
 }
 
@@ -68,5 +68,8 @@ void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
 }
 
 /* -------------------------------------------------------------------------- */
+[[maybe_unused]] bool non_linear_solver_is_allocated_linear =
+    instantiateNonLinearSolver<NonLinearSolverLinear, DOFManagerDefault>(
+        "linear");
 
 } // namespace akantu

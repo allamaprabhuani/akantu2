@@ -25,6 +25,8 @@
 #include "solver_callback.hh"
 #include "solver_vector_default.hh"
 /* -------------------------------------------------------------------------- */
+#include <memory>
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -34,9 +36,10 @@ NonLinearSolverLumped::NonLinearSolverLumped(
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
       dof_manager(dof_manager) {
-  this->supported_type.insert(NonLinearSolverType::_lumped);
-  this->checkIfTypeIsSupported();
-
+  if constexpr (std::is_same_v<decltype(*this), NonLinearSolverLumped>) {
+    this->supported_type.insert("lumped");
+    this->checkIfTypeIsSupported();
+  }
   this->registerParam("b_a2x", this->alpha, 1., _pat_parsmod,
                       "Conversion coefficient between x and A^{-1} b");
 }
@@ -44,7 +47,7 @@ NonLinearSolverLumped::NonLinearSolverLumped(
 /* -------------------------------------------------------------------------- */
 NonLinearSolverLumped::~NonLinearSolverLumped() = default;
 
-/* ------------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
   solver_callback.beforeSolveStep();
   this->dof_manager.updateGlobalBlockedDofs();
@@ -87,5 +90,8 @@ void NonLinearSolverLumped::solveLumped(const Array<Real> & As,
 }
 
 /* -------------------------------------------------------------------------- */
+[[maybe_unused]] bool non_linear_solver_is_allocated_lumped =
+    instantiateNonLinearSolver<NonLinearSolverLumped, DOFManagerDefault>(
+        "lumped");
 
 } // namespace akantu

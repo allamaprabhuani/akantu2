@@ -37,12 +37,11 @@ NonLinearSolverPETSc::NonLinearSolverPETSc(
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
       dof_manager(dof_manager) {
   std::unordered_map<NonLinearSolverType, SNESType>
-      petsc_non_linear_solver_types{
-          {NonLinearSolverType::_newton_raphson, SNESNEWTONLS},
-          {NonLinearSolverType::_linear, SNESKSPONLY},
-          {NonLinearSolverType::_gmres, SNESNGMRES},
-          {NonLinearSolverType::_bfgs, SNESQN},
-          {NonLinearSolverType::_cg, SNESNCG}};
+      petsc_non_linear_solver_types{{"newton_raphson", SNESNEWTONLS},
+                                    {"linear", SNESKSPONLY},
+                                    {"gmres", SNESNGMRES},
+                                    {"bfgs", SNESQN},
+                                    {"cg", SNESNCG}};
 
   this->has_internal_set_param = true;
 
@@ -225,5 +224,9 @@ void NonLinearSolverPETSc::parseSection(const ParserSection & section) {
   SNESSetFromOptions(snes);
   PetscOptionsClear(nullptr);
 }
+
+/* -------------------------------------------------------------------------- */
+[[maybe_unused]] bool non_linear_solver_is_allocated_petsc =
+    instantiateNonLinearSolver<NonLinearSolverPETSc, DOFManagerPETSc>("petsc");
 
 } // namespace akantu

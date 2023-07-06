@@ -197,29 +197,9 @@ SparseMatrixAIJ & DOFManagerDefault::getMatrix(const ID & id) {
 NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
                                          const NonLinearSolverType & type) {
-  switch (type) {
-#if defined(AKANTU_USE_MUMPS)
-  case NonLinearSolverType::_newton_raphson:
-    /* FALLTHRU */
-    /* [[fallthrough]]; un-comment when compiler will get it */
-  case NonLinearSolverType::_newton_raphson_contact:
-  case NonLinearSolverType::_newton_raphson_modified: {
-    return this->registerNonLinearSolver<NonLinearSolverNewtonRaphson>(
-        *this, id, type);
-  }
-  case NonLinearSolverType::_linear: {
-    return this->registerNonLinearSolver<NonLinearSolverLinear>(*this, id,
-                                                                type);
-  }
-#endif
-  case NonLinearSolverType::_lumped: {
-    return this->registerNonLinearSolver<NonLinearSolverLumped>(*this, id,
-                                                                type);
-  }
-  default:
-    AKANTU_EXCEPTION("The asked type of non linear solver is not supported by "
-                     "this dof manager");
-  }
+  auto && nls =
+      NonLinearSolverFactory::getInstance().allocate(type, *this, id, type);
+  return this->registerNonLinearSolver(this->id + ":nls:" + id, nls);
 }
 
 /* -------------------------------------------------------------------------- */

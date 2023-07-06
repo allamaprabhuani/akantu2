@@ -450,15 +450,14 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
   switch (type) {
   case TimeStepSolverType::_dynamic_lumped: { // Taken from the solid mechanic
                                               // part
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.non_linear_solver_type = "lumped";
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type =
-        NonLinearSolverType::_newton_raphson; // _linear;
+    options.non_linear_solver_type = "newton_raphson"; // _linear;
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
@@ -467,12 +466,12 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 #if 1
   case TimeStepSolverType::_dynamic: { // Copied from solid
     if (this->method == _explicit_consistent_mass) {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.non_linear_solver_type = "newton_raphson";
       options.integration_scheme_type["displacement"] =
           IntegrationSchemeType::_central_difference;
       options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     } else {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.non_linear_solver_type = "newton_raphson";
       options.integration_scheme_type["displacement"] =
           IntegrationSchemeType::_trapezoidal_rule_2;
       options.solution_type["displacement"] = IntegrationScheme::_displacement;
@@ -481,7 +480,7 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
   }
 #else
   case TimeStepSolverType::_dynamic: { // Original
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+    options.non_linear_solver_type = "newton_raphson";
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_trapezoidal_rule_2;
     options.solution_type["displacement"] = IntegrationScheme::_displacement;

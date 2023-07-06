@@ -257,22 +257,21 @@ ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
 
   switch (type) {
   case TimeStepSolverType::_dynamic: {
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.non_linear_solver_type = "lumped";
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
   case TimeStepSolverType::_dynamic_lumped: {
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.non_linear_solver_type = "lumped";
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type =
-        NonLinearSolverType::_newton_raphson_contact;
+    options.non_linear_solver_type = "newton_raphson";
     options.integration_scheme_type["displacement"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;

@@ -361,15 +361,6 @@ protected:
   registerTimeStepSolver(const ID & time_step_solver_id,
                          std::unique_ptr<TimeStepSolver> & time_step_solver);
 
-  template <class NLSType, class DMType>
-  NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
-                                            const NonLinearSolverType & type) {
-    ID non_linear_solver_id = this->id + ":nls:" + id;
-    std::unique_ptr<NonLinearSolver> nls =
-        std::make_unique<NLSType>(dm, type, non_linear_solver_id);
-    return this->registerNonLinearSolver(non_linear_solver_id, nls);
-  }
-
   template <class TSSType, class DMType>
   TimeStepSolver & registerTimeStepSolver(DMType & dm, const ID & id,
                                           const TimeStepSolverType & type,

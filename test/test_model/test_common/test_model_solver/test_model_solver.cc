@@ -69,7 +69,7 @@ int main(int argc, char * argv[]) {
   MyModel model(F, mesh, false, dof_manager_type);
 
   model.getNewSolver("static", TimeStepSolverType::_static,
-                     NonLinearSolverType::_newton_raphson);
+                     "newton_raphson");
   model.setIntegrationScheme("static", "disp",
                              IntegrationSchemeType::_pseudo_time);
 

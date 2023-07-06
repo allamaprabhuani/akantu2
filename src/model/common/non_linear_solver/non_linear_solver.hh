@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_factory.hh"
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 #include <set>
@@ -99,6 +100,27 @@ namespace debug {
   };
 } // namespace debug
 
+using NonLinearSolverFactory = Factory<NonLinearSolver, ID, DOFManager &,
+                                       const NonLinearSolverType &, const ID &>;
+
+namespace {
+  template <class NLS, class DM>
+  bool instantiateNonLinearSolver(const ID & parser_id) {
+    return NonLinearSolverFactory::getInstance().registerAllocator(
+        parser_id, [](DOFManager & dof_manager, const ID & id,
+                      const NonLinearSolverType & non_linear_solver_type) {
+          if (aka::is_of_type<DM>(dof_manager)) {
+            return std::make_unique<NLS>(aka::as_type<DM>(dof_manager),
+                                         non_linear_solver_type, id);
+          }
+
+          AKANTU_ERROR("NonLinearSolver cannot be created with a dof manager "
+                       "that is not a "
+                       << debug::demangle(typeid(DM).name()));
+        });
+  }
+} // namespace
+  //
 } // namespace akantu
 
 #endif /* AKANTU_NON_LINEAR_SOLVER_HH_ */

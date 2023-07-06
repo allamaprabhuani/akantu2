@@ -37,10 +37,9 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
       dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
                                     dof_manager, "J", id + ":sparse_solver")) {
 
-  this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
-  this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
-  this->supported_type.insert(NonLinearSolverType::_newton_raphson);
-  this->supported_type.insert(NonLinearSolverType::_linear);
+  this->supported_type.insert("newton_raphson_modified");
+  this->supported_type.insert("newton_raphson");
+  this->supported_type.insert("linear");
 
   this->checkIfTypeIsSupported();
 
@@ -72,16 +71,15 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
 
   solver_callback.predictor();
 
-  if (non_linear_solver_type == NonLinearSolverType::_linear and
+  if (non_linear_solver_type == "linear" and
       solver_callback.canSplitResidual()) {
     solver_callback.assembleMatrix("K");
   }
 
   this->assembleResidual(solver_callback);
 
-  if (this->non_linear_solver_type ==
-          NonLinearSolverType::_newton_raphson_modified ||
-      (this->non_linear_solver_type == NonLinearSolverType::_linear &&
+  if (this->non_linear_solver_type == "newton_raphson_modified" or
+      (this->non_linear_solver_type == "linear" and
        this->force_linear_recompute)) {
     solver_callback.assembleMatrix("J");
     this->force_linear_recompute = false;
@@ -104,9 +102,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   }
 
   do {
-    if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
-        this->non_linear_solver_type ==
-            NonLinearSolverType::_newton_raphson_contact) {
+    if (this->non_linear_solver_type == "newton_raphson") {
       solver_callback.assembleMatrix("J");
     }
 
@@ -195,5 +191,8 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
 }
 
 /* -------------------------------------------------------------------------- */
+[[maybe_unused]] bool non_linear_solver_is_allocated_newton_raphson =
+    instantiateNonLinearSolver<NonLinearSolverNewtonRaphson, DOFManagerDefault>(
+        "newton_raphson");
 
 } // namespace akantu

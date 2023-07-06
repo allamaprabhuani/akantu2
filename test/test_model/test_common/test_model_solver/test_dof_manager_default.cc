@@ -95,7 +95,7 @@ int main(int argc, char * argv[]) {
   MySolverCallback callback(10., dof_manager, 11);
 
   NonLinearSolver & nls =
-      dof_manager.getNewNonLinearSolver("my_nls", NonLinearSolverType::_linear);
+      dof_manager.getNewNonLinearSolver("my_nls", "linear");
   TimeStepSolver & tss = dof_manager.getNewTimeStepSolver(
       "my_tss", TimeStepSolverType::_static, nls, callback);
   tss.setIntegrationScheme("disp", IntegrationSchemeType::_pseudo_time);

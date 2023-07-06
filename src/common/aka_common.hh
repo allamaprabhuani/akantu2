@@ -152,37 +152,7 @@ enum AnalysisMethod {
 /// enum DOFSupportType defines which kind of dof that can exists
 enum DOFSupportType { _dst_nodal, _dst_generic };
 
-#if !defined(DOXYGEN)
-// clang-format off
-#define AKANTU_NON_LINEAR_SOLVER_TYPES                                 \
-  (linear)                                                             \
-  (newton_raphson)                                                     \
-  (newton_raphson_modified)                                            \
-  (lumped)                                                             \
-  (gmres)                                                              \
-  (bfgs)                                                               \
-  (cg)                                                                 \
-  (newton_raphson_contact)                                             \
-  (auto)
-// clang-format on
-AKANTU_CLASS_ENUM_DECLARE_WITH_IO(NonLinearSolverType,
-                                  AKANTU_NON_LINEAR_SOLVER_TYPES)
-#else
-/// Type of non linear resolution available in akantu
-enum class NonLinearSolverType {
-  _linear,                  ///< No non linear convergence loop
-  _newton_raphson,          ///< Regular Newton-Raphson
-  _newton_raphson_modified, ///< Newton-Raphson with initial tangent
-  _lumped,                  ///< Case of lumped mass or equivalent matrix
-  _gmres,                   ///<
-  _bfgs,
-  _cg,
-  _newton_raphson_contact, ///< Regular Newton-Raphson modified
-                           /// for contact problem
-  _auto, ///< This will take a default value that make sense in case of
-         ///  model::getNewSolver
-};
-#endif
+using NonLinearSolverType = ID;
 
 #if !defined(DOXYGEN)
 // clang-format off
@@ -375,7 +345,7 @@ enum class SynchronizationTag {
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
-  _smm_gradu,    ///< synchronization of the gradu to compute the
+  _smm_gradu,     ///< synchronization of the gradu to compute the
                   ///< strain
   _smmc_facets,   ///< synchronization of facet data to setup facet synch
   _smmc_facets_conn,   ///< synchronization of facet global connectivity
@@ -402,8 +372,8 @@ enum class SynchronizationTag {
                              /// temperature
 
   // --- PhaseFieldModel tags ---
-  _pfm_damage,  ///< synchronization of the nodal damage
-  
+  _pfm_damage, ///< synchronization of the nodal damage
+
   // --- CouplerSolidPhaseField tags ---
   _csp_damage, ///< synchronization of the damage from phase
                /// model to solid model
@@ -423,12 +393,12 @@ enum class SynchronizationTag {
   _nh_criterion,
 
   // --- General tags ---
-  _test,        ///< Test tag
-  _user_1,      ///< tag for user simulations
-  _user_2,      ///< tag for user simulations
-  _material_id, ///< synchronization of the material ids
+  _test,          ///< Test tag
+  _user_1,        ///< tag for user simulations
+  _user_2,        ///< tag for user simulations
+  _material_id,   ///< synchronization of the material ids
   _phasefield_id, ///< synchronization of the phasefield ids
-  _for_dump,    ///< everything that needs to be synch before dump
+  _for_dump,      ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---
   _cf_nodal, ///< synchronization of disp, velo, and current position

@@ -314,21 +314,21 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
 
   switch (type) {
   case TimeStepSolverType::_dynamic_lumped: {
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.non_linear_solver_type = "lumped";
     options.integration_scheme_type["damage"] =
         IntegrationSchemeType::_central_difference;
     options.solution_type["damage"] = IntegrationScheme::_acceleration;
     break;
   }
   case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+    options.non_linear_solver_type = "newton_raphson";
     options.integration_scheme_type["damage"] =
         IntegrationSchemeType::_pseudo_time;
     options.solution_type["damage"] = IntegrationScheme::_not_defined;
     break;
   }
   case TimeStepSolverType::_dynamic: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+    options.non_linear_solver_type = "newton_raphson";
     options.integration_scheme_type["damage"] =
         IntegrationSchemeType::_backward_euler;
     options.solution_type["damage"] = IntegrationScheme::_damage;

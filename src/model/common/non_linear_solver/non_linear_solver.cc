@@ -45,7 +45,7 @@ NonLinearSolver::~NonLinearSolver() = default;
 void NonLinearSolver::checkIfTypeIsSupported() {
   if (this->supported_type.find(this->non_linear_solver_type) ==
           this->supported_type.end() and
-      this->non_linear_solver_type != NonLinearSolverType::_auto) {
+      this->non_linear_solver_type != "auto") {
     AKANTU_EXCEPTION("The resolution method "
                      << this->non_linear_solver_type
                      << " is not implemented in the non linear solver "
@@ -56,10 +56,16 @@ void NonLinearSolver::checkIfTypeIsSupported() {
 /* -------------------------------------------------------------------------- */
 void NonLinearSolver::assembleResidual(SolverCallback & solver_callback) {
   if (solver_callback.canSplitResidual() and
-      non_linear_solver_type == NonLinearSolverType::_linear) {
+      non_linear_solver_type == "linear") {
     this->_dof_manager.zeroResidual();
+
+    // external contribution
     solver_callback.assembleResidual("external");
+
+    // internal contribution of previous step
     this->_dof_manager.assembleMatMulDOFsToResidual("K", -1.);
+
+    // inertial contribution in dynamic
     solver_callback.assembleResidual("inertial");
   } else {
     solver_callback.assembleResidual();

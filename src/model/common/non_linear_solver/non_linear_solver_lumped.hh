@@ -56,7 +56,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   DOFManagerDefault & dof_manager;
 
   /// Coefficient to apply between x and A^{-1} b
