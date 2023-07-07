@@ -103,14 +103,16 @@ void register_model(py::module & mod) {
       .def("initNewSolver", &Model::initNewSolver)
       .def(
           "getNewSolver",
-          [](Model & /*self*/, const std::string /*id*/,
-             const TimeStepSolverType & /*time*/,
+          [](Model & self, const std::string id,
+             const TimeStepSolverType & time,
              const NonLinearSolverType & type) {
             std::string message =
                 std::string(
                     "NonLinearSolverType is replaced by a string, use \"") +
-                std::to_string(type) + "\" instead";
+                std::to_string(type) + "\" instead of NonLinearSolverType." +
+                std::to_string(type);
             PyErr_WarnEx(PyExc_DeprecationWarning, message.c_str(), 1);
+            self.getNewSolver(id, time, std::to_string(type));
           },
           py::return_value_policy::reference)
       .def(

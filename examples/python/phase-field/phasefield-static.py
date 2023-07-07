@@ -30,7 +30,7 @@ solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
 
 solid.getNewSolver(
-    "linear_static", aka.TimeStepSolverType.static, aka.NonLinearSolverType.linear
+    "linear_static", aka.TimeStepSolverType.static, "linear"
 )
 solid.setIntegrationScheme(
     "linear_static", "displacement", aka.IntegrationSchemeType.pseudo_time
