@@ -196,7 +196,7 @@ SparseMatrixAIJ & DOFManagerDefault::getMatrix(const ID & id) {
 /* -------------------------------------------------------------------------- */
 NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
-                                         const NonLinearSolverType & type) {
+                                         const NonLinearSolverID & type) {
   auto && nls =
       NonLinearSolverFactory::getInstance().allocate(type, *this, id, type);
   return this->registerNonLinearSolver(this->id + ":nls:" + id, nls);

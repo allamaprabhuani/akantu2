@@ -433,9 +433,9 @@ public:
   /* Non linear system solver                                                 */
   /* ------------------------------------------------------------------------ */
   /// Get instance of a non linear solver
-  virtual NonLinearSolver & getNewNonLinearSolver(
-      const ID & nls_solver_id,
-      const NonLinearSolverType & _non_linear_solver_type) = 0;
+  virtual NonLinearSolver &
+  getNewNonLinearSolver(const ID & nls_solver_id,
+                        const NonLinearSolverID & _non_linear_solver_type) = 0;
 
   /// get instance of a non linear solver
   virtual NonLinearSolver & getNonLinearSolver(const ID & nls_solver_id);

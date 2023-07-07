@@ -146,7 +146,7 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
   void initSolver(TimeStepSolverType time_step_solver_type,
-                  NonLinearSolverType non_linear_solver_type) override;
+                  NonLinearSolverID non_linear_solver_type) override;
 
   /// initialize the model
   void initModel() override;

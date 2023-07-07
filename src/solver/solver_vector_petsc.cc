@@ -195,7 +195,7 @@ void SolverVectorPETSc::getValuesLocal(const Array<Int> & idx,
 void SolverVectorPETSc::addValues(const Array<Int> & gidx,
                                   const Array<Real> & values,
                                   Real scale_factor) {
-  Real * to_add = values.data();
+  const Real * to_add = values.data();
   Array<Real> scaled_array;
   if (scale_factor != 1.) {
     scaled_array.copy(values, false);
@@ -217,7 +217,7 @@ void SolverVectorPETSc::addValuesLocal(const Array<Int> & lidx,
   PETSc_call(VecGhostGetLocalForm, x, &x_ghosted);
 
   if (x_ghosted == nullptr) {
-    Real * to_add = values.data();
+    const Real * to_add = values.data();
     Array<Real> scaled_array;
     if (scale_factor != 1.) {
       scaled_array.copy(values, false);

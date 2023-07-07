@@ -67,9 +67,15 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  void initSolver(TimeStepSolverType time_step_solver_type,
+                  NonLinearSolverType non_linear_solver_type) {
+    this->initSolver(time_step_solver_type,
+                     std::to_string(non_linear_solver_type));
+  }
+
   /// Callback for the model to instantiate the matricees when needed
   virtual void initSolver(TimeStepSolverType /*time_step_solver_type*/,
-                          NonLinearSolverType /*non_linear_solver_type*/) {}
+                          NonLinearSolverID /*non_linear_solver_type*/) {}
 
   /// get the section in the input file (if it exsits) corresponding to this
   /// model
@@ -87,7 +93,7 @@ public:
   /// Initialize a time solver that can be used afterwards with its id
   void getNewSolver(const ID & solver_id,
                     TimeStepSolverType time_step_solver_type,
-                    NonLinearSolverType non_linear_solver_type = "auto");
+                    NonLinearSolverID non_linear_solver_type = "auto");
 
   /// set an integration scheme for a given dof and a given solver
   void
@@ -181,7 +187,7 @@ private:
 };
 
 struct ModelSolverOptions {
-  NonLinearSolverType non_linear_solver_type;
+  NonLinearSolverID non_linear_solver_type;
   std::map<ID, IntegrationSchemeType> integration_scheme_type;
   std::map<ID, IntegrationScheme::SolutionType> solution_type;
 };

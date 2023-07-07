@@ -192,7 +192,7 @@ void HeatTransferModel::assembleCapacityLumped() {
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                   NonLinearSolverType /*unused*/) {
+                                   NonLinearSolverID /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->temperature, 1, "temperature");

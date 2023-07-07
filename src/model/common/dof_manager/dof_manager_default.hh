@@ -181,7 +181,7 @@ public:
   /// Get instance of a non linear solver
   NonLinearSolver & getNewNonLinearSolver(
       const ID & nls_solver_id,
-      const NonLinearSolverType & _non_linear_solver_type) override;
+      const NonLinearSolverID & _non_linear_solver_type) override;
 
   /* ------------------------------------------------------------------------ */
   /* Time-Step Solver                                                         */

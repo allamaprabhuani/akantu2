@@ -75,6 +75,8 @@ void register_enums(py::module & mod) {
       .export_values();
 
   PY_AKANTU_REGISTER_CLASS_ENUM(ModelType, AKANTU_MODEL_TYPES, mod);
+  PY_AKANTU_REGISTER_CLASS_ENUM(NonLinearSolverType,
+                                AKANTU_NON_LINEAR_SOLVER_TYPES, mod);
   PY_AKANTU_REGISTER_CLASS_ENUM(TimeStepSolverType,
                                 AKANTU_TIME_STEP_SOLVER_TYPE, mod);
   PY_AKANTU_REGISTER_CLASS_ENUM(IntegrationSchemeType,

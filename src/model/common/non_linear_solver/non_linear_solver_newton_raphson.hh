@@ -40,7 +40,7 @@ class NonLinearSolverNewtonRaphson : public NonLinearSolver {
 public:
   NonLinearSolverNewtonRaphson(
       DOFManagerDefault & dof_manager,
-      const NonLinearSolverType & non_linear_solver_type,
+      const NonLinearSolverID & non_linear_solver_type,
       const ID & id = "non_linear_solver_newton_raphson");
   ~NonLinearSolverNewtonRaphson() override;
 

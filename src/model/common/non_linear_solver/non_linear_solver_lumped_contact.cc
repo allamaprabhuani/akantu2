@@ -30,7 +30,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NonLinearSolverLumpedContact::NonLinearSolverLumpedContact(
     DOFManagerDefault & dof_manager,
-    const NonLinearSolverType & non_linear_solver_type, const ID & id)
+    const NonLinearSolverID & non_linear_solver_type, const ID & id)
     : NonLinearSolverLumped(dof_manager, non_linear_solver_type, id) {
   this->supported_type.insert("lumped_contact");
   this->checkIfTypeIsSupported();

@@ -69,7 +69,7 @@ protected:
 
   /// allocate all vectors
   void initSolver(TimeStepSolverType /*unused*/,
-                  NonLinearSolverType /*unused*/) override;
+                  NonLinearSolverID /*unused*/) override;
 
   /// initialize all internal arrays for resolutions
   void initResolutions();

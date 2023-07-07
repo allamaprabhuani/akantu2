@@ -37,7 +37,7 @@ class NonLinearSolverLumped : public NonLinearSolver {
   /* ------------------------------------------------------------------------ */
 public:
   NonLinearSolverLumped(DOFManagerDefault & dof_manager,
-                        const NonLinearSolverType & non_linear_solver_type,
+                        const NonLinearSolverID & non_linear_solver_type,
                         const ID & id = "non_linear_solver_lumped");
   ~NonLinearSolverLumped() override;
 

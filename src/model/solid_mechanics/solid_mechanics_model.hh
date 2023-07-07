@@ -139,7 +139,7 @@ protected:
 
   /// Callback for the model to instantiate the matricees when needed
   void initSolver(TimeStepSolverType time_step_solver_type,
-                  NonLinearSolverType non_linear_solver_type) override;
+                  NonLinearSolverID non_linear_solver_type) override;
 
 protected:
   /* ------------------------------------------------------------------------ */

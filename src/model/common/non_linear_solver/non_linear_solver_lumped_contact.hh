@@ -34,7 +34,7 @@ class NonLinearSolverLumpedContact : public NonLinearSolverLumped {
 public:
   NonLinearSolverLumpedContact(
       DOFManagerDefault & dof_manager,
-      const NonLinearSolverType & non_linear_solver_type,
+      const NonLinearSolverID & non_linear_solver_type,
       const ID & id = "non_linear_solver_lumped_contact");
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

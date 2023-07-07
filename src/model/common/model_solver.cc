@@ -145,7 +145,7 @@ ModelSolver::initDOFManager(const ParserSection & section,
 
     if (nb_non_linear_solver_section == 1) {
       auto && nls_section = *(sub_solvers_sect.first);
-      nls_type = getOptionToType<NonLinearSolverType>(nls_section.getName());
+      nls_type = nls_section.getName();
     } else if (nb_non_linear_solver_section > 0) {
       AKANTU_EXCEPTION("More than one non linear solver are provided for the "
                        "time step solver "
@@ -288,7 +288,7 @@ void ModelSolver::solveStep(const ID & solver_id) {
 /* -------------------------------------------------------------------------- */
 void ModelSolver::getNewSolver(const ID & solver_id,
                                TimeStepSolverType time_step_solver_type,
-                               NonLinearSolverType non_linear_solver_type) {
+                               NonLinearSolverID non_linear_solver_type) {
 
   if (this->default_solver_id.empty()) {
     this->default_solver_id = solver_id;

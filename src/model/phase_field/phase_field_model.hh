@@ -69,8 +69,8 @@ protected:
   void initPhaseFields();
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType /*unused*/,
-                  NonLinearSolverType /*unused*/) override;
+  void initSolver(TimeStepSolverType time_step_solver_type,
+                  NonLinearSolverID) override;
 
   /// initialize the model
   void initModel() override;

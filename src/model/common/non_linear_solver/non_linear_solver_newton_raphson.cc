@@ -32,7 +32,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
-    const NonLinearSolverType & non_linear_solver_type, const ID & id)
+    const NonLinearSolverID & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
       dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
                                     dof_manager, "J", id + ":sparse_solver")) {

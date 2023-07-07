@@ -103,12 +103,24 @@ void register_model(py::module & mod) {
       .def("initNewSolver", &Model::initNewSolver)
       .def(
           "getNewSolver",
-          [](Model & self, const std::string id,
-             const TimeStepSolverType & time,
+          [](Model & /*self*/, const std::string /*id*/,
+             const TimeStepSolverType & /*time*/,
              const NonLinearSolverType & type) {
+            std::string message =
+                std::string(
+                    "NonLinearSolverType is replaced by a string, use \"") +
+                std::to_string(type) + "\" instead";
+            PyErr_WarnEx(PyExc_DeprecationWarning, message.c_str(), 1);
+          },
+          py::return_value_policy::reference)
+      .def(
+          "getNewSolver",
+          [](Model & self, const std::string id,
+             const TimeStepSolverType & time, const NonLinearSolverID & type) {
             self.getNewSolver(id, time, type);
           },
           py::return_value_policy::reference)
+
       .def(
           "setIntegrationScheme",
           [](Model & self, const std::string id, const std::string primal,
@@ -119,13 +131,6 @@ void register_model(py::module & mod) {
           py::arg("id"), py::arg("primal"), py::arg("scheme_type"),
           py::arg("solution_type") =
               IntegrationScheme::SolutionType::_not_defined)
-      // .def("setIntegrationScheme",
-      //      [](Model & self, const std::string id, const std::string primal,
-      //         std::unique_ptr<IntegrationScheme> & scheme,
-      //         IntegrationScheme::SolutionType solution_type) {
-      //        self.setIntegrationScheme(id, primal, scheme, solution_type);
-      //      })
-
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);

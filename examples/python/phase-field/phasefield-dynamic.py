@@ -38,7 +38,7 @@ phase.initFull(_analysis_method=aka._static)
 
 # initializing the PhaseField Model with Newton Raphson implicit solver for static resolution
 phase.getNewSolver("nonlinear_static", aka.TimeStepSolverType.static,
-                   aka.NonLinearSolverType.newton_raphson)
+                   "newton_raphson")
 phase.setIntegrationScheme("nonlinear_static", "damage",
                            aka.IntegrationSchemeType.pseudo_time)
 

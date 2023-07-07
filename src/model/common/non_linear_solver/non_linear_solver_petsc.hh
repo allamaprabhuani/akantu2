@@ -41,7 +41,7 @@ class NonLinearSolverPETSc : public NonLinearSolver {
   /* ------------------------------------------------------------------------ */
 public:
   NonLinearSolverPETSc(DOFManagerPETSc & dof_manager,
-                       const NonLinearSolverType & non_linear_solver_type,
+                       const NonLinearSolverID & non_linear_solver_type,
                        const ID & id = "non_linear_solver_petsc");
 
   ~NonLinearSolverPETSc() override;

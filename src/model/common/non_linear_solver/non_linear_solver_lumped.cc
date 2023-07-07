@@ -33,7 +33,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 NonLinearSolverLumped::NonLinearSolverLumped(
     DOFManagerDefault & dof_manager,
-    const NonLinearSolverType & non_linear_solver_type, const ID & id)
+    const NonLinearSolverID & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
       dof_manager(dof_manager) {
   if constexpr (std::is_same_v<decltype(*this), NonLinearSolverLumped>) {
