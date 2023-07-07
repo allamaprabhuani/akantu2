@@ -256,11 +256,11 @@ enum class IntegrationSchemeType {
   (residual_mass_wgh)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(SolveConvergenceCriteria,
-                          AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                          AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(SolveConvergenceCriteria,
-                                AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                                AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 AKANTU_CLASS_ENUM_INPUT_STREAM(SolveConvergenceCriteria,
-                               AKANTU_SOLVE_CONVERGENCE_CRITERIA);
+                               AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 #else
 /// enum SolveConvergenceCriteria different convergence criteria
 enum class SolveConvergenceCriteria {
