@@ -206,8 +206,10 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyByElement(
-    ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
+    const Element & element, Vector<Real> & epot_on_quad_points) {
 
+  auto type = element.type;
+  auto index = element.element;
   auto gradu_view = make_view<dim, dim>(this->gradu(type));
   auto stress_view = make_view<dim, dim>(this->stress(type));
 

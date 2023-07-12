@@ -112,9 +112,10 @@ protected:
 
   /// compute the potential energy for an element
   [[deprecated("Use the interface with an Element")]] virtual void
-  computePotentialEnergyByElement(ElementType /*type*/, Int /*index*/,
-                                  Vector<Real> & /*epot_on_quad_points*/) {
-    AKANTU_TO_IMPLEMENT();
+  computePotentialEnergyByElement(ElementType type, Int index,
+                                  Vector<Real> & epot_on_quad_points) {
+    computePotentialEnergyByElement(Element{type, index, _not_ghost},
+                                    epot_on_quad_points);
   }
 
   virtual void

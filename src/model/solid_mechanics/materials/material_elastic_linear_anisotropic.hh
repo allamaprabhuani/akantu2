@@ -88,7 +88,7 @@ protected:
   inline void computePotentialEnergyOnQuad(Args && args, Real & epot);
 
   void
-  computePotentialEnergyByElement(ElementType type, Int index,
+  computePotentialEnergyByElement(const Element & element,
                                   Vector<Real> & epot_on_quad_points) override;
 
   /* ------------------------------------------------------------------------ */
