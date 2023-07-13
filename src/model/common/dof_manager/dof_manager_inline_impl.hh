@@ -147,7 +147,7 @@ inline bool DOFManager::hasDOFsDerivatives(const ID & dofs_id,
                                            UInt order) const {
   const std::vector<Array<Real> *> & derivatives =
       this->getDOFData(dofs_id).dof_derivatives;
-  return ((order < derivatives.size()) && (derivatives[order - 1] != nullptr));
+  return ((order <= derivatives.size()) && (derivatives[order - 1] != nullptr));
 }
 
 /* -------------------------------------------------------------------------- */
