@@ -246,6 +246,18 @@ namespace debug {
   };
 
   extern Debugger debugger; // NOLINT
+
+  struct DebugLevelContext {
+    DebugLevelContext(const DebugLevel & new_dbl) : save(getDebugLevel()) {
+      setDebugLevel(new_dbl);
+    }
+
+    ~DebugLevelContext() { setDebugLevel(save); }
+
+  private:
+    DebugLevel save;
+  };
+
 } // namespace debug
 
 /* -------------------------------------------------------------------------- */

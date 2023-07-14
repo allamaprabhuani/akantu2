@@ -88,29 +88,20 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, Int dim, const ID & id,
   this->registerParam("capacity", capacity, _pat_parsmod);
   this->registerParam("density", density, _pat_parsmod);
 
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void HeatTransferModel::initModel() {
   auto & fem = this->getFEEngine();
-  fem.initShapeFunctions(_not_ghost);
-  fem.initShapeFunctions(_ghost);
-
   temperature_on_qpoints.initialize(fem, _nb_component = 1);
   temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
   conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
                                                           spatial_dimension);
   k_gradt_on_qpoints.initialize(fem, _nb_component = spatial_dimension);
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 FEEngine & HeatTransferModel::getFEEngineBoundary(const ID & name) {
   return aka::as_type<FEEngine>(getFEEngineClassBoundary<FEEngineType>(name));
 }
-
-/* -------------------------------------------------------------------------- */
-HeatTransferModel::~HeatTransferModel() = default;
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::assembleCapacityLumped(GhostType ghost_type) {

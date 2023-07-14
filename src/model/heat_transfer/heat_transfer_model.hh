@@ -50,8 +50,6 @@ public:
                     const ID & id = "heat_transfer_model",
                     std::shared_ptr<DOFManager> dof_manager = nullptr);
 
-  ~HeatTransferModel() override;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -65,9 +63,6 @@ protected:
   /// allocate all vectors
   void initSolver(TimeStepSolverType time_step_solver_type,
                   NonLinearSolverType non_linear_solver_type) override;
-
-  /// initialize the model
-  void initModel() override;
 
   void predictor() override;
 

@@ -26,14 +26,13 @@
 #define AKANTU_PHASEFIELD_EXPONENTIAL_HH_
 
 namespace akantu {
-class PhaseFieldExponential : public PhaseField {
+
+template <Int dim> class PhaseFieldExponential : public PhaseField {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   PhaseFieldExponential(PhaseFieldModel & model, const ID & id = "");
-
-  ~PhaseFieldExponential() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -74,9 +73,6 @@ public:
 };
 
 } // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 
 #include "phasefield_exponential_inline_impl.hh"
 

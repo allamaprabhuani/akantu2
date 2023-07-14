@@ -39,7 +39,7 @@ public:
   /* ------------------------------------------------------------------------ */
   virtual void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) = 0;
 
-  virtual void computeNonLocalStresses(GhostType ghost_type) = 0;
+  virtual void computeNonLocalContribution(GhostType ghost_type) = 0;
 
   /// update the values of the non local internal
   virtual void updateLocalInternal(ElementTypeMapReal & internal_flat,

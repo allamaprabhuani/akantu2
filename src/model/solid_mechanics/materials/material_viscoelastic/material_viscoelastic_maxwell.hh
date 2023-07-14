@@ -142,7 +142,7 @@ protected:
   void computeTangentModuliOnQuad(Eigen::MatrixBase<D1> & tangent);
 
   bool hasStiffnessMatrixChanged() override {
-    Real dt = this->model.getTimeStep();
+    Real dt = this->getModel().getTimeStep();
 
     return ((this->previous_dt == dt)
                 ? (!(this->previous_dt == dt)) * (this->was_stiffness_assembled)

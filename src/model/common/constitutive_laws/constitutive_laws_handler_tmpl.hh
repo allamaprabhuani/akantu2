@@ -29,6 +29,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "constitutive_law_non_local_interface.hh"
+#include "constitutive_law_selector_tmpl.hh"
 #include "constitutive_laws_handler.hh"
 #include "non_local_manager.hh"
 #include "parsable.hh"
@@ -600,23 +601,24 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getInternalDataPerElem(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawType, class Model_>
-ElementTypeMapArray<Real> &
+template <class T>
+ElementTypeMapArray<T> &
 ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::flattenInternal(
     const std::string & field_name, ElementKind kind,
     const GhostType ghost_type) {
   auto key = std::make_pair(field_name, kind);
 
-  ElementTypeMapArray<Real> * internal_flat;
+  ElementTypeMapArray<T> * internal_flat;
 
   auto it = this->registered_internals.find(key);
   if (it == this->registered_internals.end()) {
     auto internal =
-        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
+        std::make_unique<ElementTypeMapArray<T>>(field_name, this->id);
 
     internal_flat = internal.get();
     this->registered_internals[key] = std::move(internal);
   } else {
-    internal_flat = it->second.get();
+    internal_flat = aka::as_type<ElementTypeMapArray<T>>(it->second.get());
   }
 
   for (auto type :
@@ -627,12 +629,12 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::flattenInternal(
     }
   }
 
-  for (auto & constitutive_law : constitutive_laws) {
-    if (constitutive_law->template isInternal<Real>(field_name, kind)) {
-      constitutive_law->flattenInternal(field_name, *internal_flat, ghost_type,
-                                        kind);
+  for_each_constitutive_law([&](auto && constitutive_law) {
+    if (constitutive_law.template isInternal<T>(field_name, kind)) {
+      constitutive_law.flattenInternal(field_name, *internal_flat, ghost_type,
+                                       kind);
     }
-  }
+  });
 
   return *internal_flat;
 }
@@ -641,15 +643,29 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::flattenInternal(
 template <class ConstitutiveLawType, class Model_>
 void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     flattenAllRegisteredInternals(ElementKind kind) {
-  ElementKind _kind;
-  ID _id;
-
   for (auto & internal : this->registered_internals) {
-    std::tie(_id, _kind) = internal.first;
+    auto && [_id, _kind] = internal.first;
     if (kind == _kind) {
       this->flattenInternal(_id, kind);
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+template <class T>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::inflateInternal(
+    const std::string & field_name, const ElementTypeMapArray<T> & field,
+    GhostType ghost_type, ElementKind kind) {
+  for_each_constitutive_law([&](auto && constitutive_law) {
+    if (constitutive_law.template isInternal<T>(field_name, kind)) {
+      constitutive_law.inflateInternal(field_name, field, ghost_type, kind);
+    } else {
+      AKANTU_ERROR("A internal of name \'"
+                   << field_name
+                   << "\' has not been defined in the constitutive law");
+    }
+  });
 }
 
 } // namespace akantu

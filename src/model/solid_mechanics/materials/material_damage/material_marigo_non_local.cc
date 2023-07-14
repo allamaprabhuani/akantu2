@@ -40,9 +40,10 @@ MaterialMarigoNonLocal<dim>::MaterialMarigoNonLocal(SolidMechanicsModel & model,
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialMarigoNonLocal<dim>::registerNonLocalVariables() {
-  this->model.getNonLocalManager().registerNonLocalVariable(this->Y.getName(),
-                                                            Ynl.getName(), 1);
-  this->model.getNonLocalManager()
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
+      this->Y.getName(), Ynl.getName(), 1);
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->name)
       .registerNonLocalVariable(Ynl.getName());
 }

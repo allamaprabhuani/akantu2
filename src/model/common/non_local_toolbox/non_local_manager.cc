@@ -356,7 +356,7 @@ void NonLocalManager::initNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLocalManager::computeAllNonLocalStresses() {
+void NonLocalManager::computeAllNonLocalContribution() {
 
   /// update the flattened version of the internals
   for (auto & pair : non_local_variables) {
@@ -396,7 +396,7 @@ void NonLocalManager::computeAllNonLocalStresses() {
     }
   }
 
-  this->callback->computeNonLocalStresses(_not_ghost);
+  this->callback->computeNonLocalContribution(_not_ghost);
 
   ++this->compute_stress_calls;
 }

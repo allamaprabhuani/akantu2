@@ -46,6 +46,15 @@ class ConstitutiveLawSelector
     : public std::enable_shared_from_this<ConstitutiveLawSelector> {
 public:
   ConstitutiveLawSelector() = default;
+
+  ConstitutiveLawSelector(const ConstitutiveLawSelector &) = default;
+  ConstitutiveLawSelector(ConstitutiveLawSelector &&) noexcept = default;
+
+  ConstitutiveLawSelector &
+  operator=(const ConstitutiveLawSelector &) = default;
+  ConstitutiveLawSelector &
+  operator=(ConstitutiveLawSelector &&) noexcept = default;
+
   virtual ~ConstitutiveLawSelector() = default;
   virtual inline Idx operator()(const Element & element) {
     if (fallback_selector) {
@@ -55,7 +64,7 @@ public:
     return fallback_value;
   }
 
-  inline void setFallback(UInt f) { fallback_value = f; }
+  inline void setFallback(Idx f) { fallback_value = f; }
   inline void setFallback(
       const std::shared_ptr<ConstitutiveLawSelector> & fallback_selector) {
     this->fallback_selector = fallback_selector;
@@ -71,7 +80,7 @@ public:
 
   inline Idx getFallbackValue() const { return this->fallback_value; }
 
-protected:
+private:
   Idx fallback_value{0};
   std::shared_ptr<ConstitutiveLawSelector> fallback_selector;
 };
@@ -105,6 +114,39 @@ public:
 
 private:
   const ElementTypeMapArray<Idx> & constitutive_law_index;
+};
+
+template <typename T, class Model_>
+class ElementDataConstitutiveLawSelector : public ConstitutiveLawSelector {
+public:
+  ElementDataConstitutiveLawSelector(
+      const ElementTypeMapArray<T> & element_data, const Model_ & model,
+      Idx first_index = 1)
+      : element_data(element_data), model(model), first_index(first_index) {}
+  inline Idx operator()(const Element & element) override;
+
+private:
+  inline T elementData(const Element & element) {
+    debug::DebugLevelContext ctxt(dblError);
+    return element_data(element);
+  }
+
+  /// list of element with the specified data (i.e. tag value)
+  const ElementTypeMapArray<T> & element_data;
+
+  /// the model that the materials belong
+  const Model_ & model;
+
+  /// first constitutive_law index: equal to 1 if none specified
+  Int first_index;
+};
+
+template <typename T, class Model_>
+class MeshDataConstitutiveLawSelector
+    : public ElementDataConstitutiveLawSelector<T, Model_> {
+public:
+  MeshDataConstitutiveLawSelector(const std::string & name,
+                                  const Model_ & model, Idx first_index = 1);
 };
 
 } // namespace akantu

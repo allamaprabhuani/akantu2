@@ -45,10 +45,10 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
 
   this->registerDataAccessor(*this);
 
-  solid = new SolidMechanicsModel(mesh, Model::spatial_dimension,
-                                  "solid_mechanics_model");
-  phase =
-      new PhaseFieldModel(mesh, Model::spatial_dimension, "phase_field_model");
+  solid = std::make_unique<SolidMechanicsModel>(mesh, Model::spatial_dimension,
+                                                "solid_mechanics_model");
+  phase = std::make_unique<PhaseFieldModel>(mesh, Model::spatial_dimension,
+                                            "phase_field_model");
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
@@ -323,72 +323,40 @@ void CouplerSolidPhaseField::assembleMass(GhostType ghost_type) {
 
 /* ------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::computeDamageOnQuadPoints(GhostType ghost_type) {
-
-  AKANTU_DEBUG_IN();
-
   auto & fem = phase->getFEEngine();
   auto & mesh = phase->getMesh();
 
-  auto nb_materials = solid->getNbMaterials();
-  auto nb_phasefields = phase->getNbPhaseFields();
+  auto nb_materials = solid->getNbConstitutiveLaws();
+  auto nb_phasefields = phase->getNbConstitutiveLaws();
 
   AKANTU_DEBUG_ASSERT(
       nb_phasefields == nb_materials,
       "The number of phasefields and materials should be equal");
 
   for (auto index : arange(nb_materials)) {
-    auto & material = solid->getMaterial(index);
+    auto & material = solid->getConstitutiveLaw(index);
 
     for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase->getPhaseField(index2);
+      auto & phasefield = phase->getConstitutiveLaw(index2);
 
       if (phasefield.getName() == material.getName()) {
-
-        switch (spatial_dimension) {
-        case 1: {
-          auto & mat = static_cast<MaterialPhaseField<1> &>(material);
-          auto & damage = mat.getDamage();
-          for (const auto & type :
-               mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-            auto & damage_on_qpoints_vect = damage(type, ghost_type);
-            fem.interpolateOnIntegrationPoints(phase->getDamage(),
-                                               damage_on_qpoints_vect, 1, type,
-                                               ghost_type);
-          }
-          break;
-        }
-
-        case 2: {
-          auto & mat = static_cast<MaterialPhaseField<2> &>(material);
-          auto & damage = mat.getDamage();
-
-          for (const auto & type :
-               mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-            auto & damage_on_qpoints_vect = damage(type, ghost_type);
-            fem.interpolateOnIntegrationPoints(phase->getDamage(),
-                                               damage_on_qpoints_vect, 1, type,
-                                               ghost_type);
-          }
-          break;
-        }
-        default:
-          auto & mat = static_cast<MaterialPhaseField<3> &>(material);
-          auto & damage = mat.getDamage();
-
-          for (const auto & type :
-               mesh.elementTypes(Model::spatial_dimension, ghost_type)) {
-            auto & damage_on_qpoints_vect = damage(type, ghost_type);
-            fem.interpolateOnIntegrationPoints(phase->getDamage(),
-                                               damage_on_qpoints_vect, 1, type,
-                                               ghost_type);
-          }
-          break;
-        }
+        tuple_dispatch<AllSpatialDimensions>(
+            [&](auto && _) {
+              constexpr auto && dim_ = aka::decay_v<decltype(_)>;
+              auto & mat = static_cast<MaterialPhaseField<dim_> &>(material);
+              auto & damage = mat.getDamage();
+              for (const auto & type :
+                   mesh.elementTypes(this->spatial_dimension, ghost_type)) {
+                auto & damage_on_qpoints_vect = damage(type, ghost_type);
+                fem.interpolateOnIntegrationPoints(phase->getDamage(),
+                                                   damage_on_qpoints_vect, 1,
+                                                   type, ghost_type);
+              }
+            },
+            this->spatial_dimension);
       }
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -418,7 +386,7 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
     }
   }
 
-  phase->inflateInternal("strain", strain_tmp, _ek_regular, ghost_type);
+  phase->inflateInternal("strain", strain_tmp, ghost_type, _ek_regular);
 
   AKANTU_DEBUG_OUT();
 }

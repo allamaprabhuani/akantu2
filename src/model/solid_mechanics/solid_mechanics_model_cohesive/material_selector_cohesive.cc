@@ -32,8 +32,8 @@ DefaultMaterialCohesiveSelector::DefaultMaterialCohesiveSelector(
       mesh(model.getMesh()) {
   // backward compatibility v3: to get the former behavior back when the user
   // creates its own selector
-  this->fallback_selector =
-      std::make_shared<DefaultMaterialSelector>(model.getMaterialByElement());
+  this->setFallback(
+      std::make_shared<DefaultMaterialSelector>(model.getMaterialByElement()));
 
   Int cohesive_index = -1;
   for (auto && material : enumerate(model.getConstitutiveLaws())) {
@@ -63,10 +63,10 @@ Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
       if (facet_material.exists(facet.type, facet.ghost_type)) {
         return facet_material(facet.type, facet.ghost_type)(facet.element);
       }
-      return fallback_value;
+      return this->getFallbackValue();
 
     } catch (...) {
-      return fallback_value;
+      return this->getFallbackValue();
     }
   } else if (Mesh::getSpatialDimension(element.type) ==
              mesh.getSpatialDimension() - 1) {
@@ -85,9 +85,8 @@ MeshDataMaterialCohesiveSelector::MeshDataMaterialCohesiveSelector(
       third_dimension(model.getSpatialDimension() == 3) {
   // backward compatibility v3: to get the former behavior back when the user
   // creates its own selector
-  this->fallback_selector =
-      std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
-                                                              model);
+  this->setFallback(std::make_shared<MeshDataMaterialSelector<std::string>>(
+      "physical_names", model));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -95,7 +94,7 @@ Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive or
       Mesh::getSpatialDimension(element.type) ==
           mesh_facets.getSpatialDimension() - 1) {
-    Element facet;
+    Element facet{ElementNull};
     if (Mesh::getKind(element.type) == _ek_cohesive) {
       facet =
           mesh_facets.getSubelementToElement(element.type, element.ghost_type)(
@@ -108,7 +107,7 @@ Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
       std::string material_name = this->material_index(facet);
       return this->model.getMaterialIndex(material_name);
     } catch (...) {
-      return fallback_value;
+      return this->getFallbackValue();
     }
   }
   return ConstitutiveLawSelector::operator()(element);
@@ -126,11 +125,10 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
       spatial_dimension(model.getSpatialDimension()), rules(rules) {
 
   // cohesive fallback
-  this->fallback_selector =
-      std::make_shared<DefaultMaterialCohesiveSelector>(model);
+  this->setFallback(std::make_shared<DefaultMaterialCohesiveSelector>(model));
 
   // non cohesive fallback
-  this->fallback_selector->setFallback(
+  this->getFallbackSelector()->setFallback(
       std::make_shared<MeshDataMaterialSelector<std::string>>(
           this->mesh_data_id, model));
 }
@@ -139,8 +137,8 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
 Int MaterialCohesiveRulesSelector::operator()(const Element & element) {
   if (mesh_facets.getSpatialDimension(element.type) ==
       (spatial_dimension - 1)) {
-    const auto & element_to_subelement = mesh_facets.getElementToSubelement(
-        element.type, element.ghost_type)(element.element);
+    const auto & element_to_subelement =
+        mesh_facets.getElementToSubelement(element);
     const auto & el1 = element_to_subelement[0];
     const auto & el2 = element_to_subelement[1];
 

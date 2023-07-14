@@ -77,7 +77,7 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  Real * epot = potential_energy(el_type).data();
+  Real * epot = (*potential_energy)(el_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);

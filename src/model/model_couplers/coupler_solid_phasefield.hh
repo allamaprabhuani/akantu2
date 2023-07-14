@@ -25,8 +25,8 @@
 #include "material.hh"
 #include "material_phasefield.hh"
 #include "model.hh"
-#include "phasefield.hh"
 #include "phase_field_model.hh"
+#include "phasefield.hh"
 #include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"
 #include "time_step_solver.hh"
@@ -127,8 +127,7 @@ protected:
 
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType /*time_step_solver_type*/,
-                  NonLinearSolverType /*non_linear_solver_type*/)
-  override;
+                  NonLinearSolverType /*non_linear_solver_type*/) override;
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
@@ -228,10 +227,10 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// solid mechanics model
-  SolidMechanicsModel * solid{nullptr};
+  std::unique_ptr<SolidMechanicsModel> solid;
 
   /// phasefield model
-  PhaseFieldModel * phase{nullptr};
+  std::unique_ptr<PhaseFieldModel> phase;
 
   Array<Real> * displacement{nullptr};
 

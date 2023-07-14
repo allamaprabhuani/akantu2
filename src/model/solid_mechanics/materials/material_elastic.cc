@@ -30,13 +30,6 @@ template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
                                       const ID & id, const ID & fe_engine_id)
     : Parent(model, id, fe_engine_id), was_stiffness_assembled(false) {
-  AKANTU_DEBUG_IN();
-  this->initialize();
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialElastic<dim>::initialize() {
   this->registerParam("lambda", lambda, _pat_readable,
                       "First Lamé coefficient");
   this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");

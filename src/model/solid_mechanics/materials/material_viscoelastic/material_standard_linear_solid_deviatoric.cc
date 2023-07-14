@@ -86,7 +86,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   Real tau = eta / Ev;
 
-  Real dt = this->model.getTimeStep();
+  Real dt = this->getModel().getTimeStep();
   Real exp_dt_tau = exp(-dt / tau);
   Real exp_dt_tau_2 = exp(-.5 * dt / tau);
 
@@ -125,7 +125,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
     ElementType el_type, GhostType ghost_type) {
   Real tau = eta / Ev;
 
-  auto dt = this->model.getTimeStep();
+  auto dt = this->getModel().getTimeStep();
 
   auto gamma_v = Ev / this->E;
   auto alpha = 1. / (2. * this->mu * gamma_v);

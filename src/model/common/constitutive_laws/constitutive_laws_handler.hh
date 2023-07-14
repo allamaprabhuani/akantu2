@@ -40,6 +40,7 @@
 
 namespace akantu {
 class NonLocalManager;
+class ModelOptions;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -71,9 +72,13 @@ public:
         mesh, _element_kind = _ek_not_defined, _with_nb_element = true);
 
     this->registerDataAccessor(*this);
-  }
 
-  ~ConstitutiveLawsHandler() override = default;
+    if (this->mesh.isDistributed()) {
+      auto & synchronizer = this->mesh.getElementSynchronizer();
+      this->registerSynchronizer(synchronizer,
+                                 SynchronizationTag::_constitutive_law_id);
+    }
+  }
 
   class NewConstitutiveLawElementsEvent : public NewElementsEvent {
   public:
@@ -89,6 +94,17 @@ public:
   /* ConstitutiveLaws                                                         */
   /* ------------------------------------------------------------------------ */
 public:
+  /// initialize the constitutive laws
+  void initFullImpl(const ModelOptions & options) override {
+    Model_::initFullImpl(options);
+    if (not this->parser.getLastParsedFile().empty()) {
+      auto && [model_section, is_empty] = this->getParserSection();
+      this->instantiateConstitutiveLaws(is_empty ? this->parser
+                                                 : model_section);
+      this->initConstitutiveLaws();
+    }
+  }
+
   /// register an empty constitutive_law of a given type
   auto & registerNewConstitutiveLaw(const ID & cl_name, const ID & cl_type,
                                     const ID & opt_param);
@@ -144,12 +160,18 @@ public:
   getInternalDataPerElem(const std::string & field_name, ElementKind kind);
 
   //! flatten a given constitutive_law internal field
-  ElementTypeMapArray<Real> &
-  flattenInternal(const std::string & field_name, ElementKind kind,
-                  GhostType ghost_type = _not_ghost);
+  template <class T = Real>
+  ElementTypeMapArray<T> & flattenInternal(const std::string & field_name,
+                                           ElementKind kind,
+                                           GhostType ghost_type = _not_ghost);
 
   //! flatten all the registered constitutive_law internals
   void flattenAllRegisteredInternals(ElementKind kind);
+
+  template <class T>
+  void inflateInternal(const std::string & field_name,
+                       const ElementTypeMapArray<T> & field,
+                       GhostType ghost_type, ElementKind kind);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -192,16 +214,16 @@ public:
   ParserType getConstitutiveLawParserType() const { return this->parser_type; }
 
 protected:
-  AKANTU_GET_MACRO_AUTO(ConstitutiveLawByElement, constitutive_law_index);
-  AKANTU_GET_MACRO_AUTO(ConstitutiveLawLocalNumbering,
-                        constitutive_law_local_numbering);
-
   AKANTU_GET_MACRO_AUTO_NOT_CONST(ConstitutiveLawByElement,
                                   constitutive_law_index);
   AKANTU_GET_MACRO_AUTO_NOT_CONST(ConstitutiveLawLocalNumbering,
                                   constitutive_law_local_numbering);
 
 public:
+  AKANTU_GET_MACRO_AUTO(ConstitutiveLawByElement, constitutive_law_index);
+  AKANTU_GET_MACRO_AUTO(ConstitutiveLawLocalNumbering,
+                        constitutive_law_local_numbering);
+
   /// vectors containing local constitutive_law element index for each global
   /// element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConstitutiveLawByElement,
@@ -289,9 +311,8 @@ private:
   /// class defining of to choose a constitutive_law
   std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector;
 
-  using flatten_internal_map =
-      std::map<std::pair<std::string, ElementKind>,
-               std::unique_ptr<ElementTypeMapArray<Real>>>;
+  using flatten_internal_map = std::map<std::pair<std::string, ElementKind>,
+                                        std::unique_ptr<ElementTypeMapBase>>;
 
   /// map a registered internals to be flattened for dump purposes
   flatten_internal_map registered_internals;

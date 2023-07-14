@@ -544,8 +544,8 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline auto get##name(const support & el_type,                               \
-                        GhostType ghost_type = _not_ghost)                     \
+  [[nodiscard]] inline auto get##name(const support & el_type,                 \
+                                      GhostType ghost_type = _not_ghost)       \
       con->con Array<type> & {                                                 \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT
@@ -576,10 +576,11 @@ void readInputFile(const std::string & input_file);
 /* -------------------------------------------------------------------------- */
 /* string manipulation */
 /* -------------------------------------------------------------------------- */
-inline auto to_lower(const std::string & str) -> std::string;
+[[nodiscard]] inline auto to_lower(const std::string & str) -> std::string;
 /* -------------------------------------------------------------------------- */
-inline auto trim(const std::string & to_trim) -> std::string;
-inline auto trim(const std::string & to_trim, char c) -> std::string;
+[[nodiscard]] inline auto trim(const std::string & to_trim) -> std::string;
+[[nodiscard]] inline auto trim(const std::string & to_trim, char c)
+    -> std::string;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -599,7 +600,7 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-auto is_of_type(T && t) -> bool {
+[[nodiscard]] auto is_of_type(T && t) -> bool {
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
                                  std::add_const_t<R>, R>>>(&t) != nullptr);
@@ -607,7 +608,7 @@ auto is_of_type(T && t) -> bool {
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-auto is_of_type(std::unique_ptr<T> & t) -> bool {
+[[nodiscard]] auto is_of_type(std::unique_ptr<T> & t) -> bool {
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<T>, std::add_const_t<R>, R>>>(
               t.get()) != nullptr);
@@ -615,14 +616,14 @@ auto is_of_type(std::unique_ptr<T> & t) -> bool {
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-decltype(auto) as_type(const std::shared_ptr<T> & t) {
+[[nodiscard]] decltype(auto) as_type(const std::shared_ptr<T> & t) {
   return std::dynamic_pointer_cast<R>(t);
 }
 
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto) as_type(T && t) {
   static_assert(
       disjunction<
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
@@ -638,7 +639,7 @@ decltype(auto) as_type(T && t) {
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto) as_type(T && t) {
   return &as_type<R>(*t);
 }
 
@@ -652,13 +653,13 @@ template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;
 
 namespace akantu {
 /// get access to the internal argument parser
-cppargparse::ArgumentParser & getStaticArgumentParser();
+[[nodiscard]] cppargparse::ArgumentParser & getStaticArgumentParser();
 
 /// get access to the internal input file parser
-Parser & getStaticParser();
+[[nodiscard]] Parser & getStaticParser();
 
 /// get access to the user part of the internal input file parser
-const ParserSection & getUserParser();
+[[nodiscard]] const ParserSection & getUserParser();
 
 #define AKANTU_CURRENT_FUNCTION                                                \
   (std::string(__func__) + "():" + std::to_string(__LINE__))

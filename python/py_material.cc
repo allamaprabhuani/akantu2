@@ -98,8 +98,6 @@ namespace {
     /* Inherit the constructors */
     using Parent::Parent;
 
-    ~PyMaterialCohesive() override = default;
-
     void checkInsertion(bool check_only) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, checkInsertion, check_only);
@@ -176,30 +174,31 @@ void register_material(py::module & mod) {
       .def("getPotentialEnergy",
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)
-      .def("getModel", &Material::getModel)
+      //      .def("getModel", &Material::getModel)
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
 
-  py::class_<MaterialFactory>(mod, "MaterialFactory")
-      .def_static(
-          "getInstance",
-          []() -> MaterialFactory & { return Material::getFactory(); },
-          py::return_value_policy::reference)
-      .def("registerAllocator",
-           [](MaterialFactory & self, const std::string id, py::function func) {
-             self.registerAllocator(
-                 id,
-                 [func, id](UInt dim, const ID & /*unused*/,
-                            SolidMechanicsModel & model,
-                            const ID & option) -> std::unique_ptr<Material> {
-                   py::object obj = func(dim, id, model, option);
-                   auto & ptr = py::cast<Material &>(obj);
+  // py::class_<MaterialFactory>(mod, "MaterialFactory")
+  //     .def_static(
+  //         "getInstance",
+  //         []() -> MaterialFactory & { return Material::getFactory(); },
+  //         py::return_value_policy::reference)
+  //     .def("registerAllocator",
+  //          [](MaterialFactory & self, const std::string id, py::function
+  //          func) {
+  //            self.registerAllocator(
+  //                id,
+  //                [func, id](Int dim, const ID & /*unused*/,
+  //                           SolidMechanicsModel & model,
+  //                           const ID & option) -> std::unique_ptr<Material> {
+  //                  py::object obj = func(dim, id, model, option);
+  //                  auto & ptr = py::cast<Material &>(obj);
 
-                   obj.release();
-                   return std::unique_ptr<Material>(&ptr);
-                 });
-           })
-      .def("getPossibleAllocators", &MaterialFactory::getPossibleAllocators);
+  //                  obj.release();
+  //                  return std::unique_ptr<Material>(&ptr);
+  //                });
+  //          })
+  //     .def("getPossibleAllocators", &MaterialFactory::getPossibleAllocators);
 
   py::class_<MeshDataMaterialSelector<std::string>, ConstitutiveLawSelector,
              std::shared_ptr<MeshDataMaterialSelector<std::string>>>(

@@ -140,7 +140,7 @@ void MaterialViscoelasticMaxwell<dim>::computeStress(ElementType el_type,
 template <Int dim>
 template <class Args>
 void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(Args && args) {
-  Real dt = this->model.getTimeStep();
+  Real dt = this->getModel().getTimeStep();
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
@@ -158,7 +158,7 @@ void MaterialViscoelasticMaxwell<dim>::computeStressOnQuad(Args && args) {
   for (auto && [Eta, Ev, sigma] : zip(this->Eta, this->Ev, args["sigma_v"_n])) {
     auto lambda = Eta / Ev;
     auto exp_dt_lambda = exp(-dt / lambda);
-    Real E_additional;
+    Real E_additional{0.};
 
     if (exp_dt_lambda == 1) {
       E_additional = Ev;
@@ -235,7 +235,7 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
     Tensor3Proxy<Real> & epsilon_v) {
   Matrix<Real, dim, dim> grad_delta_u = grad_u - previous_grad_u;
 
-  Real dt = this->model.getTimeStep();
+  Real dt = this->getModel().getTimeStep();
 
   auto voigt_delta_strain =
       Material::strainToVoigt<dim>(Material::gradUToEpsilon<dim>(grad_delta_u));
@@ -272,7 +272,7 @@ void MaterialViscoelasticMaxwell<dim>::computeTangentModuli(
     GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  Real dt = this->model.getTimeStep();
+  Real dt = this->getModel().getTimeStep();
   Real E_ef = this->Einf;
 
   for (Int k = 0; k < Eta.size(); ++k) {
@@ -349,7 +349,7 @@ void MaterialViscoelasticMaxwell<dim>::updateDissipatedEnergyOnQuad(
     const Eigen::MatrixBase<D3> & sigma,
     const Eigen::MatrixBase<D4> & previous_sigma, Real & dis_energy,
     Real & mech_work, const Real & pot_energy) {
-  Real dt = this->model.getTimeStep();
+  Real dt = this->getModel().getTimeStep();
 
   auto && strain_rate = (grad_u - previous_grad_u) / dt;
   auto && av_stress = (sigma + previous_sigma) / 2.;

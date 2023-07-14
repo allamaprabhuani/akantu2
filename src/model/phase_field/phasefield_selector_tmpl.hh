@@ -25,38 +25,6 @@
 #ifndef AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_
 #define AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_
 
-namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Idx ElementDataPhaseFieldSelector<std::string>::operator()(
-    const Element & element) {
-  try {
-    std::string material_name = this->elementData(element);
-    return model.getPhaseFieldIndex(material_name);
-  } catch (...) {
-    return PhaseFieldSelector::operator()(element);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Idx
-ElementDataPhaseFieldSelector<Idx>::operator()(const Element & element) {
-  try {
-    return this->elementData(element) - first_index;
-  } catch (...) {
-    return PhaseFieldSelector::operator()(element);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-MeshDataPhaseFieldSelector<T>::MeshDataPhaseFieldSelector(
-    const std::string & name, const PhaseFieldModel & model, Idx first_index)
-    : ElementDataPhaseFieldSelector<T>(model.getMesh().getData<T>(name), model,
-                                       first_index) {}
-
-} // namespace akantu
+namespace akantu {} // namespace akantu
 
 #endif /* AKANTU_PHASEFIELD_SELECTOR_TMPL_HH_ */

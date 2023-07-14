@@ -48,11 +48,6 @@ public:
   MaterialElastic(SolidMechanicsModel & model, const ID & id = "",
                   const ID & fe_engine_id = "");
 
-  ~MaterialElastic() override = default;
-
-protected:
-  void initialize();
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */

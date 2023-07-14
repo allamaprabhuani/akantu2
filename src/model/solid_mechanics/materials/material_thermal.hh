@@ -55,11 +55,10 @@ public:
   template <Int dim_ = dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(Material::getArguments<dim_>(el_type, ghost_type),
-                      "delta_T"_n = make_view((*delta_T)(el_type, ghost_type)),
-                      "sigma_th"_n =
-                          make_view((*sigma_th)(el_type, ghost_type)),
+                      "delta_T"_n = (*delta_T)(el_type, ghost_type),
+                      "sigma_th"_n = (*sigma_th)(el_type, ghost_type),
                       "previous_sigma_th"_n =
-                          make_view(sigma_th->previous(el_type, ghost_type)));
+                          sigma_th->previous(el_type, ghost_type));
   }
 
   template <Int dim_ = dim>
@@ -75,14 +74,14 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// Young modulus
-  Real E;
+  Real E{0.};
 
   /// Poisson ratio
-  Real nu;
+  Real nu{1. / 2.};
 
   /// Thermal expansion coefficient
   /// TODO : implement alpha as a matrix
-  Real alpha;
+  Real alpha{0.};
 
   /// Temperature field
   std::shared_ptr<InternalField<Real>> delta_T;

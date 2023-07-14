@@ -19,6 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "constitutive_law_selector.hh"
 #include "element.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
@@ -35,122 +36,14 @@ class PhaseFieldModel;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-/**
- * main class to assign same or different phasefield constitutive laws to
- * different elements
- */
-class PhaseFieldSelector
-    : public std::enable_shared_from_this<PhaseFieldSelector> {
-public:
-  PhaseFieldSelector() = default;
-  virtual ~PhaseFieldSelector() = default;
-  virtual inline Idx operator()(const Element & element) {
-    if (fallback_selector) {
-      return (*fallback_selector)(element);
-    }
-
-    return fallback_value;
-  }
-
-  inline void setFallback(Idx f) { fallback_value = f; }
-  inline void
-  setFallback(const std::shared_ptr<PhaseFieldSelector> & fallback_selector) {
-    this->fallback_selector = fallback_selector;
-  }
-
-  inline void setFallback(PhaseFieldSelector & fallback_selector) {
-    this->fallback_selector = fallback_selector.shared_from_this();
-  }
-
-  inline std::shared_ptr<PhaseFieldSelector> & getFallbackSelector() {
-    return this->fallback_selector;
-  }
-
-  inline Idx getFallbackValue() const { return this->fallback_value; }
-
-protected:
-  UInt fallback_value{0};
-  std::shared_ptr<PhaseFieldSelector> fallback_selector;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class that assigns the first phasefield to regular elements by default
- */
-class DefaultPhaseFieldSelector : public PhaseFieldSelector {
-public:
-  explicit DefaultPhaseFieldSelector(
-      const ElementTypeMapArray<Idx> & phasefield_index)
-      : phasefield_index(phasefield_index) {}
-
-  Idx operator()(const Element & element) override {
-    if (not phasefield_index.exists(element.type, element.ghost_type)) {
-      return PhaseFieldSelector::operator()(element);
-    }
-
-    const auto & phase_indexes =
-        phasefield_index(element.type, element.ghost_type);
-    if (element.element < phase_indexes.size()) {
-      auto && tmp_phase = phase_indexes(element.element);
-      if (tmp_phase != -1) {
-        return tmp_phase;
-      }
-    }
-
-    return PhaseFieldSelector::operator()(element);
-  }
-
-private:
-  const ElementTypeMapArray<Idx> & phasefield_index;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * Use elemental data to assign phasefields
- */
+using PhaseFieldSelector = ConstitutiveLawSelector;
+using DefaultPhaseFieldSelector = DefaultConstitutiveLawSelector;
 template <typename T>
-class ElementDataPhaseFieldSelector : public PhaseFieldSelector {
-public:
-  ElementDataPhaseFieldSelector(const ElementTypeMapArray<T> & element_data,
-                                const PhaseFieldModel & model,
-                                Idx first_index = 1)
-      : element_data(element_data), model(model), first_index(first_index) {}
-
-  inline T elementData(const Element & element) {
-    DebugLevel dbl = debug::getDebugLevel();
-    debug::setDebugLevel(dblError);
-    T data = element_data(element.type, element.ghost_type)(element.element);
-    debug::setDebugLevel(dbl);
-    return data;
-  }
-
-  inline Idx operator()(const Element & element) override {
-    return PhaseFieldSelector::operator()(element);
-  }
-
-protected:
-  /// list of element with the specified data (i.e. tag value)
-  const ElementTypeMapArray<T> & element_data;
-
-  /// the model that the materials belong
-  const PhaseFieldModel & model;
-
-  /// first phasefield index: equal to 1 if none specified
-  UInt first_index;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class to use mesh data information to assign different phasefields
- * where name is the tag value: tag_0, tag_1
- */
+using ElementDataPhaseFieldSelector =
+    ElementDataConstitutiveLawSelector<T, PhaseFieldModel>;
 template <typename T>
-class MeshDataPhaseFieldSelector : public ElementDataPhaseFieldSelector<T> {
-public:
-  MeshDataPhaseFieldSelector(const std::string & name,
-                             const PhaseFieldModel & model,
-                             Idx first_index = 1);
-};
+using MeshDataPhaseFieldSelector =
+    MeshDataConstitutiveLawSelector<T, PhaseFieldModel>;
 
 } // namespace akantu
 

@@ -25,39 +25,4 @@
 #ifndef AKANTU_MATERIAL_SELECTOR_TMPL_HH_
 #define AKANTU_MATERIAL_SELECTOR_TMPL_HH_
 
-namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Int
-ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
-  try {
-    std::string material_name = this->elementData(element);
-    return model.getMaterialIndex(material_name);
-  } catch (std::exception & e) {
-    return ConstitutiveLawSelector::operator()(element);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline Int
-ElementDataMaterialSelector<Int>::operator()(const Element & element) {
-  try {
-    return this->elementData(element) - first_index;
-  } catch (...) {
-    return ConstitutiveLawSelector::operator()(element);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-MeshDataMaterialSelector<T>::MeshDataMaterialSelector(
-    const std::string & name, const SolidMechanicsModel & model,
-    Int first_index)
-    : ElementDataMaterialSelector<T>(model.getMesh().getData<T>(name), model,
-                                     first_index) {}
-
-} // namespace akantu
-
 #endif /* AKANTU_MATERIAL_SELECTOR_TMPL_HH_ */

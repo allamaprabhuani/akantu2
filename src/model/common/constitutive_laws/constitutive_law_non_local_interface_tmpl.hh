@@ -47,7 +47,7 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
   IntegrationPoint q;
   q.ghost_type = ghost_type;
 
-  auto & neighborhood = this->model.getNonLocalManager().getNeighborhood(
+  auto & neighborhood = this->getModel().getNonLocalManager().getNeighborhood(
       this->getNeighborhoodName());
 
   for (auto && type :

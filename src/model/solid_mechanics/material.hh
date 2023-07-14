@@ -61,24 +61,14 @@ using MaterialFactory =
  */
 class Material : public ConstitutiveLaw<SolidMechanicsModel>,
                  protected SolidMechanicsModelEventHandler {
-
   using Parent = ConstitutiveLaw<SolidMechanicsModel>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Material(const Material & mat) = delete;
-  Material & operator=(const Material & mat) = delete;
-
   /// Initialize material with defaults
   Material(SolidMechanicsModel & model, const ID & id = "",
            const ID & fe_engine_id = "");
-
-  /// Destructor
-  ~Material() override;
-
-protected:
-  void initialize();
 
   /* ------------------------------------------------------------------------ */
   /* Function that materials can/should reimplement                           */
@@ -171,9 +161,6 @@ public:
 
   /// compute the stiffness matrix
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
-
-  /// function to print the contain of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
 
   /**
    * interpolate stress on given positions for each element by means
@@ -436,7 +423,10 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &)
+  [[nodiscard]] const SolidMechanicsModel & getModel() const {
+    return this->getHandler();
+  }
+  [[nodiscard]] SolidMechanicsModel & getModel() { return this->getHandler(); }
 
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
@@ -520,14 +510,8 @@ protected:
   /// Finite deformation
   bool inelastic_deformation{false};
 
-  /// The model to witch the material belong
-  SolidMechanicsModel & model;
-
   /// density : rho
   Real rho{0.};
-
-  /// spatial dimension
-  Int spatial_dimension;
 
   /// stresses arrays ordered by element types
   std::shared_ptr<InternalField<Real>> stress;
@@ -548,26 +532,19 @@ protected:
   /// potential energy by element
   std::shared_ptr<InternalField<Real>> potential_energy;
 
-  /// tell if using in non local mode or not
-  bool is_non_local{false};
-
   /// elemental field interpolation coordinates
   std::shared_ptr<InternalField<Real>> interpolation_inverse_coordinates;
 
   /// elemental field interpolation points
   std::shared_ptr<InternalField<Real>> interpolation_points_matrices;
 
+  /// tell if using in non local mode or not
+  bool is_non_local{false};
+
 private:
   /// eigen_grad_u for the parser
   Matrix<Real> eigen_grad_u;
 };
-
-/// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const Material & _this) {
-  _this.printself(stream);
-  return stream;
-}
 
 } // namespace akantu
 

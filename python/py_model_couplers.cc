@@ -58,10 +58,10 @@ namespace {
              })
 
         .def("setTimeStep", &CouplerSolidContact_::setTimeStep,
-             py::arg("time_step"), py::arg("solver_id") = "")
-        .def("getContactMechanicsModel",
-             &CouplerSolidContact_::getContactMechanicsModel,
-             py::return_value_policy::reference);
+             py::arg("time_step"), py::arg("solver_id") = "");
+    // .def("getContactMechanicsModel",
+    //      &CouplerSolidContact_::getContactMechanicsModel,
+    //      py::return_value_policy::reference);
   }
 } // namespace
 
@@ -69,12 +69,12 @@ namespace {
 void register_model_couplers(py::module & mod) {
   register_coupler_solid_contact<CouplerSolidContact>(mod,
                                                       "CouplerSolidContact")
-      .def(
-          "getSolidMechanicsModel",
-          [](CouplerSolidContact & self) -> decltype(auto) {
-            return self.getSolidMechanicsModel();
-          },
-          py::return_value_policy::reference)
+      // .def(
+      //     "getSolidMechanicsModel",
+      //     [](CouplerSolidContact & self) -> decltype(auto) {
+      //       return self.getSolidMechanicsModel();
+      //     },
+      //     py::return_value_policy::reference)
       .def(
           "initFull",
           [](CouplerSolidContact & self,

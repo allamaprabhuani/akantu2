@@ -38,6 +38,10 @@
 #include "random_internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
+namespace akantu {
+class FEEngine;
+}
+
 #ifndef AKANTU_CONSTITUTIVE_LAW_HH_
 #define AKANTU_CONSTITUTIVE_LAW_HH_
 
@@ -50,12 +54,25 @@ public:
                                  const ID & fe_engine_id)
       : id(id), spatial_dimension(dim), default_fe_engine_id(fe_engine_id) {}
 
+  virtual ~ConstitutiveLawInternalHandler() = default;
+
+  ConstitutiveLawInternalHandler(ConstitutiveLawInternalHandler &&) noexcept =
+      delete;
+  ConstitutiveLawInternalHandler(const ConstitutiveLawInternalHandler &) =
+      delete;
+
+  ConstitutiveLawInternalHandler &
+  operator=(ConstitutiveLawInternalHandler &&) noexcept = delete;
+  ConstitutiveLawInternalHandler &
+  operator=(const ConstitutiveLawInternalHandler &) = delete;
+
   template <typename T = Real,
             template <typename Type> class InternalFieldType = InternalField>
   inline std::shared_ptr<InternalFieldType<T>>
   registerInternal(const ID & id, Int nb_component);
 
-  template <typename T, template <typename Type> class InternalFieldType>
+  template <typename T = Real,
+            template <typename Type> class InternalFieldType = InternalField>
   inline std::shared_ptr<InternalFieldType<T>>
   registerInternal(const ID & id, Int nb_component, const ID & fe_engine_id);
 
@@ -77,7 +94,8 @@ public:
   template <typename T> InternalField<T> & getInternal(const ID & id);
 
   template <typename T>
-  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  [[nodiscard]] inline bool isInternal(const ID & id,
+                                       const ElementKind & element_kind) const;
 
   template <typename T>
   const Array<T> & getArray(const ID & id, ElementType type,
@@ -89,11 +107,12 @@ public:
   inline void removeIntegrationPoints(ElementTypeMapArray<Idx> & new_numbering);
 
 public:
-  virtual const FEEngine & getFEEngine(const ID & id = "") const = 0;
-  virtual FEEngine & getFEEngine(const ID & id = "") = 0;
-  Int getSpatialDimension() const { return spatial_dimension; }
+  [[nodiscard]] virtual const FEEngine &
+  getFEEngine(const ID & id = "") const = 0;
+  [[nodiscard]] virtual FEEngine & getFEEngine(const ID & id = "") = 0;
+  [[nodiscard]] Int getSpatialDimension() const { return spatial_dimension; }
 
-  const ElementTypeMapArray<Idx> & getElementFilter() const {
+  [[nodiscard]] const ElementTypeMapArray<Idx> & getElementFilter() const {
     return element_filter;
   }
 
@@ -136,18 +155,24 @@ class ConstitutiveLaw : public ConstitutiveLawInternalHandler,
 public:
   using ConstitutiveLawsHandler = ConstitutiveLawsHandler_;
 
-  ConstitutiveLaw(const ConstitutiveLaw & law) = delete;
-
-  ConstitutiveLaw & operator=(const ConstitutiveLaw & law) = delete;
-
   /// Initialize constitutive law with defaults
   ConstitutiveLaw(ConstitutiveLawsHandler & handler, const ID & id = "",
-                  UInt spatial_dimension = _all_dimensions,
+                  Int spatial_dimension = _all_dimensions,
                   ElementKind element_kind = _ek_regular,
                   const ID & fe_engine_id = "");
 
-  /// Destructor
-  ~ConstitutiveLaw() override = default;
+  void printself(std::ostream & stream, int indent = 0) const {
+    std::string space(indent, AKANTU_INDENT);
+    std::cout << "Constitutive Law [" << std::endl;
+    stream << space << " + id                : " << id << std::endl;
+    stream << space << " + name              : " << name << std::endl;
+    stream << space << " + spatial dimension : " << spatial_dimension
+           << std::endl;
+    stream << space << " + default FE Engine : " << default_fe_engine_id
+           << std::endl;
+    Parsable::printself(stream, indent + 1);
+    stream << space << "]" << std::endl;
+  }
 
 protected:
   void initialize();
@@ -160,8 +185,7 @@ public:
   virtual void initConstitutiveLaw();
 
   /// add an element to the local mesh filter
-  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
-  inline UInt addElement(const Element & element);
+  inline Idx addElement(const Element & element);
 
   /// add many elements at once
   void addElements(const Array<Element> & elements_to_add);
@@ -175,9 +199,11 @@ protected:
   virtual void updateInternalParameters() {}
 
   /// converts global element to local element
-  inline Element convertToLocalElement(const Element & global_element) const;
+  [[nodiscard]] inline Element
+  convertToLocalElement(const Element & global_element) const;
   /// converts local element to global element
-  inline Element convertToGlobalElement(const Element & local_element) const;
+  [[nodiscard]] inline Element
+  convertToGlobalElement(const Element & local_element) const;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -218,7 +244,7 @@ public:
 
 public:
   template <typename T> inline void setParam(const ID & param, T value);
-  inline const Parameter & getParam(const ID & param) const;
+  [[nodiscard]] inline const Parameter & getParam(const ID & param) const;
 
   template <typename T>
   void flattenInternal(const std::string & field_id,
@@ -235,19 +261,21 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  const FEEngine & getFEEngine(const ID & id = "") const override {
+  [[nodiscard]] const FEEngine &
+  getFEEngine(const ID & id = "") const override {
     return handler.getFEEngine(id.empty() ? default_fe_engine_id : id);
   }
 
-  FEEngine & getFEEngine(const ID & id = "") override {
+  [[nodiscard]] FEEngine & getFEEngine(const ID & id = "") override {
     return handler.getFEEngine(id.empty() ? default_fe_engine_id : id);
   }
 
   template <typename T>
-  ElementTypeMap<Int> getInternalDataPerElem(const ID & id,
-                                             ElementKind element_kind) const;
+  [[nodiscard]] ElementTypeMap<Int>
+  getInternalDataPerElem(const ID & id, ElementKind element_kind) const;
 
-  AKANTU_GET_MACRO(Handler, handler, auto &);
+  AKANTU_GET_MACRO_AUTO(Handler, handler);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Handler, handler);
 
   template <typename... pack>
   decltype(auto) elementTypes(pack &&... _pack) const {
@@ -255,13 +283,11 @@ public:
   }
 
 protected:
-  bool isInit() const { return is_init; }
+  [[nodiscard]] bool isInit() const { return is_init; }
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Class Members */
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
 private:
   /// boolean to know if the constitutive law has been initialized
   bool is_init{false};
@@ -270,6 +296,14 @@ protected:
   // Constitutive law handler for which this is a constitutive law
   ConstitutiveLawsHandler & handler;
 };
+
+template <class ConstitutiveLawsHandler_>
+inline std::ostream &
+operator<<(std::ostream & stream,
+           const ConstitutiveLaw<ConstitutiveLawsHandler_> & _this) {
+  _this.printself(stream);
+  return stream;
+}
 
 } // namespace akantu
 

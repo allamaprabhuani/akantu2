@@ -288,14 +288,6 @@ void SolidMechanicsModelCohesive::initModel() {
   }
   AKANTU_DEBUG_ASSERT(type != _not_defined, "No elements in the mesh");
 
-  getFEEngine("CohesiveFEEngine").initShapeFunctions(_not_ghost);
-  getFEEngine("CohesiveFEEngine").initShapeFunctions(_ghost);
-
-  if (is_extrinsic) {
-    getFEEngine("FacetsFEEngine").initShapeFunctions(_not_ghost);
-    getFEEngine("FacetsFEEngine").initShapeFunctions(_ghost);
-  }
-
   AKANTU_DEBUG_OUT();
 }
 

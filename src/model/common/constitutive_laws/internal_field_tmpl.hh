@@ -70,13 +70,6 @@ InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> InternalField<T>::~InternalField() {
-  if (this->is_init) {
-    this->constitutive_law.unregisterInternal(this->getRegisterID());
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 template <typename T>
 void InternalField<T>::setElementKind(ElementKind element_kind) {
   this->element_kind = element_kind;

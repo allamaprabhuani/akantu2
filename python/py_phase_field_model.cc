@@ -106,18 +106,12 @@ void register_phase_field_model(py::module & mod) {
       .def(
           "getPhaseField",
           [](PhaseFieldModel & self, Idx phase_field_id) -> decltype(auto) {
-            return self.getPhaseField(phase_field_id);
+            return self.getConstitutiveLaw(phase_field_id);
           },
           py::arg("phase_field_id"), py::return_value_policy::reference)
-      .def(
-          "getPhaseField",
-          [](PhaseFieldModel & self,
-             const ID & phase_field_name) -> decltype(auto) {
-            return self.getPhaseField(phase_field_name);
-          },
-          py::arg("phase_field_name"), py::return_value_policy::reference)
-      .def("getPhaseFieldIndex", &PhaseFieldModel::getPhaseFieldIndex)
-      .def("setPhaseFieldSelector", &PhaseFieldModel::setPhaseFieldSelector);
+      .def("getPhaseFieldIndex", &PhaseFieldModel::getConstitutiveLawIndex)
+      .def("setPhaseFieldSelector",
+           &PhaseFieldModel::setConstitutiveLawSelector);
 }
 
 void register_phase_field_coupler(py::module & mod) {
@@ -126,16 +120,15 @@ void register_phase_field_coupler(py::module & mod) {
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "coupler_solid_phasefield",
            py::arg("model_type") = ModelType::_coupler_solid_phasefield)
-      .def("solve",
-           [](CouplerSolidPhaseField & self, const ID & solid_solver_id,
-              const ID & phase_solver_id) {
-             self.solve(solid_solver_id, phase_solver_id);
-           })
-      .def("getSolidMechanicsModel",
-           &CouplerSolidPhaseField::getSolidMechanicsModel,
-           py::return_value_policy::reference)
-      .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
-           py::return_value_policy::reference);
+      .def("solve", [](CouplerSolidPhaseField & self,
+                       const ID & solid_solver_id, const ID & phase_solver_id) {
+        self.solve(solid_solver_id, phase_solver_id);
+      });
+  // .def("getSolidMechanicsModel",
+  //      &CouplerSolidPhaseField::getSolidMechanicsModel,
+  //      py::return_value_policy::reference)
+  // .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
+  //      py::return_value_policy::reference);
 }
 
 } // namespace akantu

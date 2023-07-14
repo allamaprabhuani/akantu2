@@ -71,8 +71,6 @@ SolidMechanicsModel::SolidMechanicsModel(
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer,
-                               SynchronizationTag::_constitutive_law_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_mass);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_stress);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_gradu);
@@ -85,9 +83,6 @@ SolidMechanicsModel::SolidMechanicsModel(
 }
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModel::~SolidMechanicsModel() = default;
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
@@ -95,12 +90,7 @@ void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::instantiateMaterials() {
-  ParserSection model_section;
-  bool is_empty;
-  std::tie(model_section, is_empty) = this->getParserSection();
-  this->instantiateConstitutiveLaws(is_empty ? this->parser : model_section);
-}
+void SolidMechanicsModel::instantiateMaterials() {}
 
 /* -------------------------------------------------------------------------- */
 /* Initialization                                                             */
@@ -118,13 +108,13 @@ void SolidMechanicsModel::instantiateMaterials() {
  * \endparblock
  */
 void SolidMechanicsModel::initFullImpl(const ModelOptions & options) {
-  Model::initFullImpl(options);
+  CLHParent::initFullImpl(options);
 
-  // initialize the materials
-  if (not this->parser.getLastParsedFile().empty()) {
-    this->instantiateMaterials();
-    this->initConstitutiveLaws();
-  }
+  // // initialize the materials
+  // if (not this->parser.getLastParsedFile().empty()) {
+  //   this->instantiateMaterials();
+  //   this->initConstitutiveLaws();
+  // }
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
 }
@@ -247,18 +237,6 @@ void SolidMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Initialize the model,basically it  pre-compute the shapes, shapes derivatives
- * and jacobian
- */
-void SolidMechanicsModel::initModel() {
-  /// \todo add  the current position  as a parameter to  initShapeFunctions for
-  /// large deformation
-  getFEEngine().initShapeFunctions(_not_ghost);
-  getFEEngine().initShapeFunctions(_ghost);
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleResidual() {
   AKANTU_DEBUG_IN();
 
@@ -372,7 +350,7 @@ void SolidMechanicsModel::assembleInternalForces() {
   /* ------------------------------------------------------------------------ */
   /* Computation of the non local part */
   if (this->isNonLocal()) {
-    this->getNonLocalManager().computeAllNonLocalStresses();
+    this->getNonLocalManager().computeAllNonLocalContribution();
   }
 
   // communicate the stresses
@@ -810,7 +788,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeNonLocalStresses(GhostType ghost_type) {
+void SolidMechanicsModel::computeNonLocalContribution(GhostType ghost_type) {
   for_each_constitutive_law([&](auto && material) {
     if (aka::is_of_type<MaterialNonLocalInterface>(material)) {
       auto & mat_non_local =

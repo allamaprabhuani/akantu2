@@ -52,6 +52,11 @@ void Model::initFullImpl(const ModelOptions & options) {
 
   initModel();
 
+  for (auto && [_, fe_engine] : fems) {
+    fe_engine->initShapeFunctions(_not_ghost);
+    fe_engine->initShapeFunctions(_ghost);
+  }
+
   initFEEngineBoundary();
 
   AKANTU_DEBUG_OUT();

@@ -39,6 +39,8 @@ class InternalFieldBase {
 public:
   InternalFieldBase(const ID & id) : id_(id) {}
 
+  virtual ~InternalFieldBase() = default;
+
   /// activate the history of this field
   virtual void initializeHistory() = 0;
 
@@ -80,13 +82,12 @@ public:
                 ConstitutiveLawInternalHandler & constitutive_law,
                 const ID & fem_id,
                 const ElementTypeMapArray<Idx> & element_filter);
+
   /// More general constructor
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law, Int dim,
                 const ID & fem_id,
                 const ElementTypeMapArray<Idx> & element_filter);
-
-  ~InternalField() override;
 
   InternalField(const ID & id, const InternalField<T> & other);
 

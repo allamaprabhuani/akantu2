@@ -55,9 +55,10 @@ void MaterialMazarsNonLocal<dim, Parent>::registerNonLocalVariables() {
     local = this->Ehat->getName();
   }
 
-  this->model.getNonLocalManager().registerNonLocalVariable(
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
       local, non_local_variable->getName(), 1);
-  this->model.getNonLocalManager()
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->name)
       .registerNonLocalVariable(non_local_variable->getName());
 }

@@ -21,7 +21,6 @@
 /* -------------------------------------------------------------------------- */
 #include "boundary_condition.hh"
 #include "constitutive_laws_handler.hh"
-#include "data_accessor.hh"
 #include "fe_engine.hh"
 #include "model.hh"
 #include "solid_mechanics_model_event_handler.hh"
@@ -65,8 +64,6 @@ public:
                       std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
-  ~SolidMechanicsModel() override;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -75,13 +72,9 @@ protected:
   void initFullImpl(
       const ModelOptions & options = SolidMechanicsModelOptions()) override;
 
-protected:
   void instantiateMaterials();
 
-protected:
-  /// initialize the model
-  void initModel() override;
-
+public:
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
@@ -117,6 +110,7 @@ protected:
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
+
   /// callback for the solver, this is called at end of solve
   void corrector() override;
 
@@ -129,14 +123,13 @@ protected:
   void initSolver(TimeStepSolverType time_step_solver_type,
                   NonLinearSolverType non_linear_solver_type) override;
 
-protected:
+public:
   /* ------------------------------------------------------------------------ */
   TimeStepSolverType getDefaultSolverType() const override;
-  /* ------------------------------------------------------------------------ */
+
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
-public:
   bool isDefaultSolverExplicit() {
     return method == _explicit_lumped_mass ||
            method == _explicit_consistent_mass;
@@ -155,7 +148,8 @@ public:
                                const ID & material_name,
                                GhostType ghost_type = _not_ghost);
 
-  void computeNonLocalStresses(GhostType ghost_type) override;
+  void computeNonLocalContribution(GhostType ghost_type) override;
+
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
   /* ------------------------------------------------------------------------ */
@@ -166,14 +160,12 @@ public:
   /// assemble the mass matrix for consistent mass resolutions
   void assembleMass();
 
-public:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
-protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 

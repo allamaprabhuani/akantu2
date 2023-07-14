@@ -70,26 +70,26 @@ inline void ConstitutiveLawInternalHandler::unregisterInternal(const ID & id) {
 
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::savePreviousState() {
-  for (auto pair : internal_vectors) {
-    if (pair.second->hasHistory()) {
-      pair.second->saveCurrentValues();
+  for (auto && [_, internal] : internal_vectors) {
+    if (internal->hasHistory()) {
+      internal->saveCurrentValues();
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::restorePreviousState() {
-  for (auto pair : internal_vectors) {
-    if (pair.second->hasHistory()) {
-      pair.second->restorePreviousValues();
+  for (auto && [_, internal] : internal_vectors) {
+    if (internal->hasHistory()) {
+      internal->restorePreviousValues();
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::resizeInternals() {
-  for (auto && pair : internal_vectors) {
-    pair.second->resize();
+  for (auto && [_, internal] : internal_vectors) {
+    internal->resize();
   }
 }
 
@@ -185,15 +185,15 @@ Array<T> & ConstitutiveLawInternalHandler::getArray(const ID & vect_id,
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::removeIntegrationPoints(
     ElementTypeMapArray<Idx> & new_numbering) {
-  for (auto pair : internal_vectors) {
-    pair.second->removeIntegrationPoints(new_numbering);
+  for (auto && [_, internal] : internal_vectors) {
+    internal->removeIntegrationPoints(new_numbering);
   }
 }
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
-    ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
+    ConstitutiveLawsHandler_ & handler, const ID & id, Int spatial_dimension,
     ElementKind element_kind, const ID & fe_engine_id)
     : ConstitutiveLawInternalHandler(id, spatial_dimension, fe_engine_id),
       Parsable(handler.getConstitutiveLawParserType(), id), handler(handler) {
@@ -229,7 +229,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::addElements(
     const Array<Element> & elements_to_add) {
   AKANTU_DEBUG_IN();
 
-  UInt law_id = handler.getConstitutiveLawIndex(name);
+  Int law_id = handler.getConstitutiveLawIndex(name);
   for (const auto & element : elements_to_add) {
     auto index = this->addElement(element);
     handler.constitutive_law_index(element) = law_id;
@@ -280,7 +280,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
         auto & element_id = element_ids(el.type, el.ghost_type);
         auto l_el = Element{el.type, element_id, el.ghost_type};
         if (std::find(el_begin, el_end, el) != el_end) {
-          constitutive_law_local_new_numbering(l_el) = UInt(-1);
+          constitutive_law_local_new_numbering(l_el) = Idx(-1);
           return;
         }
 
@@ -326,7 +326,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & /*event*/) {
 
-  UInt my_num = handler.getInternalIndexFromID(getID());
+  auto my_num = handler.getInternalIndexFromID(getID());
 
   ElementTypeMapArray<Idx> constitutive_law_local_new_numbering(
       "remove constitutive law filter elem", getID());
@@ -338,7 +338,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     for (auto && type :
          new_numbering.elementTypes(_all_dimensions, gt, _ek_not_defined)) {
 
-      if (not element_filter.exists(type, gt) ||
+      if (not element_filter.exists(type, gt) or
           element_filter(type, gt).empty()) {
         continue;
       }
@@ -353,7 +353,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
       law_indexes.resize(nb_element);
       law_loc_num.resize(nb_element);
 
-      if (!constitutive_law_local_new_numbering.exists(type, gt)) {
+      if (not constitutive_law_local_new_numbering.exists(type, gt)) {
         constitutive_law_local_new_numbering.alloc(elem_filter.size(), 1, type,
                                                    gt);
       }
@@ -364,20 +364,20 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
       Int ni = 0;
       Element el{type, 0, gt};
 
-      for (Int i = 0; i < elem_filter.size(); ++i) {
-        el.element = elem_filter(i);
+      for (auto && [i, el_id] : enumerate(elem_filter)) {
+        el.element = el_id;
+
         if (std::find(el_begin, el_end, el) == el_end) {
-          auto new_el = renumbering(el.element);
+          auto new_el = renumbering(el_id);
           AKANTU_DEBUG_ASSERT(new_el != -1,
                               "A not removed element as been badly renumbered");
           elem_filter_tmp.push_back(new_el);
           law_renumbering(i) = ni;
-
           law_indexes(new_el) = my_num;
           law_loc_num(new_el) = ni;
           ++ni;
         } else {
-          law_renumbering(i) = UInt(-1);
+          law_renumbering(i) = -1;
         }
       }
 
@@ -414,22 +414,19 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::unpackInternalFieldHelper(
 template <class ConstitutiveLawsHandler_>
 inline Element ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(
     const Element & global_element) const {
-  UInt ge = global_element.element;
 #ifndef AKANTU_NDEBUG
-  UInt model_law_index = handler.getConstitutiveLawByElement(
-      global_element.type, global_element.ghost_type)(ge);
-
-  UInt law_index = handler.getConstitutiveLawIndex(this->name);
+  auto model_law_index = handler.getConstitutiveLawByElement()(global_element);
+  auto law_index = handler.getConstitutiveLawIndex(this->name);
   AKANTU_DEBUG_ASSERT(model_law_index == law_index,
                       "Conversion of a global  element in a local element for "
                       "the wrong constitutive law "
                           << this->name << std::endl);
 #endif
-  auto le = handler.getConstitutiveLawLocalNumbering(
-      global_element.type, global_element.ghost_type)(ge);
+  auto local_element = global_element;
+  local_element.element =
+      handler.getConstitutiveLawLocalNumbering()(global_element);
 
-  Element tmp_quad{global_element.type, le, global_element.ghost_type};
-  return tmp_quad;
+  return local_element;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -437,28 +434,18 @@ template <class ConstitutiveLawsHandler_>
 inline Element
 ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(
     const Element & local_element) const {
-  UInt le = local_element.element;
-  UInt ge =
-      this->element_filter(local_element.type, local_element.ghost_type)(le);
-
-  Element tmp_quad{local_element.type, ge, local_element.ghost_type};
-  return tmp_quad;
+  auto global_element = local_element;
+  global_element.element = this->element_filter(local_element);
+  return global_element;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-inline UInt ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(
-    ElementType type, UInt element, GhostType ghost_type) {
-  auto & el_filter = this->element_filter(type, ghost_type);
-  el_filter.push_back(element);
-  return el_filter.size() - 1;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-inline UInt
+inline Idx
 ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(const Element & element) {
-  return this->addElement(element.type, element.element, element.ghost_type);
+  auto & el_filter = this->element_filter(element.type, element.ghost_type);
+  el_filter.push_back(element.element);
+  return el_filter.size() - 1;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -545,7 +532,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
     // number of data per quadrature point
     auto nb_data_per_quad = internal_field.getNbComponent();
 
-    if (!internal_flat.exists(type, ghost_type)) {
+    if (not internal_flat.exists(type, ghost_type)) {
       internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
                           type, ghost_type);
     }

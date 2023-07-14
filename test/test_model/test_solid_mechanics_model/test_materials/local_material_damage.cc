@@ -62,14 +62,10 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
   AKANTU_DEBUG_IN();
   auto dim = this->spatial_dimension;
 
-  for (auto && data :
-       zip(make_view(this->gradu(el_type, ghost_type), dim, dim),
-           make_view(this->stress(el_type, ghost_type), dim, dim),
+  for (auto && [grad_u, sigma, dam] :
+       zip(make_view(this->getGradU(el_type, ghost_type), dim, dim),
+           make_view(this->getStress(el_type, ghost_type), dim, dim),
            damage(el_type, ghost_type))) {
-    auto && grad_u = std::get<0>(data);
-    auto && sigma = std::get<1>(data);
-    auto && dam = std::get<2>(data);
-
     computeStressOnQuad(grad_u, sigma, dam);
     ++dam;
   }
@@ -83,12 +79,10 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   auto dim = this->spatial_dimension;
   Material::computePotentialEnergy(el_type);
 
-  for (auto && data : zip(make_view(this->gradu(el_type), dim, dim),
-                          make_view(this->stress(el_type), dim, dim),
-                          potential_energy(el_type))) {
-    auto && grad_u = std::get<0>(data);
-    auto && sigma = std::get<1>(data);
-    auto && epot = std::get<2>(data);
+  for (auto && [grad_u, sigma, epot] :
+       zip(make_view(this->getGradU(el_type), dim, dim),
+           make_view(this->getStress(el_type), dim, dim),
+           (*this->potential_energy)(el_type))) {
     computePotentialEnergyOnQuad(grad_u, sigma, epot);
   }
   AKANTU_DEBUG_OUT();

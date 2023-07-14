@@ -32,59 +32,12 @@
 namespace akantu {
 class SolidMechanicsModel;
 using DefaultMaterialSelector = DefaultConstitutiveLawSelector;
-} // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-/**
- * Use elemental data to assign materials
- */
 template <typename T>
-class ElementDataMaterialSelector : public ConstitutiveLawSelector {
-public:
-  ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
-                              const SolidMechanicsModel & model,
-                              Int first_index = 1)
-      : element_data(element_data), model(model), first_index(first_index) {}
-
-  inline T elementData(const Element & element) {
-    DebugLevel dbl = debug::getDebugLevel();
-    debug::setDebugLevel(dblError);
-    T data = element_data(element);
-    debug::setDebugLevel(dbl);
-    return data;
-  }
-
-  inline Int operator()(const Element & element) override {
-    return ConstitutiveLawSelector::operator()(element);
-  }
-
-protected:
-  /// list of element with the specified data (i.e. tag value)
-  const ElementTypeMapArray<T> & element_data;
-
-  /// the model that the materials belong
-  const SolidMechanicsModel & model;
-
-  /// first material index: equal to 1 if none specified
-  Int first_index;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class to use mesh data information to assign different materials
- * where name is the tag value: tag_0, tag_1
- */
+using ElementDataMaterialSelector =
+    ElementDataConstitutiveLawSelector<T, SolidMechanicsModel>;
 template <typename T>
-class MeshDataMaterialSelector : public ElementDataMaterialSelector<T> {
-public:
-  MeshDataMaterialSelector(const std::string & name,
-                           const SolidMechanicsModel & model,
-                           Int first_index = 1);
-};
-
+using MeshDataMaterialSelector =
+    MeshDataConstitutiveLawSelector<T, SolidMechanicsModel>;
 } // namespace akantu
 
 #endif /* AKANTU_MATERIAL_SELECTOR_HH_ */

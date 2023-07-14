@@ -39,10 +39,11 @@ CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
 template <Int dim>
 void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
   /// register the non-local variable in the manager
-  this->model.getNonLocalManager().registerNonLocalVariable(
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
       this->local_damage.getName(), this->damage.getName(), 1);
 
-  this->model.getNonLocalManager()
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->name)
       .registerNonLocalVariable(damage.getName());
 }
@@ -66,9 +67,9 @@ void CustomNonLocalTestMaterial<dim>::computeNonLocalStress(
   Array<Real>::const_scalar_iterator dam =
       this->damage(el_type, ghost_type).begin();
   Array<Real>::matrix_iterator stress =
-      this->stress(el_type, ghost_type).begin(dim, dim);
+      (*this->stress)(el_type, ghost_type).begin(dim, dim);
   Array<Real>::matrix_iterator stress_end =
-      this->stress(el_type, ghost_type).end(dim, dim);
+      (*this->stress)(el_type, ghost_type).end(dim, dim);
 
   // compute the damage and update the stresses
   for (; stress != stress_end; ++stress, ++dam) {

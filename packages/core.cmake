@@ -212,6 +212,7 @@ package_declare_sources(core
   model/common/constitutive_laws/constitutive_law_non_local_interface_tmpl.hh
   model/common/constitutive_laws/constitutive_law.hh
   model/common/constitutive_laws/constitutive_law_selector.hh
+  model/common/constitutive_laws/constitutive_law_selector_tmpl.hh
   model/common/constitutive_laws/constitutive_law_tmpl.hh
   model/common/constitutive_laws/constitutive_laws_handler.hh
   model/common/constitutive_laws/constitutive_laws_handler_tmpl.hh
