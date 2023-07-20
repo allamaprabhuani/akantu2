@@ -227,10 +227,13 @@ void ElementGroup::onNodesAdded(const Array<UInt> & new_nodes,
                 .begin();
 
         for (auto element : els) {
-          auto && mesh_facet_conn =
-              mesh_facet_conn_it[mesh_to_mesh_facet_type(element).element];
+          auto && mesh_facet_element = mesh_to_mesh_facet_type(element);
+          if (mesh_facet_element == ElementNull)
+            continue;
+          auto && mesh_facet_element_conn =
+              mesh_facet_conn_it[mesh_facet_element.element];
           auto && conn = conn_it[element];
-          conn = mesh_facet_conn;
+          conn = mesh_facet_element_conn;
           for (auto && n : conn) {
             node_group.add(n, false);
           }

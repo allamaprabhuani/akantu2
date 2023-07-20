@@ -212,9 +212,10 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 
   auto & mesh_phys_data = this->getData<std::string>("physical_names");
   auto & mesh_to_mesh_facet = this->getData<Element>("mesh_to_mesh_facet");
-  mesh_to_mesh_facet.initialize(*this,
-                                _spatial_dimension = spatial_dimension - 1,
-                                _with_nb_element = true);
+  mesh_to_mesh_facet.initialize(
+      *this, _spatial_dimension = spatial_dimension - 1,
+      _with_nb_element = true, _default_value = ElementNull,
+      _do_not_default = false);
 
   auto & phys_data = mesh_facets->getData<std::string>("physical_names");
   phys_data.initialize(*mesh_facets, _spatial_dimension = spatial_dimension - 1,
