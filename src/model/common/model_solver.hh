@@ -50,11 +50,9 @@ class ModelSolver : public Parsable,
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
 
-  ~ModelSolver() override;
-
   /// initialize the dof manager based on solver type passed in the input file
   std::shared_ptr<DOFManager>
-  initDOFManager(std::shared_ptr<DOFManager> dof_manager = nullptr);
+  initDOFManager(const std::shared_ptr<DOFManager> & dof_manager = nullptr);
   /// initialize the dof manager based on the used chosen solver type
   std::shared_ptr<DOFManager> initDOFManager(const ID & solver_type);
 
@@ -118,48 +116,44 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// Default time step solver to instantiate for this model
-  virtual TimeStepSolverType getDefaultSolverType() const;
+  [[nodiscard]] virtual TimeStepSolverType getDefaultSolverType() const;
 
   /// Default configurations for a given time step solver
-  virtual ModelSolverOptions
+  [[nodiscard]] virtual ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
 
   /// get access to the internal dof manager
   DOFManager & getDOFManager() { return *this->dof_manager; }
 
   /// get the time step of a given solver
-  Real getTimeStep(const ID & solver_id = "") const;
+  [[nodiscard]] Real getTimeStep(const ID & solver_id = "") const;
   /// set the time step of a given solver
   virtual void setTimeStep(Real time_step, const ID & solver_id = "");
 
-  /// set the parameter 'param' of the solver 'solver_id'
-  // template <typename T>
-  // void set(const ID & param, const T & value, const ID & solver_id = "");
-
-  /// get the parameter 'param' of the solver 'solver_id'
-  // const Parameter & get(const ID & param, const ID & solver_id = "") const;
-
   /// answer to the question "does the solver exists ?"
-  bool hasSolver(const ID & solver_id) const;
+  [[nodiscard]] bool hasSolver(const ID & solver_id) const;
 
   /// changes the current default solver
   void setDefaultSolver(const ID & solver_id);
 
   /// is a default solver defined
-  bool hasDefaultSolver() const;
+  [[nodiscard]] bool hasDefaultSolver() const;
 
   /// is an integration scheme set for a given solver and a given dof
-  bool hasIntegrationScheme(const ID & solver_id, const ID & dof_id) const;
+  [[nodiscard]] bool hasIntegrationScheme(const ID & solver_id,
+                                          const ID & dof_id) const;
 
-  TimeStepSolver & getTimeStepSolver(const ID & solver_id = "");
-  NonLinearSolver & getNonLinearSolver(const ID & solver_id = "");
+  [[nodiscard]] TimeStepSolver & getTimeStepSolver(const ID & solver_id = "");
+  [[nodiscard]] NonLinearSolver & getNonLinearSolver(const ID & solver_id = "");
 
-  const TimeStepSolver & getTimeStepSolver(const ID & solver_id = "") const;
-  const NonLinearSolver & getNonLinearSolver(const ID & solver_id = "") const;
+  [[nodiscard]] const TimeStepSolver &
+  getTimeStepSolver(const ID & solver_id = "") const;
+  [[nodiscard]] const NonLinearSolver &
+  getNonLinearSolver(const ID & solver_id = "") const;
 
 private:
-  TimeStepSolver & getSolver(const ID & solver_id);
-  const TimeStepSolver & getSolver(const ID & solver_id) const;
+  [[nodiscard]] TimeStepSolver & getSolver(const ID & solver_id);
+  [[nodiscard]] const TimeStepSolver & getSolver(const ID & solver_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

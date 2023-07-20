@@ -28,7 +28,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "constitutive_law.hh"
+#include "constitutive_law.hh" // NOLINT(pp_including_mainfile_in_preamble)
 #include "constitutive_law_selector.hh"
 #include "mesh.hh"
 #include "mesh_events.hh"
@@ -202,16 +202,21 @@ public:
   inline const auto & getConstitutiveLaw(const Element & element) const;
 
   /// get a particular constitutive_law id from is name
-  inline Idx getConstitutiveLawIndex(const std::string & name) const;
+  [[nodiscard]] inline Idx
+  getConstitutiveLawIndex(const std::string & name) const;
 
   /// give the number of constitutive_laws
-  inline Int getNbConstitutiveLaws() const { return constitutive_laws.size(); }
+  [[nodiscard]] inline Int getNbConstitutiveLaws() const {
+    return constitutive_laws.size();
+  }
 
   /// give the constitutive_law internal index from its id
-  Int getInternalIndexFromID(const ID & id) const;
+  [[nodiscard]] Int getInternalIndexFromID(const ID & id) const;
 
   /// get the type to use for the parser
-  ParserType getConstitutiveLawParserType() const { return this->parser_type; }
+  [[nodiscard]] ParserType getConstitutiveLawParserType() const {
+    return this->parser_type;
+  }
 
 protected:
   AKANTU_GET_MACRO_AUTO_NOT_CONST(ConstitutiveLawByElement,
@@ -241,17 +246,18 @@ public:
   /// Tells if the constitutive laws are non local
   auto isNonLocal() const { return static_cast<bool>(non_local_manager); }
 
-  void setConstitutiveLawSelector(
-      std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector) {
-    this->constitutive_law_selector = std::move(constitutive_law_selector);
+  void
+  setConstitutiveLawSelector(const std::shared_ptr<ConstitutiveLawSelector> &
+                                 constitutive_law_selector) {
+    this->constitutive_law_selector = constitutive_law_selector;
   }
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;

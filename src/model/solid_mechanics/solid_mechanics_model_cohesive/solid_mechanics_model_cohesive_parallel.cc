@@ -76,8 +76,8 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
             cfacet_synchronizer.getCommunications().getScheme(proc, direction);
 
         for (auto && facet : facet_scheme) {
-          const auto & cohesive_element = const_cast<const Mesh &>(mesh_facets)
-                                              .getElementToSubelement(facet)[1];
+          const auto & cohesive_element =
+              mesh_facets.getElementToSubelement(facet)[1];
 
           if (cohesive_element == ElementNull or
               cohesive_element.kind() != _ek_cohesive) {
@@ -174,8 +174,7 @@ template <typename T>
 void SolidMechanicsModelCohesive::packFacetStressDataHelper(
     const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & elements) const {
-  packUnpackFacetStressDataHelper<T, true>(
-      const_cast<ElementTypeMapArray<T> &>(data_to_pack), buffer, elements);
+  packUnpackFacetStressDataHelper<T, true>(data_to_pack, buffer, elements);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -189,8 +188,9 @@ void SolidMechanicsModelCohesive::unpackFacetStressDataHelper(
 /* -------------------------------------------------------------------------- */
 template <typename T, bool pack_helper>
 void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
-    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & elements) const {
+    std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                       ElementTypeMapArray<T>> & data_to_pack,
+    CommunicationBuffer & buffer, const Array<Element> & elements) const {
   bool element_rank = false;
   auto & mesh_facets = inserter->getMeshFacets();
 
@@ -284,7 +284,7 @@ Int SolidMechanicsModelCohesive::getNbData(
 
     switch (tag) {
     case SynchronizationTag::_constitutive_law_id: {
-      size += elements.size() * sizeof(UInt);
+      size += elements.size() * Int(sizeof(Idx));
       break;
     }
     case SynchronizationTag::_smm_boundary: {
@@ -305,7 +305,7 @@ Int SolidMechanicsModelCohesive::getNbData(
 
     if (tag != SynchronizationTag::_constitutive_law_id &&
         tag != SynchronizationTag::_smmc_facets) {
-      CLHParent::getNbData(elements, tag);
+      size += CLHParent::getNbData(elements, tag);
     }
   }
 

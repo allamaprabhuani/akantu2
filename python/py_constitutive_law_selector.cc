@@ -30,14 +30,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "py_akantu_pybind11_compatibility.hh"
-#include "py_material_selector.hh"
+#include "py_constitutive_law_selector.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_law_selector.hh>
+#if defined(AKANTU_SOLID_MECHANICS)
 #include <material_selector.hh>
-#include <solid_mechanics_model.hh>
+#endif
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_selector_cohesive.hh>
-#include <solid_mechanics_model_cohesive.hh>
 #endif
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
@@ -46,17 +46,13 @@
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
-
 namespace akantu {
-
 namespace {
   template <class Base = ConstitutiveLawSelector>
   class PyConstitutiveLawSelector : public Base {
   public:
     /* Inherit the constructors */
     using Base::Base;
-
-    ~PyConstitutiveLawSelector() override = default;
 
     Idx operator()(const Element & element) override {
       // NOLINTNEXTLINE
@@ -82,13 +78,14 @@ void register_constitutive_law_selector(py::module & mod) {
       mod, "ConstitutiveLawSelector")
       .def(py::init())
       .def("setFallback",
-           [](ConstitutiveLawSelector & self, UInt f) { self.setFallback(f); })
+           [](ConstitutiveLawSelector & self, Int f) { self.setFallback(f); })
       .def("setFallback",
            [](ConstitutiveLawSelector & self,
               const std::shared_ptr<ConstitutiveLawSelector> &
                   fallback_selector) { self.setFallback(fallback_selector); })
       .def("__call__", &ConstitutiveLawSelector::operator());
 
+#if defined(AKANTU_SOLID_MECHANICS)
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
       .def(py::init<const ElementTypeMapArray<Idx> &>());
@@ -97,6 +94,7 @@ void register_constitutive_law_selector(py::module & mod) {
       mod, "MeshDataMaterialSelectorString")
       .def(py::init<const std::string &, const SolidMechanicsModel &, Int>(),
            py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
+#endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   register_material_selectors<DefaultMaterialCohesiveSelector>(

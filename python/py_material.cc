@@ -20,7 +20,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
-#include "py_akantu_pybind11_compatibility.hh"
 #include "py_constitutive_law.hh"
 /* -------------------------------------------------------------------------- */
 #include <material_selector.hh>
@@ -47,8 +46,6 @@ namespace {
     /* Inherit the constructors */
     using _Material::_Material;
 
-    ~PyMaterial() override = default;
-
     void initMaterial() override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, initMaterial, );
@@ -70,12 +67,14 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computePotentialEnergy, el_type);
     }
 
-    Real getPushWaveSpeed(const Element & element) const override {
+    [[nodiscard]] Real
+    getPushWaveSpeed(const Element & element) const override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(Real, _Material, getPushWaveSpeed, element);
     }
 
-    Real getShearWaveSpeed(const Element & element) const override {
+    [[nodiscard]] Real
+    getShearWaveSpeed(const Element & element) const override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(Real, _Material, getShearWaveSpeed, element);
     }

@@ -31,8 +31,9 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <typename T, bool pack_helper>
 void DataAccessor<Element>::packUnpackNodalDataHelper(
-    Array<T> & data, CommunicationBuffer & buffer,
-    const Array<Element> & elements, const Mesh & mesh) {
+    std::conditional_t<pack_helper, const Array<T>, Array<T>> & data,
+    CommunicationBuffer & buffer, const Array<Element> & elements,
+    const Mesh & mesh) {
   Int nb_component = data.getNbComponent();
   auto data_it = make_view(data, nb_component).begin();
 
@@ -51,11 +52,14 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, bool pack_helper, class Func>
+template <
+    typename T, bool pack_helper, class Func,
+    std::enable_if_t<not std::is_base_of_v<FEEngine, std::decay_t<Func>>> *>
 void DataAccessor<Element>::packUnpackElementalDataHelper(
-    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & element, Func && data_per_element) {
-
+    std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                       ElementTypeMapArray<T>> & data_to_pack,
+    CommunicationBuffer & buffer, const Array<Element> & element,
+    Func && data_per_element) {
   for (const auto & el : element) {
     auto nb_component = data_to_pack(el.type, el.ghost_type).getNbComponent();
     auto nb_data_per_elem = data_per_element(el) * nb_component;
@@ -72,8 +76,9 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
 /* ------------------------------------------------------------------------ */
 template <typename T, bool pack_helper>
 void DataAccessor<Element>::packUnpackElementalDataHelper(
-    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & element) {
+    std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                       ElementTypeMapArray<T>> & data_to_pack,
+    CommunicationBuffer & buffer, const Array<Element> & element) {
   packUnpackElementalDataHelper<T, pack_helper>(
       data_to_pack, buffer, element, [](auto && /*el*/) { return 1; });
 }
@@ -81,8 +86,10 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
 /* ------------------------------------------------------------------------ */
 template <typename T, bool pack_helper>
 void DataAccessor<Element>::packUnpackElementalDataHelper(
-    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & element, const FEEngine & fem) {
+    std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                       ElementTypeMapArray<T>> & data_to_pack,
+    CommunicationBuffer & buffer, const Array<Element> & element,
+    const FEEngine & fem) {
   packUnpackElementalDataHelper<T, pack_helper>(
       data_to_pack, buffer, element, [&fem](auto && el) {
         return fem.getNbIntegrationPoints(el.type, el.ghost_type);
@@ -91,12 +98,12 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, bool pack_helper>
-void DataAccessor<Idx>::packUnpackDOFDataHelper(Array<T> & data,
-                                                CommunicationBuffer & buffer,
-                                                const Array<Idx> & dofs) {
-  T * data_ptr = data.data();
+void DataAccessor<Idx>::packUnpackDOFDataHelper(
+    std::conditional_t<pack_helper, const Array<T>, Array<T>> & data,
+    CommunicationBuffer & buffer, const Array<Idx> & dofs) {
+  auto data_ptr = make_view(data).begin();
   for (const auto & dof : dofs) {
-    if (pack_helper) {
+    if constexpr (pack_helper) {
       buffer << data_ptr[dof];
     } else {
       buffer >> data_ptr[dof];

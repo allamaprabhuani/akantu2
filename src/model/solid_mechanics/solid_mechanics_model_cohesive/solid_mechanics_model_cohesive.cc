@@ -33,8 +33,6 @@
 #include "parser.hh"
 #include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumpable_inline_impl.hh"
-/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
@@ -73,10 +71,7 @@ public:
       auto nb_old_nodes = nodes_flags.size();
       nodes_flags.resize(nb_old_nodes + local_nb_new_nodes);
 
-      for (auto && data : zip(old_nodes, new_nodes)) {
-        UInt old_node;
-        UInt new_node;
-        std::tie(old_node, new_node) = data;
+      for (auto && [old_node, new_node] : zip(old_nodes, new_nodes)) {
         nodes_flags(new_node) = nodes_flags(old_node);
       }
 
@@ -108,7 +103,7 @@ private:
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
     Mesh & mesh, Int dim, const ID & id,
-    std::shared_ptr<DOFManager> dof_manager)
+    const std::shared_ptr<DOFManager> & dof_manager)
     : SolidMechanicsModel(mesh, dim, id, dof_manager,
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
@@ -157,9 +152,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
 }
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() = default;
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::setTimeStep(Real time_step,
                                               const ID & solver_id) {
   SolidMechanicsModel::setTimeStep(time_step, solver_id);
@@ -198,9 +190,7 @@ void SolidMechanicsModelCohesive::initFullImpl(const ModelOptions & options) {
   mesh_accessor.registerGlobalDataUpdater(
       std::make_unique<CohesiveMeshGlobalDataUpdater>(*this));
 
-  ParserSection section;
-  bool is_empty;
-  std::tie(section, is_empty) = this->getParserSection();
+  auto && [section, is_empty] = this->getParserSection();
 
   if (not is_empty) {
     auto inserter_section =
@@ -332,8 +322,6 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   ElementTypeMapArray<Real> quad_facets("quad_facets", id);
   quad_facets.initialize(mesh_facets, _nb_component = Model::spatial_dimension,
                          _spatial_dimension = Model::spatial_dimension - 1);
-  // mesh_facets.initElementTypeMapArray(quad_facets, Model::spatial_dimension,
-  //                                     Model::spatial_dimension - 1);
 
   getFEEngine("FacetsFEEngine")
       .interpolateOnIntegrationPoints(position, quad_facets);
@@ -345,14 +333,11 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   elements_quad_facets.initialize(
       mesh, _nb_component = Model::spatial_dimension,
       _spatial_dimension = Model::spatial_dimension);
-  // mesh.initElementTypeMapArray(elements_quad_facets,
-  // Model::spatial_dimension,
-  //                              Model::spatial_dimension);
 
   for (auto elem_gt : ghost_types) {
     for (const auto & type :
          mesh.elementTypes(Model::spatial_dimension, elem_gt)) {
-      UInt nb_element = mesh.getNbElement(type, elem_gt);
+      auto nb_element = mesh.getNbElement(type, elem_gt);
       if (nb_element == 0) {
         continue;
       }
@@ -518,9 +503,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
   SolidMechanicsModel::onNodesAdded(new_nodes, event);
 
-  const CohesiveNewNodesEvent * cohesive_event;
-  if ((cohesive_event = dynamic_cast<const CohesiveNewNodesEvent *>(&event)) ==
-      nullptr) {
+  const auto * cohesive_event =
+      dynamic_cast<const CohesiveNewNodesEvent *>(&event);
+  if (cohesive_event == nullptr) {
     return;
   }
 
@@ -590,7 +575,7 @@ void SolidMechanicsModelCohesive::printself(std::ostream & stream,
   stream << space << "SolidMechanicsModelCohesive ["
          << "\n";
   SolidMechanicsModel::printself(stream, indent + 2);
-  stream << space << "]" << std::endl;
+  stream << space << "]\n";
 }
 
 /* -------------------------------------------------------------------------- */

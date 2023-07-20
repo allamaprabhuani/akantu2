@@ -49,9 +49,6 @@ ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
       mesh(mesh) {}
 
 /* -------------------------------------------------------------------------- */
-ModelSolver::~ModelSolver() = default;
-
-/* -------------------------------------------------------------------------- */
 std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
   auto sub_sections = getStaticParser().getSubSections(ParserType::_model);
 
@@ -72,7 +69,7 @@ std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<DOFManager>
-ModelSolver::initDOFManager(std::shared_ptr<DOFManager> dof_manager) {
+ModelSolver::initDOFManager(const std::shared_ptr<DOFManager> & dof_manager) {
   if (dof_manager) {
     this->dof_manager = dof_manager;
     this->setDOFManager(*this->dof_manager);
@@ -89,9 +86,7 @@ ModelSolver::initDOFManager(std::shared_ptr<DOFManager> dof_manager) {
   solver_type = "petsc";
 #endif
 
-  ParserSection section;
-  bool is_empty;
-  std::tie(section, is_empty) = this->getParserSection();
+  auto && [section, is_empty] = this->getParserSection();
 
   if (not is_empty) {
     solver_type = section.getOption(solver_type);

@@ -23,6 +23,10 @@
 #include <cstring>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
+
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,
+//             cppcoreguidelines-pro-type-reinterpret-cast,
+//             cppcoreguidelines-narrowing-conversions)
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
 template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
@@ -160,7 +164,7 @@ template <bool is_static>
 template <typename T>
 inline void
 CommunicationBufferTemplated<is_static>::unpackIterable(T & to_unpack) {
-  std::size_t size;
+  std::size_t size{};
   operator>>(size);
 
   to_unpack.resize(size);
@@ -234,7 +238,7 @@ CommunicationBufferTemplated<is_static>::extractStream(std::size_t block_size) {
   std::size_t n_block = 0;
   for (std::size_t i = 0; i < sz; ++i) {
     if (i % sz_block == 0) {
-      str << std::endl << n_block << " ";
+      str << "\n" << n_block << " ";
       ++n_block;
     }
     str << *ptr << " ";
@@ -285,4 +289,7 @@ inline void CommunicationBufferTemplated<is_static>::reset() {
   ptr_unpack = buffer.data();
 }
 
+// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,
+//           cppcoreguidelines-pro-type-reinterpret-cast,
+//           cppcoreguidelines-narrowing-conversions)
 } // namespace akantu

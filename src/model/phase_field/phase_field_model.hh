@@ -75,7 +75,7 @@ protected:
   void assembleResidual() override;
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & /*unused*/) const override;
+  [[nodiscard]] MatrixType getMatrixType(const ID & /*unused*/) const override;
 
   /// callback to assemble a Matrix
   void assembleMatrix(const ID & /*unused*/) override;
@@ -85,12 +85,12 @@ protected:
 
 protected:
   /* ------------------------------------------------------------------------ */
-  TimeStepSolverType getDefaultSolverType() const override;
+  [[nodiscard]] TimeStepSolverType getDefaultSolverType() const override;
 
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
-  ModelSolverOptions
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /// set the element_id_by_phasefield and add the elements to the good
@@ -129,8 +129,8 @@ protected:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -138,8 +138,8 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  Int getNbData(const Array<Idx> & indexes,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Idx> & indexes,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Idx> & indexes,
                 const SynchronizationTag & tag) const override;
@@ -187,10 +187,10 @@ public:
   PhaseField & getPhaseField(const ID & id) { return getConstitutiveLaw(id); }
   PhaseField & getPhaseField(Idx id) { return getConstitutiveLaw(id); }
 
-  const PhaseField & getPhaseField(const ID & id) const {
+  [[nodiscard]] const PhaseField & getPhaseField(const ID & id) const {
     return getConstitutiveLaw(id);
   }
-  const PhaseField & getPhaseField(Idx id) const {
+  [[nodiscard]] const PhaseField & getPhaseField(Idx id) const {
     return getConstitutiveLaw(id);
   }
   /* ------------------------------------------------------------------------ */

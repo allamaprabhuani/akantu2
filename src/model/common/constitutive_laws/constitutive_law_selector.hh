@@ -27,7 +27,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "element_type_map.hh"
+#include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include <memory>
 /* -------------------------------------------------------------------------- */
@@ -150,5 +150,7 @@ public:
 };
 
 } // namespace akantu
+
+#include "constitutive_law_selector_tmpl.hh"
 
 #endif /* AKANTU_CONSTITUTIVE_LAW_SELECTOR_HH */
