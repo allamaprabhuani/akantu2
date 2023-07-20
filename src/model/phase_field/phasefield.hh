@@ -110,63 +110,63 @@ public:
   /// Compute dissipated energy for an individual element
   Real getEnergy(const Element & element);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, (*strain), Real);
-  AKANTU_GET_MACRO_AUTO(Strain, (*strain));
-  AKANTU_GET_MACRO_AUTO_NOT_CONST(Strain, (*strain));
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
+  AKANTU_GET_MACRO_AUTO(Strain, strain);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Strain, strain);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, (*damage_on_qpoints), Real);
-  AKANTU_GET_MACRO_AUTO_NOT_CONST(Damage, (*damage_on_qpoints));
-  AKANTU_GET_MACRO_AUTO(Damage, (*damage_on_qpoints));
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage_on_qpoints, Real);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Damage, damage_on_qpoints);
+  AKANTU_GET_MACRO_AUTO(Damage, damage_on_qpoints);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// length scale parameter
-  Real l0;
+  Real l0{0.};
 
   /// Young's modulus
-  Real E;
+  Real E{0.};
 
   /// Poisson ratio
-  Real nu;
+  Real nu{0.};
 
   /// Lame's first parameter
-  Real lambda;
+  Real lambda{0.};
 
   /// Lame's second paramter
-  Real mu;
+  Real mu{0.};
 
   /// critical energy release rate
   // Real g_c;
-  std::shared_ptr<RandomInternalField<Real>> g_c;
+  DefaultRandomInternalField<Real> & g_c;
 
   /// damage arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> damage_on_qpoints;
+  InternalField<Real> & damage_on_qpoints;
 
   /// grad_d arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> gradd;
+  InternalField<Real> & gradd;
 
   /// phi arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> phi;
+  InternalField<Real> & phi;
 
   /// strain arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> strain;
+  InternalField<Real> & strain;
 
   /// driving force ordered by element types
-  std::shared_ptr<InternalField<Real>> driving_force;
+  InternalField<Real> & driving_force;
 
   /// driving energy ordered by element types
-  std::shared_ptr<InternalField<Real>> driving_energy;
+  InternalField<Real> & driving_energy;
 
   /// damage energy ordered by element types
-  std::shared_ptr<InternalField<Real>> damage_energy;
+  InternalField<Real> & damage_energy;
 
   /// damage energy density ordered by element types
-  std::shared_ptr<InternalField<Real>> damage_energy_density;
+  InternalField<Real> & damage_energy_density;
 
   /// dissipated energy by element
-  std::shared_ptr<InternalField<Real>> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 };
 
 } // namespace akantu

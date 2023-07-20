@@ -28,15 +28,10 @@ namespace akantu {
 template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
                                       const ID & id, const ID & fe_engine_id)
-    : Material(model, id, fe_engine_id) {
-  this->initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialThermal<dim>::initialize() {
-  delta_T = this->registerInternal("delta_T", 1);
-  sigma_th = this->registerInternal("sigma_th", 1);
-  sigma_th->initializeHistory();
+    : Material(model, id, fe_engine_id),
+      delta_T(this->registerInternal("delta_T", 1)),
+      sigma_th(this->registerInternal("sigma_th", 1)) {
+  sigma_th.initializeHistory();
 
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
@@ -44,14 +39,8 @@ template <Int dim> void MaterialThermal<dim>::initialize() {
                       "Poisson's ratio");
   this->registerParam("alpha", alpha, Real(0.), _pat_parsable | _pat_modifiable,
                       "Thermal expansion coefficient");
-  this->registerParam("delta_T", (*delta_T), _pat_parsable | _pat_modifiable,
+  this->registerParam("delta_T", delta_T, _pat_parsable | _pat_modifiable,
                       "Uniform temperature field");
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialThermal<dim>::initMaterial() {
-
-  Material::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */

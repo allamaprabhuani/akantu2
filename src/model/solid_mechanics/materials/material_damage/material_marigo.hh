@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "material.hh"
+// #include "material.hh"
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -50,8 +50,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   void updateInternalParameters() override;
 
   /// constitutive law for all element of a type
@@ -69,8 +67,9 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -87,9 +86,8 @@ public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent::getArguments(el_type, ghost_type),
-        "Yd"_n = make_view((*this->Yd)(el_type, ghost_type)),
-        "Y"_n =
-            broadcast(this->Y, (*this->damage)(el_type, ghost_type).size()));
+        "Yd"_n = make_view(this->Yd(el_type, ghost_type)),
+        "Y"_n = broadcast(this->Y, this->damage(el_type, ghost_type).size()));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -97,7 +95,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// resistance to damage
-  std::shared_ptr<RandomInternalField<Real>> Yd;
+  RandomInternalField<Real> & Yd;
 
   /// damage threshold
   Real Sd{5000};

@@ -19,8 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "custom_non_local_test_material.hh"
+#include "aka_types.hh"
 
 namespace akantu {
 
@@ -28,12 +28,9 @@ namespace akantu {
 template <Int dim>
 CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
     SolidMechanicsModel & model, const ID & id)
-    : MyNonLocalParent(model, id), local_damage("local_damage", *this),
-      damage("damage", *this) {
-  // Initialize the internal field by specifying the number of components
-  this->local_damage.initialize(1);
-  this->damage.initialize(1);
-}
+    : MyNonLocalParent(model, id),
+      local_damage(this->registerInternal("local_damage", 1)),
+      damage(this->registerInternal("damage", 1)) {}
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
@@ -49,11 +46,6 @@ void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim> void CustomNonLocalTestMaterial<dim>::initMaterial() {
-  MyNonLocalParent::initMaterial();
-}
-
-/* -------------------------------------------------------------------------- */
 template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeStress(ElementType el_type,
                                                     GhostType ghost_type) {
@@ -64,16 +56,12 @@ void CustomNonLocalTestMaterial<dim>::computeStress(ElementType el_type,
 template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
-  Array<Real>::const_scalar_iterator dam =
-      this->damage(el_type, ghost_type).begin();
-  Array<Real>::matrix_iterator stress =
-      (*this->stress)(el_type, ghost_type).begin(dim, dim);
-  Array<Real>::matrix_iterator stress_end =
-      (*this->stress)(el_type, ghost_type).end(dim, dim);
 
   // compute the damage and update the stresses
-  for (; stress != stress_end; ++stress, ++dam) {
-    *stress *= (1. - *dam);
+  for (auto && [stress, dam] :
+       zip(make_view<dim, dim>(this->stress(el_type, ghost_type)),
+           this->damage(el_type, ghost_type))) {
+    stress = stress * (1. - dam);
   }
 }
 
@@ -83,8 +71,8 @@ template class CustomNonLocalTestMaterial<1>;
 template class CustomNonLocalTestMaterial<2>;
 template class CustomNonLocalTestMaterial<3>;
 
-static bool material_is_allocated_custom_non_local_test_material =
-    instantiateMaterial<CustomNonLocalTestMaterial>(
+const bool material_is_allocated_custom_non_local_test_material
+    [[maybe_unused]] = instantiateMaterial<CustomNonLocalTestMaterial>(
         "custom_non_local_test_material");
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

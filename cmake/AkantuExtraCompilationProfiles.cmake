@@ -18,8 +18,6 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
 mark_as_advanced(FORCE_COLORED_OUTPUT)
 if(FORCE_COLORED_OUTPUT)
@@ -30,13 +28,13 @@ if(FORCE_COLORED_OUTPUT)
   endif()
 endif()
 
-
-
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
   CACHE STRING "Flags used by the compiler during release builds" FORCE)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3 -gsplit-dwarf"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+  set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG_INIT}--gdb-index"
+    CACHE STRING "Flags used by the linker during creation of shared libraries" FORCE)
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
 endif()

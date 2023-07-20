@@ -67,7 +67,7 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         ParentMaterial::template getArguments<dim>(el_type, ghost_type),
-        "C33"_n = broadcast(C33, (*this->stress)(el_type, ghost_type).size()));
+        "C33"_n = broadcast(C33, this->stress(el_type, ghost_type).size()));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
@@ -76,7 +76,7 @@ public:
     return zip_append(
         ParentMaterial::template getArgumentsTangent<dim>(tangent_matrix,
                                                           el_type, ghost_type),
-        "C33"_n = broadcast(C33, (*this->stress)(el_type, ghost_type).size()));
+        "C33"_n = broadcast(C33, this->stress(el_type, ghost_type).size()));
   }
 
 protected:

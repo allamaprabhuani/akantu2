@@ -32,21 +32,29 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
-    : Material(model, id), facet_filter("facet_filter", id),
+    : Material(model, id, "CohesiveFEEngine"), facet_filter("facet_filter", id),
       fem_cohesive(
           model.getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine")),
-      reversible_energy("reversible_energy", *this),
-      total_energy("total_energy", *this), opening("opening", *this),
-      tractions("tractions", *this),
-      contact_tractions("contact_tractions", *this),
-      contact_opening("contact_opening", *this), delta_max("delta max", *this),
+      reversible_energy(registerInternal<Real, CohesiveInternalField>(
+          "reversible_energy", 1)),
+      total_energy(
+          registerInternal<Real, CohesiveInternalField>("total_energy", 1)),
+      opening(registerInternal<Real, CohesiveInternalField>("opening",
+                                                            spatial_dimension)),
+      tractions(registerInternal<Real, CohesiveInternalField>(
+          "tractions", spatial_dimension)),
+      contact_tractions(registerInternal<Real, CohesiveInternalField>(
+          "contact_tractions", spatial_dimension)),
+      contact_opening(registerInternal<Real, CohesiveInternalField>(
+          "contact_opening", spatial_dimension)),
+      delta_max(registerInternal<Real, CohesiveInternalField>("delta max", 1)),
       use_previous_delta_max(false), use_previous_opening(false),
-      damage("damage", *this), sigma_c("sigma_c", *this),
-      normals("normal", *this) {
-
+      damage(registerInternal<Real, CohesiveInternalField>("damage", 1)),
+      sigma_c(registerInternal<Real, FacetRandomInternalField>("sigma_c", 1)),
+      model(&aka::as_type<SolidMechanicsModelCohesive>(model)),
+      normals(registerInternal<Real, CohesiveInternalField>(
+          "normal", spatial_dimension)) {
   AKANTU_DEBUG_IN();
-
-  this->model = dynamic_cast<SolidMechanicsModelCohesive *>(&model);
 
   this->registerParam("sigma_c", sigma_c, _pat_parsable | _pat_readable,
                       "Critical stress");
@@ -63,43 +71,20 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
                                   _element_kind = _ek_regular);
   }
 
-  this->reversible_energy.initialize(1);
-  this->total_energy.initialize(1);
-
-  this->tractions.initialize(spatial_dimension);
-  this->tractions.initializeHistory();
-
-  this->contact_tractions.initialize(spatial_dimension);
-  this->contact_opening.initialize(spatial_dimension);
-
-  this->opening.initialize(spatial_dimension);
-  this->opening.initializeHistory();
-
-  this->normals.initialize(spatial_dimension);
-
-  this->delta_max.initialize(1);
-  this->damage.initialize(1);
-
-  if (this->model->getIsExtrinsic()) {
-    this->sigma_c.initialize(1);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-MaterialCohesive::~MaterialCohesive() = default;
-
-/* -------------------------------------------------------------------------- */
-void MaterialCohesive::initMaterial() {
-  AKANTU_DEBUG_IN();
-  Material::initMaterial();
   if (this->use_previous_delta_max) {
     this->delta_max.initializeHistory();
   }
   if (this->use_previous_opening) {
     this->opening.initializeHistory();
   }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::initMaterial() {
+  AKANTU_DEBUG_IN();
+  Material::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
@@ -192,7 +177,6 @@ void MaterialCohesive::assembleInternalForces(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
-
   AKANTU_DEBUG_IN();
 
   for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type,

@@ -36,7 +36,8 @@ inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
   auto && dam = arguments["damage"_n];
   auto && Y = arguments["Y"_n];
 
-  MaterialElastic<dim>::computeStressOnQuad(arguments);
+  MaterialElastic<dim>::computeStressOnQuad(
+      std::forward<decltype(arguments)>(arguments));
 
   Y = sigma.doubleDot(Material::gradUToEpsilon<dim>(grad_u)) / 2.;
 
@@ -49,7 +50,7 @@ inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
   }
 
   if (not this->is_non_local) {
-    computeDamageAndStressOnQuad(arguments);
+    computeDamageAndStressOnQuad(std::forward<decltype(arguments)>(arguments));
   }
 }
 
@@ -57,7 +58,7 @@ inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
 template <Int dim>
 template <typename Args>
 inline void
-MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) {
+MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) { // NOLINT(cppcoreguidelines-missing-std-forward)
   auto && sigma = arguments["sigma"_n];
   auto && dam = arguments["damage"_n];
   auto && Y = arguments["Y"_n];
@@ -95,7 +96,7 @@ MaterialMarigo<dim>::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
                               const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_clh_init_cl) {
-    this->packInternalFieldHelper(*Yd, buffer, elements);
+    this->packInternalFieldHelper(Yd, buffer, elements);
   }
 
   MaterialDamage<dim>::packData(buffer, elements, tag);
@@ -107,7 +108,7 @@ inline void MaterialMarigo<dim>::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_clh_init_cl) {
-    this->unpackInternalFieldHelper(*Yd, buffer, elements);
+    this->unpackInternalFieldHelper(Yd, buffer, elements);
   }
 
   MaterialDamage<dim>::unpackData(buffer, elements, tag);
@@ -115,4 +116,4 @@ inline void MaterialMarigo<dim>::unpackData(CommunicationBuffer & buffer,
 
 } // namespace akantu
 
-//#endif /* __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__ */
+// #endif /* __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__ */

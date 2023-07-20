@@ -20,7 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
-#include "material_anisotropic_damage.hh"
+#include "material_anisotropic_damage.hh" // NOLINT(pp_including_mainfile_in_preamble)
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_TMPL_HH_
@@ -140,15 +140,13 @@ template <Int dim, template <Int> class EquivalentStrain,
 MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
     MaterialAnisotropicDamage(SolidMechanicsModel & model, const ID & id)
     : Parent<dim>(model, id), equivalent_strain_function(*this),
-      damage_threshold_function(*this) {
+      damage_threshold_function(*this),
+      damage(this->registerInternal("damage", dim * dim)),
+      elastic_stress(this->registerInternal("elastic_stress", dim * dim)),
+      equivalent_strain(this->registerInternal("equivalent_strain", 1)),
+      trace_damage(this->registerInternal("trace_damage", 1)) {
   this->registerParam("Dc", Dc, _pat_parsable, "Critical damage");
-
-  this->damage = this->registerInternal("damage", dim * dim);
-  this->elastic_stress = this->registerInternal("elastic_stress", dim * dim);
-  this->equivalent_strain = this->registerInternal("equivalent_strain", 1);
-
-  this->trace_damage = this->registerInternal("trace_damage", 1);
-  this->trace_damage->initializeHistory();
+  this->trace_damage.initializeHistory();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -191,7 +189,7 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
   auto & damage_threshold_data = args["damage_threshold_data"_n];
 
   Matrix<Real, dim, dim> Dtmp;
-  Real TrD_n_1_tmp;
+  Real TrD_n_1_tmp{0.};
   Matrix<Real, dim, dim> epsilon;
 
   // yes you read properly this is a label for a goto
@@ -298,14 +296,14 @@ public:
   }
 
   template <class D, class... Other>
-  Real operator()(const Eigen::MatrixBase<D> & epsilon, Real) {
+  Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
     Real epsilon_hat = EquivalentStrainMazars<dim>::operator()(epsilon);
     epsilon_hat += k * epsilon.trace();
     return epsilon_hat;
   }
 
 protected:
-  Real k;
+  Real k{0.};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -328,8 +326,8 @@ public:
 
 private:
   Material & mat;
-  Real A;
-  Real K0;
+  Real A{0.};
+  Real K0{0.};
 };
 
 template <Int dim> class DamageThresholdTan : public EmptyIteratorContainer {

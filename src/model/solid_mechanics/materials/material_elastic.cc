@@ -29,7 +29,7 @@ namespace akantu {
 template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
                                       const ID & id, const ID & fe_engine_id)
-    : Parent(model, id, fe_engine_id), was_stiffness_assembled(false) {
+    : Parent(model, id, fe_engine_id) {
   this->registerParam("lambda", lambda, _pat_readable,
                       "First Lamé coefficient");
   this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
@@ -122,13 +122,14 @@ void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-Real MaterialElastic<dim>::getPushWaveSpeed(const Element &) const {
+Real MaterialElastic<dim>::getPushWaveSpeed(const Element & /*element*/) const {
   return sqrt((lambda + 2 * mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-Real MaterialElastic<dim>::getShearWaveSpeed(const Element &) const {
+Real MaterialElastic<dim>::getShearWaveSpeed(
+    const Element & /*element*/) const {
   return sqrt(mu / this->rho);
 }
 
@@ -143,12 +144,12 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
 
   if (not this->finite_deformation) {
     for (auto && [args, epot] :
-         zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
       this->computePotentialEnergyOnQuad(args, epot);
     }
   } else {
     for (auto && [args, epot] :
-         zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
+         zip(arguments, this->potential_energy(el_type, _not_ghost))) {
       auto && E = this->template gradUToE<dim>(args["grad_u"_n]);
       this->computePotentialEnergyOnQuad(tuple::replace(args, "grad_u"_n = E),
                                          epot);
@@ -163,8 +164,8 @@ template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
     const Element & element, Vector<Real> & epot_on_quad_points) {
   auto type = element.type;
-  auto gradu_view = make_view<dim, dim>((*this->gradu)(type));
-  auto stress_view = make_view<dim, dim>((*this->stress)(type));
+  auto gradu_view = make_view<dim, dim>(this->gradu(type));
+  auto stress_view = make_view<dim, dim>(this->stress(type));
 
   if (this->finite_deformation) {
     stress_view = make_view<dim, dim>((*this->piola_kirchhoff_2)(type));
@@ -212,7 +213,7 @@ template class MaterialElastic<1>;
 template class MaterialElastic<2>;
 template class MaterialElastic<3>;
 
-static bool material_is_allocated_elastic =
+const bool material_is_allocated_elastic [[maybe_unused]] =
     instantiateMaterial<MaterialElastic>("elastic");
 
 } // namespace akantu

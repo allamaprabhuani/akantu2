@@ -29,47 +29,45 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename FEEngineClass>
-inline FEEngineClass & Model::getFEEngineClassBoundary(std::string name) {
-  if (name.empty()) {
-    name = default_fem;
+inline FEEngineClass & Model::getFEEngineClassBoundary(const ID & name) {
+  auto tmp_name = name.empty() ? default_fem : name;
+
+  auto has_fem_boundary = hasFEEngineBoundary(tmp_name);
+  auto boundary_name = tmp_name + ":boundary";
+
+  if (not has_fem_boundary) {
+    AKANTU_DEBUG_INFO("Creating FEEngine boundary " << tmp_name);
+
+    auto & fe_engine = getFEEngine(tmp_name);
+
+    auto spatial_dimension = fe_engine.getElementDimension();
+    registerFEEngineObject<FEEngineClass>(boundary_name, fe_engine.getMesh(),
+                                          spatial_dimension - 1);
+
+    auto & fem_boundary = getFEEngineClass<FEEngineClass>(boundary_name);
+    fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+    fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+    return fem_boundary;
   }
 
-  auto it_boun = fems_boundary.find(name);
-
-  if (it_boun == fems_boundary.end()) {
-    AKANTU_DEBUG_INFO("Creating FEEngine boundary " << name);
-
-    auto it = fems.find(name);
-    if (it == fems.end()) {
-      AKANTU_EXCEPTION("The FEEngine " << name << " is not registered");
-    }
-
-    auto spatial_dimension = it->second->getElementDimension();
-    fems_boundary[name] = std::make_unique<FEEngineClass>(
-        it->second->getMesh(), spatial_dimension - 1,
-        id + ":fem_boundary:" + name);
-  }
-
-  return aka::as_type<FEEngineClass>(*fems_boundary[name]);
+  return getFEEngineClass<FEEngineClass>(boundary_name);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename FEEngineClass>
-inline FEEngineClass & Model::getFEEngineClass(std::string name) const {
-  if (name.empty()) {
-    name = default_fem;
-  }
+inline FEEngineClass & Model::getFEEngineClass(const ID & name) const {
+  auto tmp_name = name.empty() ? default_fem : name;
 
-  auto it = fems.find(name);
+  auto it = fems.find(tmp_name);
   if (it == fems.end()) {
-    AKANTU_EXCEPTION("The FEEngine " << name << " is not registered");
+    AKANTU_EXCEPTION("The FEEngine " << tmp_name << " is not registered");
   }
 
   return aka::as_type<FEEngineClass>(*(it->second));
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Model::unRegisterFEEngineObject(const std::string & name) {
+inline void Model::unRegisterFEEngineObject(const ID & name) {
   auto it = fems.find(name);
   if (it == fems.end()) {
     AKANTU_EXCEPTION("FEEngine object with name " << name << " was not found");
@@ -77,14 +75,15 @@ inline void Model::unRegisterFEEngineObject(const std::string & name) {
 
   fems.erase(it);
   if (not fems.empty() and default_fem == name) {
-    default_fem = (*fems.begin()).first;
+    default_fem = fems.begin()->first;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename FEEngineClass>
-inline void Model::registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                          Int spatial_dimension) {
+inline void Model::registerFEEngineObject(const ID & name, Mesh & mesh,
+                                          Int spatial_dimension,
+                                          bool do_not_precompute) {
   if (fems.empty()) {
     default_fem = name;
   }
@@ -95,8 +94,8 @@ inline void Model::registerFEEngineObject(const std::string & name, Mesh & mesh,
                                                   << " was already created");
   }
 
-  fems[name] = std::make_unique<FEEngineClass>(mesh, spatial_dimension,
-                                               id + ":fem:" + name);
+  fems[name] = std::make_unique<FEEngineClass>(
+      mesh, spatial_dimension, id + ":fem:" + name, do_not_precompute);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -115,8 +114,8 @@ inline FEEngine & Model::getFEEngine(const ID & name) const {
 inline FEEngine & Model::getFEEngineBoundary(const ID & name) {
   ID tmp_name = (name.empty()) ? default_fem : name;
 
-  auto it = fems_boundary.find(tmp_name);
-  if (it == fems_boundary.end()) {
+  auto it = fems.find(tmp_name + ":boundary");
+  if (it == fems.end()) {
     AKANTU_EXCEPTION("The FEEngine boundary  " << tmp_name
                                                << " is not registered");
   }
@@ -129,14 +128,14 @@ inline FEEngine & Model::getFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 inline bool Model::hasFEEngineBoundary(const ID & name) {
   ID tmp_name = (name.empty()) ? default_fem : name;
-  auto it = fems_boundary.find(tmp_name);
-  return (it != fems_boundary.end());
+  auto it = fems.find(tmp_name + ":boundary");
+  return (it != fems.end());
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void Model::allocNodalField(std::unique_ptr<Array<T>> & array,
-                            Int nb_component, const ID & name) const {
+void Model::allocNodalField(std::unique_ptr<Array<T>> & array, Int nb_component,
+                            const ID & name) const {
   if (array) {
     return;
   }
@@ -148,7 +147,7 @@ void Model::allocNodalField(std::unique_ptr<Array<T>> & array,
 
 /* -------------------------------------------------------------------------- */
 inline Int Model::getNbIntegrationPoints(const Array<Element> & elements,
-                                          const ID & fem_id) const {
+                                         const ID & fem_id) const {
   Int nb_quad = 0;
   for (auto && el : elements) {
     nb_quad +=

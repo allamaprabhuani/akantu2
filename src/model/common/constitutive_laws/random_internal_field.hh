@@ -42,14 +42,14 @@ class RandomInternalField : public BaseField<T> {
 public:
   using BaseField<T>::BaseField;
 
+  friend class ConstitutiveLawInternalHandler;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-  RandomInternalField operator=(const RandomInternalField &) = delete;
-
 public:
-  AKANTU_GET_MACRO(RandomParameter, random_parameter,
-                   const RandomParameter<T> &);
+  std::shared_ptr<RandomInternalField> getPtr() {
+    return aka::as_type<RandomInternalField>(this->shared_from_this());
+  }
 
   /// initialize the field to a given number of component
   void initialize(Int nb_component) override;
@@ -72,6 +72,9 @@ protected:
 public:
   inline operator Real() const;
 
+  AKANTU_GET_MACRO(RandomParameter, random_parameter,
+                   const RandomParameter<T> &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -89,6 +92,10 @@ operator<<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
+
+template <typename T>
+using DefaultRandomInternalField =
+    RandomInternalField<T, InternalField, RandomGenerator>;
 
 } // namespace akantu
 

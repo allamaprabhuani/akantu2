@@ -45,7 +45,6 @@ public:
 
 public:
   MaterialCohesive(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialCohesive() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -188,26 +187,26 @@ protected:
 
 private:
   /// reversible energy by quadrature point
-  CohesiveInternalField<Real> reversible_energy;
+  CohesiveInternalField<Real> & reversible_energy;
 
   /// total energy by quadrature point
-  CohesiveInternalField<Real> total_energy;
+  CohesiveInternalField<Real> & total_energy;
 
 protected:
   /// opening in all elements and quadrature points
-  CohesiveInternalField<Real> opening;
+  CohesiveInternalField<Real> & opening;
 
   /// traction in all elements and quadrature points
-  CohesiveInternalField<Real> tractions;
+  CohesiveInternalField<Real> & tractions;
 
   /// traction due to contact
-  CohesiveInternalField<Real> contact_tractions;
+  CohesiveInternalField<Real> & contact_tractions;
 
   /// normal openings for contact tractions
-  CohesiveInternalField<Real> contact_opening;
+  CohesiveInternalField<Real> & contact_opening;
 
   /// maximum displacement
-  CohesiveInternalField<Real> delta_max;
+  CohesiveInternalField<Real> & delta_max;
 
   /// tell if the previous delta_max state is needed (in iterative schemes)
   bool use_previous_delta_max;
@@ -216,19 +215,19 @@ protected:
   bool use_previous_opening;
 
   /// damage
-  CohesiveInternalField<Real> damage;
+  CohesiveInternalField<Real> & damage;
+
+  /// critical stress
+  FacetRandomInternalField<Real> & sigma_c;
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;
 
-  /// critical stress
-  RandomInternalField<Real, FacetInternalField> sigma_c;
-
   /// critical displacement
-  Real delta_c;
+  Real delta_c{0.};
 
   /// array to temporarily store the normals
-  CohesiveInternalField<Real> normals;
+  CohesiveInternalField<Real> & normals;
 };
 
 } // namespace akantu

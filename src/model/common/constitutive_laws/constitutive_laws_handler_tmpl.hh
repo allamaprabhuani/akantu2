@@ -300,6 +300,10 @@ void ConstitutiveLawsHandler<ConstitutiveLawType,
   }
 
   this->synchronize(SynchronizationTag::_clh_init_cl);
+
+  if (this->non_local_manager) {
+    this->non_local_manager->initialize();
+  }
 }
 
 /* -------------------------------------------------------------------------- */

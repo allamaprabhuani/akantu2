@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "constitutive_law.hh"
+#include "constitutive_law.hh" // NOLINT
 #include "constitutive_laws_handler.hh"
 #include "fe_engine.hh"
 #include "internal_field.hh"
@@ -44,23 +44,31 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename Type> class InternalFieldType>
-inline std::shared_ptr<InternalFieldType<T>>
+inline InternalFieldType<T> &
 ConstitutiveLawInternalHandler::registerInternal(const ID & id,
                                                  Int nb_component) {
   return this->registerInternal<T, InternalFieldType>(
       id, nb_component, this->default_fe_engine_id);
 }
 
+/* -------------------------------------------------------------------------- */
 template <typename T, template <typename Type> class InternalFieldType>
-inline std::shared_ptr<InternalFieldType<T>>
-ConstitutiveLawInternalHandler::registerInternal(const ID & id,
-                                                 Int nb_component,
-                                                 const ID & fe_engine_id) {
-  auto && internal = std::make_shared<InternalFieldType<T>>(
-      id, *this, this->spatial_dimension, fe_engine_id, this->element_filter);
+inline InternalFieldType<T> & ConstitutiveLawInternalHandler::registerInternal(
+    const ID & id, Int nb_component, const ID & fe_engine_id) {
+  return this->registerInternal<T, InternalFieldType>(
+      id, nb_component, fe_engine_id, this->element_filter);
+}
+/* -------------------------------------------------------------------------- */
+template <typename T, template <typename Type> class InternalFieldType>
+inline InternalFieldType<T> & ConstitutiveLawInternalHandler::registerInternal(
+    const ID & id, Int nb_component, const ID & fe_engine_id,
+    const ElementTypeMapArray<Idx> & element_filter) {
+  auto && internal =
+      std::shared_ptr<InternalFieldType<T>>(new InternalFieldType<T>(
+          id, *this, this->spatial_dimension, fe_engine_id, element_filter));
   internal->initialize(nb_component);
   internal_vectors[internal->getRegisterID()] = internal;
-  return internal;
+  return *internal;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -97,7 +105,7 @@ inline void ConstitutiveLawInternalHandler::resizeInternals() {
 template <typename T>
 const InternalField<T> &
 ConstitutiveLawInternalHandler::getInternal(const ID & id) const {
-  auto it = internal_vectors.find(this->id + ":" + id);
+  auto it = internal_vectors.find(id);
   if (it != internal_vectors.end() and
       aka::is_of_type<InternalField<T>>(*it->second)) {
     return aka::as_type<InternalField<T>>(*it->second);
@@ -112,8 +120,9 @@ ConstitutiveLawInternalHandler::getInternal(const ID & id) const {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 InternalField<T> & ConstitutiveLawInternalHandler::getInternal(const ID & id) {
-  auto it = internal_vectors.find(getID() + ":" + id);
-  if (it != internal_vectors.end() and
+
+  if (auto it = internal_vectors.find(getID() + ":" + id);
+      it != internal_vectors.end() and
       aka::is_of_type<InternalField<T>>(*it->second)) {
     return aka::as_type<InternalField<T>>(*it->second);
   }
@@ -128,11 +137,11 @@ InternalField<T> & ConstitutiveLawInternalHandler::getInternal(const ID & id) {
 template <typename T>
 inline bool ConstitutiveLawInternalHandler::isInternal(
     const ID & id, const ElementKind & element_kind) const {
-  auto it = internal_vectors.find(this->getID() + ":" + id);
+  auto it = internal_vectors.find(id);
 
-  return (it != internal_vectors.end() and
+  return ((it != internal_vectors.end()) and
           aka::is_of_type<InternalField<T>>(*it->second) and
-          aka::as_type<InternalField<T>>(*it->second).getElementKind() !=
+          aka::as_type<InternalField<T>>(*it->second).getElementKind() ==
               element_kind);
 }
 
@@ -198,8 +207,8 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
     : ConstitutiveLawInternalHandler(id, spatial_dimension, fe_engine_id),
       Parsable(handler.getConstitutiveLawParserType(), id), handler(handler) {
 
-  /// for each connectivity types allocate the element filer array of the
-  /// constitutive law
+  /// for each connectivity types allocate the element filer array of
+  /// the constitutive law
   this->element_filter.initialize(
       handler.getMesh(), _spatial_dimension = handler.getSpatialDimension(),
       _element_kind = element_kind);
@@ -217,9 +226,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::initialize() {
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::initConstitutiveLaw() {
   this->resizeInternals();
-
   this->updateInternalParameters();
-
   is_init = true;
 }
 
@@ -585,9 +592,9 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::inflateInternal(
         field.size() == fe_engine.getMesh().getNbElement(type, ghost_type) *
                             nb_quad_per_elem,
         "The ElementTypeMapArray to inflate is not of the proper size");
-    AKANTU_DEBUG_ASSERT(
-        dest_array.getNbComponent() == nb_component,
-        "The ElementTypeMapArray has not the proper number of components");
+    AKANTU_DEBUG_ASSERT(dest_array.getNbComponent() == nb_component,
+                        "The ElementTypeMapArray has not the proper "
+                        "number of components");
 
     auto src =
         make_view(field(type, ghost_type), nb_component, nb_quad_per_elem)

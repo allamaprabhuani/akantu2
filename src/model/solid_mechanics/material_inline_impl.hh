@@ -60,7 +60,7 @@ constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
 
   Matrix<Real, dim, dim> F_S;
   F_S = F * S;
-  Real constant = J ? 1. / J : 0;
+  Real constant = (J < std::numeric_limits<Real>::epsilon()) ? 1. / J : 0;
   sigma = constant * F_S * F.transpose();
 }
 
@@ -173,11 +173,11 @@ inline Int Material::getNbData(const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *
-           spatial_dimension * sizeof(Real) *
+           spatial_dimension * Int(sizeof(Real)) *
            this->getModel().getNbIntegrationPoints(elements);
   }
   if (tag == SynchronizationTag::_smm_gradu) {
-    return spatial_dimension * spatial_dimension * sizeof(Real) *
+    return spatial_dimension * spatial_dimension * Int(sizeof(Real)) *
            this->getModel().getNbIntegrationPoints(elements);
   }
   return 0;
@@ -190,13 +190,13 @@ inline void Material::packData(CommunicationBuffer & buffer,
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
       packInternalFieldHelper(*piola_kirchhoff_2, buffer, elements);
-      packInternalFieldHelper(*gradu, buffer, elements);
+      packInternalFieldHelper(gradu, buffer, elements);
     }
-    packInternalFieldHelper(*stress, buffer, elements);
+    packInternalFieldHelper(stress, buffer, elements);
   }
 
   if (tag == SynchronizationTag::_smm_gradu) {
-    packInternalFieldHelper(*gradu, buffer, elements);
+    packInternalFieldHelper(gradu, buffer, elements);
   }
 }
 
@@ -207,16 +207,16 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
       unpackInternalFieldHelper(*piola_kirchhoff_2, buffer, elements);
-      unpackInternalFieldHelper(*gradu, buffer, elements);
+      unpackInternalFieldHelper(gradu, buffer, elements);
     }
-    unpackInternalFieldHelper(*stress, buffer, elements);
+    unpackInternalFieldHelper(stress, buffer, elements);
   }
 
   if (tag == SynchronizationTag::_smm_gradu) {
-    unpackInternalFieldHelper(*gradu, buffer, elements);
+    unpackInternalFieldHelper(gradu, buffer, elements);
   }
 }
 
 } // namespace akantu
 
-//#endif /* __AKANTU_MATERIAL_INLINE_IMPL_CC__ */
+// #endif /* __AKANTU_MATERIAL_INLINE_IMPL_CC__ */

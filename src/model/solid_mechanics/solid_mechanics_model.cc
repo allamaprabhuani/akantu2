@@ -28,7 +28,7 @@
 #include "sparse_matrix.hh"
 #include "synchronizer_registry.hh"
 
-#include "dumpable_inline_impl.hh"
+#include "dumpable_inline_impl.hh" // NOLINT(unused-includes)
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
@@ -55,7 +55,7 @@ SolidMechanicsModel::SolidMechanicsModel(
     : CLHParent(mesh, model_type, dim, id) {
   AKANTU_DEBUG_IN();
 
-  this->initDOFManager(dof_manager);
+  this->initDOFManager(std::move(dof_manager));
 
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);
@@ -63,9 +63,6 @@ SolidMechanicsModel::SolidMechanicsModel(
   this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
-
-  // material_selector =
-  // std::make_shared<DefaultMaterialSelector>(material_index);
 
   this->registerDataAccessor(*this);
 
@@ -445,7 +442,7 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
 
   this->updateCurrentPosition();
 
-  Element elem;
+  Element elem{_not_defined, 0, ghost_type};
   elem.ghost_type = ghost_type;
 
   for (auto type :
@@ -459,13 +456,13 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
     Array<Real> X(0, nb_nodes_per_element * Model::spatial_dimension);
     FEEngine::extractNodalToElementField(mesh, *current_position, X, type,
                                          _not_ghost);
-    const auto & fem = this->getFEEngine();
+
     for (auto && [X_el, mat_idx, el] :
          zip(make_view(X, spatial_dimension, nb_nodes_per_element),
              make_view(mat_indexes), make_view(mat_loc_num))) {
       elem.element = el;
 
-      auto el_h = fem.getElementInradius(X_el, type);
+      auto el_h = FEEngine::getElementInradius(X_el, type);
       auto el_c = this->getMaterial(mat_idx).getCelerity(elem);
       auto el_dt = el_h / el_c;
 
@@ -561,7 +558,7 @@ Real SolidMechanicsModel::getKineticEnergy(const Element & element) {
 Real SolidMechanicsModel::getExternalWork() {
   AKANTU_DEBUG_IN();
 
-  Array<Real> * incrs_or_velos;
+  Array<Real> * incrs_or_velos{nullptr};
   if (this->method == _static) {
     incrs_or_velos = this->displacement_increment.get();
   } else {
@@ -754,16 +751,20 @@ void SolidMechanicsModel::onNodesRemoved(const Array<Idx> & /*element_list*/,
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
-  stream << space << "Solid Mechanics Model [" << std::endl;
-  stream << space << " + id                : " << id << std::endl;
+  stream << space << "Solid Mechanics Model ["
+         << "\n";
+  stream << space << " + id                : " << id << "\n";
   stream << space << " + spatial dimension : " << Model::spatial_dimension
-         << std::endl;
+         << "\n";
 
-  stream << space << " + fem [" << std::endl;
+  stream << space << " + fem ["
+         << "\n";
   getFEEngine().printself(stream, indent + 2);
-  stream << space << " ]" << std::endl;
+  stream << space << " ]"
+         << "\n";
 
-  stream << space << " + nodals information [" << std::endl;
+  stream << space << " + nodals information ["
+         << "\n";
   displacement->printself(stream, indent + 2);
   if (velocity) {
     velocity->printself(stream, indent + 2);
@@ -777,14 +778,18 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   external_force->printself(stream, indent + 2);
   internal_force->printself(stream, indent + 2);
   blocked_dofs->printself(stream, indent + 2);
-  stream << space << " ]" << std::endl;
+  stream << space << " ]"
+         << "\n";
 
-  stream << space << " + materials [" << std::endl;
+  stream << space << " + materials ["
+         << "\n";
   this->for_each_constitutive_law(
       [&](auto && material) { material.printself(stream, indent + 2); });
-  stream << space << " ]" << std::endl;
+  stream << space << " ]"
+         << "\n";
 
-  stream << space << "]" << std::endl;
+  stream << space << "]"
+         << "\n";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -808,13 +813,13 @@ Int SolidMechanicsModel::getNbData(const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {
 
   Int size = 0;
-  Int nb_nodes_per_element = 0;
+  // Int nb_nodes_per_element = 0;
 
-  for (const Element & el : elements) {
-    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  }
+  // for (const Element & el : elements) {
+  //   nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  // }
 
-  CLHParent::getNbData(elements, tag);
+  size += CLHParent::getNbData(elements, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
@@ -875,16 +880,16 @@ Int SolidMechanicsModel::getNbData(const Array<Idx> & dofs,
 
   switch (tag) {
   case SynchronizationTag::_smm_uv: {
-    size += sizeof(Real) * Model::spatial_dimension * 2;
+    size += Int(sizeof(Real)) * Model::spatial_dimension * 2;
     break;
   }
   case SynchronizationTag::_smm_res: /* FALLTHRU */
   case SynchronizationTag::_smm_mass: {
-    size += sizeof(Real) * Model::spatial_dimension;
+    size += Int(sizeof(Real)) * Model::spatial_dimension;
     break;
   }
   case SynchronizationTag::_for_dump: {
-    size += sizeof(Real) * Model::spatial_dimension * 5;
+    size += Int(sizeof(Real)) * Model::spatial_dimension * 5;
     break;
   }
   default: {

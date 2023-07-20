@@ -73,7 +73,6 @@ class MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialViscoelasticMaxwell(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialViscoelasticMaxwell() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -164,21 +163,21 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// give the dissipated energy
-  Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(const Element & element) const;
+  [[nodiscard]] Real getDissipatedEnergy() const;
+  [[nodiscard]] Real getDissipatedEnergy(const Element & element) const;
 
   /// get the potential energy
-  Real getPotentialEnergy() const;
-  Real getPotentialEnergy(const Element & element) const;
+  [[nodiscard]] Real getPotentialEnergy() const;
+  [[nodiscard]] Real getPotentialEnergy(const Element & element) const;
 
   /// get the potential energy
-  Real getMechanicalWork() const;
-  Real getMechanicalWork(const Element & element) const;
+  [[nodiscard]] Real getMechanicalWork() const;
+  [[nodiscard]] Real getMechanicalWork(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
-  Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id,
-                 const Element & element) override;
+  [[nodiscard]] Real getEnergy(const std::string & type) override;
+  [[nodiscard]] Real getEnergy(const std::string & energy_id,
+                               const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -189,10 +188,11 @@ protected:
   /// modulus
   Vector<Real> Eta;
   Vector<Real> Ev;
-  Real Einf;
+
+  Real Einf{0.};
 
   /// time step from previous solveStep
-  Real previous_dt;
+  Real previous_dt{0.};
 
   /// Stiffness matrix template
   Matrix<Real, voigt_h::size, voigt_h::size> C;
@@ -206,13 +206,13 @@ protected:
   std::shared_ptr<InternalField<Real>> epsilon_v;
 
   /// Dissipated energy
-  std::shared_ptr<InternalField<Real>> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 
   /// Mechanical work
-  std::shared_ptr<InternalField<Real>> mechanical_work;
+  InternalField<Real> & mechanical_work;
 
   /// Update internal variable after solve step or not
-  bool update_variable_flag;
+  bool update_variable_flag{true};
 };
 
 } // namespace akantu

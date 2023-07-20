@@ -54,7 +54,7 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(Parent::getArguments(el_type, ghost_type),
                       "effective_damage"_n = make_view(
-                          (*this->effective_damage)(el_type, ghost_type)));
+                          this->effective_damage(el_type, ghost_type)));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
@@ -63,7 +63,7 @@ public:
     return zip_append(
         Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
         "effective_damage"_n =
-            make_view((*this->effective_damage)(el_type, ghost_type)));
+            make_view(this->effective_damage(el_type, ghost_type)));
   }
 
 protected:
@@ -83,10 +83,10 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  Real eta;
+  Real eta{0.};
 
   // effective damage to conserve stiffness in compression
-  std::shared_ptr<InternalField<Real>> effective_damage;
+  InternalField<Real> & effective_damage;
 };
 
 } // namespace akantu

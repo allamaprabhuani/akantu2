@@ -93,14 +93,13 @@ protected:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         MaterialElastic<dim>::getArguments(el_type, ghost_type),
-        "iso_hardening"_n =
-            make_view((*this->iso_hardening)(el_type, ghost_type)),
+        "iso_hardening"_n = make_view(this->iso_hardening(el_type, ghost_type)),
         "previous_iso_hardening"_n =
-            make_view(this->iso_hardening->previous(el_type, ghost_type)),
+            make_view(this->iso_hardening.previous(el_type, ghost_type)),
         "inelastic_strain"_n =
-            make_view<dim, dim>((*this->inelastic_strain)(el_type, ghost_type)),
+            make_view<dim, dim>(this->inelastic_strain(el_type, ghost_type)),
         "previous_inelastic_strain"_n = make_view<dim, dim>(
-            this->inelastic_strain->previous(el_type, ghost_type)));
+            this->inelastic_strain.previous(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -114,20 +113,20 @@ protected:
   Real h;
 
   /// isotropic hardening, r
-  std::shared_ptr<InternalField<Real>> iso_hardening;
+  InternalField<Real> & iso_hardening;
 
   /// inelastic strain arrays ordered by element types (inelastic deformation)
-  std::shared_ptr<InternalField<Real>> inelastic_strain;
+  InternalField<Real> & inelastic_strain;
 
   /// Plastic energy
-  std::shared_ptr<InternalField<Real>> plastic_energy;
+  InternalField<Real> & plastic_energy;
 
   /// @todo : add a coefficient beta that will multiply the plastic energy
   /// increment
   /// to compute the energy converted to heat
 
   /// Plastic energy increment
-  std::shared_ptr<InternalField<Real>> d_plastic_energy;
+  InternalField<Real> & d_plastic_energy;
 };
 
 /* -------------------------------------------------------------------------- */

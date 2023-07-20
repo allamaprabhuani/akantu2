@@ -34,17 +34,10 @@ public:
   MaterialThermal(SolidMechanicsModel & model, const ID & id = "",
                   const ID & fe_engine_id = "");
 
-  ~MaterialThermal() override = default;
-
-protected:
-  void initialize();
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
@@ -55,10 +48,10 @@ public:
   template <Int dim_ = dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(Material::getArguments<dim_>(el_type, ghost_type),
-                      "delta_T"_n = (*delta_T)(el_type, ghost_type),
-                      "sigma_th"_n = (*sigma_th)(el_type, ghost_type),
+                      "delta_T"_n = delta_T(el_type, ghost_type),
+                      "sigma_th"_n = sigma_th(el_type, ghost_type),
                       "previous_sigma_th"_n =
-                          sigma_th->previous(el_type, ghost_type));
+                          sigma_th.previous(el_type, ghost_type));
   }
 
   template <Int dim_ = dim>
@@ -84,10 +77,10 @@ protected:
   Real alpha{0.};
 
   /// Temperature field
-  std::shared_ptr<InternalField<Real>> delta_T;
+  InternalField<Real> & delta_T;
 
   /// Current thermal stress
-  std::shared_ptr<InternalField<Real>> sigma_th;
+  InternalField<Real> & sigma_th;
 };
 
 /* ------------------------------------------------------------------------ */

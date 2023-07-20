@@ -123,18 +123,20 @@ public:
                                    Matrix<Real> & extrapolated);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed(const Element & /*element*/) const {
+  [[nodiscard]] virtual Real
+  getPushWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed(const Element & /*element*/) const {
+  [[nodiscard]] virtual Real
+  getShearWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// get a material celerity to compute the stable time step (default: is the
   /// push wave speed)
-  virtual Real getCelerity(const Element & element) const {
+  [[nodiscard]] virtual Real getCelerity(const Element & element) const {
     return getPushWaveSpeed(element);
   }
 
@@ -145,15 +147,13 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  void initConstitutiveLaw() final { this->initMaterial(); }
+  void initConstitutiveLaw() override { this->initMaterial(); }
 
   /// assemble the residual for this material
   virtual void assembleInternalForces(GhostType ghost_type);
 
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
-  // virtual void
-  // computeAllStressesFromTangentModuli(GhostType ghost_type = _not_ghost);
   virtual void computeAllCauchyStresses(GhostType ghost_type = _not_ghost);
 
   /// set material to steady state
@@ -206,16 +206,16 @@ protected:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     using namespace tuple;
     auto && args =
-        zip("grad_u"_n = make_view<dim, dim>((*gradu)(el_type, ghost_type)),
+        zip("grad_u"_n = make_view<dim, dim>(gradu(el_type, ghost_type)),
             "previous_sigma"_n =
-                make_view<dim, dim>(stress->previous(el_type, ghost_type)),
+                make_view<dim, dim>(stress.previous(el_type, ghost_type)),
             "previous_grad_u"_n =
-                make_view<dim, dim>(gradu->previous(el_type, ghost_type)));
+                make_view<dim, dim>(gradu.previous(el_type, ghost_type)));
 
     if (not finite_deformation) {
-      return zip_append(
-          std::forward<decltype(args)>(args),
-          "sigma"_n = make_view<dim, dim>((*stress)(el_type, ghost_type)));
+      return zip_append(std::forward<decltype(args)>(args),
+                        "sigma"_n =
+                            make_view<dim, dim>(stress(el_type, ghost_type)));
     }
 
     return zip_append(std::forward<decltype(args)>(args),
@@ -231,7 +231,7 @@ protected:
     constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
     return zip("tangent_moduli"_n =
                    make_view<tangent_size, tangent_size>(tangent_matrix),
-               "grad_u"_n = make_view<dim, dim>((*gradu)(el_type, ghost_type)));
+               "grad_u"_n = make_view<dim, dim>(gradu(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -397,8 +397,9 @@ public:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -453,17 +454,19 @@ public:
     return getEnergy(energy_id, {type, index, _not_ghost});
   }
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, (*gradu), Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, (*stress), Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, (*potential_energy),
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy,
                                          Real);
-  AKANTU_GET_MACRO_DEREF_PTR(GradU, gradu);
-  AKANTU_GET_MACRO_DEREF_PTR(Stress, stress);
+  AKANTU_GET_MACRO_AUTO(GradU, gradu);
+  AKANTU_GET_MACRO_AUTO(Stress, stress);
 
-  bool isNonLocal() const { return is_non_local; }
+  [[nodiscard]] bool isNonLocal() const { return is_non_local; }
 
-  bool isFiniteDeformation() const { return finite_deformation; }
-  bool isInelasticDeformation() const { return inelastic_deformation; }
+  [[nodiscard]] bool isFiniteDeformation() const { return finite_deformation; }
+  [[nodiscard]] bool isInelasticDeformation() const {
+    return inelastic_deformation;
+  }
 
   /// apply a constant eigengrad_u everywhere in the material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
@@ -514,13 +517,13 @@ protected:
   Real rho{0.};
 
   /// stresses arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> stress;
+  InternalField<Real> & stress;
 
   /// eigengrad_u arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> eigengradu;
+  InternalField<Real> & eigengradu;
 
   /// grad_u arrays ordered by element types
-  std::shared_ptr<InternalField<Real>> gradu;
+  InternalField<Real> & gradu;
 
   /// Green Lagrange strain (Finite deformation)
   std::shared_ptr<InternalField<Real>> green_strain;
@@ -530,13 +533,13 @@ protected:
   std::shared_ptr<InternalField<Real>> piola_kirchhoff_2;
 
   /// potential energy by element
-  std::shared_ptr<InternalField<Real>> potential_energy;
+  InternalField<Real> & potential_energy;
 
   /// elemental field interpolation coordinates
-  std::shared_ptr<InternalField<Real>> interpolation_inverse_coordinates;
+  InternalField<Real> & interpolation_inverse_coordinates;
 
   /// elemental field interpolation points
-  std::shared_ptr<InternalField<Real>> interpolation_points_matrices;
+  InternalField<Real> & interpolation_points_matrices;
 
   /// tell if using in non local mode or not
   bool is_non_local{false};
@@ -558,11 +561,11 @@ private:
 /// provides two tensors (matrices) sigma and grad_u
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type)       \
   auto && grad_u_view =                                                        \
-      make_view((*this->gradu)(el_type, ghost_type), this->spatial_dimension,  \
+      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
                 this->spatial_dimension);                                      \
                                                                                \
   auto stress_view =                                                           \
-      make_view((*this->stress)(el_type, ghost_type), this->spatial_dimension, \
+      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
                 this->spatial_dimension);                                      \
                                                                                \
   if (this->isFiniteDeformation()) {                                           \

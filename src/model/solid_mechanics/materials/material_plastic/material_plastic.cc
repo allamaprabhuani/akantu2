@@ -28,21 +28,18 @@ namespace akantu {
 template <Int dim>
 MaterialPlastic<dim>::MaterialPlastic(SolidMechanicsModel & model,
                                       const ID & id, const ID & fe_engine_id)
-    : MaterialElastic<dim>(model, id, fe_engine_id) {
+    : MaterialElastic<dim>(model, id, fe_engine_id),
+      iso_hardening(this->registerInternal("iso_hardening", 1)),
+      inelastic_strain(this->registerInternal("inelastic_strain", dim * dim)),
+      plastic_energy(this->registerInternal("plastic_energy", 1)),
+      d_plastic_energy(this->registerInternal("d_plastic_energy", 1)) {
   this->registerParam("h", h, Real(0.), _pat_parsable | _pat_modifiable,
                       "Hardening  modulus");
   this->registerParam("sigma_y", sigma_y, Real(0.),
                       _pat_parsable | _pat_modifiable, "Yield stress");
 
-  this->iso_hardening = this->registerInternal("iso_hardening", 1);
-  this->iso_hardening->initializeHistory();
-
-  this->plastic_energy = this->registerInternal("plastic_energy", 1);
-  this->d_plastic_energy = this->registerInternal("d_plastic_energy", 1);
-
-  this->inelastic_strain =
-      this->registerInternal("inelastic_strain", dim * dim);
-  this->inelastic_strain->initializeHistory();
+  this->iso_hardening.initializeHistory();
+  this->inelastic_strain.initializeHistory();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -62,9 +59,8 @@ template <Int dim> Real MaterialPlastic<dim>::getPlasticEnergy() {
   Real penergy = 0.;
 
   for (const auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    penergy +=
-        fem.integrate((*plastic_energy)(type, _not_ghost), type, _not_ghost,
-                      this->element_filter(type, _not_ghost));
+    penergy += fem.integrate(plastic_energy(type, _not_ghost), type, _not_ghost,
+                             this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -75,7 +71,7 @@ template <Int dim> Real MaterialPlastic<dim>::getPlasticEnergy() {
 template <Int dim>
 void MaterialPlastic<dim>::computePotentialEnergy(ElementType el_type) {
   for (auto && [args, epot] :
-       zip(getArguments(el_type), (*this->potential_energy)(el_type))) {
+       zip(getArguments(el_type), this->potential_energy(el_type))) {
     Matrix<Real, dim, dim> elastic_strain =
         args["grad_u"_n] - args["inelastic_strain"_n];
 
@@ -90,8 +86,8 @@ void MaterialPlastic<dim>::updateEnergies(ElementType el_type) {
   MaterialElastic<dim>::updateEnergies(el_type);
 
   for (auto && args : zip_append(getArguments(el_type),
-                                 "pe"_n = (*this->plastic_energy)(el_type),
-                                 "wp"_n = (*this->d_plastic_energy)(el_type))) {
+                                 "pe"_n = this->plastic_energy(el_type),
+                                 "wp"_n = this->d_plastic_energy(el_type))) {
 
     Matrix<Real, dim, dim> delta_strain =
         args["inelastic_strain"_n] - args["previous_inelastic_strain"_n];

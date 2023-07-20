@@ -35,11 +35,19 @@ class FEEngine;
 
 namespace akantu {
 
-class InternalFieldBase {
+class InternalFieldBase
+    : public std::enable_shared_from_this<InternalFieldBase> {
 public:
   InternalFieldBase(const ID & id) : id_(id) {}
 
   virtual ~InternalFieldBase() = default;
+
+  /* ------------------------------------------------------------------------ */
+  InternalFieldBase(const InternalFieldBase & /*other*/) = default;
+  InternalFieldBase(InternalFieldBase && /*other*/) = default;
+  InternalFieldBase & operator=(const InternalFieldBase & /*other*/) = default;
+  InternalFieldBase & operator=(InternalFieldBase && /*other*/) = default;
+  /* ------------------------------------------------------------------------ */
 
   /// activate the history of this field
   virtual void initializeHistory() = 0;
@@ -57,9 +65,9 @@ public:
   virtual void
   removeIntegrationPoints(const ElementTypeMapArray<Idx> & new_numbering) = 0;
 
-  virtual bool hasHistory() const = 0;
+  [[nodiscard]] virtual bool hasHistory() const = 0;
 
-  auto getRegisterID() const { return id_; }
+  [[nodiscard]] auto getRegisterID() const { return id_; }
 
 protected:
   ID id_;
@@ -74,7 +82,7 @@ class InternalField : public InternalFieldBase, public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   InternalField(const ID & id,
                 ConstitutiveLawInternalHandler & constitutive_law);
   /// This constructor is only here to let cohesive elements compile
@@ -91,20 +99,25 @@ public:
 
   InternalField(const ID & id, const InternalField<T> & other);
 
-  InternalField operator=(const InternalField &) = delete;
+  friend class ConstitutiveLawInternalHandler;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// initialize the field to a given number of component
+  virtual void initialize(Int nb_component);
+
 public:
   /// function to reset the FEEngine for the internal fieldx
   //  virtual void setFEEngine(FEEngine & fe_engine);
 
+  std::shared_ptr<InternalField> getPtr() {
+    return aka::as_type<InternalField>(this->shared_from_this());
+  }
+
   /// function to reset the element kind for the internal
   virtual void setElementKind(ElementKind element_kind);
-
-  /// initialize the field to a given number of component
-  virtual void initialize(Int nb_component);
 
   /// activate the history of this field
   void initializeHistory() override;
@@ -136,7 +149,9 @@ public:
 
   virtual auto getFEEngine() -> FEEngine & { return fem; }
 
-  virtual auto getFEEngine() const -> const FEEngine & { return fem; }
+  [[nodiscard]] virtual auto getFEEngine() const -> const FEEngine & {
+    return fem;
+  }
 
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
@@ -213,7 +228,9 @@ public:
   }
 
   /// check if the history is used or not
-  auto hasHistory() const -> bool { return (previous_values != nullptr); }
+  [[nodiscard]] auto hasHistory() const -> bool override {
+    return (previous_values != nullptr);
+  }
 
   /// get the kind treated by  the internal
   AKANTU_GET_MACRO_AUTO(ElementKind, element_kind);

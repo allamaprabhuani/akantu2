@@ -28,7 +28,9 @@ namespace akantu {
 template <Int dim>
 MaterialViscoelasticMaxwell<dim>::MaterialViscoelasticMaxwell(
     SolidMechanicsModel & model, const ID & id)
-    : MaterialElastic<dim>(model, id) {
+    : MaterialElastic<dim>(model, id),
+      dissipated_energy(this->registerInternal("dissipated_energy", 1)),
+      mechanical_work(this->registerInternal("mechanical_work", 1)) {
   this->registerParam("Einf", Einf, Real(1.), _pat_parsable | _pat_modifiable,
                       "Stiffness of the elastic element");
   this->registerParam("previous_dt", previous_dt, Real(0.), _pat_readable,
@@ -37,10 +39,6 @@ MaterialViscoelasticMaxwell<dim>::MaterialViscoelasticMaxwell(
                       "Viscosity of a Maxwell element");
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
                       "Stiffness of a Maxwell element");
-  this->update_variable_flag = true;
-
-  this->dissipated_energy = this->registerInternal("dissipated_energy", 1);
-  this->mechanical_work = this->registerInternal("mechanical_work", 1);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -60,9 +58,10 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::initMaterial() {
 
   auto stress_size = dim * dim;
   this->sigma_v =
-      this->registerInternal("sigma_v", stress_size * this->Ev.size());
+      this->registerInternal("sigma_v", stress_size * this->Ev.size()).getPtr();
   this->epsilon_v =
-      this->registerInternal("epsilon_v", stress_size * this->Ev.size());
+      this->registerInternal("epsilon_v", stress_size * this->Ev.size())
+          .getPtr();
 
   AKANTU_DEBUG_OUT();
 }
@@ -183,7 +182,7 @@ template <Int dim>
 void MaterialViscoelasticMaxwell<dim>::computePotentialEnergy(
     ElementType el_type) {
   for (auto && [args, epot, epsilon_v] :
-       zip(getArguments(el_type), (*this->potential_energy)(el_type),
+       zip(getArguments(el_type), this->potential_energy(el_type),
            make_view((*this->epsilon_v)(el_type), dim, dim, Eta.size()))) {
     this->computePotentialEnergyOnQuad(args["grad_u"_n], epot,
                                        args["sigma_v"_n], epsilon_v);
@@ -243,12 +242,10 @@ void MaterialViscoelasticMaxwell<dim>::updateIntVarOnQuad(
   for (Idx k = 0; k < this->Eta.size(); ++k) {
     auto lambda = this->Eta(k) / this->Ev(k);
     auto exp_dt_lambda = exp(-dt / lambda);
-    Real E_ef_v;
+    Real E_ef_v = this->Ev(k);
 
-    if (exp_dt_lambda == 1) {
-      E_ef_v = this->Ev(k);
-    } else {
-      E_ef_v = (1 - exp_dt_lambda) * this->Ev(k) * lambda / dt;
+    if (exp_dt_lambda != 1) {
+      E_ef_v *= (1 - exp_dt_lambda) * lambda / dt;
     }
 
     auto voigt_sigma_v = Material::stressToVoigt<dim>(sigma_v(k));
@@ -331,9 +328,8 @@ void MaterialViscoelasticMaxwell<dim>::updateDissipatedEnergy(
   this->computePotentialEnergy(el_type);
 
   for (auto && [args, epot, edis, work] :
-       zip(getArguments(el_type), (*this->potential_energy)(el_type),
-           (*this->dissipated_energy)(el_type),
-           (*this->mechanical_work)(el_type))) {
+       zip(getArguments(el_type), this->potential_energy(el_type),
+           this->dissipated_energy(el_type), this->mechanical_work(el_type))) {
     updateDissipatedEnergyOnQuad(args["grad_u"_n], args["previous_grad_u"_n],
                                  args["sigma"_n], args["previous_sigma"_n],
                                  edis, work, epot);
@@ -369,7 +365,7 @@ Real MaterialViscoelasticMaxwell<dim>::getDissipatedEnergy() const {
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de += fem.integrate((*this->dissipated_energy)(type, _not_ghost), type,
+    de += fem.integrate(this->dissipated_energy(type, _not_ghost), type,
                         _not_ghost, this->element_filter(type, _not_ghost));
   }
 
@@ -384,7 +380,7 @@ Real MaterialViscoelasticMaxwell<dim>::getDissipatedEnergy(
   auto & fem = this->getFEEngine();
   auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
   auto it =
-      make_view((*this->dissipated_energy)(element.type), nb_quadrature_points)
+      make_view(this->dissipated_energy(element.type), nb_quadrature_points)
           .begin();
   auto mat_element = element;
   mat_element.element = this->element_filter(element);
@@ -400,7 +396,7 @@ Real MaterialViscoelasticMaxwell<dim>::getMechanicalWork() const {
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim)) {
-    mw += fem.integrate((*this->mechanical_work)(type), type, _not_ghost,
+    mw += fem.integrate(this->mechanical_work(type), type, _not_ghost,
                         this->element_filter(type, _not_ghost));
   }
 
@@ -413,9 +409,8 @@ Real MaterialViscoelasticMaxwell<dim>::getMechanicalWork(
     const Element & element) const {
   auto & fem = this->getFEEngine();
   auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
-  auto it =
-      make_view((*this->mechanical_work)(element.type), nb_quadrature_points)
-          .begin();
+  auto it = make_view(this->mechanical_work(element.type), nb_quadrature_points)
+                .begin();
 
   auto mat_element = element;
   mat_element.element = this->element_filter(element);
@@ -433,7 +428,7 @@ Real MaterialViscoelasticMaxwell<dim>::getPotentialEnergy() const {
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    epot += fem.integrate((*this->potential_energy)(type, _not_ghost), type,
+    epot += fem.integrate(this->potential_energy(type, _not_ghost), type,
                           _not_ghost, this->element_filter(type, _not_ghost));
   }
 
@@ -450,7 +445,7 @@ Real MaterialViscoelasticMaxwell<dim>::getPotentialEnergy(
   auto & fem = this->getFEEngine();
   auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
   auto it =
-      make_view((*this->potential_energy)(element.type), nb_quadrature_points)
+      make_view(this->potential_energy(element.type), nb_quadrature_points)
           .begin();
   auto mat_element = element;
   mat_element.element = this->element_filter(element);
@@ -503,10 +498,7 @@ void MaterialViscoelasticMaxwell<dim>::forceNotUpdateVariable() {
 }
 
 /* -------------------------------------------------------------------------- */
-template class MaterialViscoelasticMaxwell<1>;
-template class MaterialViscoelasticMaxwell<2>;
-template class MaterialViscoelasticMaxwell<3>;
-static bool material_is_allocated_viscoelastic_maxwell =
+const bool material_is_allocated_viscoelastic_maxwell [[maybe_unused]] =
     instantiateMaterial<MaterialViscoelasticMaxwell>("viscoelastic_maxwell");
 
 } // namespace akantu

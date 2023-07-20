@@ -32,7 +32,8 @@ namespace {
   DECLARE_NAMED_ARGUMENT(analysis_method);
 }
 
-struct ModelOptions {
+class ModelOptions {
+public:
   explicit ModelOptions(AnalysisMethod analysis_method = _static)
       : analysis_method(analysis_method) {}
 

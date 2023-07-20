@@ -44,20 +44,18 @@ public:
   /* Methods */
   /* ------------------------------------------------------------------------ */
 public:
-  void registerNonLocalVariables() override final;
+  void registerNonLocalVariables() final;
 
-  void computeNonLocalStress(ElementType, GhostType) override final{};
+  void computeNonLocalStress(ElementType /*element_type*/,
+                             GhostType /*ghost_type*/) final{};
 
   void insertQuadsInNeighborhoods(GhostType ghost_type);
-
-protected:
-  // ID getNeighborhoodName() override { return "test_region"; }
 
   /* ------------------------------------------------------------------------ */
   /* Members */
   /* ------------------------------------------------------------------------ */
 private:
-  InternalField<Real> grad_u_nl;
+  InternalField<Real> & grad_u_nl;
 };
 
 #endif /* TEST_MATERIAL_DAMAGE_HH_ */

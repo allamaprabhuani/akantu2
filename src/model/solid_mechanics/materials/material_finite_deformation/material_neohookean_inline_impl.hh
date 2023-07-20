@@ -50,18 +50,17 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Args && args) {
 /* -------------------------------------------------------------------------- */
 class C33_NR : public Math::NewtonRaphsonFunctor<Real> {
 public:
-  C33_NR(std::string name, const Real & lambda, const Real & mu,
-         const Matrix<Real> & C)
-      : NewtonRaphsonFunctor(std::move(name)), lambda(lambda), mu(mu), C(C) {}
+  C33_NR(const ID & name, const Real & lambda, Real mu, const Matrix<Real> & C)
+      : NewtonRaphsonFunctor(name), lambda(lambda), mu(mu), C(C) {}
 
-  inline Real f(const Real & x) const override {
+  [[nodiscard]] inline Real f(const Real & x) const override {
     return (this->lambda / 2. *
                 (std::log(x) + std::log(this->C(0, 0) * this->C(1, 1) -
                                         Math::pow<2>(this->C(0, 1)))) +
             this->mu * (x - 1.));
   }
 
-  inline Real f_prime(const Real & x) const override {
+  [[nodiscard]] inline Real f_prime(const Real & x) const override {
     AKANTU_DEBUG_ASSERT(std::abs(x) > Math::getTolerance(),
                         "x is zero (x should be the off plane right Cauchy"
                             << " measure in this function so you made a mistake"
@@ -71,7 +70,7 @@ public:
 
 private:
   const Real & lambda;
-  const Real & mu;
+  const Real mu;
   const Matrix<Real> & C;
 };
 

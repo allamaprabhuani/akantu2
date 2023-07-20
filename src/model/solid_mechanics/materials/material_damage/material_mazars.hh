@@ -51,7 +51,6 @@ class MaterialMazars : public MaterialDamage<dim, Parent> {
 
 public:
   MaterialMazars(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialMazars() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -77,9 +76,9 @@ public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_append(
         parent_damage::getArguments(el_type, ghost_type),
-        "K0"_n = make_view((*this->K0)(el_type, ghost_type)),
+        "K0"_n = this->K0(el_type, ghost_type),
         "Ehat"_n =
-            broadcast(this->Ehat, (*this->damage)(el_type, ghost_type).size()));
+            broadcast(this->Ehat, this->damage(el_type, ghost_type).size()));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -87,17 +86,17 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage threshold
-  std::shared_ptr<RandomInternalField<Real>> K0;
+  DefaultRandomInternalField<Real> & K0;
   /// parameter damage traction 1
-  Real At;
+  Real At{0.};
   /// parameter damage traction 2
-  Real Bt;
+  Real Bt{0.};
   /// parameter damage compression 1
-  Real Ac;
+  Real Ac{0.};
   /// parameter damage compression 2
-  Real Bc;
+  Real Bc{0.};
   /// parameter for shear
-  Real beta;
+  Real beta{0.};
 
   /// specify the variable to average false = ehat, true = damage (only valid
   /// for non local version)

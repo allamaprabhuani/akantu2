@@ -64,8 +64,7 @@ protected:
 public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     return zip_replace(parent::getArguments(el_type, ghost_type),
-                       "Ehat"_n =
-                           make_view((*this->Ehat)(el_type, ghost_type)));
+                       "Ehat"_n = make_view(this->Ehat(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -73,9 +72,9 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// the ehat per quadrature points to perform the averaging
-  std::shared_ptr<InternalField<Real>> Ehat;
+  InternalField<Real> & Ehat;
 
-  std::shared_ptr<InternalField<Real>> non_local_variable;
+  InternalField<Real> & non_local_variable;
 };
 
 } // namespace akantu

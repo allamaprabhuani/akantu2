@@ -28,9 +28,9 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
-    : MaterialDamage<dim>(model, id) {
-  this->Yd =
-      this->template registerInternal<Real, RandomInternalField>("Yd", 1);
+    : MaterialDamage<dim>(model, id),
+      Yd(this->template registerInternal<Real, DefaultRandomInternalField>("Yd",
+                                                                           1)) {
 
   this->registerParam("Sd", Sd, Real(5000.), _pat_parsable | _pat_modifiable);
   this->registerParam("epsilon_c", epsilon_c, Real(0.), _pat_parsable,
@@ -39,13 +39,7 @@ MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
                       "As the material a critical Y");
   this->registerParam("damage_in_y", damage_in_y, false, _pat_parsable,
                       "Use threshold (1-D)Y");
-  this->registerParam("Yd", *Yd, _pat_parsable, "Damaging energy threshold");
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialMarigo<dim>::initMaterial() {
-  MaterialDamage<dim>::initMaterial();
-  updateInternalParameters();
+  this->registerParam("Yd", Yd, _pat_parsable, "Damaging energy threshold");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +63,7 @@ template class MaterialMarigo<1>;
 template class MaterialMarigo<2>;
 template class MaterialMarigo<3>;
 
-static bool material_is_alocated_marigo =
+const bool material_is_alocated_marigo =
     instantiateMaterial<MaterialMarigo>("marigo");
 
 } // namespace akantu

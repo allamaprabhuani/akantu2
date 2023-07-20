@@ -59,10 +59,11 @@ public:
 
   /// compute effective stress norm for insertion check
   template <class D1, class D2, class D3, class D4>
-  Real computeEffectiveNorm(const Eigen::MatrixBase<D1> & stress,
-                            const Eigen::MatrixBase<D2> & normal,
-                            const Eigen::MatrixBase<D3> & tangent,
-                            const Eigen::MatrixBase<D4> & normal_stress) const;
+  Real
+  computeEffectiveNorm(const Eigen::MatrixBase<D1> & stress,
+                       const Eigen::MatrixBase<D2> & normal,
+                       const Eigen::MatrixBase<D3> & tangent,
+                       const Eigen::MatrixBase<D4> & normal_traction_) const;
 
 protected:
   /// constitutive law
@@ -145,14 +146,14 @@ protected:
   bool recompute;
 
   /// critical effective stress
-  RandomInternalField<Real, CohesiveInternalField> sigma_c_eff;
+  CohesiveRandomInternalField<Real> & sigma_c_eff;
 
   /// effective critical displacement (each element can have a
   /// different value)
-  CohesiveInternalField<Real> delta_c_eff;
+  CohesiveInternalField<Real> & delta_c_eff;
 
   /// stress at insertion
-  CohesiveInternalField<Real> insertion_stress;
+  CohesiveInternalField<Real> & insertion_stress;
 
   /// variable saying if there should be penalty contact also after
   /// breaking the cohesive elements

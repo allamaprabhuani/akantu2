@@ -275,7 +275,7 @@ protected:
 protected:
   void initializeNonLocal() override;
 
-  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion);
+  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) override;
 
   void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
 

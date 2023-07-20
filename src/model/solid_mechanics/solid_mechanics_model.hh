@@ -425,6 +425,7 @@ private:
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
+
   /// Check if materials need to recompute the mass matrix
   bool need_to_reassemble_mass{true};
 

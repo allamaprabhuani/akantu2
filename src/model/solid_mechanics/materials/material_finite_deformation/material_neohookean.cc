@@ -78,10 +78,10 @@ template <>
 void MaterialNeohookean<2>::computeCauchyStressPlaneStress(
     ElementType el_type, GhostType ghost_type) {
   for (auto && [grad_u, piola, sigma, c33] :
-       zip(make_view<2, 2>((*this->gradu)(el_type, ghost_type)),
+       zip(make_view<2, 2>(this->gradu(el_type, ghost_type)),
            make_view<2, 2>((*this->piola_kirchhoff_2)(el_type, ghost_type)),
-           make_view<2, 2>((*this->stress)(el_type, ghost_type)),
-           make_view((*this->third_axis_deformation)(el_type, ghost_type)))) {
+           make_view<2, 2>(this->stress(el_type, ghost_type)),
+           make_view(this->third_axis_deformation(el_type, ghost_type)))) {
     StoCauchy<2>(gradUToF<2>(grad_u), piola, sigma, c33);
   }
 }
@@ -121,7 +121,7 @@ void MaterialNeohookean<dim>::computePotentialEnergy(ElementType el_type) {
   auto && arguments = Parent::getArguments(el_type, _not_ghost);
 
   for (auto && [args, epot] :
-       zip(arguments, (*this->potential_energy)(el_type, _not_ghost))) {
+       zip(arguments, this->potential_energy(el_type, _not_ghost))) {
     this->computePotentialEnergyOnQuad(args, epot);
   }
 }
@@ -158,7 +158,7 @@ Real MaterialNeohookean<dim>::getShearWaveSpeed(
 template class MaterialNeohookean<1>;
 template class MaterialNeohookean<2>;
 template class MaterialNeohookean<3>;
-static bool material_is_allocated_neohookean =
+const bool material_is_allocated_neohookean [[maybe_unused]] =
     instantiateMaterial<MaterialNeohookean>("neohookean");
 
 } // namespace akantu

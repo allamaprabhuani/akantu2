@@ -35,8 +35,6 @@ class LocalMaterialDamage : public Material {
 public:
   LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
-  ~LocalMaterialDamage() override = default;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -64,7 +62,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the celerity of wave in the material
-  inline Real getCelerity(const Element & element) const override;
+  [[nodiscard]] inline Real getCelerity(const Element & element) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -74,28 +72,28 @@ public:
 
 private:
   /// the young modulus
-  Real E;
+  Real E{};
 
   /// Poisson coefficient
-  Real nu;
+  Real nu{};
 
   /// First Lamé coefficient
-  Real lambda;
+  Real lambda{};
 
   /// Second Lamé coefficient (shear modulus)
-  Real mu;
+  Real mu{};
 
   /// resistance to damage
-  Real Yd;
+  Real Yd{};
 
   /// damage threshold
-  Real Sd;
+  Real Sd{};
 
   /// Bulk modulus
-  Real kpa;
+  Real kpa{};
 
   /// damage internal variable
-  InternalField<Real> damage;
+  InternalField<Real> & damage;
 };
 
 /* -------------------------------------------------------------------------- */

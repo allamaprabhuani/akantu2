@@ -36,9 +36,6 @@ public:
 
   CustomNonLocalTestMaterial(SolidMechanicsModel & model, const ID & id);
 
-  /* ------------------------------------------------------------------------ */
-  void initMaterial() override;
-
   void computeNonLocalStress(ElementType el_type, GhostType ghost_type);
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
@@ -61,8 +58,8 @@ public:
   void setDamage(Real dam) { this->local_damage.setDefaultValue(dam); }
 
 protected:
-  InternalField<Real> local_damage;
-  InternalField<Real> damage;
+  InternalField<Real> & local_damage;
+  InternalField<Real> & damage;
 };
 
 } // namespace akantu

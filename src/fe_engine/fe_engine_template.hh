@@ -63,7 +63,7 @@ public:
   using Shape = S<kind>;
 
   FEEngineTemplate(Mesh & mesh, Int spatial_dimension = _all_dimensions,
-                   const ID & id = "fem");
+                   const ID & id = "fem", bool do_not_precompute = false);
 
   ~FEEngineTemplate() override;
 

@@ -32,8 +32,8 @@ template <typename T>
 InternalField<T>::InternalField(
     const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
     const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
-    : InternalFieldBase(id), ElementTypeMapArray<T>(id,
-                                                    constitutive_law.getID()),
+    : InternalFieldBase(id),
+      ElementTypeMapArray<T>(id, constitutive_law.getID()),
       constitutive_law(constitutive_law),
       fem(constitutive_law.getFEEngine(fem_id)), element_filter(element_filter),
       spatial_dimension(dim) {}
@@ -58,8 +58,8 @@ InternalField<T>::InternalField(
 /* -------------------------------------------------------------------------- */
 template <typename T>
 InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
-    : InternalFieldBase(id), ElementTypeMapArray<T>(
-                                 id, other.constitutive_law.getID()),
+    : InternalFieldBase(id),
+      ElementTypeMapArray<T>(id, other.constitutive_law.getID()),
       constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
@@ -83,14 +83,14 @@ template <typename T> void InternalField<T>::initialize(Int nb_component) {
 /* -------------------------------------------------------------------------- */
 template <typename T> void InternalField<T>::initializeHistory() {
   if (!previous_values) {
-    previous_values =
-        std::make_unique<InternalField<T>>("previous_" + this->getID(), *this);
+    previous_values = std::unique_ptr<InternalField<T>>(
+        new InternalField<T>("previous_" + this->getID(), *this));
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T> void InternalField<T>::resize() {
-  if (!this->is_init) {
+  if (not this->is_init) {
     return;
   }
 

@@ -50,7 +50,7 @@ using mat_types = ::testing::Types<
 /*****************************************************************/
 
 template <> void FriendMaterial<MaterialMazars<1>>::setParams() {
-  K0->setDefaultValue(1e-4);
+  K0.setDefaultValue(1e-4);
   At = 1.0;
   Bt = 5e3;
   Ac = 0.8;
@@ -63,7 +63,7 @@ template <> void FriendMaterial<MaterialMazars<1>>::setParams() {
 }
 
 template <> void FriendMaterial<MaterialMazars<2>>::setParams() {
-  K0->setDefaultValue(1e-4);
+  K0.setDefaultValue(1e-4);
   At = 1.0;
   Bt = 5e3;
   Ac = 0.8;
@@ -76,7 +76,7 @@ template <> void FriendMaterial<MaterialMazars<2>>::setParams() {
 }
 
 template <> void FriendMaterial<MaterialMazars<3>>::setParams() {
-  K0->setDefaultValue(1e-4);
+  K0.setDefaultValue(1e-4);
   At = 1.0;
   Bt = 5e3;
   Ac = 0.8;
@@ -96,7 +96,7 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
   for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
-  Real _K0 = (*K0);
+  Real _K0 = K0;
   py::module py_engine = py::module::import("py_mazars");
 
   auto kwargs_mat_params =
@@ -140,7 +140,7 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
   for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
-  Real _K0 = (*K0);
+  Real _K0 = K0;
   py::module py_engine = py::module::import("py_mazars");
 
   auto kwargs_mat_params =
@@ -186,7 +186,7 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
   for (auto && data : enumerate(epsilons)) {
     std::get<1>(data) = 2e-6 * std::get<0>(data);
   }
-  Real _K0 = (*K0);
+  Real _K0 = K0;
   py::module py_engine = py::module::import("py_mazars");
 
   auto kwargs_mat_params =

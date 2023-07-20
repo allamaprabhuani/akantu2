@@ -27,7 +27,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
                                          const ID & id)
-    : Material(model, id), damage("damage", *this) {
+    : Material(model, id), damage(this->registerInternal("damage", 1)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("E", E, 0., _pat_parsable, "Young's modulus");
@@ -38,8 +38,6 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
   this->registerParam("Yd", Yd, 50., _pat_parsmod);
   this->registerParam("Sd", Sd, 5000., _pat_parsmod);
-
-  damage.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -61,7 +59,7 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = damage(el_type, ghost_type).data();
+  auto dam = damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -77,17 +75,17 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  Real * epot = (*potential_energy)(el_type).data();
+  auto epot = potential_energy(el_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  epot++;
+  ++epot;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
 
-static bool material_is_alocated_local_damage [[gnu::unused]] =
+const bool material_is_alocated_local_damage [[maybe_unused]] =
     MaterialFactory::getInstance().registerAllocator(
         "local_damage",
         [](UInt, const ID &, SolidMechanicsModel & model,

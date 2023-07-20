@@ -28,15 +28,11 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 CohesiveInternalField<T>::CohesiveInternalField(
-    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
-    : InternalField<T>(
-          id, constitutive_law, "CohesiveFEEngine",
-          aka::as_type<MaterialCohesive>(constitutive_law).getElementFilter()) {
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
+    : InternalField<T>(id, constitutive_law, dim, fem_id, element_filter) {
   this->element_kind = _ek_cohesive;
 }
-
-template <typename T>
-CohesiveInternalField<T>::~CohesiveInternalField() = default;
 
 template <typename T>
 void CohesiveInternalField<T>::initialize(Int nb_component) {
@@ -46,15 +42,12 @@ void CohesiveInternalField<T>::initialize(Int nb_component) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 FacetInternalField<T>::FacetInternalField(
-    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
-    : InternalField<T>(
-          id, constitutive_law, "FacetsFEEngine",
-          aka::as_type<MaterialCohesive>(constitutive_law).getFacetFilter()) {
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
+    : InternalField<T>(id, constitutive_law, dim, fem_id, element_filter) {
   this->spatial_dimension -= 1;
   this->element_kind = _ek_regular;
 }
-
-template <typename T> FacetInternalField<T>::~FacetInternalField() = default;
 
 template <typename T> void FacetInternalField<T>::initialize(Int nb_component) {
   this->internalInitialize(nb_component);
@@ -62,8 +55,26 @@ template <typename T> void FacetInternalField<T>::initialize(Int nb_component) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-ParameterTyped<RandomInternalField<Real, FacetInternalField>>::setAuto(
+inline FacetInternalField<Real> &
+ConstitutiveLawInternalHandler::registerInternal<Real, FacetInternalField>(
+    const ID & id, Int nb_component) {
+  return this->registerInternal<Real, FacetInternalField>(
+      id, nb_component, "FacetsFEEngine",
+      aka::as_type<MaterialCohesive>(*this).getFacetFilter());
+}
+/* -------------------------------------------------------------------------- */
+template <>
+inline FacetRandomInternalField<Real> &
+ConstitutiveLawInternalHandler::registerInternal<
+    Real, FacetRandomInternalField>(const ID & id, Int nb_component) {
+  return this->registerInternal<Real, FacetRandomInternalField>(
+      id, nb_component, "FacetsFEEngine",
+      aka::as_type<MaterialCohesive>(*this).getFacetFilter());
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline void ParameterTyped<FacetRandomInternalField<Real>>::setAuto(
     const ParserParameter & in_param) {
   Parameter::setAuto(in_param);
   RandomParameter<Real> r = in_param;
@@ -72,8 +83,7 @@ ParameterTyped<RandomInternalField<Real, FacetInternalField>>::setAuto(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-ParameterTyped<RandomInternalField<Real, CohesiveInternalField>>::setAuto(
+inline void ParameterTyped<CohesiveRandomInternalField<Real>>::setAuto(
     const ParserParameter & in_param) {
   Parameter::setAuto(in_param);
   RandomParameter<Real> r = in_param;

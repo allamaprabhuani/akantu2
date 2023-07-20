@@ -88,13 +88,6 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, Int dim, const ID & id,
   this->registerParam("capacity", capacity, _pat_parsmod);
   this->registerParam("density", density, _pat_parsmod);
 
-  auto & fem = this->getFEEngine();
-  temperature_on_qpoints.initialize(fem, _nb_component = 1);
-  temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
-  conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
-                                                          spatial_dimension);
-  k_gradt_on_qpoints.initialize(fem, _nb_component = spatial_dimension);
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -183,6 +176,13 @@ void HeatTransferModel::assembleCapacityLumped() {
 void HeatTransferModel::initSolver(TimeStepSolverType time_step_solver_type,
                                    NonLinearSolverType /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
+
+  auto & fem = this->getFEEngine();
+  temperature_on_qpoints.initialize(fem, _nb_component = 1);
+  temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
+  conductivity_on_qpoints.initialize(fem, _nb_component = spatial_dimension *
+                                                          spatial_dimension);
+  k_gradt_on_qpoints.initialize(fem, _nb_component = spatial_dimension);
 
   this->allocNodalField(this->temperature, 1, "temperature");
   this->allocNodalField(this->external_heat_rate, 1, "external_heat_rate");

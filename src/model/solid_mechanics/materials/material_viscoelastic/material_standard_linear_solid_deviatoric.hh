@@ -67,9 +67,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize the material computed parameter
-  void initMaterial() override;
-
   /// update the internal parameters (for modifiable parameters)
   void updateInternalParameters() override;
 
@@ -85,9 +82,9 @@ public:
                                      GhostType ghost_type = _not_ghost) {
     return zip_append(
         Parent::getArguments(el_type, ghost_type),
-        "sigma_dev"_n = make_view<dim, dim>((*stress_dev)(el_type, ghost_type)),
+        "sigma_dev"_n = make_view<dim, dim>(stress_dev(el_type, ghost_type)),
         "history"_n =
-            make_view<dim, dim>((*history_integral)(el_type, ghost_type)));
+            make_view<dim, dim>(history_integral(el_type, ghost_type)));
   }
 
 protected:
@@ -100,30 +97,32 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// give the dissipated energy for the time step
-  Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(const Element & element) const;
+  [[nodiscard]] Real getDissipatedEnergy() const;
+  [[nodiscard]] Real getDissipatedEnergy(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
-  Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id,
-                 const Element & element) override;
+  [[nodiscard]] Real getEnergy(const std::string & type) override;
+  [[nodiscard]] Real getEnergy(const std::string & energy_id,
+                               const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// viscosity, viscous elastic modulus
-  Real eta, Ev, E_inf;
+  Real eta{0.};
+  Real Ev{0.};
+  Real E_inf{0.};
 
   Vector<Real> etas;
 
   /// history of deviatoric stress
-  std::shared_ptr<InternalField<Real>> stress_dev;
+  InternalField<Real> & stress_dev;
 
   /// Internal variable: history integral
-  std::shared_ptr<InternalField<Real>> history_integral;
+  InternalField<Real> & history_integral;
 
   /// Dissipated energy
-  std::shared_ptr<InternalField<Real>> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 };
 
 } // namespace akantu

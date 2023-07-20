@@ -29,27 +29,16 @@ template <Int dim>
 MaterialStandardLinearSolidDeviatoric<
     dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                                 const ID & id)
-    : MaterialElastic<dim>(model, id) {
+    : MaterialElastic<dim>(model, id),
+      stress_dev(this->registerInternal("stress_dev", dim * dim)),
+      history_integral(this->registerInternal("history_integral", dim * dim)),
+      dissipated_energy(this->registerInternal("dissipated_energy", 1)) {
   this->registerParam("Eta", eta, Real(1.), _pat_parsable | _pat_modifiable,
                       "Viscosity");
   this->registerParam("Ev", Ev, Real(1.), _pat_parsable | _pat_modifiable,
                       "Stiffness of the viscous element");
   this->registerParam("Einf", E_inf, Real(1.), _pat_readable,
                       "Stiffness of the elastic element");
-
-  auto stress_size = dim * dim;
-
-  this->stress_dev = this->registerInternal("stress_dev", stress_size);
-  this->history_integral =
-      this->registerInternal("history_integral", stress_size);
-  this->dissipated_energy = this->registerInternal("dissipated_energy", 1);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-void MaterialStandardLinearSolidDeviatoric<dim>::initMaterial() {
-  updateInternalParameters();
-  MaterialElastic<dim>::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -132,7 +121,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
 
   for (auto && [args, dis_energy] :
        zip(this->getArguments(el_type, ghost_type),
-           (*dissipated_energy)(el_type, ghost_type))) {
+           dissipated_energy(el_type, ghost_type))) {
     const auto & grad_u = args["grad_u"_n];
     auto & dev_s = args["sigma_dev"_n];
     auto & h = args["history"_n];
@@ -160,8 +149,8 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de += fem.integrate((*dissipated_energy)(type, _not_ghost), type,
-                        _not_ghost, this->element_filter(type, _not_ghost));
+    de += fem.integrate(dissipated_energy(type, _not_ghost), type, _not_ghost,
+                        this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -176,7 +165,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
 
   auto & fem = this->getFEEngine();
   auto nb_quadrature_points = fem.getNbIntegrationPoints(element.type);
-  auto it = make_view((*this->dissipated_energy)(element.type, _not_ghost),
+  auto it = make_view(dissipated_energy(element.type, _not_ghost),
                       nb_quadrature_points)
                 .begin();
 
@@ -214,7 +203,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 template class MaterialStandardLinearSolidDeviatoric<1>;
 template class MaterialStandardLinearSolidDeviatoric<2>;
 template class MaterialStandardLinearSolidDeviatoric<3>;
-static bool material_is_allocated_sls_deviatoric =
+const bool material_is_allocated_sls_deviatoric [[maybe_unused]] =
     instantiateMaterial<MaterialStandardLinearSolidDeviatoric>(
         "sls_deviatoric");
 

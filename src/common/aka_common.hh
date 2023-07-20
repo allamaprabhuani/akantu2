@@ -513,22 +513,24 @@ namespace {
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_SET_MACRO(name, variable, type)                                 \
-  inline void set##name(type variable) { this->variable = variable; }
+  inline void set##name(type variable) {                  \
+    this->variable = variable;                                                 \
+  }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  inline auto get##name() const->type { return variable; }
+  [[nodiscard]] inline auto get##name() const -> type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
-  inline decltype(auto) get##name() const { return (variable); }
+  [[nodiscard]] inline decltype(auto) get##name() const { return (variable); }
 
 #define AKANTU_GET_MACRO_AUTO_NOT_CONST(name, variable)                        \
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  inline auto get##name()->type { return variable; }
+  [[nodiscard]] inline auto get##name() -> type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
-  inline const auto & get##name() const {                                      \
+  [[nodiscard]] inline const auto & get##name() const {                        \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -536,7 +538,7 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
-  inline decltype(auto) get##name() {                                          \
+  [[nodiscard]] inline decltype(auto) get##name() {                            \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -600,7 +602,7 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-[[nodiscard]] auto is_of_type(T && t) -> bool {
+[[nodiscard]] auto is_of_type(T && t) -> bool { // NOLINT(cppcoreguidelines-missing-std-forward)
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
                                  std::add_const_t<R>, R>>>(&t) != nullptr);
@@ -623,7 +625,7 @@ template <typename R, typename T>
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-[[nodiscard]] decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto) as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   static_assert(
       disjunction<
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
@@ -639,7 +641,7 @@ template <typename R, typename T,
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-[[nodiscard]] decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto) as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   return &as_type<R>(*t);
 }
 

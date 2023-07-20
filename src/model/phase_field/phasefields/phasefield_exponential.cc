@@ -38,8 +38,8 @@ template <Int dim> void PhaseFieldExponential<dim>::updateInternalParameters() {
   for (const auto & type :
        element_filter.elementTypes(spatial_dimension, _not_ghost)) {
     for (auto && [dam, gc] :
-         zip(make_view<dim, dim>((*this->damage_energy)(type, _not_ghost)),
-             (*this->g_c)(type, _not_ghost))) {
+         zip(make_view<dim, dim>(this->damage_energy(type, _not_ghost)),
+             this->g_c(type, _not_ghost))) {
       dam = Matrix<Real, dim, dim>::Identity() * gc * this->l0;
     }
   }
@@ -52,19 +52,19 @@ void PhaseFieldExponential<dim>::computeDrivingForce(ElementType el_type,
   for (auto && [phi_quad, phi_hist_quad, driving_force_quad,
                 dam_energy_density_quad, strain, dam_on_quad,
                 driving_energy_quad, damage_energy_quad, gradd_quad, g_c_quad] :
-       zip((*this->phi)(el_type, ghost_type),
-           this->phi->previous(el_type, ghost_type),
-           (*this->driving_force)(el_type, ghost_type),
-           (*this->damage_energy_density)(el_type, ghost_type),
-           make_view((*this->strain)(el_type, ghost_type), spatial_dimension,
+       zip(this->phi(el_type, ghost_type),
+           this->phi.previous(el_type, ghost_type),
+           this->driving_force(el_type, ghost_type),
+           this->damage_energy_density(el_type, ghost_type),
+           make_view(this->strain(el_type, ghost_type), spatial_dimension,
                      spatial_dimension),
-           (*this->damage_on_qpoints)(el_type, _not_ghost),
-           make_view((*this->driving_energy)(el_type, ghost_type),
+           this->damage_on_qpoints(el_type, _not_ghost),
+           make_view(this->driving_energy(el_type, ghost_type),
                      spatial_dimension),
-           make_view((*this->damage_energy)(el_type, ghost_type),
+           make_view(this->damage_energy(el_type, ghost_type),
                      spatial_dimension, spatial_dimension),
-           make_view((*this->gradd)(el_type, ghost_type), spatial_dimension),
-           (*this->g_c)(el_type, ghost_type))) {
+           make_view(this->gradd(el_type, ghost_type), spatial_dimension),
+           this->g_c(el_type, ghost_type))) {
 
     computePhiOnQuad(strain, phi_quad, phi_hist_quad);
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
@@ -80,10 +80,10 @@ template <Int dim>
 void PhaseFieldExponential<dim>::computeDissipatedEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && tuple : zip((*this->dissipated_energy)(el_type, _not_ghost),
-                           (*this->damage_on_qpoints)(el_type, _not_ghost),
-                           make_view<dim>((*this->gradd)(el_type, _not_ghost)),
-                           (*this->g_c)(el_type, _not_ghost))) {
+  for (auto && tuple : zip(this->dissipated_energy(el_type, _not_ghost),
+                           this->damage_on_qpoints(el_type, _not_ghost),
+                           make_view<dim>(this->gradd(el_type, _not_ghost)),
+                           this->g_c(el_type, _not_ghost))) {
 
     this->computeDissipatedEnergyOnQuad(std::get<1>(tuple), std::get<2>(tuple),
                                         std::get<0>(tuple), std::get<3>(tuple));
@@ -101,11 +101,11 @@ void PhaseFieldExponential<dim>::computeDissipatedEnergyByElement(
 
   auto quad = index * nb_quadrature_points;
 
-  auto gradd_it = make_view<dim>((*this->gradd)(type)).begin() + quad;
+  auto gradd_it = make_view<dim>(this->gradd(type)).begin() + quad;
   auto gradd_end = gradd_it + nb_quadrature_points;
 
-  auto damage_it = (*this->damage_on_qpoints)(type).begin() + quad;
-  auto g_c_it = (*this->g_c)(type).begin() + quad;
+  auto damage_it = this->damage_on_qpoints(type).begin() + quad;
+  auto g_c_it = this->g_c(type).begin() + quad;
 
   Real * edis_quad = edis_on_quad_points.data();
 

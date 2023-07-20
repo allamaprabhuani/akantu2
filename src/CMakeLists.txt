@@ -173,6 +173,8 @@ if(_extra_target_dependencies)
   add_dependencies(akantu ${_extra_target_dependencies})
 endif()
 
+target_link_options(akantu PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5 -gz -ggnu-pubnames>)
+
 package_get_all_export_list(AKANTU_EXPORT_LIST)
 list(APPEND AKANTU_EXPORT_LIST akantu)
 

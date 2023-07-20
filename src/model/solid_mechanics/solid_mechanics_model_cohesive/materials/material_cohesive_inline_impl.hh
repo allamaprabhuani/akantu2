@@ -39,17 +39,17 @@ void MaterialCohesive::computeNormal(const Array<Real> & /*position*/,
 
 /* -------------------------------------------------------------------------- */
 inline Int MaterialCohesive::getNbData(const Array<Element> & elements,
-                                        const SynchronizationTag & tag) const {
+                                       const SynchronizationTag & tag) const {
 
   switch (tag) {
   case SynchronizationTag::_smm_stress: {
-    return 2 * spatial_dimension * sizeof(Real) *
+    return 2 * spatial_dimension * Int(sizeof(Real)) *
            this->getModel().getNbIntegrationPoints(elements,
                                                    "CohesiveFEEngine");
   }
   case SynchronizationTag::_smmc_damage: {
-    return sizeof(Real) * this->getModel().getNbIntegrationPoints(
-                              elements, "CohesiveFEEngine");
+    return Int(sizeof(Real)) * this->getModel().getNbIntegrationPoints(
+                                   elements, "CohesiveFEEngine");
   }
   default: {
   }

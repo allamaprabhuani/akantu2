@@ -31,12 +31,11 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialMazarsNonLocal<dim, Parent>::MaterialMazarsNonLocal(
     SolidMechanicsModel & model, const ID & id)
-    : parent(model, id) {
+    : parent(model, id), Ehat(this->registerInternal("Ehat", 1)),
+      non_local_variable(this->registerInternal("non_local_variable", 1)) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = true;
-  this->Ehat = this->registerInternal("Ehat", 1);
-  this->non_local_variable = this->registerInternal("non_local_variable", 1);
 
   this->registerParam("average_on_damage", this->damage_in_compute_stress,
                       false, _pat_parsable | _pat_modifiable,
@@ -50,17 +49,17 @@ template <Int dim, template <Int> class Parent>
 void MaterialMazarsNonLocal<dim, Parent>::registerNonLocalVariables() {
   ID local;
   if (this->damage_in_compute_stress) {
-    local = this->damage->getName();
+    local = this->damage.getName();
   } else {
-    local = this->Ehat->getName();
+    local = this->Ehat.getName();
   }
 
   this->getModel().getNonLocalManager().registerNonLocalVariable(
-      local, non_local_variable->getName(), 1);
+      local, non_local_variable.getName(), 1);
   this->getModel()
       .getNonLocalManager()
       .getNeighborhood(this->name)
-      .registerNonLocalVariable(non_local_variable->getName());
+      .registerNonLocalVariable(non_local_variable.getName());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +77,7 @@ void MaterialMazarsNonLocal<dim, Parent>::computeStress(ElementType el_type,
 template <Int dim, template <Int> class Parent>
 void MaterialMazarsNonLocal<dim, Parent>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
-  auto & non_loc_var = (*non_local_variable)(el_type, ghost_type);
+  auto & non_loc_var = non_local_variable(el_type, ghost_type);
 
   if (this->damage_in_compute_stress) {
     auto && arguments = zip_replace(getArguments(el_type, ghost_type),

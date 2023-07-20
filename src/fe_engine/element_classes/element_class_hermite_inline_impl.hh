@@ -67,8 +67,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_static_if.hh"
-//#include "element_class_structural.hh"
+#include "element_class_structural.hh" // NOLINT(pp_including_mainfile_in_preamble)
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_HERMITE_INLINE_IMPL_HH_
@@ -91,8 +90,8 @@ namespace details {
   }
 
   template <class D1, class D2>
-  inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coords, Real a,
-                            Eigen::MatrixBase<D2> & N) {
+  inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coords,
+                            Real a, Eigen::MatrixBase<D2> & N) {
     /// natural coordinate
     Real xi = natural_coords(0);
     auto xi2 = xi * xi;
@@ -103,6 +102,7 @@ namespace details {
     auto L1 = a / 4. * (1 - xi - xi2 + xi3);
     auto L2 = a / 4. * (-1 - xi + xi2 + xi3);
 
+    // NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if)
 #if 1 // Version where we also interpolate the rotations
       // Derivatives (with respect to x) of previous functions interpolating
       // rotations
@@ -159,9 +159,9 @@ template <>
 template <typename D1, typename D2, typename D3>
 inline void InterpolationElement<_itp_hermite_2, _itk_structural>::computeDNDS(
     const Eigen::MatrixBase<D1> & Xs, const Eigen::MatrixBase<D2> & xs,
-    Eigen::MatrixBase<D3> & B) {
+    Eigen::MatrixBase<D3> & dnds) {
   auto L = details::computeLength(xs);
-  details::computeDNDS(Xs, L / 2, B);
+  details::computeDNDS(Xs, L / 2, dnds);
 }
 
 } // namespace akantu

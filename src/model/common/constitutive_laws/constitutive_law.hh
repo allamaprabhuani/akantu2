@@ -68,13 +68,19 @@ public:
 
   template <typename T = Real,
             template <typename Type> class InternalFieldType = InternalField>
-  inline std::shared_ptr<InternalFieldType<T>>
-  registerInternal(const ID & id, Int nb_component);
+  inline InternalFieldType<T> & registerInternal(const ID & id,
+                                                 Int nb_component);
 
   template <typename T = Real,
             template <typename Type> class InternalFieldType = InternalField>
-  inline std::shared_ptr<InternalFieldType<T>>
+  inline InternalFieldType<T> &
   registerInternal(const ID & id, Int nb_component, const ID & fe_engine_id);
+
+  template <typename T = Real,
+            template <typename Type> class InternalFieldType = InternalField>
+  inline InternalFieldType<T> &
+  registerInternal(const ID & id, Int nb_component, const ID & fe_engine_id,
+                   const ElementTypeMapArray<Idx> & element_filter);
 
   inline void unregisterInternal(const ID & id);
 
@@ -161,17 +167,16 @@ public:
                   ElementKind element_kind = _ek_regular,
                   const ID & fe_engine_id = "");
 
-  void printself(std::ostream & stream, int indent = 0) const {
+  void printself(std::ostream & stream, int indent = 0) const override {
     std::string space(indent, AKANTU_INDENT);
-    std::cout << "Constitutive Law [" << std::endl;
-    stream << space << " + id                : " << id << std::endl;
-    stream << space << " + name              : " << name << std::endl;
-    stream << space << " + spatial dimension : " << spatial_dimension
-           << std::endl;
+    std::cout << "Constitutive Law [\n";
+    stream << space << " + id                : " << id << "\n";
+    stream << space << " + name              : " << name << "\n";
+    stream << space << " + spatial dimension : " << spatial_dimension << "\n";
     stream << space << " + default FE Engine : " << default_fe_engine_id
-           << std::endl;
+           << "\n";
     Parsable::printself(stream, indent + 1);
-    stream << space << "]" << std::endl;
+    stream << space << "]\n";
   }
 
 protected:

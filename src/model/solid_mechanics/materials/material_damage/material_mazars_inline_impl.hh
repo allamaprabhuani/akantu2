@@ -19,8 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_linear_isotropic_hardening.hh"
-#include "material_mazars.hh"
+// #include "material_linear_isotropic_hardening.hh"
+#include "material_mazars.hh" // NOLINT
 
 namespace akantu {
 
@@ -28,11 +28,11 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialMazars<dim, Parent>::MaterialMazars(SolidMechanicsModel & model,
                                             const ID & id)
-    : parent_damage(model, id) {
-  this->K0 =
-      this->template registerInternal<Real, RandomInternalField>("K0", 1);
+    : parent_damage(model, id),
+      K0(this->template registerInternal<Real, DefaultRandomInternalField>("K0",
+                                                                           1)) {
 
-  this->registerParam("K0", *this->K0, _pat_parsable, "K0");
+  this->registerParam("K0", this->K0, _pat_parsable, "K0");
   this->registerParam("At", this->At, Real(0.8), _pat_parsable, "At");
   this->registerParam("Ac", this->Ac, Real(1.4), _pat_parsable, "Ac");
   this->registerParam("Bc", this->Bc, Real(1900.), _pat_parsable, "Bc");
@@ -54,7 +54,7 @@ void MaterialMazars<dim, Parent>::computeStress(ElementType el_type,
 template <Int dim, template <Int> class Parent>
 template <typename Args>
 inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
-  Parent<dim>::computeStressOnQuad(args);
+  Parent<dim>::computeStressOnQuad(std::forward<decltype(args)>(args));
 
   auto & grad_u = args["grad_u"_n];
 
@@ -100,7 +100,7 @@ MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
     epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
     epsilon.eig(Fdiag);
-    computeDamageOnQuad(args, Fdiag);
+    computeDamageOnQuad(std::forward<Args>(args), Fdiag);
   }
 
   auto && sigma = args["sigma"_n];

@@ -34,9 +34,13 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveLinear<dim>::MaterialCohesiveLinear(SolidMechanicsModel & model,
                                                     const ID & id)
-    : MaterialCohesive(model, id), sigma_c_eff("sigma_c_eff", *this),
-      delta_c_eff("delta_c_eff", *this),
-      insertion_stress("insertion_stress", *this) {
+    : MaterialCohesive(model, id),
+      sigma_c_eff(registerInternal<Real, CohesiveRandomInternalField>(
+          "sigma_c_eff", 1)),
+      delta_c_eff(
+          registerInternal<Real, CohesiveInternalField>("delta_c_eff", 1)),
+      insertion_stress(registerInternal<Real, CohesiveInternalField>(
+          "insertion_stress", dim)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta", beta, Real(0.), _pat_parsable | _pat_readable,
@@ -82,13 +86,10 @@ template <Int dim> void MaterialCohesiveLinear<dim>::initMaterial() {
 
   MaterialCohesive::initMaterial();
 
-  sigma_c_eff.initialize(1);
-  delta_c_eff.initialize(1);
-  insertion_stress.initialize(dim);
-
   if (not Math::are_float_equal(delta_c, 0.)) {
     delta_c_eff.setDefaultValue(delta_c);
   } else {
+    Real sigma_c = this->sigma_c;
     delta_c_eff.setDefaultValue(2 * G_c / sigma_c);
   }
 
@@ -328,7 +329,7 @@ void MaterialCohesiveLinear<dim>::computeTangentTraction(
 template class MaterialCohesiveLinear<1>;
 template class MaterialCohesiveLinear<2>;
 template class MaterialCohesiveLinear<3>;
-static bool material_is_alocated_cohesive_linear =
+const bool material_is_alocated_cohesive_linear [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveLinear>("cohesive_linear");
 
 } // namespace akantu

@@ -36,7 +36,6 @@ class MaterialAnisotropicDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialAnisotropicDamage(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialAnisotropicDamage() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -48,12 +47,12 @@ public:
                               GhostType ghost_type = _not_ghost) {
     return zip_append(
         Parent<dim>::getArguments(el_type, ghost_type),
-        "damage"_n = make_view<dim, dim>((*this->damage)(el_type, ghost_type)),
+        "damage"_n = make_view<dim, dim>(this->damage(el_type, ghost_type)),
         "sigma_el"_n =
-            make_view<dim, dim>((*this->elastic_stress)(el_type, ghost_type)),
-        "epsilon_hat"_n = (*this->equivalent_strain)(el_type, ghost_type),
-        "TrD"_n = (*this->trace_damage)(el_type, ghost_type),
-        "TrD_n_1"_n = this->trace_damage->previous(el_type, ghost_type),
+            make_view<dim, dim>(this->elastic_stress(el_type, ghost_type)),
+        "epsilon_hat"_n = this->equivalent_strain(el_type, ghost_type),
+        "TrD"_n = this->trace_damage(el_type, ghost_type),
+        "TrD_n_1"_n = this->trace_damage.previous(el_type, ghost_type),
         "equivalent_strain_data"_n = equivalent_strain_function,
         "damage_threshold_data"_n = damage_threshold_function);
   }
@@ -72,23 +71,23 @@ private:
 private:
   Real Dc{0.99};
 
-  /// damage internal variable
-  std::shared_ptr<InternalField<Real>> damage;
-
-  /// elastic stress
-  std::shared_ptr<InternalField<Real>> elastic_stress;
-
-  /// equivalent strain
-  std::shared_ptr<InternalField<Real>> equivalent_strain;
-
-  /// trace of the damageThreshold
-  std::shared_ptr<InternalField<Real>> trace_damage;
-
   /// damage criteria
   EquivalentStrain<dim> equivalent_strain_function;
 
   /// damage evolution
   DamageThreshold<dim> damage_threshold_function;
+
+  /// damage internal variable
+  InternalField<Real> & damage;
+
+  /// elastic stress
+  InternalField<Real> & elastic_stress;
+
+  /// equivalent strain
+  InternalField<Real> & equivalent_strain;
+
+  /// trace of the damage threshold
+  InternalField<Real> & trace_damage;
 };
 
 } // namespace akantu

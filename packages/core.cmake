@@ -78,7 +78,6 @@ package_declare_sources(core
   common/aka_view_iterators.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh
-  common/aka_voigthelper.cc
   common/aka_warning.hh
   common/aka_warning_restore.hh
   

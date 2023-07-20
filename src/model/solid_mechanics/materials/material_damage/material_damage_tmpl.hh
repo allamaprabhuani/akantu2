@@ -28,18 +28,9 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialDamage<dim, Parent>::MaterialDamage(SolidMechanicsModel & model,
                                             const ID & id)
-    : Parent<dim>(model, id) {
-  this->damage = this->registerInternal("damage", 1);
-  this->dissipated_energy =
-      this->registerInternal("damage dissipated energy", 1);
-  this->int_sigma = this->registerInternal("integral of sigma", 1);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim, template <Int> class Parent>
-void MaterialDamage<dim, Parent>::initMaterial() {
-  Parent<dim>::initMaterial();
-}
+    : Parent<dim>(model, id), damage(this->registerInternal("damage", 1)),
+      dissipated_energy(this->registerInternal("damage dissipated energy", 1)),
+      int_sigma(this->registerInternal("integral of sigma", 1)) {}
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -55,8 +46,8 @@ void MaterialDamage<dim, Parent>::updateEnergies(ElementType el_type) {
   this->computePotentialEnergy(el_type);
 
   for (auto && [args, epot, edis, ints] :
-       zip(getArguments(el_type), (*this->potential_energy)(el_type),
-           (*this->dissipated_energy)(el_type), (*this->int_sigma)(el_type))) {
+       zip(getArguments(el_type), this->potential_energy(el_type),
+           this->dissipated_energy(el_type), this->int_sigma(el_type))) {
 
     Matrix<Real, dim, dim> delta_gradu =
         args["grad_u"_n] - args["previous_grad_u"_n];
@@ -93,23 +84,21 @@ void MaterialDamage<dim, Parent>::computeTangentModuliOnQuad(
   arguments["tangent_moduli"_n].array() *= (1 - arguments["damage"_n]);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
   for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de += this->getFEEngine().integrate((*dissipated_energy)(type, _not_ghost),
-                                        type, _not_ghost,
-                                        this->element_filter(type, _not_ghost));
+    de += this->getFEEngine().integrate(
+        this->dissipated_energy(type, _not_ghost), type, _not_ghost,
+        this->element_filter(type, _not_ghost));
   }
   return de;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 Real MaterialDamage<dim, Parent>::getEnergy(const std::string & type) {
   if (type == "dissipated") {
@@ -119,6 +108,5 @@ Real MaterialDamage<dim, Parent>::getEnergy(const std::string & type) {
   return Parent<dim>::getEnergy(type);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 } // namespace akantu
