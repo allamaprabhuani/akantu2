@@ -35,7 +35,7 @@ class SolverCallback;
 
 namespace akantu {
 
-class NonLinearSolver : public Parsable {
+class AKANTU_EXPORT NonLinearSolver : public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

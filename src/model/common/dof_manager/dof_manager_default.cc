@@ -455,17 +455,19 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered =
+const bool dof_manager_is_registered [[maybe_unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 
-static bool dof_manager_is_registered_mumps =
+#if defined(AKANTU_USE_MUMPS)
+const bool dof_manager_is_registered_mumps [[maybe_unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "mumps", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
+#endif
 
 } // namespace akantu

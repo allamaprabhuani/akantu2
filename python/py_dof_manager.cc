@@ -141,6 +141,15 @@ namespace {
     }
   };
 
+  class PyNonLinearSolver : public NonLinearSolver {
+  public:
+    using NonLinearSolver::NonLinearSolver;
+
+    void solve(SolverCallback & callback) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, NonLinearSolver, solve, callback);
+    }
+  };
 } // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -179,7 +188,8 @@ void register_dof_manager(py::module & mod) {
            py::arg("terms"))
       .def("zeroResidual", &DOFManager::zeroResidual);
 
-  py::class_<NonLinearSolver, Parsable>(mod, "NonLinearSolver")
+  py::class_<NonLinearSolver, Parsable, PyNonLinearSolver>(mod,
+                                                           "NonLinearSolver")
       .def(
           "set",
           [](NonLinearSolver & self, const std::string & id, const Real & val) {
@@ -191,7 +201,8 @@ void register_dof_manager(py::module & mod) {
           })
       .def("set",
            [](NonLinearSolver & self, const std::string & id,
-              const SolveConvergenceCriteria & val) { self.set(id, val); });
+              const SolveConvergenceCriteria & val) { self.set(id, val); })
+      .def("solve", &NonLinearSolver::solve);
 
   py::class_<TimeStepSolver>(mod, "TimeStepSolver")
       .def("getIntegrationScheme", &TimeStepSolver::getIntegrationScheme);

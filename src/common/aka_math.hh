@@ -118,7 +118,7 @@ namespace AKANTU_EXPORT Math {
 
   /// reduce all the values of an array, the summation is done in place and the
   /// array is modified
-  Real reduce(Array<Real> & array);
+  AKANTU_EXPORT Real reduce(Array<Real> & array);
 
   template <class T> class NewtonRaphson {
   public:
