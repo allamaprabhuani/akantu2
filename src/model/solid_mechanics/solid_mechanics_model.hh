@@ -79,7 +79,7 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /// get some default values for derived classes
-  std::tuple<ID, TimeStepSolverType>
+  [[nodiscard]] std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   /* ------------------------------------------------------------------------ */
@@ -97,10 +97,10 @@ protected:
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() const override { return true; }
+  [[nodiscard]] bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override;
+  [[nodiscard]] MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -125,9 +125,9 @@ protected:
 
 public:
   /* ------------------------------------------------------------------------ */
-  TimeStepSolverType getDefaultSolverType() const override;
+  [[nodiscard]] TimeStepSolverType getDefaultSolverType() const override;
 
-  ModelSolverOptions
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   bool isDefaultSolverExplicit() {
@@ -207,8 +207,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -216,8 +216,8 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  Int getNbData(const Array<Idx> & dofs,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Idx> & dofs,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                 const SynchronizationTag & tag) const override;
@@ -328,17 +328,17 @@ public:
   inline decltype(auto) getMaterials() { return this->getConstitutiveLaws(); }
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials() const {
+  [[nodiscard]] inline decltype(auto) getMaterials() const {
     return this->getConstitutiveLaws();
   }
 
   /// get a particular material (by numerical material index)
-  inline Material & getMaterial(UInt mat_index) {
+  inline Material & getMaterial(Idx mat_index) {
     return this->getConstitutiveLaw(mat_index);
   }
 
   /// get a particular material (by numerical material index)
-  inline const Material & getMaterial(UInt mat_index) const {
+  [[nodiscard]] inline const Material & getMaterial(Idx mat_index) const {
     return this->getConstitutiveLaw(mat_index);
   }
 
@@ -348,22 +348,26 @@ public:
   }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const std::string & name) const {
+  [[nodiscard]] inline const Material &
+  getMaterial(const std::string & name) const {
     return this->getConstitutiveLaw(name);
   }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const Element & element) const {
+  [[nodiscard]] inline const Material &
+  getMaterial(const Element & element) const {
     return this->getConstitutiveLaw(element);
   }
 
   /// get a particular material id from is name
-  inline auto getMaterialIndex(const std::string & name) const {
+  [[nodiscard]] inline auto getMaterialIndex(const std::string & name) const {
     return this->getConstitutiveLawIndex(name);
   }
 
   /// give the number of materials
-  inline auto getNbMaterials() const { return this->getNbConstitutiveLaws(); }
+  [[nodiscard]] inline auto getNbMaterials() const {
+    return this->getNbConstitutiveLaws();
+  }
 
   void reassignMaterial() { this->reassignConstitutiveLaw(); }
   void registerNewMaterial(const ID & mat_name, const ID & mat_type,
@@ -373,23 +377,24 @@ public:
   Real getStableTimeStep();
 
   // this function is kept for backward compatinility
-  decltype(auto) getMaterialByElement() const {
+  [[nodiscard]] decltype(auto) getMaterialByElement() const {
     return this->getConstitutiveLawByElement();
   }
 
   // this function is kept for backward compatinility
-  decltype(auto) getMaterialLocalNumbering() const {
+  [[nodiscard]] decltype(auto) getMaterialLocalNumbering() const {
     return this->getConstitutiveLawLocalNumbering();
   }
 
   // this function is kept for backward compatinility
-  decltype(auto) getMaterialByElement(ElementType type,
-                                      GhostType ghost_type = _not_ghost) const {
+  [[nodiscard]] decltype(auto)
+  getMaterialByElement(ElementType type,
+                       GhostType ghost_type = _not_ghost) const {
     return this->getConstitutiveLawByElement(type, ghost_type);
   }
 
   // this function is kept for backward compatinility
-  decltype(auto)
+  [[nodiscard]] decltype(auto)
   getMaterialLocalNumbering(ElementType type,
                             GhostType ghost_type = _not_ghost) const {
     return this->getConstitutiveLawLocalNumbering(type, ghost_type);
@@ -402,8 +407,8 @@ public:
 
   // this function is kept for backward compatinility
   void setMaterialSelector(
-      std::shared_ptr<ConstitutiveLawSelector> material_selector) {
-    this->setConstitutiveLawSelector(std::move(material_selector));
+      const std::shared_ptr<ConstitutiveLawSelector> & material_selector) {
+    this->setConstitutiveLawSelector(material_selector);
   }
 
   /// get the FEEngine object to integrate or interpolate on the boundary

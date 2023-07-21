@@ -25,6 +25,8 @@
 #include <cohesive_contact_solvercallback.hh>
 #include <coupler_solid_cohesive_contact.hh>
 #include <coupler_solid_contact.hh>
+#include <element_synchronizer.hh>
+#include <node_synchronizer.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>

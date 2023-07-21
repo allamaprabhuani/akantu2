@@ -119,12 +119,15 @@ protected:
   void assembleStiffnessMatrix(GhostType ghost_type) override;
 
   /// constitutive law
-  virtual void computeTraction(ElementType el_type,
-                               GhostType ghost_type = _not_ghost) = 0;
+  virtual void computeTraction(ElementType /*el_type*/,
+                               GhostType /*ghost_type*/ = _not_ghost) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// parallelism functions
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -235,7 +238,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "cohesive_internal_field_tmpl.hh"
+#include "cohesive_internal_field_tmpl.hh" // NOLINT(unused-includes)
 #include "material_cohesive_inline_impl.hh"
 
 #endif /* AKANTU_MATERIAL_COHESIVE_HH_ */

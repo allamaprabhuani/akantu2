@@ -35,9 +35,11 @@
 #include <constitutive_law_selector.hh>
 #if defined(AKANTU_SOLID_MECHANICS)
 #include <material_selector.hh>
+#include <solid_mechanics_model.hh>
 #endif
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_selector_cohesive.hh>
+#include <solid_mechanics_model_cohesive.hh>
 #endif
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>

@@ -1,5 +1,3 @@
-#include "constitutive_law_selector.hh"
-
 #ifndef AKANTU_CONSTITUTIVE_LAW_SELECTOR_TMPL_HH_
 #define AKANTU_CONSTITUTIVE_LAW_SELECTOR_TMPL_HH_
 
