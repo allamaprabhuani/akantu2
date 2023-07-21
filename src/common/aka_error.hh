@@ -27,18 +27,6 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-// akantu visibility macro
-// clang-format off
-#if !defined(AKANTU_EXPORT)
-#  if defined(WIN32) || defined(_WIN32)
-#    define AKANTU_EXPORT __declspec(dllexport)
-#  else
-#    define AKANTU_EXPORT [[gnu::visibility("default")]]
-#  endif
-#endif
-// clang-format on
-
-/* -------------------------------------------------------------------------- */
 #ifndef AKANTU_ERROR_HH_
 #define AKANTU_ERROR_HH_
 

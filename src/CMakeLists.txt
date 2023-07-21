@@ -146,7 +146,26 @@ target_link_libraries(akantu PUBLIC ${AKANTU_EXTERNAL_LIBRARIES})
 separate_arguments(_separated_cxx_flags UNIX_COMMAND ${_cxx_flags})
 target_compile_options(akantu PUBLIC ${_separated_cxx_flags})
 
-set_target_properties(akantu PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+set_target_properties(akantu
+  PROPERTIES
+    CXX_VISIBILITY_PRESET "hidden"
+    CMAKE_VISIBILITY_INLINES_HIDDEN 1
+  )
+
+include(GenerateExportHeader)
+generate_export_header(akantu
+  INCLUDE_GUARD_NAME AKA_EXPORT_HH
+  EXPORT_FILE_NAME aka_export.hh)
+list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/aka_export.hh")
+
+if(AKANTU_SPLIT_DWARF)
+  target_compile_options(akantu
+    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf>
+  )
+  # target_link_options(akantu
+  #   PRIVATE $<$<CONFIG:DEBUG>:--gdb-index> $<$<CONFIG:SANITIZE_DEBUG>:--gdb-index>
+  # )
+endif()
 
 if(AKANTU_LIBRARY_PROPERTIES)
   set_target_properties(akantu
@@ -236,8 +255,14 @@ cmake_policy(SET CMP0069 NEW)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
 if(ipo_supported)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" _u_build_type)
+  if(NOT _u_build_type MATCHES "DEBUG")
     message(STATUS "IPO/LTO enabled")
     set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "IPO/LTO supported but deactivated in debug")
+    set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
     message(STATUS "IPO/LTO not supported: <${ipo_error}>")
 endif()

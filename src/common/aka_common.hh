@@ -31,9 +31,11 @@
 #endif
 
 /* -------------------------------------------------------------------------- */
+#include "aka_export.hh"
+/* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 #include "aka_error.hh"
-#include "aka_safe_enum.hh"
+#include "aka_safe_enum.hh" // NOLINT(unused-includes)
 /* -------------------------------------------------------------------------- */
 #include <boost/preprocessor.hpp>
 #include <limits>
@@ -520,7 +522,7 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  inline auto get##name() const->type { return variable; }
+  inline auto get##name() const -> type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   inline decltype(auto) get##name() const { return (variable); }
@@ -529,7 +531,7 @@ namespace {
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  inline auto get##name()->type { return variable; }
+  inline auto get##name() -> type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   inline const auto & get##name() const {                                      \
