@@ -21,6 +21,8 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_laws_handler.hh>
+#include <material.hh>
 #include <non_linear_solver.hh>
 #include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */

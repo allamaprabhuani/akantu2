@@ -24,9 +24,9 @@
 #include <heat_transfer_model.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
-//#include <pybind11/operators.h>
+// #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
-//#include <pybind11/stl.h>
+// #include <pybind11/stl.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
@@ -76,13 +76,7 @@ void register_heat_transfer_model(py::module & mod) {
            py::arg("solver_id") = "")
       .def_function(getStableTimeStep)
       .def_function_nocopy(getTemperature)
-      .def_function_nocopy(getBlockedDOFs)
-      .def("getTemperatureGradient", &HeatTransferModel::getTemperatureGradient,
-           py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference)
-      .def("getKgradT", &HeatTransferModel::getKgradT, py::arg("el_type"),
-           py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference);
+      .def_function_nocopy(getBlockedDOFs);
 }
 
 } // namespace akantu

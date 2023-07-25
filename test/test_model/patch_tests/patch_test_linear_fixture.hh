@@ -31,7 +31,7 @@
 #ifndef AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
 #define AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
 
-//#define DEBUG_TEST
+// #define DEBUG_TEST
 
 using namespace akantu;
 
@@ -41,7 +41,7 @@ public:
   static constexpr ElementType type = type_::value;
   static constexpr Int dim = ElementClass<type>::getSpatialDimension();
 
-  virtual void SetUp() {
+  void SetUp() override {
     mesh = std::make_unique<Mesh>(dim);
     mesh->read(std::to_string(type) + ".msh");
     MeshUtils::buildFacets(*mesh);
@@ -50,28 +50,29 @@ public:
     model = std::make_unique<M>(*mesh);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     model.reset(nullptr);
     mesh.reset(nullptr);
   }
 
-  virtual void initModel(const AnalysisMethod &method,
-                         const std::string &material_file) {
+  virtual void initModel(const AnalysisMethod & method,
+                         const std::string & material_file) {
     debug::setDebugLevel(dblError);
     getStaticParser().parse(material_file);
 
     this->model->initFull(_analysis_method = method);
     this->applyBC();
 
-    if (method != _static)
+    if (method != _static) {
       this->model->setTimeStep(0.8 * this->model->getStableTimeStep());
+    }
   }
 
   virtual void applyBC() {
-    auto &boundary = this->model->getBlockedDOFs();
+    auto & boundary = this->model->getBlockedDOFs();
 
-    for (auto &eg : mesh->iterateElementGroups()) {
-      for (const auto &node : eg.getNodeGroup()) {
+    for (auto & eg : mesh->iterateElementGroups()) {
+      for (const auto & node : eg.getNodeGroup()) {
         for (Int s = 0; s < boundary.getNbComponent(); ++s) {
           boundary(node, s) = true;
         }
@@ -79,17 +80,17 @@ public:
     }
   }
 
-  virtual void applyBConDOFs(const Array<Real> &dofs) {
-    const auto &coordinates = this->mesh->getNodes();
-    for (auto &eg : this->mesh->iterateElementGroups()) {
-      for (const auto &node : eg.getNodeGroup()) {
+  virtual void applyBConDOFs(const Array<Real> & dofs) {
+    const auto & coordinates = this->mesh->getNodes();
+    for (auto & eg : this->mesh->iterateElementGroups()) {
+      for (const auto & node : eg.getNodeGroup()) {
         this->setLinearDOF(dofs.begin(dofs.getNbComponent())[node],
                            coordinates.begin(this->dim)[node]);
       }
     }
   }
 
-  template <typename V> Matrix<Real> prescribed_gradient(const V &dof) {
+  template <typename V> Matrix<Real> prescribed_gradient(const V & dof) {
     Matrix<Real> gradient(dof.getNbComponent(), dim);
 
     for (Int i = 0; i < gradient.rows(); ++i) {
@@ -101,10 +102,10 @@ public:
   }
 
   template <typename Gradient, typename DOFs>
-  void checkGradient(const Gradient &gradient, const DOFs &dofs) {
+  void checkGradient(const Gradient & gradient, const DOFs & dofs) {
     auto pgrad = prescribed_gradient(dofs);
 
-    for (auto &grad :
+    for (auto & grad :
          make_view(gradient, gradient.getNbComponent() / dim, dim)) {
       auto diff = grad - pgrad;
       auto gradient_error = diff.template lpNorm<Eigen::Infinity>() /
@@ -115,10 +116,10 @@ public:
   }
 
   template <typename presult_func_t, typename Result, typename DOFs>
-  void checkResults(presult_func_t &&presult_func, const Result &results,
-                    const DOFs &dofs) {
+  void checkResults(presult_func_t && presult_func, const Result & results,
+                    const DOFs & dofs) {
     Matrix<Real> presult = presult_func(prescribed_gradient(dofs));
-    for (auto &result : make_view(results, presult.rows(), presult.cols())) {
+    for (auto & result : make_view(results, presult.rows(), presult.cols())) {
       auto diff = result - presult;
       auto result_error = diff.template lpNorm<Eigen::Infinity>() /
                           presult.template lpNorm<Eigen::Infinity>();
@@ -127,7 +128,8 @@ public:
     }
   }
 
-  template <typename V1, typename V2> void setLinearDOF(V1 &&dof, V2 &&coord) {
+  template <typename V1, typename V2>
+  void setLinearDOF(V1 && dof, V2 && coord) {
     for (Int i = 0; i < dof.size(); ++i) {
       dof(i) = this->alpha(i, 0);
       for (Int j = 0; j < coord.size(); ++j) {
@@ -136,14 +138,14 @@ public:
     }
   }
 
-  template <typename V> void checkDOFs(V &&dofs) {
-    const auto &coordinates = mesh->getNodes();
+  template <typename V> void checkDOFs(V && dofs) {
+    const auto & coordinates = mesh->getNodes();
     Vector<Real> ref_dof(dofs.getNbComponent());
 
-    for (auto &&tuple : zip(make_view(coordinates, dim),
-                            make_view(dofs, dofs.getNbComponent()))) {
-      setLinearDOF(ref_dof, std::get<0>(tuple));
-      auto diff = std::get<1>(tuple) - ref_dof;
+    for (auto && [X, u] : zip(make_view(coordinates, dim),
+                              make_view(dofs, dofs.getNbComponent()))) {
+      setLinearDOF(ref_dof, X);
+      auto diff = u - ref_dof;
       auto dofs_error = diff.template lpNorm<Eigen::Infinity>();
 
       EXPECT_NEAR(0, dofs_error, dofs_tolerance);
@@ -162,10 +164,10 @@ protected:
   Real dofs_tolerance{1e-15};
 };
 
-template <typename type_, typename M>
-constexpr ElementType TestPatchTestLinear<type_, M>::type;
+// template <typename type_, typename M>
+// constexpr ElementType TestPatchTestLinear<type_, M>::type;
 
-template <typename tuple_, typename M>
-constexpr Int TestPatchTestLinear<tuple_, M>::dim;
+// template <typename tuple_, typename M>
+// constexpr Int TestPatchTestLinear<tuple_, M>::dim;
 
 #endif /* AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_ */
