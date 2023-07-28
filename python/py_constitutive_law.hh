@@ -9,7 +9,7 @@
 
 namespace akantu {
 
-void register_constitutive_law(pybind11::module & mod);
+void register_constitutive_law_internal_handler(pybind11::module & mod);
 
 template <class ConstitutiveLawHandler>
 class PyConstitutiveLaw : public ConstitutiveLaw<ConstitutiveLawHandler> {
@@ -22,8 +22,16 @@ public:
 
   void initConstitutiveLaw() override {
     // NOLINTNEXTLINE
-    PYBIND11_OVERRIDE(void, ConstitutiveLaw<ConstitutiveLawHandler>,
-                      initConstitutiveLaw, );
+    PYBIND11_OVERRIDE(void, Parent, initConstitutiveLaw, );
+  }
+
+  Real getEnergy(const ID & energy_id) override {
+    // NOLINTNEXTLINE
+    PYBIND11_OVERRIDE(Real, Parent, getEnergy, energy_id);
+  }
+  Real getEnergy(const ID & energy_id, const Element & element) override {
+    // NOLINTNEXTLINE
+    PYBIND11_OVERRIDE(Real, Parent, getEnergy, energy_id, element);
   }
 
   // methods need to be defined to be able to do the python interface
@@ -40,79 +48,45 @@ public:
 };
 
 /* ------------------------------------------------------------------------ */
-template <class ConstitutiveLawHandler>
-void register_constitutive_law(py::module & mod, const std::string & name) {
-  py::class_<ConstitutiveLaw<ConstitutiveLawHandler>,
-             ConstitutiveLawInternalHandler, Parsable,
-             PyConstitutiveLaw<ConstitutiveLawHandler>>(
+template <class ConstitutiveLawsHandler_>
+void register_constitutive_law(py::module & mod) {
+  using CL = ConstitutiveLaw<ConstitutiveLawsHandler_>;
+  const std::string & name =
+      "ConstitutiveLaw" + debug::demangle<ConstitutiveLawsHandler_>();
+
+  py::class_<CL, ConstitutiveLawInternalHandler, Parsable,
+             PyConstitutiveLaw<ConstitutiveLawsHandler_>>(
       mod, name.c_str(), py::multiple_inheritance())
-      .def(py::init<ConstitutiveLawHandler &, const ID &>())
-      .def(
-          "registerInternalReal",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
-             const std::string & name, Int nb_component) -> decltype(auto) {
-            return self.registerInternal(name, nb_component);
-          },
-          py::return_value_policy::reference)
-      .def(
-          "registerInternalInt",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self,
-             const std::string & name, UInt nb_component) -> decltype(auto) {
-            return dynamic_cast<PyConstitutiveLaw<ConstitutiveLawHandler> &>(
-                       self)
-                .template registerInternal<Int>(name, nb_component);
-          },
-          py::return_value_policy::reference)
-      .def(
-          "getInternalReal",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & id)
-              -> decltype(auto) { return self.template getInternal<Real>(id); },
-          py::arg("id"), py::return_value_policy::reference)
-      .def(
-          "getInternalUInt",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & id)
-              -> decltype(auto) { return self.template getInternal<UInt>(id); },
-          py::arg("id"), py::return_value_policy::reference)
-      .def(
-          "getElementFilter",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self) -> decltype(auto) {
-            return self.getElementFilter();
-          },
-          py::return_value_policy::reference)
-      .def("getSpatialDimension",
-           &ConstitutiveLawInternalHandler::getSpatialDimension)
+      .def(py::template init<ConstitutiveLawsHandler_ &, const ID &, Int,
+                             ElementKind, const ID &>())
       /*
        * These functions override the `Parsable` interface.
        * This ensure that the `updateInternalParameters()` function is called.
        */
       .def(
           "setReal",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & name,
-             const Real value) -> void {
+          [](CL & self, const ID & name, const Real value) -> void {
             self.setParam(name, value);
             return;
           },
           py::arg("name"), py::arg("value"))
       .def(
           "setBool",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & name,
-             const bool value) -> void {
+          [](CL & self, const ID & name, const bool value) -> void {
             self.setParam(name, value);
             return;
           },
           py::arg("name"), py::arg("value"))
       .def(
           "setString",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & name,
-             const std::string & value) -> void {
+          [](CL & self, const ID & name, const std::string & value) -> void {
             self.setParam(name, value);
             return;
           },
           py::arg("name"), py::arg("value"))
       .def(
           "setInt",
-          [](ConstitutiveLaw<ConstitutiveLawHandler> & self, const ID & name,
-             const int value) -> void {
+          [](CL & self, const ID & name, const int value) -> void {
             self.setParam(name, value);
             return;
           },

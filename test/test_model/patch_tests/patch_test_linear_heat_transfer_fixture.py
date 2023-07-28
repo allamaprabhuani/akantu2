@@ -21,14 +21,19 @@ class TestPatchTestHTMLinear(patch_test_linear_fixture.TestPatchTestLinear):
 
     def checkAll(self):
         temperature = self.model.getTemperature()
-        C = self.model.getMatrix("conductivity")
+        cl = self.model.getConstitutiveLaw(0)
+        C = cl.getMatrix("conductivity")
+
         self.checkDOFs(temperature)
-        self.checkGradient(self.model.getTemperatureGradient(self.elem_type),
+
+        grad_t = cl.getInternalReal("∇u")
+        self.checkGradient(grad_t(self.elem_type),
                            temperature)
 
         self.prescribed_gradient(temperature)
+        flux = cl.getInternalReal("D∇u")
         self.checkResults(lambda grad_T: C.dot(grad_T.T),
-                          self.model.getKgradT(self.elem_type),
+                          flux(self.elem_type),
                           temperature)
 
     def initModel(self, method, material_file):

@@ -182,7 +182,7 @@ template <typename T, Int ndim> class Tensor;
 /* -------------------------------------------------------------------------- */
 #include "aka_view_iterators.hh"
 /* -------------------------------------------------------------------------- */
-#include "aka_tensor.hh"
+#include "aka_tensor.hh" // NOLINT(unused-includes)
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -191,7 +191,9 @@ class ArrayBase;
 
 /* -------------------------------------------------------------------------- */
 namespace details {
-  template <typename T> struct MapPlainObjectType { using type = T; };
+  template <typename T> struct MapPlainObjectType {
+    using type = T;
+  };
 
   template <typename PlainObjectType, int MapOptions, typename StrideType>
   struct MapPlainObjectType<
@@ -243,13 +245,14 @@ namespace details {
     using size_type = typename std::decay_t<Array>::size_type;
     using value_type = typename std::decay_t<Array>::value_type;
 
-    EigenView(Array && array, decltype(sizes)... sizes_)
+    EigenView(Array && array, decltype(sizes)... sizes_) // NOLINT
         : array(std::ref(array)), sizes_(sizes_...) {}
 
-    EigenView(Array && array) : array(array), sizes_(sizes...) {}
+    EigenView(Array && array) : array(std::ref(array)), sizes_(sizes...) {} // NOLINT
 
     EigenView(const EigenView & other) = default;
     EigenView(EigenView && other) noexcept = default;
+    ~EigenView() = default;
 
     auto operator=(const EigenView & other) -> EigenView & = default;
     auto operator=(EigenView && other) noexcept -> EigenView & = default;
@@ -397,7 +400,7 @@ MatrixBase<Derived>::begin() const {
   using Scalar = typename Derived::Scalar;
   return ::akantu::const_view_iterator<
       Map<const Matrix<Scalar, Derived::RowsAtCompileTime, 1>>>(
-      const_cast<Scalar *>(this->derived().data()), this->rows());
+      const_cast<Scalar *>(this->derived().data()), this->rows()); // NOLINT
 }
 
 template <typename Derived>
@@ -407,8 +410,20 @@ MatrixBase<Derived>::end() const {
   using Scalar = typename Derived::Scalar;
   return ::akantu::const_view_iterator<
       Map<const Matrix<Scalar, Derived::RowsAtCompileTime, 1>>>(
-      const_cast<Scalar *>(this->derived().data()) + this->size(),
+      const_cast<Scalar *>(this->derived().data()) + this->size(), // NOLINT
       this->rows());
+}
+
+template <typename Derived>
+template <typename OtherScalar>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto MatrixBase<Derived>::eig() const {
+  EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
+      solver(*this, false);
+  if constexpr (std::is_floating_point<OtherScalar>{}) {
+    return solver.eigenvalues().real();
+  } else {
+    return solver.eigenvalues();
+  }
 }
 
 template <typename Derived>
@@ -418,7 +433,6 @@ MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) const {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
   using OtherScalar = typename OtherDerived::Scalar;
-
   // as advised by the Eigen developers even though this is a UB
   // auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
   if constexpr (std::is_floating_point<OtherScalar>{}) {
@@ -470,7 +484,7 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
   PermutationMatrix<Dynamic> P(values.size());
   P.setIdentity();
 
-  std::sort(P.indices().data(), P.indices().data() + P.indices().size(),
+  std::sort(P.indices().begin(), P.indices().end(),
             [&values](const Index & a, const Index & b) {
               return (values(a) - values(b)) > 0;
             });
@@ -479,7 +493,6 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
     values = P.transpose() * values;
     vectors = solver.eigenvectors().real() * P;
   }
-  return;
 }
 
 template <typename Derived>
@@ -490,7 +503,7 @@ MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> & values_) const {
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, EigenvaluesOnly);
   // as advised by the Eigen developers even though this is a UB
-  auto & values = const_cast<MatrixBase<OtherDerived> &>(values_);
+  auto & values = const_cast<MatrixBase<OtherDerived> &>(values_); // NOLINT
   values = solver.eigenvalues();
 }
 
@@ -504,8 +517,8 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
       solver(*this, ComputeEigenvectors);
 
   // as advised by the Eigen developers, even though this is a UB
-  auto & values = const_cast<MatrixBase<D1> &>(values_);
-  auto & vectors = const_cast<MatrixBase<D2> &>(vectors_);
+  auto & values = const_cast<MatrixBase<D1> &>(values_);   // NOLINT
+  auto & vectors = const_cast<MatrixBase<D2> &>(vectors_); // NOLINT
 
   if (not sort) {
     values = solver.eigenvalues();
@@ -517,7 +530,7 @@ MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
   PermutationMatrix<Dynamic> P(values.size());
   P.setIdentity();
 
-  std::sort(P.indices().data(), P.indices().data() + P.indices().size(),
+  std::sort(P.indices().begin(), P.indices().end(),
             [&values](const Index & a, const Index & b) {
               return (values(a) - values(b)) > 0;
             });

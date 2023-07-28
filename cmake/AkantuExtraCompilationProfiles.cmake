@@ -31,11 +31,9 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
   CACHE STRING "Flags used by the compiler during release builds" FORCE)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3 -gsplit-dwarf"
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -g3 -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-  set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG_INIT}--gdb-index"
-    CACHE STRING "Flags used by the linker during creation of shared libraries" FORCE)
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -g3 -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
 endif()
 
@@ -112,6 +110,7 @@ if (_cmake_build_type_lower MATCHES "valgrind")
 endif()
 
 option(AKANTU_USE_CCACHE "Use ccache if available to build akantu" ON)
+option(AKANTU_SPLIT_DWARF "Split the debug symbols in separate DWO files" OFF)
 
 if (AKANTU_USE_CCACHE)
   find_program(CCACHE_EXECUTABLE ccache)

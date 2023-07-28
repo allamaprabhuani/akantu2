@@ -67,7 +67,7 @@ class Material : public ConstitutiveLaw<SolidMechanicsModel>,
   /* ------------------------------------------------------------------------ */
 public:
   /// Initialize material with defaults
-  Material(SolidMechanicsModel & model, const ID & id = "",
+  Material(SolidMechanicsModel & model, const ID & id = "material",
            const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
@@ -499,7 +499,7 @@ public:
   /// for static or implicit computations
   virtual MatrixType getTangentType() { return _mt_not_defined; }
 
-  /// static method to reteive the material factory
+  /// static method to retrieve the material factory
   static MaterialFactory & getFactory();
 
   /* ------------------------------------------------------------------------ */

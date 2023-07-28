@@ -151,6 +151,9 @@ public:
   [[nodiscard]] const NonLinearSolver &
   getNonLinearSolver(const ID & solver_id = "") const;
 
+  /// get id of model
+  AKANTU_GET_MACRO(ID, id, const ID &)
+
 private:
   [[nodiscard]] TimeStepSolver & getSolver(const ID & solver_id);
   [[nodiscard]] const TimeStepSolver & getSolver(const ID & solver_id) const;
@@ -164,9 +167,9 @@ protected:
   /// Underlying dof_manager (the brain...)
   std::shared_ptr<DOFManager> dof_manager;
 
-private:
-  ID parent_id;
+  ID id;
 
+private:
   /// Underlying mesh
   Mesh & mesh;
 

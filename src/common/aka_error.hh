@@ -110,9 +110,11 @@ namespace debug {
     /*  Methods */
     /* ---------------------------------------------------------------------- */
   public:
-    const char * what() const noexcept override { return _info.c_str(); }
+    [[nodiscard]] const char * what() const noexcept override {
+      return _info.c_str();
+    }
 
-    virtual std::string info() const noexcept {
+    [[nodiscard]] virtual std::string info() const noexcept {
       std::stringstream stream;
       stream << debug::demangle(typeid(*this).name()) << " : " << _info << " ["
              << _file << ":" << _line << "]";
@@ -129,7 +131,7 @@ namespace debug {
       backtrace_ = backtrace;
     }
 
-    decltype(auto) backtrace() const { return backtrace_; }
+    [[nodiscard]] decltype(auto) backtrace() const { return backtrace_; }
     /* ---------------------------------------------------------------------- */
     /* Class Members                                                          */
     /* ---------------------------------------------------------------------- */
@@ -203,13 +205,14 @@ namespace debug {
     void setParallelContext(int rank, int size);
 
     void setDebugLevel(const DebugLevel & level);
-    const DebugLevel & getDebugLevel() const;
+    [[nodiscard]] const DebugLevel & getDebugLevel() const;
 
     void setLogFile(const std::string & filename);
     std::ostream & getOutputStream();
 
-    inline bool testLevel(const DebugLevel & level,
-                          const std::string & module = "core") const {
+    [[nodiscard]] inline bool
+    testLevel(const DebugLevel & level,
+              const std::string & module = "core") const {
       auto level_reached = (this->level >= (level));
       auto correct_module =
           (level <= dblCritical) or (modules_to_debug.empty()) or
@@ -218,7 +221,7 @@ namespace debug {
     }
 
     void printBacktrace(bool on_off) { this->print_backtrace = on_off; }
-    bool printBacktrace() const { return this->print_backtrace; }
+    [[nodiscard]] bool printBacktrace() const { return this->print_backtrace; }
 
     void addModuleToDebug(const std::string & id) {
       this->modules_to_debug.insert(id);
@@ -232,26 +235,30 @@ namespace debug {
 
     void listModules() {
       for (const auto & module_ : modules_to_debug) {
-        (*cout) << module_ << std::endl;
+        (*cout) << module_ << "\n";
       }
     }
 
   private:
     std::string parallel_context;
     std::ostream * cout;
-    bool file_open;
-    DebugLevel level;
-    bool print_backtrace;
+    bool file_open{false};
+    DebugLevel level{dblWarning};
+    bool print_backtrace{false};
     std::set<std::string> modules_to_debug;
   };
 
   extern Debugger debugger; // NOLINT
 
   struct DebugLevelContext {
+    DebugLevelContext(const DebugLevelContext &) = default;
+    DebugLevelContext(DebugLevelContext &&) = delete;
+    DebugLevelContext & operator=(const DebugLevelContext &) = default;
+    DebugLevelContext & operator=(DebugLevelContext &&) = delete;
+
     DebugLevelContext(const DebugLevel & new_dbl) : save(getDebugLevel()) {
       setDebugLevel(new_dbl);
     }
-
     ~DebugLevelContext() { setDebugLevel(save); }
 
   private:

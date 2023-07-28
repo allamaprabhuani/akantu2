@@ -24,6 +24,7 @@
 #include "py_aka_common.hh"
 #include "py_aka_error.hh"
 #include "py_boundary_conditions.hh"
+#include "py_constitutive_law.hh"
 #include "py_constitutive_law_selector.hh"
 #include "py_dof_manager.hh"
 #include "py_dumpable.hh"
@@ -93,6 +94,7 @@ void register_all(pybind11::module & mod) {
   register_boundary_conditions(mod);
   register_model(mod);
   register_constitutive_law_selector(mod);
+  register_constitutive_law_internal_handler(mod);
 
 #if defined(AKANTU_HEAT_TRANSFER)
   register_heat_transfer_model(mod);

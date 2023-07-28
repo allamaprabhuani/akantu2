@@ -121,7 +121,7 @@ ConstitutiveLawInternalHandler::getInternal(const ID & id) const {
 template <typename T>
 InternalField<T> & ConstitutiveLawInternalHandler::getInternal(const ID & id) {
 
-  if (auto it = internal_vectors.find(getID() + ":" + id);
+  if (auto it = internal_vectors.find(id);
       it != internal_vectors.end() and
       aka::is_of_type<InternalField<T>>(*it->second)) {
     return aka::as_type<InternalField<T>>(*it->second);
@@ -129,8 +129,7 @@ InternalField<T> & ConstitutiveLawInternalHandler::getInternal(const ID & id) {
 
   AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
                                           << ") does not contain an internal "
-                                          << id << " (" << (getID() + ":" + id)
-                                          << ")");
+                                          << id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -556,8 +555,9 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
 
     auto it_dst = make_view(dst_vect, nb_data).begin();
 
-    for (auto && data : zip(filter, make_view(src_vect, nb_data))) {
-      it_dst[std::get<0>(data)] = std::get<1>(data);
+    for (auto && [element, src_value] :
+         zip(filter, make_view(src_vect, nb_data))) {
+      it_dst[element] = src_value;
     }
   }
 }
@@ -576,7 +576,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::inflateInternal(
   auto & internal_field = this->template getInternal<T>(field_id);
   const auto & fe_engine = internal_field.getFEEngine();
 
-  for (auto && type : field.elementTypes(ghost_type)) {
+  for (auto && type : field.elementTypes(_ghost_type = ghost_type)) {
     if (not internal_field.exists(type, ghost_type)) {
       continue;
     }
@@ -599,9 +599,9 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::inflateInternal(
     auto src =
         make_view(field(type, ghost_type), nb_component, nb_quad_per_elem)
             .begin();
-    for (auto && data :
+    for (auto && [el, dest] :
          zip(filter, make_view(dest_array, nb_component, nb_quad_per_elem))) {
-      std::get<1>(data) = src[std::get<0>(data)];
+      dest = src[el];
     }
   }
 }

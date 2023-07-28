@@ -40,7 +40,6 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class PhaseFieldModel : public ConstitutiveLawsHandler<PhaseField, Model>,
-                        public DataAccessor<Idx>,
                         public BoundaryCondition<PhaseFieldModel> {
   using Parent = ConstitutiveLawsHandler<PhaseField, Model>;
   /* ------------------------------------------------------------------------ */

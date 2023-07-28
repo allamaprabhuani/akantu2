@@ -109,9 +109,6 @@ protected:
   virtual void initialize(Int nb_component);
 
 public:
-  /// function to reset the FEEngine for the internal fieldx
-  //  virtual void setFEEngine(FEEngine & fe_engine);
-
   std::shared_ptr<InternalField> getPtr() {
     return aka::as_type<InternalField>(this->shared_from_this());
   }
@@ -184,18 +181,6 @@ public:
     return (this->element_filter(type, ghost_type));
   }
 
-  /// get the Array corresponding to the type en ghost_type specified
-  virtual auto operator()(ElementType type, GhostType ghost_type = _not_ghost)
-      -> Array<T> & {
-    return ElementTypeMapArray<T>::operator()(type, ghost_type);
-  }
-
-  virtual auto operator()(ElementType type,
-                          GhostType ghost_type = _not_ghost) const
-      -> const Array<T> & {
-    return ElementTypeMapArray<T>::operator()(type, ghost_type);
-  }
-
   virtual auto previous(ElementType type, GhostType ghost_type = _not_ghost)
       -> Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
@@ -242,6 +227,14 @@ public:
   /// loop filter
   AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
 
+  Int & getRelease(ElementType type, GhostType ghost_type) {
+    return releases(type, ghost_type);
+  }
+
+  Int getRelease(ElementType type, GhostType ghost_type) const {
+    return releases(type, ghost_type);
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -271,7 +264,9 @@ protected:
   bool is_init{false};
 
   /// previous values
-  std::unique_ptr<InternalField<T>> previous_values;
+  std::shared_ptr<InternalField<T>> previous_values;
+
+  ElementTypeMap<Int> releases;
 };
 
 /// standard output stream operator

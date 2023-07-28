@@ -74,7 +74,7 @@ list(APPEND AKANTU_LIBRARY_SRCS
 set(AKANTU_GDB_DIR ${PROJECT_SOURCE_DIR}/cmake)
 if(UNIX AND NOT APPLE)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" _u_build_type)
-  if(_u_build_type STREQUAL "DEBUG" OR _u_build_type STREQUAL "RELWITHDEBINFO")
+  if(_u_build_type MATCHES "DEBUG" OR _u_build_type MATCHES "RELWITHDEBINFO")
     configure_file(${PROJECT_SOURCE_DIR}/cmake/libakantu-gdb.py.in
       "${PROJECT_BINARY_DIR}/libakantu-gdb.py"
       @ONLY)
@@ -163,6 +163,8 @@ if(AKANTU_COMPILER_LAUNCHER)
   set_property(TARGET akantu PROPERTY CXX_COMPILER_LAUNCHER "${AKANTU_COMPILER_LAUNCHER}")
 endif()
 
+set_property(TARGET akantu PROPERTY CXX_EXTENSIONS OFF)
+
 target_compile_features(akantu PUBLIC cxx_std_${AKANTU_CXX_STANDARD})
 set_target_properties(akantu
   PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
@@ -173,7 +175,14 @@ if(_extra_target_dependencies)
   add_dependencies(akantu ${_extra_target_dependencies})
 endif()
 
-target_link_options(akantu PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5 -gz -ggnu-pubnames>)
+if(AKANTU_SPLIT_DWARF)
+  target_compile_options(akantu
+    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf>
+  )
+  target_link_options(akantu
+    PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZE_DEBUG>:-Wl,--gdb-index>
+  )
+endif()
 
 package_get_all_export_list(AKANTU_EXPORT_LIST)
 list(APPEND AKANTU_EXPORT_LIST akantu)
@@ -231,8 +240,14 @@ cmake_policy(SET CMP0069 NEW)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
 if(ipo_supported)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" _u_build_type)
+  if(NOT _u_build_type MATCHES "DEBUG")
     message(STATUS "IPO/LTO enabled")
     set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "IPO/LTO supported but deactivated in debug")
+    set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
     message(STATUS "IPO/LTO not supported: <${ipo_error}>")
 endif()

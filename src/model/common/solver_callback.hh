@@ -37,9 +37,14 @@ class SolverCallback {
   /* ------------------------------------------------------------------------ */
 public:
   explicit SolverCallback(DOFManager & dof_manager);
-  explicit SolverCallback();
+  explicit SolverCallback() = default;
   /* ------------------------------------------------------------------------ */
-  virtual ~SolverCallback();
+  SolverCallback(const SolverCallback & other) = default;
+  SolverCallback(SolverCallback && other) = default;
+  SolverCallback & operator=(const SolverCallback & other) = default;
+  SolverCallback & operator=(SolverCallback && other) = default;
+  /* ------------------------------------------------------------------------ */
+  virtual ~SolverCallback() = default;
 
 protected:
   void setDOFManager(DOFManager & dof_manager);
@@ -48,16 +53,23 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the type of matrix needed
-  virtual MatrixType getMatrixType(const ID &) const = 0;
+  [[nodiscard]] virtual MatrixType
+  getMatrixType(const ID & /*matrix_id*/) const {
+    return _mt_not_defined;
+  }
 
   /// callback to assemble a Matrix
-  virtual void assembleMatrix(const ID &) = 0;
+  virtual void assembleMatrix(const ID & /*matrix_id*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// callback to assemble a lumped Matrix
-  virtual void assembleLumpedMatrix(const ID &) = 0;
+  virtual void assembleLumpedMatrix(const ID & /*matrix_id*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// callback to assemble the residual (rhs)
-  virtual void assembleResidual() = 0;
+  virtual void assembleResidual() { AKANTU_TO_IMPLEMENT(); }
 
   /// callback to assemble the rhs parts, (e.g. internal_forces +
   /// external_forces)
@@ -73,7 +85,7 @@ public:
   virtual void corrector() {}
 
   /// tells if the residual can be computed in separated parts
-  virtual bool canSplitResidual() const { return false; }
+  [[nodiscard]] virtual bool canSplitResidual() const { return false; }
 
   /* ------------------------------------------------------------------------ */
   /* management callbacks                                                     */
@@ -81,7 +93,7 @@ public:
   virtual void beforeSolveStep() {}
   virtual void afterSolveStep(bool /*converged*/ = true) {}
 
-  DOFManager & getSCDOFManager() { return *sc_dof_manager; }
+  [[nodiscard]] DOFManager & getSCDOFManager() { return *sc_dof_manager; }
 
 protected:
   /// DOFManager prefixed to avoid collision in multiple inheritance cases
@@ -103,7 +115,7 @@ public:
       : solver_callback(solver_callback) {}
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override {
+  [[nodiscard]] MatrixType getMatrixType(const ID & matrix_id) const override {
     return solver_callback.getMatrixType(matrix_id);
   }
 
@@ -136,7 +148,7 @@ public:
   void corrector() override { solver_callback.corrector(); }
 
   /// tells if the residual can be computed in separated parts
-  bool canSplitResidual() const override {
+  [[nodiscard]] bool canSplitResidual() const override {
     return solver_callback.canSplitResidual();
   }
 

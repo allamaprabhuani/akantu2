@@ -318,7 +318,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smm_uv)                                      \
   (smm_res)                                     \
   (smm_stress)                                  \
-  (smm_gradu)					\
+  (smm_gradu)                                   \
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
   (smmc_facets_stress)                          \
@@ -327,8 +327,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (ce_groups)                                   \
   (ce_insertion_order)                          \
   (gm_clusters)                                 \
-  (htm_temperature)                             \
-  (htm_gradient_temperature)                    \
+  (diffusion)                             \
+  (diffusion_gradient)                          \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
   (pfm_damage)                                  \
@@ -513,9 +513,7 @@ namespace {
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_SET_MACRO(name, variable, type)                                 \
-  inline void set##name(type variable) {                  \
-    this->variable = variable;                                                 \
-  }
+  inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
   [[nodiscard]] inline auto get##name() const -> type { return variable; }
@@ -602,7 +600,8 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-[[nodiscard]] auto is_of_type(T && t) -> bool { // NOLINT(cppcoreguidelines-missing-std-forward)
+[[nodiscard]] auto is_of_type(T && t)
+    -> bool { // NOLINT(cppcoreguidelines-missing-std-forward)
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
                                  std::add_const_t<R>, R>>>(&t) != nullptr);
@@ -625,7 +624,8 @@ template <typename R, typename T>
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-[[nodiscard]] decltype(auto) as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
+[[nodiscard]] decltype(auto)
+as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   static_assert(
       disjunction<
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
@@ -641,7 +641,8 @@ template <typename R, typename T,
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-[[nodiscard]] decltype(auto) as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
+[[nodiscard]] decltype(auto)
+as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   return &as_type<R>(*t);
 }
 

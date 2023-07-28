@@ -45,10 +45,6 @@ public:
                    make_view<dim, dim>(diffusivity(type, ghost_type)));
   }
 
-  [[nodiscard]] virtual Real getEnergy(const ID & energy_id);
-  [[nodiscard]] virtual Real getEnergy(const ID & energy_id,
-                                       const Element & element);
-
   [[nodiscard]] virtual Real getStableTimeStep(Real /*element_size*/) {
     return 0;
   }

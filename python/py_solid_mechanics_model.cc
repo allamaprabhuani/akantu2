@@ -20,7 +20,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
+#include "py_constitutive_laws_handler.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_law.hh>
 #include <constitutive_laws_handler.hh>
 #include <material.hh>
 #include <non_linear_solver.hh>
@@ -49,6 +51,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void register_solid_mechanics_model(py::module & mod) {
+  register_constitutive_laws_handler<Material, Model>(mod);
 
   py::class_<SolidMechanicsModelOptions>(mod, "SolidMechanicsModelOptions")
       .def(py::init<AnalysisMethod>(),
@@ -56,7 +59,7 @@ void register_solid_mechanics_model(py::module & mod) {
 
   py::class_<SolidMechanicsModel, ConstitutiveLawsHandler<Material, Model>>(
       mod, "SolidMechanicsModel", py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+      .def(py::init<Mesh &, Int, const ID &, std::shared_ptr<DOFManager>,
                     const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model",

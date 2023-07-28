@@ -82,8 +82,8 @@ template <typename T> void InternalField<T>::initialize(Int nb_component) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T> void InternalField<T>::initializeHistory() {
-  if (!previous_values) {
-    previous_values = std::unique_ptr<InternalField<T>>(
+  if (not previous_values) {
+    previous_values = std::shared_ptr<InternalField<T>>(
         new InternalField<T>("previous_" + this->getID(), *this));
   }
 }
@@ -95,29 +95,35 @@ template <typename T> void InternalField<T>::resize() {
   }
 
   ElementTypeMap<Int> old_sizes;
-  for (auto ghost : ghost_types) {
-    for (const auto & type : this->filterTypes(ghost)) {
-      if (this->exists(type, ghost)) {
-        old_sizes(type, ghost) = this->operator()(type, ghost).size();
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->filterTypes(ghost_type)) {
+      if (this->exists(type, ghost_type)) {
+        old_sizes(type, ghost_type) = this->operator()(type, ghost_type).size();
       } else {
-        old_sizes(type, ghost) = 0;
+        old_sizes(type, ghost_type) = 0;
       }
     }
   }
 
   ElementTypeMapArray<T>::initialize(
-      fem, _element_filter = element_filter, _element_kind = element_kind,
+      fem, _element_filter = &element_filter, _element_kind = element_kind,
       _nb_component = nb_component, _with_nb_element = true,
       _do_not_default = true);
 
-  for (auto ghost : ghost_types) {
-    for (const auto & type : this->filterTypes(ghost)) {
-      auto & vect = this->operator()(type, ghost);
-      auto old_size = old_sizes(type, ghost);
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->elementTypes()) {
+      auto & vect = this->operator()(type, ghost_type);
+      auto old_size = old_sizes(type, ghost_type);
       auto new_size = vect.size();
       this->setArrayValues(vect.data() + old_size * vect.getNbComponent(),
                            vect.data() + new_size * vect.getNbComponent());
+
+      this->releases(type, ghost_type) += 1;
     }
+  }
+
+  if (this->previous_values) {
+    this->previous_values->resize();
   }
 }
 
@@ -134,6 +140,7 @@ template <typename T> void InternalField<T>::reset() {
       auto & vect = (*this)(type, ghost_type);
       this->setArrayValues(vect.data(),
                            vect.data() + vect.size() * vect.getNbComponent());
+      this->releases(type, ghost_type) += 1;
     }
   }
 }
@@ -143,14 +150,22 @@ template <typename T>
 void InternalField<T>::internalInitialize(Int nb_component) {
   if (not this->is_init) {
     this->nb_component = nb_component;
-
-    ElementTypeMapArray<T>::initialize(
-        fem, _element_filter = element_filter, _element_kind = element_kind,
-        _nb_component = nb_component, _with_nb_element = true,
-        _do_not_default = true);
-
     this->is_init = true;
+  } else {
+    resize();
+    return;
   }
+
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->filterTypes(ghost_type)) {
+      this->releases(type, ghost_type) = -1;
+    }
+  }
+
+  ElementTypeMapArray<T>::initialize(
+      fem, _element_filter = &element_filter, _element_kind = element_kind,
+      _nb_component = nb_component, _with_nb_element = true,
+      _do_not_default = true);
 
   this->reset();
 

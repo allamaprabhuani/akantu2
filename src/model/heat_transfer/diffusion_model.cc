@@ -273,7 +273,7 @@ auto DiffusionModel::getStableTimeStep() -> Real {
 void DiffusionModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-  this->mesh.getDumper("heat_transfer").setTimeStep(time_step);
+  this->mesh.getDumper(id).setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -38,6 +38,7 @@ using PhaseFieldFactory =
     Factory<PhaseField, ID, Int, const ID &, PhaseFieldModel &, const ID &>;
 
 class PhaseField : public ConstitutiveLaw<PhaseFieldModel> {
+  using Parent = ConstitutiveLaw<PhaseFieldModel>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -50,8 +51,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the phasefield computed parameter
-  virtual void initPhaseField() {}
-  void initConstitutiveLaw() final { this->initPhaseField(); }
+  virtual void initPhaseField() { Parent::initConstitutiveLaw(); }
+  void initConstitutiveLaw() override { this->initPhaseField(); }
 
   ///
   virtual void beforeSolveStep();

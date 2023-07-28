@@ -45,8 +45,7 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
-    : Parsable(ParserType::_model, id), model_type(type), parent_id(id),
-      mesh(mesh) {}
+    : Parsable(ParserType::_model, id), model_type(type), id(id), mesh(mesh) {}
 
 /* -------------------------------------------------------------------------- */
 std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
@@ -56,8 +55,8 @@ std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
       sub_sections.begin(), sub_sections.end(), [&](auto && section) {
         auto type = getOptionToType<ModelType>(section.getName());
         // default id should be the model type if not defined
-        std::string name = section.getParameter("name", this->parent_id);
-        return type == model_type and name == this->parent_id;
+        std::string name = section.getParameter("name", this->id);
+        return type == model_type and name == this->id;
       });
 
   if (it == sub_sections.end()) {
@@ -104,7 +103,7 @@ ModelSolver::initDOFManager(const ID & solver_type) {
 
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
-        solver_type, mesh, this->parent_id + ":dof_manager_" + solver_type);
+        solver_type, mesh, this->id + ":dof_manager_" + solver_type);
   } catch (...) {
     AKANTU_EXCEPTION(
         "To use the solver "

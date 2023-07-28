@@ -22,6 +22,7 @@
 #include "boundary_condition.hh"
 #include "constitutive_laws_handler.hh"
 #include "fe_engine.hh"
+#include "material.hh"
 #include "model.hh"
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
@@ -30,7 +31,6 @@
 #define AKANTU_SOLID_MECHANICS_MODEL_HH_
 
 namespace akantu {
-class Material;
 class ConstitutiveLawSelector;
 class DumperIOHelper;
 template <ElementKind kind, class IntegrationOrderFunctor>
@@ -44,7 +44,6 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class SolidMechanicsModel
     : public ConstitutiveLawsHandler<Material, Model>,
-      public DataAccessor<Idx>,
       public BoundaryCondition<SolidMechanicsModel>,
       public EventHandlerManager<SolidMechanicsModelEventHandler> {
 
@@ -61,7 +60,7 @@ protected:
 public:
   SolidMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
-                      std::shared_ptr<DOFManager> dof_manager = nullptr,
+                      const std::shared_ptr<DOFManager> & dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
   /* ------------------------------------------------------------------------ */

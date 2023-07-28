@@ -21,7 +21,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_static_if.hh"
 #include "integration_point.hh"
-//#include "mesh.hh"
+// #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include "element_type_conversion.hh"
 /* -------------------------------------------------------------------------- */
@@ -635,14 +635,16 @@ public:
       const FEEngine & fe_engine, Int nb_component = 1,
       Int spatial_dimension = _all_dimensions,
       GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined);
+      ElementKind element_kind = _ek_not_defined,
+      const ElementTypeMapArray<Idx> * filter = nullptr);
 
   FEEngineElementTypeMapArrayInitializer(
       const FEEngine & fe_engine,
       const ElementTypeMapArrayInitializer::CompFunc & nb_component,
       Int spatial_dimension = _all_dimensions,
       GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined);
+      ElementKind element_kind = _ek_not_defined,
+      const ElementTypeMapArray<Idx> * filter = nullptr);
 
   Int size(ElementType type) const override;
 
@@ -759,7 +761,8 @@ void ElementTypeMapArray<T, SupportType>::initialize(const FEEngine & fe_engine,
     auto functor = FEEngineElementTypeMapArrayInitializer(
         fe_engine, OPTIONAL_NAMED_ARG(nb_component, 1),
         OPTIONAL_NAMED_ARG(spatial_dimension, Int(-2)), ghost_type,
-        OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined));
+        OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined),
+        OPTIONAL_NAMED_ARG(element_filter, nullptr));
 
     this->initialize(functor, OPTIONAL_NAMED_ARG(default_value, T()),
                      OPTIONAL_NAMED_ARG(do_not_default, false));

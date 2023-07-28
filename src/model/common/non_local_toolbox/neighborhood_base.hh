@@ -24,6 +24,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "data_accessor.hh"
+#include "grid_synchronizer.hh"
 #include "integration_point.hh"
 #include "synchronizer_registry.hh"
 /* -------------------------------------------------------------------------- */
@@ -31,7 +32,6 @@
 namespace akantu {
 class Model;
 template <class T> class SpatialGrid;
-class GridSynchronizer;
 class RemovedElementsEvent;
 } // namespace akantu
 
@@ -45,7 +45,6 @@ public:
   NeighborhoodBase(Model & model,
                    const ElementTypeMapArray<Real> & quad_coordinates,
                    const ID & id = "neighborhood");
-  ~NeighborhoodBase() override;
 
   using PairList = std::vector<std::pair<IntegrationPoint, IntegrationPoint>>;
 
@@ -56,9 +55,6 @@ public:
 public:
   /// intialize the neighborhood
   virtual void initNeighborhood();
-
-  // /// create a synchronizer registry
-  // void createSynchronizerRegistry(DataAccessor * data_accessor);
 
   /// initialize the material computed parameter
   inline void insertIntegrationPoint(const IntegrationPoint & quad,
@@ -94,9 +90,7 @@ public:
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
   AKANTU_GET_MACRO(Model, model, const Model &);
   /// return the object handling synchronizers
-  const PairList & getPairLists(GhostType type) {
-    return pair_list[type == _not_ghost ? 0 : 1];
-  }
+  const PairList & getPairLists(GhostType type) { return pair_list[type]; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -116,7 +110,7 @@ protected:
    * 0: not ghost to not ghost
    * 1: not ghost to ghost
    */
-  std::array<PairList, 2> pair_list;
+  std::map<GhostType, PairList> pair_list;
 
   /// the regular grid to construct/update the pair lists
   std::unique_ptr<SpatialGrid<IntegrationPoint>> spatial_grid;

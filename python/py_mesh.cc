@@ -23,6 +23,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <fe_engine.hh>
 #include <mesh.hh>
 #include <mesh_accessor.hh>
 #include <mesh_utils.hh>
@@ -95,7 +96,35 @@ namespace {
                 py::arg("with_nb_element") = false,
                 py::arg("with_nb_nodes_per_element") = false,
                 py::arg("default_value") = T{},
-                py::arg("do_not_default") = false);
+                py::arg("do_not_default") = false)
+            .def(
+                "initialize",
+                [](ElementTypeMapArray<T> & self, const FEEngine & fe_engine,
+                   GhostType ghost_type, Int nb_component,
+                   Int spatial_dimension, ElementKind element_kind,
+                   bool with_nb_element, bool with_nb_nodes_per_element,
+                   T default_value, bool do_not_default) {
+                  self.initialize(
+                      fe_engine, _ghost_type = ghost_type,
+                      _nb_component = nb_component,
+                      _spatial_dimension =
+                          (spatial_dimension == -2
+                               ? fe_engine.getMesh().getSpatialDimension()
+                               : spatial_dimension),
+                      _element_kind = element_kind,
+                      _with_nb_element = with_nb_element,
+                      _with_nb_nodes_per_element = with_nb_nodes_per_element,
+                      _default_value = default_value,
+                      _do_not_default = do_not_default);
+                },
+                py::arg("fe_engine"), py::arg("ghost_type") = _casper,
+                py::arg("nb_component") = 1, py::arg("spatial_dimension") = -2,
+                py::arg("element_kind") = _ek_not_defined,
+                py::arg("with_nb_element") = false,
+                py::arg("with_nb_nodes_per_element") = false,
+                py::arg("default_value") = T{},
+                py::arg("do_not_default") = false)
+            .def("getID", &ElementTypeMapArray<T>::getID);
 
     return element_type_map_class;
   }

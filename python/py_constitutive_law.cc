@@ -37,6 +37,8 @@
 #include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
 #include <constitutive_law.hh>
+#include <constitutive_laws_handler.hh>
+#include <parsable.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -65,14 +67,91 @@ namespace {
             [](InternalField<T> & self) -> InternalField<T> & {
               return self.previous();
             },
-            py::return_value_policy::reference);
+            py::return_value_policy::reference)
+        .def(
+            "elementTypes",
+            [](InternalField<T> & self, GhostType ghost_type)
+                -> decltype(auto) { return self.elementTypes(ghost_type); },
+            py::return_value_policy::reference)
+        .def(
+            "__call__",
+            [](InternalField<T> & self, ElementType type, GhostType ghost_type)
+                -> Array<T> & { return self(type, ghost_type); },
+            py::arg("type"), py::arg("ghost_type") = _not_ghost,
+            py::return_value_policy::reference)
+        .def("__repr__",
+             [name](const InternalField<T> & self) {
+               std::string str{"<InternalField" + name + ": " +
+                               self.getRegisterID() + " "};
+               for (auto && ghost_type : ghost_types) {
+                 for (auto && type : self.elementTypes(ghost_type)) {
+                   const auto & array = self(type, ghost_type);
+                   if (str.back() == ']') {
+                     str += ", ";
+                   }
+                   str += "[" + std::to_string(type) + ":" +
+                          std::to_string(ghost_type) + " - Array<" +
+                          debug::demangle<T>() + " " +
+                          std::to_string(array.size()) + ", " +
+                          std::to_string(array.getNbComponent()) + ">]";
+                 }
+               }
+               str += ">";
+               return str;
+             })
+        .def(
+            "getID", [](InternalField<T> & self) { return self.getID(); },
+            py::return_value_policy::copy);
+    ;
   }
 } // namespace
 
 /* -------------------------------------------------------------------------- */
-void register_constitutive_law(py::module & mod) {
+void register_constitutive_law_internal_handler(py::module & mod) {
   register_internal_field<Real>(mod, "Real");
   register_internal_field<Int>(mod, "Int");
+
+  py::class_<ConstitutiveLawInternalHandler>(
+      mod, "ConstitutiveLawInternalHandler", py::multiple_inheritance())
+      .def(py::init<const ID &, Int, const ID &>())
+      .def(
+          "registerInternalReal",
+          [](ConstitutiveLawInternalHandler & self, const std::string & name,
+             Int nb_component) -> decltype(auto) {
+            return self.registerInternal(name, nb_component);
+          },
+          py::return_value_policy::reference)
+      .def(
+          "registerInternalInt",
+          [](ConstitutiveLawInternalHandler & self, const std::string & name,
+             UInt nb_component) -> decltype(auto) {
+            self.template registerInternal<Int>(name, nb_component);
+          },
+          py::return_value_policy::reference)
+      .def(
+          "getInternalReal",
+          [](ConstitutiveLawInternalHandler & self, const ID & id)
+              -> decltype(auto) { return self.template getInternal<Real>(id); },
+          py::arg("id"), py::return_value_policy::reference)
+      .def(
+          "getInternalUInt",
+          [](ConstitutiveLawInternalHandler & self, const ID & id)
+              -> decltype(auto) { return self.template getInternal<UInt>(id); },
+          py::arg("id"), py::return_value_policy::reference)
+      .def(
+          "getElementFilter",
+          [](ConstitutiveLawInternalHandler & self) -> decltype(auto) {
+            return self.getElementFilter();
+          },
+          py::return_value_policy::reference)
+      .def("getSpatialDimension",
+           &ConstitutiveLawInternalHandler::getSpatialDimension)
+      .def(
+          "getElementFilter",
+          [](const ConstitutiveLawInternalHandler & self) -> decltype(auto) {
+            return self.getElementFilter();
+          },
+          py::return_value_policy::reference);
 }
 
 } // namespace akantu

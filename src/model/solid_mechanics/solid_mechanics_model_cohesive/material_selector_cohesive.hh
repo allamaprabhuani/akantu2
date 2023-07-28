@@ -43,10 +43,16 @@ public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
   Int operator()(const Element & element) override;
 
+  AKANTU_SET_MACRO(FallbackCohesiveValue, default_cohesive_value, Int);
+  AKANTU_GET_MACRO(FallbackCohesiveValue, default_cohesive_value, Int);
+  static Int
+  getDefaultCohesiveMaterial(const SolidMechanicsModelCohesive & model);
+
 protected:
   const SolidMechanicsModelCohesive & model;
   const ElementTypeMapArray<Idx> & facet_material;
   const Mesh & mesh;
+  Int default_cohesive_value;
 };
 
 /* -------------------------------------------------------------------------- */

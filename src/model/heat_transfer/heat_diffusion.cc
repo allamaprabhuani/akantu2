@@ -168,6 +168,11 @@ Real HeatDiffusion<dim>::getEnergy(const ID & energy_id,
   return Parent::getEnergy(energy_id, element);
 }
 
+/* -------------------------------------------------------------------------- */
+template class HeatDiffusion<1>;
+template class HeatDiffusion<2>;
+template class HeatDiffusion<3>;
+
 const bool diffusion_law_is_alocated_heat_diffusion [[maybe_unused]] =
     instantiateDiffusionLaw<HeatDiffusion, HeatTransferModel>("heat_diffusion");
 

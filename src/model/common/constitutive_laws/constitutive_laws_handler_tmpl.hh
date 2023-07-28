@@ -245,8 +245,8 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
 #endif
 
   if (constitutive_laws.empty()) {
-    AKANTU_EXCEPTION("No constitutive_laws where instantiated for the model"
-                     << this->id);
+    AKANTU_DEBUG_WARNING(
+        "No constitutive_laws where instantiated for the model " << this->id);
   }
   are_constitutive_laws_instantiated = true;
 }

@@ -23,7 +23,6 @@
 #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine_template.hh"
-#include "generalized_trapezoidal.hh"
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
@@ -52,13 +51,13 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
 
-  this->registerDataAccessor(*this);
-
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
+
+  this->parser_type = ParserType::_phasefield;
 
   AKANTU_DEBUG_OUT();
 }

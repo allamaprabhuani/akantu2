@@ -35,24 +35,27 @@ DefaultMaterialCohesiveSelector::DefaultMaterialCohesiveSelector(
   this->setFallback(
       std::make_shared<DefaultMaterialSelector>(model.getMaterialByElement()));
 
-  Int cohesive_index = -1;
-  for (auto && material : enumerate(model.getConstitutiveLaws())) {
-    if (aka::is_of_type<MaterialCohesive>(std::get<1>(material))) {
-      cohesive_index = std::get<0>(material);
-      break;
+  this->setFallbackCohesiveValue(getDefaultCohesiveMaterial(model));
+}
+
+/* -------------------------------------------------------------------------- */
+Int DefaultMaterialCohesiveSelector::getDefaultCohesiveMaterial(
+    const SolidMechanicsModelCohesive & model) {
+  for (auto && [id, mat] : enumerate(model.getConstitutiveLaws())) {
+    if (aka::is_of_type<MaterialCohesive>(mat)) {
+      return Int(id);
     }
   }
-
-  if (cohesive_index == -1) {
-    AKANTU_EXCEPTION("No cohesive materials in the material input file");
-  }
-
-  this->setFallback(cohesive_index);
+  return -1;
 }
 
 /* -------------------------------------------------------------------------- */
 Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive) {
+    if(this->getFallbackCohesiveValue() == -1) {
+      this->setFallbackCohesiveValue(getDefaultCohesiveMaterial(this->model));
+    }
+      
     try {
       const Array<Element> & cohesive_el_to_facet =
           mesh.getMeshFacets().getSubelementToElement(element.type,
@@ -63,10 +66,11 @@ Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
       if (facet_material.exists(facet.type, facet.ghost_type)) {
         return facet_material(facet.type, facet.ghost_type)(facet.element);
       }
-      return this->getFallbackValue();
+
+      return this->getFallbackCohesiveValue();
 
     } catch (...) {
-      return this->getFallbackValue();
+      return this->getFallbackCohesiveValue();
     }
   } else if (Mesh::getSpatialDimension(element.type) ==
              mesh.getSpatialDimension() - 1) {

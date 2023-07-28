@@ -49,6 +49,7 @@ namespace akantu {
 template <class ConstitutiveLawType, class Model_>
 class ConstitutiveLawsHandler : public Model_,
                                 public DataAccessor<Element>,
+                                public DataAccessor<Idx>,
                                 public NonLocalManagerCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -264,6 +265,19 @@ public:
 
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
+
+  /* ------------------------------------------------------------------------ */
+  [[nodiscard]] Int
+  getNbData(const Array<Idx> & /*dofs*/,
+            const SynchronizationTag & /*tag*/) const override {
+    return 0;
+  }
+
+  void packData(CommunicationBuffer & /*buffer*/, const Array<Idx> & /*dofs*/,
+                const SynchronizationTag & /*tag*/) const override {}
+
+  void unpackData(CommunicationBuffer & /*buffer*/, const Array<Idx> & /*dofs*/,
+                  const SynchronizationTag & /*tag*/) override {}
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */

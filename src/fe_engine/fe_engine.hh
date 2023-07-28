@@ -88,7 +88,7 @@ public:
             const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate a scalar value f on all elements of type "type"
-  virtual Real
+  [[nodiscard]] virtual Real
   integrate(const Array<Real> & f, ElementType type,
             GhostType ghost_type = _not_ghost,
             const Array<Idx> & filter_elements = empty_filter) const = 0;
@@ -101,36 +101,37 @@ public:
       const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> f, const Element & element) const {
+  [[nodiscard]] Real integrate(const Ref<const VectorXr> f,
+                               const Element & element) const {
     return integrate(f, element.type, element.element, element.ghost_type);
   }
 
 private:
-  virtual Real integrate(const Ref<const VectorXr> f, ElementType type,
-                         Idx index,
-                         GhostType ghost_type = _not_ghost) const = 0;
+  [[nodiscard]] virtual Real
+  integrate(const Ref<const VectorXr> f, ElementType type, Idx index,
+            GhostType ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEEngine fashion */
   /* ------------------------------------------------------------------------ */
 public:
   /// get the number of integration points
-  virtual Int
+  [[nodiscard]] virtual Int
   getNbIntegrationPoints(ElementType type,
                          GhostType ghost_type = _not_ghost) const = 0;
 
   /// get the precomputed shapes
-  const virtual Array<Real> & getShapes(ElementType type,
-                                        GhostType ghost_type = _not_ghost,
-                                        Idx id = 0) const = 0;
+  [[nodiscard]] const virtual Array<Real> &
+  getShapes(ElementType type, GhostType ghost_type = _not_ghost,
+            Idx id = 0) const = 0;
 
   /// get the derivatives of shapes
-  virtual const Array<Real> &
+  [[nodiscard]] virtual const Array<Real> &
   getShapesDerivatives(ElementType type, GhostType ghost_type = _not_ghost,
                        Idx id = 0) const = 0;
 
   /// get integration points
-  virtual const MatrixXr &
+  [[nodiscard]] virtual const MatrixXr &
   getIntegrationPoints(ElementType type,
                        GhostType ghost_type = _not_ghost) const = 0;
 
@@ -288,9 +289,9 @@ public:
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<Real, ElementType>::ElementTypesIteratorHelper;
 
-  ElementTypesIteratorHelper elementTypes(Int dim = _all_dimensions,
-                                          GhostType ghost_type = _not_ghost,
-                                          ElementKind kind = _ek_regular) const;
+  [[nodiscard]] ElementTypesIteratorHelper
+  elementTypes(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+               ElementKind kind = _ek_regular) const;
 
   /// get the dimension of the element handeled by this fe_engine object
   AKANTU_GET_MACRO_AUTO(ElementDimension, element_dimension);
@@ -302,32 +303,35 @@ public:
 
   /// get the in-radius of an element
   template <class Derived>
-  static inline Real
+  [[nodiscard]] static inline Real
   getElementInradius(const Eigen::MatrixBase<Derived> & coord,
                      ElementType type);
 
-  inline Real getElementInradius(const Element & element) const;
+  [[nodiscard]] inline Real getElementInradius(const Element & element) const;
 
   /// get the normals on integration points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnIntegrationPoints,
                                          normals_on_integration_points, Real);
 
   /// get cohesive element type for a given facet type
-  static inline constexpr ElementType
+  [[nodiscard]] static inline constexpr ElementType
   getCohesiveElementType(ElementType type_facet);
 
   /// get igfem element type for a given regular type
-  static inline Vector<ElementType> getIGFEMElementTypes(ElementType type);
+  [[nodiscard]] static inline Vector<ElementType>
+  getIGFEMElementTypes(ElementType type);
 
   /// get the interpolation element associated to an element type
-  static inline constexpr auto getInterpolationType(ElementType el_type);
+  [[nodiscard]] static inline constexpr auto
+  getInterpolationType(ElementType el_type);
 
   /// get the shape function class (probably useless: see getShapeFunction in
   /// fe_engine_template.hh)
-  virtual const ShapeFunctions & getShapeFunctionsInterface() const = 0;
+  [[nodiscard]] virtual const ShapeFunctions &
+  getShapeFunctionsInterface() const = 0;
   /// get the integrator class (probably useless: see getIntegrator in
   /// fe_engine_template.hh)
-  virtual const Integrator & getIntegratorInterface() const = 0;
+  [[nodiscard]] virtual const Integrator & getIntegratorInterface() const = 0;
 
   AKANTU_GET_MACRO(ID, id, ID);
 

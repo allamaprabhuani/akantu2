@@ -370,18 +370,17 @@ void CouplerSolidPhaseField::computeStrainOnQuadPoints(GhostType ghost_type) {
   auto & fem = solid->getFEEngine();
 
   ElementTypeMapArray<Real> strain_tmp("temporary strain on quads");
-  strain_tmp.initialize(
-      fem, _nb_component = spatial_dimension * spatial_dimension,
-      _spatial_dimension = spatial_dimension, _ghost_type = ghost_type);
+  strain_tmp.initialize(fem,
+                        _nb_component = spatial_dimension * spatial_dimension,
+                        _spatial_dimension = spatial_dimension,
+                        _ghost_type = ghost_type, _with_nb_element = true);
 
   for (const auto & type : mesh.elementTypes(spatial_dimension, ghost_type)) {
     auto & strain_vect = strain_tmp(type, ghost_type);
     const auto & gradu_vect = gradu_internal(type, ghost_type);
-    for (auto && values :
+    for (auto && [grad_u, strain] :
          zip(make_view(gradu_vect, spatial_dimension, spatial_dimension),
              make_view(strain_vect, spatial_dimension, spatial_dimension))) {
-      const auto & grad_u = std::get<0>(values);
-      auto & strain = std::get<1>(values);
       strain = (grad_u + grad_u.transpose()) / 2.;
     }
   }

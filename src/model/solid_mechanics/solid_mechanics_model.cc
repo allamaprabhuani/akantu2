@@ -51,11 +51,11 @@ namespace akantu {
  */
 SolidMechanicsModel::SolidMechanicsModel(
     Mesh & mesh, Int dim, const ID & id,
-    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    const std::shared_ptr<DOFManager> & dof_manager, const ModelType model_type)
     : CLHParent(mesh, model_type, dim, id) {
   AKANTU_DEBUG_IN();
 
-  this->initDOFManager(std::move(dof_manager));
+  this->initDOFManager(dof_manager);
 
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);
@@ -63,8 +63,6 @@ SolidMechanicsModel::SolidMechanicsModel(
   this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id, true);
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
-
-  this->registerDataAccessor(*this);
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
@@ -569,17 +567,11 @@ Real SolidMechanicsModel::getExternalWork() {
 
   auto nb_nodes = this->mesh.getNbNodes();
 
-  for (auto && data :
+  for (auto && [ext_force, int_force, boun, incr_or_velo, n] :
        zip(make_view(*external_force, spatial_dimension),
            make_view(*internal_force, spatial_dimension),
            make_view(*blocked_dofs, spatial_dimension),
            make_view(*incrs_or_velos, spatial_dimension), arange(nb_nodes))) {
-    auto && ext_force = std::get<0>(data);
-    auto && int_force = std::get<1>(data);
-    auto && boun = std::get<2>(data);
-    auto && incr_or_velo = std::get<3>(data);
-    auto && n = std::get<4>(data);
-
     auto is_local_node = this->mesh.isLocalOrMasterNode(n);
     // bool is_not_pbc_slave_node = !this->isPBCSlaveNode(n);
     auto count_node = is_local_node; // && is_not_pbc_slave_node;

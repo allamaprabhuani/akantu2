@@ -30,8 +30,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 PhaseField::PhaseField(PhaseFieldModel & model, const ID & id,
                        const ID & fe_engine_id)
-    : ConstitutiveLaw<PhaseFieldModel>(model, id, model.getSpatialDimension(),
-                                       _ek_regular, fe_engine_id),
+    : Parent(model, id, model.getSpatialDimension(), _ek_regular, fe_engine_id),
       g_c(this->registerInternal<Real, DefaultRandomInternalField>(
           "g_c", 1, fe_engine_id)),
       damage_on_qpoints(this->registerInternal("damage", 1, fe_engine_id)),
@@ -40,8 +39,11 @@ PhaseField::PhaseField(PhaseFieldModel & model, const ID & id,
       strain(this->registerInternal(
           "strain", spatial_dimension * spatial_dimension, fe_engine_id)),
       driving_force(this->registerInternal("driving_force", 1, fe_engine_id)),
-      driving_energy(this->registerInternal("driving_energy", 1, fe_engine_id)),
-      damage_energy(this->registerInternal("damage_energy", 1, fe_engine_id)),
+      driving_energy(this->registerInternal("driving_energy", spatial_dimension,
+                                            fe_engine_id)),
+      damage_energy(this->registerInternal(
+          "damage_energy", spatial_dimension * spatial_dimension,
+          fe_engine_id)),
       damage_energy_density(
           this->registerInternal("damage_energy_density", 1, fe_engine_id)),
       dissipated_energy(
@@ -61,6 +63,7 @@ PhaseField::PhaseField(PhaseFieldModel & model, const ID & id,
 void PhaseField::updateInternalParameters() {
   this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
   this->mu = this->E / (2 * (1 + this->nu));
+  Parent::updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -102,36 +105,32 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
       continue;
     }
 
-    auto nb_element = elem_filter.size();
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
     auto & driving_force_vect = driving_force(type, ghost_type);
 
-    Array<Real> nt_driving_force(nb_quadrature_points, nb_nodes_per_element);
+    Array<Real> nt_driving_force(0, nb_nodes_per_element);
     fem.computeNtb(driving_force_vect, nt_driving_force, type, ghost_type,
                    elem_filter);
 
-    Array<Real> int_nt_driving_force(nb_element * nb_quadrature_points,
-                                     nb_nodes_per_element);
+    Array<Real> int_nt_driving_force(0, nb_nodes_per_element);
     fem.integrate(nt_driving_force, int_nt_driving_force, nb_nodes_per_element,
                   type, ghost_type, elem_filter);
-
-    // damage_energy_on_qpoints = gc*l0 = scalar
-    auto & driving_energy_vect = driving_energy(type, ghost_type);
-
-    Array<Real> bt_driving_energy(nb_element * nb_quadrature_points,
-                                  nb_nodes_per_element);
-    fem.computeBtD(driving_energy_vect, bt_driving_energy, type, ghost_type,
-                   elem_filter);
-
-    Array<Real> int_bt_driving_energy(nb_element, nb_nodes_per_element);
-    fem.integrate(bt_driving_energy, int_bt_driving_energy,
-                  nb_nodes_per_element, type, ghost_type, elem_filter);
 
     handler.getDOFManager().assembleElementalArrayLocalArray(
         int_nt_driving_force, internal_force, type, ghost_type, -1,
         elem_filter);
+
+    // damage_energy_on_qpoints = gc*l0 = scalar
+    auto & driving_energy_vect = driving_energy(type, ghost_type);
+
+    Array<Real> bt_driving_energy(0, nb_nodes_per_element);
+    fem.computeBtD(driving_energy_vect, bt_driving_energy, type, ghost_type,
+                   elem_filter);
+
+    Array<Real> int_bt_driving_energy(0, nb_nodes_per_element);
+    fem.integrate(bt_driving_energy, int_bt_driving_energy,
+                  nb_nodes_per_element, type, ghost_type, elem_filter);
 
     handler.getDOFManager().assembleElementalArrayLocalArray(
         int_bt_driving_energy, internal_force, type, ghost_type, -1,

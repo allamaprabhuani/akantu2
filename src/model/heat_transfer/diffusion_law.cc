@@ -106,13 +106,6 @@ void DiffusionLaw::assembleDiffusivityMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real DiffusionLaw::getEnergy(const ID & /*energy_id*/) { return 0; }
-Real DiffusionLaw::getEnergy(const ID & /*energy_id*/,
-                             const Element & /*element*/) {
-  return 0;
-}
-
-/* -------------------------------------------------------------------------- */
 inline Int DiffusionLaw::getNbData(const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();

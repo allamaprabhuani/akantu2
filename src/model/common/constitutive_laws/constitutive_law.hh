@@ -114,8 +114,14 @@ public:
 
 public:
   [[nodiscard]] virtual const FEEngine &
-  getFEEngine(const ID & id = "") const = 0;
-  [[nodiscard]] virtual FEEngine & getFEEngine(const ID & id = "") = 0;
+  getFEEngine(const ID & /*id*/ = "") const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  [[nodiscard]] virtual FEEngine & getFEEngine(const ID & /*id*/ = "") {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   [[nodiscard]] Int getSpatialDimension() const { return spatial_dimension; }
 
   [[nodiscard]] const ElementTypeMapArray<Idx> & getElementFilter() const {
@@ -197,6 +203,12 @@ public:
 
   /// remove many element at once
   void removeElements(const Array<Element> & elements_to_remove);
+
+  [[nodiscard]] virtual Real getEnergy(const ID & /*energy_id*/) { return 0; }
+  [[nodiscard]] virtual Real getEnergy(const ID & /*energy_id*/,
+                                       const Element & /*element*/) {
+    return 0;
+  }
 
 protected:
   /// function called to update the internal parameters when the

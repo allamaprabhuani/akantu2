@@ -220,7 +220,8 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
   facet_material.initialize(
       mesh_facets, _spatial_dimension = spatial_dimension - 1,
       _with_nb_element = true,
-      _default_value = material_selector.getFallbackValue());
+      _default_value =
+          DefaultMaterialCohesiveSelector::getDefaultCohesiveMaterial(*this));
 
   for_each_element(
       mesh_facets,
