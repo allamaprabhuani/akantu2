@@ -52,10 +52,10 @@ Int DefaultMaterialCohesiveSelector::getDefaultCohesiveMaterial(
 /* -------------------------------------------------------------------------- */
 Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive) {
-    if(this->getFallbackCohesiveValue() == -1) {
+    if (this->getFallbackCohesiveValue() == -1) {
       this->setFallbackCohesiveValue(getDefaultCohesiveMaterial(this->model));
     }
-      
+
     try {
       const Array<Element> & cohesive_el_to_facet =
           mesh.getMeshFacets().getSubelementToElement(element.type,
@@ -102,7 +102,7 @@ Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
     if (Mesh::getKind(element.type) == _ek_cohesive) {
       facet =
           mesh_facets.getSubelementToElement(element.type, element.ghost_type)(
-              element.element, UInt(third_dimension));
+              element.element, Int(third_dimension));
     } else {
       facet = element;
     }
@@ -111,10 +111,10 @@ Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
       std::string material_name = this->material_index(facet);
       return this->model.getMaterialIndex(material_name);
     } catch (...) {
-      return this->getFallbackValue();
+      return DefaultMaterialCohesiveSelector::operator()(element);
     }
   }
-  return ConstitutiveLawSelector::operator()(element);
+  return DefaultMaterialCohesiveSelector::operator()(element);
 }
 
 /* -------------------------------------------------------------------------- */

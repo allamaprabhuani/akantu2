@@ -60,7 +60,7 @@ constexpr inline void Material::StoCauchy(const Eigen::MatrixBase<D1> & F,
 
   Matrix<Real, dim, dim> F_S;
   F_S = F * S;
-  Real constant = (J < std::numeric_limits<Real>::epsilon()) ? 1. / J : 0;
+  Real constant = (J < std::numeric_limits<Real>::epsilon()) ? 0. : 1. / J;
   sigma = constant * F_S * F.transpose();
 }
 

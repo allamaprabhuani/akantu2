@@ -177,7 +177,7 @@ endif()
 
 if(AKANTU_SPLIT_DWARF)
   target_compile_options(akantu
-    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf>
+    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf -gdwarf-5>
   )
   target_link_options(akantu
     PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZE_DEBUG>:-Wl,--gdb-index>

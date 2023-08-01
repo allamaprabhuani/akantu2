@@ -444,10 +444,10 @@ public:
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
-  virtual Real getEnergy(const std::string & type);
+  Real getEnergy(const std::string & type) override;
   /// return the energy (identified by id) for the provided element
-  virtual Real getEnergy(const std::string & energy_id,
-                         const Element & element);
+  Real getEnergy(const std::string & energy_id,
+                 const Element & element) override;
 
   [[deprecated("Use the interface with an Element")]] virtual Real
   getEnergy(const std::string & energy_id, ElementType type, Idx index) final {
@@ -536,10 +536,10 @@ protected:
   InternalField<Real> & potential_energy;
 
   /// elemental field interpolation coordinates
-  InternalField<Real> & interpolation_inverse_coordinates;
+  ElementTypeMapArray<Real> interpolation_inverse_coordinates;
 
   /// elemental field interpolation points
-  InternalField<Real> & interpolation_points_matrices;
+  ElementTypeMapArray<Real> interpolation_points_matrices;
 
   /// tell if using in non local mode or not
   bool is_non_local{false};

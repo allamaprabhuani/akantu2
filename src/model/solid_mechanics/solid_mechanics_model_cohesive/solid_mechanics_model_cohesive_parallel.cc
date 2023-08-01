@@ -278,17 +278,11 @@ Int SolidMechanicsModelCohesive::getNbData(
       size += SolidMechanicsModel::getNbData(elements, tag);
     }
     }
-  }
-  /// cohesive element case
-  else if (elements(0).kind() == _ek_cohesive) {
+  } else if (elements(0).kind() == _ek_cohesive) {
 
     switch (tag) {
-    case SynchronizationTag::_constitutive_law_id: {
-      size += elements.size() * Int(sizeof(Idx));
-      break;
-    }
     case SynchronizationTag::_smm_boundary: {
-      UInt nb_nodes_per_element = 0;
+      Int nb_nodes_per_element = 0;
 
       for (auto && el : elements) {
         nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -296,15 +290,14 @@ Int SolidMechanicsModelCohesive::getNbData(
 
       // force, displacement, boundary
       size += nb_nodes_per_element * spatial_dimension *
-              (2 * sizeof(Real) + sizeof(bool));
+              Int(2 * sizeof(Real) + sizeof(bool));
       break;
     }
     default:
       break;
     }
 
-    if (tag != SynchronizationTag::_constitutive_law_id &&
-        tag != SynchronizationTag::_smmc_facets) {
+    if (tag != SynchronizationTag::_smmc_facets) {
       size += CLHParent::getNbData(elements, tag);
     }
   }
@@ -434,7 +427,7 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
     }
 
     if (tag != SynchronizationTag::_smmc_facets) {
-      CLHParent::packData(buffer, elements, tag);
+      CLHParent::unpackData(buffer, elements, tag);
     }
   }
 

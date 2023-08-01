@@ -166,7 +166,7 @@ template <Int dim> void MaterialCohesiveLinear<dim>::scaleInsertionTraction() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim>
+template <Int dim> // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
   AKANTU_DEBUG_IN();
 
@@ -243,8 +243,8 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
       // verify if the effective stress overcomes the threshold
       auto final_stress = stress_check.mean();
       if (max_quad_stress_insertion) {
-        final_stress = *std::max_element(stress_check.data(),
-                                         stress_check.data() + nb_quad_facet);
+        final_stress =
+            *std::max_element(stress_check.begin(), stress_check.end());
       }
 
       if (final_stress > sigma_limit) {
@@ -265,9 +265,9 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
           }
 
           new_sigmas.push_back(new_sigma);
-          new_normal_traction.push_back(normal_traction_vec);
+          new_normal_traction.emplace_back(normal_traction_vec);
 
-          Real new_delta;
+          Real new_delta{};
 
           // set delta_c in function of G_c or a given delta_c value
           if (Math::are_float_equal(delta_c, 0.)) {
@@ -283,7 +283,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
     // update material data for the new elements
     auto old_nb_quad_points = sig_c_eff.size();
-    Int new_nb_quad_points = new_sigmas.size();
+    Int new_nb_quad_points = Int(new_sigmas.size());
     sig_c_eff.resize(old_nb_quad_points + new_nb_quad_points);
     ins_stress.resize(old_nb_quad_points + new_nb_quad_points);
     trac_old.resize(old_nb_quad_points + new_nb_quad_points);

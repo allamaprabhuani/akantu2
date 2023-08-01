@@ -206,32 +206,16 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
           .begin();
 
   /// loop over the elements of the current filter and element type
-  for (auto && data :
+  for (auto && [el, field, itp_coord, inv_quad_coord] :
        zip(element_filter,
            make_view(field, field.getNbComponent(), nb_quad_per_element),
            make_view(interpolation_points_coordinates_matrices,
                      nb_interpolation_points_per_elem, nb_quad_per_element),
            make_view(quad_points_coordinates_inv_matrices, nb_quad_per_element,
                      nb_quad_per_element))) {
-    /**
-     * matrix containing the inversion of the quadrature points'
-     * coordinates
-     */
-    auto && inv_quad_coord_matrix = std::get<3>(data);
 
-    /**
-     * multiply it by the field values over quadrature points to get
-     * the interpolation coefficients
-     */
-    coefficients = inv_quad_coord_matrix * std::get<1>(data).transpose();
-
-    /// matrix containing the points' coordinates
-    auto && coord = std::get<2>(data);
-
-    auto el = std::get<0>(data);
-    /// multiply the coordinates matrix by the coefficients matrix and store the
-    /// result
-    result_begin[el] = coefficients.transpose() * coord.transpose();
+    coefficients = inv_quad_coord * field.transpose();
+    result_begin[el] = coefficients.transpose() * itp_coord.transpose();
   }
 
   AKANTU_DEBUG_OUT();

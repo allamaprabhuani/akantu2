@@ -40,6 +40,23 @@ void CohesiveInternalField<T>::initialize(Int nb_component) {
 }
 
 /* -------------------------------------------------------------------------- */
+template <>
+inline CohesiveInternalField<Real> &
+ConstitutiveLawInternalHandler::registerInternal<Real, CohesiveInternalField>(
+    const ID & id, Int nb_component) {
+  return this->registerInternal<Real, CohesiveInternalField>(
+      id, nb_component, "CohesiveFEEngine");
+}
+/* -------------------------------------------------------------------------- */
+template <>
+inline CohesiveRandomInternalField<Real> &
+ConstitutiveLawInternalHandler::registerInternal<
+    Real, CohesiveRandomInternalField>(const ID & id, Int nb_component) {
+  return this->registerInternal<Real, CohesiveRandomInternalField>(
+      id, nb_component, "CohesiveFEEngine");
+}
+
+/* -------------------------------------------------------------------------- */
 template <typename T>
 FacetInternalField<T>::FacetInternalField(
     const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,

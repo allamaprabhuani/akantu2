@@ -32,8 +32,8 @@ template <typename T>
 InternalField<T>::InternalField(
     const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
     const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
-    : InternalFieldBase(id),
-      ElementTypeMapArray<T>(id, constitutive_law.getID()),
+    : InternalFieldBase(id), ElementTypeMapArray<T>(id,
+                                                    constitutive_law.getID()),
       constitutive_law(constitutive_law),
       fem(constitutive_law.getFEEngine(fem_id)), element_filter(element_filter),
       spatial_dimension(dim) {}
@@ -58,8 +58,8 @@ InternalField<T>::InternalField(
 /* -------------------------------------------------------------------------- */
 template <typename T>
 InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
-    : InternalFieldBase(id),
-      ElementTypeMapArray<T>(id, other.constitutive_law.getID()),
+    : InternalFieldBase(id), ElementTypeMapArray<T>(
+                                 id, other.constitutive_law.getID()),
       constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
@@ -111,7 +111,7 @@ template <typename T> void InternalField<T>::resize() {
       _do_not_default = true);
 
   for (auto ghost_type : ghost_types) {
-    for (const auto & type : this->elementTypes()) {
+    for (const auto & type : this->elementTypes(ghost_type)) {
       auto & vect = this->operator()(type, ghost_type);
       auto old_size = old_sizes(type, ghost_type);
       auto new_size = vect.size();
@@ -274,7 +274,7 @@ void InternalField<T>::printself(std::ostream & stream,
   stream << "InternalField [ " << this->getID();
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {
-    stream << std::endl;
+    stream << "\n";
     ElementTypeMapArray<T>::printself(stream, indent + 3);
   } else {
 #endif

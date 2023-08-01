@@ -456,7 +456,8 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
   for (const auto & el : elements) {
     Element cl_el = el;
     cl_el.element = this->constitutive_law_local_numbering(el);
-    elements_per_cl[this->constitutive_law_index(el)].push_back(cl_el);
+    auto cl_id = this->constitutive_law_index(el);
+    elements_per_cl[cl_id].push_back(cl_el);
   }
 }
 
@@ -467,7 +468,7 @@ Int ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getNbData(
   Int size{0};
 
   if (tag == SynchronizationTag::_constitutive_law_id) {
-    size += elements.size() * sizeof(Idx);
+    size += Int(elements.size()) * sizeof(Idx);
   }
 
   if (tag != SynchronizationTag::_constitutive_law_id) {
@@ -502,7 +503,7 @@ void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::unpackData(
     const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_constitutive_law_id) {
     for (auto && element : elements) {
-      Idx recv_cl_index;
+      Idx recv_cl_index{};
       buffer >> recv_cl_index;
       Idx & cl_index = constitutive_law_index(element);
       if (cl_index != -1) {

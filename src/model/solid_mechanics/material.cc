@@ -37,10 +37,9 @@ Material::Material(SolidMechanicsModel & model, const ID & id,
       gradu(registerInternal("grad_u", spatial_dimension * spatial_dimension,
                              fe_engine_id)),
       potential_energy(registerInternal("potential_energy", 1, fe_engine_id)),
-      interpolation_inverse_coordinates(registerInternal(
-          "interpolation inverse coordinates", 1, fe_engine_id)),
-      interpolation_points_matrices(
-          registerInternal("interpolation points matrices", 1, fe_engine_id)),
+      interpolation_inverse_coordinates("interpolation inverse coordinates",
+                                        id),
+      interpolation_points_matrices("interpolation points matrices", id),
       eigen_grad_u(model.getSpatialDimension(), model.getSpatialDimension()) {
   eigen_grad_u.setZero();
   registerParam("rho", rho, Real(0.), _pat_parsable | _pat_modifiable,

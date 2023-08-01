@@ -805,15 +805,34 @@ Int SolidMechanicsModel::getNbData(const Array<Element> & elements,
                                    const SynchronizationTag & tag) const {
 
   Int size = 0;
-  // Int nb_nodes_per_element = 0;
+  Int nb_nodes_per_element = 0;
 
-  // for (const Element & el : elements) {
-  //   nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  // }
+  for (const Element & el : elements) {
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
+
+  switch (tag) {
+  case SynchronizationTag::_smm_mass: {
+    size += spatial_dimension * nb_nodes_per_element * Int(sizeof(Real));
+    break;
+  }
+  case SynchronizationTag::_smm_for_gradu: {
+    size += spatial_dimension * nb_nodes_per_element * Int(sizeof(Real));
+    break;
+  }
+  case SynchronizationTag::_for_dump: {
+    size += 5 * spatial_dimension * nb_nodes_per_element * Int(sizeof(Real));
+    break;
+  }
+  case SynchronizationTag::_smm_boundary: {
+    size += 3 * spatial_dimension * nb_nodes_per_element * Int(sizeof(Real));
+    break;
+  }
+  default: {
+  }
+  }
 
   size += CLHParent::getNbData(elements, tag);
-
-  AKANTU_DEBUG_OUT();
   return size;
 }
 

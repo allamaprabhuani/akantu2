@@ -227,6 +227,9 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
       mesh_facets,
       [&](auto && element) {
         auto mat_index = material_selector(element);
+        if (not mat_index) {
+          return;
+        }
         auto & mat =
             aka::as_type<MaterialCohesive>(this->getConstitutiveLaw(mat_index));
 

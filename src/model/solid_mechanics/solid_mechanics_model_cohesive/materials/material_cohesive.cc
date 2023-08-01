@@ -32,7 +32,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
-    : Material(model, id, "CohesiveFEEngine"), facet_filter("facet_filter", id),
+    : Material(model, id, "SolidMechanicsFEEngine"),
+      facet_filter("facet_filter", id),
       fem_cohesive(
           model.getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine")),
       reversible_energy(registerInternal<Real, CohesiveInternalField>(
@@ -74,17 +75,10 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   if (this->use_previous_delta_max) {
     this->delta_max.initializeHistory();
   }
-  if (this->use_previous_opening) {
-    this->opening.initializeHistory();
-  }
 
-  AKANTU_DEBUG_OUT();
-}
+  this->opening.initializeHistory();
+  this->tractions.initializeHistory();
 
-/* -------------------------------------------------------------------------- */
-void MaterialCohesive::initMaterial() {
-  AKANTU_DEBUG_IN();
-  Material::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 

@@ -115,35 +115,35 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// beta parameter
-  Real beta;
+  Real beta{};
 
   /// beta square inverse to compute effective norm
-  Real beta2_inv;
+  Real beta2_inv{};
 
   /// mode I fracture energy
-  Real G_c;
+  Real G_c{};
 
   /// kappa parameter
-  Real kappa;
+  Real kappa{};
 
   /// constitutive law scalar to compute delta
-  Real beta2_kappa2;
+  Real beta2_kappa2{};
 
   /// constitutive law scalar to compute traction
-  Real beta2_kappa;
+  Real beta2_kappa{};
 
   /// penalty coefficient
-  Real penalty;
+  Real penalty{};
 
   /// reference volume used to scale sigma_c
-  Real volume_s;
+  Real volume_s{};
 
   /// weibull exponent used to scale sigma_c
-  Real m_s;
+  Real m_s{};
 
   /// variable defining if we are recomputing the last loading step
   /// after load_reduction
-  bool recompute;
+  bool recompute{};
 
   /// critical effective stress
   CohesiveRandomInternalField<Real> & sigma_c_eff;
@@ -157,11 +157,11 @@ protected:
 
   /// variable saying if there should be penalty contact also after
   /// breaking the cohesive elements
-  bool contact_after_breaking;
+  bool contact_after_breaking{};
 
   /// insertion of cohesive element when stress is high enough just on
   /// one quadrature point
-  bool max_quad_stress_insertion;
+  bool max_quad_stress_insertion{};
 
   Vector<Real, dim> normal_opening;
   Vector<Real, dim> tangential_opening;

@@ -19,8 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// #include "material_cohesive_linear.hh"
-#include "aka_static_if.hh"
+#include "material_cohesive_linear.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
