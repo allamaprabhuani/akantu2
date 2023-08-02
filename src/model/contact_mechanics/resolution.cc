@@ -118,7 +118,7 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
   auto nb_nodes = is_master_deformable ? connectivity.size() : 1;
   Real alpha = is_master_deformable ? 0.5 : 1.;
 
-  MatrixProxy<Real> local_m(local.data(), nb_dofs, connectivity.cols());
+  MatrixProxy<Real> local_m(local.data(), nb_dofs, connectivity.size());
   auto global_it = make_view(global, nb_dofs).begin();
 
   for (Int i : arange(nb_nodes)) {

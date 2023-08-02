@@ -33,7 +33,6 @@ class MaterialDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialDamage(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialDamage() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -67,8 +66,9 @@ public:
   decltype(auto) getArguments(ElementType el_type,
                               GhostType ghost_type = _not_ghost) {
     return zip_append(Parent<dim>::getArguments(el_type, ghost_type),
-                      "damage"_n =
-                          make_view(this->damage(el_type, ghost_type)));
+                      "damage"_n = this->damage(el_type, ghost_type),
+                      "previous_damage"_n =
+                          this->damage.previous(el_type, ghost_type));
   }
 
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
@@ -76,7 +76,8 @@ public:
                                      GhostType ghost_type) {
     return zip_append(
         Parent<dim>::getArgumentsTangent(tangent_matrix, el_type, ghost_type),
-        "damage"_n = make_view(this->damage(el_type, ghost_type)));
+        "damage"_n = this->damage(el_type, ghost_type),
+        "previous_damage"_n = this->damage.previous(el_type, ghost_type));
   }
 
   Real getEnergy(const std::string & type) override;

@@ -85,6 +85,9 @@ protected:
 protected:
   Real eta{0.};
 
+  /// Phasefield isotropic
+  bool is_hybrid;
+
   // effective damage to conserve stiffness in compression
   InternalField<Real> & effective_damage;
 };

@@ -202,7 +202,7 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     }
 
     auto ghost_type = mesh_facets.getElementToSubelement()(el)[0].ghost_type;
-    if (pack_helper) {
+    if constexpr (pack_helper) {
       element_rank = ghost_type != _not_ghost;
     } else {
       element_rank = ghost_type == _not_ghost;
@@ -216,7 +216,7 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     for (auto && data_per_quad : data_per_element) {
       auto && data = data_per_quad(element_rank);
 
-      if (pack_helper) {
+      if constexpr (pack_helper) {
         buffer << data;
       } else {
         buffer >> data;

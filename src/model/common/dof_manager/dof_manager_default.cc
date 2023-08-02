@@ -349,7 +349,7 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   auto cit = cbegin;
 
   auto nb_elements = connectivity.size();
-  Int * ge_it = nullptr;
+  const Int * ge_it = nullptr;
   if (dof_data.group_support != "__mesh__") {
     const auto & group_elements =
         this->mesh->getElementGroup(dof_data.group_support)

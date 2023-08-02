@@ -32,15 +32,26 @@ MaterialPhaseField<dim>::MaterialPhaseField(SolidMechanicsModel & model,
     : Parent(model, id),
       effective_damage(this->registerInternal("effective_damage", 1)) {
   this->registerParam("eta", eta, Real(0.), _pat_parsable, "eta");
+  this->registerParam("is_hybrid", is_hybrid, false,
+                      _pat_parsable | _pat_readable, "Use hybrid formulation");
 }
 
+/* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialPhaseField<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
-  computeEffectiveDamage(el_type, ghost_type);
 
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    computeStressOnQuad(args);
+  if (this->is_hybrid) {
+    computeEffectiveDamage(el_type, ghost_type);
+
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      auto && dam = args["effective_damage"_n];
+      computeStressOnQuad(tuple::replace(args, "damage"_n = dam));
+    }
+  } else {
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      computeStressOnQuad(args);
+    }
   }
 }
 
@@ -51,9 +62,19 @@ void MaterialPhaseField<dim>::computeTangentModuli(ElementType el_type,
                                                    GhostType ghost_type) {
   computeEffectiveDamage(el_type, ghost_type);
 
-  for (auto && args :
-       getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
-    computeTangentModuliOnQuad(args);
+  if (this->is_hybrid) {
+    computeEffectiveDamage(el_type, ghost_type);
+
+    for (auto && args :
+         getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+      auto && dam = args["effective_damage"_n];
+      computeTangentModuliOnQuad(tuple::replace(args, "damage"_n = dam));
+    }
+  } else {
+    for (auto && args :
+         getArgumentsTangent(tangent_matrix, el_type, ghost_type)) {
+      computeTangentModuliOnQuad(args);
+    }
   }
 }
 

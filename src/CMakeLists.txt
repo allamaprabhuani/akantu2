@@ -169,6 +169,11 @@ target_compile_features(akantu PUBLIC cxx_std_${AKANTU_CXX_STANDARD})
 set_target_properties(akantu
   PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
 
+if (AKANTU_COMPILER_LAUNCHER)
+  set_target_properties(akantu
+    PROPERTIES CXX_COMPILER_LAUNCHER ${AKANTU_COMPILER_LAUNCHER})
+endif()
+
 package_get_all_extra_dependencies(_extra_target_dependencies)
 if(_extra_target_dependencies)
   # This only adding todo: find a solution for when a dependency was add the is removed...

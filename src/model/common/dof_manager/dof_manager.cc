@@ -73,7 +73,7 @@ void DOFManager::assembleElementalArrayLocalArray(
   auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
 
-  Idx * filter_it = nullptr;
+  const Idx * filter_it = nullptr;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
     filter_it = filter_elements.data();

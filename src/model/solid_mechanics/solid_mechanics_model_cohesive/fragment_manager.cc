@@ -415,9 +415,6 @@ void FragmentManager::integrateFieldOnFragments(
 
       /// integrate the field over the fragment
       Array<Real> integrated_array(elements.size(), nb_component);
-      std::cout << "integrated_array 1: " << std::get<0>(data).getName()
-                << " - " << integrated_array.size() << " - " << fragment_index
-                << " - " << type << std::endl;
       model.getFEEngine().integrate(integration_array, integrated_array,
                                     nb_component, type, _not_ghost, elements);
 

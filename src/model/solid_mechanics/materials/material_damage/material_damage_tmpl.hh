@@ -30,7 +30,9 @@ MaterialDamage<dim, Parent>::MaterialDamage(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent<dim>(model, id), damage(this->registerInternal("damage", 1)),
       dissipated_energy(this->registerInternal("damage dissipated energy", 1)),
-      int_sigma(this->registerInternal("integral of sigma", 1)) {}
+      int_sigma(this->registerInternal("integral of sigma", 1)) {
+  damage.initializeHistory();
+}
 
 /* -------------------------------------------------------------------------- */
 /**

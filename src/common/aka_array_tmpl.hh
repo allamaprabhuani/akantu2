@@ -358,7 +358,8 @@ public:
     return values;
   };
 
-  T * data() const { return values; };
+  const T * data() const { return values; };
+  T * data() { return values; };
 
 protected:
   /// allocation type agnostic  data access
@@ -426,7 +427,6 @@ inline auto Array<T, is_scal>::operator[](Int i) const -> const_reference {
  * @param i index of element to erase
  */
 template <class T, bool is_scal> inline void Array<T, is_scal>::erase(Idx i) {
-  AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((this->size_ > 0), "The array is empty");
   AKANTU_DEBUG_ASSERT((i < this->size_), "The element at position ["
                                              << i << "] is out of range (" << i
@@ -440,7 +440,6 @@ template <class T, bool is_scal> inline void Array<T, is_scal>::erase(Idx i) {
   }
 
   this->resize(this->size_ - 1);
-  AKANTU_DEBUG_OUT();
 }
 
 /* ------------------------------------------------------------------------ */
@@ -472,7 +471,7 @@ Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect) {
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = vect.data();
+  const T * b = vect.data();
   for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a -= *b;
     ++a;
@@ -501,7 +500,7 @@ Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = vect.data();
+  const T * b = vect.data();
   for (Idx i = 0; i < this->size_ * this->nb_component; ++i) {
     *a++ += *b++;
   }
@@ -639,13 +638,10 @@ template <class T, bool is_scal> Array<T, is_scal>::~Array() = default;
  */
 template <class T, bool is_scal>
 Idx Array<T, is_scal>::find(const_reference elem) const {
-  AKANTU_DEBUG_IN();
-
   auto begin = this->begin();
   auto end = this->end();
   auto it = std::find(begin, end, elem);
 
-  AKANTU_DEBUG_OUT();
   return (it != end) ? it - begin : Idx(-1);
 }
 
@@ -679,8 +675,6 @@ inline Idx Array<T, is_scal>::find(const V & elem) {
 template <class T, bool is_scal>
 void Array<T, is_scal>::copy(const Array<T, is_scal> & other,
                              bool no_sanity_check) {
-  AKANTU_DEBUG_IN();
-
   if (not no_sanity_check and (other.nb_component != this->nb_component)) {
     AKANTU_ERROR("The two arrays do not have the same "
                  "number of components");
@@ -689,8 +683,6 @@ void Array<T, is_scal>::copy(const Array<T, is_scal> & other,
   this->resize((other.size_ * other.nb_component) / this->nb_component);
 
   std::copy_n(other.data(), this->size_ * this->nb_component, this->values);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* ------------------------------------------------------------------------ */
@@ -897,6 +889,16 @@ private:
 /* Begin/End functions implementation                                       */
 /* ------------------------------------------------------------------------ */
 namespace detail {
+  template <class C> struct GetNbComponent {
+    static auto getNbComponent(const C & /*cont*/) { return 1; }
+  };
+
+  template <typename T> struct GetNbComponent<Array<T>> {
+    static auto getNbComponent(const Array<T> & cont) {
+      return cont.getNbComponent();
+    }
+  };
+
   template <class Tuple, size_t... Is>
   constexpr auto take_front_impl(Tuple && t,
                                  std::index_sequence<Is...> /*idxs*/) {
@@ -945,15 +947,18 @@ namespace detail {
                                         view_iterator<type>>;
     static_assert(sizeof...(Ns), "You should provide a least one size");
 
-    if (array.getNbComponent() * array.size() !=
-        Int(product_all(std::forward<Ns>(ns)...))) {
+    auto product = Idx(product_all(std::forward<Ns>(ns)...));
+    auto nb_component = array.getNbComponent();
+    // detail::GetNbComponent<std::decay_t<Arr>>::getNbComponent(
+    //     std::forward<decltype(array)>(array));
+    if (nb_component * array.size() != product) {
       AKANTU_CUSTOM_EXCEPTION_INFO(
           debug::ArrayException(),
-          "The iterator on "
-              << debug::demangle(typeid(Arr).name())
-              << to_string_all(array.size(), array.getNbComponent())
-              << "is not compatible with the type "
-              << debug::demangle(typeid(type).name()) << to_string_all(ns...));
+          "The iterator on " << debug::demangle(typeid(Arr).name())
+                             << to_string_all(array.size(), nb_component)
+                             << "is not compatible with the type "
+                             << debug::demangle(typeid(type).name()) << " "
+                             << to_string_all(ns...));
     }
 
     return std::apply([&](auto... n) { return iterator(data, n...); },
@@ -966,7 +971,7 @@ namespace detail {
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::begin(Ns &&... ns) {
-  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
+  return detail::get_iterator(*this, this->data(), std::forward<Ns>(ns)...,
                               this->size_);
 }
 
@@ -974,14 +979,14 @@ template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::end(Ns &&... ns) {
   return detail::get_iterator(*this,
-                              this->values + this->nb_component * this->size_,
+                              this->data() + this->nb_component * this->size_,
                               std::forward<Ns>(ns)..., this->size_);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::begin(Ns &&... ns) const {
-  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
+  return detail::get_iterator(*this, this->data(), std::forward<Ns>(ns)...,
                               this->size_);
 }
 
@@ -989,14 +994,14 @@ template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::end(Ns &&... ns) const {
   return detail::get_iterator(*this,
-                              this->values + this->nb_component * this->size_,
+                              this->data() + this->nb_component * this->size_,
                               std::forward<Ns>(ns)..., this->size_);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::cbegin(Ns &&... ns) const {
-  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...,
+  return detail::get_iterator(*this, this->data(), std::forward<Ns>(ns)...,
                               this->size_);
 }
 
@@ -1004,35 +1009,35 @@ template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::cend(Ns &&... ns) const {
   return detail::get_iterator(*this,
-                              this->values + this->nb_component * this->size_,
+                              this->data() + this->nb_component * this->size_,
                               std::forward<Ns>(ns)..., this->size_);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::begin_reinterpret(Ns &&... ns) {
-  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...);
+  return detail::get_iterator(*this, this->data(), std::forward<Ns>(ns)...);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::end_reinterpret(Ns &&... ns) {
   return detail::get_iterator(
-      *this, this->values + detail::product_all(std::forward<Ns>(ns)...),
+      *this, this->data() + detail::product_all(std::forward<Ns>(ns)...),
       std::forward<Ns>(ns)...);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::begin_reinterpret(Ns &&... ns) const {
-  return detail::get_iterator(*this, this->values, std::forward<Ns>(ns)...);
+  return detail::get_iterator(*this, this->data(), std::forward<Ns>(ns)...);
 }
 
 template <class T, bool is_scal>
 template <typename... Ns>
 inline auto Array<T, is_scal>::end_reinterpret(Ns &&... ns) const {
   return detail::get_iterator(
-      *this, this->values + detail::product_all(std::forward<Ns>(ns)...),
+      *this, this->data() + detail::product_all(std::forward<Ns>(ns)...),
       std::forward<Ns>(ns)...);
 }
 
@@ -1045,6 +1050,7 @@ namespace detail {
 
   public:
     using size_type = Idx;
+    using pointer = decltype(std::declval<Array>().data());
 
     ~ArrayView() = default;
     constexpr ArrayView(Array && array, Ns... ns) noexcept
@@ -1167,9 +1173,15 @@ template <typename Array, typename... Ns,
 decltype(auto) make_view(Array && array, const Ns... ns) {
   AKANTU_DEBUG_ASSERT((detail::product_all(ns...) != 0),
                       "You must specify non zero dimensions");
-  auto size = std::forward<decltype(array)>(array).size() *
-              std::forward<decltype(array)>(array).getNbComponent() /
-              detail::product_all(ns...);
+  // auto size = std::forward<decltype(array)>(array).size() *
+  //             std::forward<decltype(array)>(array).getNbComponent() /
+  //             detail::product_all(ns...);
+  auto array_size = std::forward<decltype(array)>(array).size();
+  auto nb_component = std::forward<decltype(array)>(array).getNbComponent();
+  // detail::GetNbComponent<std::decay_t<Array>>::getNbComponent(
+  //     std::forward<decltype(array)>(array));
+  auto product_all = detail::product_all(ns...);
+  auto size = array_size * nb_component / product_all;
 
   return detail::ArrayView<Array, std::common_type_t<size_t, Ns>...,
                            std::common_type_t<size_t, decltype(size)>>(

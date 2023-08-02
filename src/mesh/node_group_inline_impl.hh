@@ -30,17 +30,22 @@ inline auto NodeGroup::begin() const { return node_group.begin(); }
 inline auto NodeGroup::end() const { return node_group.end(); }
 
 /* -------------------------------------------------------------------------- */
+inline auto NodeGroup::cbegin() const { return node_group.cbegin(); }
+
+/* -------------------------------------------------------------------------- */
+inline auto NodeGroup::cend() const { return node_group.cend(); }
+
+/* -------------------------------------------------------------------------- */
 inline auto NodeGroup::add(Idx node, bool check_for_duplicate) {
-  const_node_iterator it;
   if (check_for_duplicate) {
-    it = std::find(begin(), end(), node);
-    if (it != node_group.end()) {
+    auto it = std::find(cbegin(), cend(), node);
+    if (it != node_group.cend()) {
       return it;
     }
   }
 
   node_group.push_back(node);
-  it = (node_group.end() - 1);
+  auto it = (node_group.cend() - 1);
   return it;
 }
 

@@ -33,9 +33,9 @@ public:
       : DirichletFunctor(ax), amplitude(amp), phase(phase) {}
 
 public:
-  inline void operator()(__attribute__((unused)) UInt node,
-                         Vector<bool> & flags, Vector<Real> & primal,
-                         const Vector<Real> & coord) const {
+  inline void operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                         VectorProxy<Real> & primal,
+                         const VectorProxy<const Real> & coord) {
     DIRICHLET_SANITY_CHECK;
     flags(axis) = true;
     primal(axis) = -amplitude * std::sin(phase * coord(1));

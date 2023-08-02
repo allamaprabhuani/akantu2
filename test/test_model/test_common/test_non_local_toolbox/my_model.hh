@@ -90,8 +90,8 @@ public:
       auto & quads = quadrature_points_coordinates(type, ghost_type);
       this->getFEEngine().computeIntegrationPointsCoordinates(quads, type,
                                                               ghost_type);
-      auto quad_it = quads.begin(quads.getNbComponent());
-      auto quad_end = quads.end(quads.getNbComponent());
+      auto quad_it = quads.cbegin(quads.getNbComponent());
+      auto quad_end = quads.cend(quads.getNbComponent());
       q.num_point = 0;
       for (; quad_it != quad_end; ++quad_it) {
         neighborhood.insertIntegrationPoint(q, *quad_it);

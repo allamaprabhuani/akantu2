@@ -51,7 +51,7 @@ version_determination:
 configure:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_release
+    - .build_coverage
     - .configure
   needs:
     - version_determination
@@ -59,7 +59,7 @@ configure:debian_bullseye_gcc:
 build_libs:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_release
+    - .build_coverage
     - .build_libs
   needs:
     - job: configure:debian_bullseye_gcc
@@ -67,7 +67,7 @@ build_libs:debian_bullseye_gcc:
 build_tests:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_release
+    - .build_coverage
     - .build_tests
   needs:
     - job: build_libs:debian_bullseye_gcc
@@ -75,7 +75,7 @@ build_tests:debian_bullseye_gcc:
 test:debian_bullseye_gcc:
   extends:
     - .debian_bullseye_gcc
-    - .build_release
+    - .build_coverage
     - .tests
   coverage: '/^lines: (\d+\.\d+\%)/'
   needs:
@@ -287,7 +287,7 @@ build_pip:python_package:
 
 test:python_package:
   stage: test
-  image: python:3.8
+  image: python:3.10
   needs:
     - job: build_pip:python_package
   script:

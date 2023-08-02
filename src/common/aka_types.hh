@@ -257,16 +257,16 @@ namespace details {
     auto operator=(const EigenView & other) -> EigenView & = default;
     auto operator=(EigenView && other) noexcept -> EigenView & = default;
 
-    template <typename T = value_type,
-              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+    template <typename A = Array, std::enable_if_t<not std::is_const_v<
+                                      std::remove_reference_t<A>>> * = nullptr>
     decltype(auto) begin() {
       return aka::make_from_tuple<::akantu::view_iterator<
           Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
           std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
     }
 
-    template <typename T = value_type,
-              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+    template <typename A = Array, std::enable_if_t<not std::is_const_v<
+                                      std::remove_reference_t<A>>> * = nullptr>
     decltype(auto) end() {
       return aka::make_from_tuple<::akantu::view_iterator<
           Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(

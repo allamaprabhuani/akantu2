@@ -80,7 +80,7 @@ public:
     }
   }
 
-  virtual void applyBConDOFs(const Array<Real> & dofs) {
+  virtual void applyBConDOFs(Array<Real> & dofs) {
     const auto & coordinates = this->mesh->getNodes();
     for (auto & eg : this->mesh->iterateElementGroups()) {
       for (const auto & node : eg.getNodeGroup()) {

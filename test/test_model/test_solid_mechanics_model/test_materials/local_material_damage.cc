@@ -61,8 +61,8 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
   auto dim = this->spatial_dimension;
 
   for (auto && [grad_u, sigma, dam] :
-       zip(make_view(this->getGradU(el_type, ghost_type), dim, dim),
-           make_view(this->getStress(el_type, ghost_type), dim, dim),
+       zip(make_view(this->gradu(el_type, ghost_type), dim, dim),
+           make_view(this->stress(el_type, ghost_type), dim, dim),
            damage(el_type, ghost_type))) {
     computeStressOnQuad(grad_u, sigma, dam);
     ++dam;

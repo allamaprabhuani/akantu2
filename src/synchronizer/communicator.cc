@@ -115,7 +115,7 @@ namespace akantu {
   template void Communicator::allGatherImpl<T>(T * values /*NOLINT*/,          \
                                                int nb_values) const;           \
   template void Communicator::allGatherVImpl<T>(T * values /*NOLINT*/,         \
-                                                int * nb_values) const;        \
+                                                const int * nb_values) const;  \
   template void Communicator::gatherImpl<T>(T * values /*NOLINT*/,             \
                                             int nb_values, int root) const;    \
   template void Communicator::gatherImpl<T>(                                   \

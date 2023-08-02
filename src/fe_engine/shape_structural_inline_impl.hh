@@ -450,7 +450,7 @@ void ShapeStructural<_ek_structural>::computeNtb(
     FEEngine::filterElementalData(this->mesh, shapes, shapes_filtered, type,
                                   ghost_type, filter_elements);
     auto && view =
-        make_view<nb_dof, nb_dof * nb_nodes_per_element>(shapes_filtered);
+        make_const_view<nb_dof, nb_dof * nb_nodes_per_element>(shapes_filtered);
     N_it = view.begin();
     N_end = view.end();
   }

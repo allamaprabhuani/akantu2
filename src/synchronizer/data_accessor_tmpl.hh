@@ -42,7 +42,7 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
 
     for (auto node : conn) {
       auto && data_vect = data_it[node];
-      if (pack_helper) {
+      if constexpr (pack_helper) {
         buffer << data_vect;
       } else {
         buffer >> data_vect;
@@ -63,10 +63,9 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
   for (const auto & el : element) {
     auto nb_component = data_to_pack(el.type, el.ghost_type).getNbComponent();
     auto nb_data_per_elem = data_per_element(el) * nb_component;
-
     auto && data = data_to_pack.get(el, nb_data_per_elem);
 
-    if (pack_helper) {
+    if constexpr (pack_helper) {
       buffer << data;
     } else {
       buffer >> data;

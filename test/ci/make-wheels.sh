@@ -18,10 +18,6 @@ function repair_wheel {
 
 # Compile wheels
 for PYBIN in /opt/python/cp3*/bin; do
-  if "${PYBIN}/python" --version | grep -q 3.11; then
-    echo "Skip python version 3.11"
-    continue
-  fi
   ccache --zero-stats
   echo "${PYBIN}/pip" wheel . --no-deps -w dist/
   "${PYBIN}/pip" wheel . --no-deps -w dist/

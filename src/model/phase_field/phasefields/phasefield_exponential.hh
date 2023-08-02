@@ -50,8 +50,12 @@ protected:
   computeDissipatedEnergyByElement(ElementType type, Idx index,
                                    Vector<Real> & edis_on_quad_points) override;
 
-  void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
+  inline void computePhiOnQuad(const Matrix<Real> & /*strain_quad*/,
                         Real & /*phi_quad*/, Real & /*phi_hist_quad*/);
+
+  inline void computePhiIsotropicOnQuad(const Matrix<Real> & /*strain_quad*/,
+                                        Real & /*phi_quad*/,
+                                        Real & /*phi_hist_quad*/);
 
   void computeDrivingForce(ElementType /*el_type*/,
                            GhostType /*ghost_type*/) override;

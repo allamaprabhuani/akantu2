@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <aka_common.hh>
+#include <aka_random_generator.hh>
 /* -------------------------------------------------------------------------- */
 #include <boost/preprocessor.hpp>
 /* -------------------------------------------------------------------------- */
@@ -105,6 +106,21 @@ void register_enums(py::module & mod) {
   py::enum_<MatrixType>(mod, "MatrixType")
       .value("_unsymmetric", _unsymmetric)
       .value("_symmetric", _symmetric)
+      .export_values();
+
+  py::module mod_rdt = mod.def_submodule("RandomDistributionType");
+  py::enum_<RandomDistributionType>(mod_rdt, "RandomDistributionTypes")
+      .value("_uniform", RandomDistributionType::_uniform)
+      .value("_exponential", RandomDistributionType::_exponential)
+      .value("_gamma", RandomDistributionType::_gamma)
+      .value("_weibull", RandomDistributionType::_weibull)
+      .value("_extreme_value", RandomDistributionType::_extreme_value)
+      .value("_normal", RandomDistributionType::_normal)
+      .value("_lognormal", RandomDistributionType::_lognormal)
+      .value("_chi_squared", RandomDistributionType::_chi_squared)
+      .value("_cauchy", RandomDistributionType::_cauchy)
+      .value("_fisher_f", RandomDistributionType::_fisher_f)
+      .value("_student_t", RandomDistributionType::_student_t)
       .export_values();
 
   PY_AKANTU_REGISTER_ENUM(ElementType, AKANTU_ALL_ELEMENT_TYPE(_not_defined),

@@ -395,7 +395,7 @@ void Communicator::allGatherImpl(T * values, int nb_values) const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void Communicator::allGatherVImpl(T * values, int * nb_values) const {
+void Communicator::allGatherVImpl(T * values, const int * nb_values) const {
   MPI_Comm communicator = MPIDATA.getMPICommunicator();
   std::vector<int> displs(getNbProc());
   displs[0] = 0;

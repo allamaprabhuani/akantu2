@@ -28,7 +28,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
-    : MaterialDamage<dim>(model, id),
+    : MaterialDamage<dim>(model, id), Y(this->registerInternal("Y", 1)),
       Yd(this->template registerInternal<Real, DefaultRandomInternalField>("Yd",
                                                                            1)) {
 

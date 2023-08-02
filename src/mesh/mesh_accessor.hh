@@ -93,9 +93,7 @@ public:
   }
 
   /// resize the nodes (use carefully)
-  inline void resizeNodes(Int new_size) {
-    this->getNodes().resize(new_size);
-  }
+  inline void resizeNodes(Int new_size) { this->getNodes().resize(new_size); }
 
   /// get the connectivity for the given element
   inline decltype(auto) getConnectivity(const Element & element) {
@@ -157,10 +155,10 @@ public:
   }
 
   template <typename T>
-  inline auto &
-  getData(const std::string & data_name, ElementType el_type,
-          GhostType ghost_type = _not_ghost, Int nb_component = 1,
-          bool size_to_nb_element = true, bool resize_with_parent = false) {
+  inline auto & getData(const std::string & data_name, ElementType el_type,
+                        GhostType ghost_type = _not_ghost, Int nb_component = 1,
+                        bool size_to_nb_element = true,
+                        bool resize_with_parent = false) {
     return this->_mesh.getDataPointer<T>(data_name, el_type, ghost_type,
                                          nb_component, size_to_nb_element,
                                          resize_with_parent);

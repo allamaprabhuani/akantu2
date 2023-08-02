@@ -54,33 +54,28 @@ template <typename ModelType>
 template <typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     FunctorType, BC::Functor::_dirichlet> {
-  static inline void applyBC(const FunctorType & func,
-                             const ElementGroup & group,
+  static inline void applyBC(FunctorType && func, const ElementGroup & group,
                              BoundaryCondition<ModelType> & bc_instance) {
     auto & model = bc_instance.getModel();
     auto & primal = bc_instance.getPrimal();
+    auto & boundary_flags = model.getBlockedDOFs();
+
+    FunctorType func_(func);
 
     const auto & coords = model.getMesh().getNodes();
-    auto & boundary_flags = model.getBlockedDOFs();
     Int dim = model.getMesh().getSpatialDimension();
 
-    auto primal_iter = primal.begin(primal.getNbComponent());
-    auto coords_iter = coords.begin(dim);
-    auto flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
-
-    for (auto n : group.getNodeGroup()) {
-      auto && flags = flags_iter[n];
-      auto && primal = primal_iter[n];
-
+    auto it = zip(make_view(primal, primal.getNbComponent()),
+                  make_view(boundary_flags, boundary_flags.getNbComponent()),
+                  make_const_view(coords, dim))
+                  .begin();
+    for (auto && n : group.getNodeGroup()) {
+      auto && [primal_, flags_, coords_] = it[n];
       // The copy it to avoid the user to template is functor
-      Vector<bool> flags_ = flags;
-      Vector<Real> primal_ = primal;
-      Vector<Real> coords = coords_iter[n];
-
-      func(n, flags_, primal_, coords);
-
-      flags = flags_;
-      primal = primal_;
+      auto && primal = primal_;
+      auto && flags = flags_;
+      auto && coords = coords_;
+      func_(n, flags, primal, coords);
     }
   }
 };
@@ -91,20 +86,18 @@ template <typename ModelType>
 template <typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     FunctorType, BC::Functor::_neumann> {
-  static inline void applyBC(const FunctorType & func,
-                             const ElementGroup & group,
+  static inline void applyBC(FunctorType && func, const ElementGroup & group,
                              BoundaryCondition<ModelType> & bc_instance) {
     auto dim = bc_instance.getModel().getSpatialDimension();
 
     if (dim == 1) {
       AKANTU_TO_IMPLEMENT();
     }
-    applyBC(func, group, bc_instance, _not_ghost);
-    applyBC(func, group, bc_instance, _ghost);
+    applyBC(std::forward<decltype(func)>(func), group, bc_instance, _not_ghost);
+    applyBC(std::forward<decltype(func)>(func), group, bc_instance, _ghost);
   }
 
-  static inline void applyBC(const FunctorType & func,
-                             const ElementGroup & group,
+  static inline void applyBC(FunctorType && func, const ElementGroup & group,
                              BoundaryCondition<ModelType> & bc_instance,
                              GhostType ghost_type) {
     auto & model = bc_instance.getModel();
@@ -112,6 +105,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
     const auto & mesh = model.getMesh();
     const auto & nodes_coords = mesh.getNodes();
     const auto & fem_boundary = model.getFEEngineBoundary();
+
+    FunctorType func_(func);
 
     Int dim = model.getSpatialDimension();
     Int nb_degree_of_freedom = dual.getNbComponent();
@@ -137,9 +132,9 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 
       fem_boundary.interpolateOnIntegrationPoints(
           nodes_coords, quad_coords, dim, type, ghost_type, element_ids);
-      auto normals_begin = normals_on_quad.begin(dim);
+      auto normals_begin = normals_on_quad.cbegin(dim);
       decltype(normals_begin) normals_iter;
-      auto quad_coords_iter = quad_coords.begin(dim);
+      auto quad_coords_iter = quad_coords.cbegin(dim);
       auto dual_iter = dual_before_integ.begin(nb_degree_of_freedom);
 
       quad_point.type = type;
@@ -149,13 +144,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
         for (auto q : arange(nb_quad_points)) {
           quad_point.num_point = q;
 
-          Vector<Real> dual(*dual_iter);
-          Vector<Real> quad_coords(*quad_coords_iter);
-          Vector<Real> normals(*normals_iter);
-
-          func(quad_point, dual, quad_coords, normals);
-
-          *dual_iter = dual;
+          func_(quad_point, *dual_iter, *quad_coords_iter, *normals_iter);
 
           ++dual_iter;
           ++quad_coords_iter;
@@ -185,11 +174,11 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 /* -------------------------------------------------------------------------- */
 template <typename ModelType>
 template <typename FunctorType>
-inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
+inline void BoundaryCondition<ModelType>::applyBC(FunctorType && func) {
   auto bit = model->getMesh().getGroupManager().element_group_begin();
   auto bend = model->getMesh().getGroupManager().element_group_end();
   for (; bit != bend; ++bit) {
-    applyBC(func, *bit);
+    applyBC(std::forward<decltype(func)>(func), *bit);
   }
 }
 
@@ -197,12 +186,12 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
 template <typename ModelType>
 template <typename FunctorType>
 inline void
-BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
+BoundaryCondition<ModelType>::applyBC(FunctorType && func,
                                       const std::string & group_name) {
   try {
     const ElementGroup & element_group =
         model->getMesh().getElementGroup(group_name);
-    applyBC(func, element_group);
+    applyBC(std::forward<decltype(func)>(func), element_group);
   } catch (akantu::debug::Exception & e) {
     AKANTU_EXCEPTION("Error applying a boundary condition onto \""
                      << group_name << "\"! [" << e.what() << "]");
@@ -213,7 +202,7 @@ BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
 template <typename ModelType>
 template <typename FunctorType>
 inline void
-BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
+BoundaryCondition<ModelType>::applyBC(FunctorType && func,
                                       const ElementGroup & element_group) {
 #if !defined(AKANTU_NDEBUG)
   if (element_group.getDimension() != model->getSpatialDimension() - 1) {
@@ -223,7 +212,8 @@ BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
   }
 #endif
 
-  TemplateFunctionWrapper<FunctorType>::applyBC(func, element_group, *this);
+  TemplateFunctionWrapper<FunctorType>::applyBC(
+      std::forward<decltype(func)>(func), element_group, *this);
 }
 
 #endif /* AKANTU_BOUNDARY_CONDITION_TMPL_HH_ */

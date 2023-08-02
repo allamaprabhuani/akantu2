@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
   os << "#strain stress damage analytical_sigma analytical_damage"
      << "\n";
 
-  initialize("material_coupling.dat", argc, argv);
+  initialize("material_hybrid.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_one_element.msh");
@@ -117,11 +117,13 @@ int main(int argc, char * argv[]) {
                          (1 - analytical_damage);
     }
 
-    error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
+    error_stress =
+        std::abs(analytical_sigma - stress(0, 3)) / std::abs(analytical_sigma);
+
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
     if ((error_damage > 1e-8 or error_stress > 1e-8) and
-        std::abs(axial_strain) < 1e-13) {
+        std::abs(axial_strain) > 1e-13) {
       std::cerr << std::left << std::setw(15)
                 << "Error damage: " << error_damage << "\n";
       std::cerr << std::left << std::setw(15)

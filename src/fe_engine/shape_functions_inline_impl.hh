@@ -278,9 +278,9 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  auto B_it =
-      make_view<element_dimension, nb_nodes_per_element>(shapes_derivatives)
-          .begin();
+  auto B_it = make_const_view<element_dimension, nb_nodes_per_element>(
+                  shapes_derivatives)
+                  .begin();
 
   Array<Real> * filtered_B = nullptr;
   if (filter_elements != empty_filter) {
@@ -288,8 +288,8 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
     filtered_B = new Array<Real>(0, shapes_derivatives.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes_derivatives, *filtered_B, type,
                                   ghost_type, filter_elements);
-    B_it =
-        make_view<element_dimension, nb_nodes_per_element>(*filtered_B).begin();
+    B_it = make_const_view<element_dimension, nb_nodes_per_element>(*filtered_B)
+               .begin();
   }
 
   out_nablauq.resize(nb_element * nb_points);

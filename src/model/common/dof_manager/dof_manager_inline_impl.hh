@@ -245,7 +245,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
   const auto & equation_number = this->getLocalEquationsNumbers(dof_id);
 
   Int nb_element;
-  Idx * filter_it = nullptr;
+  const Idx * filter_it = nullptr;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
     filter_it = filter_elements.data();

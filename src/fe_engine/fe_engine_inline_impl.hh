@@ -116,10 +116,10 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 
   elemental_f.resize(nb_element);
 
-  T * nodal_f_val = nodal_f.data();
+  const T * nodal_f_val = nodal_f.data();
   T * f_val = elemental_f.data();
 
-  Idx * el_conn;
+  const Idx * el_conn;
   for (Int el = 0; el < nb_element; ++el) {
     if (filter_elements != empty_filter) {
       el_conn = conn_val + filter_elements(el) * nb_nodes_per_element;
@@ -161,7 +161,7 @@ void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
 
   filtered_f.resize(nb_element * nb_data_per_element);
 
-  T * elem_f_val = elem_f.data();
+  const T * elem_f_val = elem_f.data();
   T * f_val = filtered_f.data();
 
   UInt el_offset;

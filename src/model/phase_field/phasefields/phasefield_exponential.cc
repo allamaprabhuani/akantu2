@@ -49,15 +49,27 @@ template <Int dim> void PhaseFieldExponential<dim>::updateInternalParameters() {
 template <Int dim>
 void PhaseFieldExponential<dim>::computeDrivingForce(ElementType el_type,
                                                      GhostType ghost_type) {
-  for (auto && [phi_quad, phi_hist_quad, driving_force_quad,
-                dam_energy_density_quad, strain, dam_on_quad,
-                driving_energy_quad, damage_energy_quad, gradd_quad, g_c_quad] :
+
+  auto && arguments = zip(this->phi(el_type, ghost_type),
+                          this->phi.previous(el_type, ghost_type),
+                          make_view(this->strain(el_type, ghost_type),
+                                    spatial_dimension, spatial_dimension));
+  if (this->isotropic) {
+    for (auto && [phi_quad, phi_hist_quad, strain] : arguments) {
+      computePhiIsotropicOnQuad(strain, phi_quad, phi_hist_quad);
+    }
+  } else {
+    for (auto && [phi_quad, phi_hist_quad, strain] : arguments) {
+      computePhiOnQuad(strain, phi_quad, phi_hist_quad);
+    }
+  }
+
+  for (auto && [phi_quad, driving_force_quad, dam_energy_density_quad,
+                dam_on_quad, driving_energy_quad, damage_energy_quad,
+                gradd_quad, g_c_quad] :
        zip(this->phi(el_type, ghost_type),
-           this->phi.previous(el_type, ghost_type),
            this->driving_force(el_type, ghost_type),
            this->damage_energy_density(el_type, ghost_type),
-           make_view(this->strain(el_type, ghost_type), spatial_dimension,
-                     spatial_dimension),
            this->damage_on_qpoints(el_type, _not_ghost),
            make_view(this->driving_energy(el_type, ghost_type),
                      spatial_dimension),
@@ -65,8 +77,6 @@ void PhaseFieldExponential<dim>::computeDrivingForce(ElementType el_type,
                      spatial_dimension, spatial_dimension),
            make_view(this->gradd(el_type, ghost_type), spatial_dimension),
            this->g_c(el_type, ghost_type))) {
-
-    computePhiOnQuad(strain, phi_quad, phi_hist_quad);
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
                                      g_c_quad);
 
@@ -80,13 +90,12 @@ template <Int dim>
 void PhaseFieldExponential<dim>::computeDissipatedEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && tuple : zip(this->dissipated_energy(el_type, _not_ghost),
-                           this->damage_on_qpoints(el_type, _not_ghost),
-                           make_view<dim>(this->gradd(el_type, _not_ghost)),
-                           this->g_c(el_type, _not_ghost))) {
-
-    this->computeDissipatedEnergyOnQuad(std::get<1>(tuple), std::get<2>(tuple),
-                                        std::get<0>(tuple), std::get<3>(tuple));
+  for (auto && [dis_energy, damage, grad_d, g_c] :
+       zip(this->dissipated_energy(el_type, _not_ghost),
+           this->damage_on_qpoints(el_type, _not_ghost),
+           make_view<dim>(this->gradd(el_type, _not_ghost)),
+           this->g_c(el_type, _not_ghost))) {
+    this->computeDissipatedEnergyOnQuad(damage, grad_d, dis_energy, g_c);
   }
 
   AKANTU_DEBUG_OUT();
@@ -107,7 +116,7 @@ void PhaseFieldExponential<dim>::computeDissipatedEnergyByElement(
   auto damage_it = this->damage_on_qpoints(type).begin() + quad;
   auto g_c_it = this->g_c(type).begin() + quad;
 
-  Real * edis_quad = edis_on_quad_points.data();
+  auto edis_quad = edis_on_quad_points.begin();
 
   for (; gradd_it != gradd_end; ++gradd_it, ++damage_it, ++edis_quad) {
     this->computeDissipatedEnergyOnQuad(*damage_it, *gradd_it, *edis_quad,
@@ -124,12 +133,11 @@ void PhaseFieldExponential<dim>::computeDissipatedEnergyByElement(
 }
 
 /* -------------------------------------------------------------------------- */
-
 template class PhaseFieldExponential<1>;
 template class PhaseFieldExponential<2>;
 template class PhaseFieldExponential<3>;
 
-static bool phase_field_exponential_is_allocated =
+const bool phase_field_exponential_is_allocated [[maybe_unused]] =
     instantiatePhaseField<PhaseFieldExponential>("exponential");
 
 } // namespace akantu
