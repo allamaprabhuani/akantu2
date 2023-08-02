@@ -32,5 +32,4 @@ package_declare_sources(heat_transfer
   model/heat_transfer/diffusion_law.hh
   model/heat_transfer/heat_diffusion.cc
   model/heat_transfer/heat_diffusion.hh
-
   )
