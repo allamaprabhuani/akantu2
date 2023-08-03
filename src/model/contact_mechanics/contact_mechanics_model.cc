@@ -21,12 +21,12 @@
 /* -------------------------------------------------------------------------- */
 #include "contact_mechanics_model.hh"
 #include "boundary_condition_functor.hh"
-#include "dumpable_inline_impl.hh"
+// #include "dumpable_inline_impl.hh"
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -45,10 +45,10 @@ ContactMechanicsModel::ContactMechanicsModel(
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
                                                Model::spatial_dimension);
-  this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
-  this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-                                 Model::spatial_dimension, _not_ghost,
-                                 _ek_regular);
+  //  this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
+  // this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
+  //                                Model::spatial_dimension - 1, _not_ghost,
+  //                                _ek_regular);
 
   this->registerDataAccessor(*this);
 
@@ -610,17 +610,18 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field>
-ContactMechanicsModel::createNodalFieldInt(const std::string & field_name,
-                                           const std::string & group_name,
+ContactMechanicsModel::createNodalFieldInt(const std::string & /*field_name*/,
+                                           const std::string & /*group_name*/,
                                            bool /*padding_flag*/) {
   std::shared_ptr<dumpers::Field> field;
-  if (field_name == "contact_state") {
-    auto && func =
-        std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
-    field = mesh.createNodalField(this->contact_state.get(), group_name);
-    field =
-        dumpers::FieldComputeProxy::createFieldCompute(field, std::move(func));
-  }
+  // if (field_name == "contact_state") {
+  //   auto && func =
+  //       std::make_unique<dumpers::ComputeIntFromEnum<ContactState>>();
+  //   field = mesh.createNodalField(this->contact_state.get(), group_name);
+  //   field =
+  //       dumpers::FieldComputeProxy::createFieldCompute(field,
+  //       std::move(func));
+  // }
   return field;
 }
 

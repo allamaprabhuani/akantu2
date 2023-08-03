@@ -172,20 +172,20 @@ void register_mesh(py::module & mod) {
           },
           py::return_value_policy::reference);
 
-  py::class_<Mesh, GroupManager, Dumpable, MeshData>(mod, "Mesh",
-                                                     py::multiple_inheritance())
+  py::class_<Mesh, GroupManager, MeshData>(mod, "Mesh",
+                                           py::multiple_inheritance())
       .def(py::init<Int, const ID &>(), py::arg("spatial_dimension"),
            py::arg("id") = "mesh")
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
       .def(
           "getNodes",
-          [](Mesh & self) -> decltype(auto) { return self.getNodes(); },
+          [](const Mesh & self) -> decltype(auto) { return self.getNodes(); },
           py::return_value_policy::reference)
       .def("getNbNodes", &Mesh::getNbNodes)
       .def(
           "getConnectivity",
-          [](Mesh & self, ElementType type) -> decltype(auto) {
+          [](const Mesh & self, ElementType type) -> decltype(auto) {
             return self.getConnectivity(type);
           },
           py::return_value_policy::reference)

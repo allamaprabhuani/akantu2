@@ -33,7 +33,7 @@
 #include "parser.hh"
 #include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -119,10 +119,10 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
   tmp_material_selector->setFallback(this->getConstitutiveLawSelector());
   this->setConstitutiveLawSelector(tmp_material_selector);
 
-  this->mesh.registerDumper<DumperParaview>("cohesive elements", id);
-  this->mesh.addDumpMeshToDumper("cohesive elements", mesh,
-                                 Model::spatial_dimension, _not_ghost,
-                                 _ek_cohesive);
+  //  this->mesh.registerDumper<DumperParaview>("cohesive elements", id);
+  // this->mesh.addDumpMeshToDumper("cohesive elements", mesh,
+  //                                Model::spatial_dimension, _not_ghost,
+  //                                _ek_cohesive);
 
   if (this->mesh.isDistributed()) {
     /// create the distributed synchronizer for cohesive elements
@@ -155,7 +155,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
 void SolidMechanicsModelCohesive::setTimeStep(Real time_step,
                                               const ID & solver_id) {
   SolidMechanicsModel::setTimeStep(time_step, solver_id);
-  this->mesh.getDumper("cohesive elements").setTimeStep(time_step);
+  //  this->mesh.getDumper("cohesive elements").setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -321,7 +321,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   Mesh & mesh_facets = inserter->getMeshFacets();
 
   /// compute quadrature points coordinates on facets
-  Array<Real> & position = mesh.getNodes();
+  const auto & position = mesh.getNodes();
 
   ElementTypeMapArray<Real> quad_facets("quad_facets", id);
   quad_facets.initialize(mesh_facets, _nb_component = Model::spatial_dimension,
@@ -362,11 +362,9 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
       el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet,
                         std::numeric_limits<Real>::quiet_NaN());
 
-      for (auto && data :
+      for (auto && [global_facet, el_q] :
            zip(make_view(facet_to_element),
                make_view(el_q_facet, spatial_dimension, nb_quad_per_facet))) {
-        const auto & global_facet = std::get<0>(data);
-        auto & el_q = std::get<1>(data);
 
         if (global_facet == ElementNull) {
           continue;
@@ -425,7 +423,7 @@ void SolidMechanicsModelCohesive::computeNormals() {
    *  recomputing them as follows:
    */
   /* ------------------------------------------------------------------------ */
-  UInt tangent_components =
+  auto tangent_components =
       Model::spatial_dimension * (Model::spatial_dimension - 1);
 
   tangents.initialize(mesh_facets, _nb_component = tangent_components,
@@ -507,8 +505,7 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
   SolidMechanicsModel::onNodesAdded(new_nodes, event);
 
-  const auto * cohesive_event =
-      dynamic_cast<const CohesiveNewNodesEvent *>(&event);
+  const auto * cohesive_event = aka::as_type<CohesiveNewNodesEvent>(&event);
   if (cohesive_event == nullptr) {
     return;
   }

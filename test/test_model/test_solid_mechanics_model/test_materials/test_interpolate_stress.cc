@@ -55,7 +55,7 @@ int main(int argc, char * argv[]) {
   /// model initialization
   model.initFull();
 
-  Array<Real> & position = mesh.getNodes();
+  const Array<Real> & position = mesh.getNodes();
   Int nb_facet = mesh_facets.getNbElement(type_facet);
   Int nb_element = mesh.getNbElement(type);
 
@@ -117,8 +117,7 @@ int main(int argc, char * argv[]) {
                                                      spatial_dimension, type);
 
   /// assign some values to stresses
-  auto & stress =
-      const_cast<Array<Real> &>(model.getMaterial(0).getStress(type));
+  auto & stress = model.getMaterial(0).getInternal<Real>("stress")(type);
 
   for (Int q = 0; q < nb_tot_quad_el; ++q) {
     for (Int s = 0; s < spatial_dimension * spatial_dimension; ++s) {

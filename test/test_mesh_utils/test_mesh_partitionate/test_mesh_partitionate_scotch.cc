@@ -25,8 +25,8 @@
 #include "mesh.hh"
 #include "mesh_partition_scotch.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_elemental_field.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_elemental_field.hh"
+// #include "dumper_iohelper_paraview.hh"
 
 using namespace akantu;
 /* -------------------------------------------------------------------------- */
@@ -44,12 +44,12 @@ int main(int argc, char * argv[]) {
   MeshPartitionScotch partition(mesh, dim);
   partition.partitionate(8);
 
-  DumperParaview dumper("test-scotch-partition");
-  auto field = std::make_shared<dumpers::ElementalField<Idx>>(
-      partition.getPartitions(), dim);
-  dumper.registerMesh(mesh, dim);
-  dumper.registerField("partitions", field);
-  dumper.dump();
+  // DumperParaview dumper("test-scotch-partition");
+  // auto field = std::make_shared<dumpers::ElementalField<Idx>>(
+  //     partition.getPartitions(), dim);
+  // dumper.registerMesh(mesh, dim);
+  // dumper.registerField("partitions", field);
+  // dumper.dump();
 
   partition.reorder();
   mesh.write("triangle_reorder.msh");

@@ -20,17 +20,17 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phase_field_model.hh"
-#include "dumpable_inline_impl.hh"
+// #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine_template.hh"
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_element_partition.hh"
-#include "dumper_elemental_field.hh"
-#include "dumper_internal_material_field.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_element_partition.hh"
+// #include "dumper_elemental_field.hh"
+// #include "dumper_internal_material_field.hh"
+// #include "dumper_iohelper_paraview.hh"
 #include <utility>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -47,9 +47,9 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
   this->registerFEEngineObject<FEEngineType>("PhaseFieldFEEngine", mesh,
                                              Model::spatial_dimension);
 
-  this->mesh.registerDumper<DumperParaview>("phase_field", id, true);
-  this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
-                         _ek_regular);
+  // this->mesh.registerDumper<DumperParaview>("phase_field", id, true);
+  // this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
+  //                        _ek_regular);
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
@@ -301,7 +301,7 @@ void PhaseFieldModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {}
 void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-  this->mesh.getDumper("phase_field").setTimeStep(time_step);
+  // this->mesh.getDumper("phase_field").setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -466,14 +466,14 @@ PhaseFieldModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
-    const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, Int /*unused*/, ElementKind element_kind) {
+    const std::string & /*field_name*/, const std::string & /*group_name*/,
+    bool /*unused*/, Int /*unused*/, ElementKind /*element_kind*/) {
 
-  if (field_name == "partitions") {
-    return mesh.createElementalField<Int, dumpers::ElementPartitionField>(
-        mesh.getConnectivities(), group_name, this->spatial_dimension,
-        element_kind);
-  }
+  // if (field_name == "partitions") {
+  //   return mesh.createElementalField<Int, dumpers::ElementPartitionField>(
+  //       mesh.getConnectivities(), group_name, this->spatial_dimension,
+  //       element_kind);
+  // }
 
   std::shared_ptr<dumpers::Field> field;
   return field;

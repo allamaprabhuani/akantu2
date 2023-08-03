@@ -32,10 +32,11 @@ CouplerSolidContactTemplate<SolidMechanicsModel>::CouplerSolidContactTemplate(
 
   this->initDOFManager(dof_manager);
 
-  this->mesh.registerDumper<DumperParaview>("coupler_solid_contact", id, true);
-  this->mesh.addDumpMeshToDumper("coupler_solid_contact", mesh,
-                                 Model::spatial_dimension, _not_ghost,
-                                 _ek_regular);
+  // this->mesh.registerDumper<DumperParaview>("coupler_solid_contact", id,
+  // true);
+  // this->mesh.addDumpMeshToDumper("coupler_solid_contact", mesh,
+  //                                Model::spatial_dimension, _not_ghost,
+  //                                _ek_regular);
   this->registerDataAccessor(*this);
 
   solid = std::make_unique<SolidMechanicsModel>(mesh, Model::spatial_dimension,

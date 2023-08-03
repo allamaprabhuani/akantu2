@@ -142,6 +142,7 @@ public:
 
   AKANTU_GET_MACRO_AUTO(Dimension, dimension);
   AKANTU_GET_MACRO_AUTO(Name, name);
+  AKANTU_GET_MACRO_AUTO(Mesh, mesh);
 
   [[nodiscard]] inline Int getNbNodes() const;
 

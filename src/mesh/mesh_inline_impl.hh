@@ -75,6 +75,8 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
   this->fillNodesToElements();
+  this->connectivities_release++;
+  this->mesh_release++;
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
@@ -82,6 +84,9 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
 template <>
 inline void
 Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
+  this->connectivities_release++;
+  this->mesh_release++;
+
   this->connectivities.onElementsRemoved(event.getNewNumbering());
   this->fillNodesToElements();
   this->computeBoundingBox();
@@ -92,6 +97,9 @@ Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
+  this->nodes_release++;
+  this->mesh_release++;
+
   const auto & new_numbering = event.getNewNumbering();
   this->removeNodesFromArray(*nodes, new_numbering);
   if (nodes_global_ids and not is_mesh_facets) {
@@ -698,8 +706,8 @@ public:
     auto operator*() { return it->second; }
   };
 
-  auto begin() const { return const_iterator(pair.first); }
-  auto end() const { return const_iterator(pair.second); }
+  [[nodiscard]] auto begin() const { return const_iterator(pair.first); }
+  [[nodiscard]] auto end() const { return const_iterator(pair.second); }
 };
 
 /* -------------------------------------------------------------------------- */

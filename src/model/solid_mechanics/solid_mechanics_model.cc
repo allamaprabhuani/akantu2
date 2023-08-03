@@ -28,9 +28,9 @@
 #include "sparse_matrix.hh"
 #include "synchronizer_registry.hh"
 
-#include "dumpable_inline_impl.hh" // NOLINT(unused-includes)
+// #include "dumpable_inline_impl.hh" // NOLINT(unused-includes)
 /* -------------------------------------------------------------------------- */
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
@@ -60,9 +60,9 @@ SolidMechanicsModel::SolidMechanicsModel(
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
                                                Model::spatial_dimension);
 
-  this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id, true);
-  this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
-                         _ek_regular);
+  // this->mesh.registerDumper<DumperParaview>("solid_mechanics_model", id,
+  // true); this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
+  //                        _ek_regular);
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
@@ -81,7 +81,7 @@ SolidMechanicsModel::SolidMechanicsModel(
 void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-  this->mesh.getDumper().setTimeStep(time_step);
+  //  this->mesh.getDumper().setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -31,11 +31,10 @@
 #include "parser.hh"
 #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_element_partition.hh"
-
-// #include "dumper_elemental_field.hh"
-#include "dumper_internal_material_field.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_element_partition.hh"
+//  #include "dumper_elemental_field.hh"
+//  #include "dumper_internal_material_field.hh"
+//  #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -75,8 +74,8 @@ DiffusionModel::DiffusionModel(Mesh & mesh, Int dim, const ID & id,
 
   registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
 
-  this->mesh.registerDumper<DumperParaview>(id, id, true);
-  this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
+  // this->mesh.registerDumper<DumperParaview>(id, id, true);
+  // this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
 
   AKANTU_DEBUG_OUT();
 }
@@ -273,7 +272,7 @@ auto DiffusionModel::getStableTimeStep() -> Real {
 void DiffusionModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
-  this->mesh.getDumper(id).setTimeStep(time_step);
+  //  this->mesh.getDumper(id).setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -422,28 +421,29 @@ std::shared_ptr<dumpers::Field> DiffusionModel::createElementalField(
 
   std::shared_ptr<dumpers::Field> field;
 
-  if (field_name == "partitions") {
-    field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
-        mesh.getConnectivities(), group_name, this->spatial_dimension,
-        element_kind);
-  }
-  bool is_internal = this->isInternal(field_name, element_kind);
+  // if (field_name == "partitions") {
+  //   field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
+  //       mesh.getConnectivities(), group_name, this->spatial_dimension,
+  //       element_kind);
+  // }
+  // bool is_internal = this->isInternal(field_name, element_kind);
 
-  if (is_internal) {
-    auto nb_data_per_elem =
-        this->getInternalDataPerElem(field_name, element_kind);
-    auto & internal_flat = this->flattenInternal(field_name, element_kind);
+  // if (is_internal) {
+  //   auto nb_data_per_elem =
+  //       this->getInternalDataPerElem(field_name, element_kind);
+  //   auto & internal_flat = this->flattenInternal(field_name, element_kind);
 
-    field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-        internal_flat, group_name, spatial_dimension, element_kind,
-        nb_data_per_elem);
+  //   field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+  //       internal_flat, group_name, spatial_dimension, element_kind,
+  //       nb_data_per_elem);
 
-    // homogenize the field
-    auto foo = dumpers::HomogenizerProxy::createHomogenizer(*field);
+  //   // homogenize the field
+  //   auto foo = dumpers::HomogenizerProxy::createHomogenizer(*field);
 
-    field =
-        dumpers::FieldComputeProxy::createFieldCompute(field, std::move(foo));
-  };
+  //   field =
+  //       dumpers::FieldComputeProxy::createFieldCompute(field,
+  //       std::move(foo));
+  // }
 
   return field;
 }

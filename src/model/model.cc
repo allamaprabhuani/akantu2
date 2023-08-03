@@ -111,127 +111,129 @@ void Model::dumpGroup() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setGroupDirectory(const std::string & directory) {
-  for (auto & group : mesh.iterateElementGroups()) {
-    group.setDirectory(directory);
-  }
+void Model::setGroupDirectory(const std::string & /*directory*/) {
+  // for (auto & group : mesh.iterateElementGroups()) {
+  //   group.setDirectory(directory);
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setGroupDirectory(const std::string & directory,
-                              const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  group.setDirectory(directory);
+void Model::setGroupDirectory(const std::string & /*directory*/,
+                              const std::string & /*group_name*/) {
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // group.setDirectory(directory);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setGroupBaseName(const std::string & basename,
-                             const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  group.setBaseName(basename);
+void Model::setGroupBaseName(const std::string & /*basename*/,
+                             const std::string & /*group_name*/) {
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // group.setBaseName(basename);
 }
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper & Model::getGroupDumper(const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  return group.getDumper();
+DumperIOHelper & Model::getGroupDumper(const std::string & /*group_name*/) {
+  //  ElementGroup & group = mesh.getElementGroup(group_name);
+  //  return group.getDumper();
 }
 
 /* -------------------------------------------------------------------------- */
 // DUMPER stuff
 /* -------------------------------------------------------------------------- */
-void Model::addDumpGroupFieldToDumper(const std::string & field_id,
-                                      std::shared_ptr<dumpers::Field> field,
-                                      DumperIOHelper & dumper) {
-  dumper.registerField(field_id, std::move(field));
+void Model::addDumpGroupFieldToDumper(const std::string & /*field_id*/,
+                                      std::shared_ptr<dumpers::Field> /*field*/,
+                                      DumperIOHelper & /*dumper*/) {
+  //  dumper.registerField(field_id, std::move(field));
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpField(const std::string & field_id) {
-  this->addDumpFieldToDumper(mesh.getDefaultDumperName(), field_id);
+  //  this->addDumpFieldToDumper(mesh.getDefaultDumperName(), field_id);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::addDumpFieldVector(const std::string & field_id) {
-  this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(), field_id);
+  //  this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpFieldTensor(const std::string & field_id) {
-  this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(), field_id);
+  //  this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::setBaseName(const std::string & field_id) {
-  mesh.setBaseName(field_id);
+  //  mesh.setBaseName(field_id);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::setBaseNameToDumper(const std::string & dumper_name,
                                 const std::string & basename) {
-  mesh.setBaseNameToDumper(dumper_name, basename);
+  //  mesh.setBaseNameToDumper(dumper_name, basename);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::addDumpFieldToDumper(const std::string & dumper_name,
                                  const std::string & field_id) {
-  this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
-                                  dumper_default_element_kind, false);
+  // this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
+  //                                 dumper_default_element_kind, false);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpGroupField(const std::string & field_id,
                               const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  this->addDumpGroupFieldToDumper(group.getDefaultDumperName(), field_id,
-                                  group_name, dumper_default_element_kind,
-                                  false);
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // this->addDumpGroupFieldToDumper(group.getDefaultDumperName(), field_id,
+  //                                 group_name, dumper_default_element_kind,
+  //                                 false);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::removeDumpGroupField(const std::string & field_id,
                                  const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  this->removeDumpGroupFieldFromDumper(group.getDefaultDumperName(), field_id,
-                                       group_name);
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // this->removeDumpGroupFieldFromDumper(group.getDefaultDumperName(),
+  // field_id,
+  //                                      group_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::removeDumpGroupFieldFromDumper(const std::string & dumper_name,
                                            const std::string & field_id,
                                            const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  group.removeDumpFieldFromDumper(dumper_name, field_id);
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // group.removeDumpFieldFromDumper(dumper_name, field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpFieldVectorToDumper(const std::string & dumper_name,
                                        const std::string & field_id) {
-  this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
-                                  dumper_default_element_kind, true);
+  // this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
+  //                                 dumper_default_element_kind, true);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpGroupFieldVector(const std::string & field_id,
                                     const std::string & group_name) {
-  ElementGroup & group = mesh.getElementGroup(group_name);
-  this->addDumpGroupFieldVectorToDumper(group.getDefaultDumperName(), field_id,
-                                        group_name);
+  // ElementGroup & group = mesh.getElementGroup(group_name);
+  // this->addDumpGroupFieldVectorToDumper(group.getDefaultDumperName(),
+  // field_id,
+  //                                       group_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
                                             const std::string & field_id,
                                             const std::string & group_name) {
-  this->addDumpGroupFieldToDumper(dumper_name, field_id, group_name,
-                                  dumper_default_element_kind, true);
+  // this->addDumpGroupFieldToDumper(dumper_name, field_id, group_name,
+  //                                 dumper_default_element_kind, true);
 }
 /* -------------------------------------------------------------------------- */
 
 void Model::addDumpFieldTensorToDumper(const std::string & dumper_name,
                                        const std::string & field_id) {
-  this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
-                                  dumper_default_element_kind, true);
+  // this->addDumpGroupFieldToDumper(dumper_name, field_id, "all",
+  //                                 dumper_default_element_kind, true);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -240,9 +242,9 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       const std::string & group_name,
                                       ElementKind element_kind,
                                       bool padding_flag) {
-  this->addDumpGroupFieldToDumper(dumper_name, field_id, group_name,
-                                  this->spatial_dimension, element_kind,
-                                  padding_flag);
+  // this->addDumpGroupFieldToDumper(dumper_name, field_id, group_name,
+  //                                 this->spatial_dimension, element_kind,
+  //                                 padding_flag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -252,85 +254,92 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       Int spatial_dimension,
                                       ElementKind element_kind,
                                       bool padding_flag) {
-  std::shared_ptr<dumpers::Field> field;
+  //   std::shared_ptr<dumpers::Field> field;
 
-  if (!field) {
-    field = this->createNodalFieldReal(field_id, group_name, padding_flag);
-  }
-  if (!field) {
-    field = this->createNodalFieldInt(field_id, group_name, padding_flag);
-  }
-  if (!field) {
-    field = this->createNodalFieldBool(field_id, group_name, padding_flag);
-  }
-  if (!field) {
-    field = this->createElementalField(field_id, group_name, padding_flag,
-                                       spatial_dimension, element_kind);
-  }
-  if (!field) {
-    field = this->mesh.createFieldFromAttachedData<Int>(field_id, group_name,
-                                                        element_kind);
-  }
-  if (!field) {
-    field = this->mesh.createFieldFromAttachedData<Real>(field_id, group_name,
-                                                         element_kind);
-  }
+  //   if (!field) {
+  //     field = this->createNodalFieldReal(field_id, group_name, padding_flag);
+  //   }
+  //   if (!field) {
+  //     field = this->createNodalFieldInt(field_id, group_name, padding_flag);
+  //   }
+  //   if (!field) {
+  //     field = this->createNodalFieldBool(field_id, group_name, padding_flag);
+  //   }
+  //   if (!field) {
+  //     field = this->createElementalField(field_id, group_name, padding_flag,
+  //                                        spatial_dimension, element_kind);
+  //   }
+  //   if (!field) {
+  //     field = this->mesh.createFieldFromAttachedData<Int>(field_id,
+  //     group_name,
+  //                                                         element_kind);
+  //   }
+  //   if (!field) {
+  //     field = this->mesh.createFieldFromAttachedData<Real>(field_id,
+  //     group_name,
+  //                                                          element_kind);
+  //   }
 
-#ifndef AKANTU_NDEBUG
-  if (!field) {
-    AKANTU_DEBUG_WARNING("No field could be found based on name: " << field_id);
-  }
-#endif
-  if (field) {
-    DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
-    this->addDumpGroupFieldToDumper(field_id, field, dumper);
-  }
+  // #ifndef AKANTU_NDEBUG
+  //   if (!field) {
+  //     AKANTU_DEBUG_WARNING("No field could be found based on name: " <<
+  //     field_id);
+  //   }
+  // #endif
+  //   if (field) {
+  //     DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name, group_name);
+  //     this->addDumpGroupFieldToDumper(field_id, field, dumper);
+  //   }
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dump(const std::string & dumper_name) { mesh.dump(dumper_name); }
+void Model::dump(const std::string & dumper_name) {
+  // mesh.dump(dumper_name);
+}
 
 /* -------------------------------------------------------------------------- */
 void Model::dump(const std::string & dumper_name, Int step) {
-  mesh.dump(dumper_name, step);
+  //  mesh.dump(dumper_name, step);
 }
 
 /* ------------------------------------------------------------------------- */
 void Model::dump(const std::string & dumper_name, Real time, Int step) {
-  mesh.dump(dumper_name, time, step);
+  //  mesh.dump(dumper_name, time, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::dump() {
-  auto default_dumper = mesh.getDefaultDumperName();
-  this->dump(default_dumper);
+  // auto default_dumper = mesh.getDefaultDumperName();
+  // this->dump(default_dumper);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::dump(Int step) {
-  auto default_dumper = mesh.getDefaultDumperName();
-  this->dump(default_dumper, step);
+  // auto default_dumper = mesh.getDefaultDumperName();
+  // this->dump(default_dumper, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::dump(Real time, Int step) {
-  auto default_dumper = mesh.getDefaultDumperName();
-  this->dump(default_dumper, time, step);
+  // auto default_dumper = mesh.getDefaultDumperName();
+  // this->dump(default_dumper, time, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::setDirectory(const std::string & directory) {
-  mesh.setDirectory(directory);
+  // mesh.setDirectory(directory);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::setDirectoryToDumper(const std::string & dumper_name,
                                  const std::string & directory) {
-  mesh.setDirectoryToDumper(dumper_name, directory);
+  // mesh.setDirectoryToDumper(dumper_name, directory);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setTextModeToDumper() { mesh.setTextModeToDumper(); }
+void Model::setTextModeToDumper() {
+  // mesh.setTextModeToDumper();
+}
 
 /* -------------------------------------------------------------------------- */
 

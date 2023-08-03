@@ -20,12 +20,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_phasefield.hh"
-#include "dumpable_inline_impl.hh"
+// #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -37,11 +37,11 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
   this->registerFEEngineObject<MyFEEngineType>("CouplerSolidPhaseField", mesh,
                                                Model::spatial_dimension);
 
-  this->mesh.registerDumper<DumperParaview>("coupler_solid_phasefield", id,
-                                            true);
-  this->mesh.addDumpMeshToDumper("coupler_solid_phasefield", mesh,
-                                 Model::spatial_dimension, _not_ghost,
-                                 _ek_regular);
+  // this->mesh.registerDumper<DumperParaview>("coupler_solid_phasefield", id,
+  //                                           true);
+  // this->mesh.addDumpMeshToDumper("coupler_solid_phasefield", mesh,
+  //                                Model::spatial_dimension, _not_ghost,
+  //                                _ek_regular);
 
   this->registerDataAccessor(*this);
 
@@ -493,40 +493,41 @@ CouplerSolidPhaseField::createNodalFieldBool(const std::string & field_name,
 }
 
 /* -----------------------------------------------------------------------*/
-void CouplerSolidPhaseField::dump(const std::string & dumper_name) {
+void CouplerSolidPhaseField::dump(const std::string & /*dumper_name*/) {
   solid->onDump();
-  mesh.dump(dumper_name);
+  //  mesh.dump(dumper_name);
 }
 
 /* ------------------------------------------------------------------------*/
-void CouplerSolidPhaseField::dump(const std::string & dumper_name, Int step) {
+void CouplerSolidPhaseField::dump(const std::string & /*dumper_name*/,
+                                  Int /*step*/) {
   solid->onDump();
-  mesh.dump(dumper_name, step);
+  // mesh.dump(dumper_name, step);
 }
 
 /* ----------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(const std::string & dumper_name, Real time,
-                                  Int step) {
+void CouplerSolidPhaseField::dump(const std::string & /*dumper_name*/,
+                                  Real /*time*/, Int /*step*/) {
   solid->onDump();
-  mesh.dump(dumper_name, time, step);
+  // mesh.dump(dumper_name, time, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::dump() {
   solid->onDump();
-  mesh.dump();
+  // mesh.dump();
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(Int step) {
+void CouplerSolidPhaseField::dump(Int /*step*/) {
   solid->onDump();
-  mesh.dump(step);
+  // mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidPhaseField::dump(Real time, Int step) {
+void CouplerSolidPhaseField::dump(Real /*time*/, Int /*step*/) {
   solid->onDump();
-  mesh.dump(time, step);
+  // mesh.dump(time, step);
 }
 
 } // namespace akantu

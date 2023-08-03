@@ -25,16 +25,16 @@
 
 #include "group_manager_inline_impl.hh"
 
-#include "dumpable_inline_impl.hh"
+// #include "dumpable_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_element_partition.hh"
-#include "dumper_elemental_field.hh"
-#include "dumper_field.hh"
-#include "dumper_homogenizing_field.hh"
-#include "dumper_internal_material_field.hh"
-#include "dumper_iohelper.hh"
-#include "dumper_material_padders.hh"
-#include "dumper_paraview.hh"
+// #include "dumper_element_partition.hh"
+// #include "dumper_elemental_field.hh"
+// #include "dumper_field.hh"
+// #include "dumper_homogenizing_field.hh"
+// #include "dumper_internal_material_field.hh"
+// #include "dumper_iohelper.hh"
+// #include "dumper_material_padders.hh"
+// #include "dumper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -51,77 +51,83 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
 
   std::shared_ptr<dumpers::Field> field;
 
-  if (field_name == "partitions") {
-    field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
-        mesh.getConnectivities(), group_name, spatial_dimension, kind);
-  } else if (field_name == "material_index") {
-    field =
-        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
-            getConstitutiveLawByElement(), group_name, spatial_dimension, kind);
-  } else {
-    // this copy of field_name is used to compute derivated data such as
-    // strain and von mises stress that are based on grad_u and stress
-    std::string field_name_copy(field_name);
+  // if (field_name == "partitions") {
+  //   field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
+  //       mesh.getConnectivities(), group_name, spatial_dimension, kind);
+  // } else if (field_name == "material_index") {
+  //   field =
+  //       mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+  //           getConstitutiveLawByElement(), group_name, spatial_dimension,
+  //           kind);
+  // } else {
+  //   // this copy of field_name is used to compute derivated data such as
+  //   // strain and von mises stress that are based on grad_u and stress
+  //   std::string field_name_copy(field_name);
 
-    if (field_name == "strain" || field_name == "Green strain" ||
-        field_name == "principal strain" ||
-        field_name == "principal Green strain") {
-      field_name_copy = "grad_u";
-    } else if (field_name == "Von Mises stress") {
-      field_name_copy = "stress";
-    }
+  //   if (field_name == "strain" || field_name == "Green strain" ||
+  //       field_name == "principal strain" ||
+  //       field_name == "principal Green strain") {
+  //     field_name_copy = "grad_u";
+  //   } else if (field_name == "Von Mises stress") {
+  //     field_name_copy = "stress";
+  //   }
 
-    bool is_internal = this->isInternal(field_name_copy, kind);
+  //   bool is_internal = this->isInternal(field_name_copy, kind);
 
-    if (is_internal) {
-      auto nb_data_per_elem =
-          this->getInternalDataPerElem(field_name_copy, kind);
-      auto & internal_flat = this->flattenInternal(field_name_copy, kind);
+  //   if (is_internal) {
+  //     auto nb_data_per_elem =
+  //         this->getInternalDataPerElem(field_name_copy, kind);
+  //     auto & internal_flat = this->flattenInternal(field_name_copy, kind);
 
-      field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-          internal_flat, group_name, spatial_dimension, kind, nb_data_per_elem);
+  //     field = mesh.createElementalField<Real,
+  //     dumpers::InternalMaterialField>(
+  //         internal_flat, group_name, spatial_dimension, kind,
+  //         nb_data_per_elem);
 
-      std::unique_ptr<dumpers::ComputeFunctorInterface> func;
-      if (field_name == "strain") {
-        func = std::make_unique<dumpers::ComputeStrain<false>>(*this);
-      } else if (field_name == "Von Mises stress") {
-        func = std::make_unique<dumpers::ComputeVonMisesStress>(*this);
-      } else if (field_name == "Green strain") {
-        func = std::make_unique<dumpers::ComputeStrain<true>>(*this);
-      } else if (field_name == "principal strain") {
-        func = std::make_unique<dumpers::ComputePrincipalStrain<false>>(*this);
-      } else if (field_name == "principal Green strain") {
-        func = std::make_unique<dumpers::ComputePrincipalStrain<true>>(*this);
-      }
+  //     std::unique_ptr<dumpers::ComputeFunctorInterface> func;
+  //     if (field_name == "strain") {
+  //       func = std::make_unique<dumpers::ComputeStrain<false>>(*this);
+  //     } else if (field_name == "Von Mises stress") {
+  //       func = std::make_unique<dumpers::ComputeVonMisesStress>(*this);
+  //     } else if (field_name == "Green strain") {
+  //       func = std::make_unique<dumpers::ComputeStrain<true>>(*this);
+  //     } else if (field_name == "principal strain") {
+  //       func =
+  //       std::make_unique<dumpers::ComputePrincipalStrain<false>>(*this);
+  //     } else if (field_name == "principal Green strain") {
+  //       func =
+  //       std::make_unique<dumpers::ComputePrincipalStrain<true>>(*this);
+  //     }
 
-      if (func) {
-        field = dumpers::FieldComputeProxy::createFieldCompute(field,
-                                                               std::move(func));
-      }
-      // treat the paddings
-      if (padding_flag) {
-        if (field_name == "stress") {
-          if (spatial_dimension == 2) {
-            auto foo = std::make_unique<dumpers::StressPadder<2>>(*this);
-            field = dumpers::FieldComputeProxy::createFieldCompute(
-                field, std::move(foo));
-          }
-        } else if (field_name == "strain" || field_name == "Green strain") {
-          if (spatial_dimension == 2) {
-            auto foo = std::make_unique<dumpers::StrainPadder<2>>(*this);
-            field = dumpers::FieldComputeProxy::createFieldCompute(
-                field, std::move(foo));
-          }
-        }
-      }
+  //     if (func) {
+  //       field = dumpers::FieldComputeProxy::createFieldCompute(field,
+  //                                                              std::move(func));
+  //     }
+  //     // treat the paddings
+  //     if (padding_flag) {
+  //       if (field_name == "stress") {
+  //         if (spatial_dimension == 2) {
+  //           auto foo = std::make_unique<dumpers::StressPadder<2>>(*this);
+  //           field = dumpers::FieldComputeProxy::createFieldCompute(
+  //               field, std::move(foo));
+  //         }
+  //       } else if (field_name == "strain" || field_name == "Green strain") {
+  //         if (spatial_dimension == 2) {
+  //           auto foo = std::make_unique<dumpers::StrainPadder<2>>(*this);
+  //           field = dumpers::FieldComputeProxy::createFieldCompute(
+  //               field, std::move(foo));
+  //         }
+  //       }
+  //     }
 
-      // homogenize the field
-      auto foo = dumpers::HomogenizerProxy::createHomogenizer(*field);
+  //     // homogenize the field
+  //     auto foo = dumpers::HomogenizerProxy::createHomogenizer(*field);
 
-      field =
-          dumpers::FieldComputeProxy::createFieldCompute(field, std::move(foo));
-    }
-  }
+  //     field =
+  //         dumpers::FieldComputeProxy::createFieldCompute(field,
+  //         std::move(foo));
+  //   }
+  // }
   return field;
 }
 
@@ -131,30 +137,32 @@ SolidMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                           const std::string & group_name,
                                           bool padding_flag) {
 
-  std::map<std::string, Array<Real> *> real_nodal_fields;
-  real_nodal_fields["displacement"] = this->displacement.get();
-  real_nodal_fields["mass"] = this->mass.get();
-  real_nodal_fields["velocity"] = this->velocity.get();
-  real_nodal_fields["acceleration"] = this->acceleration.get();
-  real_nodal_fields["external_force"] = this->external_force.get();
-  real_nodal_fields["internal_force"] = this->internal_force.get();
-  real_nodal_fields["increment"] = this->displacement_increment.get();
+  // std::map<std::string, Array<Real> *> real_nodal_fields;
+  // real_nodal_fields["displacement"] = this->displacement.get();
+  // real_nodal_fields["mass"] = this->mass.get();
+  // real_nodal_fields["velocity"] = this->velocity.get();
+  // real_nodal_fields["acceleration"] = this->acceleration.get();
+  // real_nodal_fields["external_force"] = this->external_force.get();
+  // real_nodal_fields["internal_force"] = this->internal_force.get();
+  // real_nodal_fields["increment"] = this->displacement_increment.get();
 
-  if (field_name == "force") {
-    AKANTU_EXCEPTION("The 'force' field has been renamed in 'external_force'");
-  } else if (field_name == "residual") {
-    AKANTU_EXCEPTION(
-        "The 'residual' field has been replaced by 'internal_force'");
-  }
+  // if (field_name == "force") {
+  //   AKANTU_EXCEPTION("The 'force' field has been renamed in
+  //   'external_force'");
+  // } else if (field_name == "residual") {
+  //   AKANTU_EXCEPTION(
+  //       "The 'residual' field has been replaced by 'internal_force'");
+  // }
 
   std::shared_ptr<dumpers::Field> field;
-  if (padding_flag) {
-    field = this->mesh.createNodalField(real_nodal_fields[field_name],
-                                        group_name, 3);
-  } else {
-    field =
-        this->mesh.createNodalField(real_nodal_fields[field_name], group_name);
-  }
+  // if (padding_flag) {
+  //   field = this->mesh.createNodalField(real_nodal_fields[field_name],
+  //                                       group_name, 3);
+  // } else {
+  //   field =
+  //       this->mesh.createNodalField(real_nodal_fields[field_name],
+  //       group_name);
+  // }
 
   return field;
 }
@@ -163,12 +171,11 @@ SolidMechanicsModel::createNodalFieldReal(const std::string & field_name,
 std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag) {
-
-  std::map<std::string, Array<bool> *> uint_nodal_fields;
-  uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
+  // std::map<std::string, Array<bool> *> uint_nodal_fields;
+  // uint_nodal_fields["blocked_dofs"] = blocked_dofs.get();
 
   std::shared_ptr<dumpers::Field> field;
-  field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
+  // field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
   return field;
 }
 
@@ -176,14 +183,14 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createNodalFieldBool(
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump(dumper_name);
+  //  mesh.dump(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump(dumper_name, step);
+  // mesh.dump(dumper_name, step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -191,28 +198,28 @@ void SolidMechanicsModel::dump(const std::string & dumper_name, Real time,
                                Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump(dumper_name, time, step);
+  // mesh.dump(dumper_name, time, step);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump() {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump();
+  // mesh.dump();
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump(step);
+  // mesh.dump(step);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(Real time, Int step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
   this->onDump();
-  mesh.dump(time, step);
+  // mesh.dump(time, step);
 }
 
 } // namespace akantu

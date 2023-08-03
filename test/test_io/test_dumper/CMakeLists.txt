@@ -22,9 +22,9 @@
 #===============================================================================
 
 
-register_test(test_dumper
-  SOURCES test_dumper.cc
-  FILES_TO_COPY input_file.dat test_dumper.msh
-  DIRECTORIES_TO_CREATE paraview
-  PACKAGE iohelper
-  )
+# register_test(test_dumper
+#   SOURCES test_dumper.cc
+#   FILES_TO_COPY input_file.dat test_dumper.msh
+#   DIRECTORIES_TO_CREATE paraview
+#   PACKAGE iohelper
+#   )

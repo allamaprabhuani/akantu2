@@ -19,11 +19,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_field.hh"
+// #include "dumper_field.hh"
 #include "element_group.hh"
 #include "element_type_map_filter.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumper_nodal_field.hh"
+// #include "dumper_nodal_field.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -154,27 +154,25 @@ GroupManager::createNodalField(const ftype<type, flag> * field,
 
 /* -------------------------------------------------------------------------- */
 template <typename type, bool flag, template <class, bool> class ftype>
-std::shared_ptr<dumpers::Field>
-GroupManager::createStridedNodalField(const ftype<type, flag> * field,
-                                      const std::string & group_name, Int size,
-                                      Int stride, Int padding_size) {
-  if (not field) {
-    return nullptr;
-  }
+std::shared_ptr<dumpers::Field> GroupManager::createStridedNodalField(
+    const ftype<type, flag> * /*field*/, const std::string & /*group_name*/,
+    Int /*size*/, Int /*stride*/, Int /*padding_size*/) {
+  //  if (not field) {
+  return nullptr;
+  // }
 
-  if (group_name == "all") {
-    using DumpType = typename dumpers::NodalField<type, false>;
-    auto dumper = std::make_shared<DumpType>(*field, size, stride);
-    dumper->setPadding(padding_size);
-    return dumper;
-  }
+  // if (group_name == "all") {
+  //   using DumpType = typename dumpers::NodalField<type, false>;
+  //   auto dumper = std::make_shared<DumpType>(*field, size, stride);
+  //   dumper->setPadding(padding_size);
+  //   return dumper;
+  // }
 
-  ElementGroup & group = this->getElementGroup(group_name);
-  const auto & nodal_filter = group.getNodeGroup().getNodes();
-  using DumpType = typename dumpers::NodalField<type, true>;
-  auto dumper = std::make_shared<DumpType>(*field, size, stride, &nodal_filter);
-  dumper->setPadding(padding_size);
-  return dumper;
+  // ElementGroup & group = this->getElementGroup(group_name);
+  // const auto & nodal_filter = group.getNodeGroup().getNodes();
+  // using DumpType = typename dumpers::NodalField<type, true>;
+  // auto dumper = std::make_shared<DumpType>(*field, size, stride,
+  // &nodal_filter); dumper->setPadding(padding_size); return dumper;
 }
 
 /* -------------------------------------------------------------------------- */

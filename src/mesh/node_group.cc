@@ -21,21 +21,21 @@
 /* -------------------------------------------------------------------------- */
 #include "node_group.hh"
 #include "dumpable.hh"
-#include "dumpable_inline_impl.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumpable_inline_impl.hh"
+// #include "dumper_iohelper_paraview.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-NodeGroup::NodeGroup(const std::string & name, const Mesh & mesh,
+NodeGroup::NodeGroup(const std::string & name, const Mesh & /*mesh*/,
                      const std::string & id)
     : name(name), node_group(0, 1, std::string(id + ":nodes")) {
-  this->registerDumper<DumperParaview>("paraview_" + name, name, true);
-  auto field = std::make_shared<dumpers::NodalField<Real, true>>(
-      mesh.getNodes(), 0, 0, &this->getNodes());
-  this->getDumper().registerField("positions", field);
+  //  this->registerDumper<DumperParaview>("paraview_" + name, name, true);
+  // auto field = std::make_shared<dumpers::NodalField<Real, true>>(
+  //      mesh.getNodes(), 0, 0, &this->getNodes());
+  // this->getDumper().registerField("positions", field);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -43,8 +43,7 @@ NodeGroup::~NodeGroup() = default;
 
 /* -------------------------------------------------------------------------- */
 void NodeGroup::clear() { node_group.resize(0); }
-/* -------------------------------------------------------------------------- */
-// bool NodeGroup::empty() { return node_group.empty(); }
+
 /* -------------------------------------------------------------------------- */
 void NodeGroup::optimize() {
   std::sort(node_group.begin(), node_group.end());

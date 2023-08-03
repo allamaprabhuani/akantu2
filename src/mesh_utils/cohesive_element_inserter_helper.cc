@@ -237,17 +237,15 @@ void CohesiveElementInserterHelper::updateElementalConnectivity(
       auto facet_nb_nodes = connectivity.size() / 2;
 
       /// loop over cohesive element's facets
-      for (const auto & facet : enumerate(facets)) {
+      for (const auto & [n, facet] : enumerate(facets)) {
         /// skip facets if not present in the list
-        if (std::find(facet_list->begin(), facet_list->end(),
-                      std::get<1>(facet)) == facet_list->end()) {
+        if (std::find(facet_list->begin(), facet_list->end(), facet) ==
+            facet_list->end()) {
           continue;
         }
 
-        auto n = std::get<0>(facet);
-
         auto begin =
-            connectivity.begin() + static_cast<UInt>(n * facet_nb_nodes);
+            connectivity.begin() + static_cast<Int>(n * facet_nb_nodes);
         auto end = begin + facet_nb_nodes;
 
         auto it = std::find(begin, end, old_node);
@@ -326,8 +324,8 @@ void CohesiveElementInserterHelper::updateQuadraticSegments(Int dim) {
   auto & connectivities = mesh_accessor.getConnectivities();
 
   /// this ones matter only for segments in 3D
-  Array<std::vector<Element>> * element_to_subfacet_double = nullptr;
-  Array<std::vector<Element>> * facet_to_subfacet_double = nullptr;
+  Array<std::vector<Element>> * element_to_subfacet_double{nullptr};
+  Array<std::vector<Element>> * facet_to_subfacet_double{nullptr};
 
   if (dim == spatial_dimension - 2) {
     element_to_subfacet_double = &elementsOfDimToElementsOfDim(dim + 2, dim);
@@ -521,7 +519,7 @@ template <Int dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
 
       auto && subfacets_to_facet = subfacets_to_facets.get(old_facet);
       /// loop on every subfacet
-      for (auto & subfacet : subfacets_to_facet) {
+      for (const auto & subfacet : subfacets_to_facet) {
         if (subfacet == ElementNull) {
           continue;
         }
@@ -529,7 +527,7 @@ template <Int dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
         if (dim == spatial_dimension - 2) {
           auto && subsubfacets_to_subfacet = subfacets_to_facets.get(subfacet);
           /// loop on every subsubfacet
-          for (auto & subsubfacet : subsubfacets_to_subfacet) {
+          for (const auto & subsubfacet : subsubfacets_to_subfacet) {
             if (subsubfacet == ElementNull) {
               continue;
             }
@@ -592,7 +590,8 @@ template <Int dim> void CohesiveElementInserterHelper::findSubfacetToDouble() {
 /* -------------------------------------------------------------------------- */
 void CohesiveElementInserterHelper::doubleNodes(
     const std::vector<Idx> & old_nodes) {
-  auto & position = mesh.getNodes();
+  MeshAccessor accessor(mesh);
+  auto & position = accessor.getNodes();
   auto spatial_dimension = mesh.getSpatialDimension();
 
   auto old_nb_nodes = position.size();
@@ -600,9 +599,7 @@ void CohesiveElementInserterHelper::doubleNodes(
   doubled_nodes.reserve(doubled_nodes.size() + old_nodes.size());
 
   auto position_begin = position.begin(spatial_dimension);
-  for (auto && data : enumerate(old_nodes)) {
-    auto n = std::get<0>(data);
-    auto old_node = std::get<1>(data);
+  for (auto && [n, old_node] : enumerate(old_nodes)) {
     decltype(old_node) new_node = old_nb_nodes + n;
 
     /// store doubled nodes
@@ -802,7 +799,8 @@ void CohesiveElementInserterHelper::doublePointFacet() {
 
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
   const auto & element_to_facet = mesh_facets.getElementToSubelement();
-  auto & position = mesh.getNodes();
+  MeshAccessor accessor(mesh);
+  auto & position = accessor.getNodes();
   MeshAccessor mesh_facets_accessor(mesh_facets);
   MeshAccessor mesh_accessor(mesh);
 

@@ -41,8 +41,8 @@
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
-#include "dumper_field.hh"
-#include "dumper_internal_material_field.hh"
+// #include "dumper_field.hh"
+// #include "dumper_internal_material_field.hh"
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <sstream>
@@ -109,6 +109,9 @@ void Mesh::sendEvent<MeshIsDistributedEvent>(MeshIsDistributedEvent & event) {
 
 /* -------------------------------------------------------------------------- */
 template <> void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
+  this->nodes_release++;
+  this->mesh_release++;
+
   this->computeBoundingBox();
   this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
 
@@ -459,9 +462,9 @@ void Mesh::getGlobalConnectivity(
 DumperIOHelper & Mesh::getGroupDumper(const std::string & dumper_name,
                                       const std::string & group_name) {
   if (group_name == "all") {
-    return this->getDumper(dumper_name);
+    //    return this->getDumper(dumper_name);
   }
-  return element_groups[group_name]->getDumper(dumper_name);
+  //  return element_groups[group_name]->getDumper(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -490,23 +493,23 @@ Mesh::getNbDataPerElem(ElementTypeMapArray<Int> & array);
 /* -------------------------------------------------------------------------- */
 template <typename T>
 std::shared_ptr<dumpers::Field>
-Mesh::createFieldFromAttachedData(const std::string & field_id,
-                                  const std::string & group_name,
-                                  ElementKind element_kind) {
+Mesh::createFieldFromAttachedData(const std::string & /*field_id*/,
+                                  const std::string & /*group_name*/,
+                                  ElementKind /*element_kind*/) {
 
   std::shared_ptr<dumpers::Field> field;
-  ElementTypeMapArray<T> * internal = nullptr;
-  try {
-    internal = &(this->getData<T>(field_id));
-  } catch (...) {
-    return nullptr;
-  }
+  // ElementTypeMapArray<T> * internal = nullptr;
+  // try {
+  //   internal = &(this->getData<T>(field_id));
+  // } catch (...) {
+  //   return nullptr;
+  // }
 
-  auto && nb_data_per_elem = this->getNbDataPerElem(*internal);
+  // auto && nb_data_per_elem = this->getNbDataPerElem(*internal);
 
-  field = this->createElementalField<T, dumpers::InternalMaterialField>(
-      *internal, group_name, this->spatial_dimension, element_kind,
-      nb_data_per_elem);
+  // field = this->createElementalField<T, dumpers::InternalMaterialField>(
+  //     *internal, group_name, this->spatial_dimension, element_kind,
+  //     nb_data_per_elem);
 
   return field;
 }

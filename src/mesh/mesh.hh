@@ -85,8 +85,7 @@ namespace {
 */
 class Mesh : public EventHandlerManager<MeshEventHandler>,
              public GroupManager,
-             public MeshData,
-             public Dumpable {
+             public MeshData {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -278,7 +277,6 @@ public:
 
   /// get the nodes Array aka coordinates
   AKANTU_GET_MACRO(Nodes, *nodes, const Array<Real> &);
-  AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Array<Real> &);
 
   /// get the number of nodes
   auto getNbNodes() const { return nodes->size(); }
@@ -537,6 +535,7 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(Communicator, communicator);
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Communicator, communicator);
   AKANTU_GET_MACRO_AUTO(PeriodicMasterSlaves, periodic_master_slave);
+  AKANTU_GET_MACRO(Release, mesh_release, Int);
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
@@ -660,6 +659,15 @@ private:
   /// periodicity local info
   std::unordered_map<Idx, Idx> periodic_slave_master;
   std::unordered_multimap<Idx, Idx> periodic_master_slave;
+
+  /// nodes release
+  Int nodes_release{0};
+
+  /// connectivities release
+  Int connectivities_release{0};
+
+  /// mesh release
+  Int mesh_release{0};
 };
 
 /// standard output stream operator
@@ -691,7 +699,8 @@ inline auto Mesh::getNbElement(ElementType type, GhostType ghost_type) const {
 /* -------------------------------------------------------------------------- */
 inline auto Mesh::getNbElement(const Int spatial_dimension,
                                GhostType ghost_type, ElementKind kind) const {
-  AKANTU_DEBUG_ASSERT(spatial_dimension <= 3 || spatial_dimension == Int(-1),
+  // NOLINTNEXTLINE(readability-simplify-boolean-expr)
+  AKANTU_DEBUG_ASSERT(spatial_dimension <= 3 or spatial_dimension == Int(-1),
                       "spatial_dimension is " << spatial_dimension
                                               << " and is greater than 3 !");
   Int nb_element = 0;

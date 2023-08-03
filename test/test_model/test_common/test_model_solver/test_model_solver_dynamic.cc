@@ -25,9 +25,9 @@
 #include "mesh_accessor.hh"
 #include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumpable_inline_impl.hh"
-#include "dumper_element_partition.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumpable_inline_impl.hh"
+// #include "dumper_element_partition.hh"
+// #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 #include "test_model_solver_my_model.hh"
 /* -------------------------------------------------------------------------- */
@@ -43,8 +43,8 @@ using namespace akantu;
 class Sinusoidal : public BC::Dirichlet::DirichletFunctor {
 public:
   Sinusoidal(MyModel & model, Real amplitude, Real pulse_width, Real t)
-      : model(model), A(amplitude), k(2 * M_PI / pulse_width),
-        t(t), v{std::sqrt(model.E / model.rho)} {}
+      : model(model), A(amplitude), k(2 * M_PI / pulse_width), t(t),
+        v{std::sqrt(model.E / model.rho)} {}
   using DirichletFunctor::operator();
   void operator()(Idx n, Vector<bool> & /*flags*/, Vector<Real> & disp,
                   const Vector<Real> & coord) override {
@@ -153,27 +153,27 @@ int main(int argc, char * argv[]) {
   solver.set("max_iterations", 20);
 #endif
 
-  auto && dumper = std::make_shared<DumperParaview>("dynamic", "./paraview");
-  mesh.registerExternalDumper(dumper, "dynamic", true);
-  mesh.addDumpMesh(mesh);
+  // auto && dumper = std::make_shared<DumperParaview>("dynamic", "./paraview");
+  // mesh.registerExternalDumper(dumper, "dynamic", true);
+  // mesh.addDumpMesh(mesh);
 
-  mesh.addDumpFieldExternalToDumper("dynamic", "displacement",
-                                    model.displacement);
-  mesh.addDumpFieldExternalToDumper("dynamic", "velocity", model.velocity);
-  mesh.addDumpFieldExternalToDumper("dynamic", "forces", model.forces);
-  mesh.addDumpFieldExternalToDumper("dynamic", "internal_forces",
-                                    model.internal_forces);
-  mesh.addDumpFieldExternalToDumper("dynamic", "acceleration",
-                                    model.acceleration);
+  // mesh.addDumpFieldExternalToDumper("dynamic", "displacement",
+  //                                   model.displacement);
+  // mesh.addDumpFieldExternalToDumper("dynamic", "velocity", model.velocity);
+  // mesh.addDumpFieldExternalToDumper("dynamic", "forces", model.forces);
+  // mesh.addDumpFieldExternalToDumper("dynamic", "internal_forces",
+  //                                   model.internal_forces);
+  // mesh.addDumpFieldExternalToDumper("dynamic", "acceleration",
+  //                                   model.acceleration);
 
-  mesh.dump();
+  // mesh.dump();
 
   for (Int i = 1; i < max_steps + 1; ++i) {
     model.applyBC(Sinusoidal(model, A, pulse_width, time_step * (i - 1)),
                   "border");
 
     model.solveStep("dynamic");
-    mesh.dump();
+    // mesh.dump();
 
     epot = model.getPotentialEnergy();
     ekin = model.getKineticEnergy();

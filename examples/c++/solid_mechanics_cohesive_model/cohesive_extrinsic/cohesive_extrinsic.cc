@@ -50,12 +50,10 @@ int main(int argc, char * argv[]) {
   inserter.setLimit(_y, 0.30, 0.20);
   model.updateAutomaticInsertion();
 
-  Array<Real> & position = mesh.getNodes();
+  const Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();
   Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & displacement = model.getDisplacement();
-
-  Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
   for (auto && [pos, boun] :

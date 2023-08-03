@@ -27,10 +27,10 @@
 #include "sparse_matrix.hh"
 #include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumpable_inline_impl.hh"
-#include "dumper_elemental_field.hh"
-#include "dumper_internal_material_field.hh"
-#include "dumper_iohelper_paraview.hh"
+// #include "dumpable_inline_impl.hh"
+// #include "dumper_elemental_field.hh"
+// #include "dumper_internal_material_field.hh"
+// #include "dumper_iohelper_paraview.hh"
 #include "group_manager_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
 #include "structural_element_bernoulli_beam_2.hh"
@@ -71,9 +71,10 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, Int dim,
     AKANTU_TO_IMPLEMENT();
   }
 
-  this->mesh.registerDumper<DumperParaview>("structural_mechanics_model", id,
-                                            true);
-  this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
+  // this->mesh.registerDumper<DumperParaview>("structural_mechanics_model", id,
+  //                                           true);
+  // this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost,
+  // _ek_structural);
 
   this->initDOFManager();
 
@@ -130,7 +131,7 @@ void StructuralMechanicsModel::initFEEngineBoundary() {
 void StructuralMechanicsModel::setTimeStep(Real time_step,
                                            const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
-  this->mesh.getDumper().setTimeStep(time_step);
+  // this->mesh.getDumper().setTimeStep(time_step);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -257,14 +258,14 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag) {
 
-  UInt n;
+  Int n{};
   if (spatial_dimension == 2) {
     n = 2;
   } else {
     n = 3;
   }
 
-  UInt padding_size = 0;
+  Int padding_size{};
   if (padding_flag) {
     padding_size = 3;
   }
@@ -328,22 +329,23 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createElementalField(
-    const std::string & field_name, const std::string & group_name,
-    bool /*unused*/, Int spatial_dimension, ElementKind kind) {
+    const std::string & /*field_name*/, const std::string & /*group_name*/,
+    bool /*unused*/, Int /*spatial_dimension*/, ElementKind /*kind*/) {
 
   std::shared_ptr<dumpers::Field> field;
 
-  if (field_name == "element_index_by_material") {
-    field =
-        mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
-            field_name, group_name, spatial_dimension, kind);
-  }
-  if (field_name == "stress") {
-    ElementTypeMap<Int> nb_data_per_elem = this->mesh.getNbDataPerElem(stress);
+  // if (field_name == "element_index_by_material") {
+  //   field =
+  //       mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
+  //           field_name, group_name, spatial_dimension, kind);
+  // }
+  // if (field_name == "stress") {
+  //   ElementTypeMap<Int> nb_data_per_elem =
+  //   this->mesh.getNbDataPerElem(stress);
 
-    field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-        stress, group_name, this->spatial_dimension, kind, nb_data_per_elem);
-  }
+  //   field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+  //       stress, group_name, this->spatial_dimension, kind, nb_data_per_elem);
+  // }
 
   return field;
 }

@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"
 #include "non_local_neighborhood_base.hh"
 #include "solid_mechanics_model.hh"
 #include "test_material.hh"
@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
   akantu::initialize("material_parallel_test.dat", argc, argv);
 
   const auto & comm = Communicator::getStaticCommunicator();
-  Int psize = comm.getNbProc();
+  //  Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
   // some configuration variables
@@ -60,11 +60,11 @@ int main(int argc, char * argv[]) {
   SolidMechanicsModel model(mesh);
 
   /// dump the ghost elements before the non-local part is intialized
-  DumperParaview dumper_ghost("ghost_elements");
-  dumper_ghost.registerMesh(mesh, spatial_dimension, _ghost);
-  if (psize > 1) {
-    dumper_ghost.dump();
-  }
+  // DumperParaview dumper_ghost("ghost_elements");
+  // dumper_ghost.registerMesh(mesh, spatial_dimension, _ghost);
+  // if (psize > 1) {
+  //   dumper_ghost.dump();
+  // }
 
   /// creation of material selector
   auto && mat_selector =
@@ -80,8 +80,8 @@ int main(int argc, char * argv[]) {
   model.initFull();
 
   /// dump the ghost elements after ghosts for non-local have been added
-  if (psize > 1)
-    dumper_ghost.dump();
+  // if (psize > 1)
+  //   dumper_ghost.dump();
 
   model.addDumpField("grad_u");
   model.addDumpField("grad_u non local");
@@ -90,20 +90,21 @@ int main(int argc, char * argv[]) {
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
   applied_strain.zero();
-  for (Int i = 0; i < spatial_dimension; ++i)
+  for (Int i = 0; i < spatial_dimension; ++i) {
     applied_strain(i, i) = 2.;
+  }
 
   ElementType element_type = _triangle_3;
   GhostType ghost_type = _not_ghost;
   /// apply constant grad_u field in all elements
   for (Int m = 0; m < model.getNbMaterials(); ++m) {
     auto & mat = model.getMaterial(m);
-    auto & grad_u = const_cast<Array<Real> &>(
-        mat.getInternal<Real>("grad_u")(element_type, ghost_type));
+    auto & grad_u = mat.getInternal<Real>("grad_u")(element_type, ghost_type);
     auto grad_u_it = grad_u.begin(spatial_dimension, spatial_dimension);
     auto grad_u_end = grad_u.end(spatial_dimension, spatial_dimension);
-    for (; grad_u_it != grad_u_end; ++grad_u_it)
+    for (; grad_u_it != grad_u_end; ++grad_u_it) {
       (*grad_u_it) = -1. * applied_strain;
+    }
   }
 
   /// double the strain in the center: find the closed gauss point to the center
@@ -150,8 +151,7 @@ int main(int argc, char * argv[]) {
         model.getMaterialLocalNumbering(q_min.type, _not_ghost)
             .begin()[q_min.element];
     auto local_num = (local_el_index * nb_quads) + q_min.num_point;
-    auto & grad_u = const_cast<Array<Real> &>(
-        mat.getInternal<Real>("grad_u")(q_min.type, _not_ghost));
+    auto & grad_u = mat.getInternal<Real>("grad_u")(q_min.type, _not_ghost);
     auto grad_u_it = grad_u.begin(spatial_dimension, spatial_dimension);
     grad_u_it += local_num;
     auto & g_u = *grad_u_it;
@@ -173,8 +173,8 @@ int main(int argc, char * argv[]) {
         model.getMaterialLocalNumbering(q_min.type, _not_ghost)
             .begin()[q_min.element];
     UInt local_num = (local_el_index * nb_quads) + q_min.num_point;
-    Array<Real> & damage = const_cast<Array<Real> &>(
-        mat.getInternal<Real>("damage")(q_min.type, _not_ghost));
+    Array<Real> & damage =
+        mat.getInternal<Real>("damage")(q_min.type, _not_ghost);
     Real * dam_ptr = damage.data();
     dam_ptr += local_num;
     *dam_ptr = 0.9;

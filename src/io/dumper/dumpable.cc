@@ -33,225 +33,232 @@ Dumpable::Dumpable() = default;
 Dumpable::~Dumpable() = default;
 
 /* -------------------------------------------------------------------------- */
-void Dumpable::registerExternalDumper(std::shared_ptr<DumperIOHelper> dumper,
-                                      const std::string & dumper_name,
-                                      const bool is_default) {
-  this->dumpers[dumper_name] = std::move(dumper);
-  if (is_default) {
-    this->default_dumper = dumper_name;
-  }
-}
+// void Dumpable::registerExternalDumper(std::shared_ptr<DumperIOHelper> dumper,
+//                                       const std::string & dumper_name,
+//                                       const bool is_default) {
+//   this->dumpers[dumper_name] = std::move(dumper);
+//   if (is_default) {
+//     this->default_dumper = dumper_name;
+//   }
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
-                           GhostType ghost_type, ElementKind element_kind) {
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpMesh(const Mesh & mesh, Int spatial_dimension,
+//                            GhostType ghost_type, ElementKind element_kind) {
 
-  this->addDumpMeshToDumper(this->default_dumper, mesh, spatial_dimension,
-                            ghost_type, element_kind);
-}
+//   this->addDumpMeshToDumper(this->default_dumper, mesh, spatial_dimension,
+//                             ghost_type, element_kind);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
-                                   const Mesh & mesh, Int spatial_dimension,
-                                   GhostType ghost_type,
-                                   ElementKind element_kind) {
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
+//                                    const Mesh & mesh, Int spatial_dimension,
+//                                    GhostType ghost_type,
+//                                    ElementKind element_kind) {
 
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.registerMesh(mesh, spatial_dimension, ghost_type, element_kind);
-}
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.registerMesh(mesh, spatial_dimension, ghost_type, element_kind);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFilteredMesh(
-    const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
-    const Array<Idx> & nodes_filter, Int spatial_dimension,
-    GhostType ghost_type, ElementKind element_kind) {
-  this->addDumpFilteredMeshToDumper(this->default_dumper, mesh, elements_filter,
-                                    nodes_filter, spatial_dimension, ghost_type,
-                                    element_kind);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFilteredMesh(
+//     const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+//     const Array<Idx> & nodes_filter, Int spatial_dimension,
+//     GhostType ghost_type, ElementKind element_kind) {
+//   this->addDumpFilteredMeshToDumper(this->default_dumper, mesh,
+//   elements_filter,
+//                                     nodes_filter, spatial_dimension,
+//                                     ghost_type, element_kind);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFilteredMeshToDumper(
-    const std::string & dumper_name, const Mesh & mesh,
-    const ElementTypeMapArray<Idx> & elements_filter,
-    const Array<Idx> & nodes_filter, Int spatial_dimension,
-    GhostType ghost_type, ElementKind element_kind) {
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFilteredMeshToDumper(
+//     const std::string & dumper_name, const Mesh & mesh,
+//     const ElementTypeMapArray<Idx> & elements_filter,
+//     const Array<Idx> & nodes_filter, Int spatial_dimension,
+//     GhostType ghost_type, ElementKind element_kind) {
 
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.registerFilteredMesh(mesh, elements_filter, nodes_filter,
-                              spatial_dimension, ghost_type, element_kind);
-}
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.registerFilteredMesh(mesh, elements_filter, nodes_filter,
+//                               spatial_dimension, ghost_type, element_kind);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpField(const std::string & field_id) {
-  this->addDumpFieldToDumper(this->default_dumper, field_id);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpField(const std::string & field_id) {
+//   this->addDumpFieldToDumper(this->default_dumper, field_id);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldToDumper(const std::string & /*dumper_name*/,
-                                    const std::string & /*field_id*/) {
-  AKANTU_TO_IMPLEMENT();
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldToDumper(const std::string & /*dumper_name*/,
+//                                     const std::string & /*field_id*/) {
+//   AKANTU_TO_IMPLEMENT();
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldExternal(const std::string & field_id,
-                                    std::shared_ptr<dumpers::Field> field) {
-  this->addDumpFieldExternalToDumper(this->default_dumper, field_id,
-                                     std::move(field));
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldExternal(const std::string & field_id,
+//                                     std::shared_ptr<dumpers::Field> field) {
+//   this->addDumpFieldExternalToDumper(this->default_dumper, field_id,
+//                                      std::move(field));
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldExternalToDumper(
-    const std::string & dumper_name, const std::string & field_id,
-    std::shared_ptr<dumpers::Field> field) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.registerField(field_id, std::move(field));
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldExternalToDumper(
+//     const std::string & dumper_name, const std::string & field_id,
+//     std::shared_ptr<dumpers::Field> field) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.registerField(field_id, std::move(field));
+// }
 
-/* -------------------------------------------------------------------------- */
+// /* --------------------------------------------------------------------------
+// */
 
-void Dumpable::removeDumpField(const std::string & field_id) {
-  this->removeDumpFieldFromDumper(this->default_dumper, field_id);
-}
+// void Dumpable::removeDumpField(const std::string & field_id) {
+//   this->removeDumpFieldFromDumper(this->default_dumper, field_id);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::removeDumpFieldFromDumper(const std::string & dumper_name,
-                                         const std::string & field_id) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.unRegisterField(field_id);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::removeDumpFieldFromDumper(const std::string & dumper_name,
+//                                          const std::string & field_id) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.unRegisterField(field_id);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldVector(const std::string & field_id) {
-  this->addDumpFieldVectorToDumper(this->default_dumper, field_id);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldVector(const std::string & field_id) {
+//   this->addDumpFieldVectorToDumper(this->default_dumper, field_id);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldVectorToDumper(const std::string & /*dumper_name*/,
-                                          const std::string & /*field_id*/) {
-  AKANTU_TO_IMPLEMENT();
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldVectorToDumper(const std::string &
+// /*dumper_name*/,
+//                                           const std::string & /*field_id*/) {
+//   AKANTU_TO_IMPLEMENT();
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldTensor(const std::string & field_id) {
-  this->addDumpFieldTensorToDumper(this->default_dumper, field_id);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldTensor(const std::string & field_id) {
+//   this->addDumpFieldTensorToDumper(this->default_dumper, field_id);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::addDumpFieldTensorToDumper(const std::string & /*dumper_name*/,
-                                          const std::string & /*field_id*/) {
-  AKANTU_TO_IMPLEMENT();
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::addDumpFieldTensorToDumper(const std::string &
+// /*dumper_name*/,
+//                                           const std::string & /*field_id*/) {
+//   AKANTU_TO_IMPLEMENT();
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setDirectory(const std::string & directory) {
-  this->setDirectoryToDumper(this->default_dumper, directory);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setDirectory(const std::string & directory) {
+//   this->setDirectoryToDumper(this->default_dumper, directory);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setDirectoryToDumper(const std::string & dumper_name,
-                                    const std::string & directory) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.setDirectory(directory);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setDirectoryToDumper(const std::string & dumper_name,
+//                                     const std::string & directory) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.setDirectory(directory);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setBaseName(const std::string & basename) {
-  this->setBaseNameToDumper(this->default_dumper, basename);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setBaseName(const std::string & basename) {
+//   this->setBaseNameToDumper(this->default_dumper, basename);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setBaseNameToDumper(const std::string & dumper_name,
-                                   const std::string & basename) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.setBaseName(basename);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setBaseNameToDumper(const std::string & dumper_name,
+//                                    const std::string & basename) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.setBaseName(basename);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setTimeStepToDumper(Real time_step) {
-  this->setTimeStepToDumper(this->default_dumper, time_step);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setTimeStepToDumper(Real time_step) {
+//   this->setTimeStepToDumper(this->default_dumper, time_step);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setTimeStepToDumper(const std::string & dumper_name,
-                                   Real time_step) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.setTimeStep(time_step);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setTimeStepToDumper(const std::string & dumper_name,
+//                                    Real time_step) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.setTimeStep(time_step);
+// }
 
-/* -------------------------------------------------------------------------- */
+// /* --------------------------------------------------------------------------
+// */
 
-void Dumpable::setTextModeToDumper(const std::string & dumper_name) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.getDumper().setMode(iohelper::TEXT);
-}
+// void Dumpable::setTextModeToDumper(const std::string & dumper_name) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.getDumper().setMode(iohelper::TEXT);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::setTextModeToDumper() {
-  DumperIOHelper & dumper = this->getDumper(this->default_dumper);
-  dumper.getDumper().setMode(iohelper::TEXT);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::setTextModeToDumper() {
+//   DumperIOHelper & dumper = this->getDumper(this->default_dumper);
+//   dumper.getDumper().setMode(iohelper::TEXT);
+// }
 
-/* -------------------------------------------------------------------------- */
+// /* --------------------------------------------------------------------------
+// */
 
-void Dumpable::dump(const std::string & dumper_name) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.dump();
-}
+// void Dumpable::dump(const std::string & dumper_name) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.dump();
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::dump() { this->dump(this->default_dumper); }
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::dump() { this->dump(this->default_dumper); }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::dump(const std::string & dumper_name, Int step) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.dump(step);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::dump(const std::string & dumper_name, Int step) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.dump(step);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::dump(Int step) { this->dump(this->default_dumper, step); }
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::dump(Int step) { this->dump(this->default_dumper, step); }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::dump(const std::string & dumper_name, Real time, Int step) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.dump(time, step);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::dump(const std::string & dumper_name, Real time, Int step)
+// {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.dump(time, step);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::dump(Real time, Int step) {
-  this->dump(this->default_dumper, time, step);
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::dump(Real time, Int step) {
+//   this->dump(this->default_dumper, time, step);
+// }
 
-/* -------------------------------------------------------------------------- */
-void Dumpable::internalAddDumpFieldToDumper(
-    const std::string & dumper_name, const std::string & field_id,
-    std::shared_ptr<dumpers::Field> field) {
-  DumperIOHelper & dumper = this->getDumper(dumper_name);
-  dumper.registerField(field_id, std::move(field));
-}
+// /* --------------------------------------------------------------------------
+// */ void Dumpable::internalAddDumpFieldToDumper(
+//     const std::string & dumper_name, const std::string & field_id,
+//     std::shared_ptr<dumpers::Field> field) {
+//   DumperIOHelper & dumper = this->getDumper(dumper_name);
+//   dumper.registerField(field_id, std::move(field));
+// }
 
-/* -------------------------------------------------------------------------- */
-DumperIOHelper & Dumpable::getDumper() {
-  return this->getDumper(this->default_dumper);
-}
+// /* --------------------------------------------------------------------------
+// */ DumperIOHelper & Dumpable::getDumper() {
+//   return this->getDumper(this->default_dumper);
+// }
 
-/* -------------------------------------------------------------------------- */
-DumperIOHelper & Dumpable::getDumper(const std::string & dumper_name) {
+// /* --------------------------------------------------------------------------
+// */ DumperIOHelper & Dumpable::getDumper(const std::string & dumper_name) {
 
-  auto it = this->dumpers.find(dumper_name);
-  auto end = this->dumpers.end();
+//   auto it = this->dumpers.find(dumper_name);
+//   auto end = this->dumpers.end();
 
-  if (it == end) {
-    AKANTU_EXCEPTION("Dumper \"" << dumper_name
-                                 << "\" has not been registered, yet.");
-  }
+//   if (it == end) {
+//     AKANTU_EXCEPTION("Dumper \"" << dumper_name
+//                                  << "\" has not been registered, yet.");
+//   }
 
-  return *(it->second);
-}
+//   return *(it->second);
+// }
 
-/* -------------------------------------------------------------------------- */
-std::string Dumpable::getDefaultDumperName() const {
-  return this->default_dumper;
-}
+// /* --------------------------------------------------------------------------
+// */ std::string Dumpable::getDefaultDumperName() const {
+//   return this->default_dumper;
+// }
 
 } // namespace akantu
