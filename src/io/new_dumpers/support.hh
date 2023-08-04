@@ -48,8 +48,7 @@ namespace dumper {
     _element_group,
   };
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class PropertiesManager {
   public:
     using Property = std::variant<Int, Real, std::string>;
@@ -106,8 +105,7 @@ namespace dumper {
     std::map<std::string, Property> properties;
   };
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class SupportBase : public PropertiesManager {
   public:
     using Fields = std::map<ID, std::unique_ptr<FieldBase>>;
@@ -118,11 +116,15 @@ namespace dumper {
 
     AKANTU_GET_MACRO(Type, type, SupportType);
 
-    template <typename T> inline auto & addSubSupport(const T & type);
+    template <typename T> inline auto & addSubSupport(T & type);
     [[nodiscard]] inline const auto & getSubSupports() const;
     [[nodiscard]] inline const auto & getParentSupport() const;
 
     inline void addField(const ID & id, std::unique_ptr<FieldBase> && field);
+
+    template <class T>
+    void addField(const ID & id, ElementTypeMapArray<T> & data);
+    template <class T> void addField(const ID & id, Array<T> & data);
 
     [[nodiscard]] decltype(auto) getFields() const { return (fields_); }
 
@@ -136,14 +138,12 @@ namespace dumper {
     SupportBase * parent{nullptr};
   };
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class Inner> class Support : public SupportBase {
-    [[nodiscard]] ID getName() const override { return "not implemented"; };
+    //[[nodiscard]] ID getName() const override { return "not implemented"; };
   };
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class SupportElements {
   public:
     using ElementTypesIteratorHelper =
@@ -167,11 +167,9 @@ namespace dumper {
 #include "support_tmpl.hh"
 
 namespace akantu {
-
-template <typename T> auto make_support(const T & t) {
+template <typename T> auto make_support(T & t) {
   return std::make_unique<dumper::Support<T>>(t);
 }
-
 } // namespace akantu
 
 #endif /* __AKANTU_SUPPORT_HH__ */

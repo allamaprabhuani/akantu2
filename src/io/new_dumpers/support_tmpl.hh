@@ -27,7 +27,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "support.hh"
+#include "support.hh" // NOLINT(pp_including_mainfile_in_preamble)
 /* -------------------------------------------------------------------------- */
 #include "dumper_field.hh"
 #include "element_group.hh"
@@ -40,24 +40,6 @@
 
 namespace akantu {
 namespace dumper {
-
-  template <typename T> auto & SupportBase::addSubSupport(const T & type) {
-    auto && ptr = make_support(type);
-    auto & support = *ptr;
-    ptr->parent = this;
-    sub_supports_[support.getName()] = std::move(ptr);
-    return support;
-  }
-
-  const auto & SupportBase::getSubSupports() const { return sub_supports_; }
-  const auto & SupportBase::getParentSupport() const { return *parent; }
-
-  void SupportBase::addField(const ID & id,
-                             std::unique_ptr<FieldBase> && field) {
-    field->addProperty("name", id);
-    fields_.emplace(id, std::move(field));
-  }
-
   /* ------------------------------------------------------------------------ */
   template <> class Support<Mesh> : public SupportBase, public SupportElements {
   public:
@@ -67,8 +49,8 @@ namespace dumper {
     explicit Support(Mesh & inner)
         : SupportBase(SupportType::_mesh), inner(inner),
           nodes(make_field(MeshAccessor(inner).getNodes(), *this)),
-          connectivities(make_field(MeshAccessor(inner).getConnectivities(),
-                                    *this, ConnectivityFunctor())) {
+          connectivities(
+              make_field(MeshAccessor(inner).getConnectivities(), *this)) {
 
       nodes->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");
@@ -103,8 +85,10 @@ namespace dumper {
     explicit Support(ElementGroup & inner)
         : SupportBase(SupportType::_element_group), inner(inner),
           nodes(make_field(inner.getNodeGroup().getNodes(), *this)),
-          elements(make_field(inner.getElements(), *this)) {
-
+          elements(make_field(inner.getElements(), *this)),
+          connectivities(make_field(
+              inner.getElements(), *this,
+              ConnectivityFunctor(inner.getMesh().getConnectivities()))) {
       nodes->addProperty("name", "nodes");
       elements->addProperty("name", "elements");
 
@@ -113,7 +97,8 @@ namespace dumper {
     }
 
     [[nodiscard]] auto & getNodes() const { return *nodes; }
-    [[nodiscard]] auto & getElements() const { return *elements; };
+    [[nodiscard]] auto & getElements() const { return *elements; }
+    [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
 
     [[nodiscard]] ElementTypesIteratorHelper
     elementTypes(GhostType ghost_type = _not_ghost) const override {
@@ -123,11 +108,52 @@ namespace dumper {
 
     [[nodiscard]] Int getRelease() { return inner.getMesh().getRelease(); }
 
+    [[nodiscard]] bool contains(ElementType type,
+                                GhostType ghost_type = _not_ghost) const {
+      auto && types = elementTypes(ghost_type);
+      return (std::find(types.begin(), types.end(), type) != types.end());
+    }
+
   protected:
     ElementGroup & inner;
     std::unique_ptr<FieldNodeArray<Idx>> nodes;
     std::unique_ptr<FieldElementMapArray<Idx>> elements;
+    std::unique_ptr<FieldFunctionElementMapArray<Idx, ConnectivityFunctor>>
+        connectivities;
   };
+
+  /* ------------------------------------------------------------------------ */
+  template <typename T> auto & SupportBase::addSubSupport(T & type) {
+    auto && ptr = make_support(type);
+    auto & support = *ptr;
+    ptr->parent = this;
+    sub_supports_[support.getName()] = std::move(ptr);
+    return support;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  const auto & SupportBase::getSubSupports() const { return sub_supports_; }
+  const auto & SupportBase::getParentSupport() const { return *parent; }
+
+  /* ------------------------------------------------------------------------ */
+  void SupportBase::addField(const ID & id,
+                             std::unique_ptr<FieldBase> && field) {
+    field->addProperty("name", id);
+    fields_.emplace(id, std::move(field));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <class T>
+  void SupportBase::addField(const ID & id, ElementTypeMapArray<T> & data) {
+    auto && field = make_field(data, *this);
+    this->addField(id, std::move(field));
+  }
+
+  template <class T>
+  void SupportBase::addField(const ID & id, Array<T> & data) {
+    auto && field = make_field(data, *this);
+    this->addField(id, std::move(field));
+  }
 
 } // namespace dumper
 } // namespace akantu

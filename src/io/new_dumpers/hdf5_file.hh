@@ -198,13 +198,12 @@ namespace dumper {
         auto status =
             H5Oexists_by_name(group.id, data_set->path.c_str(), H5P_DEFAULT);
 
-        decltype(data_set) data_space;
-
         if (status <= 0) {
           std::array<hsize_t, 2> dims{
               field.getProperty<hsize_t>("size"),
               field.getProperty<hsize_t>("nb_components")};
-          data_space = std::make_unique<Entity>("", EntityType::_dataspace);
+          auto data_space =
+              std::make_unique<Entity>("", EntityType::_dataspace);
           data_space->id = H5Screate_simple(dims.size(), dims.data(), nullptr);
 
           AKANTU_DEBUG_INFO("DumperHDF5: creating data-set "
@@ -236,34 +235,65 @@ namespace dumper {
       }
 
       void dump(FieldElementMapArrayBase & field) override {
-        Int nb_components = -1;
-        auto sizes = field.size();
-        auto size = sizes.first;
-        for (auto && type : field.elementTypes()) {
-          auto nb_new_components = field.getNbComponent(type);
-          if (nb_new_components != nb_components and nb_components != -1) {
-            nb_components = 1;
-            size = sizes.second;
-            break;
-          }
-          nb_components = nb_new_components;
-        }
-
-        field.addProperty("size", size);
-        field.addProperty("nb_components", nb_components);
-
-        auto data_set = createDataSet(field);
+        auto && group = openGroup(field.getName());
+        field.addProperty("hdf5_path", group.path.generic_string());
 
         for (auto && type : field.elementTypes()) {
           auto & array = field.array(type);
-
-          // TODO: create correspoondig dataspaces
-
-          AKANTU_DEBUG_INFO("HDF5: writing dataset " << data_set->path);
-          H5Dwrite(data_set->id, datatype_id_in(field.type()), H5S_ALL, H5S_ALL,
-                   H5P_DEFAULT, array.data());
+          if (not array.hasProperty("name")) {
+            array.addProperty("name",
+                              field.getName() + ":" + std::to_string(type));
+          }
+          dump(array);
         }
+
+        entities.pop_back();
       }
+
+      // void dump(FieldElementMapArrayBase & field) override {
+      //   Int nb_components = -1;
+      //   auto && [elements, total_size] = field.size();
+      //   auto size = elements;
+      //   for (auto && type : field.elementTypes()) {
+      //     auto nb_new_components = field.getNbComponent(type);
+      //     if (nb_new_components != nb_components and nb_components != -1) {
+      //       nb_components = 1;
+      //       size = total_size;
+      //       break;
+      //     }
+      //     nb_components = nb_new_components;
+      //   }
+
+      //   field.addProperty("size", size);
+      //   field.addProperty("nb_components", nb_components);
+
+      //   auto data_set = createDataSet(field);
+
+      //   std::array<hsize_t, 2> start{0, 0};
+      //   std::array<hsize_t, 2> stride{1, 1};
+      //   std::array<hsize_t, 2> block{1, 1};
+
+      //   for (auto && type : field.elementTypes()) {
+      //     auto & array = field.array(type);
+
+      //     hsize_t asize =
+      //         (array.size() * array.getNbComponent()) / nb_components;
+      //     std::array<hsize_t, 2> dims{asize, hsize_t(nb_components)};
+
+      //     auto mem_space = std::make_unique<Entity>("",
+      //     EntityType::_dataspace); mem_space->id =
+      //     H5Screate_simple(dims.size(), dims.data(), nullptr);
+
+      //     auto file_space = H5Dget_space(data_set->id);
+      //     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start.data(),
+      //                         stride.data(), dims.data(), block.data());
+
+      //     AKANTU_DEBUG_INFO("HDF5: writing dataset " << data_set->path);
+      //     H5Dwrite(data_set->id, datatype_id_in(field.type()), mem_space->id,
+      //              file_space, H5P_DEFAULT, array.data());
+      //     start[0] += asize;
+      //   }
+      // }
 
       // void dump(FieldConnectivity & field) {
       //   auto && [total_element, total_size] = field.size();
@@ -327,15 +357,15 @@ namespace dumper {
 
         openGroup("groups");
 
-        for (auto && support : support.getSubSupports()) {
-          dump(*support.second);
+        for (auto && [_, support] : support.getSubSupports()) {
+          dump(*support);
         }
 
         // close groups
         entities.pop_back();
 
-        for (auto && field : support.getFields()) {
-          FileBase::dump(*field.second);
+        for (auto && [_, field] : support.getFields()) {
+          FileBase::dump(*field);
         }
 
         // close mesh
@@ -350,8 +380,8 @@ namespace dumper {
             "hdf5_file", parent_support.getProperty<std::string>("hdf5_file"));
         dump(support.getElements());
 
-        for (auto && field : support.getFields()) {
-          FileBase::dump(*field.second);
+        for (auto && [_, field] : support.getFields()) {
+          FileBase::dump(*field);
         }
 
         entities.pop_back();

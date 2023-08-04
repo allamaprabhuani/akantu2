@@ -60,12 +60,15 @@ namespace dumper {
     virtual void dump(FieldBase & field) {
       using dumper::FieldType;
       switch (field.getFieldType()) {
-      case FieldType::_node_array:
+      case FieldType::_node_array: /* FALLTHRU */
+      case FieldType::_node_array_function:
         dump(aka::as_type<FieldNodeArrayBase>(field));
         break;
-      case FieldType::_element_map_array:
+      case FieldType::_element_map_array: /* FALLTHRU */
+      case FieldType::_element_map_array_function:
         dump(aka::as_type<FieldElementMapArrayBase>(field));
         break;
+      case FieldType::_not_defined: /* FALLTHRU */
       default:
         AKANTU_EXCEPTION("The field type is not properly defined");
         break;

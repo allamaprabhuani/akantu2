@@ -600,7 +600,7 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-[[nodiscard]] auto is_of_type(T && t)
+[[nodiscard]] constexpr auto is_of_type(T && t)
     -> bool { // NOLINT(cppcoreguidelines-missing-std-forward)
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
@@ -609,7 +609,7 @@ template <typename R, typename T,
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-[[nodiscard]] auto is_of_type(std::unique_ptr<T> & t) -> bool {
+[[nodiscard]] constexpr auto is_of_type(std::unique_ptr<T> & t) -> bool {
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<T>, std::add_const_t<R>, R>>>(
               t.get()) != nullptr);

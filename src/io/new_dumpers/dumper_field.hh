@@ -69,6 +69,18 @@ namespace dumper {
     FieldType field_type{FieldType::_not_defined};
   };
 
+  inline bool is_nodal_field(const FieldBase & field) {
+    auto type = field.getFieldType();
+    return (type == FieldType::_node_array_function or
+            type == FieldType::_node_array);
+  }
+
+  inline bool is_elemental_field(const FieldBase & field) {
+    auto type = field.getFieldType();
+    return (type == FieldType::_element_map_array_function or
+            type == FieldType::_element_map_array);
+  }
+
   /* ------------------------------------------------------------------------ */
   class FieldNodeArrayBase : public FieldBase {
   public:
@@ -303,47 +315,51 @@ namespace dumper {
   };
 
   struct ConnectivityFunctor {
-    Int getNbComponent(Int nb_component, ElementType type) const {
-      if (type == _segment_2 or type == _segment_3) {
-        return nb_component + 2;
-      }
-      return nb_component + 1;
+    ConnectivityFunctor(const ElementTypeMapArray<Idx> & connectivities)
+        : connectivities(connectivities) {}
+
+    Int getNbComponent(Int /*nb_component*/, ElementType type) const {
+      return connectivities(type).getNbComponent();
+      // if (type == _segment_2 or type == _segment_3) {
+      //   return nb_component + 2;
+      // }
+      // return nb_component + 1;
     }
 
-    Vector<Idx> operator()(const Vector<Idx> & connectivity,
+    Vector<Idx> operator()(const Vector<Idx> & element,
                            ElementType type) const {
-      Int offset{1};
-      if (type == _segment_2 or type == _segment_3) {
-        offset = 2;
-      }
+      Element el{type, element[0], _not_ghost};
+      return connectivities.get(el);
+      // Int offset{1};
+      // if (type == _segment_2 or type == _segment_3) {
+      //   offset = 2;
+      // }
 
-      Vector<Idx> result(connectivity.size() + offset);
-      for (auto && [i, c] : enumerate(connectivity)) {
-        result(i + offset) = c;
-      }
+      // Vector<Idx> result(connectivity.size() + offset);
+      // result.block(offset, 0, connectivity.size(), 1) = connectivity;
 
-      result[0] = aka_type_to_dumper_type.at(type);
+      // result[0] = aka_type_to_dumper_type.at(type);
 
-      if (type == _segment_2) {
-        result[0] = 2;
-      } else if (type == _segment_3) {
-        result[0] = 3;
-      }
+      // if (type == _segment_2) {
+      //   result[0] = 2;
+      // } else if (type == _segment_3) {
+      //   result[0] = 3;
+      // }
 
-      return result;
+      // return result;
     }
 
   private:
-    const std::unordered_map<ElementType, int> aka_type_to_dumper_type{
-        {_point_1, 1},        {_segment_2, 2},      {_segment_3, 2},
-        {_triangle_3, 4},     {_triangle_6, 36},    {_quadrangle_4, 5},
-        {_quadrangle_8, 37},  {_tetrahedron_4, 6},  {_tetrahedron_10, 38},
-        {_hexahedron_8, 9},   {_hexahedron_20, 48}, {_pentahedron_6, 8},
-        {_pentahedron_15, 40}};
+    // const std::unordered_map<ElementType, int> aka_type_to_dumper_type{
+    //     {_point_1, 1},        {_segment_2, 2},      {_segment_3, 2},
+    //     {_triangle_3, 4},     {_triangle_6, 36},    {_quadrangle_4, 5},
+    //     {_quadrangle_8, 37},  {_tetrahedron_4, 6},  {_tetrahedron_10, 38},
+    //     {_hexahedron_8, 9},   {_hexahedron_20, 48}, {_pentahedron_6, 8},
+    //     {_pentahedron_15, 40}};
+    const ElementTypeMapArray<Idx> & connectivities;
   };
 
-  using FieldConnectivity =
-      FieldFunctionElementMapArray<Idx, ConnectivityFunctor>;
+  using FieldConnectivity = FieldElementMapArray<Idx>;
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
