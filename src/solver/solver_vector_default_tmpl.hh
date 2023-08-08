@@ -128,6 +128,7 @@ template <class Array_> Real SolverVectorArrayTmpl<Array_>::norm() const {
 /* -------------------------------------------------------------------------- */
 template <class Array_>
 Real SolverVectorArrayTmpl<Array_>::normFreeDOFs() const {
+  this->dof_manager.updateGlobalBlockedDofs();
   const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
 
   Real sum = 0.;

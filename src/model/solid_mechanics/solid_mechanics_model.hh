@@ -123,10 +123,10 @@ public:
   /// assembles the internal forces in the array internal_forces
   virtual void assembleInternalForces();
 
-protected:
   /// callback for the solver, this adds f_{ext} - f_{int} to the residual
   void assembleResidual() override;
 
+protected:
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
   bool canSplitResidual() const override { return true; }

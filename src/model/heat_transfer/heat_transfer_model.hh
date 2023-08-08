@@ -259,6 +259,8 @@ public:
   UInt getConductivityRelease(GhostType ghost_type = _not_ghost) const {
     return conductivity_release.at(ghost_type);
   }
+  AKANTU_GET_MACRO(TemperatureRelease, temperature_release, UInt);
+  AKANTU_SET_MACRO(TemperatureRelease, temperature_release, UInt);
   /// get the conductivity matrix release
   AKANTU_GET_MACRO(ConductivityMatrixRelease, conductivity_matrix_release,
                    UInt);
