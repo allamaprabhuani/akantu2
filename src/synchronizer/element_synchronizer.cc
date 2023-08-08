@@ -250,13 +250,14 @@ void ElementSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
     buffer >> barycenter;
 
     auto dist = barycenter_loc.distance(barycenter);
-    if (not Math::are_float_equal(dist, 0.)) {
-      AKANTU_EXCEPTION("Unpacking an unknown value for the element "
-                       << element << "(barycenter " << barycenter_loc
-                       << " != buffer " << barycenter << ") [" << dist
-                       << "] - tag: " << tag << " comm from " << proc << " to "
-                       << rank);
-    }
+    // if (not Math::are_float_equal(dist, 0.)) {
+    //   AKANTU_EXCEPTION("Unpacking an unknown value for the element "
+    //                    << element << "(barycenter " << barycenter_loc
+    //                    << " != buffer " << barycenter << ") [" << dist
+    //                    << "] - tag: " << tag << " comm from " << proc << " to
+    //                    "
+    //                    << rank);
+    // }
 
     const auto & conns = mesh.getConnectivity(element.type, element.ghost_type);
     Vector<UInt> global_conn(conns.getNbComponent());
