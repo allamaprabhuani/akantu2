@@ -111,6 +111,9 @@ void register_boundary_conditions(py::module & mod) {
   register_dirichlet_functor<BC::Dirichlet::FixedValue>(
       mod, "FixedValue", py::init<Real, BC::Axis>());
 
+  register_dirichlet_functor<BC::Dirichlet::FlagOnly>(mod, "FlagOnly",
+                                                      py::init<BC::Axis>());
+
   register_dirichlet_functor<BC::Dirichlet::IncrementValue>(
       mod, "IncrementValue", py::init<Real, BC::Axis>());
 

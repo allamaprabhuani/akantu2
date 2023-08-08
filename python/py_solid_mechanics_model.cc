@@ -83,6 +83,8 @@ void register_solid_mechanics_model(py::module & mod) {
             self.initFull(options);
           },
           py::arg("option") = SolidMechanicsModelOptions())
+      .def("assembleResidual",
+           [](SolidMechanicsModel & self) { self.assembleResidual(); })
       .def(
           "initFull",
           [](SolidMechanicsModel & self,

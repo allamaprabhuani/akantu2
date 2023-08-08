@@ -138,6 +138,17 @@ void register_heat_transfer_model(py::module & mod) {
                                                cond_matrix);
           },
           py::arg("property_name"), py::arg("group_name"),
-          py::arg("cond_matrix"));
+          py::arg("cond_matrix"))
+      .def(
+          "getTemperatureRelease",
+          [](HeatTransferModel & self) { return self.getTemperatureRelease(); })
+      .def("setTemperatureRelease",
+           [](HeatTransferModel & self, UInt value) {
+             return self.setTemperatureRelease(value);
+           })
+      .def("increaseTemperatureRelease", [](HeatTransferModel & self) {
+        UInt release = self.getTemperatureRelease();
+        return self.setTemperatureRelease(release + 1);
+      });
 }
 } // namespace akantu

@@ -67,6 +67,10 @@ namespace {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(void, _Material, initMaterial, );
     };
+    bool hasStiffnessMatrixChanged() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(bool, _Material, hasStiffnessMatrixChanged, );
+    };
     void computeStress(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override {
       // NOLINTNEXTLINE
@@ -414,6 +418,7 @@ void register_material(py::module & mod) {
           py::arg("name"), py::arg("value"))
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed)
+      .def("hasStiffnessMatrixChanged", &Material::hasStiffnessMatrixChanged)
       .def("__repr__", [](Material & self) {
         std::stringstream sstr;
         sstr << self;
