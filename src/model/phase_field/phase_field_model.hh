@@ -213,6 +213,8 @@ public:
 
   /// get the PhaseFieldModel::blocked_dofs vector
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
+  /// get the PhaseFieldModel::blocked_dofs vector
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
 
   /// get an iterable on the phasefields
   inline decltype(auto) getPhaseFields();

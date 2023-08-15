@@ -1,3 +1,19 @@
+## Version 5.0.2 (06-30-2023)
+
+### Added
+
+- pypi package for python 3.11 and 3.12
+
+## Version 5.0.1 (05-05-2023)
+
+### Changed
+
+- Bug fixes:
+  - bad constcorectness in arrays
+  - applyBC broken
+
+- Extending python API
+
 ## Version 5.0 (03-28-2023)
 
 ### Changed 

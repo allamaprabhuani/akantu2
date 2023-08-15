@@ -20,11 +20,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "py_boundary_conditions.hh"
-#include "py_aka_array.hh"
 #include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
 #include <boundary_condition_functor.hh>
 /* -------------------------------------------------------------------------- */
+#include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
@@ -40,8 +40,9 @@ namespace {
     using daughter::daughter;
 
     /* Trampoline (need one for each virtual function) */
-    void operator()(Int node, Vector<bool> & flags, Vector<Real> & primal,
-                    const Vector<Real> & coord) const override {
+    void operator()(Int node, VectorProxy<bool> & flags,
+                    VectorProxy<Real> & primal,
+                    const VectorProxy<const Real> & coord) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE_NAME(void, daughter, "__call__", operator(), node,
                              flags, primal, coord);
@@ -56,9 +57,10 @@ namespace {
     using daughter::daughter;
 
     /* Trampoline (need one for each virtual function) */
-    void operator()(const IntegrationPoint & quad_point, Vector<Real> & dual,
-                    const Vector<Real> & coord,
-                    const Vector<Real> & normals) const override {
+    void operator()(const IntegrationPoint & quad_point,
+                    VectorProxy<Real> & dual,
+                    const VectorProxy<const Real> & coord,
+                    const VectorProxy<const Real> & normals) override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE_PURE_NAME(void, daughter, "__call__", operator(),
                                   quad_point, dual, coord, normals);

@@ -759,8 +759,8 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
 
           // add the element as sub-element to the connected elements
           for (auto & connected_element : connected_elements) {
-            auto subelements_to_element =
-                mesh.getSubelementToElement(connected_element);
+            auto && subelements_to_element =
+                mesh_accessor.getSubelementToElement(connected_element);
 
             // find the position where to insert the element
             auto it = std::find(subelements_to_element.begin(),

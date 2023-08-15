@@ -33,7 +33,7 @@ class MyModel : public Model, public NonLocalManagerCallback {
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 public:
-  MyModel(Mesh &mesh, Int spatial_dimension)
+  MyModel(Mesh & mesh, Int spatial_dimension)
       : Model(mesh, ModelType::_model, spatial_dimension),
         manager(*this, *this) {
     registerFEEngineObject<MyFEEngineType>("FEEngine", mesh, spatial_dimension);
@@ -81,17 +81,17 @@ public:
     q.ghost_type = ghost_type;
     q.global_num = 0;
 
-    auto &neighborhood = manager.getNeighborhood("test_region");
+    auto & neighborhood = manager.getNeighborhood("test_region");
 
-    for (const auto &type : quadrature_points_coordinates.elementTypes(
+    for (const auto & type : quadrature_points_coordinates.elementTypes(
              spatial_dimension, ghost_type)) {
       q.type = type;
 
-      auto &quads = quadrature_points_coordinates(type, ghost_type);
+      auto & quads = quadrature_points_coordinates(type, ghost_type);
       this->getFEEngine().computeIntegrationPointsCoordinates(quads, type,
                                                               ghost_type);
-      auto quad_it = quads.begin(quads.getNbComponent());
-      auto quad_end = quads.end(quads.getNbComponent());
+      auto quad_it = quads.cbegin(quads.getNbComponent());
+      auto quad_end = quads.cend(quads.getNbComponent());
       q.num_point = 0;
       for (; quad_it != quad_end; ++quad_it) {
         neighborhood.insertIntegrationPoint(q, *quad_it);
@@ -109,7 +109,7 @@ public:
   void updateNonLocalInternal(ElementTypeMapReal &, GhostType,
                               ElementKind) override {}
 
-  const auto &getNonLocalManager() const { return manager; }
+  const auto & getNonLocalManager() const { return manager; }
 
 private:
   NonLocalManager manager;

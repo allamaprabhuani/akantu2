@@ -60,15 +60,18 @@ inline void
 MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) {
   auto && sigma = arguments["sigma"_n];
   auto && dam = arguments["damage"_n];
+  auto && prev_dam = arguments["previous_damage"_n];
   auto && Y = arguments["Y"_n];
   auto && Yd = arguments["Yd"_n];
 
-  Real Fd = Y - Yd - Sd * dam;
+  Real Fd = Y - Yd - Sd * prev_dam;
 
   if (Fd > 0) {
     dam = (Y - Yd) / Sd;
   }
-  dam = std::min(dam, Real(1.));
+
+  dam = std::max(dam, prev_dam);
+  dam = std::min(dam, 1.);
 
   sigma *= 1 - dam;
 }

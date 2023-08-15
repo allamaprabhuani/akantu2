@@ -86,16 +86,19 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_append(
-        parent::getArguments(el_type, ghost_type),
-        "Yd"_n = make_view(this->Yd(el_type, ghost_type)),
-        "Y"_n = broadcast(this->Y, this->damage(el_type, ghost_type).size()));
+    return zip_append(parent::getArguments(el_type, ghost_type),
+                      "Yd"_n = this->Yd(el_type, ghost_type),
+                      "Y"_n = this->Y(el_type, ghost_type));
   }
+
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Y, Y, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  InternalField<Real> Y;
+
   /// resistance to damage
   RandomInternalField<Real> Yd;
 
@@ -108,7 +111,6 @@ protected:
   Real Yc{0.};
   bool damage_in_y{false};
   bool yc_limit{false};
-  Real Y{0};
 };
 
 } // namespace akantu

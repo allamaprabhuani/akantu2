@@ -186,7 +186,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
-    Real * nodes_val = nodes.data();
+    const Real * nodes_val = nodes.data();
     for (Int i = 0; i < nb_nodes; ++i) {
       fgeominit << i << " ";
       for (Int s = 0; s < spatial_dimension; ++s) {

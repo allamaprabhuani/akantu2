@@ -71,6 +71,12 @@ void register_parser(py::module & mod) {
            [](ParameterRegistry & self, const std::string & name) -> Real {
              return self.get(name);
            })
+      .def("setRandom",
+           [](ParameterRegistry & self, const std::string & name, Real value,
+              const RandomDistributionType & distribution, Real a, Real b) {
+             auto param = make_random_parameter(value, distribution, a, b);
+             self.set(name, value);
+           })
 
       .def("setBool", [](ParameterRegistry & self, const std::string & name,
                          const bool value) { self.set(name, value); })

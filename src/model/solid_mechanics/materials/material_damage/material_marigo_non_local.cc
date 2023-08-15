@@ -29,10 +29,9 @@ namespace akantu {
 template <Int dim>
 MaterialMarigoNonLocal<dim>::MaterialMarigoNonLocal(SolidMechanicsModel & model,
                                                     const ID & id)
-    : parent(model, id), Y("Y", *this), Ynl("Y non local", *this) {
+    : parent(model, id), Ynl("Y non local", *this) {
   AKANTU_DEBUG_IN();
   this->is_non_local = true;
-  this->Y.initialize(1);
   this->Ynl.initialize(1);
   AKANTU_DEBUG_OUT();
 }
@@ -53,7 +52,7 @@ void MaterialMarigoNonLocal<dim>::computeStress(ElementType el_type,
                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto && arguments = getArguments(el_type, ghost_type);
+  auto && arguments = this->getArguments(el_type, ghost_type);
 
   for (auto && data : arguments) {
     MaterialMarigo<dim>::computeStressOnQuad(data);

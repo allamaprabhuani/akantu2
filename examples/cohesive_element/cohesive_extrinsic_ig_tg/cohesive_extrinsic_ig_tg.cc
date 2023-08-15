@@ -35,9 +35,9 @@ public:
   }
 
 public:
-  inline void operator()(UInt node, Vector<bool> & /*flags*/,
-                         Vector<Real> & disp,
-                         const Vector<Real> & coord) const {
+  inline void operator()(Idx node, VectorProxy<bool> & /*flags*/,
+                         VectorProxy<Real> & disp,
+                         const VectorProxy<const Real> & coord) {
     Real sign = std::signbit(coord(axis)) ? -1. : 1.;
     disp(axis) += sign * this->disp;
     model.getVelocity()(node, axis) = sign * vel;

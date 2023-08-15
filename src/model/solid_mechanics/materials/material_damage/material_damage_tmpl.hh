@@ -40,6 +40,7 @@ MaterialDamage<dim, Parent>::MaterialDamage(SolidMechanicsModel & model,
   this->damage.initialize(1);
   this->dissipated_energy.initialize(1);
   this->int_sigma.initialize(1);
+  this->damage.initializeHistory();
 
   AKANTU_DEBUG_OUT();
 }

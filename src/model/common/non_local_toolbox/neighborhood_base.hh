@@ -62,7 +62,7 @@ public:
 
   /// initialize the material computed parameter
   inline void insertIntegrationPoint(const IntegrationPoint & quad,
-                                     const Ref<Vector<Real>> & coords);
+                                     const VectorProxy<const Real> & coords);
 
   /// create the pairs of quadrature points
   void updatePairList();

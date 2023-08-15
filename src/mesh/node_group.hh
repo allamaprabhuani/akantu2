@@ -43,8 +43,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  using const_node_iterator = Array<Idx>::const_scalar_iterator;
-
   /// empty the node group
   void clear();
 
@@ -56,6 +54,10 @@ public:
   [[nodiscard]] inline auto begin() const;
   /// iterator to the end of the node group
   [[nodiscard]] inline auto end() const;
+  /// iterator to the beginning of the node group
+  [[nodiscard]] inline auto cbegin() const;
+  /// iterator to the end of the node group
+  [[nodiscard]] inline auto cend() const;
 
   /// add a node and give the local position through an iterator
   inline auto add(Idx node, bool check_for_duplicate = true);

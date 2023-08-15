@@ -43,9 +43,11 @@ namespace dumpers {
     using support_type = Idx;
     using types = TypeTraits<T, Vector<T>, Container>;
 
-    class iterator : public iohelper::iterator<T, iterator, VectorProxy<T>> {
+    class iterator
+        : public iohelper::iterator<T, iterator, VectorProxy<const T>> {
     public:
-      iterator(T * vect, Int _offset, Int _n, Int _stride, const Int * filter)
+      iterator(const T * vect, Int _offset, Int _n, Int _stride,
+               const Int * filter)
           : internal_it(vect), offset(_offset), n(_n), stride(_stride),
             filter(filter) {}
 
@@ -65,15 +67,16 @@ namespace dumpers {
         return *this;
       }
 
-      VectorProxy<T> operator*() override {
+      VectorProxy<const T> operator*() override {
         if (filter != nullptr) {
-          return VectorProxy<T>(internal_it + *(filter)*offset + stride, n);
+          return VectorProxy<const T>(internal_it + *(filter)*offset + stride,
+                                      n);
         }
-        return VectorProxy<T>(internal_it + stride, n);
+        return VectorProxy<const T>(internal_it + stride, n);
       }
 
     private:
-      T * internal_it;
+      const T * internal_it;
       Int offset, n, stride;
       const Int * filter{nullptr};
     };

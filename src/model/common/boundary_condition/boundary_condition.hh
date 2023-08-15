@@ -50,14 +50,13 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// Apply the boundary conditions
-  template <typename FunctorType> inline void applyBC(const FunctorType & func);
+  template <typename FunctorType> inline void applyBC(FunctorType && func);
 
   template <class FunctorType>
-  inline void applyBC(const FunctorType & func, const std::string & group_name);
+  inline void applyBC(FunctorType && func, const std::string & group_name);
 
   template <class FunctorType>
-  inline void applyBC(const FunctorType & func,
-                      const ElementGroup & element_group);
+  inline void applyBC(FunctorType && func, const ElementGroup & element_group);
 
   AKANTU_GET_MACRO_NOT_CONST(Model, *model, ModelType &);
   AKANTU_GET_MACRO_NOT_CONST(Primal, *primal, Array<Real> &);
@@ -68,7 +67,8 @@ public:
   /* ------------------------------------------------------------------------ */
 
 public:
-  template <class FunctorType, BC::Functor::Type type = FunctorType::type>
+  template <class FunctorType,
+            BC::Functor::Type type = std::decay_t<FunctorType>::type>
   struct TemplateFunctionWrapper;
 
 private:
