@@ -122,6 +122,9 @@ void PhaseField::initialize() {
 
   damage_energy_density.initialize(1);
   damage_energy.initialize(spatial_dimension * spatial_dimension);
+
+  std::cout << "PhaseField g_c: " << this->g_c << std::endl;
+  std::cout << "PhaseField l0: " << this->l0 << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

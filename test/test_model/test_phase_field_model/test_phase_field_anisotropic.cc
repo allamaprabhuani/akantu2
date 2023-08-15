@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   std::ofstream os("data.csv");
   os << "#strain stress damage analytical_sigma analytical_damage" << std::endl;
 
-  initialize("material_hybrid.dat", argc, argv);
+  initialize("material_penalization.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_one_element.msh");

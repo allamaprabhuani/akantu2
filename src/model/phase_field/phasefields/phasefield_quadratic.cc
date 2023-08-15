@@ -45,9 +45,16 @@ PhaseFieldQuadratic::PhaseFieldQuadratic(PhaseFieldModel & model, const ID & id)
     : PhaseField(model, id) {
   registerParam("irreversibility_tol", tol_ir, Real(1e-2),
                 _pat_parsable | _pat_readable, "Irreversibility tolerance");
+}
+
+void PhaseFieldQuadratic::initPhaseField() {
+  PhaseField::initPhaseField();
 
   this->gamma = Real(this->g_c) / this->l0 * (1. / (tol_ir * tol_ir) - 1.);
-  std::cout << this->gamma << std::endl;
+  std::cout << "tol_ir: " << this->tol_ir << std::endl;
+  std::cout << "l0: " << this->l0 << std::endl;
+  std::cout << "gc: " << this->g_c << std::endl;
+  std::cout << "gamma: " << this->gamma << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -72,6 +79,7 @@ void PhaseFieldQuadratic::computeDrivingForce(ElementType el_type,
                                               GhostType ghost_type) {
 
   this->gamma = Real(this->g_c) / this->l0 * (1. / (tol_ir * tol_ir) - 1.);
+  Int penalization_counter = 0;
   if (this->isotropic) {
     for (auto && tuple : zip(this->phi(el_type, ghost_type),
                              this->phi.previous(el_type, ghost_type),
@@ -118,7 +126,7 @@ void PhaseFieldQuadratic::computeDrivingForce(ElementType el_type,
 
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
                                      g_c_quad);
-    dam_energy_density_quad += this->gamma * (dam_on_quad < dam_prev_quad);
+    penalization_counter += (dam_on_quad < dam_prev_quad);
 
     Real penalization =
         this->gamma * std::min(Real(0.), dam_on_quad - dam_prev_quad);
@@ -126,7 +134,12 @@ void PhaseFieldQuadratic::computeDrivingForce(ElementType el_type,
     driving_force_quad =
         dam_on_quad * dam_energy_density_quad - 2 * phi_quad + penalization;
     driving_energy_quad = damage_energy_quad * gradd_quad;
+
+    dam_energy_density_quad += this->gamma * (dam_on_quad < dam_prev_quad);
   }
+  std::cout << "       Active quad points: " << penalization_counter
+            << std::endl
+            << std::flush;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -15,7 +15,7 @@ model phase_field_model [
        E = 210.0
        nu = 0.3
        gc = 5e-3
-       l0 = 0.3
+       l0 = 20
        Plane_Stress = false
        isotropic = true
 	   ]	

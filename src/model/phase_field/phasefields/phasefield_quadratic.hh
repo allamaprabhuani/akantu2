@@ -86,6 +86,8 @@ protected:
 public:
   void updateInternalParameters() override;
 
+  void initPhaseField() override;
+
 private:
   // irreversibility tolerance
   Real tol_ir;

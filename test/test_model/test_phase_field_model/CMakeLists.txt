@@ -34,13 +34,19 @@ register_test(test_phase_solid_coupling
 
 register_test(test_phase_field_anisotropic
   SOURCES test_phase_field_anisotropic.cc
-  FILES_TO_COPY material_hybrid.dat test_one_element.msh
+  FILES_TO_COPY material_hybrid.dat test_one_element.msh material_penalization.dat
   PACKAGE phase_field
   )
 
 register_test(test_phase_field_deviatoric_split
   SOURCES test_phase_field_deviatoric_split.cc
   FILES_TO_COPY material_deviatoric.dat test_one_element.msh
+  PACKAGE phase_field
+  )
+
+register_test(test_phase_field_optimal
+  SOURCES test_phase_field_optimal.cc
+  FILES_TO_COPY material_optimal.dat test_optimal_damage.msh
   PACKAGE phase_field
   )
 

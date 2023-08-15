@@ -123,7 +123,7 @@ int main(int argc, char * argv[]) {
 
     error_energy = std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
 
-    if (error_damage > 1e-8 or error_stress > 1e-8 or error_damage > 1e-8) {
+    if (error_damage > 1e-8 or error_stress > 1e-8) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;
@@ -241,7 +241,7 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
         switch (spatial_dimension) {
         case 1: {
           auto & mat =
-              dynamic_cast<MaterialPhaseFieldAnisotropic<1> &>(material);
+              dynamic_cast<MaterialDamage<1> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
@@ -256,7 +256,7 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
         }
         case 2: {
           auto & mat =
-              dynamic_cast<MaterialPhaseFieldAnisotropic<2> &>(material);
+              dynamic_cast<MaterialDamage<2> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
