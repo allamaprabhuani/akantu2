@@ -29,7 +29,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "constitutive_law_non_local_interface.hh"
-#include "constitutive_law_selector_tmpl.hh"
+#include "constitutive_law_selector_tmpl.hh" // NOLINT(unused-includes)
 #include "constitutive_laws_handler.hh"
 #include "non_local_manager.hh"
 #include "parsable.hh"
@@ -204,7 +204,7 @@ auto & ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
                           << cl_name << "' has already been registered. "
                           << "Please use unique names for constitutive_laws");
 
-  UInt cl_count = constitutive_laws.size();
+  Int cl_count = constitutive_laws.size();
   constitutive_laws_names_to_id[cl_name] = cl_count;
 
   std::stringstream sstr_cl;
@@ -387,7 +387,7 @@ template <class ConstitutiveLawType, class Model_>
 void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     insertIntegrationPointsInNeighborhoods(GhostType ghost_type) {
   for (auto & cl : constitutive_laws) {
-    ConstitutiveLawNonLocalInterface * cl_non_local;
+    ConstitutiveLawNonLocalInterface * cl_non_local{nullptr};
     if ((cl_non_local = dynamic_cast<ConstitutiveLawNonLocalInterface *>(
              cl.get())) == nullptr) {
       continue;
@@ -469,7 +469,7 @@ Int ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getNbData(
   Int size{0};
 
   if (tag == SynchronizationTag::_constitutive_law_id) {
-    size += Int(elements.size()) * sizeof(Idx);
+    size += elements.size() * Int(sizeof(Idx));
   }
 
   if (tag != SynchronizationTag::_constitutive_law_id) {
@@ -614,7 +614,7 @@ ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::flattenInternal(
     const GhostType ghost_type) {
   auto key = std::make_pair(field_name, kind);
 
-  ElementTypeMapArray<T> * internal_flat;
+  ElementTypeMapArray<T> * internal_flat{nullptr};
 
   auto it = this->registered_internals.find(key);
   if (it == this->registered_internals.end()) {

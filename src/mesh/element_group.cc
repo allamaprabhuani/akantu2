@@ -94,16 +94,13 @@ void ElementGroup::append(const ElementGroup & other_group) {
 
   this->optimize();
 
+  this->release++;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-    ;
-  }
-
+  std::string space(indent, AKANTU_INDENT);
   stream << space << "ElementGroup ["
          << "\n";
   stream << space << " + name: " << name << "\n";
@@ -165,11 +162,13 @@ void ElementGroup::fillFromNodeGroup() {
   }
 
   this->optimize();
+  this->release++;
 }
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::addDimension(Int dimension) {
   this->dimension = std::max(dimension, this->dimension);
+  this->release++;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -197,6 +196,7 @@ void ElementGroup::onNodesAdded(const Array<Idx> & /*new_nodes*/,
       }
     }
     node_group.optimize();
+    this->release++;
   }
 #endif
 }

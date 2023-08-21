@@ -250,108 +250,29 @@ namespace dumper {
         entities.pop_back();
       }
 
-      // void dump(FieldElementMapArrayBase & field) override {
-      //   Int nb_components = -1;
-      //   auto && [elements, total_size] = field.size();
-      //   auto size = elements;
-      //   for (auto && type : field.elementTypes()) {
-      //     auto nb_new_components = field.getNbComponent(type);
-      //     if (nb_new_components != nb_components and nb_components != -1) {
-      //       nb_components = 1;
-      //       size = total_size;
-      //       break;
-      //     }
-      //     nb_components = nb_new_components;
-      //   }
-
-      //   field.addProperty("size", size);
-      //   field.addProperty("nb_components", nb_components);
-
-      //   auto data_set = createDataSet(field);
-
-      //   std::array<hsize_t, 2> start{0, 0};
-      //   std::array<hsize_t, 2> stride{1, 1};
-      //   std::array<hsize_t, 2> block{1, 1};
-
-      //   for (auto && type : field.elementTypes()) {
-      //     auto & array = field.array(type);
-
-      //     hsize_t asize =
-      //         (array.size() * array.getNbComponent()) / nb_components;
-      //     std::array<hsize_t, 2> dims{asize, hsize_t(nb_components)};
-
-      //     auto mem_space = std::make_unique<Entity>("",
-      //     EntityType::_dataspace); mem_space->id =
-      //     H5Screate_simple(dims.size(), dims.data(), nullptr);
-
-      //     auto file_space = H5Dget_space(data_set->id);
-      //     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start.data(),
-      //                         stride.data(), dims.data(), block.data());
-
-      //     AKANTU_DEBUG_INFO("HDF5: writing dataset " << data_set->path);
-      //     H5Dwrite(data_set->id, datatype_id_in(field.type()), mem_space->id,
-      //              file_space, H5P_DEFAULT, array.data());
-      //     start[0] += asize;
-      //   }
-      // }
-
-      // void dump(FieldConnectivity & field) {
-      //   auto && [total_element, total_size] = field.size();
-      //   total_size += total_element;
-
-      //   field.addProperty("nb_total_element", total_element);
-
-      //   Array<UInt> total_array(total_size);
-
-      //   UInt i{0};
-      //   for (auto && type : field.elementTypes()) {
-      //     auto && array = field.arrayTyped(type).getArray();
-      //     for (auto && connectivity :
-      //          make_view(array, array.getNbComponent())) {
-      //       total_array[i++] = aka_type_to_dumper_type.at(type);
-      //       for (auto && c : connectivity) {
-      //         total_array[i++] = c;
-      //       }
-      //     }
-      //   }
-
-      //   auto && connectivity_field = make_field(total_array,
-      //   field.getSupport()); connectivity_field->addProperty("name",
-      //                                   field.getProperty<std::string>("name"));
-      //   dump(*connectivity_field);
-
-      //   field.addProperty<int>("size", total_size);
-      //   field.addProperty<int>("nb_components", 1);
-
-      //   field.addProperty(
-      //       "hdf5_path",
-      //       connectivity_field->getProperty<std::string>("hdf5_path"));
-
-      //   // entities.pop_back();
-      // }
-
       void dump(Support<Mesh> & support) override {
+        auto & group = openGroup(support.getName());
+
         if (support.hasProperty("hdf5_release") and
             support.getRelease() == support.getProperty<Int>("hdf5_release")) {
           createSymlink(support.getName(),
                         support.getProperty<std::string>("hdf5_path"));
           entities.pop_back();
+        } else {
+          openGroup("topology");
+          support.addProperty("hdf5_path", group.path.generic_string());
+
+          openGroup("nodes");
+          auto && nodes = support.getNodes();
+          dump(nodes);
+          entities.pop_back();
+
+          auto && connectivities = support.getConnectivities();
+          dump(connectivities);
+          entities.pop_back();
+
+          support.addProperty("hdf5_release", support.getRelease());
         }
-
-        auto & group = openGroup(support.getName());
-        support.addProperty("hdf5_path", group.path.generic_string());
-
-        openGroup("nodes");
-        auto && nodes = support.getNodes();
-        dump(nodes);
-        entities.pop_back();
-
-        openGroup("elements");
-        auto && connectivities = support.getConnectivities();
-        dump(connectivities);
-        entities.pop_back();
-
-        support.addProperty("hdf5_release", support.getRelease());
 
         // auto && data_grp = Group(loc_id, path_ + "/data");
 
@@ -378,7 +299,20 @@ namespace dumper {
         support.addProperty("hdf5_path", group.path.generic_string());
         support.addProperty(
             "hdf5_file", parent_support.getProperty<std::string>("hdf5_file"));
-        dump(support.getElements());
+
+        if (support.hasProperty("hdf5_release") and
+            support.getRelease() == support.getProperty<Int>("hdf5_release")) {
+          createSymlink(support.getName(),
+                        support.getProperty<std::string>("hdf5_path"));
+          entities.pop_back();
+        } else {
+          openGroup("topology");
+          support.addProperty("hdf5_path", group.path.generic_string());
+          dump(support.getElements());
+          dump(support.getConnectivities());
+          entities.pop_back();
+          support.addProperty("hdf5_release", support.getRelease());
+        }
 
         for (auto && [_, field] : support.getFields()) {
           FileBase::dump(*field);

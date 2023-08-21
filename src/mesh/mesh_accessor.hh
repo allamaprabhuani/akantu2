@@ -39,14 +39,15 @@ class MeshAccessor {
   /* ------------------------------------------------------------------------ */
 public:
   explicit MeshAccessor(Mesh & mesh) : _mesh(mesh) {}
-  virtual ~MeshAccessor() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// get the global number of nodes
-  inline UInt getNbGlobalNodes() const { return this->_mesh.nb_global_nodes; }
+  [[nodiscard]] inline Int getNbGlobalNodes() const {
+    return this->_mesh.nb_global_nodes;
+  }
 
   /// set the global number of nodes
   inline void setNbGlobalNodes(Int nb_global_nodes) {
@@ -58,31 +59,37 @@ public:
 
   /// get a pointer to the nodes_global_ids Array<UInt> and create it if
   /// necessary
-  inline auto & getNodesGlobalIds() {
+  [[nodiscard]] inline auto & getNodesGlobalIds() {
     return this->_mesh.getNodesGlobalIdsPointer();
   }
 
   /// get a pointer to the nodes_type Array<Int> and create it if necessary
-  inline auto & getNodesFlags() { return this->_mesh.getNodesFlags(); }
+  [[nodiscard]] inline auto & getNodesFlags() {
+    return this->_mesh.getNodesFlags();
+  }
 
   /// get a pointer to the nodes_type Array<Int> and create it if necessary
-  inline void setNodePrank(UInt node, Int prank) {
+  inline void setNodePrank(Idx node, Int prank) {
     this->_mesh.nodes_prank[node] = prank;
   }
 
   /// get a pointer to the coordinates Array
-  inline auto & getNodes() { return this->_mesh.getNodesPointer(); }
+  [[nodiscard]] inline auto & getNodes() {
+    return this->_mesh.getNodesPointer();
+  }
 
   /// get a pointer to the coordinates Array
-  inline auto getNodesSharedPtr() { return this->_mesh.nodes; }
+  [[nodiscard]] inline auto getNodesSharedPtr() { return this->_mesh.nodes; }
 
   /// get the connectivities
-  inline auto & getConnectivities() { return this->_mesh.connectivities; }
+  [[nodiscard]] inline auto & getConnectivities() {
+    return this->_mesh.connectivities;
+  }
 
   /// get the connectivity Array for the given type and create it
   /// if necessary
-  inline auto & getConnectivity(ElementType type,
-                                GhostType ghost_type = _not_ghost) {
+  [[nodiscard]] inline auto &
+  getConnectivity(ElementType type, GhostType ghost_type = _not_ghost) {
     return this->_mesh.getConnectivityPointer(type, ghost_type);
   }
 
@@ -96,24 +103,24 @@ public:
   inline void resizeNodes(Int new_size) { this->getNodes().resize(new_size); }
 
   /// get the connectivity for the given element
-  inline decltype(auto) getConnectivity(const Element & element) {
+  [[nodiscard]] inline decltype(auto) getConnectivity(const Element & element) {
     return this->_mesh.getConnectivityNC(element);
   }
 
   /// get the ghost element counter
-  inline auto & getGhostsCounters(ElementType type,
-                                  GhostType ghost_type = _ghost) {
+  [[nodiscard]] inline auto & getGhostsCounters(ElementType type,
+                                                GhostType ghost_type = _ghost) {
     return this->_mesh.getGhostsCounters(type, ghost_type);
   }
 
   /// get the element_to_subelement Array for the given type and
   /// create it if necessary
-  inline auto & getElementToSubelement(ElementType type,
-                                       GhostType ghost_type = _not_ghost) {
+  [[nodiscard]] inline auto &
+  getElementToSubelement(ElementType type, GhostType ghost_type = _not_ghost) {
     return this->_mesh.getElementToSubelementPointer(type, ghost_type);
   }
 
-  inline decltype(auto)
+  [[nodiscard]] inline decltype(auto)
   getElementToSubelementNC(ElementType type,
                            GhostType ghost_type = _not_ghost) {
     return this->_mesh.getElementToSubelementNC(type, ghost_type);
@@ -155,31 +162,34 @@ public:
   }
 
   template <typename T>
-  inline auto & getData(const std::string & data_name, ElementType el_type,
-                        GhostType ghost_type = _not_ghost, Int nb_component = 1,
-                        bool size_to_nb_element = true,
-                        bool resize_with_parent = false) {
+  [[nodiscard]] inline auto &
+  getData(const std::string & data_name, ElementType el_type,
+          GhostType ghost_type = _not_ghost, Int nb_component = 1,
+          bool size_to_nb_element = true, bool resize_with_parent = false) {
     return this->_mesh.getDataPointer<T>(data_name, el_type, ghost_type,
                                          nb_component, size_to_nb_element,
                                          resize_with_parent);
   }
 
   /// get the node synchonizer
-  auto & getNodeSynchronizer() { return *this->_mesh.node_synchronizer; }
+  [[nodiscard]] auto & getNodeSynchronizer() {
+    return *this->_mesh.node_synchronizer;
+  }
 
   /// get the element synchonizer
-  auto & getElementSynchronizer() { return *this->_mesh.element_synchronizer; }
+  [[nodiscard]] auto & getElementSynchronizer() {
+    return *this->_mesh.element_synchronizer;
+  }
 
-  decltype(auto) updateGlobalData(NewNodesEvent & nodes_event,
-                                  NewElementsEvent & elements_event) {
+  [[nodiscard]] decltype(auto)
+  updateGlobalData(NewNodesEvent & nodes_event,
+                   NewElementsEvent & elements_event) {
     return this->_mesh.updateGlobalData(nodes_event, elements_event);
   }
 
   void registerGlobalDataUpdater(
       std::unique_ptr<MeshGlobalDataUpdater> && global_data_updater) {
-    this->_mesh.registerGlobalDataUpdater(
-        std::forward<std::unique_ptr<MeshGlobalDataUpdater>>(
-            global_data_updater));
+    this->_mesh.registerGlobalDataUpdater(std::move(global_data_updater));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -197,6 +207,12 @@ public:
   }
 
   void wipePeriodicInfo() { this->_mesh.wipePeriodicInfo(); }
+
+  auto & getRelease() { return this->_mesh.mesh_release; }
+  auto & getNodesRelease() { return this->_mesh.nodes_release; }
+  auto & getConnectivitiesRelease() {
+    return this->_mesh.connectivities_release;
+  }
 
 private:
   Mesh & _mesh;

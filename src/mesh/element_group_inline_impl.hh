@@ -25,8 +25,8 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-//#ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
-//#define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+// #ifndef AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
+// #define AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -73,6 +73,7 @@ inline void ElementGroup::addElement(ElementType elem_type, Idx elem_id,
   elements(elem_type, ghost_type).push_back(elem_id);
   this->dimension = Int(
       std::max(Int(this->dimension), Int(mesh.getSpatialDimension(elem_type))));
+  this->release++;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -115,4 +116,4 @@ ElementGroup::getElementsIterable(ElementType type,
 
 } // namespace akantu
 
-//#endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */
+// #endif /* AKANTU_ELEMENT_GROUP_INLINE_IMPL_HH_ */

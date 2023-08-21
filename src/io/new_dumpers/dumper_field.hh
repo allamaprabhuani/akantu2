@@ -46,7 +46,9 @@ namespace dumper {
     _node_array,
     _node_array_function,
     _element_map_array,
-    _element_map_array_function
+    _element_map_array_function,
+    _internal_field,
+    _internal_field_function,
   };
 
   /// Field interface
@@ -79,6 +81,12 @@ namespace dumper {
     auto type = field.getFieldType();
     return (type == FieldType::_element_map_array_function or
             type == FieldType::_element_map_array);
+  }
+
+  inline bool is_quadrature_points_field(const FieldBase & field) {
+    auto type = field.getFieldType();
+    return (type == FieldType::_internal_field_function or
+            type == FieldType::_internal_field);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -120,7 +128,8 @@ namespace dumper {
   class FieldFunctionNodeArray : public FieldNodeArrayBase {
   public:
     FieldFunctionNodeArray(const Array<T> & array_in,
-                           const SupportBase & support, Function && function)
+                           const SupportBase & support,
+                           Function && function) // NOLINT
         : FieldNodeArrayBase(support, typeid(T),
                              FieldType::_node_array_function),
           function(std::forward<Function>(function)), array_in(array_in) {
@@ -272,7 +281,7 @@ namespace dumper {
   public:
     FieldFunctionElementMapArray(ElementTypeMapArray<T> & map_array_in,
                                  const SupportBase & support,
-                                 Function && function)
+                                 Function && function) // NOLINT
         : FieldElementMapArrayBase(support, typeid(T),
                                    FieldType::_element_map_array_function),
           function(std::forward<Function>(function)),
@@ -318,7 +327,8 @@ namespace dumper {
     ConnectivityFunctor(const ElementTypeMapArray<Idx> & connectivities)
         : connectivities(connectivities) {}
 
-    Int getNbComponent(Int /*nb_component*/, ElementType type) const {
+    [[nodiscard]] Int getNbComponent(Int /*nb_component*/,
+                                     ElementType type) const {
       return connectivities(type).getNbComponent();
       // if (type == _segment_2 or type == _segment_3) {
       //   return nb_component + 2;

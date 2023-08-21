@@ -91,6 +91,7 @@ namespace dumper {
               ConnectivityFunctor(inner.getMesh().getConnectivities()))) {
       nodes->addProperty("name", "nodes");
       elements->addProperty("name", "elements");
+      connectivities->addProperty("name", "xdmf_connectivities");
 
       this->addProperty("name", inner.getName());
       this->addProperty("release", this->getRelease());
