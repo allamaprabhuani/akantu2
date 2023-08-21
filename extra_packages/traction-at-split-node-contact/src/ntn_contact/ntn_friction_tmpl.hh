@@ -70,7 +70,7 @@ template <template <class> class FrictionLaw, class Regularisation>
 void NTNFriction<FrictionLaw, Regularisation>::printself(std::ostream & stream,
                                                          int indent) const {
   AKANTU_DEBUG_IN();
-  std::string space(AKANTU_INDENT, indent);
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "NTNFriction [" << std::endl;
   FrictionLaw<Regularisation>::printself(stream, ++indent);

@@ -450,7 +450,7 @@ Int NTNBaseContact::getNodeIndex(Idx node) const {
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::printself(std::ostream & stream, int indent) const {
-  std::string space(AKANTU_INDENT, indent);
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "NTNBaseContact [" << std::endl;
   stream << space << " + id            : " << id << std::endl;

@@ -444,7 +444,7 @@ Int NTNContact::getNodeIndex(Idx node) const {
 /* -------------------------------------------------------------------------- */
 void NTNContact::printself(std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
-  std::string space(AKANTU_INDENT, indent);
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "NTNContact [" << std::endl;
   NTNBaseContact::printself(stream, indent);
