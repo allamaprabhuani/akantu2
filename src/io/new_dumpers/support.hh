@@ -28,6 +28,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "internal_field.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
@@ -41,6 +42,9 @@
 namespace akantu {
 namespace dumper {
   class FieldBase;
+  template <class T> class FieldNodeArrayTemplateBase;
+  template <class T> class FieldElementMapArrayTemplateBase;
+
   class VariableBase;
 
   enum class SupportType {
@@ -48,10 +52,21 @@ namespace dumper {
     _element_group,
   };
 
+  enum class FieldType {
+    _not_defined,
+    _node_array,
+    _node_array_function,
+    _element_map_array,
+    _element_map_array_function,
+    _internal_field,
+    _internal_field_function,
+  };
+
   /* ------------------------------------------------------------------------ */
   class PropertiesManager {
   public:
-    using Property = std::variant<Int, Real, std::string>;
+    using Property = std::variant<Int, Real, bool, std::string, FieldType,
+                                  std::tuple<ElementType, GhostType>>;
 
     PropertiesManager() = default;
     PropertiesManager(const PropertiesManager &) = default;
@@ -61,34 +76,45 @@ namespace dumper {
 
     virtual ~PropertiesManager() = default;
 
-    template <class T, std::enable_if_t<std::is_integral<T>::value> * = nullptr>
+    template <class T,
+              std::enable_if_t<std::is_integral_v<T> and
+                               not std::is_same_v<T, bool>> * = nullptr>
     void addProperty(const std::string & property, const T & value) {
       properties[property] = Int(value);
     }
 
     template <class T,
-              std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
+              std::enable_if_t<std::is_floating_point_v<T>> * = nullptr>
     void addProperty(const std::string & property, const T & value) {
       properties[property] = Real(value);
     }
 
-    void addProperty(const std::string & property, const std::string & value) {
+    template <class T,
+              std::enable_if_t<not((std::is_integral_v<T> and
+                                    not std::is_same_v<T, bool>) or
+                                   std::is_floating_point_v<T>)> * = nullptr>
+    void addProperty(const std::string & property, const T & value) {
       properties[property] = value;
     }
 
-    template <class T, std::enable_if_t<std::is_integral<T>::value> * = nullptr>
+    void removeProperty(const std::string & property) {
+      properties.erase(property);
+    }
+
+    template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
     [[nodiscard]] T getProperty(const std::string & property) const {
       return std::get<Int>(properties.at(property));
     }
 
     template <class T,
-              std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
+              std::enable_if_t<std::is_floating_point_v<T>> * = nullptr>
     [[nodiscard]] T getProperty(const std::string & property) const {
       return std::get<Real>(properties.at(property));
     }
 
     template <class T,
-              std::enable_if_t<std::is_same<T, std::string>::value> * = nullptr>
+              std::enable_if_t<not std::disjunction_v<
+                  std::is_integral<T>, std::is_floating_point<T>>> * = nullptr>
     [[nodiscard]] const T & getProperty(const std::string & property) const {
       return std::get<T>(properties.at(property));
     }
@@ -108,9 +134,9 @@ namespace dumper {
   /* ------------------------------------------------------------------------ */
   class SupportBase : public PropertiesManager {
   public:
-    using Fields = std::map<ID, std::unique_ptr<FieldBase>>;
-    using Variables = std::map<ID, std::unique_ptr<VariableBase>>;
-    using SubSupports = std::map<ID, std::unique_ptr<SupportBase>>;
+    using Fields = std::map<ID, std::shared_ptr<FieldBase>>;
+    using Variables = std::map<ID, std::shared_ptr<VariableBase>>;
+    using SubSupports = std::map<ID, std::shared_ptr<SupportBase>>;
 
     explicit SupportBase(SupportType type) : type(type) {}
 
@@ -120,13 +146,26 @@ namespace dumper {
     [[nodiscard]] inline const auto & getSubSupports() const;
     [[nodiscard]] inline const auto & getParentSupport() const;
 
-    inline void addField(const ID & id, std::unique_ptr<FieldBase> && field);
+    inline void addField(const ID & id, std::shared_ptr<FieldBase> && field);
 
+    template <class T> void addField(const ID & id, InternalField<T> & data);
     template <class T>
     void addField(const ID & id, ElementTypeMapArray<T> & data);
     template <class T> void addField(const ID & id, Array<T> & data);
 
     [[nodiscard]] decltype(auto) getFields() const { return (fields_); }
+
+    [[nodiscard]] decltype(auto) getField(const ID & field) const {
+      return fields_.at(field);
+    }
+
+    [[nodiscard]] decltype(auto) getField(const ID & field) {
+      return fields_.at(field);
+    }
+
+    [[nodiscard]] bool hasField(const ID & field) const {
+      return (fields_.find(field) != fields_.end());
+    }
 
   protected:
     Fields fields_;
@@ -159,6 +198,13 @@ namespace dumper {
     SupportElements & operator=(SupportElements &&) = default;
 
     virtual ~SupportElements() = default;
+
+    [[nodiscard]] auto & getNodes() const { return *nodes; }
+    [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
+
+  protected:
+    std::shared_ptr<FieldNodeArrayTemplateBase<Real>> nodes;
+    std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> connectivities;
   };
 
 } // namespace dumper

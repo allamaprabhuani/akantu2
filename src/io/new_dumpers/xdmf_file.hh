@@ -94,6 +94,22 @@ namespace dumper {
         AKANTU_EXCEPTION("Dim " << dim << " is not a recognized geometry");
       }
     }
+
+    std::tuple<Int, std::string>
+    xdmf_finite_element_function(ElementType type) {
+      std::unordered_map<ElementType, std::tuple<Int, std::string>> infos{
+          {_segment_2, {1, "interval"}},
+          {_segment_3, {2, "interval"}},
+          {_triangle_3, {1, "triangle"}},
+          {_triangle_6, {2, "triangle"}},
+          {_quadrangle_4, {1, "quadrilateral"}},
+          {_quadrangle_8, {2, "quadrilateral"}},
+          {_tetrahedron_4, {1, "tetrahedron"}},
+          {_tetrahedron_10, {2, "tetrahedron"}},
+          {_hexahedron_20, {1, "hexahedron"}},
+          {_hexahedron_8, {2, "hexahedron"}}};
+      return infos.at(type);
+    }
   } // namespace
 
   namespace XDMF {
@@ -174,7 +190,6 @@ namespace dumper {
 
       /* -------------------------------------------------------------------- */
       void dump() override {
-        // if (include) {
         auto count = support.getProperty<Int>("dump_count");
         *this << Tag("Grid")("CollectionType", "Spatial")(
             "GridType", "Collection")("Name", "model_" + std::to_string(count));
@@ -187,18 +202,6 @@ namespace dumper {
         FileBase::dump();
 
         *this << CloseTag{};
-        //   return;
-        // }
-
-        // auto count = support.getProperty<Int>("dump_count");
-        // auto include_path = getIncludeFilename(count);
-
-        // File xdmf_include(support, include_path, current_xdmf_path);
-        // xdmf_include.dump();
-
-        // auto sub_path =
-        //     fs::relative(include_path, fs::path(path).remove_filename());
-        // *this << Tag("xi:include", true)("href", sub_path.string());
       }
 
     private:
@@ -276,6 +279,10 @@ namespace dumper {
         case FieldType::_element_map_array: {
           return "Cell";
         }
+        case FieldType::_internal_field_function: /* FALLTHRU */
+        case FieldType::_internal_field: {
+          return "Other";
+        }
         default:
           AKANTU_EXCEPTION("Unknown field type");
         }
@@ -298,14 +305,63 @@ namespace dumper {
           }
           attribute_tag("Center",
                         field.getProperty<std::string>("data_location"));
+          if (field.hasProperty("finite_element_function")) {
+            auto [type, ghost_type] =
+                field.getProperty<std::tuple<ElementType, GhostType>>(
+                    "element_type");
+            auto [degree, family] = xdmf_finite_element_function(type);
 
-          // if (field.hasProperty("finite_element_function")) {
-          // }
+            // clang-format off
+            attribute_tag("ItemType", "FiniteElementFunction")
+                ("ElementFamily", "DG")
+                ("ElementDegree", degree)
+                ("ElementCell", family);
+            // clang-format on
+          }
+
           *this << attribute_tag;
+
+          if (field.hasProperty("finite_element_function")) {
+            auto [type, ghost_type] =
+                field.getProperty<std::tuple<ElementType, GhostType>>(
+                    "element_type");
+            auto & xdmf_connectivities =
+                aka::as_type<FieldElementMapArrayBase>(
+                    *field.getSupport().getField("xdmf_connectivities"))
+                .array(type, ghost_type);
+            if (xdmf_connectivities.hasProperty("xdmf_element") and
+                unchanged(xdmf_connectivities)) {
+              xi_include(xdmf_connectivities);
+            } else {
+              dump(xdmf_connectivities);
+            }
+          }
 
           this->dump(field);
 
           *this << CloseTag{};
+        }
+      }
+
+      void dumpAttribute(FieldBase & field_el, ElementType type,
+                         GhostType ghost_type = _not_ghost) {
+        auto & field = aka::as_type<FieldElementMapArrayBase>(field_el).array(
+            type, ghost_type);
+
+        if (field.hasProperty("xdmf_element") and unchanged(field)) {
+          xi_include(field, true);
+        } else {
+          auto name = field.getName();
+
+          if (is_quadrature_points_field(field_el)) {
+            field.addProperty("finite_element_function", true);
+          }
+
+          field.addProperty("element_type", std::pair{type, ghost_type});
+          field.addProperty("name", field_el.getName());
+          field.addProperty("data_location", attributeLocation(field_el));
+          dumpAttribute(field);
+          field.addProperty("name", name);
         }
       }
 
@@ -422,18 +478,7 @@ namespace dumper {
             continue;
           }
 
-          auto & f = aka::as_type<FieldElementMapArrayBase>(*field).array(
-              type, ghost_type);
-
-          if (f.hasProperty("xdmf_element") and unchanged(f)) {
-            xi_include(elements, true);
-          } else {
-            auto name = f.getName();
-            f.addProperty("name", field->getName());
-            f.addProperty("data_location", "Cell");
-            dumpAttribute(f);
-            f.addProperty("name", name);
-          }
+          dumpAttribute(*field, type, ghost_type);
         }
         *this << CloseTag{};
       }
@@ -446,13 +491,6 @@ namespace dumper {
             support.getFields().empty()) {
           xi_include(support);
         } else {
-          /* clang-format off */
-          // *this << Tag("Grid")
-          //     ("CollectionType", "Spatial")
-          //     ("GridType", "Collection")
-          //     ("Name", mesh_name);
-          /* clang-format on */
-
           support.addProperty("xdmf_path", currentXMFPath());
           support.addProperty("xdmf_element", currentXMFElement());
 
@@ -470,7 +508,11 @@ namespace dumper {
             // Geometry
             dumpGeometry(nodes);
             for (auto && [_, field] : support.getFields()) {
-              this->dumpAttribute(*field);
+              if (is_nodal_field(*field)) {
+                this->dumpAttribute(*field);
+              } else if (is_elemental_field(*field)) {
+                this->dumpAttribute(*field, type);
+              }
             }
 
             for (auto && [_, sub_support] : support.getSubSupports()) {
@@ -479,120 +521,8 @@ namespace dumper {
 
             *this << CloseTag{};
           }
-          //  *this << CloseTag{};
         }
       }
-
-      /* --------------------------------------------------------------------
-       */
-      // void dump(Support<Mesh> & support) override {
-      //   auto && mesh_name = support.getName();
-      //   auto && nodes = support.getNodes();
-
-      //   if (support.hasProperty("xdmf_element") and
-      //       support.getFields().empty()) {
-      //     xi_include(support);
-      //   } else {
-
-      //     /* clang-format off */
-      //     *this << Tag("Grid")
-      //         ("CollectionType", "Spatial")
-      //         ("GridType", "Collection")
-      //         ("Name", mesh_name);
-      //     /* clang-format on */
-
-      //     support.addProperty("xdmf_path", currentXMFPath());
-      //     support.addProperty("xdmf_element", currentXMFElement());
-
-      //     /* clang-format off */
-      //     *this << Tag("Grid")
-      //         ("Name", mesh_name)
-      //         ("GridType", "Uniform");
-      //     /* clang-format on */
-
-      //     // Topology
-      //     auto & connectivities = support.getConnectivities();
-      //     if (connectivities.hasProperty("xdmf_element")) {
-      //       xi_include(connectivities, true);
-      //     } else {
-      //       Int nb_elements{0};
-      //       if (connectivities.hasProperty("nb_elements")) {
-      //         nb_elements =
-      //         connectivities.getProperty<int>("nb_total_element");
-      //       } else {
-      //         nb_elements = connectivities.size().first;
-      //       }
-
-      //       /* clang-format off */
-      //       *this << Tag("Topology")
-      //           ("TopologyType", "Mixed")
-      //           ("NumberOfElements", nb_elements);
-      //       /* clang-format on */
-
-      //       dump(aka::as_type<FieldBase>(connectivities));
-      //       *this << CloseTag{};
-      //     }
-
-      //     // Geometry
-      //     if (nodes.hasProperty("xdmf_element")) {
-      //       xi_include(nodes, true);
-      //     } else {
-      //       *this << Tag("Geometry")(
-      //           "GeometryType",
-      //           xdmf_geometry(char(nodes.getNbComponent())));
-      //       dump(aka::as_type<FieldBase>(nodes));
-      //       *this << CloseTag{};
-      //     }
-
-      //     for (auto && [_, field] : support.getFields()) {
-      //       this->dumpAttribute(*field);
-      //     }
-
-      //     *this << CloseTag{};
-      //     *this << CloseTag{};
-      //   }
-
-      //   for (auto && support : support.getSubSupports()) {
-      //     this->dump(*support.second);
-      //   }
-      // }
-
-      // /*
-      // --------------------------------------------------------------------
-      // */ void dump(Support<ElementGroup> & support) override {
-      //   const auto & parent_support = support.getParentSupport();
-      //   fs::path xdmf_parent =
-      //       parent_support.getProperty<std::string>("xdmf_path");
-      //   auto parent_name = parent_support.getName();
-      //   auto name = parent_name + ":" + support.getName();
-
-      //   if (support.hasProperty("xdmf_element") and
-      //       support.getFields().empty()) {
-      //     xi_include(support);
-      //     return;
-      //   }
-
-      //   *this << Tag("Grid")("Name", name)("GridType", "Subset")("Section",
-      //                                                            "DataItem");
-
-      //   support.addProperty("xdmf_path", currentXMFPath());
-      //   support.addProperty("xdmf_element", currentXMFElement());
-      //   support.addProperty(
-      //       "xdmf_file",
-      //       parent_support.getProperty<std::string>("xdmf_file"));
-      //   auto & elements = support.getElements();
-      //   dump(elements);
-
-      //   *this << Tag("Grid")("Name", "Target")("Reference", "XML");
-      //   *this << xdmf_parent.generic_string() << "\n";
-      //   *this << CloseTag{};
-
-      //   for (auto && [_, field] : support.getFields()) {
-      //     this->dumpAttribute(*field);
-      //   }
-
-      //   *this << CloseTag{};
-      // }
 
       void dump(SupportBase & support) override { FileBase::dump(support); }
 

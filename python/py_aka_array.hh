@@ -35,9 +35,6 @@ namespace _aka = akantu;
 namespace akantu {
 namespace detail {
   template <class T> struct is_array_type : public std::false_type {};
-  // template <class T> struct is_array_type<Vector<T>> : public std::true_type
-  // {}; template <class T> struct is_array_type<Matrix<T>> : public
-  // std::true_type {};
   template <class T> struct is_array_type<Array<T>> : public std::true_type {};
 
   /* ------------------------------------------------------------------------ */

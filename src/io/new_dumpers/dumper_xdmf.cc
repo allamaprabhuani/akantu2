@@ -28,6 +28,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "dumper_xdmf.hh"
+#include "aka_types.hh"
 #include "support.hh"
 #include "xdmf_file.hh"
 /* -------------------------------------------------------------------------- */
@@ -38,6 +39,41 @@ namespace fs = std::filesystem;
 
 namespace akantu {
 
+struct XdmfConnectivityFunctor {
+  template <class Derived>
+  Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & connectivity,
+                         ElementType type) const {
+    Eigen::PermutationMatrix<Eigen::Dynamic> P(connectivity.size());
+    P.setIdentity();
+
+    auto & perm = P.indices();
+    switch (type) {
+    case _triangle_6:
+      perm[3] = 5;
+      perm[4] = 3;
+      perm[5] = 4;
+      break;
+    case _tetrahedron_10:
+      perm[4] = 9;
+      perm[5] = 6;
+      perm[6] = 8;
+      perm[7] = 7;
+      perm[8] = 5;
+      perm[9] = 4;
+      break;
+    case _quadrangle_4:
+      perm[2] = 3;
+      perm[3] = 2;
+      break;
+    default:
+      // nothing to change
+      break;
+    }
+
+    return P.transpose() * connectivity;
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 DumperXdmf::DumperXdmf(dumper::SupportBase & support) : DumperHDF5(support) {}
 
@@ -46,6 +82,26 @@ void DumperXdmf::dumpInternal() {
   if (time_activated) {
     support.addProperty("dump_count", count);
     support.addProperty("time", Real(count));
+  }
+
+  if (aka::is_of_type<dumper::Support<Mesh>>(support)) {
+    auto add_xdmf_connectivities_for_support = [](auto && support) {
+      if (not support.hasField("xdmf_connectivities")) {
+        auto xdmf_connectivities =
+            dumper::make_field(aka::as_type<dumper::SupportElements>(support)
+                                   .getConnectivities()
+                                   .getSharedPointer(),
+                               support, XdmfConnectivityFunctor());
+        xdmf_connectivities->addProperty("xdmf_ignore_field", true);
+        support.addField("xdmf_connectivities", xdmf_connectivities);
+      }
+    };
+
+    add_xdmf_connectivities_for_support(support);
+
+    for (auto && [_, sub_support] : support.getSubSupports()) {
+      add_xdmf_connectivities_for_support(*sub_support);
+    }
   }
 
   DumperHDF5::dumpInternal();

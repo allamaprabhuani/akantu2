@@ -626,13 +626,6 @@ template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
 [[nodiscard]] decltype(auto)
 as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
-  static_assert(
-      disjunction<
-          std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
-          std::is_base_of<std::decay_t<R>, std::decay_t<T>>  // up-cast
-          >::value,
-      "Type T and R are not valid for a as_type conversion");
-
   return dynamic_cast<std::add_lvalue_reference_t<
       std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
                          std::add_const_t<R>, R>>>(t);

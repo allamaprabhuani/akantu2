@@ -68,6 +68,10 @@ namespace dumper {
       case FieldType::_element_map_array_function:
         dump(aka::as_type<FieldElementMapArrayBase>(field));
         break;
+      case FieldType::_internal_field: /* FALLTHRU */
+      case FieldType::_internal_field_function:
+        dump(aka::as_type<FieldElementMapArrayBase>(field));
+        break;
       case FieldType::_not_defined: /* FALLTHRU */
       default:
         AKANTU_EXCEPTION("The field type is not properly defined");

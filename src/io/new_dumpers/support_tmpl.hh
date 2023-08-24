@@ -40,42 +40,37 @@
 
 namespace akantu {
 namespace dumper {
+
   /* ------------------------------------------------------------------------ */
   template <> class Support<Mesh> : public SupportBase, public SupportElements {
   public:
     using ElementTypesIteratorHelper =
         SupportElements::ElementTypesIteratorHelper;
 
-    explicit Support(Mesh & inner)
-        : SupportBase(SupportType::_mesh), inner(inner),
-          nodes(make_field(MeshAccessor(inner).getNodes(), *this)),
-          connectivities(
-              make_field(MeshAccessor(inner).getConnectivities(), *this)) {
+    explicit Support(Mesh & mesh)
+        : SupportBase(SupportType::_mesh), mesh(mesh) {
+
+      this->nodes = make_field(mesh.getNodes(), *this);
+      this->connectivities =
+          make_field(mesh.getConnectivities(), *this, toVTKConnectivity());
 
       nodes->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");
 
-      this->addProperty("name", inner.getID());
+      this->addProperty("name", mesh.getID());
       this->addProperty("release", this->getRelease());
     }
 
-    [[nodiscard]] FieldNodeArray<Real> & getNodes() const { return *nodes; }
-    [[nodiscard]] FieldConnectivity & getConnectivities() const {
-      return *connectivities;
-    };
-
     [[nodiscard]] ElementTypesIteratorHelper
     elementTypes(GhostType ghost_type = _not_ghost) const override {
-      return inner.elementTypes(inner.getSpatialDimension(), ghost_type,
-                                _ek_not_defined);
+      return mesh.elementTypes(mesh.getSpatialDimension(), ghost_type,
+                               _ek_not_defined);
     }
 
-    [[nodiscard]] Int getRelease() { return inner.getRelease(); }
+    [[nodiscard]] Int getRelease() { return mesh.getRelease(); }
 
   protected:
-    Mesh & inner;
-    std::unique_ptr<FieldNodeArray<Real>> nodes;
-    std::unique_ptr<FieldConnectivity> connectivities;
+    Mesh & mesh;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -84,11 +79,16 @@ namespace dumper {
   public:
     explicit Support(ElementGroup & inner)
         : SupportBase(SupportType::_element_group), inner(inner),
-          nodes(make_field(inner.getNodeGroup().getNodes(), *this)),
           elements(make_field(inner.getElements(), *this)),
-          connectivities(make_field(
-              inner.getElements(), *this,
-              ConnectivityFunctor(inner.getMesh().getConnectivities()))) {
+          nodes_list(make_field(inner.getNodeGroup().getNodes(), *this)) {
+
+      this->nodes =
+          make_field(inner.getNodeGroup().getNodes(), *this,
+                     ElementGroupNodesFunctor(inner.getMesh().getNodes()));
+      this->connectivities = make_field(
+          inner.getElements(), *this,
+          ElementGroupConnectivityFunctor(inner.getMesh().getConnectivities()));
+
       nodes->addProperty("name", "nodes");
       elements->addProperty("name", "elements");
       connectivities->addProperty("name", "xdmf_connectivities");
@@ -97,9 +97,7 @@ namespace dumper {
       this->addProperty("release", this->getRelease());
     }
 
-    [[nodiscard]] auto & getNodes() const { return *nodes; }
     [[nodiscard]] auto & getElements() const { return *elements; }
-    [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
 
     [[nodiscard]] ElementTypesIteratorHelper
     elementTypes(GhostType ghost_type = _not_ghost) const override {
@@ -117,10 +115,8 @@ namespace dumper {
 
   protected:
     ElementGroup & inner;
-    std::unique_ptr<FieldNodeArray<Idx>> nodes;
-    std::unique_ptr<FieldElementMapArray<Idx>> elements;
-    std::unique_ptr<FieldFunctionElementMapArray<Idx, ConnectivityFunctor>>
-        connectivities;
+    std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> elements;
+    std::shared_ptr<FieldNodeArrayTemplateBase<Idx>> nodes_list;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -138,12 +134,18 @@ namespace dumper {
 
   /* ------------------------------------------------------------------------ */
   void SupportBase::addField(const ID & id,
-                             std::unique_ptr<FieldBase> && field) {
+                             std::shared_ptr<FieldBase> && field) {
     field->addProperty("name", id);
     fields_.emplace(id, std::move(field));
   }
 
   /* ------------------------------------------------------------------------ */
+  template <class T>
+  void SupportBase::addField(const ID & id, InternalField<T> & data) {
+    auto && field = make_field(data, *this);
+    this->addField(id, std::move(field));
+  }
+
   template <class T>
   void SupportBase::addField(const ID & id, ElementTypeMapArray<T> & data) {
     auto && field = make_field(data, *this);
