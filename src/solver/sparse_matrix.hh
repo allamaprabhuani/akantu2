@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_release.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SPARSE_MATRIX_HH_
@@ -120,9 +121,9 @@ public:
   Int size() const { return size_; }
   AKANTU_GET_MACRO_AUTO(MatrixType, matrix_type);
 
-  virtual Int getRelease() const = 0;
-
   virtual Real min() = 0;
+
+  AKANTU_GET_MACRO_AUTO(Release, release);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -144,6 +145,9 @@ protected:
 
   /// number of non zero element
   Int nb_non_zero;
+
+  /// matrix release
+  Release release;
 };
 
 // Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);

@@ -93,7 +93,8 @@ void DumperXdmf::dumpInternal() {
                                    .getSharedPointer(),
                                support, XdmfConnectivityFunctor());
         xdmf_connectivities->addProperty("xdmf_ignore_field", true);
-        support.addField("xdmf_connectivities", xdmf_connectivities);
+        support.addField("xdmf_connectivities", xdmf_connectivities,
+                         dumper::FieldUsageType::_internal);
       }
     };
 

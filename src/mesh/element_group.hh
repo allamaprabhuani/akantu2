@@ -143,7 +143,10 @@ public:
   AKANTU_GET_MACRO_AUTO(Dimension, dimension);
   AKANTU_GET_MACRO_AUTO(Name, name);
   AKANTU_GET_MACRO_AUTO(Mesh, mesh);
-  AKANTU_GET_MACRO_AUTO(Release, release);
+
+  [[nodiscard]] inline Release getRelease() const {
+    return elements.getRelease();
+  }
 
   [[nodiscard]] inline Int getNbNodes() const;
 
@@ -168,8 +171,6 @@ private:
 
   /// empty arry for the iterator to work when an element type not present
   Array<Idx> empty_elements;
-
-  Int release{-1};
 };
 
 /// standard output stream operator

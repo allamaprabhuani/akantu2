@@ -118,7 +118,7 @@ template <typename T> void InternalField<T>::resize() {
       this->setArrayValues(vect.data() + old_size * vect.getNbComponent(),
                            vect.data() + new_size * vect.getNbComponent());
 
-      this->releases(type, ghost_type) += 1;
+      ++(this->getRelease(type, ghost_type));
     }
   }
 
@@ -140,7 +140,7 @@ template <typename T> void InternalField<T>::reset() {
       auto & vect = (*this)(type, ghost_type);
       this->setArrayValues(vect.data(),
                            vect.data() + vect.size() * vect.getNbComponent());
-      this->releases(type, ghost_type) += 1;
+      ++this->getRelease(type, ghost_type);
     }
   }
 }
@@ -156,11 +156,11 @@ void InternalField<T>::internalInitialize(Int nb_component) {
     return;
   }
 
-  for (auto ghost_type : ghost_types) {
-    for (const auto & type : this->filterTypes(ghost_type)) {
-      this->releases(type, ghost_type) = -1;
-    }
-  }
+  // for (auto ghost_type : ghost_types) {
+  //   for (const auto & type : this->filterTypes(ghost_type)) {
+  //     --(this->getRelease(type, ghost_type));
+  //   }
+  // }
 
   ElementTypeMapArray<T>::initialize(
       fem, _element_filter = &element_filter, _element_kind = element_kind,

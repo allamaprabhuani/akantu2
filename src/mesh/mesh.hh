@@ -535,7 +535,8 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(Communicator, communicator);
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Communicator, communicator);
   AKANTU_GET_MACRO_AUTO(PeriodicMasterSlaves, periodic_master_slave);
-  AKANTU_GET_MACRO(Release, mesh_release, Int);
+
+  AKANTU_GET_MACRO_AUTO(Release, release);
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
@@ -660,14 +661,8 @@ private:
   std::unordered_map<Idx, Idx> periodic_slave_master;
   std::unordered_multimap<Idx, Idx> periodic_master_slave;
 
-  /// nodes release
-  Int nodes_release{0};
-
-  /// connectivities release
-  Int connectivities_release{0};
-
   /// mesh release
-  Int mesh_release{0};
+  Release release;
 };
 
 /// standard output stream operator

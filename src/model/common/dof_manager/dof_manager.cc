@@ -38,13 +38,16 @@ namespace akantu {
 DOFManager::DOFManager(const ID & id)
     : id(id), dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
-      communicator(Communicator::getStaticCommunicator()) {}
+      communicator(Communicator::getStaticCommunicator()) {
+  ++this->global_blocked_dofs.getRelease();
+}
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(Mesh & mesh, const ID & id)
     : id(id), mesh(&mesh), dofs_flag(0, 1, std::string(id + ":dofs_type")),
       global_equation_number(0, 1, "global_equation_number"),
       communicator(mesh.getCommunicator()) {
+  ++this->global_blocked_dofs.getRelease();
   this->mesh->registerEventHandler(*this, _ehp_dof_manager);
 }
 
@@ -942,8 +945,8 @@ void DOFManager::onElementsChanged(const Array<Element> &,
 void DOFManager::updateGlobalBlockedDofs() {
   this->previous_global_blocked_dofs.copy(this->global_blocked_dofs);
   this->global_blocked_dofs.reserve(this->local_system_size, 0);
-  this->previous_global_blocked_dofs_release =
-      this->global_blocked_dofs_release;
+  this->previous_global_blocked_dofs.getRelease() =
+      this->global_blocked_dofs.getRelease();
 
   for (auto & pair : dofs) {
     if (not this->hasBlockedDOFs(pair.first)) {
@@ -972,7 +975,7 @@ void DOFManager::updateGlobalBlockedDofs() {
                  previous_global_blocked_dofs.begin());
 
   if (not are_equal) {
-    ++this->global_blocked_dofs_release;
+    ++this->global_blocked_dofs.getRelease();
   }
 }
 
@@ -991,8 +994,8 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
   }
 
   this->jacobian_release = J.getRelease();
-  this->previous_global_blocked_dofs_release =
-      this->global_blocked_dofs_release;
+  this->previous_global_blocked_dofs.getRelease() =
+      this->global_blocked_dofs.getRelease();
 }
 
 /* -------------------------------------------------------------------------- */

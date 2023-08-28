@@ -42,10 +42,32 @@
 namespace akantu {
 namespace dumper {
   class FieldBase;
-  template <class T> class FieldNodeArrayTemplateBase;
+  template <class T> class FieldArrayTemplateBase;
   template <class T> class FieldElementMapArrayTemplateBase;
 
   class VariableBase;
+
+  // clang-format off
+  enum class FieldUsageType : uint8_t {
+    _internal      = 0b10000000,
+    _restart       = 0b00000001,
+    _visualisation = 0b00000010
+  };
+  // clang-format on
+
+  /// Bit-wise operator between access modes
+  inline FieldUsageType operator|(const FieldUsageType & a,
+                                  const FieldUsageType & b) {
+    using ut = std::underlying_type_t<FieldUsageType>;
+    auto tmp = FieldUsageType(ut(a) | ut(b));
+    return tmp;
+  }
+
+  inline bool operator&(const FieldUsageType & a, const FieldUsageType & b) {
+    using ut = std::underlying_type_t<FieldUsageType>;
+    auto tmp = FieldUsageType(ut(a) & ut(b));
+    return ut(tmp) != 0;
+  }
 
   enum class SupportType {
     _mesh,
@@ -65,8 +87,9 @@ namespace dumper {
   /* ------------------------------------------------------------------------ */
   class PropertiesManager {
   public:
-    using Property = std::variant<Int, Real, bool, std::string, FieldType,
-                                  std::tuple<ElementType, GhostType>>;
+    using Property =
+        std::variant<Int, Real, bool, std::string, FieldType, FieldUsageType,
+                     std::tuple<ElementType, GhostType>, Release>;
 
     PropertiesManager() = default;
     PropertiesManager(const PropertiesManager &) = default;
@@ -127,6 +150,8 @@ namespace dumper {
       return getProperty<std::string>("name");
     }
 
+    [[nodiscard]] virtual Release getRelease() const { return Release(); }
+
   private:
     std::map<std::string, Property> properties;
   };
@@ -146,12 +171,21 @@ namespace dumper {
     [[nodiscard]] inline const auto & getSubSupports() const;
     [[nodiscard]] inline const auto & getParentSupport() const;
 
-    inline void addField(const ID & id, std::shared_ptr<FieldBase> && field);
+    inline void addField(const ID & id,
+                         const std::shared_ptr<FieldBase> & field,
+                         FieldUsageType usage = FieldUsageType::_visualisation);
 
-    template <class T> void addField(const ID & id, InternalField<T> & data);
-    template <class T>
-    void addField(const ID & id, ElementTypeMapArray<T> & data);
-    template <class T> void addField(const ID & id, Array<T> & data);
+    template <class Cont,
+              std::enable_if_t<not std::is_convertible_v<
+                  std::decay_t<Cont>, std::shared_ptr<FieldBase>>> * = nullptr>
+    inline void addField(const ID & id, Cont && data,
+                         FieldUsageType usage = FieldUsageType::_visualisation);
+
+    template <class Cont, class Func,
+              std::enable_if_t<not std::is_convertible_v<
+                  std::decay_t<Cont>, std::shared_ptr<FieldBase>>> * = nullptr>
+    inline void addField(const ID & id, Cont && data, Func && func,
+                         FieldUsageType usage = FieldUsageType::_visualisation);
 
     [[nodiscard]] decltype(auto) getFields() const { return (fields_); }
 
@@ -202,8 +236,13 @@ namespace dumper {
     [[nodiscard]] auto & getNodes() const { return *nodes; }
     [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
 
+    [[nodiscard]] virtual Int getNbNodes() const = 0;
+    [[nodiscard]] virtual Int
+    getNbElements(const ElementType & type,
+                  const GhostType & ghost_type = _not_ghost) const = 0;
+
   protected:
-    std::shared_ptr<FieldNodeArrayTemplateBase<Real>> nodes;
+    std::shared_ptr<FieldArrayTemplateBase<Real>> nodes;
     std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> connectivities;
   };
 

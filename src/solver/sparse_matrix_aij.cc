@@ -75,7 +75,7 @@ void SparseMatrixAIJ::applyBoundary(Real block_val) {
     }
   }
 
-  this->value_release++;
+  ++this->release;
 
   AKANTU_DEBUG_OUT();
 }
@@ -219,7 +219,7 @@ void SparseMatrixAIJ::copyContent(const SparseMatrix & matrix) {
                       "The to matrix don't have the same profiles");
   memcpy(a.data(), mat.getA().data(), nb_non_zero * sizeof(Real));
 
-  this->value_release++;
+  ++this->release;
 
   AKANTU_DEBUG_OUT();
 }
@@ -235,11 +235,8 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
 
   this->irn_jcn_k.clear();
 
-  Idx i;
-  Idx j;
-  Idx k;
   for (auto && data : enumerate(irn, jcn)) {
-    std::tie(k, i, j) = data;
+    auto && [k, i, j] = data;
 
     this->irn_jcn_k[this->key(i - 1, j - 1)] = k;
   }
@@ -251,17 +248,14 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
   this->size_ = A.size_;
 
   this->profile_release = A.profile_release;
-  this->value_release++;
+  ++this->release++;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class MatrixType>
 void SparseMatrixAIJ::addMeToTemplated(MatrixType & B, Real alpha) const {
-  Idx i;
-  Idx j;
-  Real A_ij;
   for (auto && tuple : zip(irn, jcn, a)) {
-    std::tie(i, j, A_ij) = tuple;
+    auto && [i, j, A_ij] = tuple;
     B.add(i - 1, j - 1, alpha * A_ij);
   }
 }
@@ -280,14 +274,14 @@ void SparseMatrixAIJ::addMeTo(SparseMatrix & B, Real alpha) const {
 /* -------------------------------------------------------------------------- */
 void SparseMatrixAIJ::mul(Real alpha) {
   this->a *= alpha;
-  this->value_release++;
+  ++this->release;
 }
 
 /* -------------------------------------------------------------------------- */
 void SparseMatrixAIJ::set(Real val) {
   a.set(val);
 
-  this->value_release++;
+  ++this->release;
 }
 
 /* -------------------------------------------------------------------------- */

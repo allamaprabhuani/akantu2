@@ -173,7 +173,9 @@ public:
 
   AKANTU_GET_MACRO_AUTO(DOFName, dof_name);
 
-  AKANTU_GET_MACRO_AUTO(DiffusionRelease, diffusion_release);
+  [[nodiscard]] Int getDiffusionRelease() const {
+    return diffusion->getRelease();
+  }
 
   /// get the energy denominated by thermal
   Real getEnergy(const ID & energy_id, const Element & element);
@@ -210,7 +212,6 @@ private:
 
   bool need_to_reassemble_capacity{true};
   bool need_to_reassemble_capacity_lumped{true};
-  Int diffusion_release{-1};
 };
 
 } // namespace akantu

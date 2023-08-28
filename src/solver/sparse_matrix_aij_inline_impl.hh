@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "sparse_matrix_aij.hh"
+// #include "sparse_matrix_aij.hh"
 
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_SPARSE_MATRIX_AIJ_INLINE_IMPL_HH_
@@ -51,8 +51,8 @@ inline Idx SparseMatrixAIJ::add(Idx i, Idx j) {
 
   (this->nb_non_zero)++;
 
-  this->profile_release++;
-  this->value_release++;
+  ++this->profile_release;
+  ++this->release;
 
   return (this->nb_non_zero - 1);
 }
@@ -70,8 +70,8 @@ inline void SparseMatrixAIJ::clearProfile() {
   this->size_ = 0;
   this->nb_non_zero = 0;
 
-  this->profile_release++;
-  this->value_release++;
+  ++this->profile_release;
+  ++this->release;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,7 +80,7 @@ inline void SparseMatrixAIJ::add(Idx i, Idx j, Real value) {
 
   this->a(idx) += value;
 
-  this->value_release++;
+  ++this->release;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -103,7 +103,7 @@ inline Real & SparseMatrixAIJ::operator()(Idx i, Idx j) {
                                          << ") does not exist in the profile");
 
   // it may change the profile so it is considered as a change
-  this->value_release++;
+  ++this->release;
 
   return this->a(irn_jcn_k_it->second);
 }

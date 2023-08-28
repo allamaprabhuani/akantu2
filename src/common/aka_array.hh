@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_release.hh"
 #include "aka_types.hh"
 #include "aka_view_iterators.hh"
 /* -------------------------------------------------------------------------- */
@@ -79,6 +80,9 @@ public:
   /// Set the name of th array
   AKANTU_SET_MACRO(ID, id, const ID &);
 
+  AKANTU_GET_MACRO_AUTO(Release, release);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Release, release);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -91,6 +95,9 @@ protected:
 
   /// number of components
   Int nb_component{1};
+
+  /// release if needed
+  Release release;
 };
 
 /* -------------------------------------------------------------------------- */

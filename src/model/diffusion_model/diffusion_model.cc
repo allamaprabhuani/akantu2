@@ -119,9 +119,9 @@ void DiffusionModel::assembleResidual() {
 }
 
 /* -------------------------------------------------------------------------- */
-void DiffusionModel::predictor() { ++diffusion_release; }
+void DiffusionModel::predictor() { ++(this->diffusion->getRelease()); }
 /* -------------------------------------------------------------------------- */
-void DiffusionModel::corrector() { ++diffusion_release; }
+void DiffusionModel::corrector() { ++(this->diffusion->getRelease()); }
 
 /* -------------------------------------------------------------------------- */
 void DiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,

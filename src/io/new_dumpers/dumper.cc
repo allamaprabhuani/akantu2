@@ -58,6 +58,16 @@ void Dumper::dump() {
     fs::create_directories(path);
   }
 
+  for (auto && [_, field] : support.getFields()) {
+    field->update();
+  }
+
+  for (auto && [_, sub_support] : support.getSubSupports()) {
+    for (auto && [_, field] : sub_support->getFields()) {
+      field->update();
+    }
+  }
+
   dumpInternal();
   if (time_activated) {
     ++count;

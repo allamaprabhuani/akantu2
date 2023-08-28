@@ -190,6 +190,7 @@ void SolidMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
   /* ------------------------------------------------------------------------ */
   // for alloc type of solvers
   this->allocNodalField(this->displacement, spatial_dimension, "displacement");
+  ++displacement->getRelease(); // to acticate the release
   this->allocNodalField(this->previous_displacement, spatial_dimension,
                         "previous_displacement");
   this->allocNodalField(this->displacement_increment, spatial_dimension,
@@ -201,6 +202,7 @@ void SolidMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
   this->allocNodalField(this->blocked_dofs, spatial_dimension, "blocked_dofs");
   this->allocNodalField(this->current_position, spatial_dimension,
                         "current_position");
+  ++current_position->getRelease(); // to acticate the release
 
   // initialize the current positions
   this->current_position->copy(this->mesh.getNodes());
@@ -320,10 +322,10 @@ void SolidMechanicsModel::afterSolveStep(bool converged) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::predictor() { ++displacement_release; }
+void SolidMechanicsModel::predictor() { ++displacement->getRelease(); }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::corrector() { ++displacement_release; }
+void SolidMechanicsModel::corrector() { ++displacement->getRelease(); }
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -397,7 +399,8 @@ void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
-  if (this->current_position_release == this->displacement_release) {
+  if (this->current_position->getRelease() ==
+      this->displacement->getRelease()) {
     return;
   }
 
@@ -408,7 +411,7 @@ void SolidMechanicsModel::updateCurrentPosition() {
     std::get<0>(data) += std::get<1>(data);
   }
 
-  this->current_position_release = this->displacement_release;
+  this->current_position->getRelease() = this->displacement->getRelease();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -663,7 +666,7 @@ void SolidMechanicsModel::onNodesAdded(const Array<Idx> & nodes_list,
 
   if (displacement) {
     displacement->resize(nb_nodes, 0.);
-    ++displacement_release;
+    ++displacement->getRelease();
   }
   if (mass) {
     mass->resize(nb_nodes, 0.);
@@ -709,7 +712,7 @@ void SolidMechanicsModel::onNodesRemoved(const Array<Idx> & /*element_list*/,
                                          const RemovedNodesEvent & /*event*/) {
   if (displacement) {
     mesh.removeNodesFromArray(*displacement, new_numbering);
-    ++displacement_release;
+    ++displacement->getRelease();
   }
   if (mass) {
     mesh.removeNodesFromArray(*mass, new_numbering);

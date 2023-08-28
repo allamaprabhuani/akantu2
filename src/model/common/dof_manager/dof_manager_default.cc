@@ -433,8 +433,8 @@ void DOFManagerDefault::resizeGlobalArrays() {
 void DOFManagerDefault::updateGlobalBlockedDofs() {
   DOFManager::updateGlobalBlockedDofs();
 
-  if (this->global_blocked_dofs_release ==
-      this->previous_global_blocked_dofs_release) {
+  if (this->global_blocked_dofs.getRelease() ==
+      this->previous_global_blocked_dofs.getRelease()) {
     return;
   }
 
@@ -456,14 +456,14 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
-static bool dof_manager_is_registered =
+const bool dof_manager_is_registered [[maybe_unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);
         });
 
-static bool dof_manager_is_registered_mumps =
+const bool dof_manager_is_registered_mumps [[maybe_unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "mumps", [](Mesh & mesh, const ID & id) -> std::unique_ptr<DOFManager> {
           return std::make_unique<DOFManagerDefault>(mesh, id);

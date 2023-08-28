@@ -60,6 +60,11 @@ Mesh::Mesh(Int spatial_dimension, const ID & id, Communicator & communicator)
       bbox_local(spatial_dimension), communicator(&communicator) {
   AKANTU_DEBUG_IN();
   size.fill(0.);
+
+  // Stating that this class will use the releases
+  ++this->connectivities.getRelease();
+  ++this->release;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -72,6 +77,7 @@ Mesh::Mesh(Int spatial_dimension, Communicator & communicator, const ID & id)
       std::make_shared<Array<Real>>(0, spatial_dimension, id + ":coordinates");
   this->nodes_flags = std::make_shared<Array<NodeFlag>>(0, 1, NodeFlag::_normal,
                                                         id + ":nodes_flags");
+  ++this->nodes->getRelease();
 
   AKANTU_DEBUG_OUT();
 }
@@ -86,6 +92,8 @@ Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
     : Mesh(spatial_dimension, id, Communicator::getStaticCommunicator()) {
   // NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   this->nodes = nodes;
+  ++this->nodes->getRelease();
+
   this->nb_global_nodes = this->nodes->size();
   // NOLINTEND(cppcoreguidelines-prefer-member-initializer)
   //
@@ -109,8 +117,8 @@ void Mesh::sendEvent<MeshIsDistributedEvent>(MeshIsDistributedEvent & event) {
 
 /* -------------------------------------------------------------------------- */
 template <> void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
-  this->nodes_release++;
-  this->mesh_release++;
+  ++this->nodes->getRelease();
+  ++this->release;
 
   this->computeBoundingBox();
   this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);

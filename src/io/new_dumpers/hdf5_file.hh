@@ -190,6 +190,12 @@ namespace dumper {
       }
 
     private:
+      template <class T> bool unchanged(const T & t) {
+        return (t.hasProperty("hdf5_release") and
+                t.getRelease() ==
+                    t.template getProperty<Release>("hdf5_release"));
+      }
+
       auto createDataSet(FieldBase & field) {
         auto & group = *entities.back();
         auto data_set =
@@ -223,7 +229,7 @@ namespace dumper {
       }
 
     protected:
-      void dump(FieldNodeArrayBase & field) override {
+      void dump(FieldArrayBase & field) override {
         field.addProperty("size", field.size());
         field.addProperty("nb_components", field.getNbComponent());
 
@@ -232,9 +238,18 @@ namespace dumper {
         AKANTU_DEBUG_INFO("HDF5: writing dataset " << data_set->path);
         H5Dwrite(data_set->id, datatype_id_in(field.type()), H5S_ALL, H5S_ALL,
                  H5P_DEFAULT, field.data());
+
+        field.addProperty("hdf5_release", field.getRelease());
       }
 
       void dump(FieldElementMapArrayBase & field) override {
+        if (unchanged(field)) {
+          createSymlink(field.getName(),
+                        field.getProperty<std::string>("hdf5_path"));
+          entities.pop_back();
+          return;
+        }
+
         auto && group = openGroup(field.getName());
         field.addProperty("hdf5_path", group.path.generic_string());
 
@@ -246,21 +261,20 @@ namespace dumper {
           }
           dump(array);
         }
-
+        field.addProperty("hdf5_release", field.getRelease());
         entities.pop_back();
       }
 
       void dump(Support<Mesh> & support) override {
-        auto & group = openGroup(support.getName());
+        openGroup(support.getName());
 
-        if (support.hasProperty("hdf5_release") and
-            support.getRelease() == support.getProperty<Int>("hdf5_release")) {
-          createSymlink(support.getName(),
+        if (unchanged(support)) {
+          createSymlink("topology",
                         support.getProperty<std::string>("hdf5_path"));
           entities.pop_back();
         } else {
-          openGroup("topology");
-          support.addProperty("hdf5_path", group.path.generic_string());
+          auto & topology = openGroup("topology");
+          support.addProperty("hdf5_path", topology.path.generic_string());
 
           openGroup("nodes");
           auto && nodes = support.getNodes();
@@ -295,19 +309,19 @@ namespace dumper {
 
       void dump(Support<ElementGroup> & support) override {
         const auto & parent_support = support.getParentSupport();
-        auto & group = openGroup(support.getName());
-        support.addProperty("hdf5_path", group.path.generic_string());
-        support.addProperty(
-            "hdf5_file", parent_support.getProperty<std::string>("hdf5_file"));
+        openGroup(support.getName());
 
-        if (support.hasProperty("hdf5_release") and
-            support.getRelease() == support.getProperty<Int>("hdf5_release")) {
-          createSymlink(support.getName(),
+        if (unchanged(support)) {
+          createSymlink("topology",
                         support.getProperty<std::string>("hdf5_path"));
           entities.pop_back();
         } else {
-          openGroup("topology");
-          support.addProperty("hdf5_path", group.path.generic_string());
+          support.addProperty(
+              "hdf5_file",
+              parent_support.getProperty<std::string>("hdf5_file"));
+
+          auto & topology = openGroup("topology");
+          support.addProperty("hdf5_path", topology.path.generic_string());
           dump(support.getElements());
           dump(support.getConnectivities());
           entities.pop_back();

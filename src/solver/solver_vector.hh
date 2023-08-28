@@ -50,21 +50,21 @@ public:
 
   virtual operator const Array<Real> &() const = 0;
 
-  virtual Int size() const = 0;
-  virtual Int localSize() const = 0;
+  [[nodiscard]] virtual Int size() const = 0;
+  [[nodiscard]] virtual Int localSize() const = 0;
 
   virtual SolverVector & operator+(const SolverVector & y) = 0;
   virtual SolverVector & copy(const SolverVector & y) = 0;
 
-  Int & release() { return release_; }
-  Int release() const { return release_; }
+  Release & release() { return release_; }
+  [[nodiscard]] Release release() const { return release_; }
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
-  virtual bool isFinite() const = 0;
+  [[nodiscard]] virtual bool isFinite() const = 0;
 
   /// Returns `true` if `*this` is distributed or not.
-  virtual bool isDistributed() const { return false; }
+  [[nodiscard]] virtual bool isDistributed() const { return false; }
 
 protected:
   ID id;
@@ -72,7 +72,7 @@ protected:
   /// Underlying dof manager
   DOFManager & _dof_manager;
 
-  Int release_{0};
+  Release release_{0};
 };
 
 inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {

@@ -75,8 +75,8 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
   this->fillNodesToElements();
-  this->connectivities_release++;
-  this->mesh_release++;
+  ++this->connectivities.getRelease();
+  ++this->release;
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
@@ -84,8 +84,8 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
 template <>
 inline void
 Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
-  this->connectivities_release++;
-  this->mesh_release++;
+  ++this->connectivities.getRelease();
+  ++this->release;
 
   this->connectivities.onElementsRemoved(event.getNewNumbering());
   this->fillNodesToElements();
@@ -97,8 +97,8 @@ Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
-  this->nodes_release++;
-  this->mesh_release++;
+  ++this->nodes->getRelease();
+  ++this->release;
 
   const auto & new_numbering = event.getNewNumbering();
   this->removeNodesFromArray(*nodes, new_numbering);

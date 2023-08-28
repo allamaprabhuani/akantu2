@@ -142,8 +142,7 @@ public:
   /// it in increasing but could overflow so it should be checked as
   /// (my_release != release) and not as (my_release < release)
   AKANTU_GET_MACRO_AUTO(ProfileRelease, profile_release);
-  AKANTU_GET_MACRO_AUTO(ValueRelease, value_release);
-  Int getRelease() const override { return value_release; }
+  AKANTU_GET_MACRO_AUTO(ValueRelease, release);
 
 protected:
   using KeyCOO = std::pair<Idx, Idx>;
@@ -173,10 +172,7 @@ private:
   Array<Real> a;
 
   /// Profile release
-  Int profile_release{1};
-
-  /// Value release
-  Int value_release{1};
+  Release profile_release;
 
   /// map for (i, j) ->  k correspondence
   coordinate_list_map irn_jcn_k;

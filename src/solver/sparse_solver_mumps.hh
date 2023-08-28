@@ -113,10 +113,10 @@ private:
   Int prank;
 
   /// matrix release at last solve
-  Int last_profile_release{-1};
+  Release last_profile_release;
 
   /// matrix release at last solve
-  Int last_value_release{-1};
+  Release last_value_release;
 
   /// check if the solver data are initialized
   bool is_initialized{false};

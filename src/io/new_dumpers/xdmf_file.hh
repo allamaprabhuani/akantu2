@@ -281,7 +281,7 @@ namespace dumper {
         }
         case FieldType::_internal_field_function: /* FALLTHRU */
         case FieldType::_internal_field: {
-          return "Other";
+          return "Cell";
         }
         default:
           AKANTU_EXCEPTION("Unknown field type");
@@ -328,7 +328,7 @@ namespace dumper {
             auto & xdmf_connectivities =
                 aka::as_type<FieldElementMapArrayBase>(
                     *field.getSupport().getField("xdmf_connectivities"))
-                .array(type, ghost_type);
+                    .array(type, ghost_type);
             if (xdmf_connectivities.hasProperty("xdmf_element") and
                 unchanged(xdmf_connectivities)) {
               xi_include(xdmf_connectivities);
@@ -353,9 +353,9 @@ namespace dumper {
         } else {
           auto name = field.getName();
 
-          if (is_quadrature_points_field(field_el)) {
-            field.addProperty("finite_element_function", true);
-          }
+          // if (is_quadrature_points_field(field_el)) {
+          //   field.addProperty("finite_element_function", true);
+          // }
 
           field.addProperty("element_type", std::pair{type, ghost_type});
           field.addProperty("name", field_el.getName());
@@ -369,11 +369,12 @@ namespace dumper {
       void dump(FieldBase & field) override { FileBase::dump(field); }
 
       /* -------------------------------------------------------------------- */
-      void dump(FieldNodeArrayBase & field) override {
+      void dump(FieldArrayBase & field) override {
         auto && support = field.getSupport();
         auto && tag = Tag("DataItem");
 
-        if (field.hasProperty("xdmf_element") and unchanged(field)) {
+        if (field.hasProperty("xdmf_element") and unchanged(field) and
+            not field.hasProperty("xdmf_no_link")) {
           xi_include(field);
         } else if (field.hasProperty("hdf5_path")) {
           auto && dims =
@@ -409,7 +410,7 @@ namespace dumper {
 
       void dump(FieldElementMapArrayBase & /*field*/) override {}
 
-      void dumpTopology(FieldNodeArrayBase & connectivities, ElementType type) {
+      void dumpTopology(FieldArrayBase & connectivities, ElementType type) {
         if (connectivities.hasProperty("xdmf_element")) {
           xi_include(connectivities, true);
         } else {
@@ -425,7 +426,7 @@ namespace dumper {
         }
       }
 
-      void dumpGeometry(FieldNodeArrayBase & nodes) {
+      void dumpGeometry(FieldArrayBase & nodes) {
         if (nodes.hasProperty("xdmf_element")) {
           xi_include(nodes, true);
         } else {
@@ -449,7 +450,7 @@ namespace dumper {
         Int nb_fields{};
         bool fields_unchanged = true;
         for (auto && [_, field] : support.getFields()) {
-          if (is_elemental_field(*field)) {
+          if (field->is_elemental_field()) {
             nb_fields++;
             fields_unchanged &= unchanged(*field);
           }
@@ -471,13 +472,17 @@ namespace dumper {
             ("Name", support.getName() + ":" + std::to_string(type))
             ("SetType", "Cell");
         /* clang-format on */
+        elements.addProperty("xdmf_no_link", true);
         dump(elements);
 
         for (auto && [_, field] : support.getFields()) {
-          if (not is_elemental_field(*field)) {
+          if (not field->is_elemental_field()) {
             continue;
           }
 
+          if (not field->is_visualization()) {
+            continue;
+          }
           dumpAttribute(*field, type, ghost_type);
         }
         *this << CloseTag{};
@@ -508,9 +513,13 @@ namespace dumper {
             // Geometry
             dumpGeometry(nodes);
             for (auto && [_, field] : support.getFields()) {
-              if (is_nodal_field(*field)) {
+              if (not field->is_visualization()) {
+                continue;
+              }
+
+              if (field->is_nodal_field()) {
                 this->dumpAttribute(*field);
-              } else if (is_elemental_field(*field)) {
+              } else if (field->is_elemental_field()) {
                 this->dumpAttribute(*field, type);
               }
             }

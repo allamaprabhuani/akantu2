@@ -48,7 +48,7 @@ namespace dumper {
 
   protected:
     /* ---------------------------------------------------------------------- */
-    virtual void dump(FieldNodeArrayBase & field) = 0;
+    virtual void dump(FieldArrayBase & field) = 0;
     virtual void dump(FieldElementMapArrayBase & field) = 0;
     /* ---------------------------------------------------------------------- */
     virtual void dump(Support<Mesh> & support) = 0;
@@ -62,7 +62,7 @@ namespace dumper {
       switch (field.getFieldType()) {
       case FieldType::_node_array: /* FALLTHRU */
       case FieldType::_node_array_function:
-        dump(aka::as_type<FieldNodeArrayBase>(field));
+        dump(aka::as_type<FieldArrayBase>(field));
         break;
       case FieldType::_element_map_array: /* FALLTHRU */
       case FieldType::_element_map_array_function:

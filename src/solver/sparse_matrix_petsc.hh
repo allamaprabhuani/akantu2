@@ -125,8 +125,6 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  Int getRelease() const override { return release; };
-
   operator Mat &() { return mat; }
   operator const Mat &() const { return mat; }
   AKANTU_GET_MACRO(Mat, mat, const Mat &);
@@ -141,9 +139,6 @@ protected:
 
   /// store the PETSc matrix
   Mat mat;
-
-  /// matrix release
-  Int release{0};
 };
 
 } // namespace akantu

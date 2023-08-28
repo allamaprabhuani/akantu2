@@ -253,8 +253,8 @@ public:
 
   /// defines if the boundary changed
   bool hasBlockedDOFsChanged() const {
-    return this->global_blocked_dofs_release !=
-           this->previous_global_blocked_dofs_release;
+    return this->global_blocked_dofs.getRelease() !=
+           this->previous_global_blocked_dofs.getRelease();
   }
 
   /// Global number of dofs
@@ -678,19 +678,15 @@ protected:
   Int first_global_dof_id{0};
 
   /// Release at last apply boundary on jacobian
-  Int jacobian_release{0};
+  Release jacobian_release;
 
   /// blocked degree of freedom in the system equation corresponding to the
   /// different dofs
   Array<Int> global_blocked_dofs;
 
-  Int global_blocked_dofs_release{0};
-
   /// blocked degree of freedom in the system equation corresponding to the
   /// different dofs
   Array<Int> previous_global_blocked_dofs;
-
-  Int previous_global_blocked_dofs_release{0};
 
 private:
   /// This is for unit testing

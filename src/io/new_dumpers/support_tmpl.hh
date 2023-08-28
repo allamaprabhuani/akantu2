@@ -58,7 +58,6 @@ namespace dumper {
       connectivities->addProperty("name", "connectivities");
 
       this->addProperty("name", mesh.getID());
-      this->addProperty("release", this->getRelease());
     }
 
     [[nodiscard]] ElementTypesIteratorHelper
@@ -67,7 +66,16 @@ namespace dumper {
                                _ek_not_defined);
     }
 
-    [[nodiscard]] Int getRelease() { return mesh.getRelease(); }
+    [[nodiscard]] Release getRelease() const override {
+      return mesh.getRelease();
+    }
+
+    [[nodiscard]] Int getNbNodes() const override { return mesh.getNbNodes(); }
+    [[nodiscard]] Int
+    getNbElements(const ElementType & type,
+                  const GhostType & ghost_type = _not_ghost) const override {
+      return mesh.getConnectivities()(type, ghost_type).size();
+    }
 
   protected:
     Mesh & mesh;
@@ -94,7 +102,6 @@ namespace dumper {
       connectivities->addProperty("name", "xdmf_connectivities");
 
       this->addProperty("name", inner.getName());
-      this->addProperty("release", this->getRelease());
     }
 
     [[nodiscard]] auto & getElements() const { return *elements; }
@@ -105,7 +112,9 @@ namespace dumper {
                                 ghost_type, _ek_not_defined);
     }
 
-    [[nodiscard]] Int getRelease() { return inner.getMesh().getRelease(); }
+    [[nodiscard]] Release getRelease() const override {
+      return inner.getMesh().getRelease();
+    }
 
     [[nodiscard]] bool contains(ElementType type,
                                 GhostType ghost_type = _not_ghost) const {
@@ -113,13 +122,23 @@ namespace dumper {
       return (std::find(types.begin(), types.end(), type) != types.end());
     }
 
+    [[nodiscard]] Int getNbNodes() const override {
+      return inner.getNodeGroup().getNodes().size();
+    }
+    [[nodiscard]] Int
+    getNbElements(const ElementType & type,
+                  const GhostType & ghost_type = _not_ghost) const override {
+      return inner.getElements()(type, ghost_type).size();
+    }
+
   protected:
     ElementGroup & inner;
     std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> elements;
-    std::shared_ptr<FieldNodeArrayTemplateBase<Idx>> nodes_list;
+    std::shared_ptr<FieldArrayTemplateBase<Idx>> nodes_list;
   };
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   template <typename T> auto & SupportBase::addSubSupport(T & type) {
     auto && ptr = make_support(type);
     auto & support = *ptr;
@@ -128,34 +147,41 @@ namespace dumper {
     return support;
   }
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   const auto & SupportBase::getSubSupports() const { return sub_supports_; }
   const auto & SupportBase::getParentSupport() const { return *parent; }
 
-  /* ------------------------------------------------------------------------ */
-  void SupportBase::addField(const ID & id,
-                             std::shared_ptr<FieldBase> && field) {
+  /* ------------------------------------------------------------------------
+   */
+  inline void SupportBase::addField(const ID & id,
+                                    const std::shared_ptr<FieldBase> & field,
+                                    FieldUsageType usage) {
     field->addProperty("name", id);
-    fields_.emplace(id, std::move(field));
+    field->addProperty("field_usage", usage);
+    fields_.emplace(id, field);
   }
 
-  /* ------------------------------------------------------------------------ */
-  template <class T>
-  void SupportBase::addField(const ID & id, InternalField<T> & data) {
-    auto && field = make_field(data, *this);
-    this->addField(id, std::move(field));
+  /* ------------------------------------------------------------------------
+   */
+  template <class Cont, std::enable_if_t<not std::is_convertible_v<
+                            std::decay_t<Cont>, std::shared_ptr<FieldBase>>> *>
+  inline void SupportBase::addField(const ID & id, Cont && data,
+                                    FieldUsageType usage) {
+    auto && field = make_field(std::forward<Cont>(data), *this);
+    this->addField(id, std::move(field), usage);
   }
 
-  template <class T>
-  void SupportBase::addField(const ID & id, ElementTypeMapArray<T> & data) {
-    auto && field = make_field(data, *this);
-    this->addField(id, std::move(field));
-  }
-
-  template <class T>
-  void SupportBase::addField(const ID & id, Array<T> & data) {
-    auto && field = make_field(data, *this);
-    this->addField(id, std::move(field));
+  /* ------------------------------------------------------------------------
+   */
+  template <class Cont, class Func,
+            std::enable_if_t<not std::is_convertible_v<
+                std::decay_t<Cont>, std::shared_ptr<FieldBase>>> *>
+  inline void SupportBase::addField(const ID & id, Cont && data, Func && func,
+                                    FieldUsageType usage) {
+    auto && field =
+        make_field(std::forward<Cont>(data), *this, std::forward<Func>(func));
+    this->addField(id, std::move(field), usage);
   }
 
 } // namespace dumper

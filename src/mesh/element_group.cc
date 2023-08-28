@@ -50,18 +50,23 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
   //                                       true);
   this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(),
                             _all_dimensions);
+  ++elements.getRelease();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::clear() { elements.free(); }
+void ElementGroup::clear() {
+  elements.free();
+  ++elements.getRelease();
+}
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::clear(ElementType type, GhostType ghost_type) {
   if (elements.exists(type, ghost_type)) {
     elements(type, ghost_type).clear();
   }
+  ++elements.getRelease();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -94,7 +99,8 @@ void ElementGroup::append(const ElementGroup & other_group) {
 
   this->optimize();
 
-  this->release++;
+  ++elements.getRelease();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -162,13 +168,13 @@ void ElementGroup::fillFromNodeGroup() {
   }
 
   this->optimize();
-  this->release++;
+  ++elements.getRelease();
 }
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::addDimension(Int dimension) {
   this->dimension = std::max(dimension, this->dimension);
-  this->release++;
+  ++elements.getRelease();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -196,7 +202,7 @@ void ElementGroup::onNodesAdded(const Array<Idx> & /*new_nodes*/,
       }
     }
     node_group.optimize();
-    this->release++;
+    ++elements.getRelease();
   }
 #endif
 }

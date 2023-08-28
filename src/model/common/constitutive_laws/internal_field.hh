@@ -225,14 +225,6 @@ public:
   /// loop filter
   AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
 
-  Int & getRelease(ElementType type, GhostType ghost_type) {
-    return releases(type, ghost_type);
-  }
-
-  Int getRelease(ElementType type, GhostType ghost_type) const {
-    return releases(type, ghost_type);
-  }
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -263,8 +255,6 @@ protected:
 
   /// previous values
   std::shared_ptr<InternalField<T>> previous_values;
-
-  ElementTypeMap<Int> releases;
 };
 
 /// standard output stream operator

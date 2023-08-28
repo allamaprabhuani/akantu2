@@ -17,9 +17,8 @@ DiffusionLaw::DiffusionLaw(DiffusionModel & model, const ID & id,
 
 /* -------------------------------------------------------------------------- */
 void DiffusionLaw::computeGradU(ElementType type, GhostType ghost_type) {
-  if (grad_u.getRelease(type, ghost_type) != -1 and
-      grad_u.getRelease(type, ghost_type) ==
-          getHandler().getDiffusionRelease()) {
+  if (grad_u.getRelease(type, ghost_type) ==
+      getHandler().getDiffusion().getRelease()) {
     return;
   }
 

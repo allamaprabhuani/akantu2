@@ -43,10 +43,9 @@ void HeatDiffusion<dim>::computeDiffusivityGradUOnQuadPoints(
 template <Int dim>
 void HeatDiffusion<dim>::computeDiffusivityOnQuadPoints(ElementType type,
                                                         GhostType ghost_type) {
-  auto temperature_release = this->getHandler().getDiffusionRelease();
+  auto temperature_release = this->getHandler().getDiffusion().getRelease();
   auto & diffusivity_release = this->diffusivity.getRelease(type, ghost_type);
-  if (diffusivity_release != -1 and
-      diffusivity_release == temperature_release) {
+  if (diffusivity_release == temperature_release) {
     return;
   }
 

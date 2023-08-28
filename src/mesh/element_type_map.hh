@@ -417,6 +417,18 @@ public:
   /// get the name of the internal field
   AKANTU_GET_MACRO(Name, name, ID);
 
+  AKANTU_GET_MACRO_AUTO(Release, release);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Release, release);
+
+  Release & getRelease(ElementType type, GhostType ghost_type) {
+    return this->operator()(type, ghost_type).getRelease();
+  }
+
+  [[nodiscard]] Release getRelease(ElementType type,
+                                   GhostType ghost_type) const {
+    return this->operator()(type, ghost_type).getRelease();
+  }
+
   /**
    * get the size of the ElementTypeMapArray<T>
    * @param[in] _pack
@@ -447,6 +459,8 @@ protected:
 
   /// Is the data stored by node of the element
   bool is_nodal{false};
+
+  Release release;
 };
 
 /// to store data Array<Real> by element type
@@ -459,22 +473,5 @@ using ElementTypeMapUInt = ElementTypeMapArray<UInt>;
 using ElementTypeMapIdx = ElementTypeMapArray<Idx>;
 
 } // namespace akantu
-
-// namespace std {
-// template <class Stored, typename SupportType>
-// struct iterator_traits<
-//     ::akantu::template ElementTypeMap<Stored, SupportType>::type_iterator> {
-// private:
-//   using iterator_type =
-//       typename ::akantu::ElementTypeMap<Stored, SupportType>::type_iterator;
-
-// public:
-//   using iterator_category = typename iterator_type::iterator_category;
-//   using value_type = typename iterator_type::value_type;
-//   using difference_type = typename iterator_type::difference_type;
-//   using pointer = typename iterator_type::pointer;
-//   using reference = typename iterator_type::reference;
-// };
-// } // namespace std
 
 #endif /* AKANTU_ELEMENT_TYPE_MAP_HH_ */

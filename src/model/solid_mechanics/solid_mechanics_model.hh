@@ -320,8 +320,8 @@ public:
   /// get the SolidMechanicsModel::blocked_dofs array
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
-  AKANTU_GET_MACRO_AUTO(DisplacementRelease, displacement_release);
-  AKANTU_GET_MACRO_AUTO(CurrentPositionRelease, current_position_release);
+  AKANTU_GET_MACRO_AUTO(DisplacementRelease, displacement->getRelease());
+  AKANTU_GET_MACRO_AUTO(CurrentPositionRelease, current_position->getRelease());
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() { return this->getConstitutiveLaws(); }
@@ -421,12 +421,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// release version of the displacement array
-  Int displacement_release{0};
-
-  /// release version of the current_position array
-  Int current_position_release{0};
-
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
 

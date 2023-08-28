@@ -356,13 +356,12 @@ void SparseSolverMumps::printError() {
     case -9: {
       icntl(14) += 10;
       if (icntl(14) != 90) {
-        // std::cout << "Dynamic memory increase of 10%" << std::endl;
         AKANTU_DEBUG_WARNING("MUMPS dynamic memory is insufficient it will be "
                              "increased allowed to use 10% more");
 
         // change releases to force a recompute
-        this->last_value_release--;
-        this->last_profile_release--;
+        --this->last_value_release;
+        --this->last_profile_release;
 
         this->solve();
       } else {

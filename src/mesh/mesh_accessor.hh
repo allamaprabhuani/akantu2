@@ -208,10 +208,10 @@ public:
 
   void wipePeriodicInfo() { this->_mesh.wipePeriodicInfo(); }
 
-  auto & getRelease() { return this->_mesh.mesh_release; }
-  auto & getNodesRelease() { return this->_mesh.nodes_release; }
+  auto & getRelease() { return this->_mesh.release; }
+  auto & getNodesRelease() { return this->_mesh.nodes->getRelease(); }
   auto & getConnectivitiesRelease() {
-    return this->_mesh.connectivities_release;
+    return this->_mesh.connectivities.getRelease();
   }
 
 private:

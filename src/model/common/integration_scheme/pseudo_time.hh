@@ -32,7 +32,7 @@ class PseudoTime : public IntegrationScheme {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  PseudoTime(DOFManager &dof_manager, const ID &dof_id);
+  PseudoTime(DOFManager & dof_manager, const ID & dof_id);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -45,17 +45,17 @@ public:
   void predictor(Real delta_t) override;
 
   /// generic interface of a corrector
-  void corrector(const SolutionType &type, Real delta_t) override;
+  void corrector(const SolutionType & type, Real delta_t) override;
 
   /// assemble the jacobian matrix
-  void assembleJacobian(const SolutionType &type, Real delta_t) override;
+  void assembleJacobian(const SolutionType & type, Real delta_t) override;
 
   /// assemble the residual
   void assembleResidual(bool is_lumped) override;
 
 protected:
   /// last release of K matrix
-  Int k_release{-1};
+  Release k_release;
 };
 
 } // namespace akantu
