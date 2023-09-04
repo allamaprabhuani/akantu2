@@ -57,11 +57,28 @@ namespace {
                self.applyBC(func, element_group);
              })
 
-        .def("setTimeStep", &CouplerSolidContact_::setTimeStep,
-             py::arg("time_step"), py::arg("solver_id") = "")
         .def("getContactMechanicsModel",
              &CouplerSolidContact_::getContactMechanicsModel,
-             py::return_value_policy::reference);
+             py::return_value_policy::reference)
+        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+             py::return_value_policy::reference)
+        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+             py::return_value_policy::reference)
+        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+             py::return_value_policy::reference)
+        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+             py::return_value_policy::reference)
+        .def("getMass", &CouplerSolidContact_::getExternalForce,
+             py::return_value_policy::reference)
+        .def("getContactForce", &CouplerSolidContact_::getContactForce,
+             py::return_value_policy::reference)
+        .def("getContactDetector", &CouplerSolidContact_::getContactDetector,
+             py::return_value_policy::reference)
+        .def("setTimeStep", &CouplerSolidContact_::setTimeStep,
+             py::arg("time_step"), py::arg("solver_id") = "")
+        .def("getStableTimeStep", &CouplerSolidContact_::getStableTimeStep)
+        .def("deactivateContact", &CouplerSolidContact_::deactivateContact)
+        .def("activateContact", &CouplerSolidContact_::activateContact);
   }
 } // namespace
 

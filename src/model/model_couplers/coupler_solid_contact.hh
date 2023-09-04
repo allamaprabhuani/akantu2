@@ -160,8 +160,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
-  Int getNbData(const Array<Element> & /*elements*/,
-                const SynchronizationTag & /*tag*/) const override {
+  [[nodiscard]] Int
+  getNbData(const Array<Element> & /*elements*/,
+            const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
   void packData(CommunicationBuffer & /*buffer*/,
@@ -172,8 +173,9 @@ public:
                   const SynchronizationTag & /*tag*/) override {}
 
   // DataAccessor<UInt> nodes
-  Int getNbData(const Array<Idx> & /*nodes*/,
-                const SynchronizationTag & /*tag*/) const override {
+  [[nodiscard]] Int
+  getNbData(const Array<Idx> & /*nodes*/,
+            const SynchronizationTag & /*tag*/) const override {
     return 0;
   }
   void packData(CommunicationBuffer & /*buffer*/, const Array<Idx> & /*nodes*/,
@@ -204,6 +206,25 @@ public:
 
   /// get the contact mechanics model
   AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &)
+
+  void deactivateContact() { is_contact_active = false; }
+  void activateContact() { is_contact_active = true; }
+
+  [[nodiscard]] Real getStableTimeStep() const {
+    return solid->getStableTimeStep();
+  }
+
+  [[nodiscard]] Array<Real> & getExternalForce() {
+    return solid->getExternalForce();
+  }
+  [[nodiscard]] Array<Real> & getMass() { return solid->getExternalForce(); }
+  [[nodiscard]] Array<Real> & getContactForce() {
+    return solid->getInternalForce();
+  }
+
+  [[nodiscard]] ContactDetector & getContactDetector() {
+    return contact->getContactDetector();
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -248,7 +269,9 @@ private:
   /// contact mechanics model
   std::unique_ptr<ContactMechanicsModel> contact;
 
-  UInt step;
+  Int step;
+
+  bool is_contact_active{true};
 };
 
 using CouplerSolidContact = CouplerSolidContactTemplate<SolidMechanicsModel>;
