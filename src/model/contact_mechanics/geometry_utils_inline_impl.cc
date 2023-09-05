@@ -461,7 +461,7 @@ Matrix<Real> GeometryUtils::contravariantBasis(
 template <class Derived>
 Matrix<Real> GeometryUtils::covariantMetricTensor(
     const Eigen::MatrixBase<Derived> & covariant_bases) {
-  auto A = covariant_bases * covariant_bases.transpose();
+  auto A = covariant_bases.transpose() * covariant_bases;
   return A;
 }
 
