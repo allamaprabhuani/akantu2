@@ -139,11 +139,13 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
     Matrix<Real> local_kn(nb_nodes * spatial_dimension,
                           nb_nodes * spatial_dimension);
+    local_kn.zero();
     computeNormalModuli(element, local_kn);
     assembleLocalToGlobalMatrix(element, local_kn, global_stiffness);
 
     Matrix<Real> local_kt(nb_nodes * spatial_dimension,
                           nb_nodes * spatial_dimension);
+    local_kt.zero();
     computeTangentialModuli(element, local_kt);
     assembleLocalToGlobalMatrix(element, local_kt, global_stiffness);
   }

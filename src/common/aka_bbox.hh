@@ -148,7 +148,8 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  inline bool contains(const Vector<Real> & point) const {
+  template <class Derived>
+  inline bool contains(const Eigen::MatrixBase<Derived> & point) const {
     return (point.array() >= lower_bounds.array()).all() and
            (point.array() <= upper_bounds.array()).all();
   }
@@ -159,9 +160,9 @@ public:
     upper_bounds.set(std::numeric_limits<Real>::lowest());
   }
 
-  /* --------------------------------------------------------------------------
-   */
-  inline void getCenter(Vector<Real> & center) {
+  /* ------------------------------------------------------------------------ */
+  template <class Derived>
+  inline void getCenter(Eigen::MatrixBase<Derived> & center) {
     center = (upper_bounds + lower_bounds) / 2.;
   }
 

@@ -84,8 +84,10 @@ void ElementGroup::append(const ElementGroup & other_group) {
       const auto & other_elem_list = other_group.elements(type, ghost_type);
       auto nb_other_elem = other_elem_list.size();
 
-      auto & elem_list = elements.alloc(0, 1, type, ghost_type);
-
+      if (not elements.exists(type, ghost_type)) {
+        elements.alloc(0, 1, type, ghost_type);
+      }
+      auto & elem_list = elements(type, ghost_type);
       auto nb_elem = elem_list.size();
       /// append new elements to current list
       elem_list.resize(nb_elem + nb_other_elem);
