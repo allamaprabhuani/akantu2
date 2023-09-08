@@ -1,5 +1,22 @@
 ## Version 5
 
+## Version 5.0.3 (09-06-2023)
+
+### Added
+
+- Extending contact mechanics python interface
+
+### Changed
+
+- Bug fixes in conctact mechanics
+
+
+## Version 5.0.2 (06-30-2023)
+
+### Added
+
+- pypi package for python 3.11 and 3.12
+
 ### Version 5.0.1 (05-05-2023)
 
 #### Changed
