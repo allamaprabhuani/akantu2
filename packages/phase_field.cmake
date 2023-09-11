@@ -39,6 +39,10 @@ package_declare_sources(phase_field
   model/phase_field/phasefields/phasefield_quadratic.cc
   model/phase_field/phasefields/phasefield_quadratic_inline_impl.hh
   
+  model/phase_field/phasefields/phasefield_linear.hh
+  model/phase_field/phasefields/phasefield_linear.cc
+  model/phase_field/phasefields/phasefield_linear_inline_impl.hh
+  
   model/phase_field/phase_field_model.cc
   model/phase_field/phase_field_model.hh
   model/phase_field/phase_field_model_inline_impl.hh

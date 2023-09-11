@@ -62,3 +62,15 @@ register_test(test_multi_material
   PACKAGE phase_field
   UNSTABLE
   )
+
+register_test(test_penalization
+  SOURCES test_penalization.cc
+  FILES_TO_COPY material_penalization.dat test_one_element.msh
+  PACKAGE phase_field
+  )
+
+register_test(test_phase_field_linear
+  SOURCES test_phase_field_linear.cc
+  FILES_TO_COPY material_linear.dat test_one_element.msh
+  PACKAGE phase_field
+  )

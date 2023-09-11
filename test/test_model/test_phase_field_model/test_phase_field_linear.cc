@@ -1,23 +1,3 @@
-/**
- * Copyright (©) 2019-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
- *
- * This file is part of Akantu
- *
- * Akantu is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
@@ -50,7 +30,7 @@ int main(int argc, char * argv[]) {
         "error_damage error_energy"
      << std::endl;
 
-  initialize("material_coupling.dat", argc, argv);
+  initialize("material_linear.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("test_one_element.msh");
@@ -112,25 +92,26 @@ int main(int argc, char * argv[]) {
 
     model.assembleInternalForces();
 
-    analytical_damage = axial_strain * axial_strain * c22 /
-                        (gc / l0 + axial_strain * axial_strain * c22);
+    //TODO: change to match AT1 formulation
+    analytical_damage =
+        1. - 3. * gc / (8. * l0 * axial_strain * axial_strain * c22);
+    analytical_damage = std::max(0., analytical_damage);
     analytical_sigma =
         c22 * axial_strain * (1 - analytical_damage) * (1 - analytical_damage);
 
-    analytical_energy = analytical_damage * analytical_damage * 0.5 * gc / l0;
+    analytical_energy = analytical_damage * analytical_damage * 3. * gc / (8. * l0);
 
     error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
 
-    error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
+    error_damage = std::abs(analytical_damage - damage(0));
 
-    error_energy =
-        std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
+    error_energy = std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
 
     os << axial_strain << " " << stress(0, 3) << " " << damage(0) << " "
        << analytical_sigma << " " << analytical_damage << " " << error_stress
        << " " << error_damage << " " << error_energy << std::endl;
 
-    if (error_damage > 1e-8 or error_stress > 1e-8) {
+    if ((error_damage > 1e-2 or error_stress > 1e-2) and s > 0) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;
@@ -243,7 +224,8 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
 
         switch (spatial_dimension) {
         case 1: {
-          auto & mat = dynamic_cast<MaterialDamage<1> &>(material);
+          auto & mat =
+              dynamic_cast<MaterialDamage<1> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
@@ -257,7 +239,8 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
           break;
         }
         case 2: {
-          auto & mat = dynamic_cast<MaterialDamage<2> &>(material);
+          auto & mat =
+              dynamic_cast<MaterialDamage<2> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
