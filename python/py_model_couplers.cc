@@ -58,9 +58,6 @@ namespace {
                 const std::string & element_group) {
                self.applyBC(func, element_group);
              })
-        .def("getSolidMechanicsModel",
-             &CouplerSolidContact_::getSolidMechanicsModel,
-             py::return_value_policy::reference)
         .def("getContactMechanicsModel",
              &CouplerSolidContact_::getContactMechanicsModel,
              py::return_value_policy::reference)
@@ -78,7 +75,7 @@ namespace {
              py::return_value_policy::reference)
         .def("setTimeStep", &CouplerSolidContact_::setTimeStep,
              py::arg("time_step"), py::arg("solver_id") = "")
-        .def("getStableTimeStep", &CouplerSolidContact_::getStableTimeStep)
+        .def("getStableTimeStep", &CouplerSolidContact_::getStableTimeStep);
   }
 } // namespace
 
@@ -86,12 +83,12 @@ namespace {
 void register_model_couplers(py::module & mod) {
   register_coupler_solid_contact<CouplerSolidContact>(mod,
                                                       "CouplerSolidContact")
-      // .def(
-      //     "getSolidMechanicsModel",
-      //     [](CouplerSolidContact & self) -> decltype(auto) {
-      //       return self.getSolidMechanicsModel();
-      //     },
-      //     py::return_value_policy::reference)
+      .def(
+          "getSolidMechanicsModel",
+          [](CouplerSolidContact & self) -> decltype(auto) {
+            return self.getSolidMechanicsModel();
+          },
+          py::return_value_policy::reference)
       .def(
           "initFull",
           [](CouplerSolidContact & self,

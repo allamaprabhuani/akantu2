@@ -219,7 +219,7 @@ public:
   [[nodiscard]] Array<Real> & getExternalForce() {
     return solid->getExternalForce();
   }
-  [[nodiscard]] Array<Real> & getMass() { return solid->getMass(); }
+  [[nodiscard]] const Array<Real> & getMass() { return solid->getMass(); }
   [[nodiscard]] Array<Real> & getContactForce() {
     return solid->getInternalForce();
   }
