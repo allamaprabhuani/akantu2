@@ -1,3 +1,14 @@
+## Version 5.0.3 (09-06-2023)
+
+### Added
+
+- Extending contact mechanics python interface
+
+### Changed
+
+- Bug fixes in conctact mechanics
+
+
 ## Version 5.0.2 (06-30-2023)
 
 ### Added

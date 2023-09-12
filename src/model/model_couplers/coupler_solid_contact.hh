@@ -205,6 +205,29 @@ public:
   /// get the contact mechanics model
   AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &)
 
+  [[nodiscard]] Real getStableTimeStep() const {
+    return solid->getStableTimeStep();
+  }
+
+  [[nodiscard]] Array<Real> & getDisplacement() {
+    return solid->getDisplacement();
+  }
+  [[nodiscard]] Array<Real> & getVelocity() { return solid->getVelocity(); }
+  [[nodiscard]] Array<Real> & getAcceleration() {
+    return solid->getAcceleration();
+  }
+  [[nodiscard]] Array<Real> & getExternalForce() {
+    return solid->getExternalForce();
+  }
+  [[nodiscard]] Array<Real> & getMass() { return solid->getMass(); }
+  [[nodiscard]] Array<Real> & getContactForce() {
+    return solid->getInternalForce();
+  }
+
+  [[nodiscard]] ContactDetector & getContactDetector() {
+    return contact->getContactDetector();
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */

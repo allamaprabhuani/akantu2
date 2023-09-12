@@ -108,19 +108,15 @@ configure_file(cmake/akantu_environement.csh.in
   ${PROJECT_BINARY_DIR}/akantu_environement.csh @ONLY)
 
 include(GNUInstallDirs)
-package_is_activated(python_interface _is_activated)
-if(_is_activated)
-  find_package(PythonInterp ${AKANTU_PREFERRED_PYTHON_VERSION})
-  configure_file(cmake/akantu_install_environement.sh.in
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh  @ONLY)
-  configure_file(cmake/akantu_install_environement.csh.in
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh @ONLY)
+configure_file(cmake/akantu_install_environement.sh.in
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh  @ONLY)
+configure_file(cmake/akantu_install_environement.csh.in
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh @ONLY)
 
-  install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/akantu${AKANTU_VERSION})
-endif()
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/akantu${AKANTU_VERSION})
 
 include(CMakePackageConfigHelpers)
 

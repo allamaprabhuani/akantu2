@@ -344,7 +344,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
 
   for (auto && [alpha, tangent] : enumerate(covariant_basis)) {
     auto n_outer_t = normal * tangent.transpose();
-    // auto t_outer_n = tangent * normal.transpose();
+    auto t_outer_n = tangent * normal.transpose();
 
     for (auto && [beta, Aj] : enumerate(Ajs)) {
       // construct Aj from shape function wrt to jth natural
@@ -352,7 +352,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
       k_rot1 += (Aj.transpose() * n_outer_t * A) *
                 contravariant_metric_tensor(alpha, beta);
 
-      k_rot2 += (A.transpose() * n_outer_t * Aj) *
+      k_rot2 += (A.transpose() * t_outer_n * Aj) *
                 contravariant_metric_tensor(alpha, beta);
     }
   }

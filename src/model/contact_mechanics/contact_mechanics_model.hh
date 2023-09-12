@@ -93,7 +93,7 @@ protected:
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
-  ModelSolverOptions
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /// callback for the solver, this is called at beginning of solve

@@ -47,7 +47,7 @@ ContactMechanicsModel::ContactMechanicsModel(
                                                Model::spatial_dimension);
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-                                 Model::spatial_dimension - 1, _not_ghost,
+                                 Model::spatial_dimension, _not_ghost,
                                  _ek_regular);
 
   this->registerDataAccessor(*this);
