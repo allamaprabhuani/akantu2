@@ -141,8 +141,9 @@ namespace {
 void register_material(py::module & mod) {
   register_constitutive_law<SolidMechanicsModel>(mod);
 
-  py::class_<Material, ConstitutiveLaw<SolidMechanicsModel>,
-             PyMaterial<Material>>(mod, "Material", py::multiple_inheritance())
+  py::class_<Material, PyMaterial<Material>,
+             ConstitutiveLaw<SolidMechanicsModel>>(mod, "Material",
+                                                   py::multiple_inheritance())
       .def(py::init<SolidMechanicsModel &, const ID &>())
       .def(
           "getGradU",
@@ -175,7 +176,10 @@ void register_material(py::module & mod) {
       .def("getPotentialEnergy",
            [](Material & self) -> Real { return self.getPotentialEnergy(); })
       .def("initMaterial", &Material::initMaterial)
-      //      .def("getModel", &Material::getModel)
+      .def("getModel",
+           [](Material & self) -> SolidMechanicsModel & {
+             return self.getModel();
+           })
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed);
 
@@ -224,6 +228,27 @@ void register_material(py::module & mod) {
   register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(
       mod, "MaterialCohesiveLinearFriction3D");
 #endif
+
+  py::class_<MaterialFactory>(mod, "MaterialFactory")
+      .def_static(
+          "getInstance",
+          []() -> MaterialFactory & { return Material::getFactory(); },
+          py::return_value_policy::reference)
+      .def("registerAllocator",
+           [](MaterialFactory & self, const std::string id, py::function func) {
+             self.registerAllocator(
+                 id,
+                 [func, id](Int dim, const ID & /*unused*/,
+                            SolidMechanicsModel & model,
+                            const ID & option) -> std::unique_ptr<Material> {
+                   py::object obj = func(dim, id, model, option);
+                   auto & ptr = py::cast<Material &>(obj);
+
+                   obj.release();
+                   return std::unique_ptr<Material>(&ptr);
+                 });
+           })
+      .def("getPossibleAllocators", &MaterialFactory::getPossibleAllocators);
 }
 
 } // namespace akantu

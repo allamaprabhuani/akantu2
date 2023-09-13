@@ -295,8 +295,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   const Array<Idx> * filter = nullptr;
 
   for (auto ghost_type : ghost_types) {
-    for (const auto & type :
-         uq.elementTypes(_all_dimensions, ghost_type, kind)) {
+    auto && types = uq.elementTypes(_all_dimensions, ghost_type, kind);
+    for (const auto & type : types) {
       auto nb_quad_per_element = getNbIntegrationPoints(type, ghost_type);
 
       Int nb_element = 0;

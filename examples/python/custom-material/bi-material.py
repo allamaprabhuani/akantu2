@@ -21,8 +21,9 @@ class LocalElastic(aka.Material):
                                   'Poisson ratio')
 
         # change it to have the initialize wrapped
-        super().registerInternalReal('factor', 1)
-        super().registerInternalReal('quad_coordinates', 2)
+        self.factor = super().registerInternalReal('factor', 1)
+        self.quad_coords = super().registerInternalReal('quad_coordinates', 2)
+        print(self.quad_coords)
 
     def initMaterial(self):
         nu = self.getReal('nu')
@@ -34,16 +35,14 @@ class LocalElastic(aka.Material):
         self.lame_mu = E / (2. * (1. + nu))
         super().initMaterial()
 
-        quad_coords = self.getInternalReal("quad_coordinates")
-        factor = self.getInternalReal("factor")
         model = self.getModel()
 
         model.getFEEngine().computeIntegrationPointsCoordinates(
-            quad_coords, self.getElementFilter())
+            self.quad_coords)
 
-        for elem_type in factor.elementTypes():
-            factor = factor(elem_type)
-            coords = quad_coords(elem_type)
+        for elem_type in self.factor.elementTypes():
+            factor = self.factor(elem_type)
+            coords = self.quad_coords(elem_type)
 
             factor[:] = 1.
             factor[coords[:, 1] < 0.5] = .5
@@ -154,9 +153,13 @@ mesh.read(mesh_file)
 # parse input file
 aka.parseInput('material.dat')
 
+print("blip")
+
 # init the SolidMechanicsModel
 model = aka.SolidMechanicsModel(mesh)
 model.initFull(_analysis_method=aka._static)
+
+print("blip")
 
 # configure the solver
 solver = model.getNonLinearSolver()

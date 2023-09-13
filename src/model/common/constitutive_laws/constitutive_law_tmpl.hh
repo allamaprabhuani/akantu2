@@ -111,25 +111,39 @@ ConstitutiveLawInternalHandler::getInternal(const ID & id) const {
     return aka::as_type<InternalField<T>>(*it->second);
   }
 
-  AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
-                                          << ") does not contain an internal "
-                                          << id << " (" << (getID() + ":" + id)
-                                          << ")");
+  AKANTU_SILENT_EXCEPTION("The constitutive law "
+                          << name << "(" << getID()
+                          << ") does not contain an internal " << id << " ("
+                          << (getID() + ":" + id) << ")");
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
 InternalField<T> & ConstitutiveLawInternalHandler::getInternal(const ID & id) {
-
   if (auto it = internal_vectors.find(id);
       it != internal_vectors.end() and
       aka::is_of_type<InternalField<T>>(*it->second)) {
     return aka::as_type<InternalField<T>>(*it->second);
   }
 
-  AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
-                                          << ") does not contain an internal "
-                                          << id);
+  AKANTU_SILENT_EXCEPTION("The constitutive law "
+                          << name << "(" << getID()
+                          << ") does not contain an internal " << id);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T, template <typename Type> class InternalFieldType>
+std::shared_ptr<InternalFieldType<T>>
+ConstitutiveLawInternalHandler::getSharedPtrInternal(const ID & id) {
+  if (auto it = this->internal_vectors.find(id);
+      it != internal_vectors.end() and
+      aka::is_of_type<InternalFieldType<T>>(*it->second)) {
+    return std::dynamic_pointer_cast<InternalFieldType<T>>(it->second);
+  }
+
+  AKANTU_SILENT_EXCEPTION("The constitutive law "
+                          << name << "(" << getID()
+                          << ") does not contain an internal " << id);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -114,30 +114,26 @@ void register_constitutive_law_internal_handler(py::module & mod) {
   py::class_<ConstitutiveLawInternalHandler>(
       mod, "ConstitutiveLawInternalHandler", py::multiple_inheritance())
       .def(py::init<const ID &, Int, const ID &>())
-      .def(
-          "registerInternalReal",
-          [](ConstitutiveLawInternalHandler & self, const std::string & name,
-             Int nb_component) -> decltype(auto) {
-            return self.registerInternal(name, nb_component);
-          },
-          py::return_value_policy::reference)
-      .def(
-          "registerInternalInt",
-          [](ConstitutiveLawInternalHandler & self, const std::string & name,
-             UInt nb_component) -> decltype(auto) {
-            self.template registerInternal<Int>(name, nb_component);
-          },
-          py::return_value_policy::reference)
-      .def(
-          "getInternalReal",
-          [](ConstitutiveLawInternalHandler & self, const ID & id)
-              -> decltype(auto) { return self.template getInternal<Real>(id); },
-          py::arg("id"), py::return_value_policy::reference)
-      .def(
-          "getInternalUInt",
-          [](ConstitutiveLawInternalHandler & self, const ID & id)
-              -> decltype(auto) { return self.template getInternal<UInt>(id); },
-          py::arg("id"), py::return_value_policy::reference)
+      .def("registerInternalReal",
+           [](ConstitutiveLawInternalHandler & self, const std::string & name,
+              Int nb_component) -> decltype(auto) {
+             self.registerInternal<Real>(name, nb_component);
+             return self.getSharedPtrInternal<Real>(name);
+           })
+      .def("registerInternalInt",
+           [](ConstitutiveLawInternalHandler & self, const std::string & name,
+              UInt nb_component) -> decltype(auto) {
+             self.template registerInternal<Int>(name, nb_component);
+             return self.getSharedPtrInternal<Int>(name);
+           })
+      .def("getInternalReal",
+           [](ConstitutiveLawInternalHandler & self,
+              const ID & id) -> decltype(auto) {
+             return self.getSharedPtrInternal<Real>(id);
+           })
+      .def("getInternalInt",
+           [](ConstitutiveLawInternalHandler & self, const ID & id)
+               -> decltype(auto) { return self.getSharedPtrInternal<Int>(id); })
       .def(
           "getElementFilter",
           [](ConstitutiveLawInternalHandler & self) -> decltype(auto) {

@@ -35,8 +35,7 @@ class FEEngine;
 
 namespace akantu {
 
-class InternalFieldBase
-    : public std::enable_shared_from_this<InternalFieldBase> {
+class InternalFieldBase {
 public:
   InternalFieldBase(const ID & id) : id_(id) {}
 
@@ -109,10 +108,6 @@ protected:
   virtual void initialize(Int nb_component);
 
 public:
-  std::shared_ptr<InternalField> getPtr() {
-    return aka::as_type<InternalField>(this->shared_from_this());
-  }
-
   /// function to reset the element kind for the internal
   virtual void setElementKind(ElementKind element_kind);
 
@@ -160,14 +155,17 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   /// get filter types for range loop
-  decltype(auto) elementTypes(GhostType ghost_type = _not_ghost) const {
-    return ElementTypeMapArray<T>::elementTypes(
-        _spatial_dimension = this->spatial_dimension,
-        _element_kind = this->element_kind, _ghost_type = ghost_type);
-  }
+  // auto elementTypesImpl(Int /*dim*/ = _all_dimensions,
+  //                       GhostType ghost_type = _not_ghost,
+  //                       ElementKind /*kind*/ = _ek_not_defined) const ->
+  //     typename ElementTypeMapArray<T>::ElementTypesIteratorHelper {
+  //   return ElementTypeMapArray<T>::elementTypesImpl(
+  //       this->spatial_dimension, ghost_type, this->element_kind);
+  // }
 
+public:
   /// get filter types for range loop
   decltype(auto) filterTypes(GhostType ghost_type = _not_ghost) const {
     return this->element_filter.elementTypes(

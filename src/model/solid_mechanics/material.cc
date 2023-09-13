@@ -58,15 +58,13 @@ void Material::initMaterial() {
   AKANTU_DEBUG_IN();
 
   if (finite_deformation) {
-    this->piola_kirchhoff_2 =
-        this->registerInternal("piola_kirchhoff_2",
-                               spatial_dimension * spatial_dimension)
-            .getPtr();
+    this->registerInternal("piola_kirchhoff_2",
+                           spatial_dimension * spatial_dimension);
+    this->piola_kirchhoff_2 = this->getSharedPtrInternal("piola_kirchhoff_2");
     this->piola_kirchhoff_2->initializeHistory();
-    this->green_strain =
-        this->registerInternal("green_strain",
-                               spatial_dimension * spatial_dimension)
-            .getPtr();
+    this->registerInternal("green_strain",
+                           spatial_dimension * spatial_dimension);
+    this->green_strain = this->getSharedPtrInternal("green_strain");
   }
 
   this->stress.initializeHistory();

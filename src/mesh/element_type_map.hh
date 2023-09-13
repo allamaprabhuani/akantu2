@@ -170,16 +170,7 @@ public:
 
     ElementTypesIteratorHelper(const Container & container, Int dim,
                                GhostType ghost_type, ElementKind kind)
-        : container(std::cref(container)), dim(dim), ghost_type(ghost_type),
-          kind(kind) {}
-
-    template <typename... pack>
-    ElementTypesIteratorHelper(const Container & container,
-                               use_named_args_t /*unused*/, pack &&... _pack)
-        : ElementTypesIteratorHelper(
-              container, OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
-              OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
-              OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined)) {}
+        : container(container), dim(dim), ghost_type(ghost_type), kind(kind) {}
 
     auto begin() -> iterator;
     auto end() -> iterator;
@@ -191,15 +182,11 @@ public:
     ElementKind kind{_ek_not_defined};
   };
 
-private:
-  [[nodiscard]] auto elementTypesImpl(Int dim = _all_dimensions,
-                                      GhostType ghost_type = _not_ghost,
-                                      ElementKind kind = _ek_not_defined) const
+protected:
+  [[nodiscard]] virtual auto
+  elementTypesImpl(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+                   ElementKind kind = _ek_not_defined) const
       -> ElementTypesIteratorHelper;
-
-  template <typename... pack>
-  auto elementTypesImpl(const use_named_args_t & /*unused*/,
-                        pack &&... _pack) const -> ElementTypesIteratorHelper;
 
 public:
   /*!
@@ -216,15 +203,19 @@ public:
   [[nodiscard]] auto elementTypes(pack &&... _pack) const
       -> std::enable_if_t<are_named_argument<pack...>::value,
                           ElementTypesIteratorHelper> {
-    return elementTypesImpl(use_named_args,
-                            std::forward<decltype(_pack)>(_pack)...);
+    return elementTypesImpl(
+        OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
+        OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
+        OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined));
   }
 
-  template <typename... pack>
-  [[nodiscard]] auto elementTypes(pack &&... _pack) const
-      -> std::enable_if_t<not are_named_argument<pack...>::value,
-                          ElementTypesIteratorHelper> {
-    return elementTypesImpl(std::forward<decltype(_pack)>(_pack)...);
+  [[nodiscard]] auto elementTypes(Int dim, GhostType ghost_type = _not_ghost,
+                                  ElementKind kind = _ek_not_defined) const {
+    return elementTypesImpl(dim, ghost_type, kind);
+  }
+
+  [[nodiscard]] auto elementTypes(GhostType ghost_type) const {
+    return elementTypesImpl(_all_dimensions, ghost_type, _ek_not_defined);
   }
 
   /*! Direct access to the underlying data map. for internal use by daughter

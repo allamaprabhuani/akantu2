@@ -94,10 +94,14 @@ public:
   /// restore the internals from previous_state if needed
   virtual void restorePreviousState();
 
-  template <typename T>
+  template <typename T = Real>
   const InternalField<T> & getInternal(const ID & id) const;
 
   template <typename T> InternalField<T> & getInternal(const ID & id);
+
+  template <typename T = Real,
+            template <typename Type> class InternalFieldType = InternalField>
+  std::shared_ptr<InternalFieldType<T>> getSharedPtrInternal(const ID & id);
 
   template <typename T>
   [[nodiscard]] inline bool isInternal(const ID & id,

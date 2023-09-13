@@ -489,15 +489,6 @@ auto ElementTypeMap<Stored, SupportType>::elementTypesImpl(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Stored, typename SupportType>
-template <typename... pack>
-auto ElementTypeMap<Stored, SupportType>::elementTypesImpl(
-    const use_named_args_t & unused, pack &&... _pack) const
-    -> ElementTypesIteratorHelper {
-  return ElementTypesIteratorHelper(*this, unused, _pack...);
-}
-
-/* -------------------------------------------------------------------------- */
 /// standard output stream operator
 template <class Stored, typename SupportType>
 inline std::ostream &

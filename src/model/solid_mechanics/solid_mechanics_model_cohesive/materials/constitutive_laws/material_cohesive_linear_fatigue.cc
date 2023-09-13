@@ -69,13 +69,14 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
   }
 
   if (count_switches) {
-    switches = this->template registerInternal<Int, CohesiveInternalField>(
-                       "switches", 1)
-                   .getPtr();
+    this->template registerInternal<Int, CohesiveInternalField>("switches", 1);
+    switches = this->template getSharedPtrInternal<Int, CohesiveInternalField>(
+        "switches");
+    this->template registerInternal<Real, CohesiveInternalField>(
+        "delta_dot_prec", 1);
     delta_dot_prec =
-        this->template registerInternal<Real, CohesiveInternalField>(
-                "delta_dot_prec", 1)
-            .getPtr();
+        this->template getSharedPtrInternal<Real, CohesiveInternalField>(
+            "delta_dot_prec");
   }
 }
 

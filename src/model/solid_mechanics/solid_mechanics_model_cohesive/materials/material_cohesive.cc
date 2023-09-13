@@ -179,7 +179,6 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
         fem_cohesive.getNbIntegrationPoints(type, ghost_type);
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
     auto & elem_filter = element_filter(type, ghost_type);
     auto nb_element = elem_filter.size();
 
@@ -187,6 +186,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
       continue;
     }
 
+    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
     auto size_of_shapes = shapes.getNbComponent();
 
     auto shapes_filtered = std::make_shared<Array<Real>>(

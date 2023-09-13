@@ -120,15 +120,15 @@ void register_phase_field_coupler(py::module & mod) {
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "coupler_solid_phasefield",
            py::arg("model_type") = ModelType::_coupler_solid_phasefield)
-      .def("solve", [](CouplerSolidPhaseField & self,
-                       const ID & solid_solver_id, const ID & phase_solver_id) {
-        self.solve(solid_solver_id, phase_solver_id);
-      });
-  // .def("getSolidMechanicsModel",
-  //      &CouplerSolidPhaseField::getSolidMechanicsModel,
-  //      py::return_value_policy::reference)
-  // .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
-  //      py::return_value_policy::reference);
+      .def("solve",
+           [](CouplerSolidPhaseField & self, const ID & solid_solver_id,
+              const ID & phase_solver_id) {
+             self.solve(solid_solver_id, phase_solver_id);
+           })
+      .def("getSolidMechanicsModel",
+           &CouplerSolidPhaseField::getSolidMechanicsModel,
+           py::return_value_policy::reference)
+      .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
+           py::return_value_policy::reference);
 }
-
 } // namespace akantu

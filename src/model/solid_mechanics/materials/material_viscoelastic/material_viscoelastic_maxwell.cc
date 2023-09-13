@@ -57,11 +57,11 @@ template <Int dim> void MaterialViscoelasticMaxwell<dim>::initMaterial() {
       "Current material works only in infinitesimal deformations.");
 
   auto stress_size = dim * dim;
-  this->sigma_v =
-      this->registerInternal("sigma_v", stress_size * this->Ev.size()).getPtr();
-  this->epsilon_v =
-      this->registerInternal("epsilon_v", stress_size * this->Ev.size())
-          .getPtr();
+  this->registerInternal("sigma_v", stress_size * this->Ev.size());
+  this->registerInternal("epsilon_v", stress_size * this->Ev.size());
+
+  this->sigma_v = this->getSharedPtrInternal("sigma_v");
+  this->epsilon_v = this->getSharedPtrInternal("epsilon_v");
 
   AKANTU_DEBUG_OUT();
 }

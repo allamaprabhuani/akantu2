@@ -38,10 +38,6 @@ public:
   /// initialize the field to a given number of component
   void initialize(Int nb_component) override;
 
-  std::shared_ptr<CohesiveInternalField> getPtr() {
-    return aka::as_type<CohesiveInternalField>(this->shared_from_this());
-  }
-
 private:
   friend class ConstitutiveLawInternalHandler;
 
