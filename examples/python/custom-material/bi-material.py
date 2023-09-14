@@ -120,8 +120,8 @@ def applyBC(model):
     height = 1.
     epsilon = 1e-8
     for node in range(0, nbNodes):
-        if(np.abs(position[node, 0]) < epsilon) or         # left side
-           (np.abs(position[node, 0] - width) < epsilon):  # right side
+        if ((np.abs(position[node, 0]) < epsilon) or
+           (np.abs(position[node, 0] - width) < epsilon)):
             blocked_dofs[node, 0] = True
             displacement[node, 0] = 0 * position[node, 0] + 0.
 
