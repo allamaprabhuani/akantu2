@@ -458,10 +458,10 @@ function(register_test test_name)
 
     if(AKANTU_SPLIT_DWARF)
       target_compile_options(${test_name}
-        PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf>
+        PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZEDEBUG>:-gsplit-dwarf>
       )
       target_link_options(${test_name}
-        PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZE_DEBUG>:-Wl,--gdb-index>
+        PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZEDEBUG>:-Wl,--gdb-index>
       )
     endif()
 

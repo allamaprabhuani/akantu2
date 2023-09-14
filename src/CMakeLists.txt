@@ -182,10 +182,10 @@ endif()
 
 if(AKANTU_SPLIT_DWARF)
   target_compile_options(akantu
-    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5> $<$<CONFIG:SANITIZE_DEBUG>:-gsplit-dwarf -gdwarf-5>
+    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5> $<$<CONFIG:SANITIZEDEBUG>:-gsplit-dwarf -gdwarf-5>
   )
   target_link_options(akantu
-    PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZE_DEBUG>:-Wl,--gdb-index>
+    PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZEDEBUG>:-Wl,--gdb-index>
   )
 endif()
 

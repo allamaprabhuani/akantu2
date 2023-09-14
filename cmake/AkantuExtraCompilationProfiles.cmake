@@ -94,7 +94,7 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION
   declare_compilation_profile(SANITIZE
     COMPILER "-g -ggdb3 -O2 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 
-  declare_compilation_profile(SANITIZE_DEBUG
+  declare_compilation_profile(SANITIZEDEBUG
     COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 endif()
 
