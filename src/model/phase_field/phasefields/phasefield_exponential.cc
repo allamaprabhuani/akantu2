@@ -36,7 +36,7 @@ template <Int dim> void PhaseFieldExponential<dim>::updateInternalParameters() {
   PhaseField::updateInternalParameters();
 
   for (const auto & type :
-       element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+       getElementFilter().elementTypes(spatial_dimension, _not_ghost)) {
     for (auto && [dam, gc] :
          zip(make_view<dim, dim>(this->damage_energy(type, _not_ghost)),
              this->g_c(type, _not_ghost))) {

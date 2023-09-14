@@ -55,7 +55,7 @@ namespace {
   void register_internal_field(py::module & mod, const std::string & name) {
     py::class_<InternalField<T>, ElementTypeMapArray<T>,
                std::shared_ptr<InternalField<T>>>(
-        mod, ("InternalField" + name).c_str())
+        mod, ("InternalField" + name).c_str(), py::multiple_inheritance())
         .def(
             "previous",
             [](InternalField<T> & self, ElementType type, GhostType ghost_type)
@@ -69,11 +69,6 @@ namespace {
             },
             py::return_value_policy::reference)
         .def(
-            "elementTypes",
-            [](InternalField<T> & self, GhostType ghost_type)
-                -> decltype(auto) { return self.elementTypes(ghost_type); },
-            py::return_value_policy::reference)
-        .def(
             "__call__",
             [](InternalField<T> & self, ElementType type, GhostType ghost_type)
                 -> Array<T> & { return self(type, ghost_type); },
@@ -81,8 +76,12 @@ namespace {
             py::return_value_policy::reference)
         .def("__repr__",
              [name](const InternalField<T> & self) {
-               std::string str{"<InternalField" + name + ": " +
-                               self.getRegisterID() + " "};
+               std::stringstream sstream;
+               sstream << std::hex << &self;
+
+               std::string str{"<InternalField" + name + " (0x" +
+                               sstream.str() + "): " + self.getRegisterID() +
+                               " "};
                for (auto && ghost_type : ghost_types) {
                  for (auto && type : self.elementTypes(ghost_type)) {
                    const auto & array = self(type, ghost_type);
@@ -101,8 +100,9 @@ namespace {
              })
         .def(
             "getID", [](InternalField<T> & self) { return self.getID(); },
-            py::return_value_policy::copy);
-    ;
+            py::return_value_policy::copy)
+        .def("initializeHistory", &InternalField<T>::initializeHistory)
+        .def("hasHistory", &InternalField<T>::hasHistory);
   }
 } // namespace
 
@@ -134,20 +134,12 @@ void register_constitutive_law_internal_handler(py::module & mod) {
       .def("getInternalInt",
            [](ConstitutiveLawInternalHandler & self, const ID & id)
                -> decltype(auto) { return self.getSharedPtrInternal<Int>(id); })
-      .def(
-          "getElementFilter",
-          [](ConstitutiveLawInternalHandler & self) -> decltype(auto) {
-            return self.getElementFilter();
-          },
-          py::return_value_policy::reference)
+      .def("getElementFilter",
+           [](const ConstitutiveLawInternalHandler & self) -> decltype(auto) {
+             return self.getElementFilterSharedPtr();
+           })
       .def("getSpatialDimension",
-           &ConstitutiveLawInternalHandler::getSpatialDimension)
-      .def(
-          "getElementFilter",
-          [](const ConstitutiveLawInternalHandler & self) -> decltype(auto) {
-            return self.getElementFilter();
-          },
-          py::return_value_policy::reference);
+           &ConstitutiveLawInternalHandler::getSpatialDimension);
 }
 
 } // namespace akantu

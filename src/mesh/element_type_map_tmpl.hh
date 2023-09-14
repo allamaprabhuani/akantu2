@@ -458,9 +458,10 @@ inline bool ElementTypeMap<Stored, SupportType>::type_iterator::operator!=(
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::begin()
-    -> iterator {
-  auto b = container.get().getData(ghost_type).begin();
-  auto e = container.get().getData(ghost_type).end();
+    -> type_iterator {
+  auto && data = container.get().getData(ghost_type);
+  auto b = data.begin();
+  auto e = data.end();
 
   // loop until the first valid type
   while ((b != e) &&
@@ -470,14 +471,15 @@ auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::begin()
     ++b;
   }
 
-  return iterator(b, e, dim, kind);
+  return type_iterator(b, e, dim, kind);
 }
 
 template <class Stored, typename SupportType>
 auto ElementTypeMap<Stored, SupportType>::ElementTypesIteratorHelper::end()
-    -> iterator {
-  auto e = container.get().getData(ghost_type).end();
-  return iterator(e, e, dim, kind);
+    -> type_iterator {
+  auto && data = container.get().getData(ghost_type);
+  auto e = data.end();
+  return type_iterator(e, e, dim, kind);
 }
 
 /* -------------------------------------------------------------------------- */

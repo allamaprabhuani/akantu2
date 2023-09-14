@@ -1,6 +1,9 @@
+/* -------------------------------------------------------------------------- */
 #include <constitutive_laws_handler.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_PY_CONSTITUTIVE_LAWS_HANDLER_HH_
 #define AKANTU_PY_CONSTITUTIVE_LAWS_HANDLER_HH_
@@ -41,9 +44,9 @@ void register_constitutive_laws_handler(pybind11::module & mod) {
       .def(
           "inflateInternalReal",
           [](CLH & self, const std::string & field_name,
-             const ElementTypeMapArray<Real> & field, ElementKind kind,
-             GhostType ghost_type) {
-            return self.template inflateInternal<Real>(field_name, field,
+             const std::shared_ptr<ElementTypeMapArray<Real>> & field,
+             ElementKind kind, GhostType ghost_type) {
+            return self.template inflateInternal<Real>(field_name, *field,
                                                        ghost_type, kind);
           },
           py::arg("field_name"), py::arg("field"),

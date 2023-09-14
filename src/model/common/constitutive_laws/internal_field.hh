@@ -157,13 +157,13 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// get filter types for range loop
-  // auto elementTypesImpl(Int /*dim*/ = _all_dimensions,
-  //                       GhostType ghost_type = _not_ghost,
-  //                       ElementKind /*kind*/ = _ek_not_defined) const ->
-  //     typename ElementTypeMapArray<T>::ElementTypesIteratorHelper {
-  //   return ElementTypeMapArray<T>::elementTypesImpl(
-  //       this->spatial_dimension, ghost_type, this->element_kind);
-  // }
+  auto elementTypesImpl(Int /*dim*/ = _all_dimensions,
+                        GhostType ghost_type = _not_ghost,
+                        ElementKind /*kind*/ = _ek_not_defined) const ->
+      typename ElementTypeMapArray<T>::ElementTypesIteratorHelper override {
+    return ElementTypeMapArray<T>::elementTypesImpl(
+        this->spatial_dimension, ghost_type, this->element_kind);
+  }
 
 public:
   /// get filter types for range loop

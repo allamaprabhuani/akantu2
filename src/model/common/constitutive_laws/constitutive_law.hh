@@ -52,7 +52,10 @@ class ConstitutiveLawInternalHandler {
 public:
   ConstitutiveLawInternalHandler(const ID & id, Int dim,
                                  const ID & fe_engine_id)
-      : id(id), spatial_dimension(dim), default_fe_engine_id(fe_engine_id) {}
+      : id(id), spatial_dimension(dim), default_fe_engine_id(fe_engine_id) {
+    this->element_filter =
+        std::make_shared<ElementTypeMapArray<Idx>>("element_filter", id);
+  }
 
   virtual ~ConstitutiveLawInternalHandler() = default;
 
@@ -129,16 +132,30 @@ public:
   [[nodiscard]] Int getSpatialDimension() const { return spatial_dimension; }
 
   [[nodiscard]] const ElementTypeMapArray<Idx> & getElementFilter() const {
+    return *element_filter;
+  }
+
+  [[nodiscard]] std::shared_ptr<const ElementTypeMapArray<Idx>>
+  getElementFilterSharedPtr() const {
     return element_filter;
   }
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, (*element_filter), Idx);
 
   AKANTU_GET_MACRO(Name, name, const std::string &);
   AKANTU_GET_MACRO(ID, id, const ID &);
 
+protected:
+  [[nodiscard]] ElementTypeMapArray<Idx> & getElementFilter() {
+    return *element_filter;
+  }
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementFilter, (*element_filter), Idx);
+
 private:
   std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
+
+  /// list of element handled by the constitutive law
+  std::shared_ptr<ElementTypeMapArray<Idx>> element_filter;
 
 protected:
   ID id;
@@ -148,9 +165,6 @@ protected:
 
   /// constitutive law name
   std::string name;
-
-  /// list of element handled by the constitutive law
-  ElementTypeMapArray<Idx> element_filter;
 
   /// ID of the FEEngine containing the interpolation points that are the
   /// support of the internal fields
@@ -300,7 +314,7 @@ public:
 
   template <typename... pack>
   decltype(auto) elementTypes(pack &&... _pack) const {
-    return this->element_filter.elementTypes(std::forward<pack>(_pack)...);
+    return this->getElementFilter().elementTypes(std::forward<pack>(_pack)...);
   }
 
 protected:

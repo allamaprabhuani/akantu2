@@ -184,7 +184,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
     auto & trac_old = tractions.previous(type_cohesive);
     const auto & f_stress = model->getStressOnFacets(type_facet);
 
-    const auto & facet_filter_array = facet_filter(type_facet);
+    const auto & facet_filter_array = getFacetFilter(type_facet);
     const auto & sigma_limit_array = sigma_c(type_facet);
 
     auto nb_quad_facet =

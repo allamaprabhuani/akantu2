@@ -74,9 +74,9 @@ void PhaseField::computeAllDrivingForces(GhostType ghost_type) {
   auto & damage = handler.getDamage();
   auto & fem = this->getFEEngine();
 
-  for (const auto & type :
-       this->element_filter.elementTypes(this->spatial_dimension, ghost_type)) {
-    auto & elem_filter = this->element_filter(type, ghost_type);
+  for (const auto & type : this->getElementFilter().elementTypes(
+           this->spatial_dimension, ghost_type)) {
+    auto & elem_filter = this->getElementFilter(type, ghost_type);
     if (elem_filter.empty()) {
       continue;
     }
@@ -102,8 +102,8 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
   Array<Real> & internal_force = handler.getInternalForce();
   auto & fem = this->getFEEngine();
 
-  for (auto type : element_filter.elementTypes(_ghost_type = ghost_type)) {
-    auto & elem_filter = element_filter(type, ghost_type);
+  for (auto type : getElementFilter().elementTypes(_ghost_type = ghost_type)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
     if (elem_filter.empty()) {
       continue;
     }
@@ -146,8 +146,9 @@ void PhaseField::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
   auto & fem = this->getFEEngine();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    auto & elem_filter = element_filter(type, ghost_type);
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
     if (elem_filter.empty()) {
       return;
     }
@@ -205,8 +206,9 @@ void PhaseField::computeDissipatedEnergyByElements() {
   const Array<Real> & damage = handler.getDamage();
   auto & fem = this->getFEEngine();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    Array<Idx> & elem_filter = element_filter(type, _not_ghost);
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, _not_ghost)) {
+    Array<Idx> & elem_filter = getElementFilter(type, _not_ghost);
     if (elem_filter.empty()) {
       continue;
     }
@@ -245,9 +247,10 @@ Real PhaseField::getEnergy() {
   computeDissipatedEnergyByElements();
 
   /// integrate the dissipated energy for each type of elements
-  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, _not_ghost)) {
     edis += fem.integrate(dissipated_energy(type, _not_ghost), type, _not_ghost,
-                          element_filter(type, _not_ghost));
+                          getElementFilter(type, _not_ghost));
   }
 
   return edis;

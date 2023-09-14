@@ -56,7 +56,7 @@ template <typename T, template <typename Type> class InternalFieldType>
 inline InternalFieldType<T> & ConstitutiveLawInternalHandler::registerInternal(
     const ID & id, Int nb_component, const ID & fe_engine_id) {
   return this->registerInternal<T, InternalFieldType>(
-      id, nb_component, fe_engine_id, this->element_filter);
+      id, nb_component, fe_engine_id, this->getElementFilter());
 }
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename Type> class InternalFieldType>
@@ -222,7 +222,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
 
   /// for each connectivity types allocate the element filer array of
   /// the constitutive law
-  this->element_filter.initialize(
+  this->getElementFilter().initialize(
       handler.getMesh(), _spatial_dimension = handler.getSpatialDimension(),
       _element_kind = element_kind);
 
@@ -280,12 +280,12 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
       "remove constitutive law filter elem", id);
 
   constitutive_law_local_new_numbering.initialize(
-      mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
-      _with_nb_element = true);
+      mesh, _element_filter = &getElementFilter(),
+      _element_kind = _ek_not_defined, _with_nb_element = true);
 
   ElementTypeMapArray<Idx> element_filter_tmp("element_filter_tmp", id);
 
-  element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
+  element_filter_tmp.initialize(mesh, _element_filter = &getElementFilter(),
                                 _element_kind = _ek_not_defined);
 
   ElementTypeMap<Idx> new_ids, element_ids;
@@ -317,12 +317,12 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
         ++new_id;
         ++element_id;
       },
-      _element_filter = &element_filter, _element_kind = _ek_not_defined);
+      _element_filter = &getElementFilter(), _element_kind = _ek_not_defined);
 
   for (auto ghost_type : ghost_types) {
-    for (const auto & type : element_filter.elementTypes(
+    for (const auto & type : getElementFilter().elementTypes(
              _ghost_type = ghost_type, _element_kind = _ek_not_defined)) {
-      element_filter(type, ghost_type)
+      getElementFilter(type, ghost_type)
           .copy(element_filter_tmp(type, ghost_type));
     }
   }
@@ -358,12 +358,12 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     for (auto && type :
          new_numbering.elementTypes(_all_dimensions, gt, _ek_not_defined)) {
 
-      if (not element_filter.exists(type, gt) or
-          element_filter(type, gt).empty()) {
+      if (not getElementFilter().exists(type, gt) or
+          getElementFilter(type, gt).empty()) {
         continue;
       }
 
-      auto & elem_filter = element_filter(type, gt);
+      auto & elem_filter = getElementFilter(type, gt);
       auto & law_indexes = this->handler.constitutive_law_index(type, gt);
       auto & law_loc_num =
           this->handler.constitutive_law_local_numbering(type, gt);
@@ -455,7 +455,7 @@ inline Element
 ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(
     const Element & local_element) const {
   auto global_element = local_element;
-  global_element.element = this->element_filter(local_element);
+  global_element.element = this->getElementFilter()(local_element);
   return global_element;
 }
 
@@ -463,7 +463,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(
 template <class ConstitutiveLawsHandler_>
 inline Idx
 ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(const Element & element) {
-  auto & el_filter = this->element_filter(element.type, element.ghost_type);
+  auto & el_filter = this->getElementFilter(element.type, element.ghost_type);
   el_filter.push_back(element.element);
   return el_filter.size() - 1;
 }

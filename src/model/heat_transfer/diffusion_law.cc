@@ -23,7 +23,7 @@ void DiffusionLaw::computeGradU(ElementType type, GhostType ghost_type) {
     return;
   }
 
-  auto & elem_filter = element_filter(type, ghost_type);
+  auto & elem_filter = getElementFilter(type, ghost_type);
   this->getFEEngine().gradientOnIntegrationPoints(
       getHandler().getDiffusion(), grad_u(type, ghost_type), 1, type,
       ghost_type, elem_filter);
@@ -33,7 +33,7 @@ void DiffusionLaw::computeGradU(ElementType type, GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 void DiffusionLaw::computeDiffusivityGradU(GhostType ghost_type) {
   auto dim = getHandler().getSpatialDimension();
-  for (auto && type : element_filter.elementTypes(dim, ghost_type)) {
+  for (auto && type : getElementFilter().elementTypes(dim, ghost_type)) {
     this->computeGradU(type, ghost_type);
     this->computeDiffusivityGradUOnQuadPoints(type, ghost_type);
   }
@@ -45,8 +45,8 @@ void DiffusionLaw::assembleInternalFlow(GhostType ghost_type) {
   auto dim = model.getSpatialDimension();
   auto & fem = getFEEngine();
 
-  for (auto && type : element_filter.elementTypes(dim, ghost_type)) {
-    auto && elem_filter = element_filter(type, ghost_type);
+  for (auto && type : getElementFilter().elementTypes(dim, ghost_type)) {
+    auto && elem_filter = getElementFilter(type, ghost_type);
     auto nb_element = elem_filter.size();
     if (nb_element == 0) {
       return;
@@ -76,8 +76,8 @@ void DiffusionLaw::assembleDiffusivityMatrix() {
   auto & fem = this->getFEEngine();
   auto & model = this->getHandler();
 
-  for (auto && type : element_filter.elementTypes(spatial_dimension)) {
-    auto && elem_filter = element_filter(type, _not_ghost);
+  for (auto && type : getElementFilter().elementTypes(spatial_dimension)) {
+    auto && elem_filter = getElementFilter(type, _not_ghost);
     auto nb_element = elem_filter.size();
     if (nb_element == 0) {
       return;

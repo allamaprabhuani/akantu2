@@ -39,9 +39,9 @@ int main(int argc, char * argv[]) {
 
   model.initFull();
 
-  auto & chocolate = model.getPhaseField("chocolate");
-  auto & chewing_gum = model.getPhaseField("chewing-gum");
-  auto & candy = model.getPhaseField("candy");
+  const auto & chocolate = model.getPhaseField("chocolate");
+  const auto & chewing_gum = model.getPhaseField("chewing-gum");
+  const auto & candy = model.getPhaseField("candy");
 
   auto chocolate_element = chocolate.getElementFilter(_segment_2)(0, 0);
   auto chewing_gum_element = chewing_gum.getElementFilter(_segment_2)(0, 0);

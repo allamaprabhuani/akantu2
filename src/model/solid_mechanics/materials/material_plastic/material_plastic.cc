@@ -58,9 +58,10 @@ template <Int dim> Real MaterialPlastic<dim>::getPlasticEnergy() {
   auto & fem = this->getFEEngine();
   Real penergy = 0.;
 
-  for (const auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (const auto & type :
+       this->getElementFilter().elementTypes(dim, _not_ghost)) {
     penergy += fem.integrate(plastic_energy(type, _not_ghost), type, _not_ghost,
-                             this->element_filter(type, _not_ghost));
+                             this->getElementFilter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();

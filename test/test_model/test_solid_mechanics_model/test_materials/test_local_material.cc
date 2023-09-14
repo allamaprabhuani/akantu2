@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   // This should throw a bad_cast if not the proper material
-  auto & mat =
+  const auto & mat =
       dynamic_cast<LocalMaterialDamage &>(model.getMaterial("concrete"));
   const auto & filter = mat.getElementFilter();
   for (const auto & type : filter.elementTypes(spatial_dimension)) {

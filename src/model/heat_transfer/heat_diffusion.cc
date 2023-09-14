@@ -50,13 +50,13 @@ void HeatDiffusion<dim>::computeDiffusivityOnQuadPoints(ElementType type,
     return;
   }
 
-  for (auto && type : element_filter.elementTypes(dim, ghost_type)) {
+  for (auto && type : getElementFilter().elementTypes(dim, ghost_type)) {
     Array<Real> temperature_on_qpoints(0, 1);
 
     // compute the temperature on quadrature points
     this->getFEEngine().interpolateOnIntegrationPoints(
         getHandler().getDiffusion(), temperature_on_qpoints, 1, type,
-        ghost_type, element_filter(type, ghost_type));
+        ghost_type, getElementFilter(type, ghost_type));
 
     for (auto && [C, T] :
          zip(make_view<dim, dim>(this->diffusivity(type, ghost_type)),
@@ -127,8 +127,8 @@ template <Int dim> auto HeatDiffusion<dim>::getThermalEnergy() -> Real {
 
   auto & fem = getFEEngine();
 
-  for (auto && type : element_filter.elementTypes(dim, _not_ghost)) {
-    auto nb_element = element_filter(type).size();
+  for (auto && type : getElementFilter().elementTypes(dim, _not_ghost)) {
+    auto nb_element = getElementFilter(type).size();
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, _not_ghost);
     Array<Real> Eth_per_quad(nb_element * nb_quadrature_points, 1);
 
@@ -136,7 +136,7 @@ template <Int dim> auto HeatDiffusion<dim>::getThermalEnergy() -> Real {
     // compute the temperature on quadrature points
     this->getFEEngine().interpolateOnIntegrationPoints(
         getHandler().getDiffusion(), temperature_interpolated, 1, type,
-        _not_ghost, element_filter(type));
+        _not_ghost, getElementFilter(type));
 
     auto T_it = temperature_interpolated.begin();
     auto T_end = temperature_interpolated.end();

@@ -92,10 +92,10 @@ auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
+  for (auto && type : this->getElementFilter().elementTypes(dim, _not_ghost)) {
     de += this->getFEEngine().integrate(
         this->dissipated_energy(type, _not_ghost), type, _not_ghost,
-        this->element_filter(type, _not_ghost));
+        this->getElementFilter(type, _not_ghost));
   }
   return de;
 }

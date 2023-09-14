@@ -78,7 +78,7 @@ void Material::initMaterial() {
 void Material::updateInternalParameters() {
   auto dim = getModel().getSpatialDimension();
   for (const auto & type :
-       element_filter.elementTypes(_element_kind = _ek_regular)) {
+       getElementFilter().elementTypes(_element_kind = _ek_regular)) {
     for (auto eigen_gradu : make_view(eigengradu(type), dim, dim)) {
       eigen_gradu = eigen_grad_u;
     }
@@ -105,7 +105,7 @@ void Material::assembleInternalForces(GhostType ghost_type) {
         constexpr auto dim = aka::decay_v<decltype(_)>;
 
         for (auto && type :
-             element_filter.elementTypes(spatial_dimension, ghost_type)) {
+             getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
           if (not finite_deformation) {
             this->assembleInternalForces<dim>(type, ghost_type);
           } else {
@@ -131,8 +131,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
   auto spatial_dimension = getModel().getSpatialDimension();
   auto & fem = getFEEngine();
   for (const auto & type :
-       element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    auto & elem_filter = element_filter(type, ghost_type);
+       getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
 
     if (elem_filter.empty()) {
       continue;
@@ -161,7 +161,8 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
                                           "computed if you are working in "
                                           "finite deformation.");
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
     tuple_dispatch<AllSpatialDimensions>(
         [&](auto && _) {
           constexpr auto dim = aka::decay_v<decltype(_)>;
@@ -199,8 +200,9 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
   auto spatial_dimension = getModel().getSpatialDimension();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
-    auto & elem_filter = element_filter(type, ghost_type);
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
     auto & gradu_vect = gradu(type, ghost_type);
 
     /// compute @f$\nabla u@f$
@@ -230,7 +232,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
         constexpr auto dim = aka::decay_v<decltype(_)>;
 
         for (auto type :
-             element_filter.elementTypes(spatial_dimension, ghost_type)) {
+             getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
           if (finite_deformation) {
             this->assembleStiffnessMatrixFiniteDeformation<dim>(type,
                                                                 ghost_type);
@@ -260,7 +262,7 @@ template <Int dim, ElementType type>
 void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const auto & elem_filter = element_filter(type, ghost_type);
+  const auto & elem_filter = getElementFilter(type, ghost_type);
   if (elem_filter.empty()) {
     AKANTU_DEBUG_OUT();
     return;
@@ -329,7 +331,7 @@ void Material::assembleStiffnessMatrixNL(GhostType ghost_type) {
   auto & fem = getFEEngine();
 
   const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
-  const auto & elem_filter = element_filter(type, ghost_type);
+  const auto & elem_filter = getElementFilter(type, ghost_type);
 
   const auto nb_element = elem_filter.size();
   constexpr auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -386,7 +388,7 @@ void Material::assembleStiffnessMatrixL2(GhostType ghost_type) {
   auto & fem = getFEEngine();
   const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
-  auto & elem_filter = element_filter(type, ghost_type);
+  auto & elem_filter = getElementFilter(type, ghost_type);
   auto & gradu_vect = gradu(type, ghost_type);
 
   auto nb_element = elem_filter.size();
@@ -467,7 +469,7 @@ void Material::assembleInternalForces(GhostType ghost_type) {
   auto & internal_force = getModel().getInternalForce();
 
   // Mesh & mesh = fem.getMesh();
-  auto && elem_filter = element_filter(type, ghost_type);
+  auto && elem_filter = getElementFilter(type, ghost_type);
   auto nb_element = elem_filter.size();
 
   if (nb_element == 0) {
@@ -528,7 +530,7 @@ void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
   auto & mesh = fem.getMesh();
   const auto & shapes_derivatives = fem.getShapesDerivatives(type, ghost_type);
 
-  auto & elem_filter = element_filter(type, ghost_type);
+  auto & elem_filter = getElementFilter(type, ghost_type);
   if (elem_filter.empty()) {
     return;
   }
@@ -585,7 +587,8 @@ void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
 void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_IN();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, _not_ghost)) {
     computePotentialEnergy(type);
   }
 
@@ -605,9 +608,10 @@ Real Material::getPotentialEnergy() {
   computePotentialEnergyByElements();
 
   /// integrate the potential energy for each type of elements
-  for (auto type : element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, _not_ghost)) {
     epot += fem.integrate(potential_energy(type, _not_ghost), type, _not_ghost,
-                          element_filter(type, _not_ghost));
+                          getElementFilter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -627,7 +631,7 @@ Real Material::getPotentialEnergy(const Element & element) {
 
   auto epot = fem.integrate(epot_on_quad_points,
                             {element.type,
-                             element_filter(element.type)(element.element),
+                             getElementFilter(element.type)(element.element),
                              _not_ghost});
 
   AKANTU_DEBUG_OUT();
@@ -662,7 +666,7 @@ void Material::initElementalFieldInterpolation(
   auto & fem = getFEEngine();
   fem.initElementalFieldInterpolationFromIntegrationPoints(
       interpolation_points_coordinates, this->interpolation_points_matrices,
-      this->interpolation_inverse_coordinates, &(this->element_filter));
+      this->interpolation_inverse_coordinates, &(this->getElementFilter()));
 
   AKANTU_DEBUG_OUT();
 }
@@ -674,7 +678,7 @@ void Material::interpolateStress(ElementTypeMapArray<Real> & result,
   fem.interpolateElementalFieldFromIntegrationPoints(
       this->stress, this->interpolation_points_matrices,
       this->interpolation_inverse_coordinates, result, ghost_type,
-      &(this->element_filter));
+      &(this->getElementFilter()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -688,7 +692,8 @@ void Material::interpolateStressOnFacets(
   const auto & mesh = this->getModel().getMesh();
   const auto & mesh_facets = mesh.getMeshFacets();
 
-  for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type)) {
+  for (auto type :
+       getElementFilter().elementTypes(spatial_dimension, ghost_type)) {
     auto nb_element_full = mesh.getNbElement(type, ghost_type);
 
     auto nb_interpolation_points_per_elem =
@@ -707,7 +712,7 @@ void Material::interpolateStressOnFacets(
                   nb_quad_per_facet, nb_facet_per_elem)
             .begin();
 
-    for (auto global_el : element_filter(type, ghost_type)) {
+    for (auto global_el : getElementFilter(type, ghost_type)) {
       element.element = global_el;
 
       auto && result_per_elem = by_elem_res[global_el];
@@ -738,7 +743,7 @@ void Material::afterSolveStep(bool converged) {
     return;
   }
 
-  for (const auto & type : element_filter.elementTypes(
+  for (const auto & type : getElementFilter().elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
     this->updateEnergies(type);
   }
@@ -748,7 +753,7 @@ void Material::onDamageIteration() { this->savePreviousState(); }
 
 /* -------------------------------------------------------------------------- */
 void Material::onDamageUpdate() {
-  for (const auto & type : element_filter.elementTypes(
+  for (const auto & type : getElementFilter().elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
     this->updateEnergiesAfterDamage(type);
   }
@@ -805,9 +810,9 @@ void Material::extrapolateInternal(const ID & id, const Element & element,
 /* -------------------------------------------------------------------------- */
 void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const GhostType ghost_type) {
-  for (auto && type : element_filter.elementTypes(_all_dimensions, _not_ghost,
-                                                  _ek_not_defined)) {
-    if (element_filter(type, ghost_type).empty()) {
+  for (auto && type : getElementFilter().elementTypes(
+           _all_dimensions, _not_ghost, _ek_not_defined)) {
+    if (getElementFilter(type, ghost_type).empty()) {
       continue;
     }
 

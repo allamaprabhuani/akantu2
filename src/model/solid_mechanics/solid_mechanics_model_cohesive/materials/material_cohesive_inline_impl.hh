@@ -26,7 +26,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline Int MaterialCohesive::addFacet(const Element & element) {
-  auto & f_filter = facet_filter(element.type, element.ghost_type);
+  auto & f_filter = getFacetFilter(element.type, element.ghost_type);
   f_filter.push_back(element.element);
   return f_filter.size() - 1;
 }

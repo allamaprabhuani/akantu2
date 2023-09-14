@@ -151,9 +151,10 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /// get facet filter
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, Idx);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, Idx);
-  AKANTU_GET_MACRO_AUTO(FacetFilter, facet_filter);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, (*facet_filter), Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, (*facet_filter), Idx);
+  AKANTU_GET_MACRO_AUTO(FacetFilter, *facet_filter);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(FacetFilter, *facet_filter);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
 
@@ -180,7 +181,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// list of facets assigned to this material
-  ElementTypeMapArray<Idx> facet_filter;
+  std::shared_ptr<ElementTypeMapArray<Idx>> facet_filter;
 
   /// Link to the cohesive fem object in the model
   FEEngine & fem_cohesive;

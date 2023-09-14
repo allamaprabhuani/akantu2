@@ -165,18 +165,16 @@ public:
   /// helper class to use in range for constructions
   class ElementTypesIteratorHelper {
   public:
-    using Container = ElementTypeMap<Stored, SupportType>;
-    using iterator = typename Container::type_iterator;
-
-    ElementTypesIteratorHelper(const Container & container, Int dim,
+    ElementTypesIteratorHelper(const ElementTypeMap & container, Int dim,
                                GhostType ghost_type, ElementKind kind)
-        : container(container), dim(dim), ghost_type(ghost_type), kind(kind) {}
+        : container(std::cref(container)), dim(dim), ghost_type(ghost_type),
+          kind(kind) {}
 
-    auto begin() -> iterator;
-    auto end() -> iterator;
+    auto begin() -> type_iterator;
+    auto end() -> type_iterator;
 
   private:
-    std::reference_wrapper<const Container> container;
+    std::reference_wrapper<const ElementTypeMap> container;
     Int dim{_all_dimensions};
     GhostType ghost_type{_not_ghost};
     ElementKind kind{_ek_not_defined};
