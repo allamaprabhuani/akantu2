@@ -33,6 +33,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
     : Material(model, id, "SolidMechanicsFEEngine"),
+      facet_filter(
+          std::make_shared<ElementTypeMapArray<Idx>>("facet_filter", id)),
       fem_cohesive(
           model.getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine")),
       reversible_energy(registerInternal<Real, CohesiveInternalField>(
@@ -55,8 +57,6 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       normals(registerInternal<Real, CohesiveInternalField>(
           "normal", spatial_dimension)) {
   AKANTU_DEBUG_IN();
-
-  facet_filter = std::make_shared<ElementTypeMapArray<Idx>>("facet_filter", id);
 
   this->registerParam("sigma_c", sigma_c, _pat_parsable | _pat_readable,
                       "Critical stress");
