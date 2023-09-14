@@ -51,9 +51,9 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
       this->getNeighborhoodName());
 
   for (auto && type :
-       this->element_filter.elementTypes(dim, ghost_type, _ek_regular)) {
+       this->getElementFilter().elementTypes(dim, ghost_type, _ek_regular)) {
     q.type = type;
-    const auto & elem_filter = this->element_filter(type, ghost_type);
+    const auto & elem_filter = this->getElementFilter(type, ghost_type);
     auto nb_element = elem_filter.size();
 
     if (nb_element == 0) {
@@ -89,7 +89,7 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
 
   /// loop over all types in the material
   for (auto && el_type :
-       this->element_filter.elementTypes(dim, ghost_type, kind)) {
+       this->getElementFilter().elementTypes(dim, ghost_type, kind)) {
     auto & internal =
         this->template getInternal<Real>(field_id)(el_type, ghost_type);
 
@@ -100,7 +100,7 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
     auto internal_flat_it = internal_flat.begin(nb_component);
 
     /// loop all elements for the given type
-    const auto & filter = this->element_filter(el_type, ghost_type);
+    const auto & filter = this->getElementFilter(el_type, ghost_type);
     Int nb_quads =
         this->getFEEngine().getNbIntegrationPoints(el_type, ghost_type);
     for (auto & elem : filter) {

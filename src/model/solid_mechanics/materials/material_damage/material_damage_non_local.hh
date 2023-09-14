@@ -20,8 +20,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "solid_mechanics_model.hh"
 #include "material_non_local.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH_
@@ -52,8 +52,8 @@ protected:
   void computeNonLocalStresses(GhostType ghost_type) override {
     AKANTU_DEBUG_IN();
 
-    for (auto type : this->element_filter.elementTypes(dim, ghost_type)) {
-      auto & elem_filter = this->element_filter(type, ghost_type);
+    for (auto type : this->getElementFilter().elementTypes(dim, ghost_type)) {
+      auto & elem_filter = this->getElementFilter(type, ghost_type);
       if (elem_filter.empty()) {
         continue;
       }
