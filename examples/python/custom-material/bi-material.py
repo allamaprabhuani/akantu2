@@ -23,7 +23,6 @@ class LocalElastic(aka.Material):
         # change it to have the initialize wrapped
         self.factor = super().registerInternalReal('factor', 1)
         self.quad_coords = super().registerInternalReal('quad_coordinates', 2)
-        print(self.quad_coords)
 
     def initMaterial(self):
         nu = self.getReal('nu')
@@ -38,7 +37,7 @@ class LocalElastic(aka.Material):
         model = self.getModel()
 
         model.getFEEngine().computeIntegrationPointsCoordinates(
-            self.quad_coords)
+            self.quad_coords, self.getElementFilter())
 
         for elem_type in self.factor.elementTypes():
             factor = self.factor(elem_type)
@@ -121,15 +120,15 @@ def applyBC(model):
     height = 1.
     epsilon = 1e-8
     for node in range(0, nbNodes):
-        if((np.abs(position[node, 0]) < epsilon) or  # left side
-           (np.abs(position[node, 0] - width) < epsilon)):  # right side
+        if(np.abs(position[node, 0]) < epsilon) or         # left side
+           (np.abs(position[node, 0] - width) < epsilon):  # right side
             blocked_dofs[node, 0] = True
             displacement[node, 0] = 0 * position[node, 0] + 0.
 
-        if(np.abs(position[node, 1]) < epsilon):  # lower side
+        if np.abs(position[node, 1]) < epsilon:  # lower side
             blocked_dofs[node, 1] = True
             displacement[node, 1] = - 1.
-        if(np.abs(position[node, 1] - height) < epsilon):  # upper side
+        if np.abs(position[node, 1] - height) < epsilon:  # upper side
             blocked_dofs[node, 1] = True
             displacement[node, 1] = 1.
 
@@ -153,13 +152,9 @@ mesh.read(mesh_file)
 # parse input file
 aka.parseInput('material.dat')
 
-print("blip")
-
 # init the SolidMechanicsModel
 model = aka.SolidMechanicsModel(mesh)
 model.initFull(_analysis_method=aka._static)
-
-print("blip")
 
 # configure the solver
 solver = model.getNonLinearSolver()
@@ -174,7 +169,7 @@ model.addDumpFieldVector("internal_force")
 model.addDumpFieldVector("external_force")
 model.addDumpField("strain")
 model.addDumpField("stress")
-# model.addDumpField("factor")
+model.addDumpField("factor")
 model.addDumpField("blocked_dofs")
 
 # Boundary conditions
