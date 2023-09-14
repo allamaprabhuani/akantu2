@@ -47,7 +47,7 @@ protected:
     AKANTU_DEBUG_IN();
 
     for (const auto & type :
-         this->element_filter.elementTypes(dim, ghost_type)) {
+         this->getElementFilter().elementTypes(dim, ghost_type)) {
       computeNonLocalStress(type, ghost_type);
     }
 
