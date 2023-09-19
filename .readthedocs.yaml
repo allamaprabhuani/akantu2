@@ -25,6 +25,6 @@ build:
     - python3-sphinxcontrib.bibtex
     - python3-urllib3
 
-python:
-  install:
-    - requirements: doc/dev-doc/requirements.txt
+# python:
+#   install:
+#     - requirements: doc/dev-doc/requirements.txt
