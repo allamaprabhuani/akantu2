@@ -1,0 +1,5 @@
+add_subdirectory(custom-material)
+add_subdirectory(dynamics)
+add_subdirectory(eigen_modes)
+add_subdirectory(plate-hole)
+add_subdirectory(stiffness_matrix)

@@ -35,7 +35,6 @@ int main(int argc, char * argv[]) {
   Real time_step;
   Real time_factor = 0.8;
   Int max_steps = 1000;
-
   Mesh mesh(spatial_dimension);
 
   if (Communicator::getStaticCommunicator().whoAmI() == 0)

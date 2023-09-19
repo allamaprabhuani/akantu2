@@ -6,6 +6,7 @@ third-party/*/
 !third-party/cmake/*
 !third-party/akantu_iterators
 !third-party/iohelper
+doc/dev-doc/auto_examples/*
 *~
 release
 .*.swp

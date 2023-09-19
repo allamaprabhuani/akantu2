@@ -1,7 +1,7 @@
 .. _sect-smm:
 
 Solid Mechanics Model
-=====================
+---------------------
 
 The solid mechanics model is a specific implementation of the :cpp:class:`Model
 <akantu::Model>` interface dedicated to handle the equations of motion or
@@ -63,11 +63,11 @@ arguement (e.g. ``kinetic`` or ``potential``).
 
 
 Model Setup
------------
+```````````
 
 
 Setting Initial Conditions
-``````````````````````````
+''''''''''''''''''''''''''
 
 For a unique solution of the equations of motion, initial
 displacements and velocities for all degrees of freedom must be
@@ -99,7 +99,7 @@ nodes is set to :math:`0.1` and :math:`1`, respectively::
 .. _sect-smm-boundary:
 
 Setting Boundary Conditions
-```````````````````````````
+'''''''''''''''''''''''''''
 
 This section explains how to impose Dirichlet or Neumann boundary
 conditions. A Dirichlet boundary condition specifies the values that
@@ -282,7 +282,7 @@ generic example is given below with a Dirichlet boundary condition::
      model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "el_fix");
 
 Material Selector
-`````````````````
+'''''''''''''''''
 
 If the user wants to assign different materials to different
 finite elements groups in ``Akantu``, a material selector has to be
@@ -339,7 +339,7 @@ details, see :ref:`sect-smm-intrinsic-insertion`).
 
 
 Insertion of Cohesive Elements
-``````````````````````````````
+''''''''''''''''''''''''''''''
 Cohesive elements are currently compatible only with static simulation
 and dynamic simulation with an explicit time integration scheme (see
 section :ref:`ssect-smm-expl-time-integration`). They do not have to be
@@ -389,7 +389,7 @@ in which :math:`\sigma_\st{n}` is the tensile normal traction and $\tau$ the
 resulting tangential one (:numref:`fig-smm-coh-insertion`).
 
 Extrinsic approach
-''''''''''''''''''
+""""""""""""""""""
 
 During the simulation, stress has to be checked along each facet in order to
 insert cohesive elements where the stress criterion is reached. This check is
@@ -419,7 +419,7 @@ be added as well.
 .. _sect-smm-intrinsic-insertion:
 
 Intrinsic approach
-''''''''''''''''''
+""""""""""""""""""
 
 Intrinsic cohesive elements are inserted in the mesh with the method
 :cpp:func:`initFull <akantu::SolidMechanicsModelCohesive::initFull>`.
@@ -453,7 +453,7 @@ the input file.
 (``Surfaces`` in 2D and ``Volumes`` in 3D).
 
 Static Analysis
----------------
+```````````````
 
 The :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>` class can
 handle different analysis methods, the first one being presented is the static
@@ -571,7 +571,7 @@ The results of this analysis is depicted in
 
 
 Dynamic Methods
----------------
+```````````````
 
 Different ways to solve the equations of motion are implemented in the
 solid mechanics model.  The complete equations that should be solved
@@ -670,7 +670,7 @@ are parameters depending on the method used to solve the equations
 
 
 Implicit Time Integration
-`````````````````````````
+'''''''''''''''''''''''''
 
 To solve a problem with an implicit time integration scheme, first a
 :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>` object has to be
@@ -760,7 +760,7 @@ beam at 3 different times during the simulation: time steps 0, 1000 and
 .. _ssect-smm-expl-time-integration:
 
 Explicit Time Integration
-`````````````````````````
+''''''''''''''''''''''''''
 
 The explicit dynamic time integration scheme is based on the
 Newmark-:math:`\beta` scheme with :math:`\alpha=0` (see equations

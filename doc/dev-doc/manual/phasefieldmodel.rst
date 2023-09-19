@@ -1,12 +1,12 @@
 PhaseField Model
-================
+----------------
 
 The phasefield model is a specific implementation of
 :cpp:class:`Model <akantu::Model>` interface to handle brittle fracture
 for infinitesimal strains.
 
 Theory
-------
+``````
 
 The variational formulation of brittle fracture was first proposed by
 Francfort and Marigo:cite:`franc` so as to overcome the shortcomings
@@ -58,7 +58,7 @@ The strong form of the phasefield can be expressed as
 
    
 Using the PhaseField Model
---------------------------
+``````````````````````````
 
 The :cpp:class:`PhaseFieldModel <akantu::PhaseFieldModel>` object
 solves the strong form using an inplicit solver. An instance of the
@@ -227,7 +227,7 @@ function of coupler class.
 
 
 Staggered scheme
-----------------
+````````````````
 
 To solve the solid mechanics model and phasefield model, staggered
 scheme is implemented. In staggered scheme, at current time step first

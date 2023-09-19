@@ -20,20 +20,8 @@
 #===============================================================================
 
 
-add_example(new_material         "Example on how to add a new material in Akantu"      PACKAGE core)
-add_example(boundary_conditions  "Example on hoy to set boundary conditions"           PACKAGE core)
-add_example(explicit             "Example on how to run an explicit simulation"        PACKAGE core)
-add_example(io                   "Example on how to perform Input/Output operations"   PACKAGE core)
-add_example(implicit             "Example on how to run an implicit simulation"        PACKAGE implicit)
-add_example(static               "Example on how to run a static simulation"           PACKAGE implicit)
-add_example(parallel             "Example of how to write a parallel code with Akantu" PACKAGE parallel)
-add_example(cohesive_element     "Cohesive element examples"                           PACKAGE cohesive_element)
-add_example(structural_mechanics "Structural mechanics model examples"                 PACKAGE structural_mechanics)
-add_example(heat_transfer        "Example on how to run heat transfer simulation"      PACKAGE heat_transfer)
-add_example(python               "Example on how to use the python interface"          PACKAGE python_interface)
-add_example(embedded             "Example on how to run embedded model simulation"     PACKAGE embedded)
-add_example(contact_mechanics    "Example on how to run contact mechanics model simulation"     PACKAGE contact_mechanics)
-add_example(phase_field          "Example on how to run phase field model simulation"  PACKAGE phase_field)
+add_example(c++ "C++ examples" PACKAGE core)
+add_example(python "Python example" PACKAGE python_interface)
 
 package_add_files_to_package(
   examples/README.rst

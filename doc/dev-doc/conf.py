@@ -48,6 +48,8 @@ extensions = [
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
+    "sphinx_gallery.gen_gallery",
+    "sphinx_copybutton"
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
@@ -112,50 +114,6 @@ copyright = (
     + " Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
 )
 author = "Nicolas Richart"
-
-# try:
-#     tag_prefix = 'v'
-#     git_repo = git.Repo(akantu_source_path)
-
-#     git_describe = git_repo.git.describe('--tags', '--dirty', '--always',
-#                                          '--long',
-#                                          '--match', '{}*'.format(tag_prefix))
-
-#     print("GIT Describe: {}".format(git_describe))
-
-#     # git describe to PEP404 version
-#     describe_matches = re.search(
-#         (r'^{}(?P<version>.+?)' +
-#          r'(?:-(?P<distance>\d+)-g(?P<sha>[0-9a-f]+)' +
-#          r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
-#         git_describe)
-
-#     if describe_matches:
-#         describe_matches = describe_matches.groupdict()
-
-#         release = describe_matches['version']
-#         if describe_matches['distance']:
-#             release += '.' if '+' in release else '+'
-#             release += '{distance}.{sha}'.format(**describe_matches)
-#             if describe_matches['dirty']:
-#                 release += '.dirty'
-#     else:
-#         count = git_repo.git.rev_list('HEAD', '--count')
-#         describe_matches = re.search(
-#             (r'^(?P<sha>[0-9a-f]+)' +
-#              r'(?:-(?P<dirty>dirty))?$').format(tag_prefix),
-#             git_describe).groupdict()
-#         release = '{}.{}+{}'.format(file_release, count,
-#                                     describe_matches['sha'])
-
-# except git.InvalidGitRepositoryError:
-#     with open(os.path.join(akantu_source_path, 'VERSION'), 'r') as fh:
-#         version_file = fh.readlines()
-#         file_release = version_file[0].strip()
-#     release = file_release
-
-
-# print("Release: {} - Version: {}".format(release, version))
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -321,10 +279,21 @@ breathe_default_project = "Akantu"
 breathe_default_members = ("members", "undoc-members")
 breathe_implementation_filename_extensions = [".c", ".cc", ".cpp", ".hh"]
 breathe_show_enumvalue_initializer = True
-breathe_debug_trace_directives = True
+breathe_debug_trace_directives = False
+breathe_short_warning = True
 
-# -- Options for intersphinx extension ---------------------------------------
+# -- Gallery ------------------------------------------------------------------
+sphinx_gallery_conf = {
+    'examples_dirs': os.path.join(akantu_source_path, 'examples'),
+    'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
+    'download_all_examples': False,
+    'plot_gallery': 'False',
+    'only_warn_on_example_error': True,
+    'log_level': {'backreference_missing': 'debug'},
+}
 
+
+# -- Options for intersphinx extension ----------------------------------------
 intersphinx_mapping = {
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),

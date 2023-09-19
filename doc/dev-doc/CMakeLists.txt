@@ -56,7 +56,7 @@ endif()
 
 set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
   ${SPHINX_PARALLEL_FLAG}
-  ${SPHINX_VERBOSE_FLAG} -b html
+  ${SPHINX_VERBOSE_FLAG} -D plot_gallery=0 -b html
   -c "${CMAKE_CURRENT_BINARY_DIR}"
   -d "${SPHINX_CACHE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}"

@@ -20,21 +20,15 @@
 #===============================================================================
 
 
-add_subdirectory(custom-material)
-add_subdirectory(dynamics)
-add_subdirectory(eigen_modes)
-add_subdirectory(plate-hole)
-add_subdirectory(stiffness_matrix)
-
-add_example(structural_mechanics "structural mechanics example in python"
+add_example(structural_mechanics_model "structural mechanics example in python"
   PACKAGE structural_mechanics)
-add_example(fragmentation "example of fragmentation in python"
-  PACKAGE cohesive_element)
-add_example(phase-field "phase-field example in python"
+add_example(phase_field_model "phase-field example in python"
   PACKAGE phase_field)
-add_example(cohesive "cohesive element examples in python"
+add_example(solid_mechanics_cohesive_model "cohesive element examples in python"
   PACKAGE cohesive_element)
-add_example(contact-mechanics "contact mechanics example in python"
+add_example(solid_mechanics_model "solid_mechanics_model in python"
+  PACKAGE solid_mechanics)
+add_example(contact_mechanics_model "contact mechanics example in python"
   PACKAGE contact_mechanics)
 package_add_files_to_package(
   examples/python/README.rst
