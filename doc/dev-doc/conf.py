@@ -48,8 +48,8 @@ extensions = [
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
-    "sphinx_gallery.gen_gallery",
-    "sphinx_copybutton"
+#    "sphinx_gallery.gen_gallery",
+    "sphinx_copybutton",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"

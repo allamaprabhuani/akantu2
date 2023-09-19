@@ -10,12 +10,21 @@ sphinx:
   builder: html
   configuration: doc/dev-doc/conf.py
 
-# Optionally build your docs in additional formats such as PDF
-# formats:
-#   - pdf
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.11"
+  apt_packages:
+    - python3-breathe
+    - python3-git
+    - python3-jinja2
+    - python3-myst-parser
+    - python3-sphinx
+    - python3-sphinx-copybutton
+    - python3-sphinx-rtd-theme
+    - python3-sphinxcontrib.bibtex
+    - python3-urllib3
 
-# Optionally set the version of Python and requirements required to build your docs
 python:
-  version: 3.8
   install:
     - requirements: doc/dev-doc/requirements.txt
