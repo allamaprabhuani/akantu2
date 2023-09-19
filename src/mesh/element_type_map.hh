@@ -171,6 +171,7 @@ public:
         : container(std::cref(container)), dim(dim), ghost_type(ghost_type),
           kind(kind) {}
 
+#if !defined(DOXYGEN)
     template <typename... pack>
     ElementTypesIteratorHelper(const Container & container,
                                use_named_args_t /*unused*/, pack &&... _pack)
@@ -178,6 +179,7 @@ public:
               container, OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
               OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
               OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined)) {}
+#endif
 
     ElementTypesIteratorHelper(const ElementTypesIteratorHelper &) = default;
     auto operator=(const ElementTypesIteratorHelper &)
@@ -206,6 +208,7 @@ private:
                         pack &&... _pack) const -> ElementTypesIteratorHelper;
 
 public:
+#if !defined(DOXYGEN)
   /*!
    * \param _pack
    * \parblock
@@ -230,6 +233,38 @@ public:
                           ElementTypesIteratorHelper> {
     return elementTypesImpl(std::forward<decltype(_pack)>(_pack)...);
   }
+<<<<<<< Updated upstream
+=======
+#endif
+  /*! Get an iterator to the beginning of a subset datamap. This method expects
+   *  the SupportType to be ElementType.
+   *  @param dim optional: iterate over data of dimension dim (e.g. when
+   *         iterating over (surface) facets of a 3D mesh, dim would be 2).
+   *         by default, all dimensions are considered.
+   *  @param ghost_type optional: by default, the data map for non-ghost
+   *         elements is iterated over.
+   *  @param kind optional: the kind of element to search for (see
+   *         aka_common.hh), by default all kinds are considered
+   *  @return an iterator to the first stored data matching the filters
+   *          or an iterator to the end of the map if none match*/
+  [[deprecated("Use elementTypes instead")]] inline type_iterator
+  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+            ElementKind kind = _ek_not_defined) const;
+  /*! Get an iterator to the end of a subset datamap. This method expects
+   *  the SupportType to be ElementType.
+   *  @param dim optional: iterate over data of dimension dim (e.g. when
+   *         iterating over (surface) facets of a 3D mesh, dim would be 2).
+   *         by default, all dimensions are considered.
+   *  @param ghost_type optional: by default, the data map for non-ghost
+   *         elements is iterated over.
+   *  @param kind optional: the kind of element to search for (see
+   *         aka_common.hh), by default all kinds are considered
+   *  @return an iterator to the last stored data matching the filters
+   *          or an iterator to the end of the map if none match */
+  [[deprecated("Use elementTypes instead")]] inline type_iterator
+  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+           ElementKind kind = _ek_not_defined) const;
+>>>>>>> Stashed changes
 
   /*! Direct access to the underlying data map. for internal use by daughter
    *  classes only
@@ -414,6 +449,7 @@ public:
   template <class Func>
   void initialize(const Func & f, const T & default_value, bool do_not_default);
 
+#if !defined(DOXYGEN)
   /// initialize with sizes and number of components in accordance of a mesh
   /// content
   template <typename... pack>
@@ -423,6 +459,7 @@ public:
   /// engine content (aka integration points)
   template <typename... pack>
   void initialize(const FEEngine & fe_engine, pack &&... _pack);
+#endif
 
   /* ------------------------------------------------------------------------ */
   /* Accesssors                                                               */
@@ -431,6 +468,7 @@ public:
   /// get the name of the internal field
   AKANTU_GET_MACRO(Name, name, ID);
 
+#if !defined(DOXYGEN)
   /**
    * get the size of the ElementTypeMapArray<T>
    * @param[in] _pack
@@ -443,7 +481,12 @@ public:
    * \li \c _all_ghost_types (default: false)
    * \endparblock
    **/
+<<<<<<< Updated upstream
   template <typename... pack> auto size(pack &&... _pack) const -> Int;
+=======
+  template <typename... pack> UInt size(pack &&... _pack) const;
+#endif
+>>>>>>> Stashed changes
 
   auto isNodal() const -> bool { return is_nodal; }
   void isNodal(bool is_nodal) { this->is_nodal = is_nodal; }

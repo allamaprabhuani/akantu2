@@ -46,6 +46,12 @@ efficiency while benefiting the open-source visibility.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Developer Manual
+
+   ./manual/dev-overview.rst
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    ./reference.rst

@@ -163,9 +163,18 @@ public:
   /// append a vector
   // inline void push_back(const value_type new_elem[]);
 
+#if !defined(DOXYGEN)
   /// append a Vector or a Matrix
+<<<<<<< Updated upstream
   template <typename Derived>
   inline void push_back(const Eigen::MatrixBase<Derived> & new_elem);
+=======
+  template <template <typename> class C,
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
+  inline void push_back(const C<T> & new_elem);
+#endif
+>>>>>>> Stashed changes
 
   /// changes the allocated size but not the size, if new_size = 0, the size is
   /// set to min(current_size and reserve size)
@@ -245,6 +254,26 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
+<<<<<<< Updated upstream
+=======
+  /// \todo protected: does not compile with intel  check why
+public:
+#ifndef DOXYGEN
+  template <class R, class it, class IR = R,
+            bool is_tensor_ = aka::is_tensor<std::decay_t<R>>::value>
+  class iterator_internal;
+#endif
+
+public:
+  /* ------------------------------------------------------------------------ */
+
+  /* ------------------------------------------------------------------------ */
+  template <typename R = T> class const_iterator;
+  template <typename R = T> class iterator;
+
+  /* ------------------------------------------------------------------------ */
+
+>>>>>>> Stashed changes
   /// iterator for Array of nb_component = 1
   using scalar_iterator = view_iterator<T>;
   /// const_iterator for Array of nb_component = 1
@@ -265,10 +294,16 @@ public:
   using const_matrix_iterator = const_view_iterator<MatrixProxy<const T>>;
 
   /* ------------------------------------------------------------------------ */
+<<<<<<< Updated upstream
   template <typename... Ns> inline auto begin(Ns &&... n);
   template <typename... Ns> inline auto end(Ns &&... n);
   template <typename... Ns> inline auto begin(Ns &&... n) const;
   template <typename... Ns> inline auto end(Ns &&... n) const;
+=======
+#if !defined(DOXYGEN)
+  template <typename... Ns> inline decltype(auto) begin(Ns &&... n);
+  template <typename... Ns> inline decltype(auto) end(Ns &&... n);
+>>>>>>> Stashed changes
 
   template <typename... Ns> inline auto cbegin(Ns &&... n) const;
   template <typename... Ns> inline auto cend(Ns &&... n) const;
@@ -277,6 +312,7 @@ public:
   [[deprecated("use make_view instead")]] inline auto
   begin_reinterpret(Ns &&... n);
   template <typename... Ns>
+<<<<<<< Updated upstream
   [[deprecated("use make_view instead")]] inline auto
   end_reinterpret(Ns &&... n);
   template <typename... Ns>
@@ -286,6 +322,10 @@ public:
   [[deprecated("use make_view instead")]] inline auto
   end_reinterpret(Ns &&... n) const;
 
+=======
+  inline decltype(auto) end_reinterpret(Ns &&... n) const;
+#endif
+>>>>>>> Stashed changes
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -300,6 +340,7 @@ public:
   /// append a value to the end of the Array
   inline void push_back(const_reference value) { parent::push_back(value); }
 
+#if !defined(DOXYGEN)
   /// append a Vector or a Matrix
   template <typename Derived>
   inline void push_back(const Eigen::MatrixBase<Derived> & new_elem) {
@@ -314,8 +355,9 @@ public:
   template <typename Ret> inline void push_back(const view_iterator<Ret> & it) {
     push_back(*it);
   }
-
+#endif
   /// erase the value at position i
+<<<<<<< Updated upstream
   inline void erase(Idx i);
 
   /// erase the entry corresponding to the iterator
@@ -325,6 +367,20 @@ public:
   template <typename C, std::enable_if_t<aka::is_tensor<C>::value> * = nullptr>
   inline Idx find(const C & elem);
 
+=======
+  inline void erase(UInt i);
+
+#if !defined(DOXYGEN)
+  /// ask Nico, clarify
+  template <typename R> inline iterator<R> erase(const iterator<R> & it);
+
+  /// @see Array::find(const_reference elem) const
+  template <template <typename> class C,
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
+  inline UInt find(const C<T> & elem);
+#endif
+>>>>>>> Stashed changes
   /// set all entries of the array to the value t
   /// @param t value to fill the array with
   inline void set(T t) {
@@ -342,6 +398,18 @@ public:
   /// resize the array to 0
   inline void clear() { this->resize(0); }
 
+<<<<<<< Updated upstream
+=======
+#if !defined(DOXYGEN)
+  /// set all tuples of the array to a given vector or matrix
+  /// @param vm Matrix or Vector to fill the array with
+  template <template <typename> class C,
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
+  inline void set(const C<T> & vm);
+#endif
+
+>>>>>>> Stashed changes
   /// Append the content of the other array to the current one
   void append(const Array & other);
 

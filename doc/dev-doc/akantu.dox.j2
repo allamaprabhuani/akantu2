@@ -19,7 +19,8 @@ RECURSIVE              = YES
 EXAMPLE_PATH           = {{ akantu_source_path }}/examples
 EXAMPLE_RECURSIVE      = YES
 SOURCE_BROWSER         = NO
-GENERATE_HTML          = NO
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html_dox
 GENERATE_HTMLHELP      = NO
 USE_MATHJAX            = YES
 GENERATE_LATEX         = NO
@@ -33,18 +34,16 @@ DOXYGEN_INCLUDE_PATH   = {{ akantu_source_path }}/src/common \
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 PREDEFINED             = DOXYGEN \
-                         __cplusplus=201402L \
+                         __cplusplus=201703L \
                          "AKANTU_GET_MACRO(name, value, type) = type get##name() const;" \
+                         "AKANTU_GET_MACRO_AUTO(name, value) = decltype(auto) get##name() const;" \
                          "AKANTU_GET_MACRO_NOT_CONST(name, value, type) = type get##name();"
-EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
-                         __END_AKANTU__ \
-                         __BEGIN_AKANTU_DUMPER__ \
-                         __END_AKANTU_DUMPER__ \
-                         AKANTU_SET_MACRO \
+EXPAND_AS_DEFINED      = AKANTU_SET_MACRO \
                          AKANTU_GET_MACRO_DEREF_PTR \
                          AKANTU_GET_MACRO_BY_ELEMENT_TYPE \
-                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST
-COLLABORATION_GRAPH    = NO
+                         AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST \
+EXCLUDE_SYMBOLS        = BOOST_PP_*
+COLLABORATION_GRAPH    = YES
 UML_LOOK               = YES
 TEMPLATE_RELATIONS     = YES
 CALL_GRAPH             = YES

@@ -64,6 +64,7 @@ set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
   )
 
 file(GLOB_RECURSE _SPHINX_SRCS
+  akantu.dox.j2
   "*.rst")
 
 add_custom_command(

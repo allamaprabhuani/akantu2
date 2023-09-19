@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="361.48108mm"
+   height="215.45384mm"
+   viewBox="0 0 361.48108 215.45384"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="fe_engine_class.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:connector-spacing="3"
+     inkscape:zoom="0.51780096"
+     inkscape:cx="1286.2085"
+     inkscape:cy="617.03246"
+     inkscape:window-width="2559"
+     inkscape:window-height="1417"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="marker29202"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:0.625;stroke-linejoin:round"
+         id="path29200" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="DiamondLstart"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DiamondLstart"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,5.6,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,-7.0710768 -7.0710894,0 0,7.0710589 7.0710462,0 Z"
+         id="path19104" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="EmptyDiamondLstart"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="EmptyDiamondLstart"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,5.6,0)"
+         style="fill:context-fill;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,-7.0710768 -7.0710894,0 0,7.0710589 7.0710462,0 Z"
+         id="path19131" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker19388"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="EmptyDiamondLend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,-5.6,0)"
+         style="fill:context-fill;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,-7.0710768 -7.0710894,0 0,7.0710589 7.0710462,0 Z"
+         id="path19386" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="EmptyDiamondLend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="EmptyDiamondLend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,-5.6,0)"
+         style="fill:context-fill;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,-7.0710768 -7.0710894,0 0,7.0710589 7.0710462,0 Z"
+         id="path19140" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="EmptyDiamondL"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="EmptyDiamondL"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.8)"
+         style="fill:context-fill;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,-7.0710768 -7.0710894,0 0,7.0710589 7.0710462,0 Z"
+         id="path19122" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow2Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:0.625;stroke-linejoin:round"
+         id="path19037" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="EmptyTriangleOutL"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="EmptyTriangleOutL"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,-4.8,0)"
+         style="fill:context-fill;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path19176" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path19019" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lstart"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path19016" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(76.824768,6.4556317)">
+    <g
+       id="g19314"
+       transform="translate(33.250674,-23.990676)">
+      <rect
+         style="opacity:0.998;fill:none;stroke:#586fb6;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect31"
+         width="54.065136"
+         height="17.786968"
+         x="43.632523"
+         y="214.70192" />
+      <text
+         xml:space="preserve"
+         style="font-size:10.5833px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="47.227318"
+         y="226.33167"
+         id="text2683"><tspan
+           sodipodi:role="line"
+           id="tspan2681"
+           style="stroke-width:0.264583"
+           x="47.227318"
+           y="226.33167">FEEngine</tspan></text>
+    </g>
+    <g
+       id="g28922"
+       transform="translate(-32.295326,-25.992131)">
+      <g
+         id="g19309">
+        <rect
+           style="opacity:0.998;fill:none;stroke:#586fb6;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect33"
+           width="224.22987"
+           height="56.554844"
+           x="24.096153"
+           y="102.23028" />
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-size:10.5833px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="30.549377"
+         y="113.59087"
+         id="text4535"><tspan
+           sodipodi:role="line"
+           id="tspan4533"
+           style="stroke-width:0.264583"
+           x="30.549377"
+           y="113.59087">FEEngineTemplate&lt;Integrator,</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.264583"
+           x="30.549377"
+           y="126.82"
+           id="tspan14371">                                ShapeFunction,</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.264583"
+           x="30.549377"
+           y="140.04912"
+           id="tspan4537">                                ElementKind,</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.264583"
+           x="30.549377"
+           y="153.27824"
+           id="tspan14373">                                IntegrationOrderFunctor&gt;</tspan></text>
+    </g>
+    <g
+       id="g29407">
+      <g
+         id="g28805">
+        <g
+           id="g29395">
+          <rect
+             style="opacity:0.998;fill:none;stroke:#586fb6;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+             id="rect35"
+             width="153.86328"
+             height="30.764082"
+             x="130.29301"
+             y="-5.9556317" />
+          <text
+             xml:space="preserve"
+             style="font-size:10.5833px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+             x="135.46182"
+             y="12.162667"
+             id="text22026"><tspan
+               sodipodi:role="line"
+               id="tspan22024"
+               style="stroke-width:0.264583"
+               x="135.46182"
+               y="12.162667">ShapeFunction&lt;ElementKind&gt;</tspan></text>
+        </g>
+      </g>
+      <g
+         id="g28811"
+         transform="translate(0,-1.9971714)">
+        <rect
+           style="opacity:0.998;fill:none;stroke:#586fb6;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect37"
+           width="178.18484"
+           height="30.71291"
+           x="-76.324768"
+           y="-3.9328742" />
+        <text
+           xml:space="preserve"
+           style="font-size:10.5833px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+           x="-72.999443"
+           y="7.5452766"
+           id="text24158"><tspan
+             sodipodi:role="line"
+             id="tspan24156"
+             style="stroke-width:0.264583"
+             x="-72.999443"
+             y="7.5452766">Integrator&lt;ElementKind</tspan><tspan
+             sodipodi:role="line"
+             style="stroke-width:0.264583"
+             x="-72.999443"
+             y="20.774401"
+             id="tspan24160">                  IntegrationOrderFunctor&gt;</tspan></text>
+      </g>
+    </g>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#DiamondLstart)"
+       d="M 207.22466,76.238147 V 24.80845"
+       id="path28990"
+       inkscape:connector-type="orthogonal"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g28922"
+       inkscape:connection-end="#g28805" />
+    <path
+       style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#DiamondLstart)"
+       d="M 13.453296,75.698078 12.926531,24.782864"
+       id="path28992"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-end="#g28811" />
+    <path
+       style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.98208;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker29202)"
+       d="m 103.91576,190.71124 0,-57.91825"
+       id="path29198"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-end="#g28922"
+       inkscape:connection-start="#g19314" />
+  </g>
+</svg>
