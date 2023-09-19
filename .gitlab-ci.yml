@@ -294,7 +294,7 @@ test:python_package:
     - pip install numpy scipy
     - pip install akantu --no-index --find-links=${PWD}/wheelhouse
     - python -c "import akantu"
-    - cd examples/python/dynamics/
+    - cd examples/python/solid_mechanics_model/dynamics/
     - apt update && apt install -y gmsh
     - gmsh -2 bar.geo
     - python ./dynamics.py
