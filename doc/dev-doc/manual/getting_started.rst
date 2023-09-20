@@ -179,10 +179,10 @@ follows::
 
     }
 
-The :cpp:func:`initialize <akantu::initialize>` function takes the text inpute
+The :cpp:func:`initialize <akantu::initialize>` function takes the text input
 file and the program parameters which can be parsed by ``Akantu`` in due form
 (see sect:parser). Obviously it is necessary to include all files needed in
-main. In this manual all provided code implies the usage of ``akantu`` as
+main. In this manual, all provided code implies the usage of ``akantu`` as
 namespace.
 
 Compiling your simulation
@@ -207,12 +207,12 @@ Then create a directory called ``build`` and inside it execute ``cmake
 installed ``Akantu`` in a standard directory such as ``/usr/local`` (using
 ``make install``), you can omit the ``-DAkantu_DIR=<path_to_akantu>`` option.
 
-Other why ``path_to_akantu`` is either the folder where you built ``Akantu`` if
+Otherwise ``path_to_akantu`` is either the folder where you built ``Akantu`` if
 you did not do a ``make install``, or if you installed ``Akantu`` in
 ``CMAKE_INSTALL_PREFIX`` it is ``<CMAKE_INSTALL_PREFIX>/share/cmake/Akantu``.
 
 Once ``cmake`` managed to configure and generate a ``makefile`` you can just do
-``make``
+``make``.
 
 
 .. _loading_mesh:

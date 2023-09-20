@@ -30,7 +30,7 @@ values) of ten nodes, the appropriate code is the following::
 
   Array<Real> position(nb_nodes, spatial_dimension);
 
-In this case the :math:`x` position of the eighth node number will be given
+In this case the :math:`x` position of the eighth node will be given
 by ``position(7, 0)`` (in C++, numbering starts at 0 and not 1). If
 the number of components for the sequences is not specified, the
 default value of 1 is used. Here is a list of some basic operations
@@ -53,7 +53,7 @@ that can be performed on :cpp:class:`Array <akantu::Array>`:
   - :cpp:func:`find(value) <akantu::Array::find>` search ``value`` in the
     current :cpp:class:`Array <akantu::Array>`. Return position index of the
     first occurence or -1 if not found.
-  - :cpp:func:`storage() <akantu::Array::storage>` Return the address of the
+  - :cpp:func:`storage() <akantu::Array::storage>` return the address of the
     allocated memory of the :cpp:class:`Array <akantu::Array>`.
 
 Vector & Matrix
@@ -63,7 +63,7 @@ The :cpp:class:`Array\<T\> <akantu::Array>` iterators as presented in the previo
 section can be shaped as :cpp:class:`Vector\<T\> <akantu::Vector>` or
 :cpp:class:`Matrix\<T\> <akantu::Matrix>`. This objects represent 1st and 2nd order
 tensors. As such they come with some functionalities that we will present a bit
-more into detail in this here.
+more into detail here.
 
 
 ``Vector<T>``
@@ -86,9 +86,9 @@ more into detail in this here.
     positive integer value. There are also some particular values for the most
     commonly used norms, ``L_1`` for the Manhattan norm, ``L_2`` for the
     geometrical norm and ``L_inf`` for the norm infinity.
-  - :cpp:func:`v.dot(x) <akantu::Vector::dot>` return the dot product of
+  - :cpp:func:`v.dot(x) <akantu::Vector::dot>` returns the dot product of
     ``v`` and ``x``
-  - :cpp:func:`v.distance(x) <akantu::Vector::distance>` return the
+  - :cpp:func:`v.distance(x) <akantu::Vector::distance>` returns the
     geometrical norm of :math:`v - x`
 
 - Level 2: (results are vectors)
@@ -139,9 +139,9 @@ more into detail in this here.
     any positive integer value. There are also some particular values for the most
     commonly used norms, ``L_1`` for the Manhattan norm, ``L_2`` for the
     geometrical norm and ``L_inf`` for the norm infinity.
-  - :cpp:func:`A.trace() <akantu::Matrix::trace>` return the trace of ``A``
-  - :cpp:func:`A.det() <akantu::Matrix::det>` return the determinant of ``A``
-  - :cpp:func:`A.doubleDot(B) <akantu::Matrix::doubleDot>` return the double
+  - :cpp:func:`A.trace() <akantu::Matrix::trace>` returns the trace of ``A``
+  - :cpp:func:`A.det() <akantu::Matrix::det>` returns the determinant of ``A``
+  - :cpp:func:`A.doubleDot(B) <akantu::Matrix::doubleDot>` returns the double
     dot product of ``A`` and ``B``, :math:`\mat{A}:\mat{B}`
 
 - Level 3: (results are matrices)
@@ -189,7 +189,7 @@ more into detail in this here.
     +----------+----------+--------------+
 
   - :cpp:func:`A.eigs(d, V) <akantu::Matrix::eigs>` this method computes the
-    eigenvalues and eigenvectors of ``A`` and store the results in ``d`` and
+    eigenvalues and eigenvectors of ``A`` and stores the results in ``d`` and
     ``V`` such that :math:`d(i) = \lambda_i` and :math:`V(i) = \vec{v_i}` with
     :math:`\mat{A}\vec{v_i} = \lambda_i\vec{v_i}` and :math:`\lambda_1 > ... >
     \lambda_i > ... > \lambda_N`
@@ -202,7 +202,7 @@ This ranges from geometric calculation on nodal quantities to tensor algebra (in
 constitutive laws for example). The :cpp:class:`Array <akantu::Array>` object
 has the possibility to return iterators in order to make the writing of loops
 easier and enhance readability. For instance, a loop over the nodal coordinates
-can be performed like::
+can be performed like this::
 
   // accessing the nodal coordinates Array
   // with spatial_dimension components
@@ -212,7 +212,7 @@ can be performed like::
     // do what you need ....
   }
 
-In that example, each ``coords`` is a :cpp:class:`Vector\<Real\> <akantu::Vector>`
+In this example, each ``coords`` is a :cpp:class:`Vector\<Real\> <akantu::Vector>`
 containing geometrical array of size ``spatial_dimension`` and the iteration is
 conveniently performed by the :cpp:class:`Array <akantu::Array>` iterator.
 
@@ -345,14 +345,14 @@ The :cpp:class:`FEEngine<akantu::FEEngine>` interface is dedicated to handle the
 finite-element approximations and the numerical integration of the weak form. As
 we will see in Chapter :doc:`./solidmechanicsmodel`,
 :cpp:class:`Model<akantu::Model>` creates its own
-:cpp:class:`FEEngine<akantu::FEEngine>` object so the explicit creation of the
+:cpp:class:`FEEngine<akantu::FEEngine>` object, hence the explicit creation of the
 object is not required.
 
 Mathematical Operations
 ```````````````````````
 
-Using the :cpp:class:`FEEngine<akantu::FEEngine>` object, one can compute a interpolation,
-an integration or a gradient.A simple example is given below:
+Using the :cpp:class:`FEEngine<akantu::FEEngine>` object, one can compute an interpolation,
+an integration or a gradient. A simple example is given below:
 
 .. code-block:: c++
 
@@ -443,7 +443,7 @@ these elements are listed in :numref:`tab-elements-1D`.
             :align: center
 
             Schematic overview of the two 1D element types in ``Akantu``. In each
-            element, the node numbering as used in ``Akantu`` is indicated and also the
+            element, the node numbering as used in ``Akantu`` is indicated and the
             quadrature points are highlighted (gray circles).
 
 
@@ -473,7 +473,7 @@ is not a Lagrangian but a serendipity element.
             :align: center
 
             Schematic overview of the four 2D element types in ``Akantu``. In each
-            element, the node numbering as used in ``Akantu`` is indicated and also the
+            element, the node numbering as used in ``Akantu`` is indicated and the
             quadrature points are highlighted (gray circles).
 
 
@@ -502,7 +502,7 @@ properties of these elements are listed in :numref:`tab-elements-3D`.
             :align: center
 
             Schematic overview of the three 3D element types in ``Akantu``. In each
-            element, the node numbering as used in ``Akantu`` is indicated and also the
+            element, the node numbering as used in ``Akantu`` is indicated and the
             quadrature points are highlighted (gray circles).
 
 .. _tab-elements-3D:
@@ -562,7 +562,7 @@ in :numref:`fig-elements-bernoulli` and some of its properties are listed in
 
             Schematic depiction of a Bernoulli beam element (applied to 2D and
             3D) in ``Akantu``. The node numbering as used in ``Akantu`` is
-            indicated, and also the quadrature points are highlighted (gray
+            indicated, and the quadrature points are highlighted (gray
             circles).
 
 .. _tab-elements-bernoulli:
