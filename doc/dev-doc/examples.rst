@@ -51,7 +51,7 @@ of the length of the plate.
 The solution for the static analysis is shown in :numref:`fig-ex-static_disp`.
 
 .. _fig-ex-static_disp:
-.. figure:: figures/examples/static_dipl_mag.svg
+.. figure:: manual/figures/examples/static_dipl_mag.svg
             :align: center
 
             Solution of the static analysis: displacement magnitude.
