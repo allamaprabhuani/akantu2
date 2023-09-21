@@ -52,7 +52,7 @@ int main(int argc, char * argv[]) {
   /// Dirichlet boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed_x");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed_y");
-  model.applyBC(BC::Dirichlet::FixedValue(0.0001, _y), "Traction");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0001, _y), "Displacement");
   model.dump();
 
   auto & solver = model.getNonLinearSolver();

@@ -25,5 +25,5 @@ Plane Surface(1) = {1};
 Physical Surface(1) = {1};
 Physical Line("Fixed_y")  = {1};
 Physical Line("Fixed_x")  = {4};
-Physical Line("Traction") = {2};
+Physical Line("Displacement") = {2};
 Physical Line("Free")     = {3};
