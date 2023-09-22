@@ -54,12 +54,6 @@ if (SPHINX_VERSION VERSION_GREATER_EQUAL 1.7.0)
   set(SPHINX_PARALLEL_FLAG -j 1)
 endif()
 
-# Handling examples
-file(COPY ${PROJECT_SOURCE_DIR}/examples
-  DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}
-  FILES_MATCHING REGEX ".*\.(rst|md|svg|png|gif)")
-
-
 set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
   ${SPHINX_PARALLEL_FLAG}
   ${SPHINX_VERBOSE_FLAG} -b html

@@ -19,6 +19,7 @@ __license__ = "LGPLv3"
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
 import glob
 import shutil
 import subprocess
@@ -93,6 +94,21 @@ master_doc = "index"
 # Usually you set "language" from the command line for these cases.
 language = 'en'
 
+
+def callback(dir, files):
+    keep_re = re.compile(r'.*\.(svg|gif|png|md|rst)')
+    ignores = []
+    for file in files:
+        if (not keep_re.match(file) and
+            not os.path.isdir(os.path.join(dir, file))):
+            ignores.append(file)
+    return ignores
+
+shutil.copytree(os.path.join(akantu_source_path, "examples"),
+                os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
+                ignore=callback,
+                dirs_exist_ok=True)
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
@@ -102,19 +118,12 @@ exclude_patterns = [
     "manual/appendix/material-parameters.rst",
     "manual/constitutive-laws.rst",
     "manual/new-constitutive-laws.rst",
-    "examples/README.rst",
-    "examples/c++/README.rst",
-    "examples/c++/contact_mechanics_model/README.rst",
-    "examples/c++/solid_mechanics_model/README.rst",
-    "examples/c++/solid_mechanics_model/boundary_conditions/README.rst",
-    "examples/c++/solid_mechanics_model/static/README.rst",
-    "examples/c++/solid_mechanics_model/explicit/README.rst",
-    "examples/c++/solid_mechanics_model/implicit/README.rst",
-    "examples/c++/solid_mechanics_model/new_material/README.rst",
-    "examples/c++/solid_mechanics_model/io/README.rst",
-    "examples/c++/solid_mechanics_cohesive_model/README.rst",
-    "examples/python/README.rst",
 ]
+
+exclude_patterns.extend(
+    glob.glob("**/*.rst",
+              root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
+              recursive=True))
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
