@@ -1,3 +1,5 @@
+.. _sect-smm-ncl:
+
 Adding a New Constitutive Law
 `````````````````````````````
 

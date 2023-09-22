@@ -109,6 +109,9 @@ exclude_patterns = [
     "examples/c++/solid_mechanics_model/boundary_conditions/README.rst",
     "examples/c++/solid_mechanics_model/static/README.rst",
     "examples/c++/solid_mechanics_model/explicit/README.rst",
+    "examples/c++/solid_mechanics_model/implicit/README.rst",
+    "examples/c++/solid_mechanics_model/new_material/README.rst",
+    "examples/c++/solid_mechanics_model/io/README.rst",
     "examples/c++/solid_mechanics_cohesive_model/README.rst",
     "examples/python/README.rst",
 ]
