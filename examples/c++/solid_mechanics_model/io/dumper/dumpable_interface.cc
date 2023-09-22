@@ -39,7 +39,7 @@ int main(int argc, char * argv[]) {
     In this example we reproduce the same tasks as example_dumper_low_level.cc
     using this time Dumpable interface inherted by Mesh, NodeGroup and
     ElementGroup.
-    It is then advised to read first example_dumper_low_level.cc.
+    It is thus advised to read first example_dumper_low_level.cc.
   */
 
   initialize(argc, argv);
