@@ -1,9 +1,10 @@
-Examples for the contact mechanics model
-````````````````````````````````````````
+Contact mechanics model
+```````````````````````
 
 `contact_explicit_static` and `contact_explicit_dynamic` are solving a 2D Hertz contact patch test.
 
-.. image:: images/hertz.svg
+.. figure:: examples/c++/contact_mechanics_model/images/hertz.svg
+            :align: center
 
-
-.. image:: images/hertz.png
+.. figure:: examples/c++/contact_mechanics_model/images/hertz.png
+            :align: center

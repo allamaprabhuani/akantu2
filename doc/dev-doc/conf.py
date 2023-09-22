@@ -19,12 +19,12 @@ __license__ = "LGPLv3"
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import glob
 import shutil
+import subprocess
+import sys
 import jinja2
 
-# import git
-# import re
-import subprocess
 
 # -- General configuration ---------------------------------------------------
 
@@ -68,6 +68,12 @@ else:  # most probably running by hand
     except FileExistsError:
         pass
 
+
+if akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@":  # Concatenation is to avoid cmake to replace it
+    raise Exception("Something went really wrong")
+
+sys.path.insert(0, akantu_source_path)
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -96,6 +102,15 @@ exclude_patterns = [
     "manual/appendix/material-parameters.rst",
     "manual/constitutive-laws.rst",
     "manual/new-constitutive-laws.rst",
+    "examples/README.rst",
+    "examples/c++/README.rst",
+    "examples/c++/contact_mechanics_model/README.rst",
+    "examples/c++/solid_mechanics_model/README.rst",
+    "examples/c++/solid_mechanics_model/boundary_conditions/README.rst",
+    "examples/c++/solid_mechanics_model/static/README.rst",
+    "examples/c++/solid_mechanics_model/explicit/README.rst",
+    "examples/c++/solid_mechanics_cohesive_model/README.rst",
+    "examples/python/README.rst",
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -271,7 +286,7 @@ j2_template = j2_env.get_template("akantu.dox.j2")
 with open(os.path.join(akantu_path, "akantu.dox"), "w") as fh:
     fh.write(j2_template.render(j2_args))
 
-subprocess.run(["doxygen", "akantu.dox"], cwd=akantu_path)
+subprocess.run(["doxygen", "-q", "akantu.dox"], cwd=akantu_path)
 
 # print("akantu_path = '{}'".format(akantu_path))
 breathe_projects = {"Akantu": os.path.join(akantu_path, "xml")}
@@ -283,14 +298,14 @@ breathe_debug_trace_directives = False
 breathe_short_warning = True
 
 # -- Gallery ------------------------------------------------------------------
-sphinx_gallery_conf = {
-    'examples_dirs': os.path.join(akantu_source_path, 'examples'),
-    'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
-    'download_all_examples': False,
-    'plot_gallery': 'False',
-    'only_warn_on_example_error': True,
-    'log_level': {'backreference_missing': 'debug'},
-}
+# sphinx_gallery_conf = {
+#     'examples_dirs': os.path.join(akantu_source_path, 'examples'),
+#     'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
+#     'download_all_examples': False,
+#     'plot_gallery': 'False',
+#     'only_warn_on_example_error': True,
+#     'log_level': {'backreference_missing': 'debug'},
+# }
 
 
 # -- Options for intersphinx extension ----------------------------------------
