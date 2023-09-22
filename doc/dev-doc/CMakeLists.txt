@@ -34,9 +34,9 @@ set(SPHINX_INPUT "${CMAKE_CURRENT_BINARY_DIR}/conf.py")
 # ---------------------------------------------------------------------------- #
 find_package(Sphinx REQUIRED)
 
-set(SPHINX_VERBOSE_FLAG "-v")
+set(SPHINX_VERBOSE_FLAG)
 if(CMAKE_VERBOSE_MAKEFILE)
-  set(SPHINX_VERBOSE_FLAG -vv)
+  set(SPHINX_VERBOSE_FLAG "-v")
 endif(CMAKE_VERBOSE_MAKEFILE)
 
 configure_file(

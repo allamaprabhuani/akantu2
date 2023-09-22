@@ -121,7 +121,7 @@ exclude_patterns = [
 ]
 
 exclude_patterns.extend(
-    glob.glob("**/*.rst",
+    glob.glob("examples/**/*.rst",
               root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
               recursive=True))
 
@@ -298,7 +298,7 @@ j2_template = j2_env.get_template("akantu.dox.j2")
 with open(os.path.join(akantu_path, "akantu.dox"), "w") as fh:
     fh.write(j2_template.render(j2_args))
 
-subprocess.run(["doxygen", "-q", "akantu.dox"], cwd=akantu_path)
+subprocess.run(["doxygen", "akantu.dox"], cwd=akantu_path)
 
 # print("akantu_path = '{}'".format(akantu_path))
 breathe_projects = {"Akantu": os.path.join(akantu_path, "xml")}
