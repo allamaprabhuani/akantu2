@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
     "sphinx.ext.viewcode",
+    'sphinx_rtd_theme',
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
