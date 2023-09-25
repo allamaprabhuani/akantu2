@@ -18,7 +18,7 @@ Wave propagation of a pulse in a bar fixed on the top, bottom and right boundari
 scheme. Results are shown in :numref:`fig-ex-plate_bar_custom`.
 
 .. _fig-ex-plate_bar_custom:
-.. figure:: examples/python/solid_mechanics_model/custom_material/images/pulse_bar_custom.gif
+.. figure:: examples/python/solid_mechanics_model/custom-material/images/pulse_bar_custom.gif
             :align: center
             :width: 90%
 
@@ -27,7 +27,7 @@ scheme. Results are shown in :numref:`fig-ex-plate_bar_custom`.
 In ``bi-material.py``, the same principle is used to create a bimaterial square. The displacement is shown in :numref:`fig-ex-square_custom`.
 
 .. _fig-ex-square_custom:
-.. figure:: examples/python/solid_mechanics_model/custom_material/images/square_displ.png
+.. figure:: examples/python/solid_mechanics_model/custom-material/images/square_displ.png
             :align: center
             :width: 70%
 
