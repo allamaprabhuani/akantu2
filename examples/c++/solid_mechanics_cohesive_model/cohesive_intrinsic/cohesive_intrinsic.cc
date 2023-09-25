@@ -42,9 +42,11 @@ int main(int argc, char * argv[]) {
   mesh.read("triangle.msh");
 
   SolidMechanicsModelCohesive model(mesh);
-  model.getElementInserter().setLimit(_x, -0.26, -0.24);
+  // To restric the insertion to the range [-0.26, -0.24] in the x direction
+  model.getElementInserter().setLimit(_x, -0.26, -0.24); 
 
   /// model initialization
+  // _is_extrinsic = false for intrinsic
   model.initFull(_analysis_method = _explicit_lumped_mass,
                  _is_extrinsic = false);
 
@@ -67,7 +69,6 @@ int main(int argc, char * argv[]) {
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity");
   model.addDumpField("acceleration");
-  model.addDumpField("stress");
   model.addDumpField("grad_u");
   model.addDumpField("external_force");
   model.addDumpField("internal_force");

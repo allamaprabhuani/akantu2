@@ -33,6 +33,7 @@ To define another functor, a class inherited from ``BC::Dirichlet::DirichletFunc
 .. _fig-ex-user_defined_bc:
 .. figure:: manual/figures/examples/user_defined_bc_displ_mag.png
             :align: center
+            :width: 70%
 
             Displacement magnitude for the user_defined_bc example.
             
@@ -53,6 +54,7 @@ The solution for the static analysis is shown in :numref:`fig-ex-static_disp`.
 .. _fig-ex-static_disp:
 .. figure:: manual/figures/examples/static_displ_mag.png
             :align: center
+            :width: 70%
 
             Solution of the static analysis: displacement magnitude.
             
@@ -88,7 +90,7 @@ The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
 .. _fig-ex-explicit_disp:
 .. figure:: manual/figures/examples/bar_pulse.gif
             :align: center
-            :width: 90%
+            :width: 100%
 
             Dynamic solution: lateral displacement.
             
@@ -143,7 +145,7 @@ beam at 3 different times during the simulation: time steps 0, 1000 and
 .. _fig-ex-implicit-dynamic_solution:
 .. figure:: manual/figures/dynamic_analysis.png
             :align: center
-            :width: 60%
+            :width: 40%
 
             Deformed beam at three different times (displacement :math:`\times
             10`).
@@ -170,7 +172,7 @@ It is shown how to dump only a part of the mesh (here the wheels).
 .. _fig-ex-train:
 .. figure:: manual/figures/examples/train.gif
             :align: center
-            :width: 90%
+            :width: 70%
 
             The wheels and the full train are dumped separately.
             
@@ -184,7 +186,7 @@ In ``new_material`` it is shown how to use a user-defined material for the simul
 .. _fig-ex-new_material:
 .. figure:: manual/figures/examples/barre_trou.svg
             :align: center
-            :width: 90%
+            :width: 70%
 
             Problem geometry.
             
@@ -192,3 +194,53 @@ parallel
 ''''''''
 
 In ``parallel``, an example show how to run a simulation in parallel. Note that you need to have compile Akantu with the ``parallel`` option.
+
+
+Solid Mechanics Cohesive Model
+``````````````````````````````
+
+Solid mechanics cohesive model examples are shown in ``solid_mechanics_cohesive_model``. This new model is called in a very similar way as the solid mechanics model::
+
+   SolidMechanicsModelCohesive model(mesh);
+
+Cohesive elements can be inserted intrinsically (when the mesh is generated) or extrinsically (during the simulation).
+
+cohesive_intrinsic
+''''''''''''''''''
+
+In ``cohesive_intrinsic``, an example of intrinsic cohesive elements is shown. The cohesive elements are inserted between :math:`x = -0.26` and :math:`x = -0.24` before the start of the simulation with ``model.getElementInserter().setLimit(_x, -0.26, -0.24);``. Elements to the right of this limit are moved to the right. The resulting displacement is shown in :numref:`fig-ex-cohesive-int`.
+
+.. _fig-ex-cohesive-int:
+.. figure:: manual/figures/examples/cohesive_intrinsic.png
+            :align: center
+            :width: 70%
+
+            Displacement in the x direction for the cohesive_intrinsic example.
+            
+cohesive_extrinsic
+''''''''''''''''''
+
+In ``cohesive_extrinsic``, cohesive elements are inserted during the simulation but at a location restricted with::
+    CohesiveElementInserter & inserter = model.getElementInserter();
+    inserter.setLimit(_y, 0.30, 0.20);
+    model.updateAutomaticInsertion();
+A displacement is then imposed based on the elements location. The corresponding displacements is shown in :numref:`fig-ex-cohesive-ext`.
+
+.. _fig-ex-cohesive-ext:
+.. figure:: manual/figures/examples/cohesive_extrinsic.gif
+            :align: center
+            :width: 90%
+
+            Displacement in the y direction for the cohesive_extrinsic example.
+
+cohesive_extrinsic_ig_tg
+''''''''''''''''''''''''
+
+In ``cohesive_extrinsic_ig_tg``, the insertion of cohesive element is not limited to a given location. Rather, elements at the boundaries of the block and those on the inside have a different critical stress defined in the ``material.dat`` file. The four block sides are then moved outwards. The resulting displacement is shown in :numref:`fig-ex-cohesive-ext-ig-tg`.
+
+.. _fig-ex-cohesive-ext-ig-tg:
+.. figure:: manual/figures/examples/cohesive_extrinsic_ig_tg.gif
+            :align: center
+            :width: 100%
+
+            Displacement magnitude for the cohesive_extrinsic_ig_tg example.

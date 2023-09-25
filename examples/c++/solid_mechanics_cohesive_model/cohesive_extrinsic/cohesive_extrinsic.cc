@@ -93,6 +93,7 @@ int main(int argc, char * argv[]) {
       }
     }
 
+    // check wether cohesive elements should be inserted
     model.checkCohesiveStress();
     model.solveStep();
 
