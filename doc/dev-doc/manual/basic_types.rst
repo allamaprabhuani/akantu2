@@ -2,7 +2,7 @@ Basic types
 ===========
 
 Array<T>
-------------
+--------
 
 Data in ``Akantu`` can be stored in data containers implemented by the
 :cpp:class:`akantu::Array` class. In its most basic usage, the :cpp:class:`Array
@@ -67,7 +67,7 @@ more into detail here.
 
 
 ``Vector<T>``
-`````````````
+'''''''''''''
 
 - Accessors:
 
@@ -112,7 +112,7 @@ more into detail here.
     ``v``
 
 ``Matrix<T>``
-`````````````
+'''''''''''''
 
 - Accessors:
 
@@ -263,8 +263,6 @@ of code.
 
 Mesh
 ----
-
-
 
 Manipulating group of nodes and/or elements
 ```````````````````````````````````````````

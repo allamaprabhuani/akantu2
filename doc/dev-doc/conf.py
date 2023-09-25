@@ -19,12 +19,13 @@ __license__ = "LGPLv3"
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
+import glob
 import shutil
+import subprocess
+import sys
 import jinja2
 
-# import git
-# import re
-import subprocess
 
 # -- General configuration ---------------------------------------------------
 
@@ -45,6 +46,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
     "sphinx.ext.viewcode",
+    'sphinx_rtd_theme',
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
@@ -68,6 +70,12 @@ else:  # most probably running by hand
     except FileExistsError:
         pass
 
+
+if akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@":  # Concatenation is to avoid cmake to replace it
+    raise Exception("Something went really wrong")
+
+sys.path.insert(0, akantu_source_path)
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -87,6 +95,21 @@ master_doc = "index"
 # Usually you set "language" from the command line for these cases.
 language = 'en'
 
+
+def callback(dir, files):
+    keep_re = re.compile(r'.*\.(svg|gif|png|md|rst)')
+    ignores = []
+    for file in files:
+        if (not keep_re.match(file) and
+            not os.path.isdir(os.path.join(dir, file))):
+            ignores.append(file)
+    return ignores
+
+shutil.copytree(os.path.join(akantu_source_path, "examples"),
+                os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
+                ignore=callback,
+                dirs_exist_ok=True)
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
@@ -97,6 +120,11 @@ exclude_patterns = [
     "manual/constitutive-laws.rst",
     "manual/new-constitutive-laws.rst",
 ]
+
+exclude_patterns.extend(
+    glob.glob("examples/**/*.rst",
+              root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
+              recursive=True))
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -120,10 +148,10 @@ author = "Nicolas Richart"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-if read_the_docs_build:
-    html_theme = "default"
-else:
-    html_theme = "sphinx_rtd_theme"
+# if read_the_docs_build:
+#     html_theme = "default"
+# else:
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -283,14 +311,14 @@ breathe_debug_trace_directives = False
 breathe_short_warning = True
 
 # -- Gallery ------------------------------------------------------------------
-sphinx_gallery_conf = {
-    'examples_dirs': os.path.join(akantu_source_path, 'examples'),
-    'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
-    'download_all_examples': False,
-    'plot_gallery': 'False',
-    'only_warn_on_example_error': True,
-    'log_level': {'backreference_missing': 'debug'},
-}
+# sphinx_gallery_conf = {
+#     'examples_dirs': os.path.join(akantu_source_path, 'examples'),
+#     'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
+#     'download_all_examples': False,
+#     'plot_gallery': 'False',
+#     'only_warn_on_example_error': True,
+#     'log_level': {'backreference_missing': 'debug'},
+# }
 
 
 # -- Options for intersphinx extension ----------------------------------------
