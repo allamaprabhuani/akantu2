@@ -7,7 +7,7 @@ with a pre-existing crack pulled. The geometry is depicted in :numref:`fig-ex-co
 .. _fig-ex-cohesive_plate:
 .. figure:: examples/python/solid_mechanics_cohesive_model/cohesive/images/plate.svg
             :align: center
-            :width: 100%
+            :width: 30%
 
             Problem geometry.
             

@@ -8,7 +8,7 @@ as an initial displacement over the bar. Results are depicted in :numref:`fig-ex
 .. _fig-ex-dynamics_geom:
 .. figure:: examples/python/solid_mechanics_model/dynamics/images/bar_geom.svg
             :align: center
-            :width: 100%
+            :width: 70%
 
             Plate with a hole geometry.
 
