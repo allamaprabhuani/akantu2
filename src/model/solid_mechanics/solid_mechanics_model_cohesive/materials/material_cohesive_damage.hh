@@ -52,52 +52,10 @@ public:
   /// initialize the material parameters
   void initMaterial() override;
 
-  void updateInternalParameters() override;
-
 protected:
   /// constitutive law
   void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
-
-  /// compute tangent stiffness matrix
-  void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
-                              GhostType ghost_type) override;
-
-  /**
-   * Scale insertion traction sigma_c according to the volume of the
-   * two elements surrounding a facet
-   *
-   * see the article: F. Zhou and J. F. Molinari "Dynamic crack
-   * propagation with cohesive elements: a methodology to address mesh
-   * dependency" International Journal for Numerical Methods in
-   * Engineering (2004)
-   */
-  void scaleInsertionTraction();
-
-  inline decltype(auto) getArguments(ElementType element_type,
-                                     GhostType ghost_type) {
-    using namespace tuple;
-    return zip_append(
-        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
-        "sigma_c"_n = this->sigma_c_eff(element_type, ghost_type),
-        "delta_c"_n = this->delta_c_eff(element_type, ghost_type),
-        "insertion_stress"_n =
-            make_view<dim>(this->insertion_stress(element_type, ghost_type)));
-  }
-
-  /// compute the traction for a given quadrature point
-  template <typename Args> inline void computeTractionOnQuad(Args && args);
-
-  template <class Derived, class Args>
-  inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent,
-                                           Args && args);
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// get sigma_c_eff
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(InsertionTraction, sigma_c_eff, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -109,34 +67,8 @@ protected:
   /// mode I fracture energy
   Real G_c;
 
-
-  /// variable defining if we are recomputing the last loading step
-  /// after load_reduction
-  bool recompute;
-
-  /// critical effective stress
-  RandomInternalField<Real, CohesiveInternalField> sigma_c_eff;
-
-  /// effective critical displacement (each element can have a
-  /// different value)
-  CohesiveInternalField<Real> delta_c_eff;
-
-  /// stress at insertion
-  CohesiveInternalField<Real> insertion_stress;
-
-  /// variable saying if there should be penalty contact also after
-  /// breaking the cohesive elements
-  bool contact_after_breaking;
-
-  /// insertion of cohesive element when stress is high enough just on
-  /// one quadrature point
-  bool max_quad_stress_insertion;
-
-  Vector<Real, dim> normal_opening;
-  Vector<Real, dim> tangential_opening;
-  Real normal_opening_norm{0.};
-  Real tangential_opening_norm{0.};
-  bool penetration{false};
+  /// augmented lagrange multiplier
+  CohesiveInternalField<Real> lambda;
 };
 
 /* -------------------------------------------------------------------------- */
