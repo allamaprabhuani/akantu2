@@ -8,3 +8,4 @@ Contact mechanics model
 
 .. figure:: examples/c++/contact_mechanics_model/images/hertz.png
             :align: center
+            :width: 80%

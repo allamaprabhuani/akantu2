@@ -265,7 +265,7 @@ Mesh
 ----
 
 Manipulating group of nodes and/or elements
-```````````````````````````````````````````
+'''''''''''''''''''''''''''''''''''''''''''
 
 ``Akantu`` provides the possibility to manipulate subgroups of elements and
 nodes. Any :cpp:class:`ElementGroup <akantu::ElementGroup>` and/or
@@ -291,7 +291,7 @@ to a mesh:
 
 
 The ``NodeGroup`` object
-''''''''''''''''''''''''
+````````````````````````
 
 A group of nodes is stored in :cpp:class:`NodeGroup <akantu::NodeGroup>`
 objects. They are quite simple objects which store the indexes of the selected
@@ -313,7 +313,7 @@ code:
 
 
 The ``ElementGroup`` object
-'''''''''''''''''''''''''''
+```````````````````````````
 
 A group of elements is stored in :cpp:class:`ElementGroup
 <akantu::ElementGroup>` objects. Since a group can contain elements of various
@@ -347,7 +347,7 @@ we will see in Chapter :doc:`./solidmechanicsmodel`,
 object is not required.
 
 Mathematical Operations
-```````````````````````
+'''''''''''''''''''''''
 
 Using the :cpp:class:`FEEngine<akantu::FEEngine>` object, one can compute an interpolation,
 an integration or a gradient. A simple example is given below:
@@ -413,7 +413,7 @@ elements assigned to a particular material:
 .. _sec-elements:
 
 Elements
-````````
+''''''''
 
 The base for every Finite-Elements computation is its mesh and the elements that
 are used within that mesh. The element types that can be used depend on the
@@ -425,7 +425,7 @@ information (shape function, location of Gaussian quadrature points, and so on)
 can be found in Appendix app:elements.
 
 Iso-parametric Elements
-'''''''''''''''''''''''
+```````````````````````
 
 1D
 """"
@@ -512,7 +512,7 @@ properties of these elements are listed in :numref:`tab-elements-3D`.
                ":cpp:enumerator:`_hexadedron_8 <akantu::_hexadedron_8>`", "cubic", 8, 8
 
 Cohesive Elements
-'''''''''''''''''
+`````````````````
 
 The cohesive elements that have been implemented in ``Akantu`` are based
 on the work of Ortiz and Pandolfi :cite:`ortiz1999`. Their main
@@ -536,7 +536,7 @@ properties are reported in :numref:`tab-coh-cohesive_elements`.
 
 
 Structural Elements
-'''''''''''''''''''
+```````````````````
 
 Bernoulli Beam Elements
 """""""""""""""""""""""

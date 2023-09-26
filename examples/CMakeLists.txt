@@ -27,5 +27,3 @@ package_add_files_to_package(
   examples/README.rst
   cmake/AkantuExampleMacros.cmake
   )
-
-
