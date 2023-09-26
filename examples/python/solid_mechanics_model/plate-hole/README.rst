@@ -6,7 +6,7 @@ In ``plate_hole``, an example of a static solution of a loaded plate with a hole
 .. _fig-ex-plate_hole:
 .. figure:: examples/python/solid_mechanics_model/plate-hole/images/plate_hole.svg
             :align: center
-            :width: 90%
+            :width: 50%
 
             Plate with a hole geometry.
             
