@@ -44,7 +44,7 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
 
   auto spatial_dimension = this->mesh.getSpatialDimension();
   auto nb_element = this->mesh.getNbElement(type, ghost_type);
-  decltype(nb_element) nb_element_filter;
+  decltype(nb_element) nb_element_filter{};
 
   if (element_filter == empty_filter) {
     nb_element_filter = nb_element;
@@ -153,11 +153,9 @@ void ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
         continue;
       }
 
-      const Array<Idx> * elem_filter;
+      const Array<Idx> * elem_filter = &(empty_filter);
       if (element_filter != nullptr) {
         elem_filter = &((*element_filter)(type, ghost_type));
-      } else {
-        elem_filter = &(empty_filter);
       }
 
       tuple_dispatch<ElementTypes_t<_ek_regular>>(
@@ -201,11 +199,9 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
       continue;
     }
 
-    const Array<Idx> * elem_filter;
+    const Array<Idx> * elem_filter = &(empty_filter);
     if (element_filter != nullptr) {
       elem_filter = &((*element_filter)(type, ghost_type));
-    } else {
-      elem_filter = &(empty_filter);
     }
 
     tuple_dispatch<ElementTypes_t<_ek_regular>>(

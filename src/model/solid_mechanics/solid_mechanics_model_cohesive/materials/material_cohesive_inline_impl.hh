@@ -26,7 +26,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline Int MaterialCohesive::addFacet(const Element & element) {
-  auto & f_filter = facet_filter(element.type, element.ghost_type);
+  auto & f_filter = getFacetFilter(element.type, element.ghost_type);
   f_filter.push_back(element.element);
   return f_filter.size() - 1;
 }
@@ -39,17 +39,17 @@ void MaterialCohesive::computeNormal(const Array<Real> & /*position*/,
 
 /* -------------------------------------------------------------------------- */
 inline Int MaterialCohesive::getNbData(const Array<Element> & elements,
-                                        const SynchronizationTag & tag) const {
+                                       const SynchronizationTag & tag) const {
 
   switch (tag) {
   case SynchronizationTag::_smm_stress: {
-    return 2 * spatial_dimension * sizeof(Real) *
+    return 2 * spatial_dimension * Int(sizeof(Real)) *
            this->getModel().getNbIntegrationPoints(elements,
                                                    "CohesiveFEEngine");
   }
   case SynchronizationTag::_smmc_damage: {
-    return sizeof(Real) * this->getModel().getNbIntegrationPoints(
-                              elements, "CohesiveFEEngine");
+    return Int(sizeof(Real)) * this->getModel().getNbIntegrationPoints(
+                                   elements, "CohesiveFEEngine");
   }
   default: {
   }
@@ -64,13 +64,12 @@ inline void MaterialCohesive::packData(CommunicationBuffer & buffer,
                                        const SynchronizationTag & tag) const {
   switch (tag) {
   case SynchronizationTag::_smm_stress: {
-    packElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
-    packElementDataHelper(contact_tractions, buffer, elements,
-                          "CohesiveFEEngine");
+    packInternalFieldHelper(tractions, buffer, elements);
+    packInternalFieldHelper(contact_tractions, buffer, elements);
     break;
   }
   case SynchronizationTag::_smmc_damage:
-    packElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
+    packInternalFieldHelper(damage, buffer, elements);
     break;
   default: {
   }
@@ -83,13 +82,12 @@ inline void MaterialCohesive::unpackData(CommunicationBuffer & buffer,
                                          const SynchronizationTag & tag) {
   switch (tag) {
   case SynchronizationTag::_smm_stress: {
-    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
-    unpackElementDataHelper(contact_tractions, buffer, elements,
-                            "CohesiveFEEngine");
+    unpackInternalFieldHelper(tractions, buffer, elements);
+    unpackInternalFieldHelper(contact_tractions, buffer, elements);
     break;
   }
   case SynchronizationTag::_smmc_damage:
-    unpackElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
+    unpackInternalFieldHelper(damage, buffer, elements);
     break;
   default: {
   }

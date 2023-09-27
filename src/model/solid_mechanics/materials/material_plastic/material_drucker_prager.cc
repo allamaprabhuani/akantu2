@@ -26,23 +26,9 @@ namespace akantu {
 
 template <Int dim>
 MaterialDruckerPrager<dim>::MaterialDruckerPrager(SolidMechanicsModel & model,
-                                                  const ID & id)
-    : Parent(model, id) {
-  this->initialize();
-}
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-MaterialDruckerPrager<dim>::MaterialDruckerPrager(SolidMechanicsModel & model,
-                                                  Int spatial_dimension,
-                                                  const Mesh & mesh,
-                                                  FEEngine & fe_engine,
-                                                  const ID & id)
-    : Parent(model, spatial_dimension, mesh, fe_engine, id) {
-  this->initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialDruckerPrager<dim>::initialize() {
+                                                  const ID & id,
+                                                  const ID & fe_engine_id)
+    : MaterialPlastic<dim>(model, id, fe_engine_id) {
   this->registerParam("phi", phi, Real(0.), _pat_parsable | _pat_modifiable,
                       "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
@@ -82,7 +68,7 @@ void MaterialDruckerPrager<dim>::computeStress(ElementType el_type,
 template class MaterialDruckerPrager<1>;
 template class MaterialDruckerPrager<2>;
 template class MaterialDruckerPrager<3>;
-static bool material_is_allocated_plastic_drucker_prager =
+const bool material_is_allocated_plastic_drucker_prager [[maybe_unused]] =
     instantiateMaterial<MaterialDruckerPrager>("plastic_drucker_prager");
 
 } // namespace akantu

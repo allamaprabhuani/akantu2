@@ -75,7 +75,6 @@ TEST(TestFiniteDeformation, NotUnit) {
   model.dump();
 #endif
 
-  auto stesses0 = model.getMaterial(0).getStress();
   auto displacement0 = model.getDisplacement();
   auto internal_force0 = model.getInternalForce();
 

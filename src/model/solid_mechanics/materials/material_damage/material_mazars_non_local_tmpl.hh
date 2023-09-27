@@ -31,13 +31,11 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialMazarsNonLocal<dim, Parent>::MaterialMazarsNonLocal(
     SolidMechanicsModel & model, const ID & id)
-    : parent(model, id), Ehat("epsilon_equ", *this),
-      non_local_variable("mazars_non_local", *this) {
+    : parent(model, id), Ehat(this->registerInternal("Ehat", 1)),
+      non_local_variable(this->registerInternal("non_local_variable", 1)) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = true;
-  this->Ehat.initialize(1);
-  this->non_local_variable.initialize(1);
 
   this->registerParam("average_on_damage", this->damage_in_compute_stress,
                       false, _pat_parsable | _pat_modifiable,
@@ -56,9 +54,10 @@ void MaterialMazarsNonLocal<dim, Parent>::registerNonLocalVariables() {
     local = this->Ehat.getName();
   }
 
-  this->model.getNonLocalManager().registerNonLocalVariable(
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
       local, non_local_variable.getName(), 1);
-  this->model.getNonLocalManager()
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->name)
       .registerNonLocalVariable(non_local_variable.getName());
 }
@@ -67,22 +66,17 @@ void MaterialMazarsNonLocal<dim, Parent>::registerNonLocalVariables() {
 template <Int dim, template <Int> class Parent>
 void MaterialMazarsNonLocal<dim, Parent>::computeStress(ElementType el_type,
                                                         GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
   auto && arguments = getArguments(el_type, ghost_type);
 
   for (auto && data : arguments) {
     parent::MaterialParent::computeStressOnQuad(data);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 void MaterialMazarsNonLocal<dim, Parent>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
   auto & non_loc_var = non_local_variable(el_type, ghost_type);
 
   if (this->damage_in_compute_stress) {
@@ -100,7 +94,6 @@ void MaterialMazarsNonLocal<dim, Parent>::computeNonLocalStress(
       parent::MaterialParent::computeDamageAndStressOnQuad(data);
     }
   }
-  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu

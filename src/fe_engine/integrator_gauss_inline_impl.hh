@@ -22,6 +22,8 @@
 #include "fe_engine.hh"
 #include "mesh_iterators.hh"
 /* -------------------------------------------------------------------------- */
+#include "integrator_gauss.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 namespace debug {
@@ -31,8 +33,8 @@ namespace debug {
 template <ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
 inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrateOnElement(
-    const Array<Real> & f, Real * intf, Int nb_degree_of_freedom,
-    const Idx elem, GhostType ghost_type) const {
+    const Array<Real> & f, Real * intf, Int nb_degree_of_freedom, Idx elem,
+    GhostType ghost_type) const {
   auto & jac_loc = jacobians(type, ghost_type);
 
   auto nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
@@ -58,7 +60,7 @@ inline Real IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
                       "The vector f do not have nb_quadrature_points entries.");
 
   auto * jac_val = jac_loc.data() + index * nb_quadrature_points;
-  Real intf;
+  Real intf{};
 
   integrate(in_f.data(), jac_val, &intf, 1, nb_quadrature_points);
 
@@ -100,12 +102,25 @@ template <ElementType type>
 inline Int
 IntegratorGauss<kind, IntegrationOrderFunctor>::getNbIntegrationPoints(
     GhostType ghost_type) const {
-  AKANTU_DEBUG_ASSERT(
-      quadrature_points.exists(type, ghost_type),
-      "Quadrature points for type "
-          << quadrature_points.printType(type, ghost_type)
-          << " have not been initialized."
-          << " Did you use 'computeQuadraturePoints' function ?");
+  if (not quadrature_points.exists(type, ghost_type)) {
+    constexpr auto polynomial_degree =
+        IntegrationOrderFunctor::template getOrder<type>();
+    return GaussIntegrationElement<type,
+                                   polynomial_degree>::getQuadraturePoints()
+        .cols();
+  }
+  return quadrature_points(type, ghost_type).cols();
+}
+
+/* -------------------------------------------------------------------------- */
+template <ElementKind kind, class IntegrationOrderFunctor>
+template <ElementType type>
+inline Int
+IntegratorGauss<kind, IntegrationOrderFunctor>::getNbIntegrationPoints(
+    GhostType ghost_type) {
+  if (not quadrature_points.exists(type, ghost_type)) {
+    this->template computeQuadraturePoints<type>(ghost_type);
+  }
   return quadrature_points(type, ghost_type).cols();
 }
 
@@ -333,8 +348,9 @@ void IntegratorGauss<_ek_cohesive, DefaultIntegrationOrderFunctor>::
     auto && X = x_it[l_el];
     ++l_el;
 
-    for (Int n = 0; n < nb_nodes_per_subelement; ++n)
+    for (Int n = 0; n < nb_nodes_per_subelement; ++n) {
       x(n) = (X(n) + X(n + nb_nodes_per_subelement)) / 2.;
+    }
 
     if (type == _cohesive_1d_2) {
       J(0) = 1;
@@ -371,11 +387,13 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::multiplyJacobiansByWeights(
   auto && view = make_view<nb_quadrature_points>(jacobians);
 
   if (filter_elements != empty_filter) {
-    for (auto && J : filter(filter_elements, view))
+    for (auto && J : filter(filter_elements, view)) {
       J.array() *= weights.array();
+    }
   } else {
-    for (auto && J : view)
+    for (auto && J : view) {
       J.array() *= weights.array();
+    }
   }
 }
 
@@ -461,6 +479,9 @@ template <ElementType type>
 Real IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
     const Array<Real> & in_f, GhostType ghost_type,
     const Array<Int> & filter_elements) const {
+  if (in_f.empty()) {
+    return 0;
+  }
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
                       "No jacobians for the type "
                           << jacobians.printType(type, ghost_type));

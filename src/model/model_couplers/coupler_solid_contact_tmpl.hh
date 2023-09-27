@@ -29,11 +29,6 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class SolidMechanicsModelType>
-CouplerSolidContactTemplate<
-    SolidMechanicsModelType>::~CouplerSolidContactTemplate() = default;
-
-/* -------------------------------------------------------------------------- */
-template <class SolidMechanicsModelType>
 void CouplerSolidContactTemplate<SolidMechanicsModelType>::initSolver(
     TimeStepSolverType time_step_solver_type,
     NonLinearSolverType non_linear_solver_type) {

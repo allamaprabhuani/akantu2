@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
+// NOLINTBEGIN
 
 #define AKANTU_EIGEN_VERSION                                                   \
   (EIGEN_WORLD_VERSION * 10000 + EIGEN_MAJOR_VERSION * 1000 +                  \
@@ -28,7 +29,9 @@ PlainObjectBase(std::initializer_list<Scalar> list) {
   static_assert(std::is_trivially_copyable<Scalar>{},
                 "Cannot create a tensor on non trivial types");
   _check_template_params();
-  this->template _init1<Index>(list.size());
+  if constexpr (Base::SizeAtCompileTime != 1) {
+    this->template _init1<Index>(list.size());
+  }
 
   Index i = 0;
   for (auto val : list) {
@@ -73,3 +76,5 @@ PlainObjectBase(std::initializer_list<std::initializer_list<Scalar>> list) {
   }
 }
 #endif
+
+// NOLINTEND

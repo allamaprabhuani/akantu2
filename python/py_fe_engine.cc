@@ -84,18 +84,19 @@ void register_fe_engine(py::module & mod) {
       .def(
           "interpolateOnIntegrationPoints",
           [](FEEngine & self, const Array<Real> & u,
-             ElementTypeMapArray<Real> & uq,
-             const ElementTypeMapArray<Idx> * filter_elements) {
-            self.interpolateOnIntegrationPoints(u, uq, filter_elements);
+             std::shared_ptr<ElementTypeMapArray<Real>> uq,
+             std::shared_ptr<const ElementTypeMapArray<Idx>> filter_elements) {
+            self.interpolateOnIntegrationPoints(u, *uq, filter_elements.get());
           },
           py::arg("u"), py::arg("uq"), py::arg("filter_elements") = nullptr)
       .def(
           "computeIntegrationPointsCoordinates",
-          [](FEEngine & self, ElementTypeMapArray<Real> & coordinates,
-             const ElementTypeMapArray<Idx> * filter_elements)
+          [](FEEngine & self,
+             std::shared_ptr<ElementTypeMapArray<Real>> coordinates,
+             std::shared_ptr<const ElementTypeMapArray<Idx>> filter_elements)
               -> decltype(auto) {
-            return self.computeIntegrationPointsCoordinates(coordinates,
-                                                            filter_elements);
+            return self.computeIntegrationPointsCoordinates(
+                *coordinates, filter_elements.get());
           },
           py::arg("coordinates"), py::arg("filter_elements") = nullptr)
       .def(

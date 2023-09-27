@@ -30,10 +30,15 @@ namespace akantu {
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::FEEngineTemplate(
-    Mesh & mesh, Int spatial_dimension, const ID & id)
+    Mesh & mesh, Int spatial_dimension, const ID & id, bool do_not_precompute)
     : FEEngine(mesh, spatial_dimension, id),
       integrator(mesh, spatial_dimension, id),
-      shape_functions(mesh, spatial_dimension, id) {}
+      shape_functions(mesh, spatial_dimension, id) {
+  if (not do_not_precompute) {
+    initShapeFunctions(_not_ghost);
+    initShapeFunctions(_ghost);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
@@ -290,8 +295,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   const Array<Idx> * filter = nullptr;
 
   for (auto ghost_type : ghost_types) {
-    for (const auto & type :
-         uq.elementTypes(_all_dimensions, ghost_type, kind)) {
+    auto && types = uq.elementTypes(_all_dimensions, ghost_type, kind);
+    for (const auto & type : types) {
       auto nb_quad_per_element = getNbIntegrationPoints(type, ghost_type);
 
       Int nb_element = 0;

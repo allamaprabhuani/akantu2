@@ -45,9 +45,6 @@ public:
       : Element(element), num_point(num_point),
         global_num(element.element * nb_quad_per_element + num_point) {}
 
-  constexpr IntegrationPoint(const IntegrationPoint & quad) = default;
-  constexpr IntegrationPoint(IntegrationPoint && quad) = default;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */

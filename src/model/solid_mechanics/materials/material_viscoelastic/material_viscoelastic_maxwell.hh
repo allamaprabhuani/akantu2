@@ -67,12 +67,12 @@ namespace akantu {
 
 template <Int dim>
 class MaterialViscoelasticMaxwell : public MaterialElastic<dim> {
+  using Parent = MaterialElastic<dim>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   MaterialViscoelasticMaxwell(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialViscoelasticMaxwell() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -134,23 +134,26 @@ protected:
                                const Real & pot_energy);
 
   /// compute stresses on a quadrature point
-  template <typename D1, typename D2, typename D3>
-  void computeStressOnQuad(const Eigen::MatrixBase<D1> & grad_u,
-                           const Eigen::MatrixBase<D2> & previous_grad_u,
-                           Eigen::MatrixBase<D3> & sigma,
-                           Tensor3Proxy<Real> & sigma_v, const Real & sigma_th);
+  template <class Args> void computeStressOnQuad(Args && args);
 
   /// compute tangent moduli on a quadrature point
   template <typename D1>
   void computeTangentModuliOnQuad(Eigen::MatrixBase<D1> & tangent);
 
   bool hasStiffnessMatrixChanged() override {
-    Real dt = this->model.getTimeStep();
+    Real dt = this->getModel().getTimeStep();
 
     return ((this->previous_dt == dt)
                 ? (!(this->previous_dt == dt)) * (this->was_stiffness_assembled)
                 : (!(this->previous_dt == dt)));
     //  return (!(this->previous_dt == dt));
+  }
+
+  decltype(auto) getArguments(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) {
+    return zip_append(MaterialElastic<dim>::getArguments(el_type, ghost_type),
+                      "sigma_v"_n = make_view((*sigma_v)(el_type, ghost_type),
+                                              dim, dim, Ev.size()));
   }
 
   MatrixType getTangentType() override { return _symmetric; }
@@ -160,21 +163,21 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// give the dissipated energy
-  Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(const Element & element) const;
+  [[nodiscard]] Real getDissipatedEnergy() const;
+  [[nodiscard]] Real getDissipatedEnergy(const Element & element) const;
 
   /// get the potential energy
-  Real getPotentialEnergy() const;
-  Real getPotentialEnergy(const Element & element) const;
+  [[nodiscard]] Real getPotentialEnergy() const;
+  [[nodiscard]] Real getPotentialEnergy(const Element & element) const;
 
   /// get the potential energy
-  Real getMechanicalWork() const;
-  Real getMechanicalWork(const Element & element) const;
+  [[nodiscard]] Real getMechanicalWork() const;
+  [[nodiscard]] Real getMechanicalWork(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
-  Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id,
-                 const Element & element) override;
+  [[nodiscard]] Real getEnergy(const std::string & type) override;
+  [[nodiscard]] Real getEnergy(const std::string & energy_id,
+                               const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -185,30 +188,31 @@ protected:
   /// modulus
   Vector<Real> Eta;
   Vector<Real> Ev;
-  Real Einf;
+
+  Real Einf{0.};
 
   /// time step from previous solveStep
-  Real previous_dt;
+  Real previous_dt{0.};
 
   /// Stiffness matrix template
-  Matrix<Real> C;
+  Matrix<Real, voigt_h::size, voigt_h::size> C;
   /// Compliance matrix template
-  Matrix<Real> D;
+  Matrix<Real, voigt_h::size, voigt_h::size> D;
 
   /// Internal variable: viscous_stress
-  InternalField<Real> sigma_v;
+  std::shared_ptr<InternalField<Real>> sigma_v;
 
   /// Internal variable: spring strain in Maxwell element
-  InternalField<Real> epsilon_v;
+  std::shared_ptr<InternalField<Real>> epsilon_v;
 
   /// Dissipated energy
-  InternalField<Real> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 
   /// Mechanical work
-  InternalField<Real> mechanical_work;
+  InternalField<Real> & mechanical_work;
 
   /// Update internal variable after solve step or not
-  bool update_variable_flag;
+  bool update_variable_flag{true};
 };
 
 } // namespace akantu

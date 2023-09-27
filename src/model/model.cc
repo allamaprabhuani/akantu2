@@ -52,8 +52,6 @@ void Model::initFullImpl(const ModelOptions & options) {
 
   initModel();
 
-  initFEEngineBoundary();
-
   AKANTU_DEBUG_OUT();
 }
 

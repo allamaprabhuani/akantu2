@@ -1,5 +1,5 @@
 /**
- * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
@@ -18,14 +18,15 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* -------------------------------------------------------------------------- */
-#ifndef AKANTU_CMAKE_LIST_MATERIALS
-#include "material_marigo_non_local.hh"
-#include "material_mazars_non_local.hh"
-#include "material_von_mises_mazars_non_local.hh"
-#endif
+#include <pybind11/pybind11.h>
 
-#define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST                                  \
-  ((2, (marigo_non_local, MaterialMarigoNonLocal)))(                           \
-      (2, (mazars_non_local, MaterialMazarsNonLocal)))(                        \
-      (2, (von_mises_mazars_non_local, MaterialVonMisesMazarsNonLocal)))
+#ifndef AKANTU_PY_CONSTITUTIVE_LAW_SELECTOR_HH_
+#define AKANTU_PY_CONSTITUTIVE_LAW_SELECTOR_HH_
+
+namespace akantu {
+
+void register_constitutive_law_selector(pybind11::module & mod);
+
+} // namespace akantu
+
+#endif // AKANTU_PY_MATERIAL_SELECTOR_HH_

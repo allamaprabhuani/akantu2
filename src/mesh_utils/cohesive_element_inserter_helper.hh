@@ -23,8 +23,8 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH__
-#define __AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH__
+#ifndef AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH_
+#define AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH_
 
 namespace akantu {
 
@@ -104,4 +104,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH__ */
+#endif /* AKANTU_COHESIVE_ELEMENT_INSERTER_HELPER_HH_ */

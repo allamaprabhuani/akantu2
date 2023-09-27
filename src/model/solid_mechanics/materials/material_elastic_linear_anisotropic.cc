@@ -34,7 +34,7 @@ MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
     SolidMechanicsModel & model, const ID & id, bool symmetric)
     : Material(model, id), rot_mat(dim, dim), Cprime(dim * dim, dim * dim),
       C(voigt_h::size, voigt_h::size), eigC(voigt_h::size),
-      symmetric(symmetric), was_stiffness_assembled(false) {
+      symmetric(symmetric) {
   AKANTU_DEBUG_IN();
 
   for (int i : arange(dim)) {
@@ -58,13 +58,6 @@ MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
     }
   }
 
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialElasticLinearAnisotropic<dim>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  Material::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
@@ -100,8 +93,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
       this->Cprime(i, j) = this->Cprime(i, j - diff);
     }
   }
-  // construction of rotator tensor
-  // normalise rotation matrix
+  // construction of rotator tensor normalize rotation matrix
   for (auto j : arange(Dim)) {
     auto && rot_vec = this->rot_mat(j);
     rot_vec = *this->dir_vecs[j];
@@ -110,7 +102,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 
   // make sure the vectors form a right-handed base
   Real test_axis = 0.;
-  if (Dim == 2) {
+  if constexpr (Dim == 2) {
     Vector<Real, 3> v1 = Vector<Real, 3>::Zero();
     Vector<Real, 3> v2 = Vector<Real, 3>::Zero();
     v1.block<Dim, 1>(0, 0) = this->rot_mat(0);
@@ -123,7 +115,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 
     v3.normalize();
     test_axis = (v1.cross(v2) - v3).norm();
-  } else if (Dim == 3) {
+  } else if constexpr (Dim == 3) {
     Vector<Real, 3> v1 = this->rot_mat(0);
     Vector<Real, 3> v2 = this->rot_mat(1);
     Vector<Real, 3> v3 = this->rot_mat(2);
@@ -153,7 +145,7 @@ template <Int Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
   }
 
   // create the full rotated matrix
-  Matrix<Real, Dim * Dim, Dim * Dim> Cfull(Dim * Dim, Dim * Dim);
+  Matrix<Real, Dim * Dim, Dim * Dim> Cfull;
   Cfull = rotator * Cprime * revrotor;
 
   for (auto i : arange(voigt_h::size)) {
@@ -197,8 +189,7 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
 
   auto && arguments = Material::getArguments<dim>(el_type, _not_ghost);
 
-  for (auto && args :
-       zip(arguments, this->potential_energy(el_type, _not_ghost))) {
+  for (auto && args : zip(arguments, potential_energy(el_type, _not_ghost))) {
     this->computePotentialEnergyOnQuad(std::get<0>(args), std::get<1>(args));
   }
 }
@@ -207,11 +198,12 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
 template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyByElement(
     ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
+  const auto & fem = this->getFEEngine();
 
   auto gradu_view = make_view<dim, dim>(this->gradu(type));
   auto stress_view = make_view<dim, dim>(this->stress(type));
 
-  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
 
   auto gradu_it = gradu_view.begin() + index * nb_quadrature_points;
   auto gradu_end = gradu_it + nb_quadrature_points;
@@ -241,7 +233,7 @@ template class MaterialElasticLinearAnisotropic<1>;
 template class MaterialElasticLinearAnisotropic<2>;
 template class MaterialElasticLinearAnisotropic<3>;
 
-static bool material_is_alocated_elastic =
+const bool material_is_alocated_elastic [[maybe_unused]] =
     instantiateMaterial<MaterialElasticLinearAnisotropic>(
         "elastic_anisotropic");
 

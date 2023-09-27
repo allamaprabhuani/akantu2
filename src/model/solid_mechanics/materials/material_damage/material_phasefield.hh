@@ -24,8 +24,8 @@
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_PHASEFIELD_HH__
-#define __AKANTU_MATERIAL_PHASEFIELD_HH__
+#ifndef AKANTU_MATERIAL_PHASEFIELD_HH_
+#define AKANTU_MATERIAL_PHASEFIELD_HH_
 
 namespace akantu {
 
@@ -36,7 +36,6 @@ template <Int dim> class MaterialPhaseField : public MaterialDamage<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialPhaseField(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialPhaseField() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -84,14 +83,13 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// Residual stiffness parameter
-  Real eta;
+  Real eta{0.};
 
   /// Phasefield isotropic
   bool is_hybrid;
 
   // effective damage to conserve stiffness in compression
-  InternalField<Real> effective_damage;
+  InternalField<Real> & effective_damage;
 };
 
 } // namespace akantu
@@ -102,4 +100,4 @@ protected:
 
 #include "material_phasefield_inline_impl.hh"
 
-#endif /* __AKANTU_MATERIAL_PHASEFIELD_HH__ */
+#endif /* AKANTU_MATERIAL_PHASEFIELD_HH_ */

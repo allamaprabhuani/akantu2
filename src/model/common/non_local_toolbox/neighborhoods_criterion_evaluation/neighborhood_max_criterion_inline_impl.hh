@@ -49,7 +49,7 @@ NeighborhoodMaxCriterion::packElementData(CommunicationBuffer & buffer,
                                           SynchronizationTag tag) const {
   if (tag == SynchronizationTag::_nh_criterion) {
     NeighborhoodMaxCriterion::packElementalDataHelper(
-        criterion, buffer, elements, true, this->model.getFEEngine());
+        criterion, buffer, elements, this->model.getFEEngine());
   }
 }
 
@@ -60,7 +60,7 @@ NeighborhoodMaxCriterion::unpackElementData(CommunicationBuffer & buffer,
                                             SynchronizationTag tag) {
   if (tag == SynchronizationTag::_nh_criterion) {
     NeighborhoodMaxCriterion::unpackElementalDataHelper(
-        criterion, buffer, elements, true, this->model.getFEEngine());
+        criterion, buffer, elements, this->model.getFEEngine());
   }
 }
 

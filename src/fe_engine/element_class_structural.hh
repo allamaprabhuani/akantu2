@@ -20,7 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
-#include "element_class.hh"
+#include "element_class.hh" // NOLINT(pp_including_mainfile_in_preamble)
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_
@@ -157,8 +157,9 @@ public:
   static inline void computeDNDS(const Eigen::MatrixBase<D1> & Xs,
                                  const Eigen::MatrixBase<D2> & xs,
                                  TensorBase<Real, 3> & dnds) {
-    for (auto && data : zip(Xs, dnds))
+    for (auto && data : zip(Xs, dnds)) {
       computeDNDS(std::get<0>(data), xs, std::get<1>(data));
+    }
   }
 
   /**
@@ -293,10 +294,10 @@ public:
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#include "element_class_hermite_inline_impl.hh"
+#include "element_class_hermite_inline_impl.hh" // NOLINT
 /* keep order */
-#include "element_class_bernoulli_beam_inline_impl.hh"
-#include "element_class_kirchhoff_shell_inline_impl.hh"
+#include "element_class_bernoulli_beam_inline_impl.hh" // NOLINT(unused-includes)
+#include "element_class_kirchhoff_shell_inline_impl.hh" // NOLINT(unused-includes)
 /* -------------------------------------------------------------------------- */
 
 #endif /* AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_ */

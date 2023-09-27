@@ -137,7 +137,8 @@ namespace tuple {
     inline constexpr auto get(NT && /*unused*/) const noexcept
         -> decltype(auto) {
       const auto index = get_element_index<NT>();
-      static_assert((index != Index(-1)), "wrong named_tag");
+      static_assert((index != Index(-1) and is_named_tag_v<NT>),
+                    "wrong named_tag");
       return (std::get<index>(*this));
     }
 

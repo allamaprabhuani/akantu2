@@ -25,30 +25,31 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 
-static bool material_is_alocated_anisotropic_damage [[gnu::unused]] =
-    MaterialFactory::getInstance().registerAllocator(
-        "anisotropic_damage",
-        [](Int dim, const ID & option, SolidMechanicsModel & model,
-           const ID & id) -> std::unique_ptr<Material> {
-          return tuple_dispatch<AllSpatialDimensions>(
-              [&](auto && _) -> std::unique_ptr<Material> {
-                constexpr auto dim_ = aka::decay_v<decltype(_)>;
+const bool material_is_alocated_anisotropic_damage
+    [[gnu::unused]] [[maybe_unused]] =
+        MaterialFactory::getInstance().registerAllocator(
+            "anisotropic_damage",
+            [](Int dim, const ID & option, SolidMechanicsModel & model,
+               const ID & id) -> std::unique_ptr<Material> {
+              return tuple_dispatch<AllSpatialDimensions>(
+                  [&](auto && _) -> std::unique_ptr<Material> {
+                    constexpr auto dim_ = aka::decay_v<decltype(_)>;
 
-                if (option.empty() or option == "mazars") {
-                  return std::make_unique<MaterialAnisotropicDamage<
-                      dim_, EquivalentStrainMazars, DamageThresholdTan>>(model,
-                                                                         id);
-                }
-                if (option == "mazars-drucker-prager") {
-                  return std::make_unique<MaterialAnisotropicDamage<
-                      dim_, EquivalentStrainMazarsDruckerPrager,
-                      DamageThresholdTan>>(model, id);
-                }
-                AKANTU_EXCEPTION("The option "
-                                 << option << " is not valid for the material "
-                                 << id);
-              },
-              dim);
-        });
+                    if (option.empty() or option == "mazars") {
+                      return std::make_unique<MaterialAnisotropicDamage<
+                          dim_, EquivalentStrainMazars, DamageThresholdTan>>(
+                          model, id);
+                    }
+                    if (option == "mazars-drucker-prager") {
+                      return std::make_unique<MaterialAnisotropicDamage<
+                          dim_, EquivalentStrainMazarsDruckerPrager,
+                          DamageThresholdTan>>(model, id);
+                    }
+                    AKANTU_EXCEPTION(
+                        "The option "
+                        << option << " is not valid for the material " << id);
+                  },
+                  dim);
+            });
 
 } // namespace akantu

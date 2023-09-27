@@ -28,8 +28,13 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveLinearFriction<dim>::MaterialCohesiveLinearFriction(
     SolidMechanicsModel & model, const ID & id)
-    : MaterialParent(model, id), residual_sliding("residual_sliding", *this),
-      friction_force("friction_force", *this) {
+    : MaterialParent(model, id),
+      residual_sliding(
+          this->template registerInternal<Real, CohesiveInternalField>(
+              "residual_sliding", 1)),
+      friction_force(
+          this->template registerInternal<Real, CohesiveInternalField>(
+              "friction_force", dim)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("mu", mu_max, Real(0.), _pat_parsable | _pat_readable,
@@ -38,18 +43,6 @@ MaterialCohesiveLinearFriction<dim>::MaterialCohesiveLinearFriction(
   this->registerParam("penalty_for_friction", friction_penalty, Real(0.),
                       _pat_parsable | _pat_readable,
                       "Penalty parameter for the friction behavior");
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialCohesiveLinearFriction<dim>::initMaterial() {
-  AKANTU_DEBUG_IN();
-
-  MaterialParent::initMaterial();
-
-  friction_force.initialize(dim);
-  residual_sliding.initialize(1);
   residual_sliding.initializeHistory();
 
   AKANTU_DEBUG_OUT();
@@ -169,7 +162,7 @@ void MaterialCohesiveLinearFriction<dim>::computeTangentTraction(
 template class MaterialCohesiveLinearFriction<1>;
 template class MaterialCohesiveLinearFriction<2>;
 template class MaterialCohesiveLinearFriction<3>;
-static bool material_is_allocated_cohesive_linear_friction =
+const bool material_is_allocated_cohesive_linear_friction [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveLinearFriction>(
         "cohesive_linear_friction");
 

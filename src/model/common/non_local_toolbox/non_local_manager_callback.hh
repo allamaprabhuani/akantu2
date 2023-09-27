@@ -34,21 +34,40 @@ namespace akantu {
 
 class NonLocalManagerCallback {
 public:
+  NonLocalManagerCallback() = default;
+  NonLocalManagerCallback(const NonLocalManagerCallback &) = default;
+  NonLocalManagerCallback(NonLocalManagerCallback &&) = default;
+  NonLocalManagerCallback &
+  operator=(const NonLocalManagerCallback &) = default;
+  NonLocalManagerCallback & operator=(NonLocalManagerCallback &&) = default;
+
+  virtual ~NonLocalManagerCallback() = default;
+
   virtual void initializeNonLocal() {}
 
   /* ------------------------------------------------------------------------ */
-  virtual void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) = 0;
+  virtual void
+  insertIntegrationPointsInNeighborhoods(GhostType /*ghost_type*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
-  virtual void computeNonLocalStresses(GhostType ghost_type) = 0;
+  virtual void computeNonLocalContribution(GhostType /*ghost_type*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// update the values of the non local internal
-  virtual void updateLocalInternal(ElementTypeMapReal & internal_flat,
-                                   GhostType ghost_type, ElementKind kind) = 0;
+  virtual void updateLocalInternal(ElementTypeMapReal & /*internal_flat*/,
+                                   GhostType /*ghost_type*/,
+                                   ElementKind /*kind*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// copy the results of the averaging in the materials
-  virtual void updateNonLocalInternal(ElementTypeMapReal & internal_flat,
-                                      GhostType ghost_type,
-                                      ElementKind kind) = 0;
+  virtual void updateNonLocalInternal(ElementTypeMapReal & /*internal_flat*/,
+                                      GhostType /*ghost_type*/,
+                                      ElementKind /*kind*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
 };
 
 } // namespace akantu

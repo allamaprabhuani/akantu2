@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material.hh"
+#include "constitutive_law.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_INTERNAL_FIELD_TMPL_HH_
@@ -28,159 +28,145 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id,
-                                                  Material & material)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&(material.getModel().getFEEngine())),
-      element_filter(material.getElementFilter()),
-      spatial_dimension(material.getModel().getSpatialDimension()) {}
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
+    : InternalFieldBase(id), ElementTypeMapArray<T>(id,
+                                                    constitutive_law.getID()),
+      constitutive_law(constitutive_law),
+      fem(constitutive_law.getFEEngine(fem_id)), element_filter(element_filter),
+      spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, Material & material, FEEngine & fem,
-    const ElementTypeMapArray<Idx> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&fem), element_filter(element_filter),
-      spatial_dimension(material.getSpatialDimension()) {}
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
+    : InternalField(id, constitutive_law,
+                    constitutive_law.getSpatialDimension(), "",
+                    constitutive_law.getElementFilter()) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, Material & material, Int dim, FEEngine & fem,
-    const ElementTypeMapArray<Idx> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&fem), element_filter(element_filter), spatial_dimension(dim) {}
+template <typename T>
+InternalField<T>::InternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law,
+    const ID & fem_id, const ElementTypeMapArray<Idx> & element_filter)
+    : InternalField(id, constitutive_law,
+                    constitutive_law.getSpatialDimension(), fem_id,
+                    element_filter) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, const InternalFieldTmpl<Material, T> & other)
-    : ElementTypeMapArray<T>(id, other.material.getID()),
-      material(other.material), fem(other.fem),
+template <typename T>
+InternalField<T>::InternalField(const ID & id, const InternalField<T> & other)
+    : InternalFieldBase(id), ElementTypeMapArray<T>(
+                                 id, other.constitutive_law.getID()),
+      constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
       element_kind(other.element_kind), nb_component(other.nb_component) {
-
   AKANTU_DEBUG_ASSERT(other.is_init,
                       "Cannot create a copy of a non initialized field");
   this->internalInitialize(this->nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::~InternalFieldTmpl() {
-  if (this->is_init) {
-    this->material.unregisterInternal(*this);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setFEEngine(FEEngine & fe_engine) {
-  this->fem = &fe_engine;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setElementKind(ElementKind element_kind) {
+template <typename T>
+void InternalField<T>::setElementKind(ElementKind element_kind) {
   this->element_kind = element_kind;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::initialize(UInt nb_component) {
+template <typename T> void InternalField<T>::initialize(Int nb_component) {
   internalInitialize(nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::initializeHistory() {
-  if (!previous_values) {
-    previous_values = std::make_unique<InternalFieldTmpl<Material, T>>(
-        "previous_" + this->getID(), *this);
-    previous_values->reset();
+template <typename T> void InternalField<T>::initializeHistory() {
+  if (not previous_values) {
+    previous_values = std::shared_ptr<InternalField<T>>(
+        new InternalField<T>("previous_" + this->getID(), *this));
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::resize() {
-  if (!this->is_init) {
+template <typename T> void InternalField<T>::resize() {
+  if (not this->is_init) {
     return;
   }
 
-  for (auto ghost : ghost_types) {
-    for (const auto & type : this->filterTypes(ghost)) {
-      UInt nb_element = this->element_filter(type, ghost).size();
-
-      UInt nb_quadrature_points =
-          this->fem->getNbIntegrationPoints(type, ghost);
-      UInt new_size = nb_element * nb_quadrature_points;
-
-      UInt old_size = 0;
-      Array<T> * vect = nullptr;
-
-      if (this->exists(type, ghost)) {
-        vect = &(this->operator()(type, ghost));
-        old_size = vect->size();
-        vect->resize(new_size);
+  ElementTypeMap<Int> old_sizes;
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->filterTypes(ghost_type)) {
+      if (this->exists(type, ghost_type)) {
+        old_sizes(type, ghost_type) = this->operator()(type, ghost_type).size();
       } else {
-        vect = &(this->alloc(nb_element * nb_quadrature_points, nb_component,
-                             type, ghost));
+        old_sizes(type, ghost_type) = 0;
       }
-
-      this->setArrayValues(vect->data() + old_size * vect->getNbComponent(),
-                           vect->data() + new_size * vect->getNbComponent());
     }
+  }
+
+  ElementTypeMapArray<T>::initialize(
+      fem, _element_filter = &element_filter, _element_kind = element_kind,
+      _nb_component = nb_component, _with_nb_element = true,
+      _do_not_default = true);
+
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->elementTypes(ghost_type)) {
+      auto & vect = this->operator()(type, ghost_type);
+      auto old_size = old_sizes(type, ghost_type);
+      auto new_size = vect.size();
+      this->setArrayValues(vect.data() + old_size * vect.getNbComponent(),
+                           vect.data() + new_size * vect.getNbComponent());
+
+      this->releases(type, ghost_type) += 1;
+    }
+  }
+
+  if (this->previous_values) {
+    this->previous_values->resize();
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setDefaultValue(const T & value) {
+template <typename T> void InternalField<T>::setDefaultValue(const T & value) {
   this->default_value = value;
   this->reset();
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::reset() {
+template <typename T> void InternalField<T>::reset() {
   for (auto ghost_type : ghost_types) {
     for (const auto & type : this->elementTypes(ghost_type)) {
-      Array<T> & vect = (*this)(type, ghost_type);
-      // vect.zero();
+      auto & vect = (*this)(type, ghost_type);
       this->setArrayValues(vect.data(),
                            vect.data() + vect.size() * vect.getNbComponent());
+      this->releases(type, ghost_type) += 1;
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::internalInitialize(Int nb_component) {
-  if (!this->is_init) {
+template <typename T>
+void InternalField<T>::internalInitialize(Int nb_component) {
+  if (not this->is_init) {
     this->nb_component = nb_component;
-
-    for (auto ghost : ghost_types) {
-      for (const auto & type : this->filterTypes(ghost)) {
-        auto nb_element = this->element_filter(type, ghost).size();
-        auto nb_quadrature_points =
-            this->fem->getNbIntegrationPoints(type, ghost);
-        if (this->exists(type, ghost)) {
-          this->operator()(type, ghost)
-              .resize(nb_element * nb_quadrature_points);
-        } else {
-          this->alloc(nb_element * nb_quadrature_points, nb_component, type,
-                      ghost);
-        }
-      }
-    }
-
-    this->material.registerInternal(*this);
     this->is_init = true;
+  } else {
+    resize();
+    return;
   }
+
+  for (auto ghost_type : ghost_types) {
+    for (const auto & type : this->filterTypes(ghost_type)) {
+      this->releases(type, ghost_type) = -1;
+    }
+  }
+
+  ElementTypeMapArray<T>::initialize(
+      fem, _element_filter = &element_filter, _element_kind = element_kind,
+      _nb_component = nb_component, _with_nb_element = true,
+      _do_not_default = true);
+
   this->reset();
 
   if (this->previous_values) {
@@ -189,20 +175,18 @@ void InternalFieldTmpl<Material, T>::internalInitialize(Int nb_component) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setArrayValues(T * begin, T * end) {
+template <typename T>
+void InternalField<T>::setArrayValues(T * begin, T * end) {
   for (; begin < end; ++begin) {
     *begin = this->default_value;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::saveCurrentValues() {
+template <typename T> void InternalField<T>::saveCurrentValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
-
   if (not this->is_init) {
     return;
   }
@@ -216,8 +200,7 @@ void InternalFieldTmpl<Material, T>::saveCurrentValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::restorePreviousValues() {
+template <typename T> void InternalField<T>::restorePreviousValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
@@ -235,8 +218,8 @@ void InternalFieldTmpl<Material, T>::restorePreviousValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
+template <typename T>
+void InternalField<T>::removeIntegrationPoints(
     const ElementTypeMapArray<Idx> & new_numbering) {
   for (auto ghost_type : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, ghost_type,
@@ -252,7 +235,7 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
 
       const auto & renumbering = new_numbering(type, ghost_type);
 
-      auto nb_quad_per_elem = fem->getNbIntegrationPoints(type, ghost_type);
+      auto nb_quad_per_elem = fem.getNbIntegrationPoints(type, ghost_type);
       auto nb_component = vect.getNbComponent();
 
       Array<T> tmp(renumbering.size() * nb_quad_per_elem, nb_component);
@@ -268,7 +251,7 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
               << ") "
                  "!!");
 
-      UInt new_size = 0;
+      Int new_size = 0;
       for (Int i = 0; i < renumbering.size(); ++i) {
         auto new_i = renumbering(i);
         if (new_i != Int(-1)) {
@@ -285,13 +268,13 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::printself(std::ostream & stream, int indent
-                                               [[gnu::unused]]) const {
+template <typename T>
+void InternalField<T>::printself(std::ostream & stream,
+                                 int indent [[gnu::unused]]) const {
   stream << "InternalField [ " << this->getID();
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {
-    stream << std::endl;
+    stream << "\n";
     ElementTypeMapArray<T>::printself(stream, indent + 3);
   } else {
 #endif
@@ -314,8 +297,7 @@ ParameterTyped<InternalField<Real>>::setAuto(const ParserParameter & in_param) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-inline InternalFieldTmpl<Material, T>::operator T() const {
+template <typename T> inline InternalField<T>::operator T() const {
   return default_value;
 }
 

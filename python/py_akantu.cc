@@ -26,6 +26,8 @@
 #include "py_aka_common.hh"
 #include "py_aka_error.hh"
 #include "py_boundary_conditions.hh"
+#include "py_constitutive_law.hh"
+#include "py_constitutive_law_selector.hh"
 #include "py_dof_manager.hh"
 #include "py_dumpable.hh"
 #include "py_fe_engine.hh"
@@ -38,7 +40,6 @@
 
 #if defined(AKANTU_SOLID_MECHANICS)
 #include "py_material.hh"
-#include "py_material_selector.hh"
 #include "py_solid_mechanics_model.hh"
 #endif
 
@@ -94,6 +95,9 @@ void register_all(pybind11::module & mod) {
 
   register_boundary_conditions(mod);
   register_model(mod);
+  register_constitutive_law_selector(mod);
+  register_constitutive_law_internal_handler(mod);
+
 #if defined(AKANTU_HEAT_TRANSFER)
   register_heat_transfer_model(mod);
 #endif
@@ -101,7 +105,6 @@ void register_all(pybind11::module & mod) {
 #if defined(AKANTU_SOLID_MECHANICS)
   register_solid_mechanics_model(mod);
   register_material(mod);
-  register_material_selector(mod);
 #endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)

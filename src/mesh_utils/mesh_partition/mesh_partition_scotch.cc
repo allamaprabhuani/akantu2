@@ -22,7 +22,6 @@
 #include "mesh_partition_scotch.hh"
 #include "aka_common.hh"
 #include "aka_random_generator.hh"
-#include "aka_static_if.hh"
 #include "mesh_accessor.hh"
 #include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */

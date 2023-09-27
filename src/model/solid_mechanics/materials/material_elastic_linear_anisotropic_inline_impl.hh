@@ -31,7 +31,7 @@ namespace akantu {
 template <Int dim>
 template <typename Args>
 inline void
-MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(Args && args) const {
+MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(Args && args) const { // NOLINT(cppcoreguidelines-
   auto && sigma = args["sigma"_n];
   auto && grad_u = args["grad_u"_n];
 
@@ -53,7 +53,6 @@ template <Int dim>
 template <class Args>
 inline void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyOnQuad(
     Args && args, Real & epot) {
-
   AKANTU_DEBUG_ASSERT(this->symmetric,
                       "The elastic constants matrix is not symmetric,"
                       "energy is not path independent.");
