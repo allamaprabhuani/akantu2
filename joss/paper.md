@@ -91,9 +91,6 @@ computations, while retaining the necessary flexibility to handle:
 - plastic and visco-plastic constitutive laws
 - large deformations
 - contact constraints (including rate and state friction)
-- structural elements (beams and shells)
-- one-dimensional elements embedded in a three-dimensional mesh (e.g.
-  reinforcements in concrete)
 - interaction between contact and cohesive elements (residual crack shear
   strength)
 
@@ -105,8 +102,11 @@ number of application domains. Thanks to its versatility, the finite-element
 method (FEM) has become an essential tool in these areas. However, codes that
 can handle cutting edge simulations with interaction of material behavior and
 interface processes in a high-performance computing (HPC) setting are rare,
-particularity in the open-source space. Driving these state-of-the-art research
-simulations to the exascale era is the primary *raison d'être* of Akantu.
+particularity in the open-source space. Being able to simulate the for-mentioned
+interface processes in an efficient manner is the primary *raison d'être* of
+Akantu. Even though Akantu is meant to be a generic FEM library the physics
+currently implemented, all serve the goal to get a better understanding of
+fracture, contact and friction mechanism at a continuum scale.
 
 ![Dynamic fragmentation of a tempered glass pane using cohesive elements.\label{fig:cohesive_insertion}](results/cohesive_insertion.png){width=60%}
 
@@ -121,23 +121,26 @@ illustrates the usage of cohesive elements to simulate the dynamic fragmentation
 of tempered glass panes.
 
 # Scaling analysis
-![Time to solution with and without cohesive insertion.\label{fig:tts}](results/TTS.svg)
+
+|                                                      |                                                                                        |
+|------------------------------------------------------|----------------------------------------------------------------------------------------|
+|![Numerical setup.\label{fig:setup}](results/cube.svg)|![Time to solution with and without cohesive insertion.\label{fig:tts}](results/TTS.svg)|
 
 High performance and scalability is a necessity for the resolution of fracture
 and contact simulations. To illustrate the possibilities offered by Akantu, a 3D
 simulation is presented where a cube composed of 4'392'180 tetrahedra and
-734'594 nodes is being compressed and sheared. This simulation only serves to
-demonstrate how Akantu behaves in a situation where massive fragmentation takes
-place: about 460'000 cohesive elements are inserted during the run. This
-simulation was run on 1 up to 720 cores, on a cluster composed of Intel Xeon
-nodes with 2 sockets of 36 cores, 512Gb of RAM and dual 25Gb Ethernet links. The
-time to solution (TTS) averaged over six different runs is computed for each
-core count on the $x$-axis in \autoref{fig:tts}. The overhead due to
-cohesive element insertion is also highlighted by providing the TTS when
-cohesive element insertions are precluded.
+734'594 nodes is being compressed and sheared (cf \autoref{fig:setup}). This
+simulation only serves to demonstrate how Akantu behaves in a situation where
+massive fragmentation takes place: about 460'000 cohesive elements are inserted
+during the run. This simulation was run on 1 up to 720 cores, on a cluster
+composed of Intel Xeon nodes with 2 sockets of 36 cores, 512Gb of RAM and dual
+25Gb Ethernet links. The time to solution (TTS) averaged over six different runs
+is computed for each core count on the $x$-axis in \autoref{fig:tts}. The
+overhead due to cohesive element insertion is also highlighted by providing the
+TTS when cohesive element insertions are precluded.
 
-When cohesive element insertion is not active, (cf. \autoref{fig:tts}
-'no insertion'), the time to solution scales well up to ~576 cores. The simulations
+When cohesive element insertion is not active, (cf. \autoref{fig:tts} 'no
+insertion'), the time to solution scales well up to ~576 cores. The simulations
 are running on a newly installed machine and the impact of the network on the
 loss of scalability is not fully understood, the min and max measures vary a lot
 after 288 cores (4 nodes). The scalability with insertion of cohesive elements
