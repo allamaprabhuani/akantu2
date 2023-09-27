@@ -15,7 +15,7 @@ The displacement magnitude is displayed in :numref:`fig-ex-plate_hole_displ`.
 .. _fig-ex-plate_hole_displ:
 .. figure:: examples/python/solid_mechanics_model/plate-hole/images/plate_hole_displ_mag.png
             :align: center
-            :width: 50%
+            :width: 40%
 
             Displacement magnitude.
 
