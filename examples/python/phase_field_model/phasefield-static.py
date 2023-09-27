@@ -17,25 +17,24 @@ dim = 2
 mesh = aka.Mesh(dim)
 mesh.read("plate_static.msh")
 
+# Creation of the model coupler
 model = aka.CouplerSolidPhaseField(mesh)
 
+# The model coupler contains the solid mechanics model and the phasefield model
 solid = model.getSolidMechanicsModel()
 phase = model.getPhaseFieldModel()
 
+# Each model can be initialized with the desired method
 solid.initFull(_analysis_method=aka._static)
 solver = solid.getNonLinearSolver("static")
 solver.set("max_iterations", 100)
 solver.set("threshold", 1e-8)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
-
-solid.getNewSolver(
-    "linear_static", aka.TimeStepSolverType.static, aka.NonLinearSolverType.linear
-)
-solid.setIntegrationScheme(
-    "linear_static", "displacement", aka.IntegrationSchemeType.pseudo_time
-)
-
+solid.getNewSolver("linear_static", aka.TimeStepSolverType.static,
+                   aka.NonLinearSolverType.linear)
+solid.setIntegrationScheme("linear_static", "displacement",
+                           aka.IntegrationSchemeType.pseudo_time)
 
 phase.initFull(_analysis_method=aka._static)
 phase.getNewSolver(
@@ -52,7 +51,7 @@ solver.set("max_iterations", 100)
 solver.set("threshold", 1e-4)
 solver.set("convergence_type", aka.SolveConvergenceCriteria.solution)
 
-
+# Setting the boundary conditions
 solid.applyBC(aka.FixedValue(0, aka._y), "bottom")
 solid.applyBC(aka.FixedValue(0, aka._x), "left")
 
@@ -67,7 +66,6 @@ solid.addDumpField("blocked_dofs")
 
 nb_dofs = solid.getMesh().getNbNodes() * dim
 
-increment = solid.getIncrement()
 displacement = solid.getDisplacement()
 displacement = displacement.reshape(nb_dofs)
 
@@ -76,6 +74,9 @@ blocked_dofs = blocked_dofs.reshape(nb_dofs)
 
 damage = phase.getDamage()
 
+# Solving the problem using a staggered approach
+# The damage and displacement problems are solved until convergence for each
+# loading step
 tolerance = 1e-5
 
 steps = 1000
@@ -84,6 +85,7 @@ increment = 5e-6
 for n in range(steps):
     print("Computing iteration " + str(n + 1) + "/" + str(steps))
 
+    # Increment top displacement for mode I fracture
     solid.applyBC(aka.IncrementValue(increment, aka._y), "top")
 
     mask = blocked_dofs == False  # NOQA: E712
