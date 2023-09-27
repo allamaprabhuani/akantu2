@@ -22,61 +22,100 @@
 #include "aka_common.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
+#include <memory>
+/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_INTERNAL_FIELD_HH_
 #define AKANTU_INTERNAL_FIELD_HH_
 
 namespace akantu {
-
-class Material;
+class ConstitutiveLawInternalHandler;
 class FEEngine;
+} // namespace akantu
+
+namespace akantu {
+
+class InternalFieldBase {
+public:
+  InternalFieldBase(const ID & id) : id_(id) {}
+
+  virtual ~InternalFieldBase() = default;
+
+  /* ------------------------------------------------------------------------ */
+  InternalFieldBase(const InternalFieldBase & /*other*/) = default;
+  InternalFieldBase(InternalFieldBase && /*other*/) = default;
+  InternalFieldBase & operator=(const InternalFieldBase & /*other*/) = default;
+  InternalFieldBase & operator=(InternalFieldBase && /*other*/) = default;
+  /* ------------------------------------------------------------------------ */
+
+  /// activate the history of this field
+  virtual void initializeHistory() = 0;
+
+  /// resize the arrays and set the new element to 0
+  virtual void resize() = 0;
+
+  /// save the current values in the history
+  virtual void saveCurrentValues() = 0;
+
+  /// restore the previous values from the history
+  virtual void restorePreviousValues() = 0;
+
+  /// remove the quadrature points corresponding to suppressed elements
+  virtual void
+  removeIntegrationPoints(const ElementTypeMapArray<Idx> & new_numbering) = 0;
+
+  [[nodiscard]] virtual bool hasHistory() const = 0;
+
+  [[nodiscard]] auto getRegisterID() const { return id_; }
+
+protected:
+  ID id_;
+};
 
 /**
- * class for the internal fields of materials
+ * class for the internal fields of constitutive law
  * to store values for each quadrature
  */
-template <class Material_, typename T>
-class InternalFieldTmpl : public ElementTypeMapArray<T> {
+template <typename T>
+class InternalField : public InternalFieldBase, public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
-  using Material = Material_;
-
-  InternalFieldTmpl(const ID & id, Material & material);
-  ~InternalFieldTmpl() override;
-
+protected:
+  InternalField(const ID & id,
+                ConstitutiveLawInternalHandler & constitutive_law);
   /// This constructor is only here to let cohesive elements compile
-  InternalFieldTmpl(const ID & id, Material & material, FEEngine & fem,
-                    const ElementTypeMapArray<Idx> & element_filter);
+  InternalField(const ID & id,
+                ConstitutiveLawInternalHandler & constitutive_law,
+                const ID & fem_id,
+                const ElementTypeMapArray<Idx> & element_filter);
 
   /// More general constructor
-  InternalFieldTmpl(const ID & id, Material & material, Int dim, FEEngine & fem,
-                    const ElementTypeMapArray<Idx> & element_filter);
+  InternalField(const ID & id,
+                ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+                const ID & fem_id,
+                const ElementTypeMapArray<Idx> & element_filter);
 
-  InternalFieldTmpl(const ID & id,
-                    const InternalFieldTmpl<Material, T> & other);
+  InternalField(const ID & id, const InternalField<T> & other);
 
-  auto operator=(const InternalFieldTmpl &) -> InternalFieldTmpl = delete;
+  friend class ConstitutiveLawInternalHandler;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// function to reset the FEEngine for the internal field
-  virtual void setFEEngine(FEEngine & fe_engine);
+protected:
+  /// initialize the field to a given number of component
+  virtual void initialize(Int nb_component);
 
+public:
   /// function to reset the element kind for the internal
   virtual void setElementKind(ElementKind element_kind);
 
-  /// initialize the field to a given number of component
-  virtual void initialize(UInt nb_component);
-
   /// activate the history of this field
-  virtual void initializeHistory();
+  void initializeHistory() override;
 
   /// resize the arrays and set the new element to 0
-  virtual void resize();
+  void resize() override;
 
   /// set the field to a given value v
   virtual void setDefaultValue(const T & v);
@@ -85,14 +124,14 @@ public:
   virtual void reset();
 
   /// save the current values in the history
-  virtual void saveCurrentValues();
+  void saveCurrentValues() override;
 
   /// restore the previous values from the history
-  virtual void restorePreviousValues();
+  void restorePreviousValues() override;
 
   /// remove the quadrature points corresponding to suppressed elements
-  virtual void
-  removeIntegrationPoints(const ElementTypeMapArray<Int> & new_numbering);
+  void removeIntegrationPoints(
+      const ElementTypeMapArray<Idx> & new_numbering) override;
 
   /// print the content
   void printself(std::ostream & stream, int /*indent*/ = 0) const override;
@@ -100,9 +139,11 @@ public:
   /// get the default value
   inline operator T() const;
 
-  virtual auto getFEEngine() -> FEEngine & { return *fem; }
+  virtual auto getFEEngine() -> FEEngine & { return fem; }
 
-  virtual auto getFEEngine() const -> const FEEngine & { return *fem; }
+  [[nodiscard]] virtual auto getFEEngine() const -> const FEEngine & {
+    return fem;
+  }
 
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
@@ -114,14 +155,17 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   /// get filter types for range loop
-  decltype(auto) elementTypes(GhostType ghost_type = _not_ghost) const {
-    return ElementTypeMapArray<T>::elementTypes(
-        _spatial_dimension = this->spatial_dimension,
-        _element_kind = this->element_kind, _ghost_type = ghost_type);
+  auto elementTypesImpl(Int /*dim*/ = _all_dimensions,
+                        GhostType ghost_type = _not_ghost,
+                        ElementKind /*kind*/ = _ek_not_defined) const ->
+      typename ElementTypeMapArray<T>::ElementTypesIteratorHelper override {
+    return ElementTypeMapArray<T>::elementTypesImpl(
+        this->spatial_dimension, ghost_type, this->element_kind);
   }
 
+public:
   /// get filter types for range loop
   decltype(auto) filterTypes(GhostType ghost_type = _not_ghost) const {
     return this->element_filter.elementTypes(
@@ -133,18 +177,6 @@ public:
   decltype(auto) getFilter(ElementType type,
                            GhostType ghost_type = _not_ghost) const {
     return (this->element_filter(type, ghost_type));
-  }
-
-  /// get the Array corresponding to the type en ghost_type specified
-  virtual auto operator()(ElementType type, GhostType ghost_type = _not_ghost)
-      -> Array<T> & {
-    return ElementTypeMapArray<T>::operator()(type, ghost_type);
-  }
-
-  virtual auto operator()(ElementType type,
-                          GhostType ghost_type = _not_ghost) const
-      -> const Array<T> & {
-    return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
   virtual auto previous(ElementType type, GhostType ghost_type = _not_ghost)
@@ -164,14 +196,14 @@ public:
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual auto previous() -> InternalFieldTmpl & {
+  virtual InternalField<T> & previous() {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
-  virtual auto previous() const -> const InternalFieldTmpl & {
+  virtual const InternalField<T> & previous() const {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -179,7 +211,9 @@ public:
   }
 
   /// check if the history is used or not
-  auto hasHistory() const -> bool { return (previous_values != nullptr); }
+  [[nodiscard]] auto hasHistory() const -> bool override {
+    return (previous_values != nullptr);
+  }
 
   /// get the kind treated by  the internal
   AKANTU_GET_MACRO_AUTO(ElementKind, element_kind);
@@ -191,15 +225,23 @@ public:
   /// loop filter
   AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
 
+  Int & getRelease(ElementType type, GhostType ghost_type) {
+    return releases(type, ghost_type);
+  }
+
+  Int getRelease(ElementType type, GhostType ghost_type) const {
+    return releases(type, ghost_type);
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// the material for which this is an internal parameter
-  Material & material;
+  /// the constitutive_law for which this is an internal parameter
+  ConstitutiveLawInternalHandler & constitutive_law;
 
   /// the fem containing the mesh and the element informations
-  FEEngine * fem{nullptr};
+  FEEngine & fem;
 
   /// Element filter if needed
   const ElementTypeMapArray<Int> & element_filter;
@@ -220,18 +262,20 @@ protected:
   bool is_init{false};
 
   /// previous values
-  std::unique_ptr<InternalFieldTmpl<Material, T>> previous_values;
+  std::shared_ptr<InternalField<T>> previous_values;
+
+  ElementTypeMap<Int> releases;
 };
 
 /// standard output stream operator
-template <class Material, typename T>
-inline auto operator<<(std::ostream & stream, const InternalFieldTmpl<Material, T> & _this)
-    -> std::ostream & {
+template <typename T>
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const InternalField<T> & _this) {
   _this.printself(stream);
   return stream;
 }
 
-template <typename T> using InternalField = InternalFieldTmpl<Material, T>;
+// template <typename T> using InternalField = InternalFieldTmpl<Material, T>;
 
 } // namespace akantu
 

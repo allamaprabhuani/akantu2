@@ -37,16 +37,16 @@ protected:
   VoigtHelperFixture() {
     switch (this->dim) {
     case 1: {
-      indices.push_back({0, 0});
+      indices.emplace_back(0, 0);
       matrix = Matrix<Real>{{10}};
       vector = Vector<Real>{10};
       vector_factor = Vector<Real>{10};
       break;
     }
     case 2: {
-      indices.push_back({0, 0});
-      indices.push_back({1, 1});
-      indices.push_back({0, 1});
+      indices.emplace_back(0, 0);
+      indices.emplace_back(1, 1);
+      indices.emplace_back(0, 1);
 
       matrix = Matrix<Real>{{10, 33}, {0, 56}};
       vector = Vector<Real>{10, 56, 33};
@@ -54,12 +54,12 @@ protected:
       break;
     }
     case 3: {
-      indices.push_back({0, 0});
-      indices.push_back({1, 1});
-      indices.push_back({2, 2});
-      indices.push_back({1, 2});
-      indices.push_back({0, 2});
-      indices.push_back({0, 1});
+      indices.emplace_back(0, 0);
+      indices.emplace_back(1, 1);
+      indices.emplace_back(2, 2);
+      indices.emplace_back(1, 2);
+      indices.emplace_back(0, 2);
+      indices.emplace_back(0, 1);
 
       matrix = Matrix<Real>{{10, 33, 20}, {0, 56, 27}, {0, 0, 98}};
       vector = Vector<Real>{10, 56, 98, 27, 20, 33};

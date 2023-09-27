@@ -31,7 +31,7 @@
 #ifndef AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
 #define AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
 
-//#define DEBUG_TEST
+// #define DEBUG_TEST
 
 using namespace akantu;
 
@@ -41,7 +41,7 @@ public:
   static constexpr ElementType type = type_::value;
   static constexpr Int dim = ElementClass<type>::getSpatialDimension();
 
-  virtual void SetUp() {
+  void SetUp() override {
     mesh = std::make_unique<Mesh>(dim);
     mesh->read(std::to_string(type) + ".msh");
     MeshUtils::buildFacets(*mesh);
@@ -50,7 +50,7 @@ public:
     model = std::make_unique<M>(*mesh);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     model.reset(nullptr);
     mesh.reset(nullptr);
   }
@@ -63,8 +63,9 @@ public:
     this->model->initFull(_analysis_method = method);
     this->applyBC();
 
-    if (method != _static)
+    if (method != _static) {
       this->model->setTimeStep(0.8 * this->model->getStableTimeStep());
+    }
   }
 
   virtual void applyBC() {
@@ -141,10 +142,10 @@ public:
     const auto & coordinates = mesh->getNodes();
     Vector<Real> ref_dof(dofs.getNbComponent());
 
-    for (auto && tuple : zip(make_view(coordinates, dim),
-                             make_view(dofs, dofs.getNbComponent()))) {
-      setLinearDOF(ref_dof, std::get<0>(tuple));
-      auto diff = std::get<1>(tuple) - ref_dof;
+    for (auto && [X, u] : zip(make_view(coordinates, dim),
+                              make_view(dofs, dofs.getNbComponent()))) {
+      setLinearDOF(ref_dof, X);
+      auto diff = u - ref_dof;
       auto dofs_error = diff.template lpNorm<Eigen::Infinity>();
 
       EXPECT_NEAR(0, dofs_error, dofs_tolerance);
@@ -163,10 +164,10 @@ protected:
   Real dofs_tolerance{1e-15};
 };
 
-template <typename type_, typename M>
-constexpr ElementType TestPatchTestLinear<type_, M>::type;
+// template <typename type_, typename M>
+// constexpr ElementType TestPatchTestLinear<type_, M>::type;
 
-template <typename tuple_, typename M>
-constexpr Int TestPatchTestLinear<tuple_, M>::dim;
+// template <typename tuple_, typename M>
+// constexpr Int TestPatchTestLinear<tuple_, M>::dim;
 
 #endif /* AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_ */

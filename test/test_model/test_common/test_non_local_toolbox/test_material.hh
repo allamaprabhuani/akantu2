@@ -56,7 +56,7 @@ protected:
   /* Members */
   /* ------------------------------------------------------------------------ */
 private:
-  InternalField<Real> grad_u_nl;
+  InternalField<Real> & grad_u_nl;
 };
 
 #endif /* TEST_MATERIAL_HH_ */

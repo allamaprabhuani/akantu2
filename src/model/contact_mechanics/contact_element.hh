@@ -24,8 +24,8 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_ELEMENT_HH__
-#define __AKANTU_CONTACT_ELEMENT_HH__
+#ifndef AKANTU_CONTACT_ELEMENT_HH_
+#define AKANTU_CONTACT_ELEMENT_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -73,4 +73,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_CONTACT_ELEMENT_HH__ */
+#endif /* AKANTU_CONTACT_ELEMENT_HH_ */

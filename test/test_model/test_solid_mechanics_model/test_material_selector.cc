@@ -38,16 +38,18 @@ int main(int argc, char * argv[]) {
 
   model.initFull();
 
-  Material & chocolate = model.getMaterial("chocolate");
-  Material & chewing_gum = model.getMaterial("chewing-gum");
-  Material & candy = model.getMaterial("candy");
+  const Material & chocolate = model.getMaterial("chocolate");
+  const Material & chewing_gum = model.getMaterial("chewing-gum");
+  const Material & candy = model.getMaterial("candy");
 
-  UInt chocolate_element = chocolate.getElementFilter(_segment_2)(0, 0);
-  UInt chewing_gum_element = chewing_gum.getElementFilter(_segment_2)(0, 0);
-  UInt candy_element = candy.getElementFilter(_segment_2)(0, 0);
+  Int chocolate_element = chocolate.getElementFilter(_segment_2)(0, 0);
+  Int chewing_gum_element = chewing_gum.getElementFilter(_segment_2)(0, 0);
+  Int candy_element = candy.getElementFilter(_segment_2)(0, 0);
 
-  if (chocolate_element != 0 || chewing_gum_element != 1 || candy_element != 2)
+  if (chocolate_element != 0 || chewing_gum_element != 1 ||
+      candy_element != 2) {
     return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

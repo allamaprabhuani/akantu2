@@ -28,10 +28,17 @@ template <Int spatial_dimension>
 MaterialCohesiveLinearFatigue<spatial_dimension>::MaterialCohesiveLinearFatigue(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
-      delta_prec("delta_prec", *this), K_plus("K_plus", *this),
-      K_minus("K_minus", *this), T_1d("T_1d", *this),
-      switches("switches", *this), delta_dot_prec("delta_dot_prec", *this),
-      normal_regime("normal_regime", *this) {
+      delta_prec(this->template registerInternal<Real, CohesiveInternalField>(
+          "delta_prec", 1)),
+      K_plus(this->template registerInternal<Real, CohesiveInternalField>(
+          "K_plus", 1)),
+      K_minus(this->template registerInternal<Real, CohesiveInternalField>(
+          "K_minus", 1)),
+      T_1d(this->template registerInternal<Real, CohesiveInternalField>("T_1d",
+                                                                        1)),
+      normal_regime(
+          this->template registerInternal<bool, CohesiveInternalField>(
+              "normal_regime", 1)) {
 
   this->registerParam("delta_f", delta_f, Real(-1.),
                       _pat_parsable | _pat_readable, "delta_f");
@@ -61,15 +68,15 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
     AKANTU_ERROR("Delta_f must be greater or equal to delta_c");
   }
 
-  delta_prec.initialize(1);
-  K_plus.initialize(1);
-  K_minus.initialize(1);
-  T_1d.initialize(1);
-  normal_regime.initialize(1);
-
   if (count_switches) {
-    switches.initialize(1);
-    delta_dot_prec.initialize(1);
+    this->template registerInternal<Int, CohesiveInternalField>("switches", 1);
+    switches = this->template getSharedPtrInternal<Int, CohesiveInternalField>(
+        "switches");
+    this->template registerInternal<Real, CohesiveInternalField>(
+        "delta_dot_prec", 1);
+    delta_dot_prec =
+        this->template getSharedPtrInternal<Real, CohesiveInternalField>(
+            "delta_dot_prec");
   }
 }
 
@@ -110,12 +117,12 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
   Array<Real> & T_1d_array = T_1d(el_type, ghost_type);
   Array<bool> & normal_regime_array = normal_regime(el_type, ghost_type);
 
-  Array<UInt> * switches_array = nullptr;
+  Array<Int> * switches_array = nullptr;
   Array<Real> * delta_dot_prec_array = nullptr;
 
   if (count_switches) {
-    switches_array = &switches(el_type, ghost_type);
-    delta_dot_prec_array = &delta_dot_prec(el_type, ghost_type);
+    switches_array = &(*switches)(el_type, ghost_type);
+    delta_dot_prec_array = &(*delta_dot_prec)(el_type, ghost_type);
   }
 
   Vector<Real, spatial_dimension> normal_opening;
@@ -289,7 +296,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
 template class MaterialCohesiveLinearFatigue<1>;
 template class MaterialCohesiveLinearFatigue<2>;
 template class MaterialCohesiveLinearFatigue<3>;
-static bool material_is_alocated_cohesive_linear_fatigue =
+const bool material_is_alocated_cohesive_linear_fatigue [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveLinearFatigue>(
         "cohesive_linear_fatigue");
 

@@ -17,13 +17,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
-
+/* -------------------------------------------------------------------------- */
+#include "local_material_damage.hh" // NOLINT
 /* -------------------------------------------------------------------------- */
 
+#ifndef AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__
+#define AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__
+
+namespace akantu {
+
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(MatrixProxy<Real> & grad_u,
-                                                     MatrixProxy<Real> & sigma,
-                                                     Real & dam) {
+template <class D1, class D2>
+inline void LocalMaterialDamage::computeStressOnQuad(
+    Eigen::MatrixBase<D1> & grad_u, Eigen::MatrixBase<D2> & sigma, Real & dam) {
 
   Real trace = grad_u.trace();
 
@@ -47,8 +53,10 @@ inline void LocalMaterialDamage::computeStressOnQuad(MatrixProxy<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
+template <class D1, class D2>
 inline void LocalMaterialDamage::computePotentialEnergyOnQuad(
-    MatrixProxy<Real> & grad_u, MatrixProxy<Real> & sigma, Real & epot) {
+    Eigen::MatrixBase<D1> & grad_u, Eigen::MatrixBase<D2> & sigma,
+    Real & epot) {
   epot = sigma.doubleDot(grad_u) / 2.;
 }
 
@@ -57,3 +65,7 @@ inline Real
 LocalMaterialDamage::getCelerity(const Element & /*element*/) const {
   return (std::sqrt(E / rho));
 }
+
+} // namespace akantu
+
+#endif /* AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__ */

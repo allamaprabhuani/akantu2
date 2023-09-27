@@ -28,10 +28,54 @@
 
 namespace akantu {
 
+namespace details {
+  template <Int dim> struct VoigtHelperData {
+    static inline constexpr Int size{(dim * (dim - 1)) / 2 + dim};
+    // matrix of vector index I as function of tensor indices i,j
+    static constexpr std::array<std::array<Idx, dim>, dim> mat{};
+    // array of matrix indices ij as function of vector index I
+    static constexpr std::array<std::array<Idx, 2>, dim * dim> vec{};
+    // factors to multiply the strain by for voigt notation
+    static constexpr std::array<Real, size> factors{};
+  };
+
+  template <> struct VoigtHelperData<1> {
+    static constexpr Int size{1};
+    static constexpr std::array<std::array<Idx, 1>, 1> mat{{{0}}};
+    static constexpr std::array<std::array<Idx, 2>, 1> vec{{{0, 0}}};
+    static constexpr std::array<Real, 1> factors{1.};
+  };
+
+  template <> struct VoigtHelperData<2> {
+    static constexpr Int size{3};
+    static constexpr std::array<std::array<Idx, 2>, 2> mat{{{0, 2}, {3, 1}}};
+    static constexpr std::array<std::array<Idx, 2>, 4> vec{
+        {{0, 0}, {1, 1}, {0, 1}, {1, 0}}};
+    static constexpr std::array<Real, 3> factors{1., 1., 2.};
+  };
+
+  template <> struct VoigtHelperData<3> {
+    static constexpr Int size{6};
+    static constexpr std::array<std::array<Idx, 3>, 3> mat{
+        {{0, 5, 4}, {8, 1, 3}, {7, 6, 2}}};
+    static constexpr std::array<std::array<Idx, 2>, 9> vec{{{0, 0},
+                                                            {1, 1},
+                                                            {2, 2},
+                                                            {1, 2},
+                                                            {0, 2},
+                                                            {0, 1},
+                                                            {2, 1},
+                                                            {2, 0},
+                                                            {1, 0}}};
+    static constexpr std::array<Real, 6> factors{1., 1., 1., 2., 2., 2.};
+  };
+} // namespace details
+
 /* -------------------------------------------------------------------------- */
-template <Int dim> class VoigtHelper {
+template <Int dim> class VoigtHelper : public details::VoigtHelperData<dim> {
   static_assert(dim > 0U, "Cannot be < 1D");
   static_assert(dim < 4U, "Cannot be > 3D");
+  using data = details::VoigtHelperData<dim>;
 
 public:
   /* ------------------------------------------------------------------------ */
@@ -74,17 +118,8 @@ public:
   /// IJNME vol 9, 1975)
   template <typename D1, typename D2, typename D3>
   static constexpr inline void transferBMatrixToBL2(
-      const Eigen::MatrixBase<D1> & B, const Eigen::MatrixBase<D2> & grad_u,
+      const Eigen::MatrixBase<D1> & dNdX, const Eigen::MatrixBase<D2> & grad_u,
       Eigen::MatrixBase<D3> & Bvoigt, Int nb_nodes_per_element);
-
-public:
-  static constexpr Int size{(dim * (dim - 1)) / 2 + dim};
-  // matrix of vector index I as function of tensor indices i,j
-  static const Idx mat[dim][dim];
-  // array of matrix indices ij as function of vector index I
-  static const Idx vec[dim * dim][2];
-  // factors to multiply the strain by for voigt notation
-  static const Real factors[size];
 };
 
 } // namespace akantu

@@ -86,7 +86,7 @@ public:
   operator const Array<Real> &() const override;
 
   SolverVector & operator+(const SolverVector & y) override;
-  SolverVector & operator=(const SolverVector & y) override;
+  SolverVector & copy(const SolverVector & y) override;
   SolverVectorPETSc & operator=(const SolverVectorPETSc & y);
 
   /// get values using processors global indexes

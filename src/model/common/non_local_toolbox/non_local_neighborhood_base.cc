@@ -37,9 +37,6 @@ NonLocalNeighborhoodBase::NonLocalNeighborhoodBase(
 }
 
 /* -------------------------------------------------------------------------- */
-NonLocalNeighborhoodBase::~NonLocalNeighborhoodBase() = default;
-
-/* -------------------------------------------------------------------------- */
 void NonLocalNeighborhoodBase::createGridSynchronizer() {
   this->is_creating_grid = true;
 

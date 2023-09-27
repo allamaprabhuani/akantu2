@@ -22,7 +22,9 @@
 
 namespace akantu {
 
-inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+inline void PhaseFieldExponential<dim>::computeDissipatedEnergyOnQuad(
     const Real & dam, const Vector<Real> & grad_d, Real & edis,
     Real & g_c_quad) {
 
@@ -35,48 +37,34 @@ inline void PhaseFieldExponential::computeDissipatedEnergyOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseFieldExponential::computeDamageEnergyDensityOnQuad(
+template <Int dim>
+inline void PhaseFieldExponential<dim>::computeDamageEnergyDensityOnQuad(
     const Real & phi_quad, Real & dam_energy_quad, const Real & g_c_quad) {
   dam_energy_quad = 2.0 * phi_quad + g_c_quad / this->l0;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void
-PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
-                                        Real & phi_quad, Real & phi_hist_quad) {
-  Matrix<Real> strain_plus(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_dir(spatial_dimension, spatial_dimension);
-  Matrix<Real> strain_diag_plus(spatial_dimension, spatial_dimension);
-
-  Vector<Real> strain_values(spatial_dimension);
-
-  Real trace_plus;
-
-  strain_plus.zero();
-  strain_dir.zero();
-  strain_values.zero();
-  strain_diag_plus.zero();
-
+template <Int dim>
+inline void PhaseFieldExponential<dim>::computePhiOnQuad(
+    const Matrix<Real> & strain_quad, Real & phi_quad, Real & phi_hist_quad) {
+  Matrix<Real, dim, dim> strain_dir;
+  Vector<Real, dim> strain_values;
   strain_quad.eig(strain_values, strain_dir);
 
-  for (Int i = 0; i < spatial_dimension; i++) {
+  Matrix<Real, dim, dim> strain_diag_plus;
+  strain_diag_plus.zero();
+  for (Int i = 0; i < dim; i++) {
     strain_diag_plus(i, i) = std::max(Real(0.), strain_values(i));
   }
 
-  Matrix<Real> mat_tmp(spatial_dimension, spatial_dimension);
-  Matrix<Real> sigma_plus(spatial_dimension, spatial_dimension);
+  Matrix<Real, dim, dim> strain_plus =
+      strain_dir * strain_diag_plus * strain_dir.transpose();
 
-  mat_tmp = strain_diag_plus * strain_dir.transpose();
-  strain_plus = strain_dir * mat_tmp;
+  auto trace_plus = std::max(0., strain_quad.trace());
 
-  trace_plus = std::max(Real(0.), strain_quad.trace());
-
-  for (Int i = 0; i < spatial_dimension; i++) {
-    for (Int j = 0; j < spatial_dimension; j++) {
-      sigma_plus(i, j) = static_cast<Real>(i == j) * lambda * trace_plus +
-                         2 * mu * strain_plus(i, j);
-    }
-  }
+  Matrix<Real, dim, dim> sigma_plus =
+      Matrix<Real, dim, dim>::Identity() * lambda * trace_plus +
+      2. * mu * strain_plus;
 
   phi_quad = sigma_plus.doubleDot(strain_plus) / 2.;
   if (phi_quad < phi_hist_quad) {
@@ -85,7 +73,8 @@ PhaseFieldExponential::computePhiOnQuad(const Matrix<Real> & strain_quad,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void PhaseFieldExponential::computePhiIsotropicOnQuad(
+template <Int dim>
+inline void PhaseFieldExponential<dim>::computePhiIsotropicOnQuad(
     const Matrix<Real> & strain_quad, Real & phi_quad, Real & phi_hist_quad) {
 
   Real trace = strain_quad.trace();

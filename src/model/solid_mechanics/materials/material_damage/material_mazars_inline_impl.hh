@@ -19,8 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_linear_isotropic_hardening.hh"
-#include "material_mazars.hh"
+// #include "material_linear_isotropic_hardening.hh"
+#include "material_mazars.hh" // NOLINT
 
 namespace akantu {
 
@@ -28,16 +28,16 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialMazars<dim, Parent>::MaterialMazars(SolidMechanicsModel & model,
                                             const ID & id)
-    : parent_damage(model, id), K0("K0", *this),
-      damage_in_compute_stress(true) {
+    : parent_damage(model, id),
+      K0(this->template registerInternal<Real, DefaultRandomInternalField>("K0",
+                                                                           1)) {
+
   this->registerParam("K0", this->K0, _pat_parsable, "K0");
   this->registerParam("At", this->At, Real(0.8), _pat_parsable, "At");
   this->registerParam("Ac", this->Ac, Real(1.4), _pat_parsable, "Ac");
   this->registerParam("Bc", this->Bc, Real(1900.), _pat_parsable, "Bc");
   this->registerParam("Bt", this->Bt, Real(12000.), _pat_parsable, "Bt");
   this->registerParam("beta", this->beta, Real(1.06), _pat_parsable, "beta");
-
-  this->K0.initialize(1);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ void MaterialMazars<dim, Parent>::computeStress(ElementType el_type,
 template <Int dim, template <Int> class Parent>
 template <typename Args>
 inline void MaterialMazars<dim, Parent>::computeStressOnQuad(Args && args) {
-  Parent<dim>::computeStressOnQuad(args);
+  Parent<dim>::computeStressOnQuad(std::forward<decltype(args)>(args));
 
   auto & grad_u = args["grad_u"_n];
 
@@ -100,7 +100,7 @@ MaterialMazars<dim, Parent>::computeDamageAndStressOnQuad(Args && args) {
     epsilon.block<dim, dim>(0, 0) = Material::gradUToEpsilon<dim>(grad_u);
 
     epsilon.eig(Fdiag);
-    computeDamageOnQuad(args, Fdiag);
+    computeDamageOnQuad(std::forward<Args>(args), Fdiag);
   }
 
   auto && sigma = args["sigma"_n];
@@ -119,6 +119,7 @@ inline void MaterialMazars<dim, Parent>::computeDamageOnQuad(
     Args && args, const Eigen::MatrixBase<Derived> & epsilon_princ) {
   auto && dam = args["damage"_n];
   auto && Ehat = args["Ehat"_n];
+  auto && K0 = args["K0"_n];
 
   auto Fs = Ehat - K0;
 

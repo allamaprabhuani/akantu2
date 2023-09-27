@@ -30,9 +30,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(
-    __attribute__((unused)) const Matrix<Real> & grad_u,
-    __attribute__((unused)) const Matrix<Real> & grad_delta_u,
-    __attribute__((unused)) Matrix<Real> & delta_S) {}
+    const Matrix<Real> & /*grad_u*/, const Matrix<Real> & /*grad_delta_u*/,
+    Matrix<Real> & /*cddelta_S*/) {}
 
 //! computes the second piola kirchhoff stress, called S
 template <Int dim>
@@ -51,18 +50,17 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Args && args) {
 /* -------------------------------------------------------------------------- */
 class C33_NR : public Math::NewtonRaphsonFunctor<Real> {
 public:
-  C33_NR(std::string name, const Real & lambda, const Real & mu,
-         const Matrix<Real> & C)
-      : NewtonRaphsonFunctor(std::move(name)), lambda(lambda), mu(mu), C(C) {}
+  C33_NR(const ID & name, const Real & lambda, Real mu, const Matrix<Real> & C)
+      : NewtonRaphsonFunctor(name), lambda(lambda), mu(mu), C(C) {}
 
-  inline Real f(const Real & x) const override {
+  [[nodiscard]] inline Real f(const Real & x) const override {
     return (this->lambda / 2. *
                 (std::log(x) + std::log(this->C(0, 0) * this->C(1, 1) -
                                         Math::pow<2>(this->C(0, 1)))) +
             this->mu * (x - 1.));
   }
 
-  inline Real f_prime(const Real & x) const override {
+  [[nodiscard]] inline Real f_prime(const Real & x) const override {
     AKANTU_DEBUG_ASSERT(std::abs(x) > Math::getTolerance(),
                         "x is zero (x should be the off plane right Cauchy"
                             << " measure in this function so you made a mistake"
@@ -72,7 +70,7 @@ public:
 
 private:
   const Real & lambda;
-  const Real & mu;
+  const Real mu;
   const Matrix<Real> & C;
 };
 
@@ -117,14 +115,14 @@ inline void MaterialNeohookean<dim>::computeFirstPiolaKirchhoffOnQuad(
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
 template <Int dim>
-inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(
-    const Matrix<Real> & grad_u, Real & epot) {
-  auto F = Material::gradUToF<dim>(grad_u);
+template <class Args>
+inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(Args && args,
+                                                                  Real & epot) {
+  auto F = Material::gradUToF<dim>(args["grad_u"_n]);
   auto C = Material::rightCauchy<dim>(F);
   auto J = F.determinant();
-
   epot =
-      0.5 * lambda * pow(log(J), 2.) + mu * (-log(J) + 0.5 * (C.trace() - dim));
+      lambda * pow(log(J), 2.) + mu * (-log(J) + (C.trace() - dim) / 2.) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -137,16 +135,14 @@ inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Args && args) {
   auto rows = tangent.rows();
   auto F = Material::gradUToF<dim>(args["grad_u"_n]);
   auto C = Material::rightCauchy<dim>(F);
-  auto J = F.determinant() * sqrt(C33);
+  auto J = F.determinant() * std::sqrt(args["C33"_n]);
 
   auto && Cminus = C.inverse();
 
   for (Int m = 0; m < rows; m++) {
-    UInt i = VoigtHelper<dim>::vec[m][0];
-    UInt j = VoigtHelper<dim>::vec[m][1];
+    auto && [i, j] = VoigtHelper<dim>::vec[m];
     for (Int n = 0; n < cols; n++) {
-      UInt k = VoigtHelper<dim>::vec[n][0];
-      UInt l = VoigtHelper<dim>::vec[n][1];
+      auto && [k, l] = VoigtHelper<dim>::vec[n];
 
       // book belytchko
       tangent(m, n) = lambda * Cminus(i, j) * Cminus(k, l) +

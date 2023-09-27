@@ -40,23 +40,19 @@ class RandomInternalField : public BaseField<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using ParentMaterial = typename BaseField<T>::Material;
+  using BaseField<T>::BaseField;
 
-  RandomInternalField(const ID & id, ParentMaterial & material);
-
-  ~RandomInternalField() override;
-
+  friend class ConstitutiveLawInternalHandler;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-  RandomInternalField operator=(const RandomInternalField &) = delete;
-
 public:
-  AKANTU_GET_MACRO(RandomParameter, random_parameter,
-                   const RandomParameter<T> &);
+  std::shared_ptr<RandomInternalField> getPtr() {
+    return aka::as_type<RandomInternalField>(this->shared_from_this());
+  }
 
   /// initialize the field to a given number of component
-  void initialize(UInt nb_component) override;
+  void initialize(Int nb_component) override;
 
   /// set the field to a given value
   void setDefaultValue(const T & value) override;
@@ -76,21 +72,30 @@ protected:
 public:
   inline operator Real() const;
 
+  AKANTU_GET_MACRO(RandomParameter, random_parameter,
+                   const RandomParameter<T> &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// random parameter containing the distribution and base value
-  RandomParameter<T> random_parameter;
+  RandomParameter<T> random_parameter{T()};
 };
 
 /// standard output stream operator
-template <typename T>
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const RandomInternalField<T> & _this) {
+template <typename T, template <typename> class BaseField = InternalField,
+          template <typename> class Generator = RandomGenerator>
+inline std::ostream &
+operator<<(std::ostream & stream,
+           const RandomInternalField<T, BaseField, Generator> & _this) {
   _this.printself(stream);
   return stream;
 }
+
+template <typename T>
+using DefaultRandomInternalField =
+    RandomInternalField<T, InternalField, RandomGenerator>;
 
 } // namespace akantu
 

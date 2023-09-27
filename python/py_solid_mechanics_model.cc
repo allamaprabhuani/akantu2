@@ -20,7 +20,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
+#include "py_constitutive_laws_handler.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_law.hh>
+#include <constitutive_laws_handler.hh>
+#include <material.hh>
 #include <non_linear_solver.hh>
 #include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
@@ -47,14 +51,15 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void register_solid_mechanics_model(py::module & mod) {
+  register_constitutive_laws_handler<Material, Model>(mod);
 
   py::class_<SolidMechanicsModelOptions>(mod, "SolidMechanicsModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("_analysis_method") = _explicit_lumped_mass);
 
-  py::class_<SolidMechanicsModel, Model>(mod, "SolidMechanicsModel",
-                                         py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+  py::class_<SolidMechanicsModel, ConstitutiveLawsHandler<Material, Model>>(
+      mod, "SolidMechanicsModel", py::multiple_inheritance())
+      .def(py::init<Mesh &, Int, const ID &, std::shared_ptr<DOFManager>,
                     const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model",
@@ -145,7 +150,7 @@ void register_solid_mechanics_model(py::module & mod) {
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
       .def("setMaterialSelector",
            [](SolidMechanicsModel & self,
-              std::shared_ptr<MaterialSelector> material_selector) {
+              std::shared_ptr<ConstitutiveLawSelector> material_selector) {
              std::cout << (*material_selector)(ElementNull) << std::endl;
              self.setMaterialSelector(material_selector);
            })
@@ -164,12 +169,8 @@ void register_solid_mechanics_model(py::module & mod) {
             return self.registerNewMaterial(mat_name, mat_type, opt_param);
           },
           py::arg("material_name"), py::arg("material_type"),
-          py::arg("option") = "", py::return_value_policy::reference)
-      .def("initMaterials", &SolidMechanicsModel::initMaterials)
-      .def("flattenInternal", &SolidMechanicsModel::flattenInternal,
-           py::return_value_policy::reference)
-      .def("inflateInternal", &SolidMechanicsModel::inflateInternal,
-           py::return_value_policy::reference);
+          py::arg("option") = "", py::return_value_policy::reference);
+  //      .def("initMaterials", &SolidMechanicsModel::initMaterials)
 }
 
 } // namespace akantu

@@ -34,9 +34,13 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveLinear<dim>::MaterialCohesiveLinear(SolidMechanicsModel & model,
                                                     const ID & id)
-    : MaterialCohesive(model, id), sigma_c_eff("sigma_c_eff", *this),
-      delta_c_eff("delta_c_eff", *this),
-      insertion_stress("insertion_stress", *this) {
+    : MaterialCohesive(model, id),
+      sigma_c_eff(registerInternal<Real, CohesiveRandomInternalField>(
+          "sigma_c_eff", 1)),
+      delta_c_eff(
+          registerInternal<Real, CohesiveInternalField>("delta_c_eff", 1)),
+      insertion_stress(registerInternal<Real, CohesiveInternalField>(
+          "insertion_stress", dim)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta", beta, Real(0.), _pat_parsable | _pat_readable,
@@ -82,13 +86,10 @@ template <Int dim> void MaterialCohesiveLinear<dim>::initMaterial() {
 
   MaterialCohesive::initMaterial();
 
-  sigma_c_eff.initialize(1);
-  delta_c_eff.initialize(1);
-  insertion_stress.initialize(dim);
-
   if (not Math::are_float_equal(delta_c, 0.)) {
     delta_c_eff.setDefaultValue(delta_c);
   } else {
+    Real sigma_c = this->sigma_c;
     delta_c_eff.setDefaultValue(2 * G_c / sigma_c);
   }
 
@@ -165,7 +166,7 @@ template <Int dim> void MaterialCohesiveLinear<dim>::scaleInsertionTraction() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim>
+template <Int dim> // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
   AKANTU_DEBUG_IN();
 
@@ -183,7 +184,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
     auto & trac_old = tractions.previous(type_cohesive);
     const auto & f_stress = model->getStressOnFacets(type_facet);
 
-    const auto & facet_filter_array = facet_filter(type_facet);
+    const auto & facet_filter_array = getFacetFilter(type_facet);
     const auto & sigma_limit_array = sigma_c(type_facet);
 
     auto nb_quad_facet =
@@ -242,8 +243,8 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
       // verify if the effective stress overcomes the threshold
       auto final_stress = stress_check.mean();
       if (max_quad_stress_insertion) {
-        final_stress = *std::max_element(stress_check.data(),
-                                         stress_check.data() + nb_quad_facet);
+        final_stress =
+            *std::max_element(stress_check.begin(), stress_check.end());
       }
 
       if (final_stress > sigma_limit) {
@@ -264,9 +265,9 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
           }
 
           new_sigmas.push_back(new_sigma);
-          new_normal_traction.push_back(normal_traction_vec);
+          new_normal_traction.emplace_back(normal_traction_vec);
 
-          Real new_delta;
+          Real new_delta{};
 
           // set delta_c in function of G_c or a given delta_c value
           if (Math::are_float_equal(delta_c, 0.)) {
@@ -282,7 +283,7 @@ void MaterialCohesiveLinear<dim>::checkInsertion(bool check_only) {
 
     // update material data for the new elements
     auto old_nb_quad_points = sig_c_eff.size();
-    Int new_nb_quad_points = new_sigmas.size();
+    Int new_nb_quad_points = Int(new_sigmas.size());
     sig_c_eff.resize(old_nb_quad_points + new_nb_quad_points);
     ins_stress.resize(old_nb_quad_points + new_nb_quad_points);
     trac_old.resize(old_nb_quad_points + new_nb_quad_points);
@@ -328,7 +329,7 @@ void MaterialCohesiveLinear<dim>::computeTangentTraction(
 template class MaterialCohesiveLinear<1>;
 template class MaterialCohesiveLinear<2>;
 template class MaterialCohesiveLinear<3>;
-static bool material_is_alocated_cohesive_linear =
+const bool material_is_alocated_cohesive_linear [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveLinear>("cohesive_linear");
 
 } // namespace akantu

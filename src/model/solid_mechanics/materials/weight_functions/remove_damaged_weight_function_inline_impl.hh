@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "remove_damaged_weight_function.hh"
+// #include "remove_damaged_weight_function.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_INLINE_IMPL_HH_
@@ -28,24 +28,24 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline Real RemoveDamagedWeightFunction::operator()(
-    Real r, const __attribute__((unused)) IntegrationPoint & q1,
-    const IntegrationPoint & q2) {
+inline Real
+RemoveDamagedWeightFunction::operator()(Real r, const IntegrationPoint & q1,
+                                        const IntegrationPoint & q2) {
   /// compute the weight
-  UInt quad = q2.global_num;
+  auto quad = q2.global_num;
 
   if (q1 == q2) {
     return 1.;
   }
 
-  Array<Real> & dam_array = (*this->damage)(q2.type, q2.ghost_type);
-  Real D = dam_array(quad);
-  Real w = 0.;
+  auto & dam_array = (*this->damage)(q2.type, q2.ghost_type);
+  auto D = dam_array(quad);
+
   if (D < damage_limit * (1 - Math::getTolerance())) {
     Real alpha = std::max(0., 1. - r * r / this->R2);
-    w = alpha * alpha;
+    return alpha * alpha;
   }
-  return w;
+  return 0.;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -73,8 +73,7 @@ RemoveDamagedWeightFunction::packData(CommunicationBuffer & buffer,
                                       const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_mnl_weight) {
     DataAccessor<Element>::packElementalDataHelper<Real>(
-        *damage, buffer, elements, true,
-        this->manager.getModel().getFEEngine());
+        *damage, buffer, elements, this->manager.getModel().getFEEngine());
   }
 }
 
@@ -85,8 +84,7 @@ RemoveDamagedWeightFunction::unpackData(CommunicationBuffer & buffer,
                                         const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_mnl_weight) {
     DataAccessor<Element>::unpackElementalDataHelper<Real>(
-        *damage, buffer, elements, true,
-        this->manager.getModel().getFEEngine());
+        *damage, buffer, elements, this->manager.getModel().getFEEngine());
   }
 }
 

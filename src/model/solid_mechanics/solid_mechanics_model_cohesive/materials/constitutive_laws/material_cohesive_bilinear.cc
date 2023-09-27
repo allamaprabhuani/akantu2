@@ -20,7 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_cohesive_bilinear.hh"
-//#include "solid_mechanics_model_cohesive.hh"
+// #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -192,7 +192,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(
 template class MaterialCohesiveBilinear<1>;
 template class MaterialCohesiveBilinear<2>;
 template class MaterialCohesiveBilinear<3>;
-static bool material_is_alocated_cohesive_bilinear =
+const bool material_is_alocated_cohesive_bilinear [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveBilinear>("cohesive_bilinear");
 
 } // namespace akantu

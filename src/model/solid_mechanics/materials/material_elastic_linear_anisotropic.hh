@@ -52,8 +52,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override;
@@ -124,7 +122,7 @@ protected:
   bool symmetric;
 
   /// defines if the stiffness was computed
-  bool was_stiffness_assembled;
+  bool was_stiffness_assembled{false};
 };
 } // namespace akantu
 
