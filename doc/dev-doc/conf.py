@@ -44,7 +44,6 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.ifconfig",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     'sphinx_rtd_theme',
@@ -327,14 +326,3 @@ intersphinx_mapping = {
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
 }
-
-
-def linkcode_resolve(domain, info):
-    print(f"linkcode_resolve: {domain} - {info}")
-
-    if domain == 'py':
-        if not info['module']:
-            return None
-        filename = info['module'].replace('.', '/')
-
-    return f"https://gitlab.com/akantu/akantu/-/blob/${tag}/${filename}"
