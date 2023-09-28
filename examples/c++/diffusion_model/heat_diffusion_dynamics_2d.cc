@@ -70,7 +70,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  model.setBaseName("heat_transfer_square2d");
+  model.setBaseName("heat_diffusion_square2d");
   model.addDumpField("temperature");
   model.addDumpField("temperature_rate");
   model.addDumpField("internal_heat_rate");

@@ -24,12 +24,11 @@ package_declare(diffusion DEFAULT ON
   DESCRIPTION "Activate Diffusion model of Akantu")
 
 package_declare_sources(diffusion
-  model/heat_transfer/heat_transfer_model.cc
-  model/heat_transfer/heat_transfer_model.hh
-  model/heat_transfer/diffusion_model.cc
-  model/heat_transfer/diffusion_model.hh
-  model/heat_transfer/diffusion_law.cc
-  model/heat_transfer/diffusion_law.hh
-  model/heat_transfer/heat_diffusion.cc
-  model/heat_transfer/heat_diffusion.hh
+  model/diffusion_model/heat_transfer_model.hh
+  model/diffusion_model/diffusion_model.cc
+  model/diffusion_model/diffusion_model.hh
+  model/diffusion_model/diffusion_law.cc
+  model/diffusion_model/diffusion_law.hh
+  model/diffusion_model/heat_diffusion.cc
+  model/diffusion_model/heat_diffusion.hh
   )
