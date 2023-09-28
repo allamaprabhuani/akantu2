@@ -19,25 +19,23 @@
 #
 #===============================================================================
 
+add_mesh(heat_diffusion_mesh_2d square.geo 2 2)
+add_mesh(heat_diffusion_mesh_3d cube.geo 3 2)
 
-add_mesh(heat_transfer_mesh_2d square.geo 2 2)
-add_mesh(heat_transfer_mesh_3d cube.geo 3 2)
-
-register_example(heat_transfer_dynamics_2d
-  SOURCES heat_transfer_dynamics_2d.cc
-  DEPENDS heat_transfer_mesh_2d
+register_example(heat_diffusion_dynamics_2d
+  SOURCES heat_diffusion_dynamics_2d.cc
+  DEPENDS heat_diffusion_mesh_2d
   FILES_TO_COPY material.dat
   )
 
-register_example(heat_transfer_static_2d
-  SOURCES heat_transfer_static_2d.cc
-  DEPENDS heat_transfer_mesh_2d
+register_example(heat_diffusion_static_2d
+  SOURCES heat_diffusion_static_2d.cc
+  DEPENDS heat_diffusion_mesh_2d
   FILES_TO_COPY material.dat
   )
 
-register_example(heat_transfer_dynamics_3d
-  SOURCES heat_transfer_dynamics_3d.cc
-  DEPENDS heat_transfer_mesh_3d
+register_example(heat_diffusion_dynamics_3d
+  SOURCES heat_diffusion_dynamics_3d.cc
+  DEPENDS heat_diffusion_mesh_3d
   FILES_TO_COPY material.dat
   )
-

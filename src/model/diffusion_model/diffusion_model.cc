@@ -447,8 +447,8 @@ std::shared_ptr<dumpers::Field> DiffusionModel::createElementalField(
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int DiffusionModel::getNbData(const Array<Idx> & indexes,
-                                     const SynchronizationTag & tag) const {
+Int DiffusionModel::getNbData(const Array<Idx> & indexes,
+                              const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   Int size = 0;
@@ -469,9 +469,9 @@ inline Int DiffusionModel::getNbData(const Array<Idx> & indexes,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionModel::packData(CommunicationBuffer & buffer,
-                                     const Array<Idx> & indexes,
-                                     const SynchronizationTag & tag) const {
+void DiffusionModel::packData(CommunicationBuffer & buffer,
+                              const Array<Idx> & indexes,
+                              const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   for (auto index : indexes) {
@@ -490,9 +490,9 @@ inline void DiffusionModel::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionModel::unpackData(CommunicationBuffer & buffer,
-                                       const Array<Idx> & indexes,
-                                       const SynchronizationTag & tag) {
+void DiffusionModel::unpackData(CommunicationBuffer & buffer,
+                                const Array<Idx> & indexes,
+                                const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
 
   for (auto index : indexes) {
@@ -511,8 +511,8 @@ inline void DiffusionModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int DiffusionModel::getNbData(const Array<Element> & elements,
-                                     const SynchronizationTag & tag) const {
+Int DiffusionModel::getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   Int size = 0;
@@ -533,9 +533,9 @@ inline Int DiffusionModel::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionModel::packData(CommunicationBuffer & buffer,
-                                     const Array<Element> & elements,
-                                     const SynchronizationTag & tag) const {
+void DiffusionModel::packData(CommunicationBuffer & buffer,
+                              const Array<Element> & elements,
+                              const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_diffusion) {
     packNodalDataHelper(*diffusion, buffer, elements, mesh);
   }
@@ -544,9 +544,9 @@ inline void DiffusionModel::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionModel::unpackData(CommunicationBuffer & buffer,
-                                       const Array<Element> & elements,
-                                       const SynchronizationTag & tag) {
+void DiffusionModel::unpackData(CommunicationBuffer & buffer,
+                                const Array<Element> & elements,
+                                const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_diffusion) {
     unpackNodalDataHelper(*diffusion, buffer, elements, mesh);
   }
