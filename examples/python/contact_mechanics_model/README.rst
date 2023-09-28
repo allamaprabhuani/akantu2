@@ -6,7 +6,7 @@ simulate the contact betweem two blocks.
 
 .. figure:: examples/python/contact_mechanics_model/images/compression.svg
             :align: center
-            :width: 25%
+            :width: 20%
 
 .. figure:: examples/python/contact_mechanics_model/images/contact.gif
             :align: center

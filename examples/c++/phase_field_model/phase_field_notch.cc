@@ -47,25 +47,21 @@ int main(int argc, char * argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("square_notch.msh");
 
+  // The model coupler contains the solid mechanics and the phase-field models
   CouplerSolidPhaseField coupler(mesh);
   auto & model = coupler.getSolidMechanicsModel();
   auto & phase = coupler.getPhaseFieldModel();
 
+  // Each model can bet set separately
   model.initFull(_analysis_method = _static);
-  auto && mat_selector =
-      std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
-                                                              model);
-  model.setMaterialSelector(mat_selector);
-
-  auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
-      "physical_names", phase);
-  phase.setPhaseFieldSelector(selector);
 
   phase.initFull(_analysis_method = _static);
 
+  // Dirichlet BC
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "bottom");
   model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
 
+  // Dumper settings
   model.setBaseName("phase_notch");
   model.addDumpField("stress");
   model.addDumpField("grad_u");
@@ -79,6 +75,7 @@ int main(int argc, char * argv[]) {
 
   auto start_time = clk::now();
 
+  // Main loop over the loading steps
   for (Int s = 1; s < nb_steps; ++s) {
 
     if (s >= 500) {
@@ -100,6 +97,10 @@ int main(int argc, char * argv[]) {
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
 
+    /* At each step, the two solvers are called alternately. Here a fixed number
+     * of staggered iterations is set for simplicity but a convergence based on
+     * the displacements, damage and/or energy can also be used to exit the
+     * internal loop.*/
     for (Idx i = 0; i < nb_staggered_steps; ++i) {
       coupler.solve();
     }
@@ -109,17 +110,19 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  /* Here a damage threshold is set and a mesh clustering function is called
+   * using the phase-field element filter. This allows to cluster the mesh into
+   * groups of elements separated by the mesh boundaries and "broken" elements
+   * with damage above the threshold. */
   Real damage_limit = 0.15;
   auto global_nb_clusters = mesh.createClusters(
       spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
 
-  auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
-
   model.dumpGroup("crack_0");
+  model.dumpGroup("crack_1");
 
   std::cout << std::endl;
   std::cout << "Nb clusters: " << global_nb_clusters << std::endl;
-  std::cout << "Nb fragments: " << nb_fragment << std::endl;
 
   finalize();
   return EXIT_SUCCESS;
