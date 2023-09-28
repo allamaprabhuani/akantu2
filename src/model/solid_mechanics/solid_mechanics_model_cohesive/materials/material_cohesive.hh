@@ -45,15 +45,11 @@ public:
 
 public:
   MaterialCohesive(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialCohesive() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize the material computed parameter
-  void initMaterial() override;
-
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
 
@@ -120,12 +116,15 @@ protected:
   void assembleStiffnessMatrix(GhostType ghost_type) override;
 
   /// constitutive law
-  virtual void computeTraction(ElementType el_type,
-                               GhostType ghost_type = _not_ghost) = 0;
+  virtual void computeTraction(ElementType /*el_type*/,
+                               GhostType /*ghost_type*/ = _not_ghost) {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// parallelism functions
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -152,9 +151,10 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /// get facet filter
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, Idx);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, Idx);
-  AKANTU_GET_MACRO_AUTO(FacetFilter, facet_filter);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, (*facet_filter), Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, (*facet_filter), Idx);
+  AKANTU_GET_MACRO_AUTO(FacetFilter, *facet_filter);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(FacetFilter, *facet_filter);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
 
@@ -181,33 +181,33 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// list of facets assigned to this material
-  ElementTypeMapArray<Idx> facet_filter;
+  std::shared_ptr<ElementTypeMapArray<Idx>> facet_filter;
 
   /// Link to the cohesive fem object in the model
   FEEngine & fem_cohesive;
 
 private:
   /// reversible energy by quadrature point
-  CohesiveInternalField<Real> reversible_energy;
+  CohesiveInternalField<Real> & reversible_energy;
 
   /// total energy by quadrature point
-  CohesiveInternalField<Real> total_energy;
+  CohesiveInternalField<Real> & total_energy;
 
 protected:
   /// opening in all elements and quadrature points
-  CohesiveInternalField<Real> opening;
+  CohesiveInternalField<Real> & opening;
 
   /// traction in all elements and quadrature points
-  CohesiveInternalField<Real> tractions;
+  CohesiveInternalField<Real> & tractions;
 
   /// traction due to contact
-  CohesiveInternalField<Real> contact_tractions;
+  CohesiveInternalField<Real> & contact_tractions;
 
   /// normal openings for contact tractions
-  CohesiveInternalField<Real> contact_opening;
+  CohesiveInternalField<Real> & contact_opening;
 
   /// maximum displacement
-  CohesiveInternalField<Real> delta_max;
+  CohesiveInternalField<Real> & delta_max;
 
   /// tell if the previous delta_max state is needed (in iterative schemes)
   bool use_previous_delta_max;
@@ -216,19 +216,19 @@ protected:
   bool use_previous_opening;
 
   /// damage
-  CohesiveInternalField<Real> damage;
+  CohesiveInternalField<Real> & damage;
+
+  /// critical stress
+  FacetRandomInternalField<Real> & sigma_c;
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;
 
-  /// critical stress
-  RandomInternalField<Real, FacetInternalField> sigma_c;
-
   /// critical displacement
-  Real delta_c;
+  Real delta_c{0.};
 
   /// array to temporarily store the normals
-  CohesiveInternalField<Real> normals;
+  CohesiveInternalField<Real> & normals;
 };
 
 } // namespace akantu
@@ -236,7 +236,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "cohesive_internal_field_tmpl.hh"
+#include "cohesive_internal_field_tmpl.hh" // NOLINT(unused-includes)
 #include "material_cohesive_inline_impl.hh"
 
 #endif /* AKANTU_MATERIAL_COHESIVE_HH_ */

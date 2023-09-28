@@ -63,7 +63,7 @@ public:
   using Shape = S<kind>;
 
   FEEngineTemplate(Mesh & mesh, Int spatial_dimension = _all_dimensions,
-                   const ID & id = "fem");
+                   const ID & id = "fem", bool do_not_precompute = false);
 
   ~FEEngineTemplate() override;
 
@@ -86,14 +86,15 @@ public:
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate a scalar value on all elements of type "type"
-  Real
+  [[nodiscard]] Real
   integrate(const Array<Real> & f, ElementType type,
             GhostType ghost_type = _not_ghost,
             const Array<Idx> & filter_elements = empty_filter) const override;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Ref<const VectorXr> f, ElementType type, Int index,
-                 GhostType ghost_type = _not_ghost) const override;
+  [[nodiscard]] Real
+  integrate(const Ref<const VectorXr> f, ElementType type, Int index,
+            GhostType ghost_type = _not_ghost) const override;
 
   /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
@@ -129,21 +130,22 @@ public:
                    const Element & element) const override;
 
   /// get the number of integration points
-  Int getNbIntegrationPoints(ElementType type,
-                             GhostType ghost_type = _not_ghost) const override;
+  [[nodiscard]] Int
+  getNbIntegrationPoints(ElementType type,
+                         GhostType ghost_type = _not_ghost) const override;
 
   /// get shapes precomputed
-  const Array<Real> & getShapes(ElementType type,
-                                GhostType ghost_type = _not_ghost,
-                                Int id = 0) const override;
+  [[nodiscard]] const Array<Real> & getShapes(ElementType type,
+                                              GhostType ghost_type = _not_ghost,
+                                              Int id = 0) const override;
 
   /// get the derivatives of shapes
-  const Array<Real> & getShapesDerivatives(ElementType type,
-                                           GhostType ghost_type = _not_ghost,
-                                           Int id = 0) const override;
+  [[nodiscard]] const Array<Real> &
+  getShapesDerivatives(ElementType type, GhostType ghost_type = _not_ghost,
+                       Int id = 0) const override;
 
   /// get integration points
-  inline const Matrix<Real> &
+  [[nodiscard]] inline const Matrix<Real> &
   getIntegrationPoints(ElementType type,
                        GhostType ghost_type = _not_ghost) const override;
 

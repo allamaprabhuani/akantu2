@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -34,14 +33,11 @@ class MaterialDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialDamage(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialDamage() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
@@ -95,14 +91,14 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage internal variable
-  InternalField<Real> damage;
+  InternalField<Real> & damage;
 
   /// dissipated energy
-  InternalField<Real> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega
   /// @f$ the dissipated energy
-  InternalField<Real> int_sigma;
+  InternalField<Real> & int_sigma;
 };
 
 } // namespace akantu

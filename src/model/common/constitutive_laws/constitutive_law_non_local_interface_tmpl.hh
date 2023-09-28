@@ -19,39 +19,41 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material.hh"
-#include "material_non_local.hh"
+#include "constitutive_law_non_local_interface.hh"
 #include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int dim, class LocalParent>
-MaterialNonLocal<dim, LocalParent>::MaterialNonLocal(
-    SolidMechanicsModel & model, const ID & id)
-    : LocalParent(model, id) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                        ConstitutiveLawParent>::
+    ConstitutiveLawNonLocal(
+        typename ConstitutiveLawParent::ConstitutiveLawsHandler & handler,
+        const ID & id)
+    : ConstitutiveLawParent(handler, id) {}
 
 /* -------------------------------------------------------------------------- */
-template <Int dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
-    GhostType ghost_type,
-    const ElementTypeMapReal & quadrature_points_coordinates) {
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::
+    insertIntegrationPointsInNeighborhoods(
+        GhostType ghost_type,
+        const ElementTypeMapReal & quadrature_points_coordinates) {
 
   IntegrationPoint q;
   q.ghost_type = ghost_type;
 
-  auto & neighborhood = this->model.getNonLocalManager().getNeighborhood(
+  auto & neighborhood = this->getModel().getNonLocalManager().getNeighborhood(
       this->getNeighborhoodName());
 
   for (auto && type :
-       this->element_filter.elementTypes(dim, ghost_type, _ek_regular)) {
+       this->getElementFilter().elementTypes(dim, ghost_type, _ek_regular)) {
     q.type = type;
-    const auto & elem_filter = this->element_filter(type, ghost_type);
+    const auto & elem_filter = this->getElementFilter(type, ghost_type);
     auto nb_element = elem_filter.size();
 
     if (nb_element == 0) {
@@ -77,14 +79,17 @@ void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
-    ElementTypeMapReal & non_local_flattened, const ID & field_id,
-    GhostType ghost_type, ElementKind kind) {
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::
+    updateNonLocalInternals(ElementTypeMapReal & non_local_flattened,
+                            const ID & field_id, GhostType ghost_type,
+                            ElementKind kind) {
 
   /// loop over all types in the material
   for (auto && el_type :
-       this->element_filter.elementTypes(dim, ghost_type, kind)) {
+       this->getElementFilter().elementTypes(dim, ghost_type, kind)) {
     auto & internal =
         this->template getInternal<Real>(field_id)(el_type, ghost_type);
 
@@ -95,7 +100,7 @@ void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
     auto internal_flat_it = internal_flat.begin(nb_component);
 
     /// loop all elements for the given type
-    const auto & filter = this->element_filter(el_type, ghost_type);
+    const auto & filter = this->getElementFilter(el_type, ghost_type);
     Int nb_quads =
         this->getFEEngine().getNbIntegrationPoints(el_type, ghost_type);
     for (auto & elem : filter) {
@@ -108,10 +113,12 @@ void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::registerNeighborhood() {
+template <Int dim, class ConstitutiveLawNonLocalInterface,
+          class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface,
+                             ConstitutiveLawParent>::registerNeighborhood() {
   ID name = this->getNeighborhoodName();
-  this->model.getNonLocalManager().registerNeighborhood(name, name);
+  this->handler.getNonLocalManager().registerNeighborhood(name, name);
 }
 
 } // namespace akantu

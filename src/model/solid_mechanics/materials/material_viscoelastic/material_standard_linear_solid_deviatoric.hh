@@ -62,15 +62,11 @@ class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<dim> {
 public:
   MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                         const ID & id = "");
-  ~MaterialStandardLinearSolidDeviatoric() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize the material computed parameter
-  void initMaterial() override;
-
   /// update the internal parameters (for modifiable parameters)
   void updateInternalParameters() override;
 
@@ -101,30 +97,32 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// give the dissipated energy for the time step
-  Real getDissipatedEnergy() const;
-  Real getDissipatedEnergy(const Element & element) const;
+  [[nodiscard]] Real getDissipatedEnergy() const;
+  [[nodiscard]] Real getDissipatedEnergy(const Element & element) const;
 
   /// get the energy using an energy type string for the time step
-  Real getEnergy(const std::string & type) override;
-  Real getEnergy(const std::string & energy_id,
-                 const Element & element) override;
+  [[nodiscard]] Real getEnergy(const std::string & type) override;
+  [[nodiscard]] Real getEnergy(const std::string & energy_id,
+                               const Element & element) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// viscosity, viscous elastic modulus
-  Real eta, Ev, E_inf;
+  Real eta{0.};
+  Real Ev{0.};
+  Real E_inf{0.};
 
   Vector<Real> etas;
 
   /// history of deviatoric stress
-  InternalField<Real> stress_dev;
+  InternalField<Real> & stress_dev;
 
   /// Internal variable: history integral
-  InternalField<Real> history_integral;
+  InternalField<Real> & history_integral;
 
   /// Dissipated energy
-  InternalField<Real> dissipated_energy;
+  InternalField<Real> & dissipated_energy;
 };
 
 } // namespace akantu

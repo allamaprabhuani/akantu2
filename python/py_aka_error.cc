@@ -34,6 +34,19 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 void register_error(py::module & mod) {
+  py::enum_<DebugLevel>(mod, "DebugLevel")
+      .value("dblError", dblError)
+      .value("dblException", dblException)
+      .value("dblCritical", dblCritical)
+      .value("dblMajor", dblMajor)
+      .value("dblWarning", dblWarning)
+      .value("dblInfo", dblInfo)
+      .value("dblTrace", dblTrace)
+      .value("dblAccessory", dblAccessory)
+      .value("dblDebug", dblDebug)
+      .value("dblDump", dblDump)
+      .value("dblTest", dblTest)
+      .export_values();
 
   py::module mod_debug = mod.def_submodule("debug");
 
@@ -64,20 +77,6 @@ void register_error(py::module & mod) {
   mod_debug.def("getDebugLevel", &debug::getDebugLevel);
   mod_debug.def("printBacktrace",
                 [](bool flag) { debug::debugger.printBacktrace(flag); });
-
-  py::enum_<DebugLevel>(mod, "DebugLevel")
-      .value("dblError", dblError)
-      .value("dblException", dblException)
-      .value("dblCritical", dblCritical)
-      .value("dblMajor", dblMajor)
-      .value("dblWarning", dblWarning)
-      .value("dblInfo", dblInfo)
-      .value("dblTrace", dblTrace)
-      .value("dblAccessory", dblAccessory)
-      .value("dblDebug", dblDebug)
-      .value("dblDump", dblDump)
-      .value("dblTest", dblTest)
-      .export_values();
 }
 
 } // namespace akantu

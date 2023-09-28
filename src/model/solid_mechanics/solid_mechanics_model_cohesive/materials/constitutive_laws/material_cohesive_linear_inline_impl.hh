@@ -19,8 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "material_cohesive_linear.hh"
-#include "aka_static_if.hh"
+#include "material_cohesive_linear.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -162,7 +161,6 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
    * of penetration, in the array "opening" there are only the
    * tangential components.
    */
-
   auto && delta_c = args["delta_c"_n];
   auto && delta_max = args["delta_max"_n];
 
@@ -218,6 +216,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
     delta = delta_c / 1000.;
   }
 
+  Real sigma_c = this->sigma_c;
   if (delta >= delta_max) {
     if (delta <= delta_c) {
       derivative = -sigma_c / (delta * delta);

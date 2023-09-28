@@ -27,34 +27,49 @@ namespace akantu {
 
 FEEngineElementTypeMapArrayInitializer::FEEngineElementTypeMapArrayInitializer(
     const FEEngine & fe_engine, Int nb_component, Int spatial_dimension,
-    GhostType ghost_type, ElementKind element_kind)
-    : MeshElementTypeMapArrayInitializer(
-          fe_engine.getMesh(), nb_component,
-          spatial_dimension == -2 ? fe_engine.getMesh().getSpatialDimension()
-                                  : spatial_dimension,
-          ghost_type, element_kind, true, false),
-      fe_engine(fe_engine) {}
+    GhostType ghost_type, ElementKind element_kind,
+    const ElementTypeMapArray<Idx> * filter)
+    : FEEngineElementTypeMapArrayInitializer(
+          fe_engine,
+          [nb_component](auto && /*type*/, auto && /*ghost_type*/) {
+            return nb_component;
+          },
+          spatial_dimension, ghost_type, element_kind, filter) {}
 
 FEEngineElementTypeMapArrayInitializer::FEEngineElementTypeMapArrayInitializer(
     const FEEngine & fe_engine,
     const ElementTypeMapArrayInitializer::CompFunc & nb_component,
-    Int spatial_dimension, GhostType ghost_type, ElementKind element_kind)
+    Int /*spatial_dimension*/, GhostType ghost_type, ElementKind element_kind,
+    const ElementTypeMapArray<Idx> * filter)
     : MeshElementTypeMapArrayInitializer(
-          fe_engine.getMesh(), nb_component,
-          spatial_dimension == -2 ? fe_engine.getMesh().getSpatialDimension()
-                                  : spatial_dimension,
-          ghost_type, element_kind, true, false),
+          fe_engine.getMesh(), nb_component, fe_engine.getElementDimension(),
+          ghost_type, element_kind, true, false, filter),
       fe_engine(fe_engine) {}
 
 Int FEEngineElementTypeMapArrayInitializer::size(ElementType type) const {
-  return MeshElementTypeMapArrayInitializer::size(type) *
-         fe_engine.getNbIntegrationPoints(type, this->ghost_type);
+  auto size = MeshElementTypeMapArrayInitializer::size(type);
+  if (size != 0) {
+    return size * fe_engine.getNbIntegrationPoints(type, this->ghost_type);
+  }
+
+  return 0;
 }
 
-FEEngineElementTypeMapArrayInitializer::ElementTypesIteratorHelper
-FEEngineElementTypeMapArrayInitializer::elementTypes() const {
-  return this->fe_engine.elementTypes(spatial_dimension, ghost_type,
-                                      element_kind);
+auto FEEngineElementTypeMapArrayInitializer::elementTypes() const
+    -> std::vector<ElementType> {
+  std::vector<ElementType> types;
+  if (this->filter != nullptr) {
+    for (auto type : this->filter->elementTypes(spatial_dimension, ghost_type,
+                                                element_kind)) {
+      types.emplace_back(type);
+    }
+    return types;
+  }
+  for (auto type : this->fe_engine.elementTypes(spatial_dimension, ghost_type,
+                                                element_kind)) {
+    types.emplace_back(type);
+  }
+  return types;
 }
 
 } // namespace akantu

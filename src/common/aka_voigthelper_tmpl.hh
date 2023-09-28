@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_voigthelper.hh"
+#include "aka_voigthelper.hh" // NOLINT(pp_including_mainfile_in_preamble)
 /* -------------------------------------------------------------------------- */
 
 // #ifndef __AKANTU_AKA_VOIGTHELPER_TMPL_HH__
@@ -27,15 +27,16 @@
 
 namespace akantu {
 
-template <Int dim> constexpr Int VoigtHelper<dim>::size;
+// template <Int dim> constexpr Int VoigtHelper<dim>::size;
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class M, class V>
-constexpr inline void VoigtHelper<dim>::matrixToVoigt(M && matrix, V && vector) {
-  for (Int I = 0; I < size; ++I) {
-    auto i = vec[I][0];
-    auto j = vec[I][1];
+constexpr inline void VoigtHelper<dim>::matrixToVoigt(
+    M && matrix,   // NOLINT(cppcoreguidelines-missing-std-forward)
+    V && vector) { // NOLINT(cppcoreguidelines-missing-std-forward)
+  for (Int I = 0; I < data::size; ++I) {
+    auto && [i, j] = data::vec[I];
     vector(I) = matrix(i, j);
   }
 }
@@ -44,7 +45,7 @@ constexpr inline void VoigtHelper<dim>::matrixToVoigt(M && matrix, V && vector) 
 template <Int dim>
 template <class M>
 constexpr inline decltype(auto) VoigtHelper<dim>::matrixToVoigt(M && matrix) {
-  Vector<Real, size> vector;
+  Vector<Real, data::size> vector;
   matrixToVoigt(std::forward<M>(matrix), vector);
   return vector;
 }
@@ -52,20 +53,21 @@ constexpr inline decltype(auto) VoigtHelper<dim>::matrixToVoigt(M && matrix) {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class M, class V>
-constexpr inline void VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix,
-                                                       V && vector) {
-  for (Int I = 0; I < size; ++I) {
-    auto i = vec[I][0];
-    auto j = vec[I][1];
-    vector(I) = factors[I] * matrix(i, j);
+constexpr inline void VoigtHelper<dim>::matrixToVoigtWithFactors(
+    M && matrix,   // NOLINT(cppcoreguidelines-missing-std-forward)
+    V && vector) { // NOLINT(cppcoreguidelines-missing-std-forward)
+  for (Int I = 0; I < data::size; ++I) {
+    auto && [i, j] = data::vec[I];
+    vector(I) = data::factors[I] * matrix(i, j);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class M>
-constexpr inline decltype(auto) VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix) {
-  Vector<Real, size> vector;
+constexpr inline decltype(auto)
+VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix) {
+  Vector<Real, data::size> vector;
   matrixToVoigtWithFactors(std::forward<M>(matrix), vector);
   return vector;
 }
@@ -73,10 +75,11 @@ constexpr inline decltype(auto) VoigtHelper<dim>::matrixToVoigtWithFactors(M && 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class M, class V>
-constexpr inline void VoigtHelper<dim>::voigtToMatrix(V && vector, M && matrix) {
-  for (Int I = 0; I < size; ++I) {
-    auto i = vec[I][0];
-    auto j = vec[I][1];
+constexpr inline void VoigtHelper<dim>::voigtToMatrix(
+    V && vector,   // NOLINT(cppcoreguidelines-missing-std-forward)
+    M && matrix) { // NOLINT(cppcoreguidelines-missing-std-forward)
+  for (Int I = 0; I < data::size; ++I) {
+    auto && [i, j] = data::vec[I];
     matrix(i, j) = matrix(j, i) = vector(I);
   }
 }
@@ -163,11 +166,11 @@ VoigtHelper<dim>::transferBMatrixToBNL(const Eigen::MatrixBase<D1> & B,
 template <>
 template <typename D1, typename D2, typename D3>
 constexpr inline void VoigtHelper<1>::transferBMatrixToBL2(
-    const Eigen::MatrixBase<D1> & B, const Eigen::MatrixBase<D2> & grad_u,
+    const Eigen::MatrixBase<D1> & dNdX, const Eigen::MatrixBase<D2> & grad_u,
     Eigen::MatrixBase<D3> & Bvoigt, Int nb_nodes_per_element) {
   Bvoigt.zero();
   for (Int j = 0; j < nb_nodes_per_element; ++j) {
-    Bvoigt(0, j) = grad_u(0, 0) * B(0, j);
+    Bvoigt(0, j) = grad_u(0, 0) * dNdX(0, j);
   }
 }
 
@@ -207,7 +210,7 @@ constexpr inline void VoigtHelper<3>::transferBMatrixToBL2(
 template <>
 template <typename D1, typename D2, typename D3>
 constexpr inline void VoigtHelper<2>::transferBMatrixToBL2(
-    const Eigen::MatrixBase<D1> & B, const Eigen::MatrixBase<D2> & grad_u,
+    const Eigen::MatrixBase<D1> & dNdX, const Eigen::MatrixBase<D2> & grad_u,
     Eigen::MatrixBase<D3> & Bvoigt, Int nb_nodes_per_element) {
 
   Bvoigt.zero();
@@ -215,7 +218,7 @@ constexpr inline void VoigtHelper<2>::transferBMatrixToBL2(
   for (Int i = 0; i < 2; ++i) {
     for (Int j = 0; j < nb_nodes_per_element; ++j) {
       for (Int k = 0; k < 2; ++k) {
-        Bvoigt(i, j * 2 + k) = grad_u(k, i) * B(i, j);
+        Bvoigt(i, j * 2 + k) = grad_u(k, i) * dNdX(i, j);
       }
     }
   }
@@ -225,7 +228,7 @@ constexpr inline void VoigtHelper<2>::transferBMatrixToBL2(
       for (Int m = 0; m < 2; ++m) {
         auto index1 = m;
         auto index2 = (2 - 1) - m;
-        Bvoigt(2, j * 2 + k) += grad_u(k, index1) * B(index2, j);
+        Bvoigt(2, j * 2 + k) += grad_u(k, index1) * dNdX(index2, j);
       }
     }
   }
@@ -233,4 +236,4 @@ constexpr inline void VoigtHelper<2>::transferBMatrixToBL2(
 
 } // namespace akantu
 
-//#endif /* __AKANTU_AKA_VOIGTHELPER_TMPL_HH__ */
+// #endif /* __AKANTU_AKA_VOIGTHELPER_TMPL_HH__ */

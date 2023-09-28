@@ -38,9 +38,6 @@ NeighborhoodBase::NeighborhoodBase(Model & model,
 }
 
 /* -------------------------------------------------------------------------- */
-NeighborhoodBase::~NeighborhoodBase() = default;
-
-/* -------------------------------------------------------------------------- */
 void NeighborhoodBase::initNeighborhood() {
   AKANTU_DEBUG_INFO("Creating the grid");
   this->createGrid();
@@ -77,9 +74,7 @@ void NeighborhoodBase::updatePairList() {
       if (q1.ghost_type == _ghost) {
         break;
       }
-      auto coords_type_1_it = this->quad_coordinates(q1.type, q1.ghost_type)
-                                  .begin(spatial_dimension);
-      auto q1_coords = Vector<Real>(coords_type_1_it[q1.global_num]);
+      auto q1_coords = this->quad_coordinates.get(q1);
 
       AKANTU_DEBUG_INFO("Current quadrature point in this cell: " << q1);
       auto cell_id = spatial_grid->getCellID(q1_coords);
@@ -88,9 +83,7 @@ void NeighborhoodBase::updatePairList() {
       for (auto && neighbor_cell : cell_id.neighbors()) {
         // loop over the quadrature point in the current neighboring cell
         for (auto && q2 : spatial_grid->getCell(neighbor_cell)) {
-          auto coords_type_2_it = this->quad_coordinates(q2.type, q2.ghost_type)
-                                      .begin(spatial_dimension);
-          auto q2_coords = Vector<Real>(coords_type_2_it[q2.global_num]);
+          auto q2_coords = this->quad_coordinates.get(q2);
 
           Real distance = q1_coords.distance(q2_coords);
 
@@ -98,7 +91,7 @@ void NeighborhoodBase::updatePairList() {
               (q2.ghost_type == _ghost ||
                (q2.ghost_type == _not_ghost &&
                 q1.global_num <= q2.global_num))) { // storing only half lists
-            pair_list[q2.ghost_type].push_back(std::make_pair(q1, q2));
+            pair_list[q2.ghost_type].emplace_back(q1, q2);
           }
         }
       }
@@ -120,10 +113,8 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   pout.open(sstr.str().c_str());
 
   for (auto && ghost_type : ghost_types) {
-    for (const auto & pair : pair_list[ghost_type]) {
-      const auto & q1 = pair.first;
-      const auto & q2 = pair.second;
-      pout << q1 << " " << q2 << " " << std::endl;
+    for (const auto & [q1, q2] : pair_list.at(ghost_type)) {
+      pout << q1 << " " << q2 << " \n";
     }
   }
 
@@ -142,24 +133,16 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   std::map<IntegrationPoint, Idx> quad_to_nodes;
   Idx node = 0;
 
-  IntegrationPoint q1;
-  IntegrationPoint q2;
-  bool inserted;
   for (auto && ghost_type : ghost_types) {
-    for (const auto & pair : pair_list[ghost_type]) {
-      std::tie(q1, q2) = pair;
-
+    for (auto && [q1, q2] : pair_list.at(ghost_type)) {
       auto add_node = [&](auto && q) {
-        std::tie(std::ignore, inserted) =
-            quad_to_nodes.insert(std::make_pair(q, node));
+        auto && [it, inserted] = quad_to_nodes.insert(std::make_pair(q, node));
 
         if (not inserted) {
           return;
         }
 
-        auto coords_it = this->quad_coordinates(q.type, q.ghost_type)
-                             .begin(spatial_dimension);
-        auto && coords = Vector<Real>(coords_it[q.global_num]);
+        auto && coords = this->quad_coordinates.get(q);
         nodes.push_back(coords);
         ++node;
       };
@@ -170,11 +153,9 @@ void NeighborhoodBase::savePairs(const std::string & filename) const {
   }
 
   for (auto && ghost_type : ghost_types) {
-    for (const auto & pair : pair_list[ghost_type]) {
-      std::tie(q1, q2) = pair;
-
-      Idx node1 = quad_to_nodes[q1];
-      Idx node2 = quad_to_nodes[q2];
+    for (const auto & [q1, q2] : pair_list.at(ghost_type)) {
+      auto && node1 = quad_to_nodes[q1];
+      auto && node2 = quad_to_nodes[q2];
 
       connectivity.push_back(Vector<Idx>{node1, node2});
       tag.push_back(node1 + 1);
@@ -193,7 +174,6 @@ void NeighborhoodBase::saveNeighborCoords(const std::string & filename) const {
   // this function is not optimized and only used for tests on small meshes
   // @todo maybe optimize this function for better performance?
   IntegrationPoint q2;
-
   std::stringstream sstr;
 
   const Communicator & comm = model.getMesh().getCommunicator();
@@ -206,16 +186,14 @@ void NeighborhoodBase::saveNeighborCoords(const std::string & filename) const {
   /// loop over all the quads and write the position of their neighbors
   for (auto && cell_id : *spatial_grid) {
     for (auto && q1 : spatial_grid->getCell(cell_id)) {
-      auto coords_type_1_it = this->quad_coordinates(q1.type, q1.ghost_type)
-                                  .begin(spatial_dimension);
-      auto && q1_coords = Vector<Real>(coords_type_1_it[q1.global_num]);
+      auto && q1_coords = this->quad_coordinates.get(q1);
 
-      pout << "#neighbors for quad " << q1.global_num << std::endl;
-      pout << q1_coords << std::endl;
+      pout << "#neighbors for quad " << q1.global_num << "\n";
+      pout << q1_coords << "\n";
 
       for (auto && ghost_type2 : ghost_types) {
-        for (auto && pair : pair_list[ghost_type2]) {
-          if (q1 == pair.first && pair.second != q1) {
+        for (auto && pair : pair_list.at(ghost_type2)) {
+          if (q1 == pair.first and pair.second != q1) {
             q2 = pair.second;
           } else if (q1 == pair.second && pair.first != q1) {
             q2 = pair.first;
@@ -223,10 +201,8 @@ void NeighborhoodBase::saveNeighborCoords(const std::string & filename) const {
             continue;
           }
 
-          auto coords_type_2_it = this->quad_coordinates(q2.type, q2.ghost_type)
-                                      .begin(spatial_dimension);
-          auto && q2_coords = Vector<Real>(coords_type_2_it[q2.global_num]);
-          pout << q2_coords << std::endl;
+          auto && q2_coords = this->quad_coordinates.get(q2);
+          pout << q2_coords << "\n";
         }
       }
     }
@@ -260,13 +236,12 @@ void NeighborhoodBase::onElementsRemoved(
 
   // Change the pairs in new global numbering
   for (auto ghost_type : ghost_types) {
-    auto & pair_list = this->pair_list.at(ghost_type);
-    for (auto && pair : pair_list) {
-      if (pair.first.ghost_type == _ghost) {
-        cleanPoint(pair.first);
+    for (auto && [q1, q2] : this->pair_list.at(ghost_type)) {
+      if (q1.ghost_type == _ghost) {
+        cleanPoint(q1);
       }
-      if (pair.second.ghost_type == _ghost) {
-        cleanPoint(pair.second);
+      if (q2.ghost_type == _ghost) {
+        cleanPoint(q2);
       }
     }
   }

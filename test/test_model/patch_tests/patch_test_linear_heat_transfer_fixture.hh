@@ -44,19 +44,25 @@ public:
                  const std::string & material_file) override {
     TestPatchTestLinear<type, HeatTransferModel>::initModel(method,
                                                             material_file);
-    if (method != _static)
+    if (method != _static) {
       this->model->setTimeStep(0.5 * this->model->getStableTimeStep());
+    }
   }
 
   void checkAll() {
     auto & temperature = this->model->getTemperature();
-    Matrix<Real> C = this->model->get("conductivity");
+    auto && cl = this->model->getConstitutiveLaw(0);
+    Matrix<Real> C = cl.get("conductivity");
     this->checkDOFs(temperature);
-    this->checkGradient(this->model->getTemperatureGradient(this->type),
-                        temperature);
+
+    auto && grad_T = cl.template getArray<Real>("∇u", this->type);
+    this->checkGradient(grad_T, temperature);
+
+    auto && K_grad_T = cl.template getArray<Real>("D∇u", this->type);
+
     this->checkResults(
         [&](const Matrix<Real> & grad_T) { return C * grad_T.transpose(); },
-        this->model->getKgradT(this->type), temperature);
+        K_grad_T, temperature);
   }
 };
 

@@ -20,10 +20,15 @@
 #===============================================================================
 
 
-package_declare(heat_transfer DEFAULT ON
-  DESCRIPTION "Use Heat Transfer package of Akantu")
+package_declare(diffusion DEFAULT ON
+  DESCRIPTION "Activate Diffusion model of Akantu")
 
-package_declare_sources(heat_transfer
-  model/heat_transfer/heat_transfer_model.cc
-  model/heat_transfer/heat_transfer_model.hh
+package_declare_sources(diffusion
+  model/diffusion_model/heat_transfer_model.hh
+  model/diffusion_model/diffusion_model.cc
+  model/diffusion_model/diffusion_model.hh
+  model/diffusion_model/diffusion_law.cc
+  model/diffusion_model/diffusion_law.hh
+  model/diffusion_model/heat_diffusion.cc
+  model/diffusion_model/heat_diffusion.hh
   )

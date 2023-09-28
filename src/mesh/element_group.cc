@@ -22,7 +22,6 @@
 #include "element_group.hh"
 #include "aka_csr.hh"
 #include "dumpable.hh"
-#include "dumpable_inline_impl.hh"
 #include "group_manager.hh"
 #include "group_manager_inline_impl.hh"
 #include "mesh.hh"
@@ -54,9 +53,6 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-ElementGroup::ElementGroup(const ElementGroup & /*other*/) = default;
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::clear() { elements.free(); }
@@ -108,12 +104,14 @@ void ElementGroup::printself(std::ostream & stream, int indent) const {
     ;
   }
 
-  stream << space << "ElementGroup [" << std::endl;
-  stream << space << " + name: " << name << std::endl;
-  stream << space << " + dimension: " << dimension << std::endl;
+  stream << space << "ElementGroup ["
+         << "\n";
+  stream << space << " + name: " << name << "\n";
+  stream << space << " + dimension: " << dimension << "\n";
   elements.printself(stream, indent + 1);
   node_group.printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
+  stream << space << "]"
+         << "\n";
 }
 
 /* -------------------------------------------------------------------------- */

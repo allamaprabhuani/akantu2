@@ -24,28 +24,25 @@
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 TestMaterial<dim>::TestMaterial(SolidMechanicsModel & model, const ID & id)
-    : Parent(model, id), grad_u_nl("grad_u non local", *this) {
+    : Parent(model, id),
+      grad_u_nl(this->registerInternal("grad_u non local", dim * dim)) {
   this->is_non_local = true;
-  this->grad_u_nl.initialize(dim * dim);
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void TestMaterial<dim>::registerNonLocalVariables() {
-  this->model.getNonLocalManager().registerNonLocalVariable(
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
       this->gradu.getName(), grad_u_nl.getName(), dim * dim);
 
-  this->model.getNonLocalManager()
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->getNeighborhoodName())
       .registerNonLocalVariable(grad_u_nl.getName());
 }
 
 /* -------------------------------------------------------------------------- */
 // Instantiate the material for the 3 dimensions
-template class TestMaterial<1>;
-template class TestMaterial<2>;
-template class TestMaterial<3>;
-
-static bool material_is_allocated_test_material =
+const bool material_is_allocated_test_material [[maybe_unused]] =
     instantiateMaterial<TestMaterial>("test_material");
 
 /* -------------------------------------------------------------------------- */

@@ -31,21 +31,18 @@ void MaterialLinearIsotropicHardening<dim>::computeStress(
   AKANTU_DEBUG_IN();
 
   // NOLINTNEXTLINE(bugprone-parent-virtual-call)
-  MaterialThermal<dim>::computeStress(el_type, ghost_type);
+  Parent::computeStress(el_type, ghost_type);
 
   if (this->finite_deformation) { // Finite deformation
-    for (auto && data :
+    for (auto && [args, green_strain] :
          zip(Parent::getArguments(el_type, ghost_type),
-             make_view<dim, dim>(this->green_strain(el_type, ghost_type)))) {
-      auto && args = std::get<0>(data);
-      auto & green_strain = std::get<1>(data);
+             make_view<dim, dim>((*this->green_strain)(el_type, ghost_type)))) {
       auto & grad_u = args["grad_u"_n];
       auto & previous_grad_u = args["previous_grad_u"_n];
 
       Material::gradUToE<dim>(grad_u, green_strain);
-      Matrix<Real, dim, dim> previous_green_strain =
-          Material::gradUToE<dim>(previous_grad_u);
-      Matrix<Real, dim, dim> F_tensor = Material::gradUToF<dim>(grad_u);
+      auto previous_green_strain = Material::gradUToE<dim>(previous_grad_u);
+      auto F_tensor = Material::gradUToF<dim>(grad_u);
 
       computeStressOnQuad(tuple::append(
           tuple::replace(tuple::replace(args, "grad_u"_n = green_strain),
@@ -83,8 +80,8 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
 template class MaterialLinearIsotropicHardening<1>;
 template class MaterialLinearIsotropicHardening<2>;
 template class MaterialLinearIsotropicHardening<3>;
-static bool material_is_allocated_plastic_linear_isotropic_hardening =
-    instantiateMaterial<MaterialLinearIsotropicHardening>(
+const bool material_is_allocated_plastic_linear_isotropic_hardening
+    [[maybe_unused]] = instantiateMaterial<MaterialLinearIsotropicHardening>(
         "plastic_linear_isotropic_hardening");
 
 } // namespace akantu

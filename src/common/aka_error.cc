@@ -55,14 +55,14 @@ namespace akantu {
 namespace debug {
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char * symbol) {
-    int status;
+    int status{};
     std::string result;
-    char * demangled_name;
+    char * demangled_name{nullptr};
 
     if ((demangled_name = abi::__cxa_demangle(symbol, nullptr, nullptr,
                                               &status)) != nullptr) {
       result = demangled_name;
-      free(demangled_name);
+      std::free(demangled_name); // NOLINT
     } else {
       result = symbol;
     }
@@ -71,6 +71,10 @@ namespace debug {
   }
 
 /* ------------------------------------------------------------------------ */
+// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays,
+// cppcoreguidelines-pro-bounds-pointer-arithmetic,
+// performance-inefficient-string-concatenation,
+// cppcoreguidelines-owning-memory)
 #if (defined(READLINK_COMMAND) || defined(ADDR2LINK_COMMAND)) &&               \
     (!defined(_WIN32))
   std::string exec(const std::string & cmd) {
@@ -115,7 +119,7 @@ namespace debug {
 
       size_t first = line.find('-');
       std::stringstream sstra(line.substr(0, first));
-      size_t addr;
+      size_t addr{};
       sstra >> std::hex >> addr;
 
       std::string lib;
@@ -138,19 +142,19 @@ namespace debug {
     /// \todo for windows this part could be coded using CaptureStackBackTrace
     /// and SymFromAddr
     const size_t max_depth = 100;
-    size_t stack_depth;
+    size_t stack_depth{};
     void * stack_addrs[max_depth];
-    char ** stack_strings;
+    char ** stack_strings{nullptr};
 
-    size_t i;
+    size_t i{};
     stack_depth = backtrace(stack_addrs, max_depth);
-    stack_strings = backtrace_symbols(stack_addrs, stack_depth);
+    stack_strings = backtrace_symbols(stack_addrs, int(stack_depth));
 
     /// -1 to remove the call to the printBacktrace function
     for (i = 1; i < stack_depth; i++) {
       std::string bt_line(stack_strings[i]);
-      size_t first;
-      size_t second;
+      size_t first{};
+      size_t second{};
 
       if ((first = bt_line.find('(')) != std::string::npos &&
           (second = bt_line.find('+')) != std::string::npos) {
@@ -167,7 +171,7 @@ namespace debug {
         size_t s = bt_line.find(']');
         std::string address = bt_line.substr(f + 1, s - f - 1);
         std::stringstream sstra(address);
-        size_t addr;
+        size_t addr{};
         sstra >> std::hex >> addr;
         std::string trace = location + " [" + call + "]";
 #if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
@@ -199,15 +203,20 @@ namespace debug {
 #endif
     return backtrace_lines;
   }
+  // NOLINTEND(cppcoreguidelines-avoid-c-arrays,
+  // cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  // performance-inefficient-string-concatenation,
+  // cppcoreguidelines-owning-memory)
   /* ------------------------------------------------------------------------ */
   void printBacktrace(const std::vector<std::string> & backtrace) {
     auto w = size_t(std::floor(std::log10(double(backtrace.size()))) + 1);
     std::cerr << "BACKTRACE :  " << backtrace.size() << " stack frames.\n";
     for (auto && data : enumerate(backtrace)) {
-      std::cerr << "  [" << std::setw(w) << (std::get<0>(data) + 1) << "] "
+      std::cerr << "  [" << std::setw(int(w)) << (std::get<0>(data) + 1) << "] "
                 << std::get<1>(data) << "\n";
     }
-    std::cerr << "END BACKTRACE" << std::endl;
+    std::cerr << "END BACKTRACE"
+              << "\n";
   }
 
   /* ------------------------------------------------------------------------ */
@@ -223,23 +232,26 @@ namespace debug {
           printBacktrace();
           std::cerr << AKANTU_LOCATION
                     << "!! Execution terminated for unknown reasons !!"
-                    << std::endl;
+                    << "\n";
         }
       } catch (Exception & e) {
         printBacktrace(e.backtrace());
         std::cerr << "!! Uncaught akantu::Exception of type " << name
-                  << " !!\nwhat(): \"" << e.what() << "\"" << std::endl;
+                  << " !!\nwhat(): \"" << e.what() << "\""
+                  << "\n";
       } catch (std::exception & e) {
         std::cerr << "!! Uncaught exception of type " << name
-                  << " !!\nwhat(): \"" << e.what() << "\"" << std::endl;
+                  << " !!\nwhat(): \"" << e.what() << "\""
+                  << "\n";
       } catch (...) {
         std::cerr << "!! Something strange of type \"" << name
-                  << "\" was thrown.... !!" << std::endl;
+                  << "\" was thrown.... !!"
+                  << "\n";
       }
 
       if (debugger.printBacktrace()) {
         std::cerr << "Random generator seed: " << RandomGenerator<Int>::seed()
-                  << std::endl;
+                  << "\n";
         printBacktrace();
       }
     }
@@ -247,13 +259,7 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   /* ------------------------------------------------------------------------ */
-  Debugger::Debugger() noexcept {
-    cout = &std::cerr;
-    level = dblWarning;
-    parallel_context = "";
-    file_open = false;
-    print_backtrace = false;
-
+  Debugger::Debugger() noexcept : cout(&std::cerr) {
     // initSignalHandler();
     std::set_terminate(terminate_handler);
   }
@@ -307,7 +313,7 @@ namespace debug {
               .count();
 
       *(cout) << parallel_context << "{" << (size_t)timestamp << "} " << prefix
-              << " " << info << std::endl;
+              << " " << info << "\n";
     }
   }
 
@@ -326,6 +332,7 @@ namespace debug {
       delete cout;
     }
 
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     auto * fileout = new std::ofstream(filename.c_str());
     file_open = true;
     cout = fileout;

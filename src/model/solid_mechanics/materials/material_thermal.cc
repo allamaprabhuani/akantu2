@@ -27,25 +27,12 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      const ID & id)
-    : Material(model, id), delta_T("delta_T", *this),
-      sigma_th("sigma_th", *this) {
-  this->initialize();
-}
+                                      const ID & id, const ID & fe_engine_id)
+    : Material(model, id, fe_engine_id),
+      delta_T(this->registerInternal("delta_T", 1)),
+      sigma_th(this->registerInternal("sigma_th", 1)) {
+  sigma_th.initializeHistory();
 
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      Int spatial_dimension, const Mesh & mesh,
-                                      FEEngine & fe_engine, const ID & id)
-    : Material(model, spatial_dimension, mesh, fe_engine, id),
-      delta_T("delta_T", *this, dim, fe_engine, this->element_filter),
-      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter) {
-  this->initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialThermal<dim>::initialize() {
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
@@ -54,16 +41,6 @@ template <Int dim> void MaterialThermal<dim>::initialize() {
                       "Thermal expansion coefficient");
   this->registerParam("delta_T", delta_T, _pat_parsable | _pat_modifiable,
                       "Uniform temperature field");
-
-  delta_T.initialize(1);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialThermal<dim>::initMaterial() {
-  sigma_th.initialize(1);
-  sigma_th.initializeHistory();
-
-  Material::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */

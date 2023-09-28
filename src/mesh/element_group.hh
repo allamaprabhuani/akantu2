@@ -48,8 +48,6 @@ public:
                NodeGroup & node_group, Int dimension = _all_dimensions,
                const std::string & id = "element_group");
 
-  ElementGroup(const ElementGroup & /*unused*/);
-
   /* ------------------------------------------------------------------------ */
   /* Type definitions                                                         */
   /* ------------------------------------------------------------------------ */
@@ -63,7 +61,7 @@ public:
 
   template <typename... pack>
   [[nodiscard]] inline decltype(auto) elementTypes(pack &&... _pack) const {
-    return elements.elementTypes(_pack...);
+    return elements.elementTypes(std::forward<decltype(_pack)>(_pack)...);
   }
 
   [[nodiscard]] inline auto begin(ElementType type,
@@ -124,8 +122,8 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  const Array<Idx> & getElements(ElementType type,
-                                 GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] const Array<Idx> &
+  getElements(ElementType type, GhostType ghost_type = _not_ghost) const;
   AKANTU_GET_MACRO_AUTO(Elements, elements);
   AKANTU_GET_MACRO_AUTO_NOT_CONST(Elements, elements);
 
@@ -133,8 +131,9 @@ public:
     return elements.size(std::forward<Args>(pack)...);
   }
 
-  decltype(auto) getElementsIterable(ElementType type,
-                                     GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] decltype(auto)
+  getElementsIterable(ElementType type,
+                      GhostType ghost_type = _not_ghost) const;
 
   //  AKANTU_GET_MACRO(Nodes, node_group.getNodes(), const Array<UInt> &);
 
@@ -144,7 +143,7 @@ public:
   AKANTU_GET_MACRO_AUTO(Dimension, dimension);
   AKANTU_GET_MACRO_AUTO(Name, name);
 
-  inline Int getNbNodes() const;
+  [[nodiscard]] inline Int getNbNodes() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

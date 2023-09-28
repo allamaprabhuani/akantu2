@@ -162,13 +162,13 @@ protected:
   EmbeddedInterfaceModel & emodel;
 
   /// Gradu of concrete on reinforcement
-  InternalField<Real> gradu_embedded;
+  std::shared_ptr<InternalField<Real>> gradu_embedded;
 
   /// C matrix on quad
-  InternalField<Real> directing_cosines;
+  std::shared_ptr<InternalField<Real>> directing_cosines;
 
   /// Prestress on quad
-  InternalField<Real> pre_stress;
+  std::shared_ptr<InternalField<Real>> pre_stress;
 
   /// Cross-sectional area
   Real area;

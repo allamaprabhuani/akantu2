@@ -69,14 +69,14 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  Int nbSteps = 1000;
+  Int nb_steps = 1000;
   Real increment = 6e-6;
   Int nb_staggered_steps = 5;
 
   auto start_time = clk::now();
 
   // Main loop over the loading steps
-  for (Int s = 1; s < nbSteps; ++s) {
+  for (Int s = 1; s < nb_steps; ++s) {
 
     if (s >= 500) {
       increment = 2e-6;
@@ -88,11 +88,11 @@ int main(int argc, char * argv[]) {
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
       std::cout << "\r[" << wheel[(s / 10) % 4] << "] " << std::setw(5) << s
-                << "/" << nbSteps << " (" << std::setprecision(2) << std::fixed
+                << "/" << nb_steps << " (" << std::setprecision(2) << std::fixed
                 << std::setw(8) << millisecond(time_per_step).count()
                 << "ms/step - elapsed: " << std::setw(8)
                 << second(elapsed).count() << "s - ETA: " << std::setw(8)
-                << second((nbSteps - s) * time_per_step).count() << "s)"
+                << second((nb_steps - s) * time_per_step).count() << "s)"
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");

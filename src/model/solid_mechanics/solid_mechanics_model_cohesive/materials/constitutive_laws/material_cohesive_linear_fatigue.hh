@@ -75,42 +75,42 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the switches
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Switches, switches, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Switches, (*switches), Int);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// delta_f parameter
-  Real delta_f;
+  Real delta_f{-1.};
 
   /// variable saying if delta_f is equal to delta_max for each
   /// element when the traction is computed
-  bool progressive_delta_f;
+  bool progressive_delta_f{false};
 
   /// count the opening/closing switches per element
-  bool count_switches;
+  bool count_switches{false};
 
   /// delta of the previous step
-  CohesiveInternalField<Real> delta_prec;
+  CohesiveInternalField<Real> & delta_prec;
 
   /// stiffness for reloading
-  CohesiveInternalField<Real> K_plus;
+  CohesiveInternalField<Real> & K_plus;
 
   /// stiffness for unloading
-  CohesiveInternalField<Real> K_minus;
+  CohesiveInternalField<Real> & K_minus;
 
   /// 1D traction in the cohesive law
-  CohesiveInternalField<Real> T_1d;
+  CohesiveInternalField<Real> & T_1d;
 
   /// Number of opening/closing switches
-  CohesiveInternalField<UInt> switches;
+  std::shared_ptr<CohesiveInternalField<Int>> switches;
 
   /// delta increment of the previous time step
-  CohesiveInternalField<Real> delta_dot_prec;
+  std::shared_ptr<CohesiveInternalField<Real>> delta_dot_prec;
 
   /// has the element passed to normal regime (not in fatigue anymore)
-  CohesiveInternalField<bool> normal_regime;
+  CohesiveInternalField<bool> & normal_regime;
 
   /// ratio indicating until what point fatigue is applied in the cohesive law
   Real fatigue_ratio;

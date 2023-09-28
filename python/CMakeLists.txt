@@ -37,7 +37,10 @@ set(PYAKANTU_SRCS
   py_aka_error.cc
   py_akantu.cc
   py_boundary_conditions.cc
+  py_constitutive_law.cc
+  py_constitutive_law_selector.cc
   py_dof_manager.cc
+  py_dumpable.cc
   py_fe_engine.cc
   py_group_manager.cc
   py_integration_scheme.cc
@@ -45,7 +48,6 @@ set(PYAKANTU_SRCS
   py_model.cc
   py_parser.cc
   py_solver.cc
-  py_dumpable.cc
   )
 
 package_is_activated(solid_mechanics _is_activated)
@@ -53,7 +55,6 @@ if (_is_activated)
   list(APPEND PYAKANTU_SRCS
     py_solid_mechanics_model.cc
     py_material.cc
-    py_material_selector.cc
     )
 endif()
 

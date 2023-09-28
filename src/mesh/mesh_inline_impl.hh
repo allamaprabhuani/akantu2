@@ -229,6 +229,19 @@ inline decltype(auto) Mesh::getData(const ID & data_name) {
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name,
+                                    Element element) const {
+  return this->getElementalData<T>(data_name)(element);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline decltype(auto) Mesh::getData(const ID & data_name, Element element) {
+  return this->getElementalData<T>(data_name)(element);
+}
+
+/* -------------------------------------------------------------------------- */
 inline auto Mesh::getConnectivityPointer(ElementType type, GhostType ghost_type)
     -> Array<Idx> & {
   if (connectivities.exists(type, ghost_type)) {
