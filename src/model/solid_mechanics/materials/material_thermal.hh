@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -32,21 +31,13 @@ template <Int dim> class MaterialThermal : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialThermal(SolidMechanicsModel & model, const ID & id = "");
-  MaterialThermal(SolidMechanicsModel & model, Int spatial_dimension,
-                  const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
-
-  ~MaterialThermal() override = default;
-
-protected:
-  void initialize();
+  MaterialThermal(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
@@ -54,20 +45,21 @@ public:
   template <class Args> inline void computeStressOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
+  template <Int dim_ = dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
-    return zip_append(
-        Material::getArguments<dim>(el_type, ghost_type),
-        "delta_T"_n = make_view(this->delta_T(el_type, ghost_type)),
-        "sigma_th"_n = make_view(this->sigma_th(el_type, ghost_type)),
-        "previous_sigma_th"_n =
-            make_view(this->sigma_th.previous(el_type, ghost_type)));
+    return zip_append(Material::getArguments<dim_>(el_type, ghost_type),
+                      "delta_T"_n = delta_T(el_type, ghost_type),
+                      "sigma_th"_n = sigma_th(el_type, ghost_type),
+                      "previous_sigma_th"_n =
+                          sigma_th.previous(el_type, ghost_type));
   }
 
+  template <Int dim_ = dim>
   decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrices,
                                      ElementType el_type,
                                      GhostType ghost_type) {
-    return Material::getArgumentsTangent<dim>(tangent_matrices, el_type,
-                                              ghost_type);
+    return Material::getArgumentsTangent<dim_>(tangent_matrices, el_type,
+                                               ghost_type);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -75,20 +67,20 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// Young modulus
-  Real E;
+  Real E{0.};
 
   /// Poisson ratio
-  Real nu;
+  Real nu{1. / 2.};
 
   /// Thermal expansion coefficient
   /// TODO : implement alpha as a matrix
-  Real alpha;
+  Real alpha{0.};
 
   /// Temperature field
-  InternalField<Real> delta_T;
+  InternalField<Real> & delta_T;
 
   /// Current thermal stress
-  InternalField<Real> sigma_th;
+  InternalField<Real> & sigma_th;
 };
 
 /* ------------------------------------------------------------------------ */

@@ -67,8 +67,8 @@ int main(int argc, char * argv[]) {
       auto expected_insertion = mesh.getElementGroup(surfaces_name[i])
                                     .getElements(mesh.getFacetType(type))
                                     .size();
-      auto inserted_elements =
-          model.getMaterial(surfaces_name[i]).getElementFilter()(type).size();
+      const auto & mat = model.getMaterial(surfaces_name[i]);
+      auto inserted_elements = mat.getElementFilter()(type).size();
       if (not(expected_insertion == inserted_elements)) {
         std::cout << "!!! Mismatch in insertion of surface named "
                   << surfaces_name[i] << " --> " << inserted_elements

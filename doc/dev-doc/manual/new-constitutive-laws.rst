@@ -28,8 +28,8 @@ indicate the inheritance in the declaration of the class::
    #include "material.hh"
    /* ---------------------------------------------------------------------- */
 
-   #ifndef __AKANTU_MATERIAL_XXX_HH__
-   #define __AKANTU_MATERIAL_XXX_HH__
+   #ifndef AKANTU_MATERIAL_XXX_HH_
+   #define AKANTU_MATERIAL_XXX_HH_
 
    namespace akantu {
 
@@ -319,8 +319,8 @@ custom material and indicate the inheritance in the declaration of the class::
    #include "material_XXX.hh"
    /* ---------------------------------------------------------------------- */
 
-   #ifndef __AKANTU_MATERIAL_XXX_HH__
-   #define __AKANTU_MATERIAL_XXX_HH__
+   #ifndef AKANTU_MATERIAL_XXX_HH_
+   #define AKANTU_MATERIAL_XXX_HH_
 
    namespace akantu {
 

@@ -265,7 +265,7 @@ SolverVectorPETSc & SolverVectorPETSc::operator=(const SolverVectorPETSc & y) {
 }
 
 /* -------------------------------------------------------------------------- */
-SolverVector & SolverVectorPETSc::operator=(const SolverVector & y) {
+SolverVector & SolverVectorPETSc::copy(const SolverVector & y) {
   const auto & y_ = aka::as_type<SolverVectorPETSc>(y);
   return operator=(y_);
 }

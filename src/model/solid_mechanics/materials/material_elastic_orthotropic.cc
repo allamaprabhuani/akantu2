@@ -132,7 +132,7 @@ template class MaterialElasticOrthotropic<1>;
 template class MaterialElasticOrthotropic<2>;
 template class MaterialElasticOrthotropic<3>;
 
-static bool material_is_allocated_elastic_orthotropic =
+const bool material_is_allocated_elastic_orthotropic [[maybe_unused]] =
     instantiateMaterial<MaterialElasticOrthotropic>("elastic_orthotropic");
 
 } // namespace akantu

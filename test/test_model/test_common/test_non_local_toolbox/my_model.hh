@@ -101,7 +101,7 @@ public:
     }
   }
 
-  void computeNonLocalStresses(GhostType) override {}
+  void computeNonLocalContribution(GhostType) override {}
 
   void updateLocalInternal(ElementTypeMapReal &, GhostType,
                            ElementKind) override {}

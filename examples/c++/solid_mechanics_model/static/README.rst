@@ -5,7 +5,7 @@ In ``static``, an example of how to solve a static problem is presented. The pro
 of the length of the plate.
 
 .. _fig-ex-static:
-.. figure:: examples/c++/solid_mechanics_model/static//images/static_BC.svg
+.. figure:: examples/c++/solid_mechanics_model/static/images/static_BC.svg
             :align: center
 
             Boundary conditions for the static example.

@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
     weights.open(sstr.str());
     std::string current_line;
     while (getline(weights, current_line)) {
-      std::cout << current_line << std::endl;
+      std::cout << current_line << "\n";
     }
     weights.close();
   }

@@ -25,6 +25,8 @@
 #include <cohesive_contact_solvercallback.hh>
 #include <coupler_solid_cohesive_contact.hh>
 #include <coupler_solid_contact.hh>
+#include <element_synchronizer.hh>
+#include <node_synchronizer.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
@@ -56,19 +58,16 @@ namespace {
                 const std::string & element_group) {
                self.applyBC(func, element_group);
              })
-
         .def("getContactMechanicsModel",
              &CouplerSolidContact_::getContactMechanicsModel,
              py::return_value_policy::reference)
-        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+        .def("getDisplacement", &CouplerSolidContact_::getDisplacement,
              py::return_value_policy::reference)
-        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+        .def("getVelocity", &CouplerSolidContact_::getVelocity,
              py::return_value_policy::reference)
-        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
+        .def("getAcceleration", &CouplerSolidContact_::getAcceleration,
              py::return_value_policy::reference)
-        .def("getExternalForce", &CouplerSolidContact_::getExternalForce,
-             py::return_value_policy::reference)
-        .def("getMass", &CouplerSolidContact_::getExternalForce,
+        .def("getMass", &CouplerSolidContact_::getMass,
              py::return_value_policy::reference)
         .def("getContactForce", &CouplerSolidContact_::getContactForce,
              py::return_value_policy::reference)
@@ -76,9 +75,7 @@ namespace {
              py::return_value_policy::reference)
         .def("setTimeStep", &CouplerSolidContact_::setTimeStep,
              py::arg("time_step"), py::arg("solver_id") = "")
-        .def("getStableTimeStep", &CouplerSolidContact_::getStableTimeStep)
-        .def("deactivateContact", &CouplerSolidContact_::deactivateContact)
-        .def("activateContact", &CouplerSolidContact_::activateContact);
+        .def("getStableTimeStep", &CouplerSolidContact_::getStableTimeStep);
   }
 } // namespace
 

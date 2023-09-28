@@ -22,7 +22,8 @@ model = aka.CouplerSolidPhaseField(mesh)
 solid = model.getSolidMechanicsModel()
 phase = model.getPhaseFieldModel()
 
-# initializing the Solid Mechanics Model with implicit solver for static resolution
+# initializing the Solid Mechanics Model with implicit solver for static
+# resolution
 solid.initFull(_analysis_method=aka._static)
 solver = solid.getNonLinearSolver('static')
 solver.set('max_iterations', 100)
@@ -33,10 +34,12 @@ solver.set("convergence_type", aka.SolveConvergenceCriteria.residual)
 # lumped mass)
 solid.initNewSolver(aka._explicit_lumped_mass)
 
-# initializing the PhaseField Model with linear implicit solver for static resolution
+# initializing the PhaseField Model with linear implicit solver for static
+# resolution
 phase.initFull(_analysis_method=aka._static)
 
-# initializing the PhaseField Model with Newton Raphson implicit solver for static resolution
+# initializing the PhaseField Model with Newton Raphson implicit solver for
+# static resolution
 phase.getNewSolver("nonlinear_static", aka.TimeStepSolverType.static,
                    aka.NonLinearSolverType.newton_raphson)
 phase.setIntegrationScheme("nonlinear_static", "damage",
@@ -58,33 +61,18 @@ solid.addDumpField('stress')
 solid.addDumpField('damage')
 solid.addDumpField('blocked_dofs')
 
-
-class FixedDamage (aka.DirichletFunctor):
-    '''
-        Fix the damage to 0
-    '''
-    def __init__(self, axis):
-        super().__init__(axis)
-        self.axis = axis
-
-    def __call__(self, node, flags, dam, coord):
-        # sets the blocked dofs vector to true in the desired axis
-        flags[int(self.axis)] = True
-        dam[int(self.axis)] = 0.0
-
-
-# Dirichlet
+# Dirichlet BC
 solid.applyBC(aka.FixedValue(0., aka._x), 'top')
 solid.applyBC(aka.FixedValue(0., aka._x), 'bottom')
 
 solid.applyBC(aka.FixedValue(0., aka._x), 'left')
 solid.applyBC(aka.FixedValue(0., aka._x), 'right')
 
-
+# Pre-strain
 solid.applyBC(aka.FixedValue(0.06e-3, aka._y), 'top')
 solid.applyBC(aka.FixedValue(-0.06e-3, aka._y), 'bottom')
 
-
+# Apply pre-strain by solving static problem
 solid.solveStep('static')
 solid.dump()
 

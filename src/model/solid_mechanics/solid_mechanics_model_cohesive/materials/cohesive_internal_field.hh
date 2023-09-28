@@ -20,6 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "internal_field.hh"
+#include "random_internal_field.hh"
 
 #ifndef AKANTU_COHESIVE_INTERNAL_FIELD_HH_
 #define AKANTU_COHESIVE_INTERNAL_FIELD_HH_
@@ -29,15 +30,18 @@ namespace akantu {
 /// internal field class for cohesive materials
 template <typename T> class CohesiveInternalField : public InternalField<T> {
 public:
-  CohesiveInternalField(const ID & id, Material & material);
-  ~CohesiveInternalField() override;
+  CohesiveInternalField(const ID & id,
+                        ConstitutiveLawInternalHandler & constitutive_law,
+                        Int dim, const ID & fem_id,
+                        const ElementTypeMapArray<Idx> & element_filter);
 
   /// initialize the field to a given number of component
-  void initialize(UInt nb_component) override;
+  void initialize(Int nb_component) override;
 
 private:
-  CohesiveInternalField operator=(__attribute__((unused))
-                                  const CohesiveInternalField & other){};
+  friend class ConstitutiveLawInternalHandler;
+
+  CohesiveInternalField operator=(const CohesiveInternalField & /*other*/){};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -45,12 +49,28 @@ private:
 /* -------------------------------------------------------------------------- */
 template <typename T> class FacetInternalField : public InternalField<T> {
 public:
-  FacetInternalField(const ID & id, Material & material);
-  ~FacetInternalField() override;
+  FacetInternalField(const ID & id,
+                     ConstitutiveLawInternalHandler & constitutive_law, Int dim,
+                     const ID & fem_id,
+                     const ElementTypeMapArray<Idx> & element_filter);
+
+  std::shared_ptr<FacetInternalField> getPtr() {
+    return aka::as_type<FacetInternalField>(this->shared_from_this());
+  }
 
   /// initialize the field to a given number of component
-  void initialize(UInt nb_component) override;
+  void initialize(Int nb_component) override;
+
+  friend class ConstitutiveLawInternalHandler;
 };
+
+template <typename T>
+using CohesiveRandomInternalField =
+    RandomInternalField<T, CohesiveInternalField, RandomGenerator>;
+
+template <typename T>
+using FacetRandomInternalField =
+    RandomInternalField<T, FacetInternalField, RandomGenerator>;
 
 } // namespace akantu
 

@@ -74,7 +74,7 @@ public:
   // void registerNonLocalManagerCallback(NonLocalManagerCallback & callback);
 
   /// average the internals and compute the non-local stresses
-  virtual void computeAllNonLocalStresses();
+  virtual void computeAllNonLocalContribution();
 
   /// initialize the non-local manager: compute pair lists and weights for all
   /// neighborhoods

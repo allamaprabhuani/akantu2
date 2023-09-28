@@ -20,15 +20,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "phase_field_model.hh"
-#include "aka_common.hh"
 #include "dumpable_inline_impl.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine_template.hh"
-#include "generalized_trapezoidal.hh"
 #include "group_manager_inline_impl.hh"
 #include "integrator_gauss.hh"
-#include "mesh.hh"
-#include "parser.hh"
 #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumper_element_partition.hh"
@@ -43,10 +39,7 @@ namespace akantu {
 PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
                                  std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
-    : Model(mesh, model_type, dim, id),
-      phasefield_index("phasefield index", id),
-      phasefield_local_numbering("phasefield local numbering", id) {
-
+    : Parent(mesh, model_type, dim, id) {
   AKANTU_DEBUG_IN();
 
   this->initDOFManager(std::move(dof_manager));
@@ -58,24 +51,16 @@ PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
   this->mesh.addDumpMesh(mesh, Model::spatial_dimension, _not_ghost,
                          _ek_regular);
 
-  phasefield_selector =
-      std::make_shared<DefaultPhaseFieldSelector>(phasefield_index);
-
-  this->registerDataAccessor(*this);
-
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer,
-                               SynchronizationTag::_phasefield_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_pfm_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
   }
 
+  this->parser_type = ParserType::_phasefield;
+
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-PhaseFieldModel::~PhaseFieldModel() = default;
 
 /* -------------------------------------------------------------------------- */
 MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
@@ -86,151 +71,10 @@ MatrixType PhaseFieldModel::getMatrixType(const ID & matrix_id) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldModel::initModel() {
-  auto & fem = this->getFEEngine();
-  fem.initShapeFunctions(_not_ghost);
-  fem.initShapeFunctions(_ghost);
-}
-
-/* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initFullImpl(const ModelOptions & options) {
-  phasefield_index.initialize(mesh, _element_kind = _ek_not_defined,
-                              _default_value = Idx(-1),
-                              _with_nb_element = true);
-  phasefield_local_numbering.initialize(mesh, _element_kind = _ek_not_defined,
-                                        _with_nb_element = true);
-
-  Model::initFullImpl(options);
-
-  // initialize the phasefields
-  if (!this->parser.getLastParsedFile().empty()) {
-    this->instantiatePhaseFields();
-    this->initPhaseFields();
-  }
+  Parent::initFullImpl(options);
 
   this->initBC(*this, *damage, *external_force);
-}
-
-/* -------------------------------------------------------------------------- */
-PhaseField &
-PhaseFieldModel::registerNewPhaseField(const ParserSection & section) {
-  std::string phase_name;
-  std::string phase_type = section.getName();
-  std::string opt_param = section.getOption();
-
-  try {
-    std::string tmp = section.getParameter("name");
-    phase_name = tmp; /** this can seam weird, but there is an ambiguous
-                       * operator overload that i couldn't solve. @todo remove
-                       * the weirdness of this code
-                       */
-  } catch (debug::Exception &) {
-    AKANTU_ERROR("A phasefield of type \'"
-                 << phase_type
-                 << "\' in the input file has been defined without a name!");
-  }
-  PhaseField & phase =
-      this->registerNewPhaseField(phase_name, phase_type, opt_param);
-
-  phase.parseSection(section);
-
-  return phase;
-}
-
-/* -------------------------------------------------------------------------- */
-PhaseField & PhaseFieldModel::registerNewPhaseField(const ID & phase_name,
-                                                    const ID & phase_type,
-                                                    const ID & opt_param) {
-  AKANTU_DEBUG_ASSERT(phasefields_names_to_id.find(phase_name) ==
-                          phasefields_names_to_id.end(),
-                      "A phasefield with this name '"
-                          << phase_name << "' has already been registered. "
-                          << "Please use unique names for phasefields");
-
-  Int phase_count = phasefields.size();
-  phasefields_names_to_id[phase_name] = phase_count;
-
-  std::stringstream sstr_phase;
-  sstr_phase << this->id << ":" << phase_count << ":" << phase_type;
-  ID mat_id = sstr_phase.str();
-
-  std::unique_ptr<PhaseField> phase = PhaseFieldFactory::getInstance().allocate(
-      phase_type, opt_param, *this, mat_id);
-
-  phasefields.push_back(std::move(phase));
-
-  return *(phasefields.back());
-}
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldModel::instantiatePhaseFields() {
-
-  ParserSection model_section;
-  bool is_empty;
-  std::tie(model_section, is_empty) = this->getParserSection();
-
-  if (not is_empty) {
-    auto model_phasefields =
-        model_section.getSubSections(ParserType::_phasefield);
-    for (const auto & section : model_phasefields) {
-      this->registerNewPhaseField(section);
-    }
-  }
-
-  auto sub_sections = this->parser.getSubSections(ParserType::_phasefield);
-  for (const auto & section : sub_sections) {
-    this->registerNewPhaseField(section);
-  }
-
-  if (phasefields.empty()) {
-    AKANTU_EXCEPTION("No phasefields where instantiated for the model"
-                     << getID());
-  }
-  are_phasefields_instantiated = true;
-}
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldModel::initPhaseFields() {
-  AKANTU_DEBUG_ASSERT(phasefields.size() != 0, "No phasefield to initialize !");
-
-  if (!are_phasefields_instantiated) {
-    instantiatePhaseFields();
-  }
-
-  this->assignPhaseFieldToElements();
-
-  for (auto & phasefield : phasefields) {
-    /// init internals properties
-    phasefield->initPhaseField();
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldModel::assignPhaseFieldToElements(
-    const ElementTypeMapArray<Idx> * filter) {
-
-  for_each_element(
-      mesh,
-      [&](auto && element) {
-        Int phase_index = (*phasefield_selector)(element);
-        AKANTU_DEBUG_ASSERT(
-            phase_index < Int(phasefields.size()),
-            "The phasefield selector returned an index that does not exists");
-        phasefield_index(element) = phase_index;
-      },
-      _element_filter = filter, _ghost_type = _not_ghost);
-
-  for_each_element(
-      mesh,
-      [&](auto && element) {
-        auto phase_index = phasefield_index(element);
-        auto index = phasefields[phase_index]->addElement(element);
-        phasefield_local_numbering(element) = index;
-      },
-      _element_filter = filter, _ghost_type = _not_ghost);
-
-  // synchronize the element phasefield arrays
-  this->synchronize(SynchronizationTag::_phasefield_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -346,9 +190,8 @@ Real PhaseFieldModel::getEnergy() {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
-  for (auto & phasefield : phasefields) {
-    energy += phasefield->getEnergy();
-  }
+  for_each_constitutive_law(
+      [&energy](auto && phase_field) { energy += phase_field.getEnergy(); });
 
   /// reduction sum over all processors
   mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
@@ -358,15 +201,11 @@ Real PhaseFieldModel::getEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseFieldModel::getEnergy(ElementType type, Idx index) {
-  AKANTU_DEBUG_IN();
-
-  Idx phase_index = this->phasefield_index(type, _not_ghost)(index);
-  Idx phase_loc_num = this->phasefield_local_numbering(type, _not_ghost)(index);
-  Real energy = this->phasefields[phase_index]->getEnergy(
-      Element{type, phase_loc_num, _not_ghost});
-
-  AKANTU_DEBUG_OUT();
+Real PhaseFieldModel::getEnergy(const Element & element) {
+  auto pf_element = element;
+  auto phase_index = this->getConstitutiveLawByElement()(element);
+  pf_element.element = this->getConstitutiveLawLocalNumbering()(element);
+  Real energy = this->getConstitutiveLaw(phase_index).getEnergy(pf_element);
   return energy;
 }
 
@@ -388,9 +227,8 @@ Real PhaseFieldModel::getEnergy(const ID & group_id) {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::beforeSolveStep() {
-  for (auto & phasefield : phasefields) {
-    phasefield->beforeSolveStep();
-  }
+  for_each_constitutive_law(
+      [](auto && phasefield) { phasefield.beforeSolveStep(); });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -417,9 +255,9 @@ void PhaseFieldModel::assembleStiffnessMatrix() {
 
   this->getDOFManager().zeroMatrix("K");
 
-  for (auto & phasefield : phasefields) {
-    phasefield->assembleStiffnessMatrix(_not_ghost);
-  }
+  for_each_constitutive_law([](auto && phasefield) {
+    phasefield.assembleStiffnessMatrix(_not_ghost);
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -438,21 +276,20 @@ void PhaseFieldModel::assembleInternalForces() {
 
   this->synchronize(SynchronizationTag::_pfm_damage);
 
-  for (auto & phasefield : phasefields) {
-    phasefield->computeAllDrivingForces(_not_ghost);
-  }
+  for_each_constitutive_law([](auto && phasefield) {
+    phasefield.computeAllDrivingForces(_not_ghost);
+  });
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
-  for (auto & phasefield : phasefields) {
-    phasefield->assembleInternalForces(_not_ghost);
-  }
+  for_each_constitutive_law([](auto && phasefield) {
+    phasefield.assembleInternalForces(_not_ghost);
+  });
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
-  for (auto & phasefield : phasefields) {
-    phasefield->assembleInternalForces(_ghost);
-  }
+  for_each_constitutive_law(
+      [](auto && phasefield) { phasefield.assembleInternalForces(_ghost); });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -468,7 +305,7 @@ void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
 /* -------------------------------------------------------------------------- */
 Int PhaseFieldModel::getNbData(const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
-  Int size = 0;
+  Int size = Parent::getNbData(elements, tag);
   Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
@@ -476,10 +313,6 @@ Int PhaseFieldModel::getNbData(const Array<Element> & elements,
   }
 
   switch (tag) {
-  case SynchronizationTag::_phasefield_id: {
-    size += elements.size() * sizeof(Int);
-    break;
-  }
   case SynchronizationTag::_for_dump: {
     // damage
     size += nb_nodes_per_element * sizeof(Real);
@@ -501,12 +334,8 @@ Int PhaseFieldModel::getNbData(const Array<Element> & elements,
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
+  Parent::packData(buffer, elements, tag);
   switch (tag) {
-  case SynchronizationTag::_phasefield_id: {
-    packElementalDataHelper(phasefield_index, buffer, elements, false,
-                            getFEEngine());
-    break;
-  }
   case SynchronizationTag::_for_dump: {
     packNodalDataHelper(*damage, buffer, elements, mesh);
     break;
@@ -525,25 +354,8 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
                                  const SynchronizationTag & tag) {
-  AKANTU_DEBUG_IN();
-
+  Parent::unpackData(buffer, elements, tag);
   switch (tag) {
-  case SynchronizationTag::_phasefield_id: {
-    for (auto && element : elements) {
-      Idx recv_phase_index;
-      buffer >> recv_phase_index;
-      Idx & phase_index = phasefield_index(element);
-      if (phase_index != Idx(-1)) {
-        continue;
-      }
-
-      // add ghosts element to the correct phasefield
-      phase_index = recv_phase_index;
-      Idx index = phasefields[phase_index]->addElement(element);
-      phasefield_local_numbering(element) = index;
-    }
-    break;
-  }
   case SynchronizationTag::_for_dump: {
     unpackNodalDataHelper(*damage, buffer, elements, mesh);
     break;
@@ -663,82 +475,6 @@ std::shared_ptr<dumpers::Field> PhaseFieldModel::createElementalField(
 
   std::shared_ptr<dumpers::Field> field;
   return field;
-}
-
-/* -------------------------------------------------------------------------- */
-ElementTypeMapArray<Real> &
-PhaseFieldModel::flattenInternal(const std::string & field_name,
-                                 ElementKind kind, const GhostType ghost_type) {
-  auto key = std::make_pair(field_name, kind);
-
-  ElementTypeMapArray<Real> * internal_flat;
-
-  auto it = this->registered_internals.find(key);
-  if (it == this->registered_internals.end()) {
-    auto internal =
-        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
-
-    internal_flat = internal.get();
-    this->registered_internals[key] = std::move(internal);
-  } else {
-    internal_flat = it->second.get();
-  }
-
-  for (auto type :
-       mesh.elementTypes(Model::spatial_dimension, ghost_type, kind)) {
-    if (internal_flat->exists(type, ghost_type)) {
-      auto & internal = (*internal_flat)(type, ghost_type);
-      internal.resize(0);
-    }
-  }
-
-  for (auto & phasefield : phasefields) {
-    if (phasefield->isInternal<Real>(field_name, kind)) {
-      phasefield->flattenInternal(field_name, *internal_flat, ghost_type, kind);
-    }
-  }
-
-  return *internal_flat;
-}
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldModel::inflateInternal(const std::string & field_name,
-                                      const ElementTypeMapArray<Real> & field,
-                                      ElementKind kind, GhostType ghost_type) {
-
-  for (auto & phasefield : phasefields) {
-    if (phasefield->isInternal<Real>(field_name, kind)) {
-      phasefield->inflateInternal(field_name, field, ghost_type, kind);
-    } else {
-      AKANTU_ERROR("A internal of name \'"
-                   << field_name
-                   << "\' has not been defined in the phasefield");
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldModel::printself(std::ostream & stream, int indent) const {
-  std::string space(indent, AKANTU_INDENT);
-
-  stream << space << "Phase Field Model [" << std::endl;
-  stream << space << " + id                : " << id << std::endl;
-  stream << space << " + spatial dimension : " << Model::spatial_dimension
-         << std::endl;
-  stream << space << " + fem [" << std::endl;
-  getFEEngine().printself(stream, indent + 2);
-  stream << space << AKANTU_INDENT << "]" << std::endl;
-  stream << space << " + nodals information [" << std::endl;
-  damage->printself(stream, indent + 2);
-  external_force->printself(stream, indent + 2);
-  internal_force->printself(stream, indent + 2);
-  blocked_dofs->printself(stream, indent + 2);
-  stream << space << AKANTU_INDENT << "]" << std::endl;
-
-  stream << space << " + phasefield information [" << std::endl;
-  stream << space << AKANTU_INDENT << "]" << std::endl;
-
-  stream << space << "]" << std::endl;
 }
 
 } // namespace akantu

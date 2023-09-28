@@ -12,14 +12,11 @@ public:
 
   bool operator()(const Element & el) const override {
 
-    const Array<Idx> & mat_indexes =
-        model.getPhaseFieldByElement(el.type, el.ghost_type);
-    const Array<Idx> & mat_loc_num =
-        model.getPhaseFieldLocalNumbering(el.type, el.ghost_type);
+    auto mat_id = model.getConstitutiveLawByElement()(el);
+    auto el_index = model.getConstitutiveLawLocalNumbering()(el);
 
-    const auto & mat = model.getPhaseField(mat_indexes(el.element));
+    const auto & mat = model.getPhaseField(mat_id);
 
-    Idx el_index = mat_loc_num(el.element);
     Int nb_quad_per_element =
         model.getFEEngine("PhaseFieldFEEngine")
             .getNbIntegrationPoints(el.type, el.ghost_type);
@@ -32,7 +29,7 @@ public:
     const Real * element_damage =
         damage_array.data() + nb_quad_per_element * el_index;
 
-    UInt unbroken_quads = std::count_if(
+    auto unbroken_quads = std::count_if(
         element_damage, element_damage + nb_quad_per_element, is_unbroken);
 
     return (unbroken_quads > 0);
@@ -41,7 +38,7 @@ public:
 private:
   struct IsUnbrokenFunctor {
     IsUnbrokenFunctor(const Real & max_damage) : max_damage(max_damage) {}
-    bool operator()(const Real & x) const { return x > max_damage; }
+    bool operator()(const Real & x) const { return x < max_damage; }
     const Real max_damage;
   };
 
@@ -49,4 +46,4 @@ private:
   const IsUnbrokenFunctor is_unbroken;
 };
 
-}
+} // namespace akantu

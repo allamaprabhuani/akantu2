@@ -30,8 +30,8 @@
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SURFACE_SELECTOR_HH__
-#define __AKANTU_SURFACE_SELECTOR_HH__
+#ifndef AKANTU_SURFACE_SELECTOR_HH_
+#define AKANTU_SURFACE_SELECTOR_HH_
 
 namespace akantu {
 class Model;
@@ -136,4 +136,4 @@ protected:
 
 } // namespace akantu
 
-#endif /*  __AKANTU_SURFACE_SELECTOR_HH__  */
+#endif /*  AKANTU_SURFACE_SELECTOR_HH_  */

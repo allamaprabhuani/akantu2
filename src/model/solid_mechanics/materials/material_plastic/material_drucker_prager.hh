@@ -24,8 +24,8 @@
 #include "material_plastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DRUCKER_PRAGER_HH__
-#define __AKANTU_MATERIAL_DRUCKER_PRAGER_HH__
+#ifndef AKANTU_MATERIAL_DRUCKER_PRAGER_HH_
+#define AKANTU_MATERIAL_DRUCKER_PRAGER_HH_
 
 namespace akantu {
 
@@ -40,15 +40,11 @@ template <Int dim> class MaterialDruckerPrager : public MaterialPlastic<dim> {
   using Parent = MaterialPlastic<dim>;
 
 public:
-  MaterialDruckerPrager(SolidMechanicsModel & model, const ID & id = "");
-  MaterialDruckerPrager(SolidMechanicsModel & model, Int spatial_dimension,
-                        const Mesh & mesh, FEEngine & fe_engine,
-                        const ID & id = "");
+  MaterialDruckerPrager(SolidMechanicsModel & model, const ID & id = "",
+                        const ID & fe_engine_id = "");
 
 protected:
   using voigt_h = VoigtHelper<dim>;
-
-  void initialize();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -106,4 +102,4 @@ private:
 
 #include "material_drucker_prager_inline_impl.hh"
 
-#endif /*__AKANTU_MATERIAL_DRUCKER_PRAGER_HH__  */
+#endif /*AKANTU_MATERIAL_DRUCKER_PRAGER_HH_  */

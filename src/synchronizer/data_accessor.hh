@@ -37,6 +37,12 @@ class DataAccessorBase {
 public:
   DataAccessorBase() = default;
   virtual ~DataAccessorBase() = default;
+
+  DataAccessorBase(const DataAccessorBase & other) = default;
+  DataAccessorBase(DataAccessorBase && other) = default;
+
+  DataAccessorBase & operator=(const DataAccessorBase & other) = default;
+  DataAccessorBase & operator=(DataAccessorBase && other) = default;
 };
 
 template <class T> class DataAccessor : public virtual DataAccessorBase {
@@ -45,7 +51,6 @@ template <class T> class DataAccessor : public virtual DataAccessorBase {
   /* ------------------------------------------------------------------------ */
 public:
   DataAccessor() = default;
-  ~DataAccessor() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -80,7 +85,6 @@ public:
 template <> class DataAccessor<Element> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
-  ~DataAccessor() override = default;
 
   [[nodiscard]] virtual Int
   getNbData(const Array<Element> & /*elements*/,
@@ -94,18 +98,38 @@ public:
                           const Array<Element> & /*element*/,
                           const SynchronizationTag & /*tag*/){};
 
+private:
+  template <
+      typename T, bool pack_helper, class Func,
+      std::enable_if_t<not std::is_base_of_v<FEEngine, std::decay_t<Func>>> * =
+          nullptr>
+  static void packUnpackElementalDataHelper(
+      std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                         ElementTypeMapArray<T>> & data_to_pack,
+      CommunicationBuffer & buffer, const Array<Element> & element,
+      Func && data_per_element);
+
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>
-  static void
-  packUnpackNodalDataHelper(Array<T> & data, CommunicationBuffer & buffer,
-                            const Array<Element> & elements, const Mesh & mesh);
+  static void packUnpackNodalDataHelper(
+      std::conditional_t<pack_helper, const Array<T>, Array<T>> & data,
+      CommunicationBuffer & buffer, const Array<Element> & elements,
+      const Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
   template <typename T, bool pack_helper>
   static void packUnpackElementalDataHelper(
-      ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-      const Array<Element> & element, bool per_quadrature_point_data,
+      std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                         ElementTypeMapArray<T>> & data_to_pack,
+      CommunicationBuffer & buffer, const Array<Element> & element);
+
+  /* ------------------------------------------------------------------------ */
+  template <typename T, bool pack_helper>
+  static void packUnpackElementalDataHelper(
+      std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                         ElementTypeMapArray<T>> & data_to_pack,
+      CommunicationBuffer & buffer, const Array<Element> & element,
       const FEEngine & fem);
 
   /* ------------------------------------------------------------------------ */
@@ -113,8 +137,7 @@ public:
   static void
   packNodalDataHelper(const Array<T> & data, CommunicationBuffer & buffer,
                       const Array<Element> & elements, const Mesh & mesh) {
-    packUnpackNodalDataHelper<T, true>(const_cast<Array<T> &>(data), buffer,
-                                       elements, mesh);
+    packUnpackNodalDataHelper<T, true>(data, buffer, elements, mesh);
   }
 
   template <typename T>
@@ -129,21 +152,31 @@ public:
   static inline void
   packElementalDataHelper(const ElementTypeMapArray<T> & data_to_pack,
                           CommunicationBuffer & buffer,
-                          const Array<Element> & elements,
-                          bool per_quadrature_point, const FEEngine & fem) {
-    packUnpackElementalDataHelper<T, true>(
-        const_cast<ElementTypeMapArray<T> &>(data_to_pack), buffer, elements,
-        per_quadrature_point, fem);
+                          const Array<Element> & elements) {
+    packUnpackElementalDataHelper<T, true>(data_to_pack, buffer, elements);
   }
 
   template <typename T>
   static inline void
   unpackElementalDataHelper(ElementTypeMapArray<T> & data_to_unpack,
                             CommunicationBuffer & buffer,
-                            const Array<Element> & elements,
-                            bool per_quadrature_point, const FEEngine & fem) {
+                            const Array<Element> & elements) {
+    packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements);
+  }
+  /* ------------------------------------------------------------------------ */
+  template <typename T>
+  static inline void packElementalDataHelper(
+      const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+      const Array<Element> & elements, const FEEngine & fem) {
+    packUnpackElementalDataHelper<T, true>(data_to_pack, buffer, elements, fem);
+  }
+
+  template <typename T>
+  static inline void unpackElementalDataHelper(
+      ElementTypeMapArray<T> & data_to_unpack, CommunicationBuffer & buffer,
+      const Array<Element> & elements, const FEEngine & fem) {
     packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements,
-                                            per_quadrature_point, fem);
+                                            fem);
   }
 };
 
@@ -152,7 +185,6 @@ public:
 template <> class DataAccessor<Idx> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
-  ~DataAccessor() override = default;
 
   [[nodiscard]] virtual Int
   getNbData(const Array<Idx> & /*elements*/,
@@ -168,16 +200,15 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>
-  static void packUnpackDOFDataHelper(Array<T> & data,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Idx> & dofs);
+  static void packUnpackDOFDataHelper(
+      std::conditional_t<pack_helper, const Array<T>, Array<T>> & data,
+      CommunicationBuffer & buffer, const Array<Idx> & dofs);
 
   template <typename T>
   static inline void packDOFDataHelper(const Array<T> & data_to_pack,
                                        CommunicationBuffer & buffer,
                                        const Array<Idx> & dofs) {
-    packUnpackDOFDataHelper<T, true>(const_cast<Array<T> &>(data_to_pack),
-                                     buffer, dofs);
+    packUnpackDOFDataHelper<T, true>(data_to_pack, buffer, dofs);
   }
 
   template <typename T>
@@ -210,15 +241,13 @@ public:
   ReduceDataAccessor(Array<T> & data, const SynchronizationTag & tag)
       : data(data), tag(tag) {}
 
-  ~ReduceDataAccessor() override = default;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  Int getNbData(const Array<Entity> & entities,
-                const SynchronizationTag & tag) const override {
+  [[nodiscard]] Int getNbData(const Array<Entity> & entities,
+                              const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }
@@ -282,15 +311,13 @@ public:
                             const SynchronizationTag & tag)
       : data(data), tag(tag) {}
 
-  ~SimpleElementDataAccessor() override = default;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override {
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;
     }
@@ -346,5 +373,7 @@ protected:
 };
 
 } // namespace akantu
+
+#include "data_accessor_tmpl.hh"
 
 #endif /* AKANTU_DATA_ACCESSOR_HH_ */

@@ -173,7 +173,7 @@ public:
     Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
       Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
-      size += nb_nodes * sizeof(Idx);
+      size += nb_nodes * Int(sizeof(Idx));
     }
     return size;
   }
@@ -394,18 +394,18 @@ void Mesh::makeReady() {
 void Mesh::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
-  stream << space << "Mesh [" << std::endl;
-  stream << space << " + id                : " << getID() << std::endl;
+  stream << space << "Mesh [\n";
+  stream << space << " + id                : " << getID() << "\n";
   stream << space << " + spatial dimension : " << this->spatial_dimension
-         << std::endl;
-  stream << space << " + nodes [" << std::endl;
+         << "\n";
+  stream << space << " + nodes [\n";
   nodes->printself(stream, indent + 2);
-  stream << space << " + connectivities [" << std::endl;
+  stream << space << " + connectivities [\n";
   connectivities.printself(stream, indent + 2);
-  stream << space << " ]" << std::endl;
+  stream << space << " ]\n";
 
   GroupManager::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
+  stream << space << "]\n";
 }
 
 /* -------------------------------------------------------------------------- */

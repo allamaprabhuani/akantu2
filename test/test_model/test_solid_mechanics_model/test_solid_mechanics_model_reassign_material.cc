@@ -29,7 +29,7 @@
 
 using namespace akantu;
 
-class StraightInterfaceMaterialSelector : public MaterialSelector {
+class StraightInterfaceMaterialSelector : public ConstitutiveLawSelector {
 public:
   StraightInterfaceMaterialSelector(SolidMechanicsModel & model,
                                     UInt horizontal, Real & pos_interface,
@@ -101,7 +101,7 @@ public:
     /// update position and orientation of material interface plane
     pos_interface = pos_new;
     horizontal = horizontal_new;
-    model.reassignMaterial();
+    model.reassignConstitutiveLaw();
   }
 
 protected:

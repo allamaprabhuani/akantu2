@@ -317,9 +317,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smm_boundary)                                \
   (smm_uv)                                      \
   (smm_res)                                     \
-  (smm_init_mat)                                \
   (smm_stress)                                  \
-  (smm_gradu)					\
+  (smm_gradu)                                   \
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
   (smmc_facets_stress)                          \
@@ -328,8 +327,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (ce_groups)                                   \
   (ce_insertion_order)                          \
   (gm_clusters)                                 \
-  (htm_temperature)                             \
-  (htm_gradient_temperature)                    \
+  (diffusion)                             \
+  (diffusion_gradient)                          \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
   (pfm_damage)                                  \
@@ -341,8 +340,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (test)                                        \
   (user_1)                                      \
   (user_2)                                      \
-  (material_id)                                 \
-  (phasefield_id)				\
+  (constitutive_law_id)                         \
+  (clh_init_cl)                                 \
   (for_dump)                                    \
   (cf_nodal)                                    \
   (cf_incr)                                     \
@@ -367,11 +366,10 @@ enum class SynchronizationTag {
                   /// and displacement
   _smm_uv,        ///< synchronization of the nodal velocities and displacement
   _smm_res,       ///< synchronization of the nodal residual
-  _smm_init_mat,  ///< synchronization of the data to initialize materials
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
-  _smm_gradu,    ///< synchronization of the gradu to compute the
+  _smm_gradu,     ///< synchronization of the gradu to compute the
                   ///< strain
   _smmc_facets,   ///< synchronization of facet data to setup facet synch
   _smmc_facets_conn,   ///< synchronization of facet global connectivity
@@ -398,8 +396,8 @@ enum class SynchronizationTag {
                              /// temperature
 
   // --- PhaseFieldModel tags ---
-  _pfm_damage,  ///< synchronization of the nodal damage
-  
+  _pfm_damage, ///< synchronization of the nodal damage
+
   // --- CouplerSolidPhaseField tags ---
   _csp_damage, ///< synchronization of the damage from phase
                /// model to solid model
@@ -419,12 +417,12 @@ enum class SynchronizationTag {
   _nh_criterion,
 
   // --- General tags ---
-  _test,        ///< Test tag
-  _user_1,      ///< tag for user simulations
-  _user_2,      ///< tag for user simulations
-  _material_id, ///< synchronization of the material ids
-  _phasefield_id, ///< synchronization of the phasefield ids
-  _for_dump,    ///< everything that needs to be synch before dump
+  _test,                ///< Test tag
+  _user_1,              ///< tag for user simulations
+  _user_2,              ///< tag for user simulations
+  _constitutive_law_id, ///< synchronization of the material ids
+  _clh_init_cl,         ///< synchronization of the data to initialize materials
+  _for_dump,            ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---
   _cf_nodal, ///< synchronization of disp, velo, and current position
@@ -518,19 +516,19 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  inline auto get##name() const->type { return variable; }
+  [[nodiscard]] inline auto get##name() const -> type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
-  inline decltype(auto) get##name() const { return (variable); }
+  [[nodiscard]] inline decltype(auto) get##name() const { return (variable); }
 
 #define AKANTU_GET_MACRO_AUTO_NOT_CONST(name, variable)                        \
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  inline auto get##name()->type { return variable; }
+  [[nodiscard]] inline auto get##name() -> type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
-  inline const auto & get##name() const {                                      \
+  [[nodiscard]] inline const auto & get##name() const {                        \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -538,7 +536,7 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
-  inline decltype(auto) get##name() {                                          \
+  [[nodiscard]] inline decltype(auto) get##name() {                            \
     if (not(ptr)) {                                                            \
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
@@ -546,8 +544,8 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline auto get##name(const support & el_type,                               \
-                        GhostType ghost_type = _not_ghost)                     \
+  [[nodiscard]] inline auto get##name(const support & el_type,                 \
+                                      GhostType ghost_type = _not_ghost)       \
       con->con Array<type> & {                                                 \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT
@@ -578,10 +576,11 @@ void readInputFile(const std::string & input_file);
 /* -------------------------------------------------------------------------- */
 /* string manipulation */
 /* -------------------------------------------------------------------------- */
-inline auto to_lower(const std::string & str) -> std::string;
+[[nodiscard]] inline auto to_lower(const std::string & str) -> std::string;
 /* -------------------------------------------------------------------------- */
-inline auto trim(const std::string & to_trim) -> std::string;
-inline auto trim(const std::string & to_trim, char c) -> std::string;
+[[nodiscard]] inline auto trim(const std::string & to_trim) -> std::string;
+[[nodiscard]] inline auto trim(const std::string & to_trim, char c)
+    -> std::string;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -601,7 +600,8 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-auto is_of_type(T && t) -> bool {
+[[nodiscard]] auto is_of_type(T && t)
+    -> bool { // NOLINT(cppcoreguidelines-missing-std-forward)
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<std::remove_reference_t<T>>,
                                  std::add_const_t<R>, R>>>(&t) != nullptr);
@@ -609,7 +609,7 @@ auto is_of_type(T && t) -> bool {
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-auto is_of_type(std::unique_ptr<T> & t) -> bool {
+[[nodiscard]] auto is_of_type(std::unique_ptr<T> & t) -> bool {
   return (dynamic_cast<std::add_pointer_t<
               std::conditional_t<std::is_const_v<T>, std::add_const_t<R>, R>>>(
               t.get()) != nullptr);
@@ -617,20 +617,22 @@ auto is_of_type(std::unique_ptr<T> & t) -> bool {
 
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T>
-decltype(auto) as_type(const std::shared_ptr<T> & t) {
+[[nodiscard]] decltype(auto) as_type(const std::shared_ptr<T> & t) {
   return std::dynamic_pointer_cast<R>(t);
 }
 
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference_v<T>> * = nullptr>
-decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto)
+as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   static_assert(
       disjunction<
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
           std::is_base_of<std::decay_t<R>, std::decay_t<T>>  // up-cast
           >::value,
       "Type T and R are not valid for a as_type conversion");
+
   return dynamic_cast<std::add_lvalue_reference_t<
       std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
                          std::add_const_t<R>, R>>>(t);
@@ -639,7 +641,8 @@ decltype(auto) as_type(T && t) {
 /* -------------------------------------------------------------------------- */
 template <typename R, typename T,
           std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-decltype(auto) as_type(T && t) {
+[[nodiscard]] decltype(auto)
+as_type(T && t) { // NOLINT(cppcoreguidelines-missing-std-forward)
   return &as_type<R>(*t);
 }
 
@@ -653,13 +656,13 @@ template <class T> inline constexpr auto decay_v = std::decay_t<T>::value;
 
 namespace akantu {
 /// get access to the internal argument parser
-cppargparse::ArgumentParser & getStaticArgumentParser();
+[[nodiscard]] cppargparse::ArgumentParser & getStaticArgumentParser();
 
 /// get access to the internal input file parser
-Parser & getStaticParser();
+[[nodiscard]] Parser & getStaticParser();
 
 /// get access to the user part of the internal input file parser
-const ParserSection & getUserParser();
+[[nodiscard]] const ParserSection & getUserParser();
 
 #define AKANTU_CURRENT_FUNCTION                                                \
   (std::string(__func__) + "():" + std::to_string(__LINE__))

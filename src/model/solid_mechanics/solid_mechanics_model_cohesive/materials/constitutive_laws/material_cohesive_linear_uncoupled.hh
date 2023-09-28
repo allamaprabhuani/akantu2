@@ -50,10 +50,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// initialize the material parameters
-  void initMaterial() override;
-
 protected:
   /// constitutive law
   void computeTraction(ElementType el_type,
@@ -71,16 +67,16 @@ protected:
   Real R;
 
   /// maximum normal displacement
-  CohesiveInternalField<Real> delta_n_max;
+  CohesiveInternalField<Real> & delta_n_max;
 
   /// maximum tangential displacement
-  CohesiveInternalField<Real> delta_t_max;
+  CohesiveInternalField<Real> & delta_t_max;
 
   /// damage associated to normal tractions
-  CohesiveInternalField<Real> damage_n;
+  CohesiveInternalField<Real> & damage_n;
 
   /// damage associated to shear tractions
-  CohesiveInternalField<Real> damage_t;
+  CohesiveInternalField<Real> & damage_t;
 };
 
 } // namespace akantu

@@ -150,9 +150,12 @@ doubleDot(const MatrixBase<OtherDerived> & other) const {
   return this->cwiseProduct(other).sum();
 }
 
+template <typename OtherScalar>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto eig() const;
+
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(MatrixBase<OtherDerived> & other) const;
+eig(MatrixBase<OtherDerived> & values) const;
 
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
@@ -161,11 +164,11 @@ eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors,
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eigh(const MatrixBase<OtherDerived> & other) const;
+eigh(const MatrixBase<OtherDerived> & values_) const;
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(const MatrixBase<D1> & values,
-                                                const MatrixBase<D2> & vectors,
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(const MatrixBase<D1> & values_,
+                                                const MatrixBase<D2> & vectors_,
                                                 bool sort = true) const;
 
 template <typename OtherDerived>

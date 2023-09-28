@@ -34,7 +34,7 @@ namespace akantu {
 
 namespace MeshUtilsDistribution {
   /* ------------------------------------------------------------------------ */
-  void distributeMeshCentralized(Mesh & mesh, UInt /*unused*/,
+  void distributeMeshCentralized(Mesh & mesh, Int /*unused*/,
                                  const MeshPartition & partition) {
     MeshAccessor mesh_accessor(mesh);
     auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
@@ -64,14 +64,15 @@ namespace MeshUtilsDistribution {
     /**
      * connectivity and communications scheme construction
      */
-    UInt count = 0;
+    Int count = 0;
     /* --- MAIN LOOP ON TYPES --- */
     for (auto && type :
          mesh.elementTypes(_all_dimensions, _not_ghost, _ek_not_defined)) {
       /// \todo change this ugly way to avoid a problem if an element
       /// type is present in the mesh but not in the partitions
       try {
-        partition.getPartition(type, _not_ghost);
+        auto && partiton [[maybe_unused]] =
+            partition.getPartition(type, _not_ghost);
       } catch (...) {
         continue;
       }
@@ -103,7 +104,7 @@ namespace MeshUtilsDistribution {
   }
 
   /* ------------------------------------------------------------------------ */
-  void distributeMeshCentralized(Mesh & mesh, UInt root) {
+  void distributeMeshCentralized(Mesh & mesh, Int root) {
     MeshAccessor mesh_accessor(mesh);
     auto & element_synchronizer = mesh_accessor.getElementSynchronizer();
     auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
@@ -124,7 +125,7 @@ namespace MeshUtilsDistribution {
      * connectivity and communications scheme construction on distant
      * processors
      */
-    UInt count = 0;
+    Int count = 0;
     bool need_synchronize = true;
     do {
       /* --------<<<<-SIZE--------------------------------------------------- */

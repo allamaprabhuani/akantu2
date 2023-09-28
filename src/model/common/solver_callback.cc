@@ -29,12 +29,6 @@ SolverCallback::SolverCallback(DOFManager & dof_manager)
     : sc_dof_manager(&dof_manager) {}
 
 /* -------------------------------------------------------------------------- */
-SolverCallback::SolverCallback() = default;
-
-/* -------------------------------------------------------------------------- */
-SolverCallback::~SolverCallback() = default;
-
-/* -------------------------------------------------------------------------- */
 void SolverCallback::setDOFManager(DOFManager & dof_manager) {
   this->sc_dof_manager = &dof_manager;
 }

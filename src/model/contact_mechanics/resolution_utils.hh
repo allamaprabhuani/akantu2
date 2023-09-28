@@ -25,8 +25,8 @@
 #include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_UTILS_HH__
-#define __AKANTU_RESOLUTION_UTILS_HH__
+#ifndef AKANTU_RESOLUTION_UTILS_HH_
+#define AKANTU_RESOLUTION_UTILS_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -105,4 +105,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_RESOLUTION_UTILS_HH__ */
+#endif /* AKANTU_RESOLUTION_UTILS_HH_ */

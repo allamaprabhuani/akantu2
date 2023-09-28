@@ -21,15 +21,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "aka_voigthelper.hh"
-#include "data_accessor.hh"
+#include "constitutive_law.hh"
 #include "integration_point.hh"
-#include "parsable.hh"
-#include "parser.hh"
-/* -------------------------------------------------------------------------- */
-#include "internal_field.hh"
-#include "random_internal_field.hh"
-/* -------------------------------------------------------------------------- */
-#include "mesh_events.hh"
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -66,29 +59,16 @@ using MaterialFactory =
  * \endcode
  *
  */
-class Material : public DataAccessor<Element>,
-                 public Parsable,
-                 public MeshEventHandler,
+class Material : public ConstitutiveLaw<SolidMechanicsModel>,
                  protected SolidMechanicsModelEventHandler {
+  using Parent = ConstitutiveLaw<SolidMechanicsModel>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Material(const Material & mat) = delete;
-  Material & operator=(const Material & mat) = delete;
-
   /// Initialize material with defaults
-  Material(SolidMechanicsModel & model, const ID & id = "");
-
-  /// Initialize material with custom mesh & fe_engine
-  Material(SolidMechanicsModel & model, Int dim, const Mesh & mesh,
-           FEEngine & fe_engine, const ID & id = "");
-
-  /// Destructor
-  ~Material() override;
-
-protected:
-  void initialize();
+  Material(SolidMechanicsModel & model, const ID & id = "material",
+           const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Function that materials can/should reimplement                           */
@@ -132,9 +112,9 @@ protected:
   virtual void setToSteadyState(ElementType /*el_type*/,
                                 GhostType /*ghost_type*/ = _not_ghost) {}
 
-  /// function called to update the internal parameters when the modifiable
-  /// parameters are modified
-  virtual void updateInternalParameters() {}
+  /// function called to update the internal parameters when the
+  /// modifiable parameters are modified
+  void updateInternalParameters() override;
 
 public:
   /// extrapolate internal values
@@ -143,18 +123,20 @@ public:
                                    Matrix<Real> & extrapolated);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed(const Element & /*element*/) const {
+  [[nodiscard]] virtual Real
+  getPushWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed(const Element & /*element*/) const {
+  [[nodiscard]] virtual Real
+  getShearWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// get a material celerity to compute the stable time step (default: is the
   /// push wave speed)
-  virtual Real getCelerity(const Element & element) const {
+  [[nodiscard]] virtual Real getCelerity(const Element & element) const {
     return getPushWaveSpeed(element);
   }
 
@@ -162,33 +144,16 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> void registerInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
-  template <typename T> void unregisterInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// compute the residual for this material
-  //  virtual void updateResidual(GhostType ghost_type = _not_ghost);
+  void initConstitutiveLaw() override { this->initMaterial(); }
 
   /// assemble the residual for this material
   virtual void assembleInternalForces(GhostType ghost_type);
 
-  /// save the internals in the previous_stress if needed
-  virtual void savePreviousState();
-
-  /// restore the internals from previous_stress if needed
-  virtual void restorePreviousState();
-
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
-  // virtual void
-  // computeAllStressesFromTangentModuli(GhostType ghost_type = _not_ghost);
   virtual void computeAllCauchyStresses(GhostType ghost_type = _not_ghost);
 
   /// set material to steady state
@@ -196,19 +161,6 @@ public:
 
   /// compute the stiffness matrix
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
-
-  /// add an element to the local mesh filter
-  inline auto addElement(ElementType type, Int element, GhostType ghost_type);
-  inline auto addElement(const Element & element);
-
-  /// add many elements at once
-  void addElements(const Array<Element> & elements_to_add);
-
-  /// remove many element at once
-  void removeElements(const Array<Element> & elements_to_remove);
-
-  /// function to print the contain of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
 
   /**
    * interpolate stress on given positions for each element by means
@@ -250,28 +202,25 @@ protected:
   /// compute the potential energy by element
   void computePotentialEnergyByElements();
 
-  /// resize the intenals arrays
-  virtual void resizeInternals();
-
   template <Int dim>
   decltype(auto) getArguments(ElementType el_type, GhostType ghost_type) {
     using namespace tuple;
     auto && args =
-        zip("grad_u"_n = make_view<dim, dim>(this->gradu(el_type, ghost_type)),
+        zip("grad_u"_n = make_view<dim, dim>(gradu(el_type, ghost_type)),
             "previous_sigma"_n =
-                make_view<dim, dim>(this->stress.previous(el_type, ghost_type)),
+                make_view<dim, dim>(stress.previous(el_type, ghost_type)),
             "previous_grad_u"_n =
-                make_view<dim, dim>(this->gradu.previous(el_type, ghost_type)));
+                make_view<dim, dim>(gradu.previous(el_type, ghost_type)));
 
     if (not finite_deformation) {
-      return zip_append(
-          std::forward<decltype(args)>(args),
-          "sigma"_n = make_view<dim, dim>(this->stress(el_type, ghost_type)));
+      return zip_append(std::forward<decltype(args)>(args),
+                        "sigma"_n =
+                            make_view<dim, dim>(stress(el_type, ghost_type)));
     }
 
     return zip_append(std::forward<decltype(args)>(args),
                       "sigma"_n = make_view<dim, dim>(
-                          this->piola_kirchhoff_2(el_type, ghost_type)));
+                          (*piola_kirchhoff_2)(el_type, ghost_type)));
   }
 
   template <Int dim>
@@ -282,8 +231,7 @@ protected:
     constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
     return zip("tangent_moduli"_n =
                    make_view<tangent_size, tangent_size>(tangent_matrix),
-               "grad_u"_n =
-                   make_view<dim, dim>(this->gradu(el_type, ghost_type)));
+               "grad_u"_n = make_view<dim, dim>(gradu(el_type, ghost_type)));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -445,25 +393,13 @@ public:
   template <typename D1>
   static inline Real stressToVonMises(const Eigen::MatrixBase<D1> & stress);
 
-protected:
-  /// converts global element to local element
-  inline Element convertToLocalElement(const Element & global_element) const;
-  /// converts local element to global element
-  inline Element convertToGlobalElement(const Element & local_element) const;
-
-  /// converts global quadrature point to local quadrature point
-  inline IntegrationPoint
-  convertToLocalPoint(const IntegrationPoint & global_point) const;
-  /// converts local quadrature point to global quadrature point
-  inline IntegrationPoint
-  convertToGlobalPoint(const IntegrationPoint & local_point) const;
-
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -472,35 +408,6 @@ public:
   inline void unpackData(CommunicationBuffer & buffer,
                          const Array<Element> & elements,
                          const SynchronizationTag & tag) override;
-
-  template <typename T>
-  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
-                                    CommunicationBuffer & buffer,
-                                    const Array<Element> & elements,
-                                    const ID & fem_id = ID()) const;
-
-  template <typename T>
-  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      const ID & fem_id = ID());
-
-  /* ------------------------------------------------------------------------ */
-  /* MeshEventHandler inherited members                                       */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
-  void onNodesAdded(const Array<Idx> &, const NewNodesEvent &) override{};
-  void onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
-                      const RemovedNodesEvent &) override{};
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> &, const Array<Element> &,
-                         const ElementTypeMapArray<Idx> &,
-                         const ChangedElementsEvent &) override{};
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
@@ -517,16 +424,13 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Name, name, const std::string &);
-  AKANTU_SET_MACRO(Name, name, const std::string &);
+  [[nodiscard]] const SolidMechanicsModel & getModel() const {
+    return this->getHandler();
+  }
+  [[nodiscard]] SolidMechanicsModel & getModel() { return this->getHandler(); }
 
-  AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &)
-
-  AKANTU_GET_MACRO(ID, id, const ID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
-
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, Int);
 
   /// return the potential energy for the subset of elements contained by the
   /// material
@@ -540,64 +444,29 @@ public:
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
-  virtual Real getEnergy(const std::string & type);
+  Real getEnergy(const std::string & type) override;
   /// return the energy (identified by id) for the provided element
-  virtual Real getEnergy(const std::string & energy_id,
-                         const Element & element);
+  Real getEnergy(const std::string & energy_id,
+                 const Element & element) override;
 
   [[deprecated("Use the interface with an Element")]] virtual Real
   getEnergy(const std::string & energy_id, ElementType type, Idx index) final {
     return getEnergy(energy_id, {type, index, _not_ghost});
   }
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy,
                                          Real);
-  AKANTU_GET_MACRO(GradU, gradu, const ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<Int> &);
-  AKANTU_GET_MACRO(FEEngine, fem, FEEngine &);
+  AKANTU_GET_MACRO_AUTO(GradU, gradu);
+  AKANTU_GET_MACRO_AUTO(Stress, stress);
 
-  bool isNonLocal() const { return is_non_local; }
+  [[nodiscard]] bool isNonLocal() const { return is_non_local; }
 
-  template <typename T>
-  const Array<T> & getArray(const ID & id, ElementType type,
-                            GhostType ghost_type = _not_ghost) const;
-  template <typename T>
-  Array<T> & getArray(const ID & id, ElementType type,
-                      GhostType ghost_type = _not_ghost);
-
-  template <typename T>
-  const InternalField<T> & getInternal(const ID & id) const;
-  template <typename T> InternalField<T> & getInternal(const ID & id);
-
-  template <typename T>
-  inline bool isInternal(const ID & id, ElementKind element_kind) const;
-
-  template <typename T>
-  ElementTypeMap<Int> getInternalDataPerElem(const ID & id,
-                                             ElementKind element_kind) const;
-
-  bool isFiniteDeformation() const { return finite_deformation; }
-  bool isInelasticDeformation() const { return inelastic_deformation; }
-
-  template <typename T> inline void setParam(const ID & param, T value);
-  inline const Parameter & getParam(const ID & param) const;
-
-  template <typename T>
-  void flattenInternal(const std::string & field_id,
-                       ElementTypeMapArray<T> & internal_flat,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined) const;
-
-  template <typename T>
-  void inflateInternal(const std::string & field_id,
-                       const ElementTypeMapArray<T> & field,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined);
+  [[nodiscard]] bool isFiniteDeformation() const { return finite_deformation; }
+  [[nodiscard]] bool isInelasticDeformation() const {
+    return inelastic_deformation;
+  }
 
   /// apply a constant eigengrad_u everywhere in the material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
@@ -630,106 +499,59 @@ public:
   /// for static or implicit computations
   virtual MatrixType getTangentType() { return _mt_not_defined; }
 
-  /// static method to reteive the material factory
+  /// static method to retrieve the material factory
   static MaterialFactory & getFactory();
-
-protected:
-  bool isInit() const { return is_init; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  /// boolean to know if the material has been initialized
-  bool is_init{false};
-
-  std::map<ID, InternalField<Real> *> internal_vectors_real;
-  std::map<ID, InternalField<Int> *> internal_vectors_int;
-  std::map<ID, InternalField<bool> *> internal_vectors_bool;
 
 protected:
-  ID id;
-
-  /// Link to the fem object in the model
-  FEEngine & fem;
-
   /// Finite deformation
   bool finite_deformation{false};
 
   /// Finite deformation
   bool inelastic_deformation{false};
 
-  /// material name
-  std::string name;
-
-  /// The model to witch the material belong
-  SolidMechanicsModel & model;
-
   /// density : rho
   Real rho{0.};
 
-  /// spatial dimension
-  Int spatial_dimension;
-
-  /// list of element handled by the material
-  ElementTypeMapArray<Idx> element_filter;
-
   /// stresses arrays ordered by element types
-  InternalField<Real> stress;
+  InternalField<Real> & stress;
 
   /// eigengrad_u arrays ordered by element types
-  InternalField<Real> eigengradu;
+  InternalField<Real> & eigengradu;
 
   /// grad_u arrays ordered by element types
-  InternalField<Real> gradu;
+  InternalField<Real> & gradu;
 
   /// Green Lagrange strain (Finite deformation)
-  InternalField<Real> green_strain;
+  std::shared_ptr<InternalField<Real>> green_strain;
 
   /// Second Piola-Kirchhoff stress tensor arrays ordered by element types
   /// (Finite deformation)
-  InternalField<Real> piola_kirchhoff_2;
+  std::shared_ptr<InternalField<Real>> piola_kirchhoff_2;
 
   /// potential energy by element
-  InternalField<Real> potential_energy;
+  InternalField<Real> & potential_energy;
+
+  /// elemental field interpolation coordinates
+  ElementTypeMapArray<Real> interpolation_inverse_coordinates;
+
+  /// elemental field interpolation points
+  ElementTypeMapArray<Real> interpolation_points_matrices;
 
   /// tell if using in non local mode or not
   bool is_non_local{false};
-
-  /// tell if the material need the previous stress state
-  bool use_previous_stress{false};
-
-  /// tell if the material need the previous strain state
-  bool use_previous_gradu{false};
-
-  /// elemental field interpolation coordinates
-  InternalField<Real> interpolation_inverse_coordinates;
-
-  /// elemental field interpolation points
-  InternalField<Real> interpolation_points_matrices;
-
-  /// vector that contains the names of all the internals that need to
-  /// be transferred when material interfaces move
-  std::vector<ID> internals_to_transfer;
 
 private:
   /// eigen_grad_u for the parser
   Matrix<Real> eigen_grad_u;
 };
 
-/// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const Material & _this) {
-  _this.printself(stream);
-  return stream;
-}
-
 } // namespace akantu
 
 #include "material_inline_impl.hh"
-
-#include "internal_field_tmpl.hh"
-#include "random_internal_field_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Auto loop                                                                  */
@@ -747,7 +569,7 @@ inline std::ostream & operator<<(std::ostream & stream,
                 this->spatial_dimension);                                      \
                                                                                \
   if (this->isFiniteDeformation()) {                                           \
-    stress_view = make_view(this->piola_kirchhoff_2(el_type, ghost_type),      \
+    stress_view = make_view((*this->piola_kirchhoff_2)(el_type, ghost_type),   \
                             this->spatial_dimension, this->spatial_dimension); \
   }                                                                            \
                                                                                \

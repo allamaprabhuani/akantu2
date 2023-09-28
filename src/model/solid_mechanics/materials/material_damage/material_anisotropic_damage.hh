@@ -36,7 +36,6 @@ class MaterialAnisotropicDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialAnisotropicDamage(SolidMechanicsModel & model, const ID & id = "");
-  ~MaterialAnisotropicDamage() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -72,23 +71,23 @@ private:
 private:
   Real Dc{0.99};
 
-  /// damage internal variable
-  InternalField<Real> damage;
-
-  /// elastic stress
-  InternalField<Real> elastic_stress;
-
-  /// equivalent strain
-  InternalField<Real> equivalent_strain;
-
-  /// trace of the damageThreshold
-  InternalField<Real> trace_damage;
-
   /// damage criteria
   EquivalentStrain<dim> equivalent_strain_function;
 
   /// damage evolution
   DamageThreshold<dim> damage_threshold_function;
+
+  /// damage internal variable
+  InternalField<Real> & damage;
+
+  /// elastic stress
+  InternalField<Real> & elastic_stress;
+
+  /// equivalent strain
+  InternalField<Real> & equivalent_strain;
+
+  /// trace of the damage threshold
+  InternalField<Real> & trace_damage;
 };
 
 } // namespace akantu

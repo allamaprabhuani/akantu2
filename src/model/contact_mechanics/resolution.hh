@@ -28,8 +28,8 @@
 #include "resolution_utils.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_HH__
-#define __AKANTU_RESOLUTION_HH__
+#ifndef AKANTU_RESOLUTION_HH_
+#define AKANTU_RESOLUTION_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -214,4 +214,4 @@ template <typename T> T heaviside(T var) { return var < 0 ? 0 : 1.0; }
       ResolutionFactory::getInstance().registerAllocator(                      \
           #id, RESOLUTION_DEFAULT_PER_DIM_ALLOCATOR(id, res_name))
 
-#endif /* __AKANTU_RESOLUTION_HH__  */
+#endif /* AKANTU_RESOLUTION_HH_  */

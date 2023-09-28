@@ -1,4 +1,12 @@
 parallel
 ''''''''
 
-In ``parallel``, an example show how to run a simulation in parallel. Note that you need to have compile Akantu with the ``parallel`` option.
+In ``parallel``, an example of how to run a parallel simulation is presented.
+
+.. figure:: examples/c++/solid_mechanics_model/parallel/images/parallel.png
+            :align: center
+            :width: 70%
+
+            Displacement in the x direction.
+
+

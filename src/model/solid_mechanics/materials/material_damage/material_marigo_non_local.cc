@@ -29,19 +29,18 @@ namespace akantu {
 template <Int dim>
 MaterialMarigoNonLocal<dim>::MaterialMarigoNonLocal(SolidMechanicsModel & model,
                                                     const ID & id)
-    : parent(model, id), Ynl("Y non local", *this) {
-  AKANTU_DEBUG_IN();
+    : parent(model, id),
+      Ynl(this->template registerInternal<Real>("Y non local", 1)) {
   this->is_non_local = true;
-  this->Ynl.initialize(1);
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialMarigoNonLocal<dim>::registerNonLocalVariables() {
-  this->model.getNonLocalManager().registerNonLocalVariable(this->Y.getName(),
-                                                            Ynl.getName(), 1);
-  this->model.getNonLocalManager()
+  this->getModel().getNonLocalManager().registerNonLocalVariable(
+      this->Y.getName(), Ynl.getName(), 1);
+  this->getModel()
+      .getNonLocalManager()
       .getNeighborhood(this->name)
       .registerNonLocalVariable(Ynl.getName());
 }
@@ -81,7 +80,7 @@ template class MaterialMarigoNonLocal<1>;
 template class MaterialMarigoNonLocal<2>;
 template class MaterialMarigoNonLocal<3>;
 
-static bool material_is_alocated_marigo_non_local =
+const bool material_is_alocated_marigo_non_local [[maybe_unused]] =
     instantiateMaterial<MaterialMarigo>("marigo_non_local");
 
 } // namespace akantu

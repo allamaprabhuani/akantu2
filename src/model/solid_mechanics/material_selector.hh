@@ -19,6 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "constitutive_law_selector.hh"
 #include "element.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
@@ -28,120 +29,15 @@
 #ifndef AKANTU_MATERIAL_SELECTOR_HH_
 #define AKANTU_MATERIAL_SELECTOR_HH_
 
-/* -------------------------------------------------------------------------- */
 namespace akantu {
-
 class SolidMechanicsModel;
-
-/**
- * main class to assign same or different materials for different
- * elements
- */
-class MaterialSelector {
-public:
-  MaterialSelector(Int fallback_value = 0) : fallback_value(fallback_value){};
-  virtual ~MaterialSelector() = default;
-  virtual inline Int operator()(const Element & element) {
-    if (fallback_selector) {
-      return (*fallback_selector)(element);
-    }
-
-    return fallback_value;
-  }
-
-  inline void setFallback(Int f) { fallback_value = f; }
-  inline void
-  setFallback(const std::shared_ptr<MaterialSelector> & fallback_selector) {
-    this->fallback_selector = fallback_selector;
-  }
-
-  inline std::shared_ptr<MaterialSelector> & getFallbackSelector() {
-    return this->fallback_selector;
-  }
-
-  inline Int getFallbackValue() const { return this->fallback_value; }
-
-protected:
-  Int fallback_value{0};
-  std::shared_ptr<MaterialSelector> fallback_selector;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class that assigns the first material to regular elements by default
- */
-class DefaultMaterialSelector : public MaterialSelector {
-public:
-  explicit DefaultMaterialSelector(
-      const ElementTypeMapArray<Idx> & material_index)
-      : material_index(material_index) {}
-
-  Int operator()(const Element & element) override {
-    if (not material_index.exists(element.type, element.ghost_type)) {
-      return MaterialSelector::operator()(element);
-    }
-
-    const auto & mat_indexes = material_index(element.type, element.ghost_type);
-    if (element.element < mat_indexes.size()) {
-      auto && tmp_mat = mat_indexes(element.element);
-      if (tmp_mat != Int(-1)) {
-        return tmp_mat;
-      }
-    }
-
-    return MaterialSelector::operator()(element);
-  }
-
-private:
-  const ElementTypeMapArray<Idx> & material_index;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * Use elemental data to assign materials
- */
+using DefaultMaterialSelector = DefaultConstitutiveLawSelector;
 template <typename T>
-class ElementDataMaterialSelector : public MaterialSelector {
-public:
-  ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
-                              const SolidMechanicsModel & model,
-                              Int first_index = 1)
-      : element_data(element_data), model(model), first_index(first_index) {}
-
-  inline T elementData(const Element & element) {
-    DebugLevel dbl = debug::getDebugLevel();
-    debug::setDebugLevel(dblError);
-    T data = element_data(element);
-    debug::setDebugLevel(dbl);
-    return data;
-  }
-
-  inline Int operator()(const Element & element) override;
-
-protected:
-  /// list of element with the specified data (i.e. tag value)
-  const ElementTypeMapArray<T> & element_data;
-
-  /// the model that the materials belong
-  const SolidMechanicsModel & model;
-
-  /// first material index: equal to 1 if none specified
-  Int first_index;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class to use mesh data information to assign different materials
- * where name is the tag value: tag_0, tag_1
- */
+using ElementDataMaterialSelector =
+    ElementDataConstitutiveLawSelector<T, SolidMechanicsModel>;
 template <typename T>
-class MeshDataMaterialSelector : public ElementDataMaterialSelector<T> {
-public:
-  MeshDataMaterialSelector(const std::string & name,
-                           const SolidMechanicsModel & model,
-                           Int first_index = 1);
-};
-
+using MeshDataMaterialSelector =
+    MeshDataConstitutiveLawSelector<T, SolidMechanicsModel>;
 } // namespace akantu
 
 #endif /* AKANTU_MATERIAL_SELECTOR_HH_ */

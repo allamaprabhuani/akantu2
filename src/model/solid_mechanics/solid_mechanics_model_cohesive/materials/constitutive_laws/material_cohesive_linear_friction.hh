@@ -51,10 +51,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// initialize the material parameters
-  void initMaterial() override;
-
 protected:
   /// constitutive law
   void computeTraction(ElementType el_type,
@@ -93,10 +89,10 @@ protected:
   Real friction_penalty;
 
   /// history parameter for the friction law
-  CohesiveInternalField<Real> residual_sliding;
+  CohesiveInternalField<Real> & residual_sliding;
 
   /// friction force
-  CohesiveInternalField<Real> friction_force;
+  CohesiveInternalField<Real> & friction_force;
 };
 
 } // namespace akantu

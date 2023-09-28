@@ -47,25 +47,21 @@ int main(int argc, char * argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("square_notch.msh");
 
+  // The model coupler contains the solid mechanics and the phase-field models
   CouplerSolidPhaseField coupler(mesh);
   auto & model = coupler.getSolidMechanicsModel();
   auto & phase = coupler.getPhaseFieldModel();
 
+  // Each model can bet set separately
   model.initFull(_analysis_method = _static);
-  auto && mat_selector =
-      std::make_shared<MeshDataMaterialSelector<std::string>>("physical_names",
-                                                              model);
-  model.setMaterialSelector(mat_selector);
-
-  auto && selector = std::make_shared<MeshDataPhaseFieldSelector<std::string>>(
-      "physical_names", phase);
-  phase.setPhaseFieldSelector(selector);
 
   phase.initFull(_analysis_method = _static);
 
+  // Dirichlet BC
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "bottom");
   model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
 
+  // Dumper settings
   model.setBaseName("phase_notch");
   model.addDumpField("stress");
   model.addDumpField("grad_u");
@@ -73,13 +69,14 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  Int nbSteps = 1000;
+  Int nb_steps = 1000;
   Real increment = 6e-6;
   Int nb_staggered_steps = 5;
 
   auto start_time = clk::now();
 
-  for (Int s = 1; s < nbSteps; ++s) {
+  // Main loop over the loading steps
+  for (Int s = 1; s < nb_steps; ++s) {
 
     if (s >= 500) {
       increment = 2e-6;
@@ -91,15 +88,19 @@ int main(int argc, char * argv[]) {
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
       std::cout << "\r[" << wheel[(s / 10) % 4] << "] " << std::setw(5) << s
-                << "/" << nbSteps << " (" << std::setprecision(2) << std::fixed
+                << "/" << nb_steps << " (" << std::setprecision(2) << std::fixed
                 << std::setw(8) << millisecond(time_per_step).count()
                 << "ms/step - elapsed: " << std::setw(8)
                 << second(elapsed).count() << "s - ETA: " << std::setw(8)
-                << second((nbSteps - s) * time_per_step).count() << "s)"
+                << second((nb_steps - s) * time_per_step).count() << "s)"
                 << std::string(' ', 20) << std::flush;
     }
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "top");
 
+    /* At each step, the two solvers are called alternately. Here a fixed number
+     * of staggered iterations is set for simplicity but a convergence based on
+     * the displacements, damage and/or energy can also be used to exit the
+     * internal loop.*/
     for (Idx i = 0; i < nb_staggered_steps; ++i) {
       coupler.solve();
     }
@@ -109,17 +110,19 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  /* Here a damage threshold is set and a mesh clustering function is called
+   * using the phase-field element filter. This allows to cluster the mesh into
+   * groups of elements separated by the mesh boundaries and "broken" elements
+   * with damage above the threshold. */
   Real damage_limit = 0.15;
   auto global_nb_clusters = mesh.createClusters(
       spatial_dimension, "crack", PhaseFieldElementFilter(phase, damage_limit));
 
-  auto nb_fragment = mesh.getNbElementGroups(spatial_dimension);
-
   model.dumpGroup("crack_0");
+  model.dumpGroup("crack_1");
 
   std::cout << std::endl;
   std::cout << "Nb clusters: " << global_nb_clusters << std::endl;
-  std::cout << "Nb fragments: " << nb_fragment << std::endl;
 
   finalize();
   return EXIT_SUCCESS;

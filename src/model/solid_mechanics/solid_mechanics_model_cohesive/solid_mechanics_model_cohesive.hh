@@ -86,9 +86,7 @@ public:
   SolidMechanicsModelCohesive(
       Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "solid_mechanics_model_cohesive",
-      std::shared_ptr<DOFManager> dof_manager = nullptr);
-
-  ~SolidMechanicsModelCohesive() override;
+      const std::shared_ptr<DOFManager> & dof_manager = nullptr);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -133,7 +131,7 @@ protected:
   void initModel() override;
 
   /// initialize cohesive material
-  void initMaterials() override;
+  void initConstitutiveLaws() override;
 
   /// init facet filters for cohesive materials
   void initFacetFilter();
@@ -162,7 +160,7 @@ private:
   /* ------------------------------------------------------------------------ */
 
 protected:
-  void onNodesAdded(const Array<Idx> & nodes_list,
+  void onNodesAdded(const Array<Idx> & new_nodes,
                     const NewNodesEvent & event) override;
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
@@ -204,8 +202,8 @@ protected:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -214,7 +212,8 @@ public:
                   const SynchronizationTag & tag) override;
 
 protected:
-  Int getNbQuadsForFacetCheck(const Array<Element> & elements) const;
+  [[nodiscard]] Int
+  getNbQuadsForFacetCheck(const Array<Element> & elements) const;
 
   template <typename T>
   void packFacetStressDataHelper(const ElementTypeMapArray<T> & data_to_pack,
@@ -227,9 +226,10 @@ protected:
                                    const Array<Element> & elements) const;
 
   template <typename T, bool pack_helper>
-  void packUnpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_pack,
-                                       CommunicationBuffer & buffer,
-                                       const Array<Element> & element) const;
+  void packUnpackFacetStressDataHelper(
+      std::conditional_t<pack_helper, const ElementTypeMapArray<T>,
+                         ElementTypeMapArray<T>> & data_to_pack,
+      CommunicationBuffer & buffer, const Array<Element> & element) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

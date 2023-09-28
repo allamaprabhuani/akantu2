@@ -20,7 +20,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh"
-#include "aka_common.hh"
 #include "element.hh"
 /* -------------------------------------------------------------------------- */
 #include <array>
@@ -36,18 +35,18 @@ template <bool is_static = true> class CommunicationBufferTemplated {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit CommunicationBufferTemplated(std::size_t size)
-      : buffer(size, 1, char()) {
+  // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions)
+  CommunicationBufferTemplated(std::size_t size = 0) : buffer(size, 1, char()) {
     ptr_pack = buffer.data();
     ptr_unpack = buffer.data();
   };
-
-  CommunicationBufferTemplated() : CommunicationBufferTemplated(0) {}
 
   CommunicationBufferTemplated(const CommunicationBufferTemplated & other) =
       delete;
   CommunicationBufferTemplated &
   operator=(const CommunicationBufferTemplated & other) = delete;
+  CommunicationBufferTemplated &
+  operator=(CommunicationBufferTemplated && other) = delete;
 
   CommunicationBufferTemplated(CommunicationBufferTemplated && other) noexcept =
       default;
@@ -77,11 +76,13 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  [[deprecated("use data instead to be stl compatible")]] inline char *
+  [[deprecated("use data instead to be stl compatible"),
+    nodiscard]] inline char *
   storage() {
     return buffer.data();
   };
-  [[deprecated("use data instead to be stl compatible")]] inline const char *
+  [[deprecated("use data instead to be stl compatible"),
+    nodiscard]] inline const char *
   storage() const {
     return buffer.data();
   };
@@ -117,7 +118,7 @@ public:
   inline CommunicationBufferTemplated & operator>>(T & to_unpack);
 
   template <typename T, std::enable_if_t<aka::is_tensor_v<T>> * = nullptr>
-  inline CommunicationBufferTemplated & operator>>(T & to_pack);
+  inline CommunicationBufferTemplated & operator>>(T & to_unpack);
 
   template <typename T>
   inline CommunicationBufferTemplated & operator>>(std::vector<T> & to_unpack);
@@ -165,10 +166,10 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// current position for packing
-  char * ptr_pack;
+  char * ptr_pack{nullptr};
 
   /// current position for unpacking
-  char * ptr_unpack;
+  char * ptr_unpack{nullptr};
 
   /// storing buffer
   Array<char> buffer;

@@ -39,6 +39,8 @@ and the system to solve can be written:
 
 with :math:`\vec{Q}^{\text{ext}}` the consistent heat generated.
 
+The diffusion model is meant as a base to implement different diffusive processes, heat diffusion, chemical diffusion, simple flow problems, etc. Currently only one of this physics is implemented, the heat diffusion, in a model named HeatTransferModel
+
 Using the Heat Transfer Model
 `````````````````````````````
 
@@ -76,19 +78,25 @@ Only a single material can be specified on the domain. A material text file (*e.
 .. code-block:: python
 
   model heat_transfer_model [
-    capacity = %\emph{XXX}%
-    density = %\emph{XXX}%
-    conductivity = [%\emph{XXX}% ... %\emph{XXX}%]
+    constitutive_law heat_diffusion [
+      name = %\emph{XXX}%
+      capacity = %\emph{XXX}%
+      density = %\emph{XXX}%
+      conductivity = [%\emph{XXX}% ... %\emph{XXX}%]
+    ]
   ]
 
-where the ``capacity`` and ``density`` are scalars, and the ``conductivity`` is specified as a :math:`3\times 3` tensor.
+where the ``capacity`` and ``density`` are scalars, and the ``conductivity`` is
+specified as a :math:`3\times 3` tensor.
 
 Explicit Dynamic
 ````````````````
 
-The explicit  time integration scheme in ``Akantu``  uses a lumped capacity
-matrix :math:`\mat{C}` (reducing the computational  cost, see Chapter :ref:`sect-smm`).
-This matrix is assembled by distributing the capacity of each element onto its nodes. Therefore, the resulting :math:`\mat{C}` is a diagonal matrix stored in the ``capacity`` :cpp:class:`Array <akantu::Array>` of the model.
+The explicit time integration scheme in ``Akantu`` uses a lumped capacity matrix
+:math:`\mat{C}` (reducing the computational cost, see Chapter :ref:`sect-smm`).
+This matrix is assembled by distributing the capacity of each element onto its
+nodes. Therefore, the resulting :math:`\mat{C}` is a diagonal matrix stored in
+the ``capacity`` :cpp:class:`Array <akantu::Array>` of the model.
 
 
 .. code-block:: c++
