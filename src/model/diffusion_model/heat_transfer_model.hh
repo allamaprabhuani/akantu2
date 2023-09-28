@@ -53,6 +53,23 @@ public:
   [[nodiscard]] const Array<Real> & getInternalHeatRate() const {
     return this->getInternalFlow();
   }
+
+  std::shared_ptr<dumpers::Field>
+  createNodalFieldReal(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override {
+
+    std::map<ID, ID> aliases{{"internal_heat_rate", "internal_flow"},
+                             {"external_heat_rate", "external_flow"}};
+
+    if (auto it = aliases.find(field_name); it != aliases.end()) {
+      return DiffusionModel::createNodalFieldReal(it->second, group_name,
+                                                  padding_flag);
+    }
+
+    return DiffusionModel::createNodalFieldReal(field_name, group_name,
+                                                padding_flag);
+  }
 };
 
 } // namespace akantu

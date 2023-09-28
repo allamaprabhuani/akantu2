@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
 
   HeatTransferModel model(mesh);
   // initialize everything
-  model.initFull();
+  model.initFull(_analysis_method = _explicit_lumped_mass);
 
   // get and set stable time step
   Real time_step = model.getStableTimeStep() * 0.8;
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  model.setBaseName("heat_transfer_cube3d");
+  model.setBaseName("heat_diffusion_cube3d");
   model.addDumpField("temperature");
   model.addDumpField("temperature_rate");
   model.addDumpField("internal_heat_rate");

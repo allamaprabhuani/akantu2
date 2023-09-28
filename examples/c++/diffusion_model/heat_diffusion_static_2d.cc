@@ -70,7 +70,7 @@ int main(int argc, char * argv[]) {
       blocked_dofs(i) = true;
   }
 
-  model.setBaseName("heat_transfer_static_2d");
+  model.setBaseName("heat_diffusion_static_2d");
   model.addDumpField("temperature");
   model.addDumpField("internal_heat_rate");
   model.addDumpField("conductivity");

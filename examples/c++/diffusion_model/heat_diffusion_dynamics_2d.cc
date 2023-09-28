@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
   HeatTransferModel model(mesh);
 
   // initialize everything
-  model.initFull();
+  model.initFull(_analysis_method = _explicit_lumped_mass);
 
   // get stable time step
   Real time_step = model.getStableTimeStep() * 0.8;

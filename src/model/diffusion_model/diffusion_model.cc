@@ -129,21 +129,21 @@ void DiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
                                 NonLinearSolverType /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
-  this->allocNodalField(this->diffusion, 1, "diffusion");
+  this->allocNodalField(this->diffusion, 1, dof_name);
   this->allocNodalField(this->external_flow, 1, "external_flow");
   this->allocNodalField(this->internal_flow, 1, "internal_flow");
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
 
-  if (!dof_manager.hasDOFs(dof_name)) {
+  if (not dof_manager.hasDOFs(dof_name)) {
     dof_manager.registerDOFs(dof_name, *this->diffusion, _dst_nodal);
     dof_manager.registerBlockedDOFs(dof_name, *this->blocked_dofs);
   }
 
   if (time_step_solver_type == TimeStepSolverType::_dynamic ||
       time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-    this->allocNodalField(this->diffusion_rate, 1, "diffusion_rate");
+    this->allocNodalField(this->diffusion_rate, 1, dof_name + "_rate");
 
-    if (!dof_manager.hasDOFsDerivatives(dof_name, 1)) {
+    if (not dof_manager.hasDOFsDerivatives(dof_name, 1)) {
       dof_manager.registerDOFsDerivative(dof_name, 1, *this->diffusion_rate);
     }
   }
@@ -406,10 +406,12 @@ std::shared_ptr<dumpers::Field> DiffusionModel::createNodalFieldReal(
   real_nodal_fields["internal_flow"] = internal_flow.get();
   real_nodal_fields["increment"] = increment.get();
 
-  std::shared_ptr<dumpers::Field> field =
-      mesh.createNodalField(real_nodal_fields[field_name], group_name);
+  if (auto it = real_nodal_fields.find(field_name);
+      it != real_nodal_fields.end()) {
+    return mesh.createNodalField(it->second, group_name);
+  }
 
-  return field;
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -441,7 +443,7 @@ std::shared_ptr<dumpers::Field> DiffusionModel::createElementalField(
 
     field =
         dumpers::FieldComputeProxy::createFieldCompute(field, std::move(foo));
-  }
+  };
 
   return field;
 }
