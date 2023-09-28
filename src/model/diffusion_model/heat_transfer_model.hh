@@ -70,6 +70,21 @@ public:
     return DiffusionModel::createNodalFieldReal(field_name, group_name,
                                                 padding_flag);
   }
+
+  std::shared_ptr<dumpers::Field>
+  createElementalField(const std::string & field_name,
+                       const std::string & group_name, bool padding_flag,
+                       Int spatial_dimension, ElementKind kind) override {
+    std::map<ID, ID> aliases{{"conductivity", "diffusivity"}};
+
+    if (auto it = aliases.find(field_name); it != aliases.end()) {
+      return DiffusionModel::createElementalField(
+          it->second, group_name, padding_flag, spatial_dimension, kind);
+    }
+
+    return DiffusionModel::createElementalField(
+        field_name, group_name, padding_flag, spatial_dimension, kind);
+  }
 };
 
 } // namespace akantu
