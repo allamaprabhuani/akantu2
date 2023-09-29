@@ -25,7 +25,7 @@ In ``heat_diffusion_dynamics_2d.cc``, the same example is solved dynamically
 using an explicit time scheme. The time step used is :math:`0.12 \text{s}`.
 
 .. _fig-ex-diffusion_explicit:
-.. figure:: examples/c++/diffusion_model/images/hot-point-1.png
+.. figure:: examples/c++/diffusion_model/images/hot-point-2.png
    :align: center     
    :width: 70%      
    
