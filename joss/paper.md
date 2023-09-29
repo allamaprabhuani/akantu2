@@ -41,8 +41,10 @@ authors:
     orcid: 0000-0002-4327-9115
     affiliation: "1, 6"
   - name: Roxane Ferry
+    orcid: 0000-0003-1881-6596
     affiliation: "1"
   - name: Shad Durussel
+    orcid: 0009-0001-6036-168X
     affiliation: "1"
   - name: Jean-François Molinari
     orcid: 0000-0002-1728-1844
