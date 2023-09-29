@@ -270,6 +270,9 @@ public:
 private:
   friend class CohesiveMeshGlobalDataUpdater;
 
+  /// lambda array
+  std::unique_ptr<Array<Real>> lambda;
+
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;
 

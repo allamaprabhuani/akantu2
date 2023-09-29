@@ -52,10 +52,17 @@ public:
   /// initialize the material parameters
   void initMaterial() override;
 
+  /// assemble residual
+  void assembleInternalForces(GhostType ghost_type = _not_ghost) override;
+
 protected:
   /// constitutive law
   void computeTraction(ElementType el_type,
-                       GhostType ghost_type = _not_ghost) override;
+                       GhostType ghost_type = _not_ghost) override;  
+
+//  /// compute the traction for a given quadrature point
+//  inline void computeTractionOnQuad(ElementType el_type,
+//                                    GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -68,7 +75,7 @@ protected:
   Real G_c;
 
   /// augmented lagrange multiplier
-  CohesiveInternalField<Real> lambda;
+  CohesiveInternalField<Real> czm_damage;
 };
 
 /* -------------------------------------------------------------------------- */

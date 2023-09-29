@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
@@ -22,6 +22,9 @@
 #include "material_cohesive_damage.hh"
 #include "dof_synchronizer.hh"
 #include "solid_mechanics_model_cohesive.hh"
+#include "fe_engine_template.hh"
+#include "integrator_gauss.hh"
+#include "shape_cohesive.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
@@ -34,7 +37,8 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveDamage<dim>::MaterialCohesiveDamage(SolidMechanicsModel & model,
                                                     const ID & id)
-    : MaterialCohesive(model, id), lambda("lambda",*this) {
+    : MaterialCohesive(model, id), czm_damage(registerInternal<Real, CohesiveInternalField>(
+                                              "czm_damage", 1)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("k", k, Real(0.), _pat_parsable | _pat_readable,
@@ -49,30 +53,96 @@ MaterialCohesiveDamage<dim>::MaterialCohesiveDamage(SolidMechanicsModel & model,
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialCohesiveDamage<dim>::initMaterial() {
+    AKANTU_DEBUG_IN();
+
+    MaterialCohesive::initMaterial();
+    //  lambda.initialize(dim);
+
+    //  const auto & mesh_facets = model->getMeshFacets();
+    //  for (const auto & type_facet : mesh_facets.elementTypes(dim - 1)) {
+    //    auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+
+    //    const auto & facet_filter_array = facet_filter(type_facet);
+    //    const auto & lambda_array = lambda(type_cohesive);
+
+    //    auto nb_quad_facet =
+    //        model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
+
+    ////    for (auto && [facet, lda] :
+    ////         zip(facet_filter_array, lambda_array)) {
+
+    //////        for (Int q = 0; q < nb_quad_facet; ++q) {
+    //////            auto current_quad = facet * nb_quad_facet + q;
+    //////        }
+    ////        std::cout << " lda = " << lda << std::endl;
+    ////    }
+
+    ////    auto & dof_manager = this->model->getDOFManager();
+
+    ////    std::unique_ptr<Array<Real>> toto;
+
+    ////    dof_manager.registerDOFs("lambda", *toto, _dst_generic);
+
+    //  }
+
+//    GhostType ghost_type = _not_ghost;
+
+//    for (auto type : getElementFilter().elementTypes(spatial_dimension,
+//                                                     ghost_type, _ek_cohesive)) {
+//        auto & elem_filter = getElementFilter(type, ghost_type);
+//        auto nb_element = elem_filter.size();
+//        if (nb_element == 0) {
+//            continue;
+//        }
+
+//        auto & lambda = lambdas(type, ghost_type);
+
+//        auto lambda_it = lambda.begin(dim, 1);
+
+//        auto nb_quadrature_points =
+//                fem_cohesive.getNbIntegrationPoints(type, ghost_type);
+
+//        for (Int el = 0; el < nb_element; ++el) {
+//            auto current_quad = elem_filter(el) * nb_quadrature_points;
+
+//            for (Int q = 0; q < nb_quadrature_points; ++q, ++lambda_it) {
+
+//                //        std::cout << "lda = ",*lambda_it << std::endl;
+//            }
+//        }
+
+//        auto & dof_manager = this->model->getDOFManager();
+//        dof_manager.registerDOFs("lambdas", lambdas, _dst_generic);
+
+
+//    }
+    AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MaterialCohesive::initMaterial();
-  lambda.initialize(dim);
+  auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
 
-  const auto & mesh_facets = model->getMeshFacets();
-  for (const auto & type_facet : mesh_facets.elementTypes(dim - 1)) {
-    auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
-
-    const auto & facet_filter_array = facet_filter(type_facet);
-    const auto & lambda_array = lambda(type_cohesive);
-
-    auto nb_quad_facet =
-        model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
-
-    for (auto && [facet, lda] :
-         zip(facet_filter_array, lambda_array)) {
-
-//        for (Int q = 0; q < nb_quad_facet; ++q) {
-//            auto current_quad = facet * nb_quad_facet + q;
-//        }
-        std::cout << " lda = " << lda << std::endl;
+  for (auto type : getElementFilter().elementTypes(spatial_dimension,
+                                                   ghost_type, _ek_cohesive)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
+    auto nb_element = elem_filter.size();
+    if (nb_element == 0) {
+      continue;
     }
+
+    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
+
+    auto size_of_shapes = shapes.getNbComponent();
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_quadrature_points =
+        fem_cohesive.getNbIntegrationPoints(type, ghost_type);
+
   }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -80,15 +150,14 @@ template <Int dim> void MaterialCohesiveDamage<dim>::initMaterial() {
 template <Int dim>
 void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
-  std::cout << "Print MaterialCohesiveDamage<dim>::computeTraction : TODO " << std::endl;
-  throw;
+//    this->computeTractionOnQuad(el_type,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template class MaterialCohesiveDamage<1>;
 template class MaterialCohesiveDamage<2>;
 template class MaterialCohesiveDamage<3>;
-static bool material_is_alocated_cohesive_damage =
+const bool material_is_alocated_cohesive_damage [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveDamage>("cohesive_damage");
 
 } // namespace akantu

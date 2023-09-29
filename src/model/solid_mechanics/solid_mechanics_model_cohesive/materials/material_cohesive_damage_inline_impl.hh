@@ -32,6 +32,13 @@
 
 namespace akantu {
 
+///* -------------------------------------------------------------------------- */
+//template <Int dim>
+//inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(ElementType el_type,
+//                                                               GhostType ghost_type = _not_ghost) {
+
+
+//}
 
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
