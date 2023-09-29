@@ -102,18 +102,18 @@ number of application domains. Thanks to its versatility, the finite-element
 method (FEM) has become an essential tool in these areas. However, codes that
 can handle cutting edge simulations with interaction of material behavior and
 interface processes in a high-performance computing (HPC) setting are rare,
-particularity in the open-source space. Being able to simulate the for-mentioned
-interface processes in an efficient manner is the primary *raison d'être* of
-Akantu. Even though Akantu is meant to be a generic FEM library the physics
-currently implemented, all serve the goal to get a better understanding of
-fracture, contact and friction mechanism at a continuum scale.
+particularity in the open-source space. Being able to simulate the
+aforementioned interface processes in an efficient manner is the primary *raison
+d'être* of Akantu. Even though Akantu is meant to be a generic FEM library, the
+physics currently implemented, all serve the goal to get a better understanding
+of fracture, contact and friction mechanism at a continuum scale.
 
 ![Dynamic fragmentation of a tempered glass pane using cohesive elements.\label{fig:cohesive_insertion}](results/cohesive_insertion.png){width=60%}
 
 At its heart, Akantu leverages a SOA (structure of array) architecture in order
-to take advantage of an object-oriented high-level abstraction, and maintain
-performance in the critical areas of the code. In addition Akantu, benefits from
-distributed memory parallelization, and on the contrary to many finite-element
+to take advantage of an object-oriented high-level abstraction, and maintains
+performance in the critical areas of the code. In addition, Akantu benefits from
+distributed memory parallelization and, on the contrary to many finite-elements
 codes, Akantu has a element-centric parallelization that makes it easier to
 implement algorithms like the dynamic insertion of extrinsic cohesive elements.
 The \autoref{fig:cohesive_insertion} taken from @vocialta_numerical_2018
