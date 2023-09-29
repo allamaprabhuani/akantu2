@@ -32,9 +32,7 @@ class LocalMaterialDamage : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  LocalMaterialDamage(SolidMechanicsModel &model, const ID &id = "");
-
-  virtual ~LocalMaterialDamage(){};
+  LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -52,21 +50,21 @@ public:
 protected:
   /// constitutive law for a given quadrature point
   template <typename D1, typename D2>
-  inline void computeStressOnQuad(Eigen::MatrixBase<D1> &grad_u,
-                                  Eigen::MatrixBase<D2> &sigma, Real &damage);
+  inline void computeStressOnQuad(Eigen::MatrixBase<D1> & grad_u,
+                                  Eigen::MatrixBase<D2> & sigma, Real & damage);
 
   /// compute the potential energy for on element
   template <typename D1, typename D2>
-  inline void computePotentialEnergyOnQuad(Eigen::MatrixBase<D1> &grad_u,
-                                           Eigen::MatrixBase<D2> &sigma,
-                                           Real &epot);
+  inline void computePotentialEnergyOnQuad(Eigen::MatrixBase<D1> & grad_u,
+                                           Eigen::MatrixBase<D2> & sigma,
+                                           Real & epot);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the celerity of the fastest wave in the material
-  inline Real getCelerity(const Element &element) const override;
+  [[nodiscard]] inline Real getCelerity(const Element & element) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -76,34 +74,34 @@ public:
 
 private:
   /// the young modulus
-  Real E;
+  Real E{};
 
   /// Poisson coefficient
-  Real nu;
+  Real nu{};
 
   /// First Lamé coefficient
-  Real lambda;
+  Real lambda{};
 
   /// Second Lamé coefficient (shear modulus)
-  Real mu;
+  Real mu{};
 
   /// resistance to damage
-  Real Yd;
+  Real Yd{};
 
   /// damage threshold
-  Real Sd;
+  Real Sd{};
 
   /// Bulk modulus
-  Real kpa;
+  Real kpa{};
 
   /// damage internal variable
-  InternalField<Real> damage;
+  InternalField<Real> & damage;
 };
 
 } // namespace akantu
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "local_material_damage_inline_impl.hh"
+#include "local_material_damage_inline_impl.hh" // NOLINT(unused-includes)
 
 #endif /* AKANTU_LOCAL_MATERIAL_DAMAGE_HH_ */

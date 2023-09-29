@@ -21,6 +21,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_laws_handler.hh>
 #include <model.hh>
 #include <non_linear_solver.hh>
 #include <solver_callback.hh>
@@ -35,6 +36,80 @@ namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+
+template <class ConstitutiveLawType, class ModelType>
+void register_constitutive_law_handler(py::module & mod,
+                                       const std::string & name) {
+  py::class_<ConstitutiveLawsHandler<ConstitutiveLawType, ModelType>,
+             ModelType>(mod, name.c_str(), py::multiple_inheritance())
+      .def(
+          "getConstitutiveLaw",
+          [](ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> & self,
+             UInt constitutive_law_id) -> decltype(auto) {
+            return self.getConstitutiveLaw(constitutive_law_id);
+          },
+          py::arg("constitutive_law_id"), py::return_value_policy::reference)
+      .def(
+          "getConstitutiveLaw",
+          [](ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> & self,
+             const ID & constitutive_law_name) -> decltype(auto) {
+            return self.getConstitutiveLaw(constitutive_law_name);
+          },
+          py::arg("constitutive_law_name"), py::return_value_policy::reference)
+      .def(
+          "getConstitutiveLaw",
+          [](ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> & self,
+             const Element & element) -> decltype(auto) {
+            return self.getConstitutiveLaw(element);
+          },
+          py::arg("element"), py::return_value_policy::reference)
+
+      .def("getNbConstitutiveLaws",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::getNbConstitutiveLaws)
+      .def("getConstitutiveLawIndex",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::getConstitutiveLawIndex)
+      .def("setConstitutiveLawSelector",
+           [](ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> & self,
+              std::shared_ptr<ConstitutiveLawSelector>
+                  constitutive_law_selector) {
+             self.setConstitutiveLawSelector(constitutive_law_selector);
+           })
+      .def("getConstitutiveLawSelector",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::getConstitutiveLawSelector)
+      .def(
+          "getConstitutiveLawByElement",
+          [](const ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> &
+                 self) -> decltype(auto) {
+            return self.getConstitutiveLawByElement();
+          },
+          py::return_value_policy::reference, py::keep_alive<0, 1>())
+      .def("reassignConstitutiveLaw",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::reassignConstitutiveLaw)
+      .def(
+          "registerNewConstitutiveLaw",
+          [](ConstitutiveLawsHandler<ConstitutiveLawType, ModelType> & self,
+             const ID & cl_name, const ID & cl_type,
+             const ID & opt_param) -> decltype(auto) {
+            return self.registerNewConstitutiveLaw(cl_name, cl_type, opt_param);
+          },
+          py::arg("constitutive_law_name"), py::arg("constitutive_law_type"),
+          py::arg("option") = "", py::return_value_policy::reference)
+      .def("initConstitutiveLaws",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::initConstitutiveLaws)
+      .def("flattenInternal",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::flattenInternal,
+           py::return_value_policy::reference)
+      .def("inflateInternal",
+           &ConstitutiveLawsHandler<ConstitutiveLawType,
+                                    ModelType>::inflateInternal,
+           py::return_value_policy::reference);
+}
 
 /* -------------------------------------------------------------------------- */
 void register_model(py::module & mod) {
@@ -119,13 +194,6 @@ void register_model(py::module & mod) {
           py::arg("id"), py::arg("primal"), py::arg("scheme_type"),
           py::arg("solution_type") =
               IntegrationScheme::SolutionType::_not_defined)
-      // .def("setIntegrationScheme",
-      //      [](Model & self, const std::string id, const std::string primal,
-      //         std::unique_ptr<IntegrationScheme> & scheme,
-      //         IntegrationScheme::SolutionType solution_type) {
-      //        self.setIntegrationScheme(id, primal, scheme, solution_type);
-      //      })
-
       .def("getDOFManager", &Model::getDOFManager,
            py::return_value_policy::reference)
       .def("assembleMatrix", &Model::assembleMatrix);

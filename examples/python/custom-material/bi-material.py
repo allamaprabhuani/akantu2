@@ -21,8 +21,8 @@ class LocalElastic(aka.Material):
                                   'Poisson ratio')
 
         # change it to have the initialize wrapped
-        super().registerInternalReal('factor', 1)
-        super().registerInternalReal('quad_coordinates', 2)
+        self.factor = super().registerInternalReal('factor', 1)
+        self.quad_coords = super().registerInternalReal('quad_coordinates', 2)
 
     def initMaterial(self):
         nu = self.getReal('nu')
@@ -34,16 +34,14 @@ class LocalElastic(aka.Material):
         self.lame_mu = E / (2. * (1. + nu))
         super().initMaterial()
 
-        quad_coords = self.getInternalReal("quad_coordinates")
-        factor = self.getInternalReal("factor")
         model = self.getModel()
 
         model.getFEEngine().computeIntegrationPointsCoordinates(
-            quad_coords, self.getElementFilter())
+            self.quad_coords, self.getElementFilter())
 
-        for elem_type in factor.elementTypes():
-            factor = factor(elem_type)
-            coords = quad_coords(elem_type)
+        for elem_type in self.factor.elementTypes():
+            factor = self.factor(elem_type)
+            coords = self.quad_coords(elem_type)
 
             factor[:] = 1.
             factor[coords[:, 1] < 0.5] = .5
@@ -122,15 +120,15 @@ def applyBC(model):
     height = 1.
     epsilon = 1e-8
     for node in range(0, nbNodes):
-        if((np.abs(position[node, 0]) < epsilon) or  # left side
-           (np.abs(position[node, 0] - width) < epsilon)):  # right side
+        if ((np.abs(position[node, 0]) < epsilon) or
+           (np.abs(position[node, 0] - width) < epsilon)):
             blocked_dofs[node, 0] = True
             displacement[node, 0] = 0 * position[node, 0] + 0.
 
-        if(np.abs(position[node, 1]) < epsilon):  # lower side
+        if np.abs(position[node, 1]) < epsilon:  # lower side
             blocked_dofs[node, 1] = True
             displacement[node, 1] = - 1.
-        if(np.abs(position[node, 1] - height) < epsilon):  # upper side
+        if np.abs(position[node, 1] - height) < epsilon:  # upper side
             blocked_dofs[node, 1] = True
             displacement[node, 1] = 1.
 
@@ -171,7 +169,7 @@ model.addDumpFieldVector("internal_force")
 model.addDumpFieldVector("external_force")
 model.addDumpField("strain")
 model.addDumpField("stress")
-# model.addDumpField("factor")
+model.addDumpField("factor")
 model.addDumpField("blocked_dofs")
 
 # Boundary conditions

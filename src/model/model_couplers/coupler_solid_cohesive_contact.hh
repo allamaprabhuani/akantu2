@@ -23,8 +23,8 @@
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COUPLER_SOLID_COHESIVE_CONTACT_HH__
-#define __AKANTU_COUPLER_SOLID_COHESIVE_CONTACT_HH__
+#ifndef AKANTU_COUPLER_SOLID_COHESIVE_CONTACT_HH_
+#define AKANTU_COUPLER_SOLID_COHESIVE_CONTACT_HH_
 
 /* -------------------------------------------------------------------------- */
 

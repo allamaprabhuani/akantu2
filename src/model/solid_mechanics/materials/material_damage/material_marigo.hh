@@ -19,8 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "material.hh"
+// #include "material.hh"
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -51,8 +50,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial() override;
-
   void updateInternalParameters() override;
 
   /// constitutive law for all element of a type
@@ -70,8 +67,9 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -97,10 +95,10 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  InternalField<Real> Y;
+  InternalField<Real> & Y;
 
   /// resistance to damage
-  RandomInternalField<Real> Yd;
+  RandomInternalField<Real> & Yd;
 
   /// damage threshold
   Real Sd{5000};

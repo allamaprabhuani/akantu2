@@ -40,99 +40,6 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::isInternal(const std::string & field_name,
-                                     ElementKind element_kind) {
-  /// check if at least one material contains field_id as an internal
-  for (auto & material : materials) {
-    bool is_internal = material->isInternal<Real>(field_name, element_kind);
-    if (is_internal) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/* -------------------------------------------------------------------------- */
-ElementTypeMap<Int>
-SolidMechanicsModel::getInternalDataPerElem(const std::string & field_name,
-                                            ElementKind element_kind) {
-  if (!(this->isInternal(field_name, element_kind))) {
-    AKANTU_EXCEPTION("unknown internal " << field_name);
-  }
-
-  for (auto & material : materials) {
-    if (material->isInternal<Real>(field_name, element_kind)) {
-      return material->getInternalDataPerElem<Real>(field_name, element_kind);
-    }
-  }
-
-  return ElementTypeMap<Int>();
-}
-
-/* -------------------------------------------------------------------------- */
-ElementTypeMapArray<Real> &
-SolidMechanicsModel::flattenInternal(const std::string & field_name,
-                                     ElementKind kind,
-                                     const GhostType ghost_type) {
-  auto key = std::make_pair(field_name, kind);
-
-  ElementTypeMapArray<Real> * internal_flat;
-
-  auto it = this->registered_internals.find(key);
-  if (it == this->registered_internals.end()) {
-    auto internal =
-        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
-
-    internal_flat = internal.get();
-    this->registered_internals[key] = std::move(internal);
-  } else {
-    internal_flat = it->second.get();
-  }
-
-  for (auto type :
-       mesh.elementTypes(Model::spatial_dimension, ghost_type, kind)) {
-    if (internal_flat->exists(type, ghost_type)) {
-      auto & internal = (*internal_flat)(type, ghost_type);
-      internal.resize(0);
-    }
-  }
-
-  for (auto & material : materials) {
-    if (material->isInternal<Real>(field_name, kind)) {
-      material->flattenInternal(field_name, *internal_flat, ghost_type, kind);
-    }
-  }
-
-  return *internal_flat;
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::flattenAllRegisteredInternals(ElementKind kind) {
-  ElementKind _kind;
-  ID _id;
-
-  for (auto & internal : this->registered_internals) {
-    std::tie(_id, _kind) = internal.first;
-    if (kind == _kind) {
-      this->flattenInternal(_id, kind);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::inflateInternal(
-    const std::string & field_name, const ElementTypeMapArray<Real> & field,
-    ElementKind kind, GhostType ghost_type) {
-
-  for (auto & material : materials) {
-    if (material->isInternal<Real>(field_name, kind)) {
-      material->inflateInternal(field_name, field, ghost_type, kind);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onDump() {
   this->flattenAllRegisteredInternals(_ek_regular);
 }
@@ -150,7 +57,7 @@ std::shared_ptr<dumpers::Field> SolidMechanicsModel::createElementalField(
   } else if (field_name == "material_index") {
     field =
         mesh.createElementalField<Idx, Vector<Idx>, dumpers::ElementalField>(
-            material_index, group_name, spatial_dimension, kind);
+            getConstitutiveLawByElement(), group_name, spatial_dimension, kind);
   } else {
     // this copy of field_name is used to compute derivated data such as
     // strain and von mises stress that are based on grad_u and stress

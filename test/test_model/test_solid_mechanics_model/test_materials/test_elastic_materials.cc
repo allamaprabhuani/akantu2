@@ -53,9 +53,9 @@ template <> void FriendMaterial<MaterialElastic<1>>::setParams() {
 
 /* -------------------------------------------------------------------------- */
 template <> void FriendMaterial<MaterialElastic<1>>::testComputeStress() {
-  Matrix<Real> eps{{2}};
-  Matrix<Real> sigma(1, 1);
-  Real sigma_th = 2;
+  Matrix<Real, 1, 1> eps{{2}};
+  Matrix<Real, 1, 1> sigma;
+  Real sigma_th = 2.;
   this->computeStressOnQuad(make_named_tuple(
       "grad_u"_n = eps, "sigma"_n = sigma, "sigma_th"_n = sigma_th));
 
@@ -105,7 +105,7 @@ template <> void FriendMaterial<MaterialElastic<2>>::setParams() {
 template <> void FriendMaterial<MaterialElastic<2>>::testComputeStress() {
   Real bulk_modulus_K = E / (3 * (1 - 2 * nu));
   Real shear_modulus_mu = E / (2 * (1 + nu));
-
+  Real sigma_th = 0.;
   Matrix<Real> rotation_matrix = getRandomRotation();
 
   Matrix<Real, 2, 2> grad_u = this->getComposedStrain(1.).block<2, 2>(0, 0);
@@ -220,6 +220,8 @@ template <> void FriendMaterial<MaterialElastic<3>>::testComputeStress() {
   Matrix<Real, 3, 3> rotation_matrix = getRandomRotation();
   Matrix<Real, 3, 3> grad_u = this->getComposedStrain(1.);
   Matrix<Real, 3, 3> grad_u_rot = this->applyRotation(grad_u, rotation_matrix);
+
+  Real sigma_th{0.};
 
   Matrix<Real, 3, 3> sigma_rot;
   this->computeStressOnQuad(make_named_tuple(

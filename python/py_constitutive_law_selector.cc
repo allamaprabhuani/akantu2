@@ -1,8 +1,18 @@
 /**
- * Copyright (©) 2021-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @file   py_material_selector.cc
  *
- * This file is part of Akantu
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Wed May 26 2021
+ * @date last modification: Wed May 26 2021
+ *
+ * @brief  Material selector python binding
+ *
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -16,14 +26,17 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "py_material_selector.hh"
-#include "py_akantu_pybind11_compatibility.hh"
+#include "py_constitutive_law_selector.hh"
 /* -------------------------------------------------------------------------- */
+#include <constitutive_law_selector.hh>
+#if defined(AKANTU_SOLID_MECHANICS)
 #include <material_selector.hh>
 #include <solid_mechanics_model.hh>
+#endif
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include <material_selector_cohesive.hh>
 #include <solid_mechanics_model_cohesive.hh>
@@ -35,56 +48,55 @@
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
-
 namespace akantu {
-
 namespace {
-  template <class Base = MaterialSelector>
-  class PyMaterialSelector : public Base {
+  template <class Base = ConstitutiveLawSelector>
+  class PyConstitutiveLawSelector : public Base {
   public:
     /* Inherit the constructors */
     using Base::Base;
 
-    ~PyMaterialSelector() override = default;
-
     Idx operator()(const Element & element) override {
       // NOLINTNEXTLINE
-      PYBIND11_OVERRIDE_NAME(Idx, MaterialSelector, "__call__", operator(),
-                             element);
+      PYBIND11_OVERRIDE_NAME(Idx, ConstitutiveLawSelector,
+                             "__call__", operator(), element);
     }
   };
 
-  template <class MaterialSelectorDaughter>
+  template <class ConstitutiveLawSelectorDaughter>
   decltype(auto) register_material_selectors(py::module & mod,
                                              const std::string & class_name) {
-    return py::class_<MaterialSelectorDaughter, MaterialSelector,
-                      PyMaterialSelector<MaterialSelectorDaughter>,
-                      std::shared_ptr<MaterialSelectorDaughter>>(
-        mod, class_name.c_str());
+    return py::class_<
+        ConstitutiveLawSelectorDaughter, ConstitutiveLawSelector,
+        PyConstitutiveLawSelector<ConstitutiveLawSelectorDaughter>,
+        std::shared_ptr<ConstitutiveLawSelectorDaughter>>(mod,
+                                                          class_name.c_str());
   }
 } // namespace
 
-void register_material_selector(py::module & mod) {
-  py::class_<MaterialSelector, PyMaterialSelector<>,
-             std::shared_ptr<MaterialSelector>>(mod, "MaterialSelector")
+void register_constitutive_law_selector(py::module & mod) {
+  py::class_<ConstitutiveLawSelector, PyConstitutiveLawSelector<>,
+             std::shared_ptr<ConstitutiveLawSelector>>(
+      mod, "ConstitutiveLawSelector")
       .def(py::init())
       .def("setFallback",
-           [](MaterialSelector & self, UInt f) { self.setFallback(f); })
+           [](ConstitutiveLawSelector & self, Int f) { self.setFallback(f); })
       .def("setFallback",
-           [](MaterialSelector & self,
-              const std::shared_ptr<MaterialSelector> & fallback_selector) {
-             self.setFallback(fallback_selector);
-           })
-      .def("__call__", &MaterialSelector::operator());
+           [](ConstitutiveLawSelector & self,
+              const std::shared_ptr<ConstitutiveLawSelector> &
+                  fallback_selector) { self.setFallback(fallback_selector); })
+      .def("__call__", &ConstitutiveLawSelector::operator());
 
+#if defined(AKANTU_SOLID_MECHANICS)
   register_material_selectors<DefaultMaterialSelector>(
       mod, "DefaultMaterialSelector")
-      .def(py::init<const ElementTypeMapArray<Int> &>());
+      .def(py::init<const ElementTypeMapArray<Idx> &>());
 
   register_material_selectors<MeshDataMaterialSelector<std::string>>(
       mod, "MeshDataMaterialSelectorString")
-      .def(py::init<const std::string &, const SolidMechanicsModel &, UInt>(),
+      .def(py::init<const std::string &, const SolidMechanicsModel &, Int>(),
            py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
+#endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   register_material_selectors<DefaultMaterialCohesiveSelector>(

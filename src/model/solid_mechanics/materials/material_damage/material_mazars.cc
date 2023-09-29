@@ -29,7 +29,7 @@ template class MaterialMazars<3>;
 
 template <Int dim> using MaterialMazars_ = MaterialMazars<dim>;
 
-static bool material_is_alocated_mazars =
+const bool material_is_alocated_mazars [[maybe_unused]] =
     instantiateMaterial<MaterialMazars_>("mazars");
 
 } // namespace akantu

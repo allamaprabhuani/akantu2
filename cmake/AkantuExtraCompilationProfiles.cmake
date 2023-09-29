@@ -18,8 +18,6 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
 mark_as_advanced(FORCE_COLORED_OUTPUT)
 if(FORCE_COLORED_OUTPUT)
@@ -30,14 +28,12 @@ if(FORCE_COLORED_OUTPUT)
   endif()
 endif()
 
-
-
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
   CACHE STRING "Flags used by the compiler during release builds" FORCE)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -ggdb3"
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG_INIT} -g3 -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -g3 -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
 endif()
 
@@ -98,7 +94,7 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION
   declare_compilation_profile(SANITIZE
     COMPILER "-g -ggdb3 -O2 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 
-  declare_compilation_profile(SANITIZE_DEBUG
+  declare_compilation_profile(SANITIZEDEBUG
     COMPILER "-g -ggdb3 -DNDEBUG -DAKANTU_NDEBUG -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer${_blacklist}")
 endif()
 
@@ -113,9 +109,13 @@ if (_cmake_build_type_lower MATCHES "valgrind")
   find_program(VALGRIND_EXECUTABLE valgrind)
 endif()
 
-option(AKANTU_USE_CCACHE "Use ccache if available to build akantu" OFF)
-
-if (AKANTU_USE_CCACHE)
-  find_program(CCACHE_EXECUTABLE ccache)
+find_program(CCACHE_EXECUTABLE ccache)
+if(CCACHE_EXECUTABLE)
+  option(AKANTU_USE_CCACHE "Use ccache if available to build akantu" ON)
+  mark_as_advanced(AKANTU_USE_CCACHE)
+endif()
+option(AKANTU_SPLIT_DWARF "Split the debug symbols in separate DWO files" OFF)
+mark_as_advanced(AKANTU_SPLIT_DWARF)
+if (CCACHE_EXECUTABLE AND AKANTU_USE_CCACHE)
   set(AKANTU_COMPILER_LAUNCHER "${CCACHE_EXECUTABLE}")
 endif()

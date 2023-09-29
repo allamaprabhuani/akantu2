@@ -35,13 +35,14 @@ using namespace akantu;
 const UInt spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
-void applyDisplacement(SolidMechanicsModel &, Real &);
+void applyDisplacement(SolidMechanicsModel & /*model*/, Real & /*disp*/);
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char * argv[]) {
 
   std::ofstream os("data.csv");
-  os << "#strain stress damage analytical_sigma analytical_damage" << std::endl;
+  os << "#strain stress damage analytical_sigma analytical_damage"
+     << "\n";
 
   initialize("material_hybrid.dat", argc, argv);
 
@@ -95,9 +96,9 @@ int main(int argc, char * argv[]) {
     if (s < 500) {
       axial_strain = increment * s;
     } else if (s < 1000) {
-      axial_strain = (1500 - 2 * double(s)) * increment;
+      axial_strain = (1500. - 2. * s) * increment;
     } else {
-      axial_strain = (3 * double(s) - 3500) * increment;
+      axial_strain = (3. * s - 3500.) * increment;
     }
     applyDisplacement(model, axial_strain);
 
@@ -124,15 +125,15 @@ int main(int argc, char * argv[]) {
     if ((error_damage > 1e-8 or error_stress > 1e-8) and
         std::abs(axial_strain) > 1e-13) {
       std::cerr << std::left << std::setw(15)
-                << "Error damage: " << error_damage << std::endl;
+                << "Error damage: " << error_damage << "\n";
       std::cerr << std::left << std::setw(15)
-                << "Error stress: " << error_stress << std::endl;
+                << "Error stress: " << error_stress << "\n";
       return EXIT_FAILURE;
     }
 
     os << axial_strain << " " << stress(0, 3) << " " << damage(0) << " "
        << analytical_sigma << " " << analytical_damage << " " << error_stress
-       << " " << error_damage << std::endl;
+       << " " << error_damage << "\n";
 
     model.dump();
   }

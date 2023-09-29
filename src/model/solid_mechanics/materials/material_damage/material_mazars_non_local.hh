@@ -72,9 +72,9 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// the ehat per quadrature points to perform the averaging
-  InternalField<Real> Ehat;
+  InternalField<Real> & Ehat;
 
-  InternalField<Real> non_local_variable;
+  InternalField<Real> & non_local_variable;
 };
 
 } // namespace akantu

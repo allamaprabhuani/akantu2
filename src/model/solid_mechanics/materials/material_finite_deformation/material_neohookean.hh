@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material.hh"
 #include "plane_stress_toolbox.hh"
 
@@ -46,8 +45,6 @@ template <Int dim> class MaterialNeohookean : public PlaneStressToolbox<dim> {
   /* ------------------------------------------------------------------------ */
 public:
   MaterialNeohookean(SolidMechanicsModel & model, const ID & id = "");
-
-  ~MaterialNeohookean() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -78,29 +75,12 @@ public:
                             GhostType ghost_type = _not_ghost) override;
 
   /// compute the p-wave speed in the material
-  Real getPushWaveSpeed(const Element & element) const override;
+  [[nodiscard]] Real getPushWaveSpeed(const Element & element) const override;
 
   /// compute the s-wave speed in the material
-  Real getShearWaveSpeed(const Element & element) const override;
+  [[nodiscard]] Real getShearWaveSpeed(const Element & element) const override;
 
   MatrixType getTangentType() override { return _symmetric; }
-
-  decltype(auto) getArguments(ElementType el_type,
-                              GhostType ghost_type = _not_ghost) {
-    return zip_append(
-        Material::getArguments<dim>(el_type, ghost_type),
-        "C33"_n =
-            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
-  }
-
-  decltype(auto) getArgumentsTangent(Array<Real> & tangent_matrix,
-                                     ElementType el_type,
-                                     GhostType ghost_type = _not_ghost) {
-    return zip_append(
-        Material::getArgumentsTangent<dim>(tangent_matrix, el_type, ghost_type),
-        "C33"_n =
-            broadcast(C33, this->element_filter(el_type, ghost_type).size()));
-  }
 
 protected:
   /// constitutive law for a given quadrature point
@@ -129,8 +109,8 @@ protected:
   //                              Matrix<Real> & cauchy_sigma);
 
   /// compute the potential energy for a quadrature point
-  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                           Real & epot);
+  template <class Args>
+  inline void computePotentialEnergyOnQuad(Args && args, Real & epot);
 
   /// compute the tangent stiffness matrix for an element
   template <class Args> void computeTangentModuliOnQuad(Args && args);
@@ -147,21 +127,19 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// the young modulus
-  Real E;
+  Real E{0.};
 
   /// Poisson coefficient
-  Real nu;
+  Real nu{0.};
 
   /// First Lamé coefficient
-  Real lambda;
+  Real lambda{0.};
 
   /// Second Lamé coefficient (shear modulus)
-  Real mu;
+  Real mu{0.};
 
   /// Bulk modulus
-  Real kpa;
-
-  Real C33{1.};
+  Real kpa{0.};
 };
 
 } // namespace akantu

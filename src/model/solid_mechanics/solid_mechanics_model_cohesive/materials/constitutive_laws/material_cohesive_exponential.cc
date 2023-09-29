@@ -291,7 +291,7 @@ void MaterialCohesiveExponential<dim>::computeCompressivePenalty(
 template class MaterialCohesiveExponential<1>;
 template class MaterialCohesiveExponential<2>;
 template class MaterialCohesiveExponential<3>;
-static bool material_is_alocated_cohesive_exponential =
+const bool material_is_alocated_cohesive_exponential [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveExponential>("cohesive_exponential");
 
 } // namespace akantu

@@ -38,35 +38,42 @@ namespace akantu {
  * class that assigns the first cohesive material by default to the
  * cohesive elements
  */
-class DefaultMaterialCohesiveSelector : public MaterialSelector {
+class DefaultMaterialCohesiveSelector : public ConstitutiveLawSelector {
 public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
   Int operator()(const Element & element) override;
 
-private:
+  AKANTU_SET_MACRO(FallbackCohesiveValue, default_cohesive_value, Int);
+  AKANTU_GET_MACRO(FallbackCohesiveValue, default_cohesive_value, Int);
+  static Int
+  getDefaultCohesiveMaterial(const SolidMechanicsModelCohesive & model);
+
+protected:
+  const SolidMechanicsModelCohesive & model;
   const ElementTypeMapArray<Idx> & facet_material;
   const Mesh & mesh;
+  Int default_cohesive_value;
 };
 
 /* -------------------------------------------------------------------------- */
 /// To be used with intrinsic elements inserted along mesh physical surfaces
-class MeshDataMaterialCohesiveSelector : public MaterialSelector {
+class MeshDataMaterialCohesiveSelector
+    : public DefaultMaterialCohesiveSelector {
 public:
   MeshDataMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
   Int operator()(const Element & element) override;
 
-protected:
-  const SolidMechanicsModelCohesive & model;
+private:
   const Mesh & mesh_facets;
   const ElementTypeMapArray<std::string> & material_index;
-  bool third_dimension;
+  bool third_dimension{false};
 };
 
 /// bulk1, bulk2 -> cohesive
 using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
 
 /* -------------------------------------------------------------------------- */
-class MaterialCohesiveRulesSelector : public MaterialSelector {
+class MaterialCohesiveRulesSelector : public DefaultMaterialCohesiveSelector {
 public:
   MaterialCohesiveRulesSelector(const SolidMechanicsModelCohesive & model,
                                 const MaterialCohesiveRules & rules,
@@ -74,9 +81,7 @@ public:
   Int operator()(const Element & element) override;
 
 private:
-  const SolidMechanicsModelCohesive & model;
   ID mesh_data_id;
-  const Mesh & mesh;
   const Mesh & mesh_facets;
   Int spatial_dimension;
   MaterialCohesiveRules rules;

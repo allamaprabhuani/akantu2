@@ -416,6 +416,12 @@ public:
   template <typename T> inline decltype(auto) getData(const ID & data_name);
 
   template <typename T>
+  inline decltype(auto) getData(const ID & data_name, Element element) const;
+
+  template <typename T>
+  inline decltype(auto) getData(const ID & data_name, Element element);
+
+  template <typename T>
   auto getNbDataPerElem(ElementTypeMapArray<T> & array) -> ElementTypeMap<Int>;
 
   template <typename T>

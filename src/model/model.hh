@@ -25,6 +25,7 @@
 #include "mesh.hh"
 #include "model_options.hh"
 #include "model_solver.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <typeindex>
 /* -------------------------------------------------------------------------- */
@@ -33,7 +34,6 @@
 #define AKANTU_MODEL_HH_
 
 namespace akantu {
-class SynchronizerRegistry;
 class Parser;
 class DumperIOHelper;
 class DOFManager;
@@ -52,6 +52,13 @@ public:
         const ID & id = "model");
 
   ~Model() override;
+
+  /* ------------------------------------------------------------------------ */
+  Model(const Model & /*other*/) = delete;
+  Model(Model && /*other*/) = delete;
+  Model & operator=(const Model & /*other*/) = delete;
+  Model & operator=(Model && /*other*/) = delete;
+  /* ------------------------------------------------------------------------ */
 
   using FEEngineMap = std::map<std::string, std::unique_ptr<FEEngine>>;
 
@@ -130,15 +137,17 @@ public:
 protected:
   /// get some default values for derived classes
   virtual std::tuple<ID, TimeStepSolverType>
-  getDefaultSolverID(const AnalysisMethod & method) = 0;
+  getDefaultSolverID(const AnalysisMethod & /*method*/) {
+    return {"none", TimeStepSolverType::_not_defined};
+  }
 
-  virtual void initModel(){};
+  virtual void initModel() {}
 
   virtual void initFEEngineBoundary();
 
   /// function to print the containt of the class
-  void printself(std::ostream & /*stream*/,
-                 int /*indent*/ = 0) const override{};
+  void printself(std::ostream & /*stream*/, int /*indent*/ = 0) const override {
+  }
 
 public:
   /* ------------------------------------------------------------------------ */
@@ -164,8 +173,8 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Function for non local capabilities                                      */
   /* ------------------------------------------------------------------------ */
-  virtual void updateDataForNonLocalCriterion(__attribute__((unused))
-                                              ElementTypeMapReal & criterion) {
+  virtual void
+  updateDataForNonLocalCriterion(ElementTypeMapReal & /*criterion*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -178,9 +187,6 @@ protected:
   /* Accessors */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get id of model
-  AKANTU_GET_MACRO(ID, id, const ID &)
-
   /// get the number of surfaces
   AKANTU_GET_MACRO(Mesh, mesh, Mesh &)
 
@@ -188,7 +194,7 @@ public:
   virtual void synchronizeBoundaries(){};
 
   /// return the fem object associated with a provided name
-  inline FEEngine & getFEEngine(const ID & name = "") const;
+  [[nodiscard]] inline FEEngine & getFEEngine(const ID & name = "") const;
 
   /// return the fem boundary object associated with a provided name
   virtual FEEngine & getFEEngineBoundary(const ID & name = "");
@@ -197,21 +203,23 @@ public:
 
   /// register a fem object associated with name
   template <typename FEEngineClass>
-  inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                     Int spatial_dimension);
+  inline void registerFEEngineObject(const ID & name, Mesh & mesh,
+                                     Int spatial_dimension = _all_dimensions,
+                                     bool do_not_precompute = false);
+
   /// unregister a fem object associated with name
-  inline void unRegisterFEEngineObject(const std::string & name);
+  inline void unRegisterFEEngineObject(const ID & name);
 
   /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
 
   /// return the fem object associated with a provided name
   template <typename FEEngineClass>
-  inline FEEngineClass & getFEEngineClass(std::string name = "") const;
+  inline FEEngineClass & getFEEngineClass(const ID & name = "") const;
 
   /// return the fem boundary object associated with a provided name
   template <typename FEEngineClass>
-  inline FEEngineClass & getFEEngineClassBoundary(std::string name = "");
+  inline FEEngineClass & getFEEngineClassBoundary(const ID & name = "");
 
   /// Get the type of analysis method used
   AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
@@ -223,8 +231,9 @@ public:
   /* Pack and unpack hexlper functions */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Int getNbIntegrationPoints(const Array<Element> & elements,
-                                    const ID & fem_id = ID()) const;
+  [[nodiscard]] inline Int
+  getNbIntegrationPoints(const Array<Element> & elements,
+                         const ID & fem_id = ID()) const;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -329,9 +338,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   friend std::ostream & operator<<(std::ostream & /*stream*/,
-                                   const Model & /*_this*/);
-
-  ID id;
+                                   const Model & /*this*/);
 
   /// analysis method check the list in akantu::AnalysisMethod
   AnalysisMethod method;
@@ -344,9 +351,6 @@ protected:
 
   /// the main fem object present in all  models
   FEEngineMap fems;
-
-  /// the fem object present in all  models for boundaries
-  FEEngineMap fems_boundary;
 
   /// default fem object
   std::string default_fem;

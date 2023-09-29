@@ -20,10 +20,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "boundary_condition.hh"
-#include "data_accessor.hh"
+#include "constitutive_laws_handler.hh"
 #include "fe_engine.hh"
+#include "material.hh"
 #include "model.hh"
-#include "non_local_manager_callback.hh"
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -31,10 +31,8 @@
 #define AKANTU_SOLID_MECHANICS_MODEL_HH_
 
 namespace akantu {
-class Material;
-class MaterialSelector;
+class ConstitutiveLawSelector;
 class DumperIOHelper;
-class NonLocalManager;
 template <ElementKind kind, class IntegrationOrderFunctor>
 class IntegratorGauss;
 template <ElementKind kind> class ShapeLagrange;
@@ -45,38 +43,25 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class SolidMechanicsModel
-    : public Model,
-      public DataAccessor<Element>,
-      public DataAccessor<Idx>,
+    : public ConstitutiveLawsHandler<Material, Model>,
       public BoundaryCondition<SolidMechanicsModel>,
-      public NonLocalManagerCallback,
       public EventHandlerManager<SolidMechanicsModelEventHandler> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  class NewMaterialElementsEvent : public NewElementsEvent {
-  public:
-    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Array<Int> &);
-    AKANTU_GET_MACRO(MaterialList, material, const Array<Int> &);
-
-  protected:
-    Array<Int> material;
-  };
-
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 protected:
   using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
+  using CLHParent = ConstitutiveLawsHandler<Material, Model>;
 
 public:
   SolidMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
-                      std::shared_ptr<DOFManager> dof_manager = nullptr,
+                      const std::shared_ptr<DOFManager> & dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
-
-  ~SolidMechanicsModel() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -86,19 +71,14 @@ protected:
   void initFullImpl(
       const ModelOptions & options = SolidMechanicsModelOptions()) override;
 
+  void instantiateMaterials();
+
 public:
-  /// initialize all internal arrays for materials
-  virtual void initMaterials();
-
-protected:
-  /// initialize the model
-  void initModel() override;
-
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
   /// get some default values for derived classes
-  std::tuple<ID, TimeStepSolverType>
+  [[nodiscard]] std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   /* ------------------------------------------------------------------------ */
@@ -116,10 +96,10 @@ protected:
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() const override { return true; }
+  [[nodiscard]] bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override;
+  [[nodiscard]] MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -129,6 +109,7 @@ protected:
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;
+
   /// callback for the solver, this is called at end of solve
   void corrector() override;
 
@@ -141,14 +122,13 @@ protected:
   void initSolver(TimeStepSolverType time_step_solver_type,
                   NonLinearSolverType non_linear_solver_type) override;
 
-protected:
+public:
   /* ------------------------------------------------------------------------ */
-  TimeStepSolverType getDefaultSolverType() const override;
-  /* ------------------------------------------------------------------------ */
-  ModelSolverOptions
+  [[nodiscard]] TimeStepSolverType getDefaultSolverType() const override;
+
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
-public:
   bool isDefaultSolverExplicit() {
     return method == _explicit_lumped_mass ||
            method == _explicit_consistent_mass;
@@ -162,28 +142,12 @@ protected:
   /* Materials (solid_mechanics_model_material.cc)                            */
   /* ------------------------------------------------------------------------ */
 public:
-  /// register an empty material of a given type
-  Material & registerNewMaterial(const ID & mat_name, const ID & mat_type,
-                                 const ID & opt_param);
-
-  /// reassigns materials depending on the material selector
-  virtual void reassignMaterial();
-
   /// apply a constant eigen_grad_u on all quadrature points of a given material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const ID & material_name,
                                GhostType ghost_type = _not_ghost);
 
-protected:
-  /// register a material in the dynamic database
-  Material & registerNewMaterial(const ParserSection & mat_section);
-
-  /// read the material files to instantiate all the materials
-  void instantiateMaterials();
-
-  /// set the element_id_by_material and add the elements to the good materials
-  virtual void
-  assignMaterialToElements(const ElementTypeMapArray<Idx> * filter = nullptr);
+  void computeNonLocalContribution(GhostType ghost_type) override;
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -195,17 +159,19 @@ public:
   /// assemble the mass matrix for consistent mass resolutions
   void assembleMass();
 
-public:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
-protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
+  /* ------------------------------------------------------------------------ */
+  /* Energies                                                                 */
+  /* ------------------------------------------------------------------------ */
+protected:
   /// compute the kinetic energy
   Real getKineticEnergy();
 
@@ -220,32 +186,28 @@ protected:
   /// given too)
   Real getExternalWork();
 
-  /* ------------------------------------------------------------------------ */
-  /* NonLocalManager inherited members                                        */
-  /* ------------------------------------------------------------------------ */
-protected:
-  void initializeNonLocal() override;
+public:
+  /// get the energies
+  Real getEnergy(const std::string & energy_id);
 
-  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) override;
+  /// compute the energy for an element
+  [[deprecated("Use the interface with an Element")]] Real
+  getEnergy(const std::string & energy_id, ElementType type, Idx index) {
+    return getEnergy(energy_id, Element{type, index, _not_ghost});
+  };
 
-  void computeNonLocalStresses(GhostType ghost_type) override;
+  /// compute the energy for an element
+  Real getEnergy(const std::string & energy_id, const Element & element);
 
-  void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
-
-  /// update the values of the non local internal
-  void updateLocalInternal(ElementTypeMapReal & internal_flat,
-                           GhostType ghost_type, ElementKind kind) override;
-
-  /// copy the results of the averaging in the materials
-  void updateNonLocalInternal(ElementTypeMapReal & internal_flat,
-                              GhostType ghost_type, ElementKind kind) override;
+  /// compute the energy for an element group
+  Real getEnergy(const ID & energy_id, const ID & group_id);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbData(const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Element> & elements,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -253,22 +215,14 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  Int getNbData(const Array<Idx> & dofs,
-                const SynchronizationTag & tag) const override;
+  [[nodiscard]] Int getNbData(const Array<Idx> & dofs,
+                              const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                 const SynchronizationTag & tag) const override;
 
   void unpackData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                   const SynchronizationTag & tag) override;
-
-protected:
-  void
-  splitElementByMaterial(const Array<Element> & elements,
-                         std::vector<Array<Element>> & elements_per_mat) const;
-
-  template <typename Operation>
-  void splitByMaterial(const Array<Element> & elements, Operation && op) const;
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
@@ -279,38 +233,12 @@ protected:
   void onNodesRemoved(const Array<Idx> & element_list,
                       const Array<Idx> & new_numbering,
                       const RemovedNodesEvent & event) override;
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> &, const Array<Element> &,
-                         const ElementTypeMapArray<Idx> &,
-                         const ChangedElementsEvent &) override{};
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void onDump();
-
-  //! decide wether a field is a material internal or not
-  bool isInternal(const std::string & field_name, ElementKind element_kind);
-  //! give the amount of data per element
-  virtual ElementTypeMap<Int>
-  getInternalDataPerElem(const std::string & field_name, ElementKind kind);
-
-  //! flatten a given material internal field
-  ElementTypeMapArray<Real> &
-  flattenInternal(const std::string & field_name, ElementKind kind,
-                  GhostType ghost_type = _not_ghost);
-  //! flatten all the registered material internals
-  void flattenAllRegisteredInternals(ElementKind kind);
-
-  //! inverse operation of the flatten
-  void inflateInternal(const std::string & field_name,
-                       const ElementTypeMapArray<Real> & field,
-                       ElementKind kind, GhostType ghost_type = _not_ghost);
 
   std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
@@ -396,84 +324,91 @@ public:
   AKANTU_GET_MACRO_AUTO(CurrentPositionRelease, current_position_release);
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials();
+  inline decltype(auto) getMaterials() { return this->getConstitutiveLaws(); }
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials() const;
+  [[nodiscard]] inline decltype(auto) getMaterials() const {
+    return this->getConstitutiveLaws();
+  }
 
   /// get a particular material (by numerical material index)
-  inline Material & getMaterial(UInt mat_index);
+  inline Material & getMaterial(Idx mat_index) {
+    return this->getConstitutiveLaw(mat_index);
+  }
 
   /// get a particular material (by numerical material index)
-  inline const Material & getMaterial(UInt mat_index) const;
+  [[nodiscard]] inline const Material & getMaterial(Idx mat_index) const {
+    return this->getConstitutiveLaw(mat_index);
+  }
 
   /// get a particular material (by material name)
-  inline Material & getMaterial(const std::string & name);
+  inline Material & getMaterial(const std::string & name) {
+    return this->getConstitutiveLaw(name);
+  }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const std::string & name) const;
+  [[nodiscard]] inline const Material &
+  getMaterial(const std::string & name) const {
+    return this->getConstitutiveLaw(name);
+  }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const Element & element) const;
+  [[nodiscard]] inline const Material &
+  getMaterial(const Element & element) const {
+    return this->getConstitutiveLaw(element);
+  }
 
   /// get a particular material id from is name
-  inline Int getMaterialIndex(const std::string & name) const;
+  [[nodiscard]] inline auto getMaterialIndex(const std::string & name) const {
+    return this->getConstitutiveLawIndex(name);
+  }
 
   /// give the number of materials
-  inline Int getNbMaterials() const { return materials.size(); }
+  [[nodiscard]] inline auto getNbMaterials() const {
+    return this->getNbConstitutiveLaws();
+  }
 
-  /// give the material internal index from its id
-  Int getInternalIndexFromID(const ID & id) const;
+  void reassignMaterial() { this->reassignConstitutiveLaw(); }
+  void registerNewMaterial(const ID & mat_name, const ID & mat_type,
+                           const ID & opt_param);
 
   /// compute the stable time step
   Real getStableTimeStep();
 
-  /**
-   * @brief Returns the total energy for a given energy type
-   *
-   * Energy types of SolidMechanicsModel expected as argument are:
-   *   - `kinetic`
-   *   - `external work`
-   *
-   * Other energy types are passed on to the materials. All materials should
-   * define a `potential` energy type. For additional energy types, see material
-   * documentation.
-   */
-  Real getEnergy(const std::string & energy_id);
-
-  /// compute the energy for one element
-  Real getEnergy(const std::string & energy_id, const Element & element);
-
-  [[deprecated("Use the interface with an Element")]] Real
-  getEnergy(const std::string & energy_id, ElementType type, Int index) {
-    return getEnergy(energy_id, Element{type, index, _not_ghost});
+  // this function is kept for backward compatinility
+  [[nodiscard]] decltype(auto) getMaterialByElement() const {
+    return this->getConstitutiveLawByElement();
   }
 
-  /// Compute energy for an element group
-  Real getEnergy(const ID & energy_id, const ID & group_id);
-
-  AKANTU_GET_MACRO_AUTO(MaterialByElement, material_index);
-  AKANTU_GET_MACRO_AUTO(MaterialLocalNumbering, material_local_numbering);
-
-  /// vectors containing local material element index for each global element
-  /// index
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialByElement, material_index,
-                                         Int);
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, Int);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialLocalNumbering,
-                                         material_local_numbering, Int);
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
-  //                                  material_local_numbering, UInt);
-
-  AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, material_selector,
-                             std::shared_ptr<MaterialSelector>);
-  void
-  setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
-    this->material_selector = std::move(material_selector);
+  // this function is kept for backward compatinility
+  [[nodiscard]] decltype(auto) getMaterialLocalNumbering() const {
+    return this->getConstitutiveLawLocalNumbering();
   }
 
-  /// Access the non_local_manager interface
-  AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
+  // this function is kept for backward compatinility
+  [[nodiscard]] decltype(auto)
+  getMaterialByElement(ElementType type,
+                       GhostType ghost_type = _not_ghost) const {
+    return this->getConstitutiveLawByElement(type, ghost_type);
+  }
+
+  // this function is kept for backward compatinility
+  [[nodiscard]] decltype(auto)
+  getMaterialLocalNumbering(ElementType type,
+                            GhostType ghost_type = _not_ghost) const {
+    return this->getConstitutiveLawLocalNumbering(type, ghost_type);
+  }
+
+  // this function is kept for backward compatinility
+  decltype(auto) getMaterialSelector() {
+    return this->getConstitutiveLawSelector();
+  }
+
+  // this function is kept for backward compatinility
+  void setMaterialSelector(
+      const std::shared_ptr<ConstitutiveLawSelector> & material_selector) {
+    this->setConstitutiveLawSelector(material_selector);
+  }
 
   /// get the FEEngine object to integrate or interpolate on the boundary
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
@@ -494,11 +429,9 @@ private:
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
+
   /// Check if materials need to recompute the mass matrix
   bool need_to_reassemble_mass{true};
-
-  /// mapping between material name and material internal id
-  std::map<std::string, Int> materials_names_to_id;
 
 protected:
   /// conversion coefficient form force/mass to acceleration
@@ -533,36 +466,6 @@ protected:
 
   /// array of current position used during update residual
   std::unique_ptr<Array<Real>> current_position;
-
-  /// Arrays containing the material index for each element
-  ElementTypeMapArray<Int> material_index;
-
-  /// Arrays containing the position in the element filter of the material
-  /// (material's local numbering)
-  ElementTypeMapArray<Idx> material_local_numbering;
-
-  /// list of used materials
-  std::vector<std::unique_ptr<Material>> materials;
-
-  /// class defining of to choose a material
-  std::shared_ptr<MaterialSelector> material_selector;
-
-  using flatten_internal_map =
-      std::map<std::pair<std::string, ElementKind>,
-               std::unique_ptr<ElementTypeMapArray<Real>>>;
-
-  /// tells if the material are instantiated
-  flatten_internal_map registered_internals;
-
-  /// non local manager
-  std::unique_ptr<NonLocalManager> non_local_manager;
-
-  /// tells if the material are instantiated
-  bool are_materials_instantiated{false};
-
-  friend class Material;
-
-  template <class Model_> friend class CouplerSolidContactTemplate;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -579,10 +482,8 @@ namespace BC {
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 #include "material.hh"
+#include "material_selector_tmpl.hh"
 #include "parser.hh"
-
-#include "solid_mechanics_model_inline_impl.hh"
-#include "solid_mechanics_model_tmpl.hh"
 /* -------------------------------------------------------------------------- */
 
 #endif /* AKANTU_SOLID_MECHANICS_MODEL_HH_ */

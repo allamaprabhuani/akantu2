@@ -26,8 +26,8 @@
 #endif
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COUPLER_SOLID_CONTACT_HH__
-#define __AKANTU_COUPLER_SOLID_CONTACT_HH__
+#ifndef AKANTU_COUPLER_SOLID_CONTACT_HH_
+#define AKANTU_COUPLER_SOLID_CONTACT_HH_
 
 /* ------------------------------------------------------------------------ */
 /* Coupling : Solid Mechanics / Contact Mechanics                           */
@@ -49,9 +49,7 @@ public:
   CouplerSolidContactTemplate(
       Mesh & mesh, Int dim = _all_dimensions,
       const ID & id = "coupler_solid_contact",
-      std::shared_ptr<DOFManager> dof_manager = nullptr);
-
-  ~CouplerSolidContactTemplate() override;
+      const std::shared_ptr<DOFManager> & dof_manager = nullptr);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -103,10 +101,10 @@ protected:
 
   /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
   void assembleResidual(const ID & residual_part) override;
-  bool canSplitResidual() const override { return true; }
+  [[nodiscard]] bool canSplitResidual() const override { return true; }
 
   /// get the type of matrix needed
-  MatrixType getMatrixType(const ID & matrix_id) const override;
+  [[nodiscard]] MatrixType getMatrixType(const ID & matrix_id) const override;
 
   /// callback for the solver, this assembles different matrices
   void assembleMatrix(const ID & matrix_id) override;
@@ -149,9 +147,9 @@ protected:
 
 protected:
   /* ------------------------------------------------------------------------ */
-  TimeStepSolverType getDefaultSolverType() const override;
+  [[nodiscard]] TimeStepSolverType getDefaultSolverType() const override;
   /* ------------------------------------------------------------------------ */
-  ModelSolverOptions
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
 public:
@@ -207,17 +205,21 @@ public:
   /// get the contact mechanics model
   AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &)
 
-  void deactivateContact() { is_contact_active = false; }
-  void activateContact() { is_contact_active = true; }
-
   [[nodiscard]] Real getStableTimeStep() const {
     return solid->getStableTimeStep();
   }
 
+  [[nodiscard]] Array<Real> & getDisplacement() {
+    return solid->getDisplacement();
+  }
+  [[nodiscard]] Array<Real> & getVelocity() { return solid->getVelocity(); }
+  [[nodiscard]] Array<Real> & getAcceleration() {
+    return solid->getAcceleration();
+  }
   [[nodiscard]] Array<Real> & getExternalForce() {
     return solid->getExternalForce();
   }
-  [[nodiscard]] Array<Real> & getMass() { return solid->getExternalForce(); }
+  [[nodiscard]] const Array<Real> & getMass() { return solid->getMass(); }
   [[nodiscard]] Array<Real> & getContactForce() {
     return solid->getInternalForce();
   }
@@ -269,9 +271,7 @@ private:
   /// contact mechanics model
   std::unique_ptr<ContactMechanicsModel> contact;
 
-  Int step;
-
-  bool is_contact_active{true};
+  Idx step{};
 };
 
 using CouplerSolidContact = CouplerSolidContactTemplate<SolidMechanicsModel>;

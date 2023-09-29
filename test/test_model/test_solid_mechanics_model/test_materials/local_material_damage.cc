@@ -27,7 +27,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
                                          const ID & id)
-    : Material(model, id), damage("damage", *this) {
+    : Material(model, id), damage(this->registerInternal("damage", 1)) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("E", E, 0., _pat_parsable, "Young's modulus");
@@ -38,8 +38,6 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
   this->registerParam("Yd", Yd, 50., _pat_parsmod);
   this->registerParam("Sd", Sd, 5000., _pat_parsmod);
-
-  damage.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -62,14 +60,10 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
   AKANTU_DEBUG_IN();
   auto dim = this->spatial_dimension;
 
-  for (auto && data :
+  for (auto && [grad_u, sigma, dam] :
        zip(make_view(this->gradu(el_type, ghost_type), dim, dim),
            make_view(this->stress(el_type, ghost_type), dim, dim),
            damage(el_type, ghost_type))) {
-    auto && grad_u = std::get<0>(data);
-    auto && sigma = std::get<1>(data);
-    auto && dam = std::get<2>(data);
-
     computeStressOnQuad(grad_u, sigma, dam);
     ++dam;
   }
@@ -83,12 +77,10 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   auto dim = this->spatial_dimension;
   Material::computePotentialEnergy(el_type);
 
-  for (auto && data : zip(make_view(this->gradu(el_type), dim, dim),
-                          make_view(this->stress(el_type), dim, dim),
-                          potential_energy(el_type))) {
-    auto && grad_u = std::get<0>(data);
-    auto && sigma = std::get<1>(data);
-    auto && epot = std::get<2>(data);
+  for (auto && [grad_u, sigma, epot] :
+       zip(make_view(this->getGradU(el_type), dim, dim),
+           make_view(this->getStress(el_type), dim, dim),
+           this->potential_energy(el_type))) {
     computePotentialEnergyOnQuad(grad_u, sigma, epot);
   }
   AKANTU_DEBUG_OUT();

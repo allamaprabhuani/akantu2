@@ -33,20 +33,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
-RandomInternalField<T, BaseField, Generator>::RandomInternalField(
-    const ID & id, ParentMaterial & material)
-    : BaseField<T>(id, material), random_parameter(T()) {}
-
-/* -------------------------------------------------------------------------- */
-template <typename T, template <typename> class BaseField,
-          template <typename> class Generator>
-RandomInternalField<T, BaseField, Generator>::~RandomInternalField() = default;
-
-/* -------------------------------------------------------------------------- */
-template <typename T, template <typename> class BaseField,
-          template <typename> class Generator>
 void RandomInternalField<T, BaseField, Generator>::initialize(
-    UInt nb_component) {
+    Int nb_component) {
   this->internalInitialize(nb_component);
 }
 

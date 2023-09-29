@@ -456,6 +456,15 @@ function(register_test test_name)
       target_compile_features(${test_name} PRIVATE ${_features})
     endif()
 
+    if(AKANTU_SPLIT_DWARF)
+      target_compile_options(${test_name}
+        PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf> $<$<CONFIG:SANITIZEDEBUG>:-gsplit-dwarf>
+      )
+      target_link_options(${test_name}
+        PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZEDEBUG>:-Wl,--gdb-index>
+      )
+    endif()
+
     # add the extra compilation options
     if(_register_test_COMPILE_OPTIONS)
       set_target_properties(${test_name}

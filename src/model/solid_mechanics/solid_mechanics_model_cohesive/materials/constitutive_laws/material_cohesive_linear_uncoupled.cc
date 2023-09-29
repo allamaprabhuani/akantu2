@@ -32,29 +32,21 @@ namespace akantu {
 template <Int dim>
 MaterialCohesiveLinearUncoupled<dim>::MaterialCohesiveLinearUncoupled(
     SolidMechanicsModel & model, const ID & id)
-    : MaterialCohesiveLinear<dim>(model, id), delta_n_max("delta_n_max", *this),
-      delta_t_max("delta_t_max", *this), damage_n("damage_n", *this),
-      damage_t("damage_t", *this) {
+    : MaterialCohesiveLinear<dim>(model, id),
+      delta_n_max(this->template registerInternal<Real, CohesiveInternalField>(
+          "delta_n_max", 1)),
+      delta_t_max(this->template registerInternal<Real, CohesiveInternalField>(
+          "delta_t_max", 1)),
+      damage_n(this->template registerInternal<Real, CohesiveInternalField>(
+          "damage_n", 1)),
+      damage_t(this->template registerInternal<Real, CohesiveInternalField>(
+          "damage_t", 1)) {
 
   AKANTU_DEBUG_IN();
 
   this->registerParam(
       "roughness", R, Real(1.), _pat_parsable | _pat_readable,
       "Roughness to define coupling between mode II and mode I");
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim> void MaterialCohesiveLinearUncoupled<dim>::initMaterial() {
-  AKANTU_DEBUG_IN();
-
-  MaterialCohesiveLinear<dim>::initMaterial();
-
-  delta_n_max.initialize(1);
-  delta_t_max.initialize(1);
-  damage_n.initialize(1);
-  damage_t.initialize(1);
 
   delta_n_max.initializeHistory();
   delta_t_max.initializeHistory();
@@ -368,7 +360,7 @@ void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
 template class MaterialCohesiveLinearUncoupled<1>;
 template class MaterialCohesiveLinearUncoupled<2>;
 template class MaterialCohesiveLinearUncoupled<3>;
-static bool material_is_allocated_cohesive_linear_uncoupled =
+const bool material_is_allocated_cohesive_linear_uncoupled [[maybe_unused]] =
     instantiateMaterial<MaterialCohesiveLinearUncoupled>(
         "cohesive_linear_uncoupled");
 

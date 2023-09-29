@@ -77,8 +77,3 @@ package_declare_sources(igfem
   non_local_manager_igfem.hh
   non_local_manager_igfem.cc
   )
-
-package_declare_material_infos(igfem
-  LIST AKANTU_IGFEM_MATERIAL_LIST
-  INCLUDE material_igfem_includes.hh
-  )

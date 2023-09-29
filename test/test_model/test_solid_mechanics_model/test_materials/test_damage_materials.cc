@@ -119,7 +119,8 @@ template <> void FriendMaterial<MaterialMazars<1>>::testComputeStress() {
     strain(0, 0) = epsilon;
 
     computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
-                                         "damage"_n = dam, "Ehat"_n = ehat));
+                                         "damage"_n = dam, "Ehat"_n = ehat,
+                                         "K0"_n = _K0));
 
     Real sigma_ref;
     auto py_data =
@@ -164,7 +165,8 @@ template <> void FriendMaterial<MaterialMazars<2>>::testComputeStress() {
     strain(1, 1) = -this->nu * epsilon;
 
     computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
-                                         "damage"_n = dam, "Ehat"_n = ehat));
+                                         "damage"_n = dam, "Ehat"_n = ehat,
+                                         "K0"_n = _K0));
 
     Real sigma_ref;
     auto py_data =
@@ -209,7 +211,8 @@ template <> void FriendMaterial<MaterialMazars<3>>::testComputeStress() {
     strain(1, 1) = strain(2, 2) = -this->nu * epsilon;
 
     computeStressOnQuad(make_named_tuple("grad_u"_n = strain, "sigma"_n = sigma,
-                                         "damage"_n = dam, "Ehat"_n = ehat));
+                                         "damage"_n = dam, "Ehat"_n = ehat,
+                                         "K0"_n = _K0));
 
     Real sigma_ref;
     auto py_data =
