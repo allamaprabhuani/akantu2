@@ -40,6 +40,10 @@ authors:
   - name: Shenghan Zhang
     orcid: 0000-0002-4327-9115
     affiliation: "1, 6"
+  - name: Roxane Ferry
+    affiliation: "1"
+  - name: Shad Durussel
+    affiliation: "1"
   - name: Jean-François Molinari
     orcid: 0000-0002-1728-1844
     affiliation: 1
