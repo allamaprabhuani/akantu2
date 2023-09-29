@@ -107,13 +107,13 @@ Configuring and compilation
 
 On Mac OS X with ``homebrew``
 """""""""""""""""""""""""""""
-You will need to specify the compiler explicitly::
+You will need to specify the compiler explicitly
 
 .. code-block:: bash
 
- > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
+  > CC=gcc-12 CXX=g++-12 FC=gfortran-12 cmake ..
 
-Considering that ``homebrew` is installed in ``/opt/homebrew``
+Considering that `homebrew` is installed in ``/opt/homebrew``
 Define the location of the ``Scotch`` library path:
 
 .. code-block:: bash
@@ -195,8 +195,8 @@ a minimal ``CMakeLists.txt`` file would look like this:
 
 .. code-block:: cmake
 
+   cmake_minimum_required(VERSION 3.12.0)
    project(my_simu)
-   cmake_minimum_required(VERSION 3.0.0)
 
    find_package(Akantu REQUIRED)
 
@@ -225,7 +225,9 @@ Diana. Once a :cpp:class:`akantu::Mesh` object is created with a given spatial
 dimension, it can be filled by reading a mesh input file. The method
 :cpp:func:`read <akantu::Mesh::read>` of the class :cpp:class:`Mesh
 <akantu::Mesh>` infers the mesh type from the file extension. If a non-standard
-file extension is used, the mesh type has to be specified. ::
+file extension is used, the mesh type has to be specified.
+
+.. code-block:: c++
 
     Int spatial_dimension = 2;
     Mesh mesh(spatial_dimension);
@@ -239,3 +241,42 @@ physical values are stored as a :cpp:type:`Int <akantu::Int>` data called
 ``tag_0``, if a string name is provided it is stored as a ``std::string`` data
 named ``physical_names``. The geometrical tag is stored as a :cpp:type:`Int
 <akantu::Int>` data named ``tag_1``.
+
+Running parallel simulation
+---------------------------
+
+In order to run distributed memory simulation a few extra steps have to be taken.
+The mesh as to be distributed
+
+.. code-block:: c++
+
+    const auto & comm = Communicator::getStaticCommunicator();
+    if (comm.whoAmI() == 0) {  // MPI rank
+      // Read the mesh
+      mesh.read("square_2d.msh");
+    }
+    mesh.distribute();
+
+All the communications and the distribution of the mesh and associated data will
+be taken care automatically.
+
+Currently the mesh decomposition is handled by the `Scotch
+<https://gitlab.inria.fr/scotch/scotch>`_ library. Which means if needed you
+could define different edge and vertex weights
+
+.. code-block:: c++
+
+     mesh.distribute(_edge_weight_function =
+                         [](auto &&, auto &&) { return 1; },
+                      _vertex_weight_function =
+                         [](auto &&) { return 1; });
+
+The `vertex` weights correspond to the computational cost of the elements, and
+the `edge` weights relates to the cost of communications between 2 elements.
+
+To run the simulation you will need to use a runner appropriate to your machine,
+like `mpirun`, `srun`, `arun`, etc.
+
+.. code-block:: sh
+
+  $ mpirun -np 4 ./my_simulation

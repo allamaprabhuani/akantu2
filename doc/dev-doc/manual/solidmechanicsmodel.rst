@@ -1,7 +1,7 @@
 .. _sect-smm:
 
-Solid Mechanics Model
----------------------
+Solid Mechanics Model / Solid Mechanics Model Cohesive
+------------------------------------------------------
 
 The solid mechanics model is a specific implementation of the :cpp:class:`Model
 <akantu::Model>` interface dedicated to handle the equations of motion or

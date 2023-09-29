@@ -39,6 +39,7 @@ efficiency while benefiting the open-source visibility.
    :caption: Examples & Tutorials
 
    ./examples.rst
+   ./tutorials.rst
 
 .. toctree::
    :maxdepth: 1
