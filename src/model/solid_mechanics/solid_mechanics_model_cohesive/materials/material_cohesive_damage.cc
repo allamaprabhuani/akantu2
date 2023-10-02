@@ -38,8 +38,10 @@ template <Int dim>
 MaterialCohesiveDamage<dim>::MaterialCohesiveDamage(SolidMechanicsModel & model,
                                                     const ID & id)
     : MaterialCohesive(model, id),
-      czm_damage(registerInternal<Real, CohesiveInternalField>("czm_damage", 1)),
-      lambda(registerInternal<Real, CohesiveInternalField>("lambda", dim)){
+      lambda(registerInternal<Real, CohesiveInternalField>("lambda", dim)),
+      err_openings(registerInternal<Real, CohesiveInternalField>("lambda", dim)),
+      czm_damage(registerInternal<Real, CohesiveInternalField>("czm_damage", 1))
+      {
   AKANTU_DEBUG_IN();
 
   this->registerParam("k", k, Real(0.), _pat_parsable | _pat_readable,
@@ -125,24 +127,105 @@ template <Int dim>
 void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-//  auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
+  auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
 
-//  for (auto type : getElementFilter().elementTypes(spatial_dimension,
-//                                                   ghost_type, _ek_cohesive)) {
-//    auto & elem_filter = getElementFilter(type, ghost_type);
-//    auto nb_element = elem_filter.size();
-//    if (nb_element == 0) {
-//      continue;
-//    }
+  for (auto type : getElementFilter().elementTypes(spatial_dimension,
+                                                   ghost_type, _ek_cohesive)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
+    auto nb_element = elem_filter.size();
+    if (nb_element == 0) {
+      continue;
+    }
 
-//    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
+    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
+    auto & traction = tractions(type, ghost_type);
+    auto & err_opening = err_openings(type, ghost_type);
 
-//    auto size_of_shapes = shapes.getNbComponent();
-//    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-//    auto nb_quadrature_points =
-//        fem_cohesive.getNbIntegrationPoints(type, ghost_type);
+    auto size_of_shapes = shapes.getNbComponent();
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_quadrature_points =
+        fem_cohesive.getNbIntegrationPoints(type, ghost_type);
 
-//  }
+    /// compute @f$t_i N_a@f$
+
+    auto traction_cpy = std::make_shared<Array<Real>>(
+        nb_element * nb_quadrature_points, spatial_dimension * size_of_shapes);
+
+    auto err_opening_cpy = std::make_shared<Array<Real>>(
+        nb_element * nb_quadrature_points, spatial_dimension * size_of_shapes);
+
+    auto traction_it = traction.begin(spatial_dimension, 1);
+    auto err_opening_it = err_opening.begin(spatial_dimension, 1);
+
+    auto shapes_filtered_begin = shapes.begin(1, size_of_shapes);
+    auto traction_cpy_it =
+        traction_cpy->begin(spatial_dimension, size_of_shapes);
+    auto err_opening_cpy_it =
+        err_opening_cpy->begin(spatial_dimension, size_of_shapes);
+
+    for (Int el = 0; el < nb_element; ++el) {
+      auto current_quad = elem_filter(el) * nb_quadrature_points;
+
+      for (Int q = 0; q < nb_quadrature_points; ++q,
+           ++traction_it,++err_opening_it,
+           ++current_quad,
+           ++traction_cpy_it,++err_opening_cpy_it) {
+
+        auto && shapes_filtered = shapes_filtered_begin[current_quad];
+
+        *traction_cpy_it =
+            (*traction_it ) * shapes_filtered;
+        *err_opening_cpy_it =
+            (*err_opening_it ) * shapes_filtered;
+      }
+    }
+
+    /**
+     * compute @f$\int t \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
+     * \mathbf{t}_q \overline w_q J_q@f$
+     */
+    auto partial_int_t_N = std::make_shared<Array<Real>>(
+        nb_element, spatial_dimension * size_of_shapes, "int_t_N");
+
+    fem_cohesive.integrate(*traction_cpy, *partial_int_t_N,
+                           spatial_dimension * size_of_shapes, type, ghost_type,
+                           elem_filter);
+
+    auto int_t_N = std::make_shared<Array<Real>>(
+        nb_element, 2 * spatial_dimension * size_of_shapes, "int_t_N");
+
+    auto * int_t_N_val = int_t_N->data();
+    auto * partial_int_t_N_val = partial_int_t_N->data();
+    for (Int el = 0; el < nb_element; ++el) {
+      std::copy_n(partial_int_t_N_val, size_of_shapes * spatial_dimension,
+                  int_t_N_val);
+      std::copy_n(partial_int_t_N_val, size_of_shapes * spatial_dimension,
+                  int_t_N_val + size_of_shapes * spatial_dimension);
+
+      for (Int n = 0; n < size_of_shapes * spatial_dimension; ++n) {
+        int_t_N_val[n] *= -1.;
+      }
+
+      int_t_N_val += nb_nodes_per_element * spatial_dimension;
+      partial_int_t_N_val += size_of_shapes * spatial_dimension;
+    }
+
+    /**
+     * compute @f$\int err \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
+     * \mathbf{err}_q \overline w_q J_q@f$
+     */
+    auto int_err_N = std::make_shared<Array<Real>>(
+        nb_element, spatial_dimension * size_of_shapes, "int_err_N");
+
+    /// TODO : not sure this should be done using fem_cohesive ?
+    fem_cohesive.integrate(*err_opening_cpy, *int_err_N,
+                           spatial_dimension * size_of_shapes, type, ghost_type,
+                           elem_filter);
+
+    /// assemble
+    model->getDOFManager().assembleElementalArrayLocalArray(
+        *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
+  }
 
   AKANTU_DEBUG_OUT();
 }

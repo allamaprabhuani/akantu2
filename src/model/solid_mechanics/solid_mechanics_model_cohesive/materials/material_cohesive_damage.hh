@@ -65,7 +65,8 @@ protected:
     using namespace tuple;
     return zip_append(
         MaterialCohesive::getArguments<dim>(element_type, ghost_type),
-        "lambda"_n = make_view<dim>(this->lambda(element_type, ghost_type)));
+        "lambda"_n = make_view<dim>(this->lambda(element_type, ghost_type)),
+        "err_opening"_n = make_view<dim>(this->err_openings(element_type, ghost_type)));
   }
 
   /// constitutive law
@@ -88,6 +89,9 @@ protected:
 
   /// augmented lagrange multiplier
   CohesiveInternalField<Real> lambda;
+
+  /// target opening
+  CohesiveInternalField<Real> err_openings;
 
   /// cohesive damage
   CohesiveInternalField<Real> czm_damage;
