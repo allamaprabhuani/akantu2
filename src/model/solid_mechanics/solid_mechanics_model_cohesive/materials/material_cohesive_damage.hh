@@ -56,13 +56,25 @@ public:
   void assembleInternalForces(GhostType ghost_type = _not_ghost) override;
 
 protected:
+
+  void computeLambdaOnQuad(const Array<Real> & lambda_node, Array<Real> & lambda_quad,
+                      ElementType type, GhostType ghost_type);
+
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
+    using namespace tuple;
+    return zip_append(
+        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
+        "lambda"_n = make_view<dim>(this->lambda(element_type, ghost_type)));
+  }
+
   /// constitutive law
   void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;  
 
-//  /// compute the traction for a given quadrature point
-//  inline void computeTractionOnQuad(ElementType el_type,
-//                                    GhostType ghost_type = _not_ghost);
+  /// compute the traction for a given quadrature point
+  template <typename Args> inline void computeTractionOnQuad(Args && args);
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -75,7 +87,14 @@ protected:
   Real G_c;
 
   /// augmented lagrange multiplier
+  CohesiveInternalField<Real> lambda;
+
+  /// cohesive damage
   CohesiveInternalField<Real> czm_damage;
+
+  Vector<Real, dim> normal_opening;
+  Real normal_opening_norm{0.};
+
 };
 
 /* -------------------------------------------------------------------------- */

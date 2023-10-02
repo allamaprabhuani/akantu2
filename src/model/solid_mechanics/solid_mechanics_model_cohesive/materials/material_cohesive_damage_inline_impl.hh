@@ -32,13 +32,16 @@
 
 namespace akantu {
 
-///* -------------------------------------------------------------------------- */
-//template <Int dim>
-//inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(ElementType el_type,
-//                                                               GhostType ghost_type = _not_ghost) {
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+template <typename Args>
+inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(Args && args) {
+    auto && lambda = args["lambda"_n];
+    auto && opening = args["opening"_n];
+    auto && traction = args["traction"_n];
 
-
-//}
+    traction = lambda - (opening*k);
+}
 
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
