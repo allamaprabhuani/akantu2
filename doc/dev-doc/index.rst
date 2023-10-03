@@ -30,19 +30,22 @@ efficiency while benefiting the open-source visibility.
    :caption: User Manual
 
    ./manual/getting_started.rst
-   ./manual/fe_engine.rst
-   ./manual/solidmechanicsmodel.rst
-   ./manual/heattransfermodel.rst
-   ./manual/contactmechanicsmodel.rst
-   ./manual/phasefieldmodel.rst
-   ./manual/structuralmechanicsmodel.rst
+   ./manual/basic_types.rst
+   ./manual/models.rst
    ./manual/io.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Examples & Tutorials
+
+   ./examples.rst
+   ./tutorials.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: Changelog
 
-   ./changelog.rst
+   ./changelog.md
 
 .. toctree::
    :maxdepth: 2
@@ -51,7 +54,7 @@ efficiency while benefiting the open-source visibility.
    ./reference.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Appendix
 
    ./manual/appendix.rst
@@ -62,9 +65,8 @@ efficiency while benefiting the open-source visibility.
 
    ./manual/bibliography.rst
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 1
+   :caption: Indices and tables
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   ./manual/extra.rst

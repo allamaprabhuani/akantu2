@@ -1,7 +1,7 @@
 .. _sect-smm-cl:
 
 Constitutive Laws
------------------
+`````````````````
 
 In order to compute an element’s response to deformation, one needs to
 use an appropriate constitutive relationship. The constitutive law is
@@ -106,7 +106,7 @@ The following sections describe the constitutive models implemented in
 -----
 
 Elastic
-```````
+'''''''
 
 The elastic law is a commonly used constitutive relationship that can be
 used for a wide range of engineering materials (*e.g.*, metals,
@@ -127,7 +127,7 @@ the elastic modulus tensor.
 .. _sect-smm-linear-elastic-isotropic:
 
 Linear isotropic
-''''''''''''''''
+""""""""""""""""
 
 
 Keyword: **elastic**
@@ -233,7 +233,7 @@ stress-strain law has to be used, as shown below.
 .. _sect-smm-linear-elastic-anisotropic:
 
 Linear anisotropic
-''''''''''''''''''
+""""""""""""""""""
 
 
 Keyword: **elastic_anisotropic**
@@ -350,7 +350,7 @@ as follow:
 .. _sect-smm-linear-elastic-orthotropic:
 
 Linear orthotropic
-''''''''''''''''''
+""""""""""""""""""
 
 Keyword: **elastic_orthotropic**
 
@@ -435,7 +435,7 @@ The Poisson ratios follow the rule
 .. _sect-smm-cl-neohookean:
 
 Neo-Hookean
-'''''''''''
+"""""""""""
 
 Keyword: **neohookean**
 
@@ -513,12 +513,12 @@ for the elastic case: ``E`` (Young’s modulus), ``nu`` (Poisson’s ratio).
 .. _sect-smm-cl-ve:
 
 Visco-Elastic
-`````````````
+'''''''''''''
 
 .. _sect-smm-cl-sls:
 
 Standard-Linear Solid
-'''''''''''''''''''''
+"""""""""""""""""""""
 
 Keyword: **sls_deviatoric**
 
@@ -601,7 +601,7 @@ tensor affects the stress tensor like an linear elastic material.
 .. _sect-smm-cl-maxwell:
 
 Maxwell Chain Visco-Elasticity
-''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""
 
 Keyword: **viscoelastic_maxwell**
 
@@ -704,10 +704,10 @@ static and dynamic simulations:
 .. _sect-smm-cl-plastic:
 
 Plastic
-```````
+'''''''
 
 Small-Deformation Plasticity
-''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""
 
 Keyword: **plastic_linear_isotropic_hardening**
 
@@ -855,7 +855,7 @@ modulus), ``nu`` (Poisson’s ratio).
 -----
 
 Damage
-``````
+""""""
 
 In the simplified case of a linear elastic and brittle material,
 isotropic damage can be represented by a scalar variable :math:`d`,
@@ -876,7 +876,7 @@ exist and they are listed below.
 .. _sect-smm-cl-damage-marigo:
 
 Marigo
-''''''
+""""""
 
 Keyword: **marigo**
 
@@ -997,7 +997,7 @@ value and the decay shape parameters.
 .. _sect:smm:CLNL:
 
 Non-Local Constitutive Laws
-```````````````````````````
+'''''''''''''''''''''''''''
 
 Continuum damage modeling of quasi-brittle materials undergo significant
 softening after the onset of damage. This fast growth of damage causes a loss of
@@ -1054,7 +1054,7 @@ The non-local damage variable :math:`\bar{d}` is defined as follows:
 with :math:`W(\vec{x},\vec{y})` the weight function which averages local damage variables to describe the non-local interactions. A list of available weight functions and its functionalities in \akantu are explained in the next section.
 
 Non-local weight functions
-''''''''''''''''''''''''''
+""""""""""""""""""""""""""
 
 The available weight functions in ``Akantu`` are follows:
 
@@ -1069,12 +1069,12 @@ The available weight functions in ``Akantu`` are follows:
 .. _sec-cohesive-laws:
 
 Cohesive Constitutive laws
-``````````````````````````
+''''''''''''''''''''''''''
 
 .. _ssect-smm-cl-coh-snozzi:
 
 Linear Irreversible Law
-'''''''''''''''''''''''
+"""""""""""""""""""""""
 
 Keyword: **cohesive_linear**
 
@@ -1217,7 +1217,7 @@ the folder ``examples/cohesive_element/``.
 .. _ssect:smm:cl:coh-friction:
 
 Linear Cohesive Law with Friction
-'''''''''''''''''''''''''''''''''
+"""""""""""""""""""""""""""""""""
 
 Keyword: **cohesive_linear_friction**
 
@@ -1271,7 +1271,7 @@ with the respective default values, are:
 .. _ssect:smm:cl:coh-fatigue:
 
 Linear Cohesive Law with Fatigue
-''''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""""
 
 Keyword: **cohesive_linear_fatigue**
 
@@ -1342,7 +1342,7 @@ law for crack opening.
 .. _ssect:smm:cl:coh-exponential:
 
 Exponential Cohesive Law
-'''''''''''''''''''''''''
+""""""""""""""""""""""""
 
 Keyword: **cohesive_exponential**
 

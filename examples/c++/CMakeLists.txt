@@ -1,0 +1,7 @@
+add_example(contact_mechanics_model "Example on how to run contact mechanics model simulation" PACKAGE contact_mechanics)
+add_example(diffusion_model "Example on how to run heat transfer simulation" PACKAGE diffusion)
+add_example(embedded_model "Example on how to run embedded model simulation" PACKAGE embedded)
+add_example(phase_field_model "Example on how to run phase field model simulation" PACKAGE phase_field)
+add_example(solid_mechanics_cohesive_model "Cohesive element examples" PACKAGE cohesive_element)
+add_example(solid_mechanics_model "Solid mechanics examples" PACKAGE solid_mechanics)
+add_example(structural_mechanics_model "Structural mechanics model examples" PACKAGE structural_mechanics)
