@@ -53,15 +53,14 @@ template <class Derived, class Args>
 inline void MaterialCohesiveDamage<dim>::computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent_uu,
                                                                       Eigen::MatrixBase<Derived> & tangent_ll,
                                                                       Args && args) {
-    auto && lambda = args["lambda"_n];
-    auto && err_opening = args["err_opening"_n];
-    auto && opening = args["opening"_n];
-    auto && traction = args["traction"_n];
-
-    traction = lambda - (opening*k);
     /// TODO : COMPUTE augmented_compliance
+    /// TODO : check basis
     Real augmented_compliance(0.);
-    err_opening = opening-lambda*augmented_compliance;
+    for(Int i = 0; i < dim; ++i)
+    {
+        tangent_uu(i,i) = -k;
+        tangent_ll(i,i) = -augmented_compliance;
+    }
 }
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
