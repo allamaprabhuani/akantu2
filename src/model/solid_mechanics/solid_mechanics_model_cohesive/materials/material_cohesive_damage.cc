@@ -232,6 +232,120 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
+void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  for (auto type : getElementFilter().elementTypes(spatial_dimension,
+                                                   ghost_type, _ek_cohesive)) {
+    auto nb_quadrature_points =
+        fem_cohesive.getNbIntegrationPoints(type, ghost_type);
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    auto & elem_filter = getElementFilter(type, ghost_type);
+    auto nb_element = elem_filter.size();
+
+    if (nb_element == 0U) {
+      continue;
+    }
+
+    const auto & shapes = fem_cohesive.getShapes(type, ghost_type);
+    auto size_of_shapes = shapes.getNbComponent();
+
+    auto shapes_filtered = std::make_shared<Array<Real>>(
+        nb_element * nb_quadrature_points, size_of_shapes, "filtered shapes");
+
+    for (auto && data :
+         zip(filter(elem_filter,
+                    make_view(shapes, size_of_shapes, nb_quadrature_points)),
+             make_view(*shapes_filtered, size_of_shapes,
+                       nb_quadrature_points))) {
+      std::get<1>(data) = std::get<0>(data);
+    }
+
+    Matrix<Real> A(spatial_dimension * size_of_shapes,
+                   spatial_dimension * nb_nodes_per_element);
+
+    for (Int i = 0; i < spatial_dimension * size_of_shapes; ++i) {
+      A(i, i) = 1;
+      A(i, i + spatial_dimension * size_of_shapes) = -1;
+    }
+
+    /// get the tangent matrix @f$\frac{\partial{(t/\delta)}}{\partial{\delta}}
+    /// @f$
+    auto tangent_stiffness_matrix_uu = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points,
+        spatial_dimension * spatial_dimension, "tangent_stiffness_matrix_uu");
+
+    auto tangent_stiffness_matrix_ll = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points,
+        spatial_dimension * spatial_dimension, "tangent_stiffness_matrix_ll");
+
+    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+                  ghost_type);
+
+    /// compute openings @f$\mathbf{\delta}@f$
+    // computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
+    // ghost_type);
+
+    tangent_stiffness_matrix_uu->zero();
+
+    computeTangentTraction(type, *tangent_stiffness_matrix_uu, *tangent_stiffness_matrix_ll, ghost_type);
+
+    UInt size_at_nt_d_n_a = spatial_dimension * nb_nodes_per_element *
+                            spatial_dimension * nb_nodes_per_element;
+    auto at_nt_d_n_a = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, size_at_nt_d_n_a, "A^t*N^t*D*N*A");
+
+    Matrix<Real> N(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+
+    for (auto && data :
+         zip(make_view(*at_nt_d_n_a, spatial_dimension * nb_nodes_per_element,
+                       spatial_dimension * nb_nodes_per_element),
+             make_view(*tangent_stiffness_matrix_uu, spatial_dimension,
+                       spatial_dimension),
+             make_view(*shapes_filtered, size_of_shapes))) {
+
+      auto && At_Nt_D_N_A = std::get<0>(data);
+      auto && D = std::get<1>(data);
+      auto && shapes = std::get<2>(data);
+      N.zero();
+      /**
+       * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
+       * \begin{array}{cccccc} N_0(\xi) & 0 & N_1(\xi)  &0 & N_2(\xi) & 0 \\
+       * 0 & * N_0(\xi)& 0 &N_1(\xi)& 0 & N_2(\xi) \end{array} @f$
+       **/
+      for (Int i = 0; i < spatial_dimension; ++i) {
+        for (Int n = 0; n < size_of_shapes; ++n) {
+          N(i, i + spatial_dimension * n) = shapes(n);
+        }
+      }
+
+      /**
+       * compute stiffness matrix  @f$   \mathbf{K}    =    \delta
+       *\mathbf{U}^T \int_{\Gamma_c}    {\mathbf{P}^t
+       *\frac{\partial{\mathbf{t}}}
+       *{\partial{\delta}}
+       * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
+       **/
+      auto && NA = N * A;
+      At_Nt_D_N_A = (D * NA).transpose() * NA;
+    }
+
+    auto K_e =
+        std::make_unique<Array<Real>>(nb_element, size_at_nt_d_n_a, "K_e");
+
+    fem_cohesive.integrate(*at_nt_d_n_a, *K_e, size_at_nt_d_n_a, type,
+                           ghost_type, elem_filter);
+
+    model->getDOFManager().assembleElementalMatricesToMatrix(
+        "K", "displacement", *K_e, type, ghost_type, _unsymmetric, elem_filter);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
 void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(const Array<Real> & lambda_nodes,
                                       Array<Real> & lambda_quad, ElementType type,
                                       GhostType ghost_type) {
@@ -264,6 +378,23 @@ void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
     for (auto && args : getArguments(el_type, ghost_type)) {
       this->computeTractionOnQuad(args);
     }
+}
+
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+void MaterialCohesiveDamage<dim>::computeTangentTraction(ElementType el_type,
+                                                         Array<Real> & tangent_matrix_uu,
+                                                         Array<Real> &tangent_matrix_ll,
+                                                         GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && [args, tangent_uu, tangent_ll] : zip(getArguments(el_type, ghost_type),
+                                     make_view<dim, dim>(tangent_matrix_uu),
+                                     make_view<dim, dim>(tangent_matrix_ll))) {
+    computeTangentTractionOnQuad(tangent_uu, tangent_ll, args);
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

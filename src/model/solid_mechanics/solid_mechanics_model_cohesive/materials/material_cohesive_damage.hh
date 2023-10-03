@@ -52,6 +52,9 @@ public:
   /// initialize the material parameters
   void initMaterial() override;
 
+  /// assemble stiffness
+  void assembleStiffnessMatrix(GhostType ghost_type) override;
+
   /// assemble residual
   void assembleInternalForces(GhostType ghost_type = _not_ghost) override;
 
@@ -73,9 +76,20 @@ protected:
   void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;  
 
+  /// compute tangent stiffness matrix
+  /// WARNING : override was removed, not sure it should have
+  void computeTangentTraction(ElementType el_type,
+                              Array<Real> & tangent_matrix_uu,
+                              Array<Real> & tangent_matrix_ll,
+                              GhostType ghost_type);
+
   /// compute the traction for a given quadrature point
   template <typename Args> inline void computeTractionOnQuad(Args && args);
 
+  template <class Derived, class Args>
+  inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent_uu,
+                                           Eigen::MatrixBase<Derived> & tangent_ll,
+                                           Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
