@@ -272,6 +272,8 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
 
     /// get the tangent matrix @f$\frac{\partial{(t/\delta)}}{\partial{\delta}}
     /// @f$
+    /// TODO : optimisation not to reassemble uu term, which does not change
+    /// during computation
     auto tangent_stiffness_matrix_uu = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points,
         spatial_dimension * spatial_dimension, "tangent_stiffness_matrix_uu");
@@ -288,26 +290,46 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     // ghost_type);
 
     tangent_stiffness_matrix_uu->zero();
+    tangent_stiffness_matrix_ll->zero();
 
     computeTangentTraction(type, *tangent_stiffness_matrix_uu, *tangent_stiffness_matrix_ll, ghost_type);
 
-    UInt size_at_nt_d_n_a = spatial_dimension * nb_nodes_per_element *
+    UInt size_at_nt_duu_n_a = spatial_dimension * nb_nodes_per_element *
                             spatial_dimension * nb_nodes_per_element;
-    auto at_nt_d_n_a = std::make_unique<Array<Real>>(
-        nb_element * nb_quadrature_points, size_at_nt_d_n_a, "A^t*N^t*D*N*A");
+    auto at_nt_duu_n_a = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, size_at_nt_duu_n_a, "A^t*N^t*Duu*N*A");
+
+    UInt size_nt_dll_n = spatial_dimension * nb_nodes_per_element *
+                         spatial_dimension * nb_nodes_per_element;
+    auto nt_dll_n = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, size_nt_dll_n, "N^t*Dll*N");
+
+    UInt size_at_nt_dul_n = spatial_dimension * nb_nodes_per_element *
+                            spatial_dimension * nb_nodes_per_element;
+    auto at_nt_dul_n = std::make_unique<Array<Real>>(
+        nb_element * nb_quadrature_points, size_at_nt_dul_n, "A^t*N^t*Dul*N");
 
     Matrix<Real> N(spatial_dimension, spatial_dimension * nb_nodes_per_element);
 
     for (auto && data :
-         zip(make_view(*at_nt_d_n_a, spatial_dimension * nb_nodes_per_element,
+         zip(make_view(*at_nt_duu_n_a, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * nb_nodes_per_element),
              make_view(*tangent_stiffness_matrix_uu, spatial_dimension,
                        spatial_dimension),
+             make_view(*nt_dll_n, spatial_dimension * nb_nodes_per_element,
+                       spatial_dimension * nb_nodes_per_element),
+             make_view(*tangent_stiffness_matrix_ll, spatial_dimension,
+                       spatial_dimension),
+             make_view(*at_nt_dul_n, spatial_dimension * nb_nodes_per_element,
+                       spatial_dimension * nb_nodes_per_element),
              make_view(*shapes_filtered, size_of_shapes))) {
 
-      auto && At_Nt_D_N_A = std::get<0>(data);
-      auto && D = std::get<1>(data);
-      auto && shapes = std::get<2>(data);
+      auto && At_Nt_Duu_N_A = std::get<0>(data);
+      auto && Duu = std::get<1>(data);
+      auto && Nt_Dll_N = std::get<2>(data);
+      auto && Dll = std::get<3>(data);
+      auto && At_Nt_Dul_N = std::get<4>(data);
+      auto && shapes = std::get<5>(data);
       N.zero();
       /**
        * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
@@ -328,17 +350,41 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
        * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
        **/
       auto && NA = N * A;
-      At_Nt_D_N_A = (D * NA).transpose() * NA;
+      At_Nt_Duu_N_A = (Duu * NA).transpose() * NA;
+      Nt_Dll_N = (Dll * N).transpose() * N;
+      At_Nt_Dul_N =  NA.transpose() * N;
     }
 
-    auto K_e =
-        std::make_unique<Array<Real>>(nb_element, size_at_nt_d_n_a, "K_e");
+    auto Kuu_e =
+        std::make_unique<Array<Real>>(nb_element, size_at_nt_duu_n_a, "Kuu_e");
 
-    fem_cohesive.integrate(*at_nt_d_n_a, *K_e, size_at_nt_d_n_a, type,
+    fem_cohesive.integrate(*at_nt_duu_n_a, *Kuu_e, size_at_nt_duu_n_a, type,
                            ghost_type, elem_filter);
 
+    auto Kll_e =
+        std::make_unique<Array<Real>>(nb_element, size_nt_dll_n, "Kll_e");
+
+    fem_cohesive.integrate(*nt_dll_n, *Kll_e, size_nt_dll_n, type,
+                           ghost_type, elem_filter);
+
+    auto Kul_e =
+        std::make_unique<Array<Real>>(nb_element, size_at_nt_dul_n, "Kul_e");
+
+    fem_cohesive.integrate(*at_nt_dul_n, *Kul_e, size_at_nt_dul_n, type,
+                           ghost_type, elem_filter);
+
+    /// Are we sure that the terms are assembled at the right place ?
+    /// How do we know that K has the appropriate size ?
     model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "displacement", *K_e, type, ghost_type, _unsymmetric, elem_filter);
+        "K", "displacement", *Kuu_e, type, ghost_type, _unsymmetric, elem_filter);
+
+    model->getDOFManager().assembleElementalMatricesToMatrix(
+        "K", "lambda", *Kll_e, type, ghost_type, _unsymmetric, elem_filter);
+
+
+    /// Where do we tell TermsToAssemble to use Kul_e ???
+    TermsToAssemble term_ul("displacement","lambda");
+    model->getDOFManager().assemblePreassembledMatrix("K",term_ul);
   }
 
   AKANTU_DEBUG_OUT();
