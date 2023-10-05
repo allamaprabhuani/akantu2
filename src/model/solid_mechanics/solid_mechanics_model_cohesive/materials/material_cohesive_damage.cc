@@ -225,6 +225,12 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     /// assemble
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
+
+
+    /// TODO : a proper assembling using lambda connectivity
+    /// this->getDOFManager().assembleToResidual("lambda",
+    ///                                         *this->internal_force, 1);
+
   }
 
   AKANTU_DEBUG_OUT();
@@ -378,12 +384,22 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "displacement", *Kuu_e, type, ghost_type, _unsymmetric, elem_filter);
 
+    /// Does not work, require lambda connectivity
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "lambda", *Kll_e, type, ghost_type, _unsymmetric, elem_filter);
 
 
     /// Where do we tell TermsToAssemble to use Kul_e ???
+    /// Do we need to assemble Klu_e
     TermsToAssemble term_ul("displacement","lambda");
+
+    /// TODO : using lambda connectivity to properly assemble ul terms
+//    for(Int i = ..., Int j = ...)
+//    {
+//        TermToAssemble term_ul_ij(i,j);
+//        term_ul_ij = ...
+//        term_ul(i,j) =  term_ul_ij;
+//    }
     model->getDOFManager().assemblePreassembledMatrix("K",term_ul);
   }
 
@@ -401,6 +417,7 @@ void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(const Array<Real> & lambda
       this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
 
   //// TODO : THIS IS WRONG, SHOULD BE CORRECTED
+  ///         WILL REQUIRE LAMBDA CONNECTIVITY
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
         constexpr ElementType type = aka::decay_v<decltype(enum_type)>;

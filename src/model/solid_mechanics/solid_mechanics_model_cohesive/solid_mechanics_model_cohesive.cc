@@ -248,6 +248,8 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     this->insertIntrinsicElements();
   }
 
+  /// TODO : INITIALIZE LAMBDA HERE
+
   AKANTU_DEBUG_OUT();
 } // namespace akantu
 

@@ -221,6 +221,9 @@ void CohesiveElementInserter::limitCheckFacets(
       },
       _spatial_dimension = spatial_dimension - 1);
 
+  /// TODO_NR : COUNT LAMBDA NODES HERE
+  /// TODO_NR : CREATE LAMBDA CONNECTIVITY HERE ?
+
   AKANTU_DEBUG_OUT();
 }
 
