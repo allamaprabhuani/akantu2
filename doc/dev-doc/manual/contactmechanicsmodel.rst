@@ -1,12 +1,12 @@
 Contact Mechanics Model
-=======================
+-----------------------
 
 The contact mechanics model is a specific implementation of
 :cpp:class:`Model <akantu::Model>` interface to handle contact between
 bodies.
 
 Theory
-------
+``````
 
 .. _fig-contactmechanicsmodel-schematic:
 
@@ -258,7 +258,7 @@ implemented within Akantu in order to find the active set and to compute contact
 
 
 Using the Contact Mechanics Model
----------------------------------
+`````````````````````````````````
 
 The :cpp:class:`ContactMechanicsModel <akantu::ContactMechanicsModel>`
 object solves the contact problem. An instance of
@@ -369,7 +369,7 @@ penalization formulation is as follows:
 
 
 Coupling with :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+````````````````````````````````````````````````````````````````````````````
 
 To couple the
 :cpp:class:`ContactMechancisModel<akantu::ContactMechanicsModel>`
@@ -436,7 +436,7 @@ invoked.
 
    
 Coupling with  :cpp:class:`SolidMechanicsModelCohesive <akantu::SolidMechanicsModelCohesive>`
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+`````````````````````````````````````````````````````````````````````````````````````````````
 
 To use the contact mechanics model with cohesive elements, one must use the
 :cpp:class:`CouplerSolidCohesiveContact<akantu::CouplerSolidCohesiveContact>` to

@@ -254,6 +254,9 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   set(_retry_try_run TRUE)
   set(_retry_count 0)
 
+  set(ENV{LANG} C) # Trying to get the error messages in English
+
+
   # trying only as long as we add dependencies to avoid infinite loop in case of
   # an unknown dependency
   while (_retry_try_run AND _retry_count LESS 100)

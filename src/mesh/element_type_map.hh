@@ -109,7 +109,7 @@ public:
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
    *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
-   *  @param data to insert
+   *  @param insertee data to insert
    *  @param type type of data (if this type is already present in the map,
    *         an exception is thrown).
    *  @param ghost_type optional: by default, the data map for non-ghost
