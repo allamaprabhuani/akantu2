@@ -1,8 +1,7 @@
-In order to use the Akantu examples using the python mode, one has to source
-the file ``akantu_environement.sh``:
+Python examples
+---------------
 
-| > source <AKANTU_BUILD_DIR>/akantu_environement.sh
-
-or for an installed akantu version:
-
-| > source <AKANTU_INSTALL_DIR>/share/akantu<VERSION>/akantu_environement.sh
+.. include:: examples/python/solid_mechanics_model/README.rst
+.. include:: examples/python/solid_mechanics_cohesive_model/README.rst
+.. include:: examples/python/contact_mechanics_model/README.rst
+.. include:: examples/python/phase_field_model/README.rst

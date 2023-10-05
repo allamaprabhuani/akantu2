@@ -1,5 +1,7 @@
+.. _sect-smm-ncl:
+
 Adding a New Constitutive Law
------------------------------
+`````````````````````````````
 
 There are several constitutive laws in ``Akantu`` as described in the previous
 Section :ref:`sect-smm-cl`. It is also possible to use a user-defined material
@@ -300,7 +302,7 @@ A full example for adding a new damage law can be found in
 ``examples/new_material``.
 
 Adding a New Non-Local Constitutive Law
-```````````````````````````````````````
+'''''''''''''''''''''''''''''''''''''''
 
 In order to add a new non-local material we first have to add the local
 constitutive law in Akantu (see above). We can then add the non-local version

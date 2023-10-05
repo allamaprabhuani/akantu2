@@ -1,0 +1,14 @@
+Solid Mechanics Model
+`````````````````````
+
+.. include:: examples/python/solid_mechanics_model/plate_hole/README.rst
+
+.. include:: examples/python/solid_mechanics_model/dynamics/README.rst
+
+.. include:: examples/python/solid_mechanics_model/eigen_modes/README.rst
+
+.. include:: examples/python/solid_mechanics_model/custom-material/README.rst
+
+.. include:: examples/python/solid_mechanics_model/stiffness_matrix/README.rst
+
+.. include:: examples/python/solid_mechanics_model/solver_callback/README.rst
