@@ -248,6 +248,8 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     this->insertIntrinsicElements();
   }
 
+  /// TODO : INITIALIZE LAMBDA HERE
+
   AKANTU_DEBUG_OUT();
 } // namespace akantu
 
@@ -281,6 +283,8 @@ void SolidMechanicsModelCohesive::initModel() {
     }
   }
   AKANTU_DEBUG_ASSERT(type != _not_defined, "No elements in the mesh");
+
+  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
 
   AKANTU_DEBUG_OUT();
 }

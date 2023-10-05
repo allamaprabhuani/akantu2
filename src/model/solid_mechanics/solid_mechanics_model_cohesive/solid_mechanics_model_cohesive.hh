@@ -264,11 +264,19 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(CohesiveSynchronizer, *cohesive_synchronizer,
                              ElementSynchronizer &);
 
+  /// get the SolidMechanicsModel::displacement array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Lambda, lambda);
+  /// get the SolidMechanicsModel::displacement array
+  AKANTU_GET_MACRO_DEREF_PTR(Lambda, lambda);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   friend class CohesiveMeshGlobalDataUpdater;
+
+  /// lambda array
+  std::unique_ptr<Array<Real>> lambda;
 
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;
