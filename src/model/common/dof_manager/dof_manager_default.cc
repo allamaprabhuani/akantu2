@@ -281,14 +281,14 @@ void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
-    ElementType type, GhostType ghost_type,
+    const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
     const Array<Int> & filter_elements) {
   this->addToProfile(matrix_id, dof_id, type, ghost_type);
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
-      A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,
-      filter_elements);
+      A, dof_id, elementary_mat, connectivity, type, ghost_type,
+      elemental_matrix_type, filter_elements);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -66,6 +66,16 @@ void DOFManager::assembleElementalArrayLocalArray(
     const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
     ElementType type, GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
+  assembleElementalArrayLocalArray(
+      elementary_vect, array_assembeled,
+      this->mesh->getConnectivity(type, ghost_type), type, ghost_type,
+      scale_factor, filter_elements);
+}
+/* -------------------------------------------------------------------------- */
+void DOFManager::assembleElementalArrayLocalArray(
+    const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
+    const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   Int nb_element;
@@ -85,8 +95,6 @@ void DOFManager::assembleElementalArrayLocalArray(
                       "The vector elementary_vect("
                           << elementary_vect.getID()
                           << ") has not the good size.");
-
-  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
 
   auto elem_it =
       make_view(elementary_vect, nb_degree_of_freedom, nb_nodes_per_element)
@@ -124,29 +132,15 @@ void DOFManager::assembleElementalArrayToResidual(
     const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
     GhostType ghost_type, Real scale_factor,
     const Array<Int> & filter_elements) {
-  AKANTU_DEBUG_IN();
-
-  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  auto nb_degree_of_freedom =
-      elementary_vect.getNbComponent() / nb_nodes_per_element;
-  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
-                                      nb_degree_of_freedom);
-
-  array_localy_assembeled.zero();
-
-  this->assembleElementalArrayLocalArray(
-      elementary_vect, array_localy_assembeled, type, ghost_type, scale_factor,
-      filter_elements);
-
-  this->assembleToResidual(dof_id, array_localy_assembeled, 1);
-
-  AKANTU_DEBUG_OUT();
+  assembleElementalArrayToResidual(
+      dof_id, elementary_vect, this->mesh->getConnectivity(type, ghost_type),
+      type, ghost_type, scale_factor, filter_elements);
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManager::assembleElementalArrayToLumpedMatrix(
+void DOFManager::assembleElementalArrayToResidual(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
     Real scale_factor, const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
@@ -159,12 +153,59 @@ void DOFManager::assembleElementalArrayToLumpedMatrix(
   array_localy_assembeled.zero();
 
   this->assembleElementalArrayLocalArray(
-      elementary_vect, array_localy_assembeled, type, ghost_type, scale_factor,
-      filter_elements);
+      elementary_vect, array_localy_assembeled, connectivity, type, ghost_type,
+      scale_factor, filter_elements);
+
+  this->assembleToResidual(dof_id, array_localy_assembeled, 1);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void DOFManager::assembleElementalArrayToLumpedMatrix(
+    const ID & dof_id, const Array<Real> & elementary_vect,
+    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<Int> & filter_elements) {
+  assembleElementalArrayToLumpedMatrix(
+      dof_id, elementary_vect, lumped_mtx,
+      this->mesh->getConnectivity(type, ghost_type), type, ghost_type,
+      scale_factor, filter_elements);
+}
+/* -------------------------------------------------------------------------- */
+void DOFManager::assembleElementalArrayToLumpedMatrix(
+    const ID & dof_id, const Array<Real> & elementary_vect,
+    const ID & lumped_mtx, const Array<Idx> & connectivity, ElementType type,
+    GhostType ghost_type, Real scale_factor,
+    const Array<Int> & filter_elements) {
+  AKANTU_DEBUG_IN();
+
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom =
+      elementary_vect.getNbComponent() / nb_nodes_per_element;
+  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
+                                      nb_degree_of_freedom);
+
+  array_localy_assembeled.zero();
+
+  this->assembleElementalArrayLocalArray(
+      elementary_vect, array_localy_assembeled, connectivity, type, ghost_type,
+      scale_factor, filter_elements);
 
   this->assembleToLumpedMatrix(dof_id, array_localy_assembeled, lumped_mtx, 1);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void DOFManager::assembleElementalMatricesToMatrix(
+    const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
+    ElementType type, GhostType ghost_type,
+    const MatrixType & elemental_matrix_type,
+    const Array<Int> & filter_elements) {
+  assembleElementalMatricesToMatrix(matrix_id, dof_id, elementary_mat,
+                                    mesh->getConnectivity(type, ghost_type),
+                                    type, ghost_type, elemental_matrix_type,
+                                    filter_elements);
 }
 
 /* -------------------------------------------------------------------------- */

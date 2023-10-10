@@ -104,6 +104,18 @@ public:
       const Array<Int> & filter_elements = empty_filter);
 
   /**
+   * Assemble elementary values to a local array of the size nb_nodes *
+   * nb_dof_per_node. The dof number is implicitly considered as
+   * conn(el, n) * nb_nodes_per_element + d.
+   * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
+   **/
+  virtual void assembleElementalArrayLocalArray(
+      const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
+      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
+      Real scale_factor = 1.,
+      const Array<Int> & filter_elements = empty_filter);
+
+  /**
    * Assemble elementary values to the global residual array. The dof number is
    * implicitly considered as conn(el, n) * nb_nodes_per_element + d.
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
@@ -111,6 +123,17 @@ public:
   virtual void assembleElementalArrayToResidual(
       const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
       GhostType ghost_type, Real scale_factor = 1.,
+      const Array<Int> & filter_elements = empty_filter);
+
+  /**
+   * Assemble elementary values to the global residual array. The dof number is
+   * implicitly considered as conn(el, n) * nb_nodes_per_element + d.
+   * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
+   **/
+  virtual void assembleElementalArrayToResidual(
+      const ID & dof_id, const Array<Real> & elementary_vect,
+      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
+      Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**
@@ -124,6 +147,16 @@ public:
       const Array<Int> & filter_elements = empty_filter);
 
   /**
+   * Assemble elementary values to a global array corresponding to a lumped
+   * matrix
+   */
+  virtual void assembleElementalArrayToLumpedMatrix(
+      const ID & dof_id, const Array<Real> & elementary_vect,
+      const ID & lumped_mtx, const Array<Idx> & connectivity, ElementType type,
+      GhostType ghost_type, Real scale_factor = 1.,
+      const Array<Int> & filter_elements = empty_filter);
+
+  /**
    * Assemble elementary values to the global residual array. The dof number is
    * implicitly considered as conn(el, n) * nb_nodes_per_element + d.  With 0 <
    * n < nb_nodes_per_element and 0 < d < nb_dof_per_node
@@ -132,6 +165,18 @@ public:
       const ID & matrix_id, const ID & dof_id,
       const Array<Real> & elementary_mat, ElementType type,
       GhostType ghost_type = _not_ghost,
+      const MatrixType & elemental_matrix_type = _symmetric,
+      const Array<Int> & filter_elements = empty_filter);
+
+  /**
+   * Assemble elementary values to the global residual array. The dof number is
+   * implicitly considered as conn(el, n) * nb_nodes_per_element + d.  With 0 <
+   * n < nb_nodes_per_element and 0 < d < nb_dof_per_node
+   **/
+  virtual void assembleElementalMatricesToMatrix(
+      const ID & matrix_id, const ID & dof_id,
+      const Array<Real> & elementary_mat, const Array<Idx> & connectivity,
+      ElementType type, GhostType ghost_type = _not_ghost,
       const MatrixType & elemental_matrix_type = _symmetric,
       const Array<Int> & filter_elements = empty_filter) = 0;
 
@@ -214,12 +259,11 @@ protected:
   void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
-  void
-  assembleElementalMatricesToMatrix_(Mat & A, const ID & dof_id,
-                                     const Array<Real> & elementary_mat,
-                                     ElementType type, GhostType ghost_type,
-                                     const MatrixType & elemental_matrix_type,
-                                     const Array<Idx> & filter_elements);
+  void assembleElementalMatricesToMatrix_(
+      Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
+      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
+      const MatrixType & elemental_matrix_type,
+      const Array<Idx> & filter_elements);
 
   template <typename Vec>
   void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
