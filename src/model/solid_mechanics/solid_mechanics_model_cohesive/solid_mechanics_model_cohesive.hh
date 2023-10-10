@@ -278,10 +278,6 @@ private:
   /// lambda array
   std::unique_ptr<Array<Real>> lambda;
 
-  std::unique_ptr<Array<Idx>> lambda_to_nodes;
-
-  std::unique_ptr<ElementTypeMapArray<Idx>> lambda_connectivity;
-
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;
 
