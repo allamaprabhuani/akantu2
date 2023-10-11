@@ -128,6 +128,8 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
+  auto & lambda_connectivities =
+          model->getMesh().getElementalData<Idx>("lambda_connectivities");
 
   for (auto type : getElementFilter().elementTypes(spatial_dimension,
                                                    ghost_type, _ek_cohesive)) {
@@ -226,11 +228,10 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
-
-    /// TODO : a proper assembling using lambda connectivity
-    /// this->getDOFManager().assembleToResidual("lambda",
-    ///                                         *this->internal_force, 1);
-
+    auto lambda_connectivities_elem =  lambda_connectivities(type);
+    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
+                                                           lambda_connectivities_elem,
+                                                           type,ghost_type,1.,elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -240,6 +241,9 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
 template <Int dim>
 void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  auto & lambda_connectivities =
+      model->getMesh().getElementalData<Idx>("lambda_connectivities");
 
   for (auto type : getElementFilter().elementTypes(spatial_dimension,
                                                    ghost_type, _ek_cohesive)) {
@@ -379,14 +383,13 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     fem_cohesive.integrate(*at_nt_dul_n, *Kul_e, size_at_nt_dul_n, type,
                            ghost_type, elem_filter);
 
-    /// Are we sure that the terms are assembled at the right place ?
-    /// How do we know that K has the appropriate size ?
     model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "displacement", *Kuu_e, type, ghost_type, _unsymmetric, elem_filter);
+        "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
-    /// Does not work, require lambda connectivity
+
+    auto lambda_connectivities_elem = lambda_connectivities(type);
     model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "lambda", *Kll_e, type, ghost_type, _unsymmetric, elem_filter);
+        "K", "lambda", *Kll_e, lambda_connectivities_elem,type, ghost_type, _symmetric, elem_filter);
 
 
     /// Where do we tell TermsToAssemble to use Kul_e ???
