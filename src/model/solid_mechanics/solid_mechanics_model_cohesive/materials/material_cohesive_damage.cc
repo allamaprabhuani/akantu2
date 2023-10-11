@@ -228,9 +228,9 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
-    auto lambda_connectivities_elem =  lambda_connectivities(type);
+    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
-                                                           lambda_connectivities_elem,
+                                                           lambda_connectivity,
                                                            type,ghost_type,1.,elem_filter);
   }
 
@@ -387,9 +387,9 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
 
-    auto lambda_connectivities_elem = lambda_connectivities(type);
+    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "lambda", *Kll_e, lambda_connectivities_elem,type, ghost_type, _symmetric, elem_filter);
+        "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type, _symmetric, elem_filter);
 
 
     /// Where do we tell TermsToAssemble to use Kul_e ???
