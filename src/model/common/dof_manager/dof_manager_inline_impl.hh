@@ -232,7 +232,7 @@ void DOFManager::assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
 template <typename Mat>
 void DOFManager::assembleElementalMatricesToMatrix_(
     Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
-    ElementType type, GhostType ghost_type,
+    const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
     const Array<Idx> & filter_elements) {
   AKANTU_DEBUG_IN();
@@ -257,7 +257,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
       nb_element = group_elements.size();
       filter_it = group_elements.data();
     } else {
-      nb_element = this->mesh->getNbElement(type, ghost_type);
+      nb_element = connectivity.size();
     }
   }
 
@@ -266,11 +266,10 @@ void DOFManager::assembleElementalMatricesToMatrix_(
                           << elementary_mat.getID()
                           << ") has not the good size.");
 
-  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_nodes_per_element = connectivity.getNbComponent();
 
   auto nb_degree_of_freedom = dof_data.dof->getNbComponent();
 
-  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
   auto conn_begin = connectivity.begin(nb_nodes_per_element);
   auto conn_it = conn_begin;
   auto size_mat = nb_nodes_per_element * nb_degree_of_freedom;
@@ -323,4 +322,4 @@ void DOFManager::assemblePreassembledMatrix_(Mat & A,
 
 } // namespace akantu
 
-//#endif /* __AKANTU_DOF_MANAGER_INLINE_IMPL_CC__ */
+// #endif /* __AKANTU_DOF_MANAGER_INLINE_IMPL_CC__ */
