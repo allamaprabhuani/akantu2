@@ -764,11 +764,8 @@ public:
   GlobalDOFInfoDataAccessor(DOFManager::DOFData & dof_data,
                             DOFManager & dof_manager)
       : dof_data(dof_data), dof_manager(dof_manager) {
-    for (auto && pair :
+    for (auto && [dof, node] :
          zip(dof_data.local_equation_number, dof_data.associated_nodes)) {
-      Idx node;
-      Idx dof;
-      std::tie(dof, node) = pair;
 
       dofs_per_node[node].push_back(dof);
     }
@@ -938,8 +935,7 @@ void DOFManager::updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
   dof_data.local_equation_number.reserve(dof_data.local_equation_number.size() +
                                          nb_new_local_dofs);
 
-  Int first_local_dof_id, first_global_dof_id;
-  std::tie(first_local_dof_id, first_global_dof_id) =
+  auto [first_local_dof_id, first_global_dof_id] =
       computeFirstDOFIDs(nb_new_local_dofs, nb_new_pure_local);
 
   this->dofs_flag.resize(this->local_system_size, NodeFlag::_normal);
