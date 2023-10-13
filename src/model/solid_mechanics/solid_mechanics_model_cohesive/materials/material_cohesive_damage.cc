@@ -228,6 +228,7 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
+    /// Not sure why we need connectivity here ?
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
                                                            lambda_connectivity,
@@ -387,6 +388,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
 
+    /// Not sure why we need connectivity here ?
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type, _symmetric, elem_filter);
@@ -396,7 +398,15 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     /// Do we need to assemble Klu_e
     TermsToAssemble term_ul("displacement","lambda");
 
+    auto conn_it = lambda_connectivity.begin(nb_nodes_per_element);
+    auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
+                                  spatial_dimension * nb_nodes_per_element);
+
+
     /// TODO : using lambda connectivity to properly assemble ul terms
+    for (Int el = 0; el < nb_element; ++el, ++conn_it, ++el_mat_it) {
+        std::cout << "conn_it = " << *conn_it << std::endl;
+    }
 //    for(Int i = ..., Int j = ...)
 //    {
 //        TermToAssemble term_ul_ij(i,j);
