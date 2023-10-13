@@ -248,7 +248,7 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     init_node = node;
   }
 
-  lambda = std::make_unique<Array<Real>>(0, 1, "cohesive lambda");
+  lambda = std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
 
   if (lambda) {
     mesh.getElementalData<Idx>("initial_nodes_connectivities");
@@ -262,8 +262,6 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
   } else {
     this->insertIntrinsicElements();
   }
-
-  /// TODO : INITIALIZE LAMBDA HERE
 
   AKANTU_DEBUG_OUT();
 } // namespace akantu
