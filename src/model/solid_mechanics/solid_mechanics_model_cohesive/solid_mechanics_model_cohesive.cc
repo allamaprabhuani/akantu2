@@ -253,7 +253,7 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
   if (lambda) {
     mesh.getElementalData<Idx>("initial_nodes_connectivities");
     mesh.getElementalData<Idx>("lambda_connectivities");
-    auto nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+    auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
     nodes_to_lambda.resize(mesh.getNbNodes(), -1);
   }
 
@@ -517,7 +517,8 @@ void SolidMechanicsModelCohesive::onElementsAdded(
         mesh.getElementalData<Idx>("lambda_connectivities");
 
     for (auto ghost_type : ghost_types) {
-      for (auto type : mesh.elementTypes(_element_kind = _ek_cohesive)) {
+      for (auto type : mesh.elementTypes(_element_kind = _ek_cohesive,
+                       _ghost_type = ghost_type)) {
         auto size = mesh.getConnectivity(type, ghost_type).size();
         if (not initial_nodes_connectivities.exists(type, ghost_type)) {
           auto underlying_type = Mesh::getFacetType(type);
@@ -634,7 +635,7 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
     for (auto ghost_type : ghost_types) {
       for (auto type : initial_nodes_connectivities.elementTypes(
-               _element_kind = _ek_cohesive)) {
+               _element_kind = _ek_cohesive, _ghost_type = ghost_type)) {
 
         auto & initial_nodes_connectivity =
             initial_nodes_connectivities(type, ghost_type);
@@ -656,7 +657,6 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
     }
 
     lambda->resize(lambda_id);
-    copy(*lambda); // Not sure if necessary
   }
 
   AKANTU_DEBUG_OUT();
