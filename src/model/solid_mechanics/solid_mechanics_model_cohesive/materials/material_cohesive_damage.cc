@@ -38,8 +38,8 @@ template <Int dim>
 MaterialCohesiveDamage<dim>::MaterialCohesiveDamage(SolidMechanicsModel & model,
                                                     const ID & id)
     : MaterialCohesive(model, id),
-      lambda(registerInternal<Real, CohesiveInternalField>("lambda", dim)),
-      err_openings(registerInternal<Real, CohesiveInternalField>("lambda", dim)),
+      lambda(registerInternal<Real, CohesiveInternalField>("lambda", spatial_dimension)),
+      err_openings(registerInternal<Real, CohesiveInternalField>("err_openings", spatial_dimension)),
       czm_damage(registerInternal<Real, CohesiveInternalField>("czm_damage", 1))
       {
   AKANTU_DEBUG_IN();
@@ -50,7 +50,6 @@ MaterialCohesiveDamage<dim>::MaterialCohesiveDamage(SolidMechanicsModel & model,
   this->registerParam("G_c", G_c, Real(0.), _pat_parsable | _pat_readable,
                       "Mode I fracture energy");
 
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -59,66 +58,7 @@ template <Int dim> void MaterialCohesiveDamage<dim>::initMaterial() {
     AKANTU_DEBUG_IN();
 
     MaterialCohesive::initMaterial();
-    //  lambda.initialize(dim);
 
-    //  const auto & mesh_facets = model->getMeshFacets();
-    //  for (const auto & type_facet : mesh_facets.elementTypes(dim - 1)) {
-    //    auto type_cohesive = FEEngine::getCohesiveElementType(type_facet);
-
-    //    const auto & facet_filter_array = facet_filter(type_facet);
-    //    const auto & lambda_array = lambda(type_cohesive);
-
-    //    auto nb_quad_facet =
-    //        model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
-
-    ////    for (auto && [facet, lda] :
-    ////         zip(facet_filter_array, lambda_array)) {
-
-    //////        for (Int q = 0; q < nb_quad_facet; ++q) {
-    //////            auto current_quad = facet * nb_quad_facet + q;
-    //////        }
-    ////        std::cout << " lda = " << lda << std::endl;
-    ////    }
-
-    ////    auto & dof_manager = this->model->getDOFManager();
-
-    ////    std::unique_ptr<Array<Real>> toto;
-
-    ////    dof_manager.registerDOFs("lambda", *toto, _dst_generic);
-
-    //  }
-
-//    GhostType ghost_type = _not_ghost;
-
-//    for (auto type : getElementFilter().elementTypes(spatial_dimension,
-//                                                     ghost_type, _ek_cohesive)) {
-//        auto & elem_filter = getElementFilter(type, ghost_type);
-//        auto nb_element = elem_filter.size();
-//        if (nb_element == 0) {
-//            continue;
-//        }
-
-//        auto & lambda = lambdas(type, ghost_type);
-
-//        auto lambda_it = lambda.begin(dim, 1);
-
-//        auto nb_quadrature_points =
-//                fem_cohesive.getNbIntegrationPoints(type, ghost_type);
-
-//        for (Int el = 0; el < nb_element; ++el) {
-//            auto current_quad = elem_filter(el) * nb_quadrature_points;
-
-//            for (Int q = 0; q < nb_quadrature_points; ++q, ++lambda_it) {
-
-//                //        std::cout << "lda = ",*lambda_it << std::endl;
-//            }
-//        }
-
-//        auto & dof_manager = this->model->getDOFManager();
-//        dof_manager.registerDOFs("lambdas", lambdas, _dst_generic);
-
-
-//    }
     AKANTU_DEBUG_OUT();
 }
 
