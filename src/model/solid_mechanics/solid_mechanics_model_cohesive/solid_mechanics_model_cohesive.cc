@@ -298,6 +298,13 @@ void SolidMechanicsModelCohesive::initModel() {
   AKANTU_DEBUG_ASSERT(type != _not_defined, "No elements in the mesh");
 
   this->allocNodalField(this->displacement, spatial_dimension, "displacement");
+  if (lambda) {
+      auto & dof_manager = this->getDOFManager();
+      this->allocNodalField(this->lambda, spatial_dimension, "lambda");
+      if (!dof_manager.hasDOFs("lambda")) {
+        dof_manager.registerDOFs("lambda", *this->lambda, _dst_nodal);
+      }
+  }
 
   AKANTU_DEBUG_OUT();
 }

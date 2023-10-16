@@ -144,7 +144,8 @@ void DOFManager::assembleElementalArrayToResidual(
     Real scale_factor, const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+//  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_nodes_per_element = connectivity.getNbComponent();
   auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
   Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),

@@ -102,13 +102,13 @@ protected:
   Real G_c;
 
   /// augmented lagrange multiplier
-  CohesiveInternalField<Real> lambda;
+  CohesiveInternalField<Real> & lambda;
 
   /// target opening
-  CohesiveInternalField<Real> err_openings;
+  CohesiveInternalField<Real> & err_openings;
 
   /// cohesive damage
-  CohesiveInternalField<Real> czm_damage;
+  CohesiveInternalField<Real> & czm_damage;
 
   Vector<Real, dim> normal_opening;
   Real normal_opening_norm{0.};
