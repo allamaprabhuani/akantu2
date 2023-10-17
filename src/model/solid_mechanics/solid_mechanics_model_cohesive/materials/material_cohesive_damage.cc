@@ -167,10 +167,10 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
-    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
-                                                           lambda_connectivity,
-                                                           type,ghost_type,1.,elem_filter);
+//    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
+//    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
+//                                                           lambda_connectivity,
+//                                                           type,ghost_type,1.,elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -248,13 +248,13 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     auto at_nt_duu_n_a = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_at_nt_duu_n_a, "A^t*N^t*Duu*N*A");
 
-    UInt size_nt_dll_n = spatial_dimension * nb_nodes_per_element *
-                         spatial_dimension * nb_nodes_per_element;
+    UInt size_nt_dll_n = spatial_dimension * size_of_shapes *
+                         spatial_dimension * size_of_shapes;
     auto nt_dll_n = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_nt_dll_n, "N^t*Dll*N");
 
     UInt size_at_nt_dul_n = spatial_dimension * nb_nodes_per_element *
-                            spatial_dimension * nb_nodes_per_element;
+                            spatial_dimension * size_of_shapes;
     auto at_nt_dul_n = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_at_nt_dul_n, "A^t*N^t*Dul*N");
 
@@ -265,12 +265,12 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
                        spatial_dimension * nb_nodes_per_element),
              make_view(*tangent_stiffness_matrix_uu, spatial_dimension,
                        spatial_dimension),
-             make_view(*nt_dll_n, spatial_dimension * nb_nodes_per_element,
-                       spatial_dimension * nb_nodes_per_element),
+             make_view(*nt_dll_n, spatial_dimension * size_of_shapes,
+                       spatial_dimension * size_of_shapes),
              make_view(*tangent_stiffness_matrix_ll, spatial_dimension,
                        spatial_dimension),
              make_view(*at_nt_dul_n, spatial_dimension * nb_nodes_per_element,
-                       spatial_dimension * nb_nodes_per_element),
+                       spatial_dimension * size_of_shapes),
              make_view(*shapes_filtered, size_of_shapes))) {
 
       auto && At_Nt_Duu_N_A = std::get<0>(data);
@@ -332,21 +332,62 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     /// Do we need to assemble Klu_e
     TermsToAssemble term_ul("displacement","lambda");
 
-    auto conn_it = lambda_connectivity.begin(nb_nodes_per_element);
+    auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
+    auto conn = make_view(connectivity, connectivity.getNbComponent() / 2, 2).begin();
+    auto lambda_conn = make_view(lambda_connectivity, lambda_connectivity.getNbComponent(), 1).begin();
     auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
                                   spatial_dimension * nb_nodes_per_element);
 
 
     /// TODO : using lambda connectivity to properly assemble ul terms
-    for (Int el = 0; el < nb_element; ++el, ++conn_it, ++el_mat_it) {
-        std::cout << "conn_it = " << *conn_it << std::endl;
-    }
+//    for (Int el = 0; el < nb_element; ++el, ++el_mat_it) {
+//    for (auto el = elem_filter.begin(); el < elem_filter.end(); ++el, ++el_mat_it) {
+//        auto kul_e = *el_mat_it;
+//        auto && u_conn_el = conn[el];
+//        auto && lda_conn_el = lambda_conn[el];
+//        auto M = u_conn_el.rows();
+//        auto N = lda_conn_el.rows();
+//        for (Int m = 0; m < M; ++m) {
+//            for (Int n = 0; n < N; ++n) {
+//                auto node_plus = u_conn_el(m,0);
+//                auto node_minus = u_conn_el(m,1);
+//                auto lda = lda_conn_el(n);
+//                auto term_ul_plus = term_ul(node_plus,lda);
+//                term_ul_plus = kul_e(m,n);
+//                auto term_ul_minus = term_ul(node_minus,lda);
+//                term_ul_minus = kul_e(m+M,n);
+//            }
+//        }
+//    }
+
+    auto compute = [&](const auto & el) {
+        auto kul_e = *el_mat_it;
+        auto && u_conn_el = conn[el];
+        auto && lda_conn_el = lambda_conn[el];
+        auto M = u_conn_el.rows();
+        auto N = lda_conn_el.rows();
+        for (Int m = 0; m < M; ++m) {
+            for (Int n = 0; n < N; ++n) {
+                auto node_plus = u_conn_el(m,0);
+                auto node_minus = u_conn_el(m,1);
+                auto lda = lda_conn_el(n);
+                auto term_ul_plus = term_ul(node_plus,lda);
+                term_ul_plus = kul_e(m,n);
+                auto term_ul_minus = term_ul(node_minus,lda);
+                term_ul_minus = kul_e(m+M,n);
+            }
+        }
+        ++el_mat_it;
+    };
+    for_each_element(nb_element, elem_filter, compute);
+
 //    for(Int i = ..., Int j = ...)
 //    {
 //        TermToAssemble term_ul_ij(i,j);
 //        term_ul_ij = ...
 //        term_ul(i,j) =  term_ul_ij;
 //    }
+
     model->getDOFManager().assemblePreassembledMatrix("K",term_ul);
   }
 
