@@ -159,7 +159,6 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     auto int_err_N = std::make_shared<Array<Real>>(
         nb_element, spatial_dimension * size_of_shapes, "int_err_N");
 
-    /// TODO : not sure this should be done using fem_cohesive ?
     fem_cohesive.integrate(*err_opening_cpy, *int_err_N,
                            spatial_dimension * size_of_shapes, type, ghost_type,
                            elem_filter);
@@ -168,7 +167,6 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
-    /// Not sure why we need connectivity here ?
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
                                                            lambda_connectivity,
@@ -327,14 +325,10 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
-
-    /// Not sure why we need connectivity here ?
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type, _symmetric, elem_filter);
 
-
-    /// Where do we tell TermsToAssemble to use Kul_e ???
     /// Do we need to assemble Klu_e
     TermsToAssemble term_ul("displacement","lambda");
 
