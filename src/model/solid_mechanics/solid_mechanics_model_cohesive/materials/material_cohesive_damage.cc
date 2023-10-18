@@ -167,10 +167,10 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
     model->getDOFManager().assembleElementalArrayLocalArray(
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
-//    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-//    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
-//                                                           lambda_connectivity,
-//                                                           type,ghost_type,1.,elem_filter);
+    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
+    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
+                                                           lambda_connectivity,
+                                                           type,ghost_type,1.,elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -338,28 +338,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
                                   spatial_dimension * nb_nodes_per_element);
 
-
-    /// TODO : using lambda connectivity to properly assemble ul terms
-//    for (Int el = 0; el < nb_element; ++el, ++el_mat_it) {
-//    for (auto el = elem_filter.begin(); el < elem_filter.end(); ++el, ++el_mat_it) {
-//        auto kul_e = *el_mat_it;
-//        auto && u_conn_el = conn[el];
-//        auto && lda_conn_el = lambda_conn[el];
-//        auto M = u_conn_el.rows();
-//        auto N = lda_conn_el.rows();
-//        for (Int m = 0; m < M; ++m) {
-//            for (Int n = 0; n < N; ++n) {
-//                auto node_plus = u_conn_el(m,0);
-//                auto node_minus = u_conn_el(m,1);
-//                auto lda = lda_conn_el(n);
-//                auto term_ul_plus = term_ul(node_plus,lda);
-//                term_ul_plus = kul_e(m,n);
-//                auto term_ul_minus = term_ul(node_minus,lda);
-//                term_ul_minus = kul_e(m+M,n);
-//            }
-//        }
-//    }
-
     auto compute = [&](const auto & el) {
         auto kul_e = *el_mat_it;
         auto && u_conn_el = conn[el];
@@ -380,13 +358,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         ++el_mat_it;
     };
     for_each_element(nb_element, elem_filter, compute);
-
-//    for(Int i = ..., Int j = ...)
-//    {
-//        TermToAssemble term_ul_ij(i,j);
-//        term_ul_ij = ...
-//        term_ul(i,j) =  term_ul_ij;
-//    }
 
     model->getDOFManager().assemblePreassembledMatrix("K",term_ul);
   }
