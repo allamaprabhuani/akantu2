@@ -190,7 +190,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         fem_cohesive.getNbIntegrationPoints(type, ghost_type);
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    auto & elem_filter = getElementFilter(type, ghost_type);
+    const auto & elem_filter = getElementFilter(type, ghost_type);
     auto nb_element = elem_filter.size();
 
     if (nb_element == 0U) {
@@ -334,7 +334,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
 
     auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
     auto conn = make_view(connectivity, connectivity.getNbComponent() / 2, 2).begin();
-    auto lambda_conn = make_view(lambda_connectivity, lambda_connectivity.getNbComponent(), 1).begin();
+    auto lambda_conn = make_view(lambda_connectivity, lambda_connectivity.getNbComponent()).begin();
     auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
                                   spatial_dimension * nb_nodes_per_element);
 
