@@ -59,9 +59,7 @@ public:
   void assembleInternalForces(GhostType ghost_type = _not_ghost) override;
 
 protected:
-
-  void computeLambdaOnQuad(const Array<Real> & lambda_node, Array<Real> & lambda_quad,
-                      ElementType type, GhostType ghost_type);
+  void computeLambdaOnQuad(ElementType type, GhostType ghost_type);
 
   inline decltype(auto) getArguments(ElementType element_type,
                                      GhostType ghost_type) {
