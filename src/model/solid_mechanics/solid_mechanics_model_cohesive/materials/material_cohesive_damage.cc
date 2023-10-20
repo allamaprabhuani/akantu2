@@ -383,12 +383,12 @@ void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
 
   auto && lambda_it = make_view<dim>(lambda).begin();
 
-  for (auto && [n2l, λ] :
+  for (auto && [n2l, l] :
        zip(nodes_to_lambda, make_view<dim>(lambda_on_nodes))) {
     if (n2l == -1) {
-      λ.zero();
+      l.zero();
     } else {
-      λ = lambda_it[n2l];
+      l = lambda_it[n2l];
     }
   }
 
