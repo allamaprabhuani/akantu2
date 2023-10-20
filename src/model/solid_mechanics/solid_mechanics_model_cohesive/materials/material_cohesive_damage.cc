@@ -168,9 +168,8 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
-                                                           lambda_connectivity,
-                                                           type,ghost_type,1.,elem_filter);
+    model->getDOFManager().assembleElementalArrayToResidual(
+        "lambda", *int_err_N, lambda_connectivity, 1., elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
