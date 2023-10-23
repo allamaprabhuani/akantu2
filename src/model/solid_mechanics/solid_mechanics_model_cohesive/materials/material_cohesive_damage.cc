@@ -168,9 +168,8 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
         *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
 
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    model->getDOFManager().assembleElementalArrayToResidual("lambda",*int_err_N,
-                                                           lambda_connectivity,
-                                                           type,ghost_type,1.,elem_filter);
+    model->getDOFManager().assembleElementalArrayToResidual(
+        "lambda", *int_err_N, lambda_connectivity, 1., elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -367,23 +366,41 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(const Array<Real> & lambda_nodes,
-                                      Array<Real> & lambda_quad, ElementType type,
-                                      GhostType ghost_type) {
+void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
+                                                      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & fem_cohesive =
-      this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
+      this->model->template getFEEngineClass<MyFEEngineCohesiveType>(
+          "CohesiveFEEngine");
 
-  //// TODO : THIS IS WRONG, SHOULD BE CORRECTED
-  ///         WILL REQUIRE LAMBDA CONNECTIVITY
+  const auto & mesh = model->getMesh();
+  Array<Real> lambda_on_nodes(mesh.getNbNodes(), dim, "lambda_on_nodes");
+
+  const auto & nodes_to_lambda =
+      mesh.template getNodalData<Idx>("nodes_to_lambda");
+  const auto & lambda = this->model->getLambda();
+
+  auto && lambda_it = make_view<dim>(lambda).begin();
+
+  for (auto && [n2l, l] :
+       zip(nodes_to_lambda, make_view<dim>(lambda_on_nodes))) {
+    if (n2l == -1) {
+      l.zero();
+    } else {
+      l = lambda_it[n2l];
+    }
+  }
+
+  Array<Real> & lambda_on_quad = this->lambda(type, ghost_type);
+
   tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
       [&](auto && enum_type) {
         constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         fem_cohesive.getShapeFunctions()
-            .interpolateOnIntegrationPoints<type,
-                                            CohesiveReduceFunctionOpening>(
-                lambda_nodes, lambda_quad, spatial_dimension, ghost_type,
+            .template interpolateOnIntegrationPoints<
+                type, CohesiveReduceFunctionMean>(
+                lambda_on_nodes, lambda_on_quad, dim, ghost_type,
                 this->getElementFilter(type, ghost_type));
       },
       type);
@@ -396,23 +413,23 @@ template <Int dim>
 void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
 
-    computeLambdaOnQuad(model->getLambda(),lambda(el_type, ghost_type),el_type,ghost_type);
-    for (auto && args : getArguments(el_type, ghost_type)) {
-      this->computeTractionOnQuad(args);
-    }
+  computeLambdaOnQuad(el_type, ghost_type);
+  for (auto && args : getArguments(el_type, ghost_type)) {
+    this->computeTractionOnQuad(args);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
-void MaterialCohesiveDamage<dim>::computeTangentTraction(ElementType el_type,
-                                                         Array<Real> & tangent_matrix_uu,
-                                                         Array<Real> &tangent_matrix_ll,
-                                                         GhostType ghost_type) {
+void MaterialCohesiveDamage<dim>::computeTangentTraction(
+    ElementType el_type, Array<Real> & tangent_matrix_uu,
+    Array<Real> & tangent_matrix_ll, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && [args, tangent_uu, tangent_ll] : zip(getArguments(el_type, ghost_type),
-                                     make_view<dim, dim>(tangent_matrix_uu),
-                                     make_view<dim, dim>(tangent_matrix_ll))) {
+  for (auto && [args, tangent_uu, tangent_ll] :
+       zip(getArguments(el_type, ghost_type),
+           make_view<dim, dim>(tangent_matrix_uu),
+           make_view<dim, dim>(tangent_matrix_ll))) {
     computeTangentTractionOnQuad(tangent_uu, tangent_ll, args);
   }
 

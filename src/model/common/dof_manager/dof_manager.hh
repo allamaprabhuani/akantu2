@@ -111,8 +111,7 @@ public:
    **/
   virtual void assembleElementalArrayLocalArray(
       const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
-      Real scale_factor = 1.,
+      const Array<Idx> & connectivity, Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**
@@ -132,8 +131,7 @@ public:
    **/
   virtual void assembleElementalArrayToResidual(
       const ID & dof_id, const Array<Real> & elementary_vect,
-      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
-      Real scale_factor = 1.,
+      const Array<Idx> & connectivity, Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**
@@ -152,8 +150,8 @@ public:
    */
   virtual void assembleElementalArrayToLumpedMatrix(
       const ID & dof_id, const Array<Real> & elementary_vect,
-      const ID & lumped_mtx, const Array<Idx> & connectivity, ElementType type,
-      GhostType ghost_type, Real scale_factor = 1.,
+      const ID & lumped_mtx, const Array<Idx> & connectivity,
+      Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**
