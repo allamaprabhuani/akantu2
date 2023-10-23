@@ -204,7 +204,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     Matrix<Real> A(spatial_dimension * size_of_shapes,
                    spatial_dimension * nb_nodes_per_element);
-
+    A.zero();
     for (Int i = 0; i < spatial_dimension * size_of_shapes; ++i) {
       A(i, i) = 1;
       A(i, i + spatial_dimension * size_of_shapes) = -1;
