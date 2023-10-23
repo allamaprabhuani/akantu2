@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "communicator.hh"
+#include "non_linear_solver.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "test_gtest_utils.hh"
 /* -------------------------------------------------------------------------- */
@@ -86,6 +86,13 @@ public:
     model->initFull(_analysis_method = this->analysis_method,
                     _is_extrinsic = this->is_extrinsic);
 
+    if (this->analysis_method == _implicit_dynamic) {
+      auto & solver = model->getNonLinearSolver();
+      solver.set("max_iterations", 100);
+      solver.set("threshold", 1e-7);
+      solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+    }
+
     auto time_step = this->model->getStableTimeStep() * 0.01;
     this->model->setTimeStep(time_step);
 
@@ -109,7 +116,7 @@ public:
 
     mesh->getCommunicator().allReduce(group_size, SynchronizerOperation::_sum);
 
-#define debug_ 0
+#define debug_ 1
 
 #if debug_
     auto size = mesh->getCommunicator().getNbProc();
@@ -137,11 +144,9 @@ public:
   }
 
   void setInitialCondition(const Matrix<Real> & strain) {
-    for (auto && data :
+    for (auto && [pos, disp] :
          zip(make_view(this->mesh->getNodes(), this->dim),
              make_view(this->model->getDisplacement(), this->dim))) {
-      const auto & pos = std::get<0>(data);
-      auto & disp = std::get<1>(data);
       disp = strain * pos;
     }
   }
@@ -165,16 +170,20 @@ public:
     for (auto _ [[gnu::unused]] : arange(nb_steps)) {
       this->model->applyBC(functor, "loading");
       this->model->applyBC(functor, "fixed");
+#if debug_
+      this->model->dump();
+      this->model->dump("cohesive elements");
+#endif
       if (this->is_extrinsic) {
         this->model->checkCohesiveStress();
       }
 
       this->model->solveStep();
-#if debug_
-      this->model->dump();
-      this->model->dump("cohesive elements");
-#endif
     }
+#if debug_
+    this->model->dump();
+    this->model->dump("cohesive elements");
+#endif
   }
 
   void checkInsertion() {
@@ -201,9 +210,17 @@ public:
     if (dim == 1) {
       direction = _x;
     }
+
     auto length =
         mesh->getUpperBounds()(direction) - mesh->getLowerBounds()(direction);
     nb_steps = length / speed / model->getTimeStep();
+
+    if (this->dim > 1) {
+      this->model->applyBC(BC::Dirichlet::FlagOnly(_x), "middle");
+    }
+    if (this->dim > 2) {
+      this->model->applyBC(BC::Dirichlet::FlagOnly(_z), "middle");
+    }
 
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
                  ":" + std::to_string(type_2));
@@ -227,6 +244,12 @@ public:
     strain *= sigma_c / E;
 
     this->setInitialCondition((1 - 1e-5) * strain);
+
+#if debug_
+    this->model->dump();
+    this->model->dump("cohesive elements");
+#endif
+
     this->steps(2e-2 * strain);
   }
 
@@ -251,10 +274,12 @@ public:
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
                  ":" + std::to_string(type_2));
 
-    if (this->dim > 1)
+    if (this->dim > 1) {
       this->model->applyBC(BC::Dirichlet::FlagOnly(_y), "sides");
-    if (this->dim > 2)
+    }
+    if (this->dim > 2) {
       this->model->applyBC(BC::Dirichlet::FlagOnly(_z), "sides");
+    }
 
     auto & mat_co = this->model->getMaterial("insertion");
     Real sigma_c = mat_co.get("sigma_c");
@@ -279,6 +304,12 @@ public:
     // nb_steps *= 5;
 
     this->setInitialCondition((1. - 1e-5) * strain);
+
+#if debug_
+    this->model->dump();
+    this->model->dump("cohesive elements");
+#endif
+
     this->steps(0.005 * strain);
   }
 
