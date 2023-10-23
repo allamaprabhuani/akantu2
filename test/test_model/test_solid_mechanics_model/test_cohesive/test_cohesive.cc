@@ -121,3 +121,23 @@ TYPED_TEST(TestSMMCFixture, IntrinsicModeII) {
   // if (this->dim != 3)
   this->checkDissipated(G_c);
 }
+
+TYPED_TEST(TestSMMCFixture, IntrinsicImplicitModeI) {
+  if (this->mesh->getCommunicator().getNbProc() > 1 and this->dim == 1) {
+    SUCCEED();
+    return;
+  }
+  getStaticParser().parse("material_1.dat");
+  this->is_extrinsic = false;
+  this->analysis_method = _implicit_dynamic;
+
+  this->testModeI();
+
+  this->checkInsertion();
+
+  auto & mat_co = this->model->getMaterial("insertion");
+  Real G_c = mat_co.get("G_c");
+
+  // if (this->dim != 3)
+  this->checkDissipated(G_c);
+}
