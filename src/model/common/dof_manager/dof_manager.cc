@@ -148,9 +148,10 @@ void DOFManager::assembleElementalArrayToResidual(
   auto nb_nodes_per_element = connectivity.getNbComponent();
   auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
-  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
-                                      nb_degree_of_freedom);
+  auto & dof_data = this->getDOFData(dof_id);
 
+  Array<Real> array_localy_assembeled(dof_data.dof->size(),
+                                      nb_degree_of_freedom);
   array_localy_assembeled.zero();
 
   this->assembleElementalArrayLocalArray(elementary_vect,
@@ -182,7 +183,9 @@ void DOFManager::assembleElementalArrayToLumpedMatrix(
   auto nb_nodes_per_element = connectivity.getNbComponent();
   auto nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
-  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
+  auto & dof_data = this->getDOFData(dof_id);
+
+  Array<Real> array_localy_assembeled(dof_data.dof->size(),
                                       nb_degree_of_freedom);
 
   array_localy_assembeled.zero();
