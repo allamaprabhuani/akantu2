@@ -42,6 +42,7 @@
 #include <material_cohesive_bilinear.hh>
 #include <material_cohesive_linear.hh>
 #include <material_cohesive_linear_friction.hh>
+#include <material_cohesive_linear_friction_CTO.hh>
 #include <solid_mechanics_model_cohesive.hh>
 #endif
 #include <material_elastic.hh>
@@ -70,6 +71,10 @@ namespace {
     bool hasStiffnessMatrixChanged() override {
       // NOLINTNEXTLINE
       PYBIND11_OVERRIDE(bool, _Material, hasStiffnessMatrixChanged, );
+    };
+    void savePreviousState() override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, savePreviousState, );
     };
     void computeStress(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override {
@@ -176,6 +181,32 @@ namespace {
                         tangent_matrix, normal, ghost_type);
     }
 
+    // void computeNormal(const Array<Real> & position, Array<Real> & normal,
+    //                    ElementType type, GhostType ghost_type) override {
+    //   // NOLINTNEXTLINE
+    //   PYBIND11_OVERRIDE(void, _Material, computeNormal, position, normal,
+    //   type,
+    //                     ghost_type);
+    // }
+
+    // void computeOpening(const Array<Real> & displacement, Array<Real> &
+    // opening,
+    //                     ElementType type, GhostType ghost_type) override {
+    //   // NOLINTNEXTLINE
+    //   PYBIND11_OVERRIDE(void, _Material, computeOpening, displacement,
+    //   opening,
+    //                     type, ghost_type);
+    // }
+
+    void checkPenetration(const Array<Real> & opening,
+                          const Array<Real> & normal,
+                          Array<bool> & penetrations, ElementType el_type,
+                          GhostType ghost_type = _not_ghost) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, checkPenetration, opening, normal,
+                        penetrations, el_type, ghost_type);
+    }
+
     void computeStress(ElementType /*el_type*/,
                        GhostType /*ghost_type*/ = _not_ghost) final {}
 
@@ -219,6 +250,28 @@ namespace {
       PYBIND11_OVERRIDE(void, _Material, computeTangentTraction, el_type,
                         tangent_matrix, normal, ghost_type);
     }
+
+    void checkPenetration(const Array<Real> & opening,
+                          const Array<Real> & normal,
+                          Array<bool> & penetrations, ElementType el_type,
+                          GhostType ghost_type = _not_ghost) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, checkPenetration, opening, normal,
+                        penetrations, el_type, ghost_type);
+    }
+    void computeNormal(const Array<Real> & position, Array<Real> & normal,
+                       ElementType type, GhostType ghost_type) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, computeNormal, position, normal, type,
+                        ghost_type);
+    }
+
+    void computeOpening(const Array<Real> & displacement, Array<Real> & opening,
+                        ElementType type, GhostType ghost_type) override {
+      // NOLINTNEXTLINE
+      PYBIND11_OVERRIDE(void, _Material, computeOpening, displacement, opening,
+                        type, ghost_type);
+    }
   };
 
   template <typename _Material>
@@ -255,15 +308,37 @@ namespace {
                           self)
                    .computeTraction(normal, el_type, ghost_type);
              })
-        .def("computeTangentTraction", [](_Material & self, ElementType el_type,
-                                          Array<Real> & tangent_matrix,
-                                          const Array<Real> & normal,
-                                          GhostType ghost_type) {
+        .def("computeTangentTraction",
+             [](_Material & self, ElementType el_type,
+                Array<Real> & tangent_matrix, const Array<Real> & normal,
+                GhostType ghost_type) {
+               return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(
+                          self)
+                   .computeTangentTraction(el_type, tangent_matrix, normal,
+                                           ghost_type);
+             })
+        .def("checkPenetration",
+             [](_Material & self, const Array<Real> & opening,
+                const Array<Real> & normal, Array<bool> & penetrations,
+                ElementType el_type, GhostType ghost_type) {
+               return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(
+                          self)
+                   .checkPenetration(opening, normal, penetrations, el_type,
+                                     ghost_type);
+             })
+        .def("computeOpening",
+             [](_Material & self, const Array<Real> & displacement,
+                Array<Real> & opening, ElementType type, GhostType ghost_type) {
+               return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(
+                          self)
+                   .computeOpening(displacement, opening, type, ghost_type);
+             })
+        .def("computeNormal", [](_Material & self, const Array<Real> & position,
+                                 Array<Real> & normal, ElementType type,
+                                 GhostType ghost_type) {
           return dynamic_cast<PyMaterialCohesiveDaughters<_Material> &>(self)
-              .computeTangentTraction(el_type, tangent_matrix, normal,
-                                      ghost_type);
+              .computeNormal(position, normal, type, ghost_type);
         });
-
     ;
   }
 
@@ -366,6 +441,12 @@ void register_material(py::module & mod) {
           },
           py::arg("id"), py::return_value_policy::reference)
       .def(
+          "getInternalBool",
+          [](Material & self, const ID & id) -> decltype(auto) {
+            return self.getInternal<bool>(id);
+          },
+          py::arg("id"), py::return_value_policy::reference)
+      .def(
           "getInternalRealPrevious",
           [](Material & self, const ID & id) -> decltype(auto) {
             return self.getInternal<Real>(id).previous();
@@ -419,6 +500,7 @@ void register_material(py::module & mod) {
       .def("getPushWaveSpeed", &Material::getPushWaveSpeed)
       .def("getShearWaveSpeed", &Material::getShearWaveSpeed)
       .def("hasStiffnessMatrixChanged", &Material::hasStiffnessMatrixChanged)
+      .def("savePreviousState", &Material::savePreviousState)
       .def("__repr__", [](Material & self) {
         std::stringstream sstr;
         sstr << self;
@@ -467,6 +549,14 @@ void register_material(py::module & mod) {
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
           py::return_value_policy::reference)
       .def(
+          "getPenetration",
+          [](MaterialCohesive & self, ElementType type,
+             GhostType ghost_type) -> decltype(auto) {
+            return self.getPenetration(type, ghost_type);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
           "getTraction",
           [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
               -> decltype(auto) { return self.getTraction(type, ghost_type); },
@@ -502,11 +592,32 @@ void register_material(py::module & mod) {
           "computeNormal",
           [](MaterialCohesive & self, const Array<Real> & position,
              Array<Real> & normal, ElementType type, GhostType ghost_type) {
-            self.computeNormal(position, normal, type, ghost_type);
+            return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                .computeNormal(position, normal, type, ghost_type);
           },
           py::arg("position"), py::arg("normal"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost)
-      .def("getNormalsAtQuads", &MaterialCohesive::getNormalsAtQuads);
+      .def("getNormalsAtQuads", &MaterialCohesive::getNormalsAtQuads)
+      .def(
+          "computeOpening",
+          [](MaterialCohesive & self, const Array<Real> & displacement,
+             Array<Real> & opening, ElementType type, GhostType ghost_type) {
+            return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                .computeOpening(displacement, opening, type, ghost_type);
+          },
+          py::arg("displacement"), py::arg("opening"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost)
+      .def(
+          "checkPenetration",
+          [](MaterialCohesive & self, const Array<Real> & opening,
+             const Array<Real> & normal, Array<bool> & penetrations,
+             ElementType el_type, GhostType ghost_type) {
+            return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
+                .checkPenetration(opening, normal, penetrations, el_type,
+                                  ghost_type);
+          },
+          py::arg("opening"), py::arg("normal"), py::arg("penetrations"),
+          py::arg("el_type"), py::arg("ghost_type") = _not_ghost);
 
   register_material_cohesive_classes<MaterialCohesiveLinear<2>>(
       mod, "MaterialCohesiveLinear2D");
@@ -520,6 +631,8 @@ void register_material(py::module & mod) {
       mod, "MaterialCohesiveLinearFriction2D");
   register_material_cohesive_classes<MaterialCohesiveLinearFriction<3>>(
       mod, "MaterialCohesiveLinearFriction3D");
+  register_material_cohesive_classes<MaterialCohesiveLinearFrictionCTO<3>>(
+      mod, "MaterialCohesiveLinearFrictionCTO3D");
 #endif
 }
 
