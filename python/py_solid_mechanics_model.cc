@@ -132,7 +132,12 @@ void register_solid_mechanics_model(py::module & mod) {
              UInt release = self.getDisplacementRelease();
              return self.setDisplacementRelease(release + 1);
            })
-      .def_function(assembleStiffnessMatrix)
+      .def(
+          "assembleStiffnessMatrix",
+          [](SolidMechanicsModel & self, bool need_to_reassemble) {
+            self.assembleStiffnessMatrix(need_to_reassemble);
+          },
+          py::arg("need_to_reassemble") = false)
       .def_function(assembleInternalForces)
       .def_function(assembleMass)
       .def_function(assembleMassLumped)
@@ -141,6 +146,7 @@ void register_solid_mechanics_model(py::module & mod) {
       .def_function_nocopy(getDisplacement)
       .def_function_nocopy(getPreviousDisplacement)
       .def_function_nocopy(getCurrentPosition)
+      .def_function(updateCurrentPosition)
       .def_function_nocopy(getIncrement)
       .def_function_nocopy(getMass)
       .def_function_nocopy(getVelocity)

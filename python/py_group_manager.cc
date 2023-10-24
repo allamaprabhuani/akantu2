@@ -92,6 +92,12 @@ void register_group_manager(py::module & mod) {
           },
           py::return_value_policy::reference)
       .def(
+          "getElements",
+          [](ElementGroup & self, ElementType & type, GhostType & ghost_type)
+              -> decltype(auto) { return self.getElements(type, ghost_type); },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
           "getNodeGroup",
           [](ElementGroup & self) -> decltype(auto) {
             return self.getNodeGroup();
