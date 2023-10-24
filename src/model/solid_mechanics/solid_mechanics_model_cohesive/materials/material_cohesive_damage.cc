@@ -328,7 +328,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     auto conn = make_view(connectivity, connectivity.getNbComponent() / 2, 2).begin();
     auto lambda_conn = make_view(lambda_connectivity, lambda_connectivity.getNbComponent()).begin();
     auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
-                                  spatial_dimension * nb_nodes_per_element);
+                                  spatial_dimension * size_of_shapes);
 
     auto compute = [&](const auto & el) {
         auto kul_e = *el_mat_it;
@@ -341,10 +341,13 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
                 auto node_plus = u_conn_el(m,0);
                 auto node_minus = u_conn_el(m,1);
                 auto lda = lda_conn_el(n);
-                auto term_ul_plus = term_ul(node_plus,lda);
-                term_ul_plus = kul_e(m,n);
-                auto term_ul_minus = term_ul(node_minus,lda);
-                term_ul_minus = kul_e(m+M,n);
+                for (Int k = 0; k < spatial_dimension; ++k)
+                {
+                    auto term_ul_plus = term_ul(node_plus*spatial_dimension+k,lda*spatial_dimension+k);
+                    term_ul_plus = kul_e(m,n);
+                    auto term_ul_minus = term_ul(node_minus*spatial_dimension+k,lda*spatial_dimension+k);
+                    term_ul_minus = kul_e(m+M,n);
+                }
             }
         }
         ++el_mat_it;
